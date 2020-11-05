@@ -21,6 +21,12 @@ type IClient interface {
 	// StandardClient returns a stdlib *http.Client with a custom Transport, which
 	// shims in a *retryablehttp.Client for added retries.
 	StandardClient() *http.Client
+	// Perform a PUT request.
+	Put(url string, rawBody interface{}) (*http.Response, error)
+	// Perform a DELETE request.
+	Delete(url string) (*http.Response, error)
+	// Perform a generic request with exponential backoff
+	Do(req *http.Request) (*http.Response, error)
 }
 
 type RetryableClient struct {
