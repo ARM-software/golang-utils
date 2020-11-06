@@ -15,6 +15,7 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/google/go-cmp v0.4.0
 	github.com/graymeta/stow v0.2.6
+	github.com/hashicorp/go-retryablehttp v0.6.8
 	github.com/joho/godotenv v1.3.0
 	github.com/lib/pq v1.3.0
 	github.com/mitchellh/hashstructure v1.0.0
