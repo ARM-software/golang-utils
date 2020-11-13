@@ -26,6 +26,7 @@ require (
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.5.1
 	go.uber.org/atomic v1.6.0
+	golang.org/x/net v0.0.0-20200822124328-c89045814202
 	golang.org/x/tools v0.0.0-20200913032122-97363e29fc9b // indirect
 	gorm.io/driver/postgres v1.0.2
 	gorm.io/gorm v1.20.2
