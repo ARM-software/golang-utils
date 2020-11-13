@@ -9,6 +9,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.13.1
 	github.com/avast/retry-go v2.6.0+incompatible
 	github.com/bmatcuk/doublestar/v2 v2.0.0
+	github.com/djherbis/times v1.2.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.2.2
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/golang/mock v1.4.4
