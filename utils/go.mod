@@ -19,7 +19,9 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.6.8
 	github.com/joho/godotenv v1.3.0
 	github.com/lib/pq v1.3.0
+	github.com/magiconair/properties v1.8.1
 	github.com/mitchellh/hashstructure v1.0.0
+	github.com/mitchellh/mapstructure v1.1.2
 	github.com/pelletier/go-toml v1.4.0
 	github.com/rs/zerolog v1.19.0
 	github.com/shirou/gopsutil v2.20.6+incompatible
