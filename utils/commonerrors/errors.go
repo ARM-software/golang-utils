@@ -15,4 +15,6 @@ var (
 	ErrNotFound           = errors.New("not found")
 	ErrUnsupported        = errors.New("unsupported")
 	ErrUnavailable        = errors.New("unavailable")
+	ErrWrongUser          = errors.New("wrong user")
+	ErrUnknown            = errors.New("unknown")
 )
