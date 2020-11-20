@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"sync"
 
-	"github.com/ARMmbed/build-service-common/common/logs"
+	"github.com/ARMmbed/golang-utils/utils/logs"
 )
 
 type logStreamer struct {

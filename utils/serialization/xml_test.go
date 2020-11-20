@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/ARMmbed/build-service-common/common/filesystem"
+	"github.com/ARMmbed/golang-utils/utils/filesystem"
 
 	"github.com/stretchr/testify/assert"
 )

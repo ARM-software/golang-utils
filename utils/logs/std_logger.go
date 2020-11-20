@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/ARMmbed/build-service-common/common/platform"
+	"github.com/ARMmbed/golang-utils/utils/platform"
 )
 
 type StdWriter struct {

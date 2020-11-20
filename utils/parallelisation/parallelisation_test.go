@@ -9,7 +9,7 @@ import (
 
 	"go.uber.org/atomic"
 
-	"github.com/ARMmbed/build-service-common/common/commonerrors"
+	"github.com/ARMmbed/golang-utils/utils/commonerrors"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
