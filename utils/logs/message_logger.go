@@ -6,7 +6,7 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"github.com/ARMmbed/build-service-common/common/commonerrors"
+	"github.com/ARMmbed/golang-utils/utils/commonerrors"
 )
 
 // Definition of JSON message loggers

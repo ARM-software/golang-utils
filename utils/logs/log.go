@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ARMmbed/build-service-common/common/commonerrors"
+	"github.com/ARMmbed/golang-utils/utils/commonerrors"
 )
 
 type Loggers interface {

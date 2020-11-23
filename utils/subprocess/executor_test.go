@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ARMmbed/build-service-common/common/logs"
-	"github.com/ARMmbed/build-service-common/common/platform"
+	"github.com/ARMmbed/golang-utils/utils/logs"
+	"github.com/ARMmbed/golang-utils/utils/platform"
 )
 
 func TestExecute(t *testing.T) {
