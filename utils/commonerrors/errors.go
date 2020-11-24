@@ -17,4 +17,6 @@ var (
 	ErrUnavailable        = errors.New("unavailable")
 	ErrWrongUser          = errors.New("wrong user")
 	ErrUnknown            = errors.New("unknown")
+	ErrInvalid            = errors.New("invalid")
+	ErrConflict           = errors.New("conflict")
 )
