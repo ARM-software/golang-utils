@@ -10,12 +10,17 @@ require (
 	github.com/bmatcuk/doublestar/v2 v2.0.0
 	github.com/cloudevents/sdk-go/v2 v2.3.1
 	github.com/djherbis/times v1.2.0
+	github.com/go-ozzo/ozzo-validation/v4 v4.2.2
 	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/golang/mock v1.4.4
 	github.com/hashicorp/go-retryablehttp v0.6.8
+	github.com/joho/godotenv v1.3.0
+	github.com/magiconair/properties v1.8.1
+	github.com/mitchellh/mapstructure v1.1.2
 	github.com/rs/zerolog v1.19.0
 	github.com/shirou/gopsutil v2.20.6+incompatible
 	github.com/spf13/afero v1.3.3
+	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.5.1
 	go.uber.org/atomic v1.6.0
 	golang.org/x/net v0.0.0-20200822124328-c89045814202
