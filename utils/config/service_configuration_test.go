@@ -12,11 +12,11 @@ import (
 )
 
 type DummyConfiguration struct {
-	Host string `mapstructure:"host"`
-	Port int `mapstructure:"port"`
-	DB string `mapstructure:"db"`
-	User string `mapstructure:"user"`
-	Password string `mapstructure:"password"`
+	Host              string        `mapstructure:"host"`
+	Port              int           `mapstructure:"port"`
+	DB                string        `mapstructure:"db"`
+	User              string        `mapstructure:"user"`
+	Password          string        `mapstructure:"password"`
 	HealthCheckPeriod time.Duration `mapstructure:"healthcheck_period"`
 }
 
@@ -45,10 +45,10 @@ var (
 )
 
 type ConfigurationTest struct {
-	TestString string                `mapstructure:"build_artefact_dir"`
-	TestInt    int                   `mapstructure:"cmsis_build_default_timeout"` // How long a build is allowed to queue
-	TestTime   time.Duration         `mapstructure:"default_build_ttl"`           // How long a build is kept around for
-	TestConfig DummyConfiguration 	 `mapstructure:"dummyconfig"`
+	TestString string             `mapstructure:"build_artefact_dir"`
+	TestInt    int                `mapstructure:"cmsis_build_default_timeout"` // How long a build is allowed to queue
+	TestTime   time.Duration      `mapstructure:"default_build_ttl"`           // How long a build is kept around for
+	TestConfig DummyConfiguration `mapstructure:"dummyconfig"`
 }
 
 func (cfg *ConfigurationTest) Validate() error {
