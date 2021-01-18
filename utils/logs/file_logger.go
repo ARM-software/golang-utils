@@ -35,7 +35,7 @@ func (l *FileLoggers) Close() (err error) {
 	return
 }
 
-// Creates a logger to standard output/error
+// Creates a logger to a file
 func CreateFileLogger(logFile string, loggerSource string) (loggers Loggers, err error) {
 	file, err := os.OpenFile(logFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
