@@ -19,4 +19,5 @@ var (
 	ErrUnknown            = errors.New("unknown")
 	ErrInvalid            = errors.New("invalid")
 	ErrConflict           = errors.New("conflict")
+	ErrMarshalling        = errors.New("unserialisable")
 )
