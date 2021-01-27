@@ -1,6 +1,6 @@
 module github.com/ARMmbed/golang-utils/utils
 
-go 1.14
+go 1.15
 
 require (
 	github.com/bmatcuk/doublestar/v2 v2.0.0
