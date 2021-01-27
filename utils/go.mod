@@ -18,7 +18,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.20.12
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/afero v1.3.3
-	github.com/spf13/viper v1.7.0
+	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/atomic v1.7.0
 	golang.org/x/net v0.0.0-20200822124328-c89045814202
