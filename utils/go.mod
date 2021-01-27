@@ -16,7 +16,7 @@ require (
 	github.com/pelletier/go-toml v1.4.0 // indirect
 	github.com/rs/zerolog v1.20.0
 	github.com/shirou/gopsutil/v3 v3.20.12
-	github.com/sirupsen/logrus v1.2.0
+	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/afero v1.3.3
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.6.1
