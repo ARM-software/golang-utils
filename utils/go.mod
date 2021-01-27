@@ -17,12 +17,11 @@ require (
 	github.com/rs/zerolog v1.20.0
 	github.com/shirou/gopsutil/v3 v3.20.12
 	github.com/sirupsen/logrus v1.7.0
-	github.com/spf13/afero v1.3.3
+	github.com/spf13/afero v1.5.1
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/atomic v1.7.0
 	golang.org/x/net v0.0.0-20200822124328-c89045814202
-	golang.org/x/text v0.3.3 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
