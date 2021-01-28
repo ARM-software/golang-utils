@@ -1,6 +1,9 @@
 package commonerrors
 
-import "errors"
+import (
+	"context"
+	"errors"
+)
 
 var (
 	ErrNotImplemented     = errors.New("not implemented")
@@ -39,4 +42,19 @@ func None(target error, err ...error) bool {
 		}
 	}
 	return true
+}
+
+// Determines what the context error is if any.
+func DetermineContextError(ctx context.Context) error {
+	err := ctx.Err()
+	if err == nil {
+		return nil
+	}
+	if Any(err, context.Canceled) {
+		return ErrCancelled
+	}
+	if Any(err, context.DeadlineExceeded) {
+		return ErrTimeout
+	}
+	return err
 }
