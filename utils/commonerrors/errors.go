@@ -20,4 +20,23 @@ var (
 	ErrInvalid            = errors.New("invalid")
 	ErrConflict           = errors.New("conflict")
 	ErrMarshalling        = errors.New("unserialisable")
+	ErrCancelled          = errors.New("cancelled")
 )
+
+func Any(target error, err ...error) bool {
+	for _, e := range err {
+		if errors.Is(e, target) || errors.Is(target, e) {
+			return true
+		}
+	}
+	return false
+}
+
+func None(target error, err ...error) bool {
+	for _, e := range err {
+		if errors.Is(e, target) || errors.Is(target, e) {
+			return false
+		}
+	}
+	return true
+}
