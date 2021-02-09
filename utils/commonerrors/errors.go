@@ -45,9 +45,8 @@ func None(target error, err ...error) bool {
 	return true
 }
 
-// Determines what the context error is if any.
-func DetermineContextError(ctx context.Context) error {
-	err := ctx.Err()
+// Converts a context error into common errors.
+func ConvertContextError(err error) error {
 	if err == nil {
 		return nil
 	}

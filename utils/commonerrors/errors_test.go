@@ -42,7 +42,7 @@ func TestContextErrorConversion(t *testing.T) {
 	time.Sleep(time.Second * 3)
 	cancelFunc()
 	time.Sleep(time.Second * 1)
-	err := DetermineContextError(cancelCtx)
+	err := ConvertContextError(cancelCtx.Err())
 	require.NotNil(t, err)
 	assert.True(t, Any(err, ErrTimeout, ErrCancelled))
 }

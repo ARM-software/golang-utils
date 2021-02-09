@@ -3,10 +3,16 @@ package parallelisation
 import (
 	"context"
 	"reflect"
+	"sync"
 	"time"
 
 	"github.com/ARMmbed/golang-utils/utils/commonerrors"
 )
+
+// Determines what the context error is if any.
+func DetermineContextError(ctx context.Context) error {
+	return commonerrors.ConvertContextError(ctx.Err())
+}
 
 type result struct {
 	Item interface{}
@@ -98,4 +104,76 @@ func RunActionWithTimeout(blockingAction func(stop chan bool) error, timeout tim
 		<-channel
 	}
 	return
+}
+
+// Runs an action with timeout
+func RunActionWithTimeoutAndContext(ctx context.Context, timeout time.Duration, blockingAction func(ctx context.Context) error) error {
+	timeoutContext, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	channel := make(chan error, 1)
+	go func() {
+		channel <- blockingAction(timeoutContext)
+	}()
+
+	err := <-channel
+	err2 := DetermineContextError(timeoutContext)
+	if err2 != nil {
+		return err2
+	}
+	return err
+}
+
+type CancelFunctionStore struct {
+	mu              sync.RWMutex
+	cancelFunctions []context.CancelFunc
+}
+
+func (s *CancelFunctionStore) RegisterCancelFunction(cancel ...context.CancelFunc) {
+	defer s.mu.Unlock()
+	s.mu.Lock()
+	s.cancelFunctions = append(s.cancelFunctions, cancel...)
+}
+
+func (s *CancelFunctionStore) Cancel() {
+	defer s.mu.RUnlock()
+	s.mu.RLock()
+	for _, c := range s.cancelFunctions {
+		c()
+	}
+}
+
+func NewCancelFunctionsStore() *CancelFunctionStore {
+	return &CancelFunctionStore{
+		cancelFunctions: []context.CancelFunc{},
+	}
+}
+
+// Runs an action with a check in parallel
+// The function performing the check should return true if the check was favorable. false otherwise, if the check did not have the expected result and the whole function should be cancelled.
+func RunActionWithParallelCheck(ctx context.Context, action func(ctx context.Context) error, checkAction func(ctx context.Context) bool, checkPeriod time.Duration) error {
+	cancelStore := NewCancelFunctionsStore()
+	defer cancelStore.Cancel()
+	cancellableCtx, cancelFunc := context.WithCancel(ctx)
+	cancelStore.RegisterCancelFunction(cancelFunc)
+	go func(ctx context.Context, store *CancelFunctionStore) {
+		for {
+			select {
+			case <-ctx.Done():
+				store.Cancel()
+				return
+			default:
+				if !checkAction(ctx) {
+					store.Cancel()
+					return
+				}
+				time.Sleep(checkPeriod)
+			}
+		}
+	}(cancellableCtx, cancelStore)
+	err := action(cancellableCtx)
+	err2 := DetermineContextError(cancellableCtx)
+	if err2 != nil {
+		return err2
+	}
+	return err
 }
