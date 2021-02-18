@@ -9,11 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ARMmbed/golang-utils/utils/commonerrors"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
+
+	"github.com/ARMmbed/golang-utils/utils/commonerrors"
 )
 
 func TestParallelisationWithResults(t *testing.T) {

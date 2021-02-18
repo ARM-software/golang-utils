@@ -84,7 +84,7 @@ func TestClient_Get_Fail_Timeout(t *testing.T) {
 	go func() {
 		defer close(doneCh)
 		var err error
-		resp, err = NewRetryableClient().Get("http://127.0.0.1:28935/foo/bar")
+		resp, err = NewRetryableClient().Get("http://127.0.0.1:28935/foo/bar") //nolint:bodyclose // False Positive: Is closed below
 		if err != nil {
 			errs <- err
 		} else {

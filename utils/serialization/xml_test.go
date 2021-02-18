@@ -4,11 +4,10 @@ import (
 	"path"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARMmbed/golang-utils/utils/filesystem"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestUnmarshalAttr(t *testing.T) {

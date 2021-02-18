@@ -8,11 +8,11 @@ import (
 	"os/exec"
 	"sync"
 
+	"go.uber.org/atomic"
+
 	"github.com/ARMmbed/golang-utils/utils/commonerrors"
 	"github.com/ARMmbed/golang-utils/utils/logs"
 	"github.com/ARMmbed/golang-utils/utils/parallelisation"
-
-	"go.uber.org/atomic"
 )
 
 type logStreamer struct {

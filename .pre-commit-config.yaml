@@ -1,9 +1,11 @@
+repos:
 - repo: local
   hooks:
-    - id: goimports
-      name: goimports
-      description: "Runs goimports, requires golang"
-      entry: goimports -l -w -e -local 'github.com/ARMmbed'
-      language: system
-      types: [go]
-      require_serial: true
+  - id: golangci-lint
+    name: golangci-lint
+    description: Fast linters runner for Go.
+    # Disabling Go module support is necessary to avoid it complaining about a missing go.mod file in the root
+    entry: env GO111MODULE=off golangci-lint run --config=.golangci.pre-commit.yaml ./...
+    language: system
+    types: [go]
+    pass_filenames: false
