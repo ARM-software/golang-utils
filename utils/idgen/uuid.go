@@ -10,3 +10,8 @@ func GenerateUuid4() (string, error) {
 	}
 	return uuid.String(), nil
 }
+
+func IsValidUUID(u string) bool {
+	_, err := uuid.FromString(u)
+	return err == nil
+}

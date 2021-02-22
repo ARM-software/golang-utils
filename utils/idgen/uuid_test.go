@@ -23,3 +23,13 @@ func TestUuidLength(t *testing.T) {
 
 	assert.Equal(t, 36, len(uuid))
 }
+
+func TestInvalidUUID(t *testing.T) {
+	id := "1"
+	require.False(t, IsValidUUID(id))
+}
+
+func TestValidUUID(t *testing.T) {
+	id := "5a4b6bb3-0bd3-4c4e-ba4c-45658cca4289"
+	require.True(t, IsValidUUID(id))
+}
