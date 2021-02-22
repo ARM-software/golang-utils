@@ -3,7 +3,6 @@ package parallelisation
 import (
 	"context"
 	"reflect"
-	"sync"
 	"time"
 
 	"github.com/ARMmbed/golang-utils/utils/commonerrors"
@@ -121,31 +120,6 @@ func RunActionWithTimeoutAndContext(ctx context.Context, timeout time.Duration, 
 		return err2
 	}
 	return err
-}
-
-type CancelFunctionStore struct {
-	mu              sync.RWMutex
-	cancelFunctions []context.CancelFunc
-}
-
-func (s *CancelFunctionStore) RegisterCancelFunction(cancel ...context.CancelFunc) {
-	defer s.mu.Unlock()
-	s.mu.Lock()
-	s.cancelFunctions = append(s.cancelFunctions, cancel...)
-}
-
-func (s *CancelFunctionStore) Cancel() {
-	defer s.mu.RUnlock()
-	s.mu.RLock()
-	for _, c := range s.cancelFunctions {
-		c()
-	}
-}
-
-func NewCancelFunctionsStore() *CancelFunctionStore {
-	return &CancelFunctionStore{
-		cancelFunctions: []context.CancelFunc{},
-	}
 }
 
 // Runs an action with a check in parallel
