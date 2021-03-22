@@ -15,6 +15,7 @@ var (
 	ErrInvalidDestination = errors.New("invalid destination")
 	ErrTimeout            = errors.New("timeout")
 	ErrLocked             = errors.New("locked")
+	ErrExists             = errors.New("already exists")
 	ErrNotFound           = errors.New("not found")
 	ErrUnsupported        = errors.New("unsupported")
 	ErrUnavailable        = errors.New("unavailable")
