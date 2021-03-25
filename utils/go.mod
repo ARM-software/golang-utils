@@ -10,7 +10,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.6.8
 	github.com/joho/godotenv v1.3.0
 	github.com/kr/text v0.2.0 // indirect
-	github.com/magiconair/properties v1.8.4
+	github.com/magiconair/properties v1.8.5
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pelletier/go-toml v1.4.0 // indirect
