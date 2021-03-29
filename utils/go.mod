@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/bmatcuk/doublestar/v2 v2.0.4
-	github.com/djherbis/times v1.2.0
+	github.com/djherbis/times v1.4.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/gofrs/uuid v3.4.0+incompatible
 	github.com/hashicorp/go-retryablehttp v0.6.8
