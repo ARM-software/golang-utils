@@ -3,6 +3,7 @@ module github.com/ARMmbed/golang-utils/utils
 go 1.15
 
 require (
+	github.com/OneOfOne/xxhash v1.2.2
 	github.com/bmatcuk/doublestar/v2 v2.0.4
 	github.com/djherbis/times v1.4.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
@@ -17,6 +18,7 @@ require (
 	github.com/rs/zerolog v1.21.0
 	github.com/shirou/gopsutil/v3 v3.21.2
 	github.com/sirupsen/logrus v1.8.1
+	github.com/spaolacci/murmur3 v1.1.0
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
