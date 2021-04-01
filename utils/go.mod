@@ -3,7 +3,7 @@ module github.com/ARMmbed/golang-utils/utils
 go 1.15
 
 require (
-	github.com/OneOfOne/xxhash v1.2.2
+	github.com/OneOfOne/xxhash v1.2.8
 	github.com/bmatcuk/doublestar/v2 v2.0.4
 	github.com/djherbis/times v1.4.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
