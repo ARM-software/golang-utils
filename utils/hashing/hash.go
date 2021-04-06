@@ -76,7 +76,11 @@ func NewHashingAlgorithm(htype string) (IHash, error) {
 }
 
 func CalculateMD5Hash(text string) string {
-	hashing, err := NewHashingAlgorithm(HashMd5)
+	return CalculateHash(text, HashMd5)
+}
+
+func CalculateHash(text, htype string) string {
+	hashing, err := NewHashingAlgorithm(htype)
 	if err != nil {
 		return ""
 	}
