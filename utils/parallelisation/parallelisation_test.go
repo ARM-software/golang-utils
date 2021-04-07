@@ -158,6 +158,7 @@ func testTimeoutWithContext(t *testing.T, ctx context.Context) {
 	}
 	assert.True(t, isrunning.Load())
 	err := RunActionWithTimeoutAndContext(ctx, 10*time.Millisecond, blockingAction)
+	require.Nil(t, DetermineContextError(ctx))
 	require.NotNil(t, err)
 	assert.True(t, errors.Is(err, commonerrors.ErrTimeout))
 	assert.False(t, isrunning.Load())
@@ -172,6 +173,7 @@ func testTimeoutWithContext(t *testing.T, ctx context.Context) {
 	}
 	assert.True(t, isrunning.Load())
 	err = RunActionWithTimeoutAndContext(ctx, 10*time.Millisecond, blockingAction2)
+	require.Nil(t, DetermineContextError(ctx))
 	require.NotNil(t, err)
 	assert.True(t, errors.Is(err, commonerrors.ErrTimeout))
 	assert.False(t, isrunning.Load())
@@ -184,6 +186,7 @@ func testTimeoutWithContext(t *testing.T, ctx context.Context) {
 	}
 	assert.True(t, isrunning.Load())
 	err = RunActionWithTimeoutAndContext(ctx, 10*time.Millisecond, nonblockingAction)
+	require.Nil(t, DetermineContextError(ctx))
 	require.Nil(t, err)
 	assert.False(t, isrunning.Load())
 
@@ -196,6 +199,7 @@ func testTimeoutWithContext(t *testing.T, ctx context.Context) {
 	}
 	assert.True(t, isrunning.Load())
 	err = RunActionWithTimeoutAndContext(ctx, 10*time.Millisecond, failingnonblockingAction)
+	require.Nil(t, DetermineContextError(ctx))
 	require.NotNil(t, err)
 	assert.True(t, errors.Is(err, anError))
 	assert.False(t, isrunning.Load())

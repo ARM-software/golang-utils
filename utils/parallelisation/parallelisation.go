@@ -106,9 +106,17 @@ func RunActionWithTimeout(blockingAction func(stop chan bool) error, timeout tim
 }
 
 // Runs an action with timeout
-func RunActionWithTimeoutAndContext(ctx context.Context, timeout time.Duration, blockingAction func(ctx context.Context) error) error {
+// blockingAction's context will be cancelled on exit.
+func RunActionWithTimeoutAndContext(ctx context.Context, timeout time.Duration, blockingAction func(context.Context) error) error {
+	store := NewCancelFunctionsStore()
+	defer store.Cancel()
+	return RunActionWithTimeoutAndCancelStore(ctx, timeout, store, blockingAction)
+}
+
+// Runs an action with timeout
+func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Duration, store *CancelFunctionStore, blockingAction func(context.Context) error) error {
 	timeoutContext, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
+	store.RegisterCancelFunction(cancel)
 	channel := make(chan error, 1)
 	go func() {
 		channel <- blockingAction(timeoutContext)
@@ -116,6 +124,7 @@ func RunActionWithTimeoutAndContext(ctx context.Context, timeout time.Duration, 
 
 	err := <-channel
 	err2 := DetermineContextError(timeoutContext)
+
 	if err2 != nil {
 		return err2
 	}
