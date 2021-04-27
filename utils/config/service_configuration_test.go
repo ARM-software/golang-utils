@@ -8,6 +8,8 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/magiconair/properties/assert"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
 
@@ -94,6 +96,43 @@ func TestServiceConfigurationLoad(t *testing.T) {
 	err = os.Setenv("TEST_DUMMYCONFIG_DB", "a test db")
 	require.Nil(t, err)
 	err = Load("test", configTest, defaults)
+	require.Nil(t, err)
+	require.Nil(t, configTest.Validate())
+	assert.Equal(t, configTest.TestString, expectedString)
+	assert.Equal(t, configTest.TestInt, expectedInt)
+	assert.Equal(t, configTest.TestTime, expectedDuration)
+	assert.Equal(t, configTest.TestConfig.Port, defaults.TestConfig.Port)
+	assert.Equal(t, configTest.TestConfig.Host, expectedHost)
+}
+
+func TestBinding(t *testing.T) {
+	configTest := &ConfigurationTest{}
+	defaults := DefaultConfiguration()
+	session := viper.New()
+	var err error
+	flagSet := pflag.FlagSet{}
+	prefix := "test"
+	flagSet.String("host", "a host", "dummy host")
+	flagSet.String("password", "a password", "dummy password")
+	flagSet.String("user", "a user", "dummy user")
+	flagSet.String("db", "a db", "dummy db")
+	err = BindFlagToEnv(session, prefix, "TEST_DUMMYCONFIG_HOST", flagSet.Lookup("host"))
+	require.Nil(t, err)
+	err = BindFlagToEnv(session, prefix, "TEST_DUMMYCONFIG_PASSWORD", flagSet.Lookup("password"))
+	require.Nil(t, err)
+	err = BindFlagToEnv(session, prefix, "TEST_DUMMYCONFIG_USER", flagSet.Lookup("user"))
+	require.Nil(t, err)
+	err = BindFlagToEnv(session, prefix, "TEST_DUMMYCONFIG_DB", flagSet.Lookup("db"))
+	require.Nil(t, err)
+	err = flagSet.Set("host", expectedHost)
+	require.Nil(t, err)
+	err = flagSet.Set("password", "another test password")
+	require.Nil(t, err)
+	err = flagSet.Set("user", "another test user")
+	require.Nil(t, err)
+	err = flagSet.Set("db", "another test db")
+	require.Nil(t, err)
+	err = LoadFromViper(session, prefix, configTest, defaults)
 	require.Nil(t, err)
 	require.Nil(t, configTest.Validate())
 	assert.Equal(t, configTest.TestString, expectedString)
