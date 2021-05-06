@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 
 	"go.uber.org/atomic"
@@ -36,11 +37,13 @@ type Subprocess struct {
 }
 
 func (l *logStreamer) Write(p []byte) (n int, err error) {
-	text := string(p)
-	if l.IsStdErr {
-		l.Loggers.LogError(text)
-	} else {
-		l.Loggers.Log(text)
+	lines := strings.Split(string(p), "\n")
+	for _, line := range lines {
+		if l.IsStdErr {
+			l.Loggers.LogError(line)
+		} else {
+			l.Loggers.Log(line)
+		}
 	}
 	return len(p), nil
 }

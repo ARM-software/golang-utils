@@ -23,7 +23,7 @@ func TestExecute(t *testing.T) {
 	loggers, err = logs.CreateStdLogger("Test")
 	require.Nil(t, err)
 	if platform.IsWindows() {
-		err = Execute(context.Background(), loggers, "", "", "", "cmd", "dir")
+		err = Execute(context.Background(), loggers, "", "", "", "cmd", "/c", "dir")
 	} else {
 		err = Execute(context.Background(), loggers, "", "", "", "ls", "-l")
 	}
