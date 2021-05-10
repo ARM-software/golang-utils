@@ -6,7 +6,7 @@ require (
 	github.com/OneOfOne/xxhash v1.2.8
 	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/bmatcuk/doublestar/v2 v2.0.4
-	github.com/djherbis/times v1.4.0
+	github.com/djherbis/times v1.5.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/gofrs/uuid v3.4.0+incompatible
 	github.com/hashicorp/go-retryablehttp v0.7.0
