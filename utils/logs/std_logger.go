@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/ARMmbed/golang-utils/utils/platform"
 )
@@ -50,6 +51,6 @@ func CreateStdLogger(loggerSource string) (loggers Loggers, err error) {
 	return
 }
 
-func NewAsynchronousStdLogger(loggerSource string, source string) (loggers Loggers, err error) {
-	return NewAsynchronousLoggers(&StdWriter{}, &StdErrWriter{}, loggerSource, source, nil)
+func NewAsynchronousStdLogger(loggerSource string, ringBufferSize int, pollInterval time.Duration, source string) (loggers Loggers, err error) {
+	return NewAsynchronousLoggers(&StdWriter{}, &StdErrWriter{}, ringBufferSize, pollInterval, loggerSource, source, nil)
 }

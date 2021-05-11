@@ -97,8 +97,8 @@ func (w *DiodeWriter) SetSource(source string) error {
 	return w.slowWriter.SetSource(source)
 }
 
-func NewDiodeWriterForSlowWriter(slowWriter WriterWithSource, droppedMessagesLogger Loggers) WriterWithSource {
-	return &DiodeWriter{diodeWriter: diode.NewWriter(slowWriter, 1024, 2*time.Millisecond, func(missed int) {
+func NewDiodeWriterForSlowWriter(slowWriter WriterWithSource, ringBufferSize int, pollInterval time.Duration, droppedMessagesLogger Loggers) WriterWithSource {
+	return &DiodeWriter{diodeWriter: diode.NewWriter(slowWriter, ringBufferSize, pollInterval, func(missed int) {
 		if droppedMessagesLogger != nil {
 			droppedMessagesLogger.LogError("Logger Dropped %d messages", missed)
 		}

@@ -124,10 +124,10 @@ func (l *AsynchronousLoggers) Close() error {
 	return nil
 }
 
-func NewAsynchronousLoggers(slowOutputWriter WriterWithSource, slowErrorWriter WriterWithSource, loggerSource string, source string, droppedMessagesLogger Loggers) (loggers Loggers, err error) {
+func NewAsynchronousLoggers(slowOutputWriter WriterWithSource, slowErrorWriter WriterWithSource, ringBufferSize int, pollInterval time.Duration, loggerSource string, source string, droppedMessagesLogger Loggers) (loggers Loggers, err error) {
 	loggers = &AsynchronousLoggers{
-		oWriter:      NewDiodeWriterForSlowWriter(slowOutputWriter, droppedMessagesLogger),
-		eWriter:      NewDiodeWriterForSlowWriter(slowErrorWriter, droppedMessagesLogger),
+		oWriter:      NewDiodeWriterForSlowWriter(slowOutputWriter, ringBufferSize, pollInterval, droppedMessagesLogger),
+		eWriter:      NewDiodeWriterForSlowWriter(slowErrorWriter, ringBufferSize, pollInterval, droppedMessagesLogger),
 		loggerSource: loggerSource,
 	}
 	err = loggers.SetLogSource(source)

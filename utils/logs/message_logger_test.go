@@ -16,7 +16,7 @@ func TestLogMessage(t *testing.T) {
 func TestLogMessageToSlowLogger(t *testing.T) {
 	stdloggers, err := CreateStdLogger("ERR:")
 	require.Nil(t, err)
-	loggers, err := CreateJsonLoggerForSlowWriter(&SlowWriter{}, "Test", "TestLogMessageToSlowLogger", stdloggers)
+	loggers, err := NewJsonLoggerForSlowWriter(&SlowWriter{}, 1024, 2*time.Millisecond, "Test", "TestLogMessageToSlowLogger", stdloggers)
 	require.Nil(t, err)
 	_testLog(t, loggers)
 	time.Sleep(100 * time.Millisecond)

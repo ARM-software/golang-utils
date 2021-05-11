@@ -3,6 +3,7 @@ package logs
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/rs/zerolog"
 
@@ -106,6 +107,18 @@ func CreateJsonLogger(writer WriterWithSource, loggerSource string, source strin
 	return
 }
 
-func CreateJsonLoggerForSlowWriter(slowWriter WriterWithSource, loggerSource string, source string, droppedMessagesLogger Loggers) (loggers Loggers, err error) {
-	return CreateJsonLogger(NewDiodeWriterForSlowWriter(slowWriter, droppedMessagesLogger), loggerSource, source)
+// NewJsonLoggerForSlowWriter creates a lock free, non blocking & thread safe logger
+// wrapped around slowWriter
+//
+// params:
+//		slowWriter : writer used to write data streams
+// 		ringBufferSize : size of ring buffer used to receive messages
+// 		pollInterval : polling duration to check buffer content
+//		loggerSource : logger application name
+//		source : source string
+//		droppedMessagesLogger : logger for dropped messages
+//
+// If pollInterval is greater than 0, a poller is used otherwise a waiter is used.
+func NewJsonLoggerForSlowWriter(slowWriter WriterWithSource, ringBufferSize int, pollInterval time.Duration, loggerSource string, source string, droppedMessagesLogger Loggers) (loggers Loggers, err error) {
+	return CreateJsonLogger(NewDiodeWriterForSlowWriter(slowWriter, ringBufferSize, pollInterval, droppedMessagesLogger), loggerSource, source)
 }
