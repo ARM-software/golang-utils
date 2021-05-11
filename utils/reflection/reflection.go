@@ -112,7 +112,8 @@ func InheritsFrom(object interface{}, parentType reflect.Type) bool {
 		if structType != nil && (fieldType.AssignableTo(structType) || fieldType.ConvertibleTo(structType)) {
 			return true
 		}
-		if InheritsFrom(f.Interface(), parentType) {
+
+		if f.CanInterface() && InheritsFrom(f.Interface(), parentType) {
 			return true
 		}
 	}
