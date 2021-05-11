@@ -1,6 +1,8 @@
 package reflection
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -130,4 +132,116 @@ func TestGetStructField_TitleStringPtr(t *testing.T) {
 	result, exists := GetStructField(&test_structure, "Title")
 	assert.Equal(t, result, title)
 	assert.Equal(t, exists, true)
+}
+
+func TestInheritsFrom(t *testing.T) {
+	type A0 interface {
+		test()
+	}
+	type A struct{ A0 }
+	type B struct{ A }
+	type C struct{ *A }
+	type D struct {
+		B
+	}
+	type E struct {
+		C
+	}
+	type F struct {
+		D
+	}
+	type G struct {
+		D
+		E
+	}
+	type H struct {
+	}
+	type I struct{ H }
+	type J struct {
+		B
+		I
+	}
+	type K struct {
+		I
+		B
+	}
+
+	tests := []struct {
+		object   interface{}
+		inherits bool
+		name     string
+	}{
+		{
+			object:   A{},
+			inherits: true,
+			name:     "A",
+		},
+		{
+			object:   B{},
+			inherits: true,
+			name:     "B",
+		},
+		{
+			object: C{
+				A: &A{},
+			},
+			inherits: true,
+			name:     "C2",
+		},
+		{
+			object:   D{},
+			inherits: true,
+			name:     "D",
+		},
+		{
+			object: E{C{
+				A: &A{},
+			},
+			},
+			inherits: true,
+			name:     "E",
+		},
+		{
+			object:   F{},
+			inherits: true,
+			name:     "F",
+		},
+		{
+			object:   G{},
+			inherits: true,
+			name:     "G",
+		},
+		{
+			object:   H{},
+			inherits: false,
+			name:     "H",
+		},
+		{
+			object:   I{},
+			inherits: false,
+			name:     "I",
+		},
+		{
+			object:   J{},
+			inherits: true,
+			name:     "J",
+		},
+		{
+			object:   K{},
+			inherits: true,
+			name:     "K",
+		},
+	}
+
+	A0Type := reflect.TypeOf((*A0)(nil)).Elem()
+	AType := reflect.TypeOf(A{})
+	AstarType := reflect.TypeOf(&A{})
+	for i := range tests {
+		test := tests[i]
+		t.Run(fmt.Sprintf("subtest #%v: struct %v", i, test.name), func(t *testing.T) {
+			assert.Equal(t, test.inherits, InheritsFrom(test.object, A0Type))
+			assert.Equal(t, test.inherits, InheritsFrom(test.object, AType))
+			assert.Equal(t, test.inherits, InheritsFrom(test.object, AstarType))
+		})
+	}
 }
