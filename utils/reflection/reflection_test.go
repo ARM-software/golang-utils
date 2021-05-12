@@ -7,6 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ARMmbed/golang-utils/utils/commonerrors"
 )
 
 type structtest struct {
@@ -86,12 +88,12 @@ func TestSetUnexportedFieldInvalid(t *testing.T) {
 func TestGetStructField_Happy(t *testing.T) {
 	// Given a structure that has a title field
 	// It returns the title field and true
-	test_structure := TestTypeWithTitle{
+	testStructure := TestTypeWithTitle{
 		Name:    "test_name",
 		Address: "random_address",
 		Title:   "test_title",
 	}
-	result, exists := GetStructField(&test_structure, "Title")
+	result, exists := GetStructField(&testStructure, "Title")
 	assert.Equal(t, result, "test_title")
 	assert.Equal(t, exists, true)
 }
@@ -99,11 +101,11 @@ func TestGetStructField_Happy(t *testing.T) {
 func TestGetStructField_NoTitle(t *testing.T) {
 	// Given a structure that does not have a title field
 	// It returns "" and false
-	test_structure := TestTypeNoTitle{
+	testStructure := TestTypeNoTitle{
 		Name:    "test_name",
 		Address: "random_address",
 	}
-	result, exists := GetStructField(&test_structure, "Title")
+	result, exists := GetStructField(&testStructure, "Title")
 	assert.Equal(t, result, "")
 	assert.Equal(t, exists, false)
 }
@@ -111,11 +113,11 @@ func TestGetStructField_NoTitle(t *testing.T) {
 func TestGetStructField_TitleNotSet(t *testing.T) {
 	// Given a structure that has a title field which is not set
 	// It returns the content of the field (i.e. "") and true
-	test_structure := TestTypeWithTitle{
+	testStructure := TestTypeWithTitle{
 		Name:    "test_name",
 		Address: "random_address",
 	}
-	result, exists := GetStructField(&test_structure, "Title")
+	result, exists := GetStructField(&testStructure, "Title")
 	assert.Equal(t, result, "")
 	assert.Equal(t, exists, true)
 }
@@ -124,14 +126,125 @@ func TestGetStructField_TitleStringPtr(t *testing.T) {
 	// Given a structure that has a title field which is not set
 	// It returns the content of the field (i.e. "") and true
 	title := "test_title"
-	test_structure := TestTypeWithTitleAsPointer{
+	testStructure := TestTypeWithTitleAsPointer{
 		Name:    "test_name",
 		Address: "random_address",
 		Title:   &title,
 	}
-	result, exists := GetStructField(&test_structure, "Title")
+	result, exists := GetStructField(&testStructure, "Title")
 	assert.Equal(t, result, title)
 	assert.Equal(t, exists, true)
+}
+
+func TestSetStructField_FieldPtrValueNotPtr(t *testing.T) {
+	// Given a structure that has the given field
+	// The field is a pointer and the value is not a pointer
+	// It returns no errors and it updates the structure's field to the value
+	title := "test_title"
+	newTitle := "NEW_title"
+	testStructure := TestTypeWithTitleAsPointer{
+		Name:    "test_name",
+		Address: "random_address",
+		Title:   &title,
+	}
+	err := SetStructField(&testStructure, "Title", newTitle)
+
+	assert.Equal(t, *testStructure.Title, newTitle)
+	assert.Nil(t, err)
+}
+
+func TestSetStructField_FieldPtrValuePtr(t *testing.T) {
+	// Given a structure that has the given field
+	// The field and the value are pointers
+	// It returns no errors and it updates the structure's field to the value
+	title := "test_title"
+	newTitle := "NEW_title"
+	testStructure := TestTypeWithTitleAsPointer{
+		Name:    "test_name",
+		Address: "random_address",
+		Title:   &title,
+	}
+	err := SetStructField(&testStructure, "Title", &newTitle)
+
+	assert.Equal(t, *testStructure.Title, newTitle)
+	assert.Nil(t, err)
+}
+
+func TestSetStructField_FieldNotPtrValuePtr(t *testing.T) {
+	// Given a structure that has the given field
+	// The field is not a pointer but the value is a pointer
+	// It returns no errors and it updates the structure's field to the value
+	newTitle := "NEW_title"
+	testStructure := TestTypeWithTitle{
+		Name:    "test_name",
+		Address: "random_address",
+		Title:   "test_title",
+	}
+	err := SetStructField(&testStructure, "Title", &newTitle)
+
+	assert.Equal(t, testStructure.Title, newTitle)
+	assert.Nil(t, err)
+}
+
+func TestSetStructField_FieldNotPtrValueNotPtr(t *testing.T) {
+	// Given a structure that has the given field
+	// The field and the value are not pointers
+	// It returns no errors and it updates the structure's field to the value
+	newTitle := "NEW_title"
+	testStructure := TestTypeWithTitle{
+		Name:    "test_name",
+		Address: "random_address",
+		Title:   "test_title",
+	}
+	err := SetStructField(&testStructure, "Title", "NEW_title")
+
+	assert.Equal(t, testStructure.Title, newTitle)
+	assert.Nil(t, err)
+}
+
+func TestSetStructField_InvalidField(t *testing.T) {
+	// Given a structure that doesn't have the given field
+	// It returns an error saying that the field is invalid
+	testStructure := TestTypeNoTitle{
+		Name:    "test_name",
+		Address: "random_address",
+	}
+	err := SetStructField(&testStructure, "Title", "NEW_title")
+
+	assert.NotNil(t, err)
+	assert.Equal(t, err, fmt.Errorf("error with field [%v]: %w", "Title", commonerrors.ErrInvalid))
+}
+
+func TestSetStructField_UnsettableField(t *testing.T) {
+	// Given a structure that has an unexported field
+	// It returns an error saying that the field is unsettable
+	// And the field is not updated
+	testStructure := structtest{
+		Exported:   "settable_field",
+		unexported: "unsettable_field",
+	}
+	err := SetStructField(&testStructure, "unexported", "NEW_title")
+
+	assert.NotNil(t, err)
+	assert.Equal(t, err, fmt.Errorf("error with unsettable field [%v]: %w", "unexported", commonerrors.ErrUnsupported))
+	assert.NotEqual(t, testStructure.unexported, "NEW_title")
+	assert.Equal(t, testStructure.unexported, "unsettable_field")
+}
+
+func TestSetStructField_FieldAndValueDifferentTypes(t *testing.T) {
+	// Given a structure that has the given field
+	// The field and the value are of different types
+	// It returns an error saying
+	title := "test_title"
+	testStructure := TestTypeWithTitle{
+		Name:    "test_name",
+		Address: "random_address",
+		Title:   title,
+	}
+	err := SetStructField(&testStructure, "Title", 133)
+
+	assert.NotNil(t, err)
+	assert.Equal(t, err, fmt.Errorf("conflicting types, field [%v] and value [%v]: %w", reflect.ValueOf(testStructure).FieldByName("Title").Type().Kind(), reflect.TypeOf(123), commonerrors.ErrConflict))
 }
 
 func TestInheritsFrom(t *testing.T) {

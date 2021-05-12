@@ -1,8 +1,11 @@
 package reflection
 
 import (
+	"fmt"
 	"reflect"
 	"unsafe"
+
+	"github.com/ARMmbed/golang-utils/utils/commonerrors"
 )
 
 func GetUnexportedStructureField(structure interface{}, fieldName string) interface{} {
@@ -47,6 +50,61 @@ func GetStructField(structure interface{}, FieldName string) (interface{}, bool)
 	} else {
 		return Field.Interface(), true
 	}
+}
+
+// Attempts to set a field of a structure to the given vaule
+// It returns nil or an error, in case the field doesn't exist on the structure
+// or the value and the field have different types
+func SetStructField(structure interface{}, FieldName string, value interface{}) error {
+	ValueStructure := reflect.ValueOf(structure)
+	Field := ValueStructure.Elem().FieldByName(FieldName)
+	// Test field exists on structure
+	if !Field.IsValid() {
+		return fmt.Errorf("error with field [%v]: %w", FieldName, commonerrors.ErrInvalid)
+	}
+
+	//test field is settable
+	if !Field.CanSet() {
+		return fmt.Errorf("error with unsettable field [%v]: %w", FieldName, commonerrors.ErrUnsupported)
+	}
+
+	// Helper variables
+	valueReflectValueWrapper := reflect.ValueOf(value)
+	valueKind := valueReflectValueWrapper.Type().Kind()
+	fieldKind := Field.Type().Kind()
+
+	// Value and field have the same type
+	if valueKind == fieldKind {
+		Field.Set(valueReflectValueWrapper)
+		return nil
+	}
+
+	// helpers for determining whether the field and the value have the same underlying types
+	valueUnderlyingType := reflect.TypeOf(value)
+	if valueKind == reflect.Ptr {
+		valueUnderlyingType = valueUnderlyingType.Elem()
+	}
+	fieldUnderlyingType := Field.Type()
+	if fieldKind == reflect.Ptr {
+		fieldUnderlyingType = fieldUnderlyingType.Elem()
+	}
+
+	// Check that the underlying types are the same (e.g. no int and string)
+	if fieldUnderlyingType != valueUnderlyingType {
+		return fmt.Errorf("conflicting types, field [%v] and value [%v]: %w", fieldKind, valueKind, commonerrors.ErrConflict)
+	}
+
+	if fieldKind == reflect.Ptr {
+		if valueKind != reflect.Ptr { //value not ptr, field ptr
+			Field.Elem().Set(valueReflectValueWrapper)
+		}
+	} else { // field not ptr, val ptr
+		if valueKind == reflect.Ptr {
+			Field.Set(valueReflectValueWrapper.Elem())
+		}
+	}
+	// This means the field was updated without errors
+	return nil
 }
 
 // Use reflection to find if a struct "inherits" from a certain type.
