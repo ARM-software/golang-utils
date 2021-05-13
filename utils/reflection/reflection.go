@@ -46,6 +46,9 @@ func GetStructField(structure interface{}, FieldName string) (interface{}, bool)
 	}
 
 	if Field.Type().Kind() == reflect.Ptr {
+		if Field.IsNil() {
+			return "", true
+		}
 		return Field.Elem().Interface(), true
 	} else {
 		return Field.Interface(), true

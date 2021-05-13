@@ -136,6 +136,18 @@ func TestGetStructField_TitleStringPtr(t *testing.T) {
 	assert.Equal(t, exists, true)
 }
 
+func TestGetStructField_TitlePtrNotSet(t *testing.T) {
+	// Given a structure that has a title field pointer which is not set
+	// It returns the content of the field (i.e. "") and true
+	testStructure := TestTypeWithTitleAsPointer{
+		Name:    "test_name",
+		Address: "random_address",
+	}
+	result, exists := GetStructField(&testStructure, "Title")
+	assert.Equal(t, "", result)
+	assert.Equal(t, exists, true)
+}
+
 func TestSetStructField_FieldPtrValueNotPtr(t *testing.T) {
 	// Given a structure that has the given field
 	// The field is a pointer and the value is not a pointer
