@@ -27,6 +27,7 @@ var (
 	ErrMarshalling        = errors.New("unserialisable")
 	ErrCancelled          = errors.New("cancelled")
 	ErrEmpty              = errors.New("empty")
+	ErrUnexpected         = errors.New("unexpected")
 )
 
 func Any(target error, err ...error) bool {
