@@ -38,11 +38,14 @@ type Subprocess struct {
 
 func (l *logStreamer) Write(p []byte) (n int, err error) {
 	lines := strings.Split(string(p), "\n")
-	for _, line := range lines {
-		if l.IsStdErr {
-			l.Loggers.LogError(line)
-		} else {
-			l.Loggers.Log(line)
+	for i := range lines { // https://stackoverflow.com/questions/62446118/implicit-memory-aliasing-in-for-loop
+		line := lines[i]
+		if line != "" {
+			if l.IsStdErr {
+				l.Loggers.LogError(line)
+			} else {
+				l.Loggers.Log(line)
+			}
 		}
 	}
 	return len(p), nil
