@@ -99,7 +99,13 @@ func SetStructField(structure interface{}, FieldName string, value interface{}) 
 
 	if fieldKind == reflect.Ptr {
 		if valueKind != reflect.Ptr { //value not ptr, field ptr
-			Field.Elem().Set(valueReflectValueWrapper)
+			if Field.IsNil() {
+				pointerToValue := reflect.New(valueReflectValueWrapper.Type())
+				pointerToValue.Elem().Set(valueReflectValueWrapper)
+				Field.Set(pointerToValue)
+			} else {
+				Field.Elem().Set(valueReflectValueWrapper)
+			}
 		}
 	} else { // field not ptr, val ptr
 		if valueKind == reflect.Ptr {

@@ -165,6 +165,20 @@ func TestSetStructField_FieldPtrValueNotPtr(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestSetStructField_FieldPtrUnsetValueNotPtr(t *testing.T) {
+	// Given a structure that has the given field
+	// The field is a nil pointer and the value is not a pointer
+	// It returns no errors and it updates the structure's field to the value
+	newTitle := "NEW_title"
+	testStructure := TestTypeWithTitleAsPointer{
+		Name:    "test_name",
+		Address: "random_address",
+	}
+	err := SetStructField(&testStructure, "Title", newTitle)
+	assert.Equal(t, *testStructure.Title, newTitle)
+	assert.Nil(t, err)
+}
+
 func TestSetStructField_FieldPtrValuePtr(t *testing.T) {
 	// Given a structure that has the given field
 	// The field and the value are pointers
