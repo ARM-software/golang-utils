@@ -18,7 +18,7 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pelletier/go-toml v1.4.0 // indirect
 	github.com/rs/zerolog v1.22.0
-	github.com/shirou/gopsutil/v3 v3.21.4
+	github.com/shirou/gopsutil/v3 v3.21.5
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/spf13/afero v1.6.0
