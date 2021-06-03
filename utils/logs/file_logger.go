@@ -18,7 +18,7 @@ func (l *FileLoggers) Check() (err error) {
 		return
 	}
 	if l.File == nil {
-		err = errors.New("Undefined log file.")
+		err = errors.New("undefined log file")
 	}
 	return
 }

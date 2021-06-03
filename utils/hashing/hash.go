@@ -1,7 +1,11 @@
 package hashing
 
 import (
+
+	// nolint:gosec
 	"crypto/md5"
+
+	// nolint:gosec
 	"crypto/sha1"
 	"crypto/sha256"
 	"encoding/hex"
@@ -55,9 +59,9 @@ func NewHashingAlgorithm(htype string) (IHash, error) {
 	var hash hash.Hash
 	switch htype {
 	case HashMd5:
-		hash = md5.New()
+		hash = md5.New() //nolint:gosec
 	case HashSha1:
-		hash = sha1.New()
+		hash = sha1.New() //nolint:gosec
 	case HashSha256:
 		hash = sha256.New()
 	case HashMurmur:

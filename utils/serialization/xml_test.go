@@ -26,17 +26,17 @@ func TestUnmarshalAttr(t *testing.T) {
 	x := []byte(`<Param int="1" />`)
 
 	paramPtr := &ParamPtr{}
-	err := UnmarshallXml(x, paramPtr)
+	err := UnmarshallXML(x, paramPtr)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, *paramPtr.Int)
 
 	paramVal := &ParamVal{}
-	err = UnmarshallXml(x, paramVal)
+	err = UnmarshallXML(x, paramVal)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, paramVal.Int)
 
 	paramStrPtr := &ParamStringPtr{}
-	err = UnmarshallXml(x, paramStrPtr)
+	err = UnmarshallXML(x, paramStrPtr)
 	assert.Nil(t, err)
 	assert.Equal(t, "1", *paramStrPtr.Int)
 }
@@ -53,29 +53,29 @@ func TestUnmarshalUTF8(t *testing.T) {
 	expected := "Hello, 世界"
 
 	var x TestStruct
-	err := UnmarshallXml([]byte(inputData), &x)
+	err := UnmarshallXML([]byte(inputData), &x)
 	assert.Nil(t, err)
 	assert.Equal(t, expected, x.Attr)
 }
 
 func TestUnmarshal_UTF8_GB2312(t *testing.T) {
 	type Pack struct {
-		Url      string
-		Data_Chn string
-		Name     string `xml:",attr"`
-		Vendor   string `xml:",attr"`
+		URL     string
+		DataChn string
+		Name    string `xml:",attr"`
+		Vendor  string `xml:",attr"`
 	}
 
 	var pack Pack
 	byteValue, err := filesystem.ReadFile(path.Join("testdata", "testfile_GB2312.xml"))
 	require.Nil(t, err)
-	require.Nil(t, UnmarshallXml(byteValue, &pack))
+	require.Nil(t, UnmarshallXML(byteValue, &pack))
 
-	bytes := []byte(pack.Data_Chn)
+	bytes := []byte(pack.DataChn)
 	expectedbytes := []byte("世界")
 
 	assert.Equal(t, expectedbytes, bytes)
 	assert.Equal(t, "ARM", pack.Vendor)
 	assert.Equal(t, "CMSIS", pack.Name)
-	assert.Equal(t, "http://www.keil.com/pack/", pack.Url)
+	assert.Equal(t, "http://www.keil.com/pack/", pack.URL)
 }

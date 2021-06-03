@@ -205,34 +205,34 @@ func testTimeoutWithContext(t *testing.T, ctx context.Context) {
 	assert.False(t, isrunning.Load())
 }
 
-func TestRunActionWithParallelCheck_Happy(t *testing.T) {
+func TestRunActionWithParallelCheckHappy(t *testing.T) {
 	ctx := context.Background()
 	for i := 0; i < 10; i++ {
 		t.Run(fmt.Sprintf("test #%v", i), func(t *testing.T) {
-			runActionWithParallelCheck_Happy(t, ctx)
+			runActionWithParallelCheckHappy(t, ctx)
 		})
 	}
 }
 
-func TestRunActionWithParallelCheck_Fail(t *testing.T) {
+func TestRunActionWithParallelCheckFail(t *testing.T) {
 	ctx := context.Background()
 	for i := 0; i < 10; i++ {
 		t.Run(fmt.Sprintf("test #%v", i), func(t *testing.T) {
-			runActionWithParallelCheck_Fail(t, ctx)
+			runActionWithParallelCheckFail(t, ctx)
 		})
 	}
 }
 
-func TestRunActionWithParallelCheck_FailAtRandom(t *testing.T) {
+func TestRunActionWithParallelCheckFailAtRandom(t *testing.T) {
 	ctx := context.Background()
 	for i := 0; i < 10; i++ {
 		t.Run(fmt.Sprintf("test #%v", i), func(t *testing.T) {
-			runActionWithParallelCheck_FailAtRandom(t, ctx)
+			runActionWithParallelCheckFailAtRandom(t, ctx)
 		})
 	}
 }
 
-func runActionWithParallelCheck_Happy(t *testing.T, ctx context.Context) {
+func runActionWithParallelCheckHappy(t *testing.T, ctx context.Context) {
 	counter := atomic.NewInt32(0)
 	checkAction := func(ctx context.Context) bool {
 		counter.Inc()
@@ -247,7 +247,7 @@ func runActionWithParallelCheck_Happy(t *testing.T, ctx context.Context) {
 	require.Nil(t, err)
 }
 
-func runActionWithParallelCheck_Fail(t *testing.T, ctx context.Context) {
+func runActionWithParallelCheckFail(t *testing.T, ctx context.Context) {
 	counter := atomic.NewInt32(0)
 	checkAction := func(ctx context.Context) bool {
 		counter.Inc()
@@ -263,12 +263,12 @@ func runActionWithParallelCheck_Fail(t *testing.T, ctx context.Context) {
 	assert.Error(t, commonerrors.ErrCancelled, err)
 }
 
-func runActionWithParallelCheck_FailAtRandom(t *testing.T, ctx context.Context) {
+func runActionWithParallelCheckFailAtRandom(t *testing.T, ctx context.Context) {
 	counter := atomic.NewInt32(0)
 	checkAction := func(ctx context.Context) bool {
 		counter.Add(1)
 		fmt.Println("Check #", counter.String())
-		return rand.Intn(2) != 0 && counter.Load() < 10
+		return rand.Intn(2) != 0 && counter.Load() < 10 //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 	}
 	action := func(ctx context.Context) error {
 		time.Sleep(150 * time.Millisecond)

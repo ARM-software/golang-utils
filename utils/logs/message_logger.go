@@ -11,7 +11,7 @@ import (
 )
 
 // Definition of JSON message loggers
-type JsonLoggers struct {
+type JSONLoggers struct {
 	Loggers
 	mu           sync.RWMutex
 	source       string
@@ -20,33 +20,33 @@ type JsonLoggers struct {
 	Zerologger   zerolog.Logger
 }
 
-func (l *JsonLoggers) SetLogSource(source string) error {
+func (l *JSONLoggers) SetLogSource(source string) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.source = source
 	return l.writer.SetSource(source)
 }
 
-func (l *JsonLoggers) SetLoggerSource(source string) error {
+func (l *JSONLoggers) SetLoggerSource(source string) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.loggerSource = source
 	return nil
 }
 
-func (l *JsonLoggers) GetSource() string {
+func (l *JSONLoggers) GetSource() string {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	return l.source
 }
-func (l *JsonLoggers) GetLoggerSource() string {
+func (l *JSONLoggers) GetLoggerSource() string {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	return l.loggerSource
 }
 
 // Checks whether the loggers are correctly defined or not.
-func (l *JsonLoggers) Check() error {
+func (l *JSONLoggers) Check() error {
 	if l.GetSource() == "" {
 		return commonerrors.ErrNoLogSource
 	}
@@ -56,7 +56,7 @@ func (l *JsonLoggers) Check() error {
 	return nil
 }
 
-func (l *JsonLoggers) Configure() error {
+func (l *JSONLoggers) Configure() error {
 	zerolog.TimestampFieldName = "ctime"
 	zerolog.MessageFieldName = "message"
 	zerolog.LevelFieldName = "severity"
@@ -65,7 +65,7 @@ func (l *JsonLoggers) Configure() error {
 }
 
 // Logs to the output logger.
-func (l *JsonLoggers) Log(output ...interface{}) {
+func (l *JSONLoggers) Log(output ...interface{}) {
 	if len(output) == 1 && output[0] == "\n" {
 		return
 	}
@@ -73,7 +73,7 @@ func (l *JsonLoggers) Log(output ...interface{}) {
 }
 
 // Logs to the Error logger.
-func (l *JsonLoggers) LogError(err ...interface{}) {
+func (l *JSONLoggers) LogError(err ...interface{}) {
 	if len(err) == 1 && err[0] == "\n" {
 		return
 	}
@@ -81,14 +81,14 @@ func (l *JsonLoggers) LogError(err ...interface{}) {
 }
 
 // Closes the logger
-func (l *JsonLoggers) Close() error {
+func (l *JSONLoggers) Close() error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return l.writer.Close()
 }
 
-func CreateJsonLogger(writer WriterWithSource, loggerSource string, source string) (loggers Loggers, err error) {
-	zerroLogger := JsonLoggers{
+func NewJSONLogger(writer WriterWithSource, loggerSource string, source string) (loggers Loggers, err error) {
+	zerroLogger := JSONLoggers{
 		source:       source,
 		loggerSource: loggerSource,
 		writer:       writer,
@@ -107,7 +107,7 @@ func CreateJsonLogger(writer WriterWithSource, loggerSource string, source strin
 	return
 }
 
-// NewJsonLoggerForSlowWriter creates a lock free, non blocking & thread safe logger
+// NewJSONLoggerForSlowWriter creates a lock free, non blocking & thread safe logger
 // wrapped around slowWriter
 //
 // params:
@@ -119,6 +119,6 @@ func CreateJsonLogger(writer WriterWithSource, loggerSource string, source strin
 //		droppedMessagesLogger : logger for dropped messages
 //
 // If pollInterval is greater than 0, a poller is used otherwise a waiter is used.
-func NewJsonLoggerForSlowWriter(slowWriter WriterWithSource, ringBufferSize int, pollInterval time.Duration, loggerSource string, source string, droppedMessagesLogger Loggers) (loggers Loggers, err error) {
-	return CreateJsonLogger(NewDiodeWriterForSlowWriter(slowWriter, ringBufferSize, pollInterval, droppedMessagesLogger), loggerSource, source)
+func NewJSONLoggerForSlowWriter(slowWriter WriterWithSource, ringBufferSize int, pollInterval time.Duration, loggerSource string, source string, droppedMessagesLogger Loggers) (loggers Loggers, err error) {
+	return NewJSONLogger(NewDiodeWriterForSlowWriter(slowWriter, ringBufferSize, pollInterval, droppedMessagesLogger), loggerSource, source)
 }

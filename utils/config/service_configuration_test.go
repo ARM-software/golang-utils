@@ -41,7 +41,7 @@ func DefaultDummyConfiguration() DummyConfiguration {
 
 var (
 	expectedString   = "a test string"
-	expectedInt      = rand.Int()
+	expectedInt      = rand.Int() //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 	expectedDuration = time.Hour
 	expectedHost     = "a test host"
 )

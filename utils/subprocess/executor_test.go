@@ -52,10 +52,10 @@ test 1
 		faker.Paragraph(),
 		faker.Sentence(),
 		func() (out string) { // funky random paragraph with plenty of random newlines
-			randI := rand.Intn(25)
-			for i := 0; i < randI; i++ {
+			randI := rand.Intn(25)       //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+			for i := 0; i < randI; i++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 				out += faker.Sentence()
-				if rand.Intn(10) > 5 {
+				if rand.Intn(10) > 5 { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 					out += "\n"
 				}
 			}
