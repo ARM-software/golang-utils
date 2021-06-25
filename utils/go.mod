@@ -25,7 +25,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
-	go.uber.org/atomic v1.7.0
+	go.uber.org/atomic v1.8.0
 	golang.org/x/net v0.0.0-20201021035429-f5854403a974
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
