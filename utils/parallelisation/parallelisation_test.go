@@ -124,6 +124,26 @@ func testTimeout(t *testing.T) {
 	assert.False(t, isrunning.Load())
 
 	isrunning.Store(true)
+	blockingAction3 := func(stop chan bool) error {
+		for {
+			isrunning.Store(true)
+			select {
+			case <-stop:
+				isrunning.Store(false)
+				time.Sleep(5 * time.Millisecond)
+				return nil
+			default:
+				time.Sleep(time.Millisecond)
+			}
+		}
+	}
+	assert.True(t, isrunning.Load())
+	err = RunActionWithTimeout(blockingAction3, 10*time.Millisecond)
+	require.NotNil(t, err)
+	assert.True(t, errors.Is(err, commonerrors.ErrTimeout))
+	assert.False(t, isrunning.Load())
+
+	isrunning.Store(true)
 	nonblockingAction := func(stop chan bool) error {
 		isrunning.Store(true)
 		isrunning.Store(false)

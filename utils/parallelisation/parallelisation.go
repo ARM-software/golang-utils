@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"time"
 
+	"go.uber.org/atomic"
+
 	"github.com/ARMmbed/golang-utils/utils/commonerrors"
 )
 
@@ -86,7 +88,7 @@ func Schedule(ctx context.Context, period time.Duration, offset time.Duration, f
 func RunActionWithTimeout(blockingAction func(stop chan bool) error, timeout time.Duration) (err error) {
 	channel := make(chan error, 1)
 	stop := make(chan bool)
-	completed := false
+	completed := atomic.NewBool(false)
 
 	go func() {
 		channel <- blockingAction(stop)
@@ -94,12 +96,12 @@ func RunActionWithTimeout(blockingAction func(stop chan bool) error, timeout tim
 
 	select {
 	case err = <-channel:
-		completed = true
+		completed.Store(true)
 	case <-time.After(timeout):
 		stop <- true
 		err = commonerrors.ErrTimeout
 	}
-	if !completed {
+	if !completed.Load() {
 		<-channel
 	}
 	return
@@ -132,7 +134,7 @@ func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Durati
 }
 
 // Runs an action with a check in parallel
-// The function performing the check should return true if the check was favorable. false otherwise, if the check did not have the expected result and the whole function should be cancelled.
+// The function performing the check should return true if the check was favorable; false otherwise. If the check did not have the expected result and the whole function would be cancelled.
 func RunActionWithParallelCheck(ctx context.Context, action func(ctx context.Context) error, checkAction func(ctx context.Context) bool, checkPeriod time.Duration) error {
 	cancelStore := NewCancelFunctionsStore()
 	defer cancelStore.Cancel()
