@@ -66,6 +66,57 @@ func TestParallelisationWithErrors(t *testing.T) {
 	assert.Equal(t, anError, err)
 }
 
+func TestSleepWithInterruption(t *testing.T) {
+	tests := []struct {
+		name  string
+		sleep func(context.Context, time.Duration, chan time.Duration)
+	}{
+		{
+			name: "Sleep with interruption",
+			sleep: func(ctx context.Context, duration time.Duration, wait chan time.Duration) {
+				start := time.Now()
+				stop := make(chan bool, 1)
+				go func(ctx context.Context, stop chan bool) {
+					<-ctx.Done()
+					stop <- true
+				}(ctx, stop)
+				SleepWithInterruption(stop, duration)
+				wait <- time.Since(start)
+			},
+		},
+		{
+			name: "Sleep with context",
+			sleep: func(ctx context.Context, duration time.Duration, wait chan time.Duration) {
+				start := time.Now()
+				SleepWithContext(ctx, duration)
+				wait <- time.Since(start)
+			},
+		},
+	}
+
+	testSleep := func(t *testing.T, sleep func(context.Context, time.Duration, chan time.Duration)) {
+		times := make(chan time.Duration)
+		ctx, cancel := context.WithCancel(context.Background())
+		timeToSleep := 100 * time.Millisecond
+		go sleep(ctx, timeToSleep, times)
+		timeSlept := <-times
+		assert.GreaterOrEqual(t, timeSlept.Milliseconds(), timeToSleep.Milliseconds())
+		timeToSleep = time.Hour
+		go sleep(ctx, timeToSleep, times)
+		time.Sleep(time.Millisecond)
+		cancel()
+		timeSlept = <-times
+		assert.Less(t, timeSlept.Milliseconds(), timeToSleep.Milliseconds())
+	}
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			testSleep(t, test.sleep)
+		})
+	}
+}
+
 func TestSchedule(t *testing.T) {
 	var ticks []int
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

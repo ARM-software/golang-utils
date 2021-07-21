@@ -55,6 +55,22 @@ func Parallelise(argList interface{}, action func(arg interface{}) (interface{},
 	return
 }
 
+// Similar to time.Sleep() but also responding to context cancellation instead of blocking for the whole length of time.
+func SleepWithContext(ctx context.Context, delay time.Duration) {
+	select {
+	case <-ctx.Done():
+	case <-time.After(delay):
+	}
+}
+
+// Similar to time.Sleep() but also interrupting when requested instead of blocking for the whole length of time.
+func SleepWithInterruption(stop chan bool, delay time.Duration) {
+	select {
+	case <-stop:
+	case <-time.After(delay):
+	}
+}
+
 // Calls function `f` with a `period` and an `offset`.
 func Schedule(ctx context.Context, period time.Duration, offset time.Duration, f func(time.Time)) {
 	go func() {
@@ -151,7 +167,7 @@ func RunActionWithParallelCheck(ctx context.Context, action func(ctx context.Con
 					store.Cancel()
 					return
 				}
-				time.Sleep(checkPeriod)
+				SleepWithContext(ctx, checkPeriod)
 			}
 		}
 	}(cancellableCtx, cancelStore)
