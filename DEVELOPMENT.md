@@ -5,7 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 # Development and Testing
 ## Local Development
  
-Since this is Go library there is no application to run.
+Since this is a Go library, there is no application to run.
  
 ### Running tests
 
@@ -16,7 +16,7 @@ go test ./...
 
 ### Mocks
 
-We use the builtin mock library and use [mockgen](https://github.com/golang/mock#running-mockgen) to generate the mock implementation of Interfaces for testing.
+We use the built-in mock library and use [mockgen](https://github.com/golang/mock#running-mockgen) to generate the mock implementation of Interfaces for testing.
 
 To generate mocks:
 ```bash
@@ -30,22 +30,23 @@ We make use of `go:generate` comments to instruct which `mockgen` commands shoul
 `goimports` is enforced via a CI step.
 It is up to the individual developer to ensure their change complies with this.
 
-A [pre-commit](https://pre-commit.com/) hook is provided to enforce this on `git commit`.
-To enable this:
-```bash
-pre-commit install
+### Static analysis and linting
 
-# Test that it works
-pre-commit run --all-files
-```
- 
-Some additional static analysis tools are run in a CI step.
-This uses [golangci-lint](https://golangci-lint.run/). To run this locally:
+Static analysis tools and linters are run as part of CI.
+They come from [golangci-lint](https://golangci-lint.run/). To run this locally:
 ```bash
 # Must be in a directory with a go.mod file
 cd <directory_with_go_module>
 golangci-lint run ./...
 ``` 
+
+### Precommit
+A [pre-commit](https://pre-commit.com/) hook configuration is provided to enforce some tasks on `git commit`.
+Run `pre-commit install` to install pre-commit into your git hooks. pre-commit will now run on every commit.
+
+If you want to manually run all pre-commit hooks on a repository without creating hooks, run `pre-commit run --all-files`. 
+
+To run individual hooks use `pre-commit run <hook_id>`.
 
 ## Code Climate
 
