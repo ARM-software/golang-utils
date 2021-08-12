@@ -1,3 +1,7 @@
+<!--
+Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+SPDX-License-Identifier: Apache-2.0
+-->
 # Contribution Guide
 
 We really appreciate your contributions to the tools. We are committed to 

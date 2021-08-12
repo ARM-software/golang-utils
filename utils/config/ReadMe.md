@@ -1,3 +1,7 @@
+<!--
+Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+SPDX-License-Identifier: Apache-2.0
+-->
 # CLI / Service configuration
 
 [Viper](https://github.com/spf13/viper) provides quite a lot of utilities to retrieve configuration values and integrates well with [cobra](https://github.com/spf13/cobra) which is a reference for CLI implementation in go.
