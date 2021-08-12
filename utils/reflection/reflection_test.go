@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ARMmbed/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 type structtest struct {

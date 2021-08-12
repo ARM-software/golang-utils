@@ -41,6 +41,7 @@ golangci-lint run ./...
 ``` 
 
 ### Precommit
+
 A [pre-commit](https://pre-commit.com/) hook configuration is provided to enforce some tasks on `git commit`.
 Run `pre-commit install` to install pre-commit into your git hooks. pre-commit will now run on every commit.
 

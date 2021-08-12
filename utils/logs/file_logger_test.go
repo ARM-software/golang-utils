@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/ARMmbed/golang-utils/utils/filesystem"
+	"github.com/ARM-software/golang-utils/utils/filesystem"
 )
 
 func TestFileLogger(t *testing.T) {

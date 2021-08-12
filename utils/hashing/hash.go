@@ -20,7 +20,7 @@ import (
 	"github.com/OneOfOne/xxhash"
 	"github.com/spaolacci/murmur3"
 
-	"github.com/ARMmbed/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 const (

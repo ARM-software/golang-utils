@@ -11,8 +11,8 @@ fostering a welcoming community, please see our Code of Conduct, which can be fo
 
 There are several ways to contribute:
 
-- Raise an issue found via [GitHub Issues](https://github.com/ARMmbed/golang-utils/issues).
-- Open an [pull request](https://github.com/ARMmbed/golang-utils/pulls) to:
+- Raise an issue found via [GitHub Issues](https://github.com/ARM-software/golang-utils/issues).
+- Open an [pull request](https://github.com/ARM-software/golang-utils/pulls) to:
   - Provide a fix.
   - Add an enhancement feature.
   - Correct, update or add documentation.

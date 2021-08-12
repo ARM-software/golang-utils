@@ -1,4 +1,4 @@
-module github.com/ARMmbed/golang-utils/utils
+module github.com/ARM-software/golang-utils/utils
 
 go 1.15
 

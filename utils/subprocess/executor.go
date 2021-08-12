@@ -15,9 +15,9 @@ import (
 
 	"go.uber.org/atomic"
 
-	"github.com/ARMmbed/golang-utils/utils/commonerrors"
-	"github.com/ARMmbed/golang-utils/utils/logs"
-	"github.com/ARMmbed/golang-utils/utils/parallelisation"
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/logs"
+	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
 type logStreamer struct {

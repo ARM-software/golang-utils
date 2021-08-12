@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 
-	"github.com/ARMmbed/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 func TestParallelisationWithResults(t *testing.T) {

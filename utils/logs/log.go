@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ARMmbed/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 type Loggers interface {

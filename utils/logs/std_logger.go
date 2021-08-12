@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ARMmbed/golang-utils/utils/platform"
+	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
 type StdWriter struct {
