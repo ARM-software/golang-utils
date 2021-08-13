@@ -26,7 +26,7 @@ normal process to make a change is as follows:
 
 1. Fork the repository.
 2. Make your change and write unit tests, please try to match the existing documentation and coding style.
-3. Add a news file describing the changes and add it in the `/news` directory, see the section _News Files_ below.
+3. Add a news file describing the changes and add it in the `/changes` directory, see the section [News Files](#news_files) below.
 4. Write a [good commit message](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
 5. Push to your fork.
 6. Submit a pull request.
@@ -57,6 +57,12 @@ tool.
 | Deprecation of functionality or interfaces (not actual removal, for this use `.major`).                                 | `.removal` | None            |
 | Changes to the repository that do not impact functionality e.g. build scripts change.                                   | `.misc`    | None            |
 
+You can also use the [continuous delivery tools](https://github.com/ARMmbed/continuous-delivery-scripts) to generate those files.
+```bash
+  pip install continuous-delivery-scripts
+  cd-create-news-file --type <change type> "<message>"
+```
+
 ### Commit Hooks
 
 We use [pre-commit](https://pre-commit.com/) to install and run commit hooks, mirroring the code checks we run in our CI
@@ -67,12 +73,10 @@ The `pre-commit` tool allows developers to easily install git hook scripts which
 must pass in our CI before a PR is merged. Using commit hooks ensures you can't commit code which violates our style
 and maintainability requirements.
 
-To install the commit hooks for the repository, run `pipenv install --dev` then `pipenv shell`, in the `pipenv shell`
-type `pre-commit install`, the checks will now run automatically every time you try to `git commit` to the repository.
 
 ## Merging the Pull Request
 
-When merging the pull request we will normally squash merge the changes give it a title which provides context to
+When merging the pull request we will squash merge the changes, give it a title which provides context to
 the changes:
 
 - `<emoji> <Issue-Number> <Change Summary> (#<Pull Request Number>)`
