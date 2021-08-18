@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+    tags-ignore:
+      - '**'
+  pull_request:
+    branches: [ master ]
+
+# Set environment variables available in all jobs and steps
+env:
+  go_version: "1.16"
+  python_version: "3.9"
+  
+jobs:
+ # Check that a news file has been added to this branch when a PR is created
+  assert-news:
+    name: Assert news files (See CONTRIBUTING.md)
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout with full history for to allow compare with base branch
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v2
+      - name: Install CI/CD tools
+        run: pip install continuous-delivery-scripts
+      - name: Assert news
+        run: cd-assert-news
+        env:
+          GIT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Report failure if needed
+        if: ${{ failure() }}
+        run: |
+          echo "::error:: News file missing (See CONTRIBUTING.md guide for details)."
+
+  build-and-test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+        go-module: [utils]
+        multi-platform:
+          - ${{ github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch' }}
+        exclude:
+          - os: macOS-latest
+            multi-platform: false
+          - os: windows-latest
+            multi-platform: false
+    name: Build and test
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.go_version }}
+
+      - if: ${{ startsWith(matrix.os, 'macOS') }}
+        run: echo "CACHE_PATH=${{ env.go_cache_macOS_path }}" >> $GITHUB_ENV
+      - if: ${{ startsWith(matrix.os, 'windows') }}
+        run: echo "CACHE_PATH=${{ env.go_cache_windows_path }}" >> $GITHUB_ENV
+      - if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: echo "CACHE_PATH=${{ env.go_cache_ubuntu_path }}" >> $GITHUB_ENV
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          # Required: the version of golangci-lint is required and must be specified without patch version.
+          version: v2.5
+          working-directory: utils
+          args: -v
+      - name: Build ${{ matrix.go-module }}
+        run: go build -v ./...
+        working-directory: ${{ matrix.go-module }}
+      - name: Test ${{ matrix.go-module }}
+        run: go test -cover -v ./...
+        working-directory: ${{ matrix.go-module }}
