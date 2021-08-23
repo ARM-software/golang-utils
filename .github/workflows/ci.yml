@@ -36,15 +36,21 @@ jobs:
         run: |
           echo "::error:: News file missing (See CONTRIBUTING.md guide for details)."
 
-  gitleaks:
+  detect-secrets:
     name: Check for secrets
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/setup-python@v2
+    - name: Install tools
+      run: pip install detect-secrets==1.0.3
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - name: Check for secrets
+    - name: Check for secrets using gitleaks
       uses: zricethezav/gitleaks-action@master
+    - name: Check for secrets using detect-secrets
+      run: git ls-files -z | xargs -0 detect-secrets-hook --baseline .secrets.baseline --exclude-files '.*go\.sum$'
+      working-directory: .
 
   build-and-test:
     strategy:
@@ -73,16 +79,35 @@ jobs:
         run: echo "CACHE_PATH=${{ env.go_cache_windows_path }}" >> $GITHUB_ENV
       - if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: echo "CACHE_PATH=${{ env.go_cache_ubuntu_path }}" >> $GITHUB_ENV
+      - name: Load Go Dependency Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ${{ env.CACHE_PATH }}
+            ~/go/pkg/mod
+          key: ${{ matrix.os }}-${{ matrix.go-module }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ matrix.os }}-${{ matrix.go-module }}-
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
         with:
           # Required: the version of golangci-lint is required and must be specified without patch version.
           version: v1.42
-          working-directory: utils
+          working-directory: ${{ matrix.go-module }}
           args: -v
-      - name: Build ${{ matrix.go-module }}
+      - name: Build ${{ matrix.go-module }} on ${{ matrix.os }}
         run: go build -v ./...
         working-directory: ${{ matrix.go-module }}
-      - name: Test ${{ matrix.go-module }}
-        run: go test -cover -v ./...
-        working-directory: ${{ matrix.go-module }}
+
+      - name: Test [${{ matrix.go-module }} on ${{ matrix.os }}] & Publish Code Coverage
+        uses: paambaati/codeclimate-action@v2.7.5
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          debug: true
+          workingDirectory: ${{ matrix.go-module }}
+          coverageCommand: go test -cover -v -coverprofile ${{ matrix.go-module }}_coverage.out ./...
+          prefix: ${{ github.event.repository.name }}
+          coverageLocations:
+            "${{github.workspace}}/${{ matrix.go-module }}/${{ matrix.go-module }}_coverage.out:gocov"
+
