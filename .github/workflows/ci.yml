@@ -35,6 +35,16 @@ jobs:
         run: |
           echo "::error:: News file missing (See CONTRIBUTING.md guide for details)."
 
+  gitleaks:
+    name: Check for secrets
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Check for secrets
+      uses: zricethezav/gitleaks-action@master
+
   build-and-test:
     strategy:
       matrix:
@@ -66,7 +76,7 @@ jobs:
         uses: golangci/golangci-lint-action@v2
         with:
           # Required: the version of golangci-lint is required and must be specified without patch version.
-          version: v2.5
+          version: v1.42
           working-directory: utils
           args: -v
       - name: Build ${{ matrix.go-module }}
