@@ -1,0 +1,34 @@
+name: GitHub Release
+
+env:
+  go_version: "1.16"
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description:
+          "Enter type of release to perform (i.e. development, beta, release):"
+        required: true
+jobs:
+  release:
+    name: Carry out a release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # Get the full history as this is required by goreleaser
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.go_version }}
+      - uses: actions/setup-python@v2
+      - uses: FranzDiebold/github-env-vars-action@v2
+      - name: Install CI/CD tools
+        run: pip install continuous-delivery-scripts>=2.7 && pip list
+      - name: Tag and release
+        run: cd-tag-and-release -b ${CI_ACTION_REF_NAME} -t ${{ github.event.inputs.release_type }} -vv
+        env:
+          # Using a specific token because GITHUB_TOKEN is not available https://github.com/marketplace/actions/workflow-dispatch#token
+          GIT_TOKEN: ${{ secrets.GIT_SECRET }}
