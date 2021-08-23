@@ -1,0 +1,36 @@
+name: GitHub Release
+
+env:
+  go_version: "1.16"
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description:
+          "Enter type of release to perform (i.e. development, beta, release):"
+        required: true
+jobs:
+  release:
+    name: Carry out a release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # Get the full history as this is required by goreleaser
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.go_version }}
+      - uses: actions/setup-python@v2
+      - uses: FranzDiebold/github-env-vars-action@v2
+      - name: Install CI/CD tools
+        run: pip install continuous-delivery-scripts
+      - name: Assert news
+        run: cd-tag-and-release -b ${CI_ACTION_REF_NAME} -t ${{ github.event.inputs.version_number }}
+        env:
+          GIT_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Release notification
+        run: |
+          echo "::warning:: New release created"
