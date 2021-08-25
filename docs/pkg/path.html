@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: path</title>
+<link href="../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>path</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../index.html#pkg-path">path</a><i> (on <a href="https://pkg.go.dev/path" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../dep/path.html">3 packages</a>, and imported by <a href="../dep/path.html#imported-by">8 packages</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<span class="nodocs">      <a href="../src/path/match.go.html">match.go</a></span>
+	<input type='checkbox' checked class="fold" id="file-1-fold-content"><label for="file-1-fold-content">   <a href="../src/path/path.go.html#doc">d➜</a> <a href="../src/path/path.go.html">path.go</a></label><span id='file-1-fold-content-items' class="fold-items">
+		Package path implements utility routines for manipulating slash-separated
+		paths.
+
+		The path package should only be used for paths separated by forward
+		slashes, such as the paths in URLs. This package does not deal with
+		Windows paths with drive letters or backslashes; to manipulate
+		operating system paths, use the path/filepath package.</span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content">Base</label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"path"
+		)
+		
+		func main() {
+			fmt.Println(path.Base("/a/b"))
+			fmt.Println(path.Base("/"))
+			fmt.Println(path.Base(""))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-1-fold-content"><label for="example-1-fold-content">Clean</label><span id='example-1-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"path"
+		)
+		
+		func main() {
+			paths := []string{
+				"a/c",
+				"a//c",
+				"a/c/.",
+				"a/c/b/..",
+				"/../a/c",
+				"/../a/b/../././/c",
+				"",
+			}
+		
+			for _, p := range paths {
+				fmt.Printf("Clean(%q) = %q\n", p, path.Clean(p))
+			}
+		
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-2-fold-content"><label for="example-2-fold-content">Dir</label><span id='example-2-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"path"
+		)
+		
+		func main() {
+			fmt.Println(path.Dir("/a/b/c"))
+			fmt.Println(path.Dir("a/b/c"))
+			fmt.Println(path.Dir("/a/"))
+			fmt.Println(path.Dir("a/"))
+			fmt.Println(path.Dir("/"))
+			fmt.Println(path.Dir(""))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-3-fold-content"><label for="example-3-fold-content">Ext</label><span id='example-3-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"path"
+		)
+		
+		func main() {
+			fmt.Println(path.Ext("/a/b/c/bar.css"))
+			fmt.Println(path.Ext("/"))
+			fmt.Println(path.Ext(""))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-4-fold-content"><label for="example-4-fold-content">IsAbs</label><span id='example-4-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"path"
+		)
+		
+		func main() {
+			fmt.Println(path.IsAbs("/dev/null"))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-5-fold-content"><label for="example-5-fold-content">Join</label><span id='example-5-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"path"
+		)
+		
+		func main() {
+			fmt.Println(path.Join("a", "b", "c"))
+			fmt.Println(path.Join("a", "b/c"))
+			fmt.Println(path.Join("a/b", "c"))
+		
+			fmt.Println(path.Join("a/b", "../../../xyz"))
+		
+			fmt.Println(path.Join("", ""))
+			fmt.Println(path.Join("a", ""))
+			fmt.Println(path.Join("", "a"))
+		
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-6-fold-content"><label for="example-6-fold-content">Match</label><span id='example-6-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"path"
+		)
+		
+		func main() {
+			fmt.Println(path.Match("abc", "abc"))
+			fmt.Println(path.Match("a*", "abc"))
+			fmt.Println(path.Match("a*/b", "a/c/b"))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-7-fold-content"><label for="example-7-fold-content">Split</label><span id='example-7-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"path"
+		)
+		
+		func main() {
+			split := func(s string) {
+				dir, file := path.Split(s)
+				fmt.Printf("path.Split(%q) = dir: %q, file: %q\n", s, dir, file)
+			}
+			split("static/myfile.css")
+			split("myfile.css")
+			split("")
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (only one, which is unexported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* one unexported ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* one unexported: */</label></i><div class="anchor type-res hidden" id="name-lazybuf" data-popularity="150">	<input type='checkbox' class="fold" id="lazybuf-fold-content"><label for="lazybuf-fold-content"> type <a href="../src/path/path.go.html#line-18">lazybuf</a> <i>(struct)</i></label><span id='lazybuf-fold-content-docs' class="fold-docs">
+		A lazybuf is a lazily constructed path buffer.
+		It supports append, reading previously appended bytes,
+		and retrieving the final string. It does not allocate a buffer
+		to hold the output until that output diverges from s.
+
+		<input type='checkbox' class="fold" id="lazybuf-fold-fields"><label for="lazybuf-fold-fields">Fields (<i>total 3, none are exported</i>)</label><span id='lazybuf-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="lazybuf-showhide-fields"><i><label for="lazybuf-showhide-fields" class="show-inline">/* 3 unexporteds ... */</label><label for="lazybuf-showhide-fields" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/path/path.go.html#line-20">buf</a> <i>[]<a href="builtin.html#name-byte">byte</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/path/path.go.html#line-19">s</a> <i><a href="builtin.html#name-string">string</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/path/path.go.html#line-21">w</a> <i><a href="builtin.html#name-int">int</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="lazybuf-fold-methods"><label for="lazybuf-fold-methods">Methods (<i>total 3, none are exported</i>)</label><span id='lazybuf-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="lazybuf-showhide-methods"><i><label for="lazybuf-showhide-methods" class="show-inline">/* 3 unexporteds ... */</label><label for="lazybuf-showhide-methods" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/path/path.go.html#line-31">append</a>(c <a href="builtin.html#name-byte">byte</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/path/path.go.html#line-24">index</a>(i <a href="builtin.html#name-int">int</a>) <a href="builtin.html#name-byte">byte</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/path/path.go.html#line-44">string</a>() <a href="builtin.html#name-string">string</a></span></i></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 12, in which 8 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-Base">	<input type='checkbox' class="fold" id="Base-fold-content"><label for="Base-fold-content"> func <a href="../src/path/path.go.html#line-199">Base</a>(path <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-string">string</a></label><span id='Base-fold-content-docs' class="fold-docs">
+		Base returns the last element of path.
+		Trailing slashes are removed before extracting the last element.
+		If the path is empty, Base returns ".".
+		If the path consists entirely of slashes, Base returns "/".
+
+</span></div><div class="anchor value-res" id="name-Clean">	<input type='checkbox' class="fold" id="Clean-fold-content"><label for="Clean-fold-content"> func <a href="../src/path/path.go.html#line-70">Clean</a>(path <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-string">string</a></label><span id='Clean-fold-content-docs' class="fold-docs">
+		Clean returns the shortest path name equivalent to path
+		by purely lexical processing. It applies the following rules
+		iteratively until no further processing can be done:
+
+			1. Replace multiple slashes with a single slash.
+			2. Eliminate each . path name element (the current directory).
+			3. Eliminate each inner .. path name element (the parent directory)
+			   along with the non-.. element that precedes it.
+			4. Eliminate .. elements that begin a rooted path:
+			   that is, replace "/.." by "/" at the beginning of a path.
+
+		The returned path ends in a slash only if it is the root "/".
+
+		If the result of this process is an empty string, Clean
+		returns the string ".".
+
+		See also Rob Pike, ``Lexical File Names in Plan 9 or
+		Getting Dot-Dot Right,''
+		https://9p.io/sys/doc/lexnames.html
+
+</span></div><div class="anchor value-res" id="name-Dir">	<input type='checkbox' class="fold" id="Dir-fold-content"><label for="Dir-fold-content"> func <a href="../src/path/path.go.html#line-230">Dir</a>(path <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-string">string</a></label><span id='Dir-fold-content-docs' class="fold-docs">
+		Dir returns all but the last element of path, typically the path's directory.
+		After dropping the final element using Split, the path is Cleaned and trailing
+		slashes are removed.
+		If the path is empty, Dir returns ".".
+		If the path consists entirely of slashes followed by non-slash bytes, Dir
+		returns a single slash. In any other case, the returned path does not end in a
+		slash.
+
+</span></div><div class="anchor value-res" id="name-Ext">	<input type='checkbox' class="fold" id="Ext-fold-content"><label for="Ext-fold-content"> func <a href="../src/path/path.go.html#line-186">Ext</a>(path <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-string">string</a></label><span id='Ext-fold-content-docs' class="fold-docs">
+		Ext returns the file name extension used by path.
+		The extension is the suffix beginning at the final dot
+		in the final slash-separated element of path;
+		it is empty if there is no dot.
+
+</span></div><div class="anchor value-res" id="name-IsAbs">	<input type='checkbox' class="fold" id="IsAbs-fold-content"><label for="IsAbs-fold-content"> func <a href="../src/path/path.go.html#line-219">IsAbs</a>(path <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-bool">bool</a></label><span id='IsAbs-fold-content-docs' class="fold-docs">
+		IsAbs reports whether the path is absolute.
+
+</span></div><div class="anchor value-res" id="name-Join">	<input type='checkbox' class="fold" id="Join-fold-content"><label for="Join-fold-content"> func <a href="../src/path/path.go.html#line-162">Join</a>(elem ...<a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-string">string</a></label><span id='Join-fold-content-docs' class="fold-docs">
+		Join joins any number of path elements into a single path,
+		separating them with slashes. Empty elements are ignored.
+		The result is Cleaned. However, if the argument list is
+		empty or all its elements are empty, Join returns
+		an empty string.
+
+</span></div><div class="anchor value-res" id="name-Match">	<input type='checkbox' class="fold" id="Match-fold-content"><label for="Match-fold-content"> func <a href="../src/path/match.go.html#line-38">Match</a>(pattern, name <a href="builtin.html#name-string">string</a>) (matched <a href="builtin.html#name-bool">bool</a>, err <a href="builtin.html#name-error">error</a>)</label><span id='Match-fold-content-docs' class="fold-docs">
+		Match reports whether name matches the shell pattern.
+		The pattern syntax is:
+
+			pattern:
+				{ term }
+			term:
+				'*'         matches any sequence of non-/ characters
+				'?'         matches any single non-/ character
+				'[' [ '^' ] { character-range } ']'
+				            character class (must be non-empty)
+				c           matches character c (c != '*', '?', '\\', '[')
+				'\\' c      matches character c
+
+			character-range:
+				c           matches character c (c != '\\', '-', ']')
+				'\\' c      matches character c
+				lo '-' hi   matches character c for lo &lt;= c &lt;= hi
+
+		Match requires pattern to match all of name, not just a substring.
+		The only possible returned error is ErrBadPattern, when pattern
+		is malformed.
+
+</span></div><div class="anchor value-res" id="name-Split">	<input type='checkbox' class="fold" id="Split-fold-content"><label for="Split-fold-content"> func <a href="../src/path/path.go.html#line-152">Split</a>(path <a href="builtin.html#name-string">string</a>) (dir, file <a href="builtin.html#name-string">string</a>)</label><span id='Split-fold-content-docs' class="fold-docs">
+		Split splits path immediately following the final slash,
+		separating it into a directory and file name component.
+		If there is no slash in path, Split returns an empty dir and
+		file set to path.
+		The returned values have the property that path = dir+file.
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 4 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 4 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-getEsc"><i>	<input type='checkbox' class="fold" id="getEsc-fold-content"><label for="getEsc-fold-content"> func <a href="../src/path/match.go.html#line-210">getEsc</a>(chunk <a href="builtin.html#name-string">string</a>) (r <a href="builtin.html#name-rune">rune</a>, nchunk <a href="builtin.html#name-string">string</a>, err <a href="builtin.html#name-error">error</a>)</label><span id='getEsc-fold-content-docs' class="fold-docs">
+		getEsc gets a possibly-escaped character from chunk, for a character class.
+
+</span></i></div><div class="anchor value-res hidden" id="name-lastSlash"><i>	<input type='checkbox' class="fold" id="lastSlash-fold-content"><label for="lastSlash-fold-content"> func <a href="../src/path/path.go.html#line-139">lastSlash</a>(s <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-int">int</a></label><span id='lastSlash-fold-content-docs' class="fold-docs">
+		lastSlash(s) is strings.LastIndex(s, "/") but we can't import strings.
+
+</span></i></div><div class="anchor value-res hidden" id="name-matchChunk"><i>	<input type='checkbox' class="fold" id="matchChunk-fold-content"><label for="matchChunk-fold-content"> func <a href="../src/path/match.go.html#line-124">matchChunk</a>(chunk, s <a href="builtin.html#name-string">string</a>) (rest <a href="builtin.html#name-string">string</a>, ok <a href="builtin.html#name-bool">bool</a>, err <a href="builtin.html#name-error">error</a>)</label><span id='matchChunk-fold-content-docs' class="fold-docs">
+		matchChunk checks whether chunk matches the beginning of s.
+		If so, it returns the remainder of s (after the match).
+		Chunk is all single-character operators: literals, char classes, and ?.
+
+</span></i></div><div class="anchor value-res hidden" id="name-scanChunk"><i>	<input type='checkbox' class="fold" id="scanChunk-fold-content"><label for="scanChunk-fold-content"> func <a href="../src/path/match.go.html#line-93">scanChunk</a>(pattern <a href="builtin.html#name-string">string</a>) (star <a href="builtin.html#name-bool">bool</a>, chunk, rest <a href="builtin.html#name-string">string</a>)</label><span id='scanChunk-fold-content-docs' class="fold-docs">
+		scanChunk gets the next segment of pattern, which is a non-star string
+		possibly preceded by a star.
+
+</span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (only one, which is exported)</i></span></span>
+
+<div class="anchor value-res" id="name-ErrBadPattern">	<input type='checkbox' class="fold" id="ErrBadPattern-fold-content"><label for="ErrBadPattern-fold-content">  var <a href="../src/path/match.go.html#line-14">ErrBadPattern</a> <a href="builtin.html#name-error">error</a></label><span id='ErrBadPattern-fold-content-docs' class="fold-docs">
+		ErrBadPattern indicates a pattern was malformed.
+
+</span></div></div></code></pre><pre id="footer">
+<table><tr><td><img src="../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

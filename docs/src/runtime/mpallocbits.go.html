@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: mpallocbits.go in package runtime</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	mpallocbits.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104],
+input[id=r105]:checked ~pre label[for=r105],
+input[id=r106]:checked ~pre label[for=r106],
+input[id=r107]:checked ~pre label[for=r107],
+input[id=r108]:checked ~pre label[for=r108],
+input[id=r109]:checked ~pre label[for=r109],
+input[id=r110]:checked ~pre label[for=r110],
+input[id=r111]:checked ~pre label[for=r111],
+input[id=r112]:checked ~pre label[for=r112]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="r105" type="radio" name="g"/>
+<input id="r106" type="radio" name="g"/>
+<input id="r107" type="radio" name="g"/>
+<input id="r108" type="radio" name="g"/>
+<input id="r109" type="radio" name="g"/>
+<input id="r110" type="radio" name="g"/>
+<input id="r111" type="radio" name="g"/>
+<input id="r112" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2019 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"runtime/internal/sys"</span></label></code></span>
+<span class="codeline" id="line-9"><code>)</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// pageBits is a bitmap representing one bit per page in a palloc chunk.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-pageBits" class="ident">pageBits</a> [<a href="mpagealloc.go.html#line-58" class="ident">pallocChunkPages</a> / <span class="lit-number">64</span>]<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// get returns the value of the i'th bit in the bitmap.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="keyword">func</span> (<label for="r0" class="ident">b</label> *<a href="#line-12" class="ident">pageBits</a>) <label for="r1" class="ident">get</label>(<label for="r2" class="ident">i</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a> {</code></span>
+<span class="codeline" id="line-16"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>((<label for="r0" class="ident">b</label>[<label for="r2" class="ident">i</label>/<span class="lit-number">64</span>] &gt;&gt; (<label for="r2" class="ident">i</label> % <span class="lit-number">64</span>)) &amp; <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-17"><code>}</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// block64 returns the 64-bit aligned block of bits containing the i'th bit.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">func</span> (<label for="r3" class="ident">b</label> *<a href="#line-12" class="ident">pageBits</a>) <label for="r4" class="ident">block64</label>(<label for="r5" class="ident">i</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> {</code></span>
+<span class="codeline" id="line-21"><code>	<span class="keyword">return</span> <label for="r3" class="ident">b</label>[<label for="r5" class="ident">i</label>/<span class="lit-number">64</span>]</code></span>
+<span class="codeline" id="line-22"><code>}</code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// set sets bit i of pageBits.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">func</span> (<label for="r6" class="ident">b</label> *<a href="#line-12" class="ident">pageBits</a>) <label for="r7" class="ident">set</label>(<label for="r8" class="ident">i</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) {</code></span>
+<span class="codeline" id="line-26"><code>	<label for="r6" class="ident">b</label>[<label for="r8" class="ident">i</label>/<span class="lit-number">64</span>] |= <span class="lit-number">1</span> &lt;&lt; (<label for="r8" class="ident">i</label> % <span class="lit-number">64</span>)</code></span>
+<span class="codeline" id="line-27"><code>}</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// setRange sets bits in the range [i, i+n).</span></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">func</span> (<label for="r9" class="ident">b</label> *<a href="#line-12" class="ident">pageBits</a>) <label for="r10" class="ident">setRange</label>(<label for="r11" class="ident">i</label>, <label for="r12" class="ident">n</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) {</code></span>
+<span class="codeline" id="line-31"><code>	_ = <label for="r9" class="ident">b</label>[<label for="r11" class="ident">i</label>/<span class="lit-number">64</span>]</code></span>
+<span class="codeline" id="line-32"><code>	<span class="keyword">if</span> <label for="r12" class="ident">n</label> == <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-33"><code>		<span class="comment">// Fast path for the n == 1 case.</span></code></span>
+<span class="codeline" id="line-34"><code>		<label for="r9" class="ident">b</label>.<a href="#line-25" class="ident">set</a>(<label for="r11" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-35"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-36"><code>	}</code></span>
+<span class="codeline" id="line-37"><code>	<span class="comment">// Set bits [i, j].</span></code></span>
+<span class="codeline" id="line-38"><code>	<label for="r13" class="ident">j</label> := <label for="r11" class="ident">i</label> + <label for="r12" class="ident">n</label> - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-39"><code>	<span class="keyword">if</span> <label for="r11" class="ident">i</label>/<span class="lit-number">64</span> == <label for="r13" class="ident">j</label>/<span class="lit-number">64</span> {</code></span>
+<span class="codeline" id="line-40"><code>		<label for="r9" class="ident">b</label>[<label for="r11" class="ident">i</label>/<span class="lit-number">64</span>] |= ((<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<span class="lit-number">1</span>) &lt;&lt; <label for="r12" class="ident">n</label>) - <span class="lit-number">1</span>) &lt;&lt; (<label for="r11" class="ident">i</label> % <span class="lit-number">64</span>)</code></span>
+<span class="codeline" id="line-41"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-42"><code>	}</code></span>
+<span class="codeline" id="line-43"><code>	_ = <label for="r9" class="ident">b</label>[<label for="r13" class="ident">j</label>/<span class="lit-number">64</span>]</code></span>
+<span class="codeline" id="line-44"><code>	<span class="comment">// Set leading bits.</span></code></span>
+<span class="codeline" id="line-45"><code>	<label for="r9" class="ident">b</label>[<label for="r11" class="ident">i</label>/<span class="lit-number">64</span>] |= ^<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<span class="lit-number">0</span>) &lt;&lt; (<label for="r11" class="ident">i</label> % <span class="lit-number">64</span>)</code></span>
+<span class="codeline" id="line-46"><code>	<span class="keyword">for</span> <label for="r14" class="ident">k</label> := <label for="r11" class="ident">i</label>/<span class="lit-number">64</span> + <span class="lit-number">1</span>; <label for="r14" class="ident">k</label> &lt; <label for="r13" class="ident">j</label>/<span class="lit-number">64</span>; <label for="r14" class="ident">k</label>++ {</code></span>
+<span class="codeline" id="line-47"><code>		<label for="r9" class="ident">b</label>[<label for="r14" class="ident">k</label>] = ^<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-48"><code>	}</code></span>
+<span class="codeline" id="line-49"><code>	<span class="comment">// Set trailing bits.</span></code></span>
+<span class="codeline" id="line-50"><code>	<label for="r9" class="ident">b</label>[<label for="r13" class="ident">j</label>/<span class="lit-number">64</span>] |= (<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<span class="lit-number">1</span>) &lt;&lt; (<label for="r13" class="ident">j</label>%<span class="lit-number">64</span> + <span class="lit-number">1</span>)) - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-51"><code>}</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// setAll sets all the bits of b.</span></code></span>
+<span class="codeline" id="line-54"><code><span class="keyword">func</span> (<label for="r15" class="ident">b</label> *<a href="#line-12" class="ident">pageBits</a>) <label for="r16" class="ident">setAll</label>() {</code></span>
+<span class="codeline" id="line-55"><code>	<span class="keyword">for</span> <label for="r17" class="ident">i</label> := <span class="keyword">range</span> <label for="r15" class="ident">b</label> {</code></span>
+<span class="codeline" id="line-56"><code>		<label for="r15" class="ident">b</label>[<label for="r17" class="ident">i</label>] = ^<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-57"><code>	}</code></span>
+<span class="codeline" id="line-58"><code>}</code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// clear clears bit i of pageBits.</span></code></span>
+<span class="codeline" id="line-61"><code><span class="keyword">func</span> (<label for="r18" class="ident">b</label> *<a href="#line-12" class="ident">pageBits</a>) <label for="r19" class="ident">clear</label>(<label for="r20" class="ident">i</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) {</code></span>
+<span class="codeline" id="line-62"><code>	<label for="r18" class="ident">b</label>[<label for="r20" class="ident">i</label>/<span class="lit-number">64</span>] &amp;^= <span class="lit-number">1</span> &lt;&lt; (<label for="r20" class="ident">i</label> % <span class="lit-number">64</span>)</code></span>
+<span class="codeline" id="line-63"><code>}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// clearRange clears bits in the range [i, i+n).</span></code></span>
+<span class="codeline" id="line-66"><code><span class="keyword">func</span> (<label for="r21" class="ident">b</label> *<a href="#line-12" class="ident">pageBits</a>) <label for="r22" class="ident">clearRange</label>(<label for="r23" class="ident">i</label>, <label for="r24" class="ident">n</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) {</code></span>
+<span class="codeline" id="line-67"><code>	_ = <label for="r21" class="ident">b</label>[<label for="r23" class="ident">i</label>/<span class="lit-number">64</span>]</code></span>
+<span class="codeline" id="line-68"><code>	<span class="keyword">if</span> <label for="r24" class="ident">n</label> == <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-69"><code>		<span class="comment">// Fast path for the n == 1 case.</span></code></span>
+<span class="codeline" id="line-70"><code>		<label for="r21" class="ident">b</label>.<a href="#line-61" class="ident">clear</a>(<label for="r23" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-71"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-72"><code>	}</code></span>
+<span class="codeline" id="line-73"><code>	<span class="comment">// Clear bits [i, j].</span></code></span>
+<span class="codeline" id="line-74"><code>	<label for="r25" class="ident">j</label> := <label for="r23" class="ident">i</label> + <label for="r24" class="ident">n</label> - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">if</span> <label for="r23" class="ident">i</label>/<span class="lit-number">64</span> == <label for="r25" class="ident">j</label>/<span class="lit-number">64</span> {</code></span>
+<span class="codeline" id="line-76"><code>		<label for="r21" class="ident">b</label>[<label for="r23" class="ident">i</label>/<span class="lit-number">64</span>] &amp;^= ((<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<span class="lit-number">1</span>) &lt;&lt; <label for="r24" class="ident">n</label>) - <span class="lit-number">1</span>) &lt;&lt; (<label for="r23" class="ident">i</label> % <span class="lit-number">64</span>)</code></span>
+<span class="codeline" id="line-77"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-78"><code>	}</code></span>
+<span class="codeline" id="line-79"><code>	_ = <label for="r21" class="ident">b</label>[<label for="r25" class="ident">j</label>/<span class="lit-number">64</span>]</code></span>
+<span class="codeline" id="line-80"><code>	<span class="comment">// Clear leading bits.</span></code></span>
+<span class="codeline" id="line-81"><code>	<label for="r21" class="ident">b</label>[<label for="r23" class="ident">i</label>/<span class="lit-number">64</span>] &amp;^= ^<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<span class="lit-number">0</span>) &lt;&lt; (<label for="r23" class="ident">i</label> % <span class="lit-number">64</span>)</code></span>
+<span class="codeline" id="line-82"><code>	<span class="keyword">for</span> <label for="r26" class="ident">k</label> := <label for="r23" class="ident">i</label>/<span class="lit-number">64</span> + <span class="lit-number">1</span>; <label for="r26" class="ident">k</label> &lt; <label for="r25" class="ident">j</label>/<span class="lit-number">64</span>; <label for="r26" class="ident">k</label>++ {</code></span>
+<span class="codeline" id="line-83"><code>		<label for="r21" class="ident">b</label>[<label for="r26" class="ident">k</label>] = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-84"><code>	}</code></span>
+<span class="codeline" id="line-85"><code>	<span class="comment">// Clear trailing bits.</span></code></span>
+<span class="codeline" id="line-86"><code>	<label for="r21" class="ident">b</label>[<label for="r25" class="ident">j</label>/<span class="lit-number">64</span>] &amp;^= (<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<span class="lit-number">1</span>) &lt;&lt; (<label for="r25" class="ident">j</label>%<span class="lit-number">64</span> + <span class="lit-number">1</span>)) - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-87"><code>}</code></span>
+<span class="codeline" id="line-88"><code></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">// clearAll frees all the bits of b.</span></code></span>
+<span class="codeline" id="line-90"><code><span class="keyword">func</span> (<label for="r27" class="ident">b</label> *<a href="#line-12" class="ident">pageBits</a>) <label for="r28" class="ident">clearAll</label>() {</code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">for</span> <label for="r29" class="ident">i</label> := <span class="keyword">range</span> <label for="r27" class="ident">b</label> {</code></span>
+<span class="codeline" id="line-92"><code>		<label for="r27" class="ident">b</label>[<label for="r29" class="ident">i</label>] = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-93"><code>	}</code></span>
+<span class="codeline" id="line-94"><code>}</code></span>
+<span class="codeline" id="line-95"><code></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// popcntRange counts the number of set bits in the</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">// range [i, i+n).</span></code></span>
+<span class="codeline" id="line-98"><code><span class="keyword">func</span> (<label for="r30" class="ident">b</label> *<a href="#line-12" class="ident">pageBits</a>) <label for="r31" class="ident">popcntRange</label>(<label for="r32" class="ident">i</label>, <label for="r33" class="ident">n</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) (<label for="r34" class="ident">s</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) {</code></span>
+<span class="codeline" id="line-99"><code>	<span class="keyword">if</span> <label for="r33" class="ident">n</label> == <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-100"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>((<label for="r30" class="ident">b</label>[<label for="r32" class="ident">i</label>/<span class="lit-number">64</span>] &gt;&gt; (<label for="r32" class="ident">i</label> % <span class="lit-number">64</span>)) &amp; <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-101"><code>	}</code></span>
+<span class="codeline" id="line-102"><code>	_ = <label for="r30" class="ident">b</label>[<label for="r32" class="ident">i</label>/<span class="lit-number">64</span>]</code></span>
+<span class="codeline" id="line-103"><code>	<label for="r35" class="ident">j</label> := <label for="r32" class="ident">i</label> + <label for="r33" class="ident">n</label> - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-104"><code>	<span class="keyword">if</span> <label for="r32" class="ident">i</label>/<span class="lit-number">64</span> == <label for="r35" class="ident">j</label>/<span class="lit-number">64</span> {</code></span>
+<span class="codeline" id="line-105"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-71" class="ident">OnesCount64</a>((<label for="r30" class="ident">b</label>[<label for="r32" class="ident">i</label>/<span class="lit-number">64</span>] &gt;&gt; (<label for="r32" class="ident">i</label> % <span class="lit-number">64</span>)) &amp; ((<span class="lit-number">1</span> &lt;&lt; <label for="r33" class="ident">n</label>) - <span class="lit-number">1</span>)))</code></span>
+<span class="codeline" id="line-106"><code>	}</code></span>
+<span class="codeline" id="line-107"><code>	_ = <label for="r30" class="ident">b</label>[<label for="r35" class="ident">j</label>/<span class="lit-number">64</span>]</code></span>
+<span class="codeline" id="line-108"><code>	<label for="r34" class="ident">s</label> += <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-71" class="ident">OnesCount64</a>(<label for="r30" class="ident">b</label>[<label for="r32" class="ident">i</label>/<span class="lit-number">64</span>] &gt;&gt; (<label for="r32" class="ident">i</label> % <span class="lit-number">64</span>)))</code></span>
+<span class="codeline" id="line-109"><code>	<span class="keyword">for</span> <label for="r36" class="ident">k</label> := <label for="r32" class="ident">i</label>/<span class="lit-number">64</span> + <span class="lit-number">1</span>; <label for="r36" class="ident">k</label> &lt; <label for="r35" class="ident">j</label>/<span class="lit-number">64</span>; <label for="r36" class="ident">k</label>++ {</code></span>
+<span class="codeline" id="line-110"><code>		<label for="r34" class="ident">s</label> += <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-71" class="ident">OnesCount64</a>(<label for="r30" class="ident">b</label>[<label for="r36" class="ident">k</label>]))</code></span>
+<span class="codeline" id="line-111"><code>	}</code></span>
+<span class="codeline" id="line-112"><code>	<label for="r34" class="ident">s</label> += <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-71" class="ident">OnesCount64</a>(<label for="r30" class="ident">b</label>[<label for="r35" class="ident">j</label>/<span class="lit-number">64</span>] &amp; ((<span class="lit-number">1</span> &lt;&lt; (<label for="r35" class="ident">j</label>%<span class="lit-number">64</span> + <span class="lit-number">1</span>)) - <span class="lit-number">1</span>)))</code></span>
+<span class="codeline" id="line-113"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-114"><code>}</code></span>
+<span class="codeline" id="line-115"><code></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">// pallocBits is a bitmap that tracks page allocations for at most one</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">// palloc chunk.</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">// The precise representation is an implementation detail, but for the</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">// sake of documentation, 0s are free pages and 1s are allocated pages.</span></code></span>
+<span class="codeline" id="line-121"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-pallocBits" class="ident">pallocBits</a> <a href="#line-12" class="ident">pageBits</a></code></span>
+<span class="codeline" id="line-122"><code></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">// summarize returns a packed summary of the bitmap in pallocBits.</span></code></span>
+<span class="codeline" id="line-124"><code><span class="keyword">func</span> (<label for="r37" class="ident">b</label> *<a href="#line-121" class="ident">pallocBits</a>) <label for="r38" class="ident">summarize</label>() <a href="mpagealloc.go.html#line-919" class="ident">pallocSum</a> {</code></span>
+<span class="codeline" id="line-125"><code>	<span class="keyword">var</span> <label for="r39" class="ident">start</label>, <label for="r40" class="ident">max</label>, <label for="r41" class="ident">cur</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a></code></span>
+<span class="codeline" id="line-126"><code>	<span class="keyword">const</span> <label for="r42" class="ident">notSetYet</label> = ^<a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">0</span>) <span class="comment">// sentinel for start value</span></code></span>
+<span class="codeline" id="line-127"><code>	<label for="r39" class="ident">start</label> = <label for="r42" class="ident">notSetYet</label></code></span>
+<span class="codeline" id="line-128"><code>	<span class="keyword">for</span> <label for="r43" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r43" class="ident">i</label> &lt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r37" class="ident">b</label>); <label for="r43" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-129"><code>		<label for="r44" class="ident">x</label> := <label for="r37" class="ident">b</label>[<label for="r43" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-130"><code>		<span class="keyword">if</span> <label for="r44" class="ident">x</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-131"><code>			<label for="r41" class="ident">cur</label> += <span class="lit-number">64</span></code></span>
+<span class="codeline" id="line-132"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-133"><code>		}</code></span>
+<span class="codeline" id="line-134"><code>		<label for="r45" class="ident">t</label> := <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-111" class="ident">TrailingZeros64</a>(<label for="r44" class="ident">x</label>))</code></span>
+<span class="codeline" id="line-135"><code>		<label for="r46" class="ident">l</label> := <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-130" class="ident">LeadingZeros64</a>(<label for="r44" class="ident">x</label>))</code></span>
+<span class="codeline" id="line-136"><code></code></span>
+<span class="codeline" id="line-137"><code>		<span class="comment">// Finish any region spanning the uint64s</span></code></span>
+<span class="codeline" id="line-138"><code>		<label for="r41" class="ident">cur</label> += <label for="r45" class="ident">t</label></code></span>
+<span class="codeline" id="line-139"><code>		<span class="keyword">if</span> <label for="r39" class="ident">start</label> == <label for="r42" class="ident">notSetYet</label> {</code></span>
+<span class="codeline" id="line-140"><code>			<label for="r39" class="ident">start</label> = <label for="r41" class="ident">cur</label></code></span>
+<span class="codeline" id="line-141"><code>		}</code></span>
+<span class="codeline" id="line-142"><code>		<span class="keyword">if</span> <label for="r41" class="ident">cur</label> &gt; <label for="r40" class="ident">max</label> {</code></span>
+<span class="codeline" id="line-143"><code>			<label for="r40" class="ident">max</label> = <label for="r41" class="ident">cur</label></code></span>
+<span class="codeline" id="line-144"><code>		}</code></span>
+<span class="codeline" id="line-145"><code>		<span class="comment">// Final region that might span to next uint64</span></code></span>
+<span class="codeline" id="line-146"><code>		<label for="r41" class="ident">cur</label> = <label for="r46" class="ident">l</label></code></span>
+<span class="codeline" id="line-147"><code>	}</code></span>
+<span class="codeline" id="line-148"><code>	<span class="keyword">if</span> <label for="r39" class="ident">start</label> == <label for="r42" class="ident">notSetYet</label> {</code></span>
+<span class="codeline" id="line-149"><code>		<span class="comment">// Made it all the way through without finding a single 1 bit.</span></code></span>
+<span class="codeline" id="line-150"><code>		<span class="keyword">const</span> <label for="r47" class="ident">n</label> = <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">64</span> * <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r37" class="ident">b</label>))</code></span>
+<span class="codeline" id="line-151"><code>		<span class="keyword">return</span> <a href="mpagealloc.go.html#line-922" class="ident">packPallocSum</a>(<label for="r47" class="ident">n</label>, <label for="r47" class="ident">n</label>, <label for="r47" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-152"><code>	}</code></span>
+<span class="codeline" id="line-153"><code>	<span class="keyword">if</span> <label for="r41" class="ident">cur</label> &gt; <label for="r40" class="ident">max</label> {</code></span>
+<span class="codeline" id="line-154"><code>		<label for="r40" class="ident">max</label> = <label for="r41" class="ident">cur</label></code></span>
+<span class="codeline" id="line-155"><code>	}</code></span>
+<span class="codeline" id="line-156"><code>	<span class="keyword">if</span> <label for="r40" class="ident">max</label> &gt;= <span class="lit-number">64</span>-<span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-157"><code>		<span class="comment">// There is no way an internal run of zeros could beat max.</span></code></span>
+<span class="codeline" id="line-158"><code>		<span class="keyword">return</span> <a href="mpagealloc.go.html#line-922" class="ident">packPallocSum</a>(<label for="r39" class="ident">start</label>, <label for="r40" class="ident">max</label>, <label for="r41" class="ident">cur</label>)</code></span>
+<span class="codeline" id="line-159"><code>	}</code></span>
+<span class="codeline" id="line-160"><code>	<span class="comment">// Now look inside each uint64 for runs of zeros.</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">	// All uint64s must be nonzero, or we would have aborted above.</span></code></span>
+<span class="codeline" id="line-162"><code><label for="r48" class="ident">outer</label>:</code></span>
+<span class="codeline" id="line-163"><code>	<span class="keyword">for</span> <label for="r49" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r49" class="ident">i</label> &lt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r37" class="ident">b</label>); <label for="r49" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-164"><code>		<label for="r50" class="ident">x</label> := <label for="r37" class="ident">b</label>[<label for="r49" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-165"><code></code></span>
+<span class="codeline" id="line-166"><code>		<span class="comment">// Look inside this uint64. We have a pattern like</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">		// 000000 1xxxxx1 000000</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">		// We need to look inside the 1xxxxx1 for any contiguous</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">		// region of zeros.</span></code></span>
+<span class="codeline" id="line-170"><code></code></span>
+<span class="codeline" id="line-171"><code>		<span class="comment">// We already know the trailing zeros are no larger than max. Remove them.</span></code></span>
+<span class="codeline" id="line-172"><code>		<label for="r50" class="ident">x</label> &gt;&gt;= <a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-111" class="ident">TrailingZeros64</a>(<label for="r50" class="ident">x</label>) &amp; <span class="lit-number">63</span></code></span>
+<span class="codeline" id="line-173"><code>		<span class="keyword">if</span> <label for="r50" class="ident">x</label>&amp;(<label for="r50" class="ident">x</label>+<span class="lit-number">1</span>) == <span class="lit-number">0</span> { <span class="comment">// no more zeros (except at the top).</span></code></span>
+<span class="codeline" id="line-174"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-175"><code>		}</code></span>
+<span class="codeline" id="line-176"><code></code></span>
+<span class="codeline" id="line-177"><code>		<span class="comment">// Strategy: shrink all runs of zeros by max. If any runs of zero</span></code></span>
+<span class="codeline" id="line-178"><code><span class="comment">		// remain, then we've identified a larger maxiumum zero run.</span></code></span>
+<span class="codeline" id="line-179"><code>		<label for="r51" class="ident">p</label> := <label for="r40" class="ident">max</label>     <span class="comment">// number of zeros we still need to shrink by.</span></code></span>
+<span class="codeline" id="line-180"><code>		<label for="r52" class="ident">k</label> := <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">1</span>) <span class="comment">// current minimum length of runs of ones in x.</span></code></span>
+<span class="codeline" id="line-181"><code>		<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-182"><code>			<span class="comment">// Shrink all runs of zeros by p places (except the top zeros).</span></code></span>
+<span class="codeline" id="line-183"><code>			<span class="keyword">for</span> <label for="r51" class="ident">p</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-184"><code>				<span class="keyword">if</span> <label for="r51" class="ident">p</label> &lt;= <label for="r52" class="ident">k</label> {</code></span>
+<span class="codeline" id="line-185"><code>					<span class="comment">// Shift p ones down into the top of each run of zeros.</span></code></span>
+<span class="codeline" id="line-186"><code>					<label for="r50" class="ident">x</label> |= <label for="r50" class="ident">x</label> &gt;&gt; (<label for="r51" class="ident">p</label> &amp; <span class="lit-number">63</span>)</code></span>
+<span class="codeline" id="line-187"><code>					<span class="keyword">if</span> <label for="r50" class="ident">x</label>&amp;(<label for="r50" class="ident">x</label>+<span class="lit-number">1</span>) == <span class="lit-number">0</span> { <span class="comment">// no more zeros (except at the top).</span></code></span>
+<span class="codeline" id="line-188"><code>						<span class="keyword">continue</span> <label for="r48" class="ident">outer</label></code></span>
+<span class="codeline" id="line-189"><code>					}</code></span>
+<span class="codeline" id="line-190"><code>					<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-191"><code>				}</code></span>
+<span class="codeline" id="line-192"><code>				<span class="comment">// Shift k ones down into the top of each run of zeros.</span></code></span>
+<span class="codeline" id="line-193"><code>				<label for="r50" class="ident">x</label> |= <label for="r50" class="ident">x</label> &gt;&gt; (<label for="r52" class="ident">k</label> &amp; <span class="lit-number">63</span>)</code></span>
+<span class="codeline" id="line-194"><code>				<span class="keyword">if</span> <label for="r50" class="ident">x</label>&amp;(<label for="r50" class="ident">x</label>+<span class="lit-number">1</span>) == <span class="lit-number">0</span> { <span class="comment">// no more zeros (except at the top).</span></code></span>
+<span class="codeline" id="line-195"><code>					<span class="keyword">continue</span> <label for="r48" class="ident">outer</label></code></span>
+<span class="codeline" id="line-196"><code>				}</code></span>
+<span class="codeline" id="line-197"><code>				<label for="r51" class="ident">p</label> -= <label for="r52" class="ident">k</label></code></span>
+<span class="codeline" id="line-198"><code>				<span class="comment">// We've just doubled the minimum length of 1-runs.</span></code></span>
+<span class="codeline" id="line-199"><code><span class="comment">				// This allows us to shift farther in the next iteration.</span></code></span>
+<span class="codeline" id="line-200"><code>				<label for="r52" class="ident">k</label> *= <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-201"><code>			}</code></span>
+<span class="codeline" id="line-202"><code></code></span>
+<span class="codeline" id="line-203"><code>			<span class="comment">// The length of the lowest-order zero run is an increment to our maximum.</span></code></span>
+<span class="codeline" id="line-204"><code>			<label for="r53" class="ident">j</label> := <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-111" class="ident">TrailingZeros64</a>(^<label for="r50" class="ident">x</label>)) <span class="comment">// count contiguous trailing ones</span></code></span>
+<span class="codeline" id="line-205"><code>			<label for="r50" class="ident">x</label> &gt;&gt;= <label for="r53" class="ident">j</label> &amp; <span class="lit-number">63</span>                       <span class="comment">// remove trailing ones</span></code></span>
+<span class="codeline" id="line-206"><code>			<label for="r53" class="ident">j</label> = <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-111" class="ident">TrailingZeros64</a>(<label for="r50" class="ident">x</label>))   <span class="comment">// count contiguous trailing zeros</span></code></span>
+<span class="codeline" id="line-207"><code>			<label for="r50" class="ident">x</label> &gt;&gt;= <label for="r53" class="ident">j</label> &amp; <span class="lit-number">63</span>                       <span class="comment">// remove zeros</span></code></span>
+<span class="codeline" id="line-208"><code>			<label for="r40" class="ident">max</label> += <label for="r53" class="ident">j</label>                           <span class="comment">// we have a new maximum!</span></code></span>
+<span class="codeline" id="line-209"><code>			<span class="keyword">if</span> <label for="r50" class="ident">x</label>&amp;(<label for="r50" class="ident">x</label>+<span class="lit-number">1</span>) == <span class="lit-number">0</span> {                  <span class="comment">// no more zeros (except at the top).</span></code></span>
+<span class="codeline" id="line-210"><code>				<span class="keyword">continue</span> <label for="r48" class="ident">outer</label></code></span>
+<span class="codeline" id="line-211"><code>			}</code></span>
+<span class="codeline" id="line-212"><code>			<label for="r51" class="ident">p</label> = <label for="r53" class="ident">j</label> <span class="comment">// remove j more zeros from each zero run.</span></code></span>
+<span class="codeline" id="line-213"><code>		}</code></span>
+<span class="codeline" id="line-214"><code>	}</code></span>
+<span class="codeline" id="line-215"><code>	<span class="keyword">return</span> <a href="mpagealloc.go.html#line-922" class="ident">packPallocSum</a>(<label for="r39" class="ident">start</label>, <label for="r40" class="ident">max</label>, <label for="r41" class="ident">cur</label>)</code></span>
+<span class="codeline" id="line-216"><code>}</code></span>
+<span class="codeline" id="line-217"><code></code></span>
+<span class="codeline" id="line-218"><code><span class="comment">// find searches for npages contiguous free pages in pallocBits and returns</span></code></span>
+<span class="codeline" id="line-219"><code><span class="comment">// the index where that run starts, as well as the index of the first free page</span></code></span>
+<span class="codeline" id="line-220"><code><span class="comment">// it found in the search. searchIdx represents the first known free page and</span></code></span>
+<span class="codeline" id="line-221"><code><span class="comment">// where to begin the next search from.</span></code></span>
+<span class="codeline" id="line-222"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-223"><code><span class="comment">// If find fails to find any free space, it returns an index of ^uint(0) and</span></code></span>
+<span class="codeline" id="line-224"><code><span class="comment">// the new searchIdx should be ignored.</span></code></span>
+<span class="codeline" id="line-225"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-226"><code><span class="comment">// Note that if npages == 1, the two returned values will always be identical.</span></code></span>
+<span class="codeline" id="line-227"><code><span class="keyword">func</span> (<label for="r54" class="ident">b</label> *<a href="#line-121" class="ident">pallocBits</a>) <label for="r55" class="ident">find</label>(<label for="r56" class="ident">npages</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r57" class="ident">searchIdx</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) (<a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>, <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) {</code></span>
+<span class="codeline" id="line-228"><code>	<span class="keyword">if</span> <label for="r56" class="ident">npages</label> == <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-229"><code>		<label for="r58" class="ident">addr</label> := <label for="r54" class="ident">b</label>.<a href="#line-241" class="ident">find1</a>(<label for="r57" class="ident">searchIdx</label>)</code></span>
+<span class="codeline" id="line-230"><code>		<span class="keyword">return</span> <label for="r58" class="ident">addr</label>, <label for="r58" class="ident">addr</label></code></span>
+<span class="codeline" id="line-231"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r56" class="ident">npages</label> &lt;= <span class="lit-number">64</span> {</code></span>
+<span class="codeline" id="line-232"><code>		<span class="keyword">return</span> <label for="r54" class="ident">b</label>.<a href="#line-263" class="ident">findSmallN</a>(<label for="r56" class="ident">npages</label>, <label for="r57" class="ident">searchIdx</label>)</code></span>
+<span class="codeline" id="line-233"><code>	}</code></span>
+<span class="codeline" id="line-234"><code>	<span class="keyword">return</span> <label for="r54" class="ident">b</label>.<a href="#line-302" class="ident">findLargeN</a>(<label for="r56" class="ident">npages</label>, <label for="r57" class="ident">searchIdx</label>)</code></span>
+<span class="codeline" id="line-235"><code>}</code></span>
+<span class="codeline" id="line-236"><code></code></span>
+<span class="codeline" id="line-237"><code><span class="comment">// find1 is a helper for find which searches for a single free page</span></code></span>
+<span class="codeline" id="line-238"><code><span class="comment">// in the pallocBits and returns the index.</span></code></span>
+<span class="codeline" id="line-239"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-240"><code><span class="comment">// See find for an explanation of the searchIdx parameter.</span></code></span>
+<span class="codeline" id="line-241"><code><span class="keyword">func</span> (<label for="r59" class="ident">b</label> *<a href="#line-121" class="ident">pallocBits</a>) <label for="r60" class="ident">find1</label>(<label for="r61" class="ident">searchIdx</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a> {</code></span>
+<span class="codeline" id="line-242"><code>	_ = <label for="r59" class="ident">b</label>[<span class="lit-number">0</span>] <span class="comment">// lift nil check out of loop</span></code></span>
+<span class="codeline" id="line-243"><code>	<span class="keyword">for</span> <label for="r62" class="ident">i</label> := <label for="r61" class="ident">searchIdx</label> / <span class="lit-number">64</span>; <label for="r62" class="ident">i</label> &lt; <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r59" class="ident">b</label>)); <label for="r62" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-244"><code>		<label for="r63" class="ident">x</label> := <label for="r59" class="ident">b</label>[<label for="r62" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-245"><code>		<span class="keyword">if</span> ^<label for="r63" class="ident">x</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-246"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-247"><code>		}</code></span>
+<span class="codeline" id="line-248"><code>		<span class="keyword">return</span> <label for="r62" class="ident">i</label>*<span class="lit-number">64</span> + <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-111" class="ident">TrailingZeros64</a>(^<label for="r63" class="ident">x</label>))</code></span>
+<span class="codeline" id="line-249"><code>	}</code></span>
+<span class="codeline" id="line-250"><code>	<span class="keyword">return</span> ^<a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-251"><code>}</code></span>
+<span class="codeline" id="line-252"><code></code></span>
+<span class="codeline" id="line-253"><code><span class="comment">// findSmallN is a helper for find which searches for npages contiguous free pages</span></code></span>
+<span class="codeline" id="line-254"><code><span class="comment">// in this pallocBits and returns the index where that run of contiguous pages</span></code></span>
+<span class="codeline" id="line-255"><code><span class="comment">// starts as well as the index of the first free page it finds in its search.</span></code></span>
+<span class="codeline" id="line-256"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-257"><code><span class="comment">// See find for an explanation of the searchIdx parameter.</span></code></span>
+<span class="codeline" id="line-258"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-259"><code><span class="comment">// Returns a ^uint(0) index on failure and the new searchIdx should be ignored.</span></code></span>
+<span class="codeline" id="line-260"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-261"><code><span class="comment">// findSmallN assumes npages &lt;= 64, where any such contiguous run of pages</span></code></span>
+<span class="codeline" id="line-262"><code><span class="comment">// crosses at most one aligned 64-bit boundary in the bits.</span></code></span>
+<span class="codeline" id="line-263"><code><span class="keyword">func</span> (<label for="r64" class="ident">b</label> *<a href="#line-121" class="ident">pallocBits</a>) <label for="r65" class="ident">findSmallN</label>(<label for="r66" class="ident">npages</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r67" class="ident">searchIdx</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) (<a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>, <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) {</code></span>
+<span class="codeline" id="line-264"><code>	<label for="r68" class="ident">end</label>, <label for="r69" class="ident">newSearchIdx</label> := <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">0</span>), ^<a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-265"><code>	<span class="keyword">for</span> <label for="r70" class="ident">i</label> := <label for="r67" class="ident">searchIdx</label> / <span class="lit-number">64</span>; <label for="r70" class="ident">i</label> &lt; <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r64" class="ident">b</label>)); <label for="r70" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-266"><code>		<label for="r71" class="ident">bi</label> := <label for="r64" class="ident">b</label>[<label for="r70" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-267"><code>		<span class="keyword">if</span> ^<label for="r71" class="ident">bi</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-268"><code>			<label for="r68" class="ident">end</label> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-269"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-270"><code>		}</code></span>
+<span class="codeline" id="line-271"><code>		<span class="comment">// First see if we can pack our allocation in the trailing</span></code></span>
+<span class="codeline" id="line-272"><code><span class="comment">		// zeros plus the end of the last 64 bits.</span></code></span>
+<span class="codeline" id="line-273"><code>		<span class="keyword">if</span> <label for="r69" class="ident">newSearchIdx</label> == ^<a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">0</span>) {</code></span>
+<span class="codeline" id="line-274"><code>			<span class="comment">// The new searchIdx is going to be at these 64 bits after any</span></code></span>
+<span class="codeline" id="line-275"><code><span class="comment">			// 1s we file, so count trailing 1s.</span></code></span>
+<span class="codeline" id="line-276"><code>			<label for="r69" class="ident">newSearchIdx</label> = <label for="r70" class="ident">i</label>*<span class="lit-number">64</span> + <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-111" class="ident">TrailingZeros64</a>(^<label for="r71" class="ident">bi</label>))</code></span>
+<span class="codeline" id="line-277"><code>		}</code></span>
+<span class="codeline" id="line-278"><code>		<label for="r72" class="ident">start</label> := <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-111" class="ident">TrailingZeros64</a>(<label for="r71" class="ident">bi</label>))</code></span>
+<span class="codeline" id="line-279"><code>		<span class="keyword">if</span> <label for="r68" class="ident">end</label>+<label for="r72" class="ident">start</label> &gt;= <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<label for="r66" class="ident">npages</label>) {</code></span>
+<span class="codeline" id="line-280"><code>			<span class="keyword">return</span> <label for="r70" class="ident">i</label>*<span class="lit-number">64</span> - <label for="r68" class="ident">end</label>, <label for="r69" class="ident">newSearchIdx</label></code></span>
+<span class="codeline" id="line-281"><code>		}</code></span>
+<span class="codeline" id="line-282"><code>		<span class="comment">// Next, check the interior of the 64-bit chunk.</span></code></span>
+<span class="codeline" id="line-283"><code>		<label for="r73" class="ident">j</label> := <a href="#line-374" class="ident">findBitRange64</a>(^<label for="r71" class="ident">bi</label>, <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<label for="r66" class="ident">npages</label>))</code></span>
+<span class="codeline" id="line-284"><code>		<span class="keyword">if</span> <label for="r73" class="ident">j</label> &lt; <span class="lit-number">64</span> {</code></span>
+<span class="codeline" id="line-285"><code>			<span class="keyword">return</span> <label for="r70" class="ident">i</label>*<span class="lit-number">64</span> + <label for="r73" class="ident">j</label>, <label for="r69" class="ident">newSearchIdx</label></code></span>
+<span class="codeline" id="line-286"><code>		}</code></span>
+<span class="codeline" id="line-287"><code>		<label for="r68" class="ident">end</label> = <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-130" class="ident">LeadingZeros64</a>(<label for="r71" class="ident">bi</label>))</code></span>
+<span class="codeline" id="line-288"><code>	}</code></span>
+<span class="codeline" id="line-289"><code>	<span class="keyword">return</span> ^<a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">0</span>), <label for="r69" class="ident">newSearchIdx</label></code></span>
+<span class="codeline" id="line-290"><code>}</code></span>
+<span class="codeline" id="line-291"><code></code></span>
+<span class="codeline" id="line-292"><code><span class="comment">// findLargeN is a helper for find which searches for npages contiguous free pages</span></code></span>
+<span class="codeline" id="line-293"><code><span class="comment">// in this pallocBits and returns the index where that run starts, as well as the</span></code></span>
+<span class="codeline" id="line-294"><code><span class="comment">// index of the first free page it found it its search.</span></code></span>
+<span class="codeline" id="line-295"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-296"><code><span class="comment">// See alloc for an explanation of the searchIdx parameter.</span></code></span>
+<span class="codeline" id="line-297"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-298"><code><span class="comment">// Returns a ^uint(0) index on failure and the new searchIdx should be ignored.</span></code></span>
+<span class="codeline" id="line-299"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-300"><code><span class="comment">// findLargeN assumes npages &gt; 64, where any such run of free pages</span></code></span>
+<span class="codeline" id="line-301"><code><span class="comment">// crosses at least one aligned 64-bit boundary in the bits.</span></code></span>
+<span class="codeline" id="line-302"><code><span class="keyword">func</span> (<label for="r74" class="ident">b</label> *<a href="#line-121" class="ident">pallocBits</a>) <label for="r75" class="ident">findLargeN</label>(<label for="r76" class="ident">npages</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r77" class="ident">searchIdx</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) (<a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>, <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) {</code></span>
+<span class="codeline" id="line-303"><code>	<label for="r78" class="ident">start</label>, <label for="r79" class="ident">size</label>, <label for="r80" class="ident">newSearchIdx</label> := ^<a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">0</span>), <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">0</span>), ^<a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-304"><code>	<span class="keyword">for</span> <label for="r81" class="ident">i</label> := <label for="r77" class="ident">searchIdx</label> / <span class="lit-number">64</span>; <label for="r81" class="ident">i</label> &lt; <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r74" class="ident">b</label>)); <label for="r81" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-305"><code>		<label for="r82" class="ident">x</label> := <label for="r74" class="ident">b</label>[<label for="r81" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-306"><code>		<span class="keyword">if</span> <label for="r82" class="ident">x</label> == ^<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<span class="lit-number">0</span>) {</code></span>
+<span class="codeline" id="line-307"><code>			<label for="r79" class="ident">size</label> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-308"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-309"><code>		}</code></span>
+<span class="codeline" id="line-310"><code>		<span class="keyword">if</span> <label for="r80" class="ident">newSearchIdx</label> == ^<a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">0</span>) {</code></span>
+<span class="codeline" id="line-311"><code>			<span class="comment">// The new searchIdx is going to be at these 64 bits after any</span></code></span>
+<span class="codeline" id="line-312"><code><span class="comment">			// 1s we file, so count trailing 1s.</span></code></span>
+<span class="codeline" id="line-313"><code>			<label for="r80" class="ident">newSearchIdx</label> = <label for="r81" class="ident">i</label>*<span class="lit-number">64</span> + <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-111" class="ident">TrailingZeros64</a>(^<label for="r82" class="ident">x</label>))</code></span>
+<span class="codeline" id="line-314"><code>		}</code></span>
+<span class="codeline" id="line-315"><code>		<span class="keyword">if</span> <label for="r79" class="ident">size</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-316"><code>			<label for="r79" class="ident">size</label> = <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-130" class="ident">LeadingZeros64</a>(<label for="r82" class="ident">x</label>))</code></span>
+<span class="codeline" id="line-317"><code>			<label for="r78" class="ident">start</label> = <label for="r81" class="ident">i</label>*<span class="lit-number">64</span> + <span class="lit-number">64</span> - <label for="r79" class="ident">size</label></code></span>
+<span class="codeline" id="line-318"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-319"><code>		}</code></span>
+<span class="codeline" id="line-320"><code>		<label for="r83" class="ident">s</label> := <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-111" class="ident">TrailingZeros64</a>(<label for="r82" class="ident">x</label>))</code></span>
+<span class="codeline" id="line-321"><code>		<span class="keyword">if</span> <label for="r83" class="ident">s</label>+<label for="r79" class="ident">size</label> &gt;= <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<label for="r76" class="ident">npages</label>) {</code></span>
+<span class="codeline" id="line-322"><code>			<label for="r79" class="ident">size</label> += <label for="r83" class="ident">s</label></code></span>
+<span class="codeline" id="line-323"><code>			<span class="keyword">return</span> <label for="r78" class="ident">start</label>, <label for="r80" class="ident">newSearchIdx</label></code></span>
+<span class="codeline" id="line-324"><code>		}</code></span>
+<span class="codeline" id="line-325"><code>		<span class="keyword">if</span> <label for="r83" class="ident">s</label> &lt; <span class="lit-number">64</span> {</code></span>
+<span class="codeline" id="line-326"><code>			<label for="r79" class="ident">size</label> = <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-130" class="ident">LeadingZeros64</a>(<label for="r82" class="ident">x</label>))</code></span>
+<span class="codeline" id="line-327"><code>			<label for="r78" class="ident">start</label> = <label for="r81" class="ident">i</label>*<span class="lit-number">64</span> + <span class="lit-number">64</span> - <label for="r79" class="ident">size</label></code></span>
+<span class="codeline" id="line-328"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-329"><code>		}</code></span>
+<span class="codeline" id="line-330"><code>		<label for="r79" class="ident">size</label> += <span class="lit-number">64</span></code></span>
+<span class="codeline" id="line-331"><code>	}</code></span>
+<span class="codeline" id="line-332"><code>	<span class="keyword">if</span> <label for="r79" class="ident">size</label> &lt; <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<label for="r76" class="ident">npages</label>) {</code></span>
+<span class="codeline" id="line-333"><code>		<span class="keyword">return</span> ^<a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">0</span>), <label for="r80" class="ident">newSearchIdx</label></code></span>
+<span class="codeline" id="line-334"><code>	}</code></span>
+<span class="codeline" id="line-335"><code>	<span class="keyword">return</span> <label for="r78" class="ident">start</label>, <label for="r80" class="ident">newSearchIdx</label></code></span>
+<span class="codeline" id="line-336"><code>}</code></span>
+<span class="codeline" id="line-337"><code></code></span>
+<span class="codeline" id="line-338"><code><span class="comment">// allocRange allocates the range [i, i+n).</span></code></span>
+<span class="codeline" id="line-339"><code><span class="keyword">func</span> (<label for="r84" class="ident">b</label> *<a href="#line-121" class="ident">pallocBits</a>) <label for="r85" class="ident">allocRange</label>(<label for="r86" class="ident">i</label>, <label for="r87" class="ident">n</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) {</code></span>
+<span class="codeline" id="line-340"><code>	(*<a href="#line-12" class="ident">pageBits</a>)(<label for="r84" class="ident">b</label>).<a href="#line-30" class="ident">setRange</a>(<label for="r86" class="ident">i</label>, <label for="r87" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-341"><code>}</code></span>
+<span class="codeline" id="line-342"><code></code></span>
+<span class="codeline" id="line-343"><code><span class="comment">// allocAll allocates all the bits of b.</span></code></span>
+<span class="codeline" id="line-344"><code><span class="keyword">func</span> (<label for="r88" class="ident">b</label> *<a href="#line-121" class="ident">pallocBits</a>) <label for="r89" class="ident">allocAll</label>() {</code></span>
+<span class="codeline" id="line-345"><code>	(*<a href="#line-12" class="ident">pageBits</a>)(<label for="r88" class="ident">b</label>).<a href="#line-54" class="ident">setAll</a>()</code></span>
+<span class="codeline" id="line-346"><code>}</code></span>
+<span class="codeline" id="line-347"><code></code></span>
+<span class="codeline" id="line-348"><code><span class="comment">// free1 frees a single page in the pallocBits at i.</span></code></span>
+<span class="codeline" id="line-349"><code><span class="keyword">func</span> (<label for="r90" class="ident">b</label> *<a href="#line-121" class="ident">pallocBits</a>) <label for="r91" class="ident">free1</label>(<label for="r92" class="ident">i</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) {</code></span>
+<span class="codeline" id="line-350"><code>	(*<a href="#line-12" class="ident">pageBits</a>)(<label for="r90" class="ident">b</label>).<a href="#line-61" class="ident">clear</a>(<label for="r92" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-351"><code>}</code></span>
+<span class="codeline" id="line-352"><code></code></span>
+<span class="codeline" id="line-353"><code><span class="comment">// free frees the range [i, i+n) of pages in the pallocBits.</span></code></span>
+<span class="codeline" id="line-354"><code><span class="keyword">func</span> (<label for="r93" class="ident">b</label> *<a href="#line-121" class="ident">pallocBits</a>) <label for="r94" class="ident">free</label>(<label for="r95" class="ident">i</label>, <label for="r96" class="ident">n</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) {</code></span>
+<span class="codeline" id="line-355"><code>	(*<a href="#line-12" class="ident">pageBits</a>)(<label for="r93" class="ident">b</label>).<a href="#line-66" class="ident">clearRange</a>(<label for="r95" class="ident">i</label>, <label for="r96" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-356"><code>}</code></span>
+<span class="codeline" id="line-357"><code></code></span>
+<span class="codeline" id="line-358"><code><span class="comment">// freeAll frees all the bits of b.</span></code></span>
+<span class="codeline" id="line-359"><code><span class="keyword">func</span> (<label for="r97" class="ident">b</label> *<a href="#line-121" class="ident">pallocBits</a>) <label for="r98" class="ident">freeAll</label>() {</code></span>
+<span class="codeline" id="line-360"><code>	(*<a href="#line-12" class="ident">pageBits</a>)(<label for="r97" class="ident">b</label>).<a href="#line-90" class="ident">clearAll</a>()</code></span>
+<span class="codeline" id="line-361"><code>}</code></span>
+<span class="codeline" id="line-362"><code></code></span>
+<span class="codeline" id="line-363"><code><span class="comment">// pages64 returns a 64-bit bitmap representing a block of 64 pages aligned</span></code></span>
+<span class="codeline" id="line-364"><code><span class="comment">// to 64 pages. The returned block of pages is the one containing the i'th</span></code></span>
+<span class="codeline" id="line-365"><code><span class="comment">// page in this pallocBits. Each bit represents whether the page is in-use.</span></code></span>
+<span class="codeline" id="line-366"><code><span class="keyword">func</span> (<label for="r99" class="ident">b</label> *<a href="#line-121" class="ident">pallocBits</a>) <label for="r100" class="ident">pages64</label>(<label for="r101" class="ident">i</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> {</code></span>
+<span class="codeline" id="line-367"><code>	<span class="keyword">return</span> (*<a href="#line-12" class="ident">pageBits</a>)(<label for="r99" class="ident">b</label>).<a href="#line-20" class="ident">block64</a>(<label for="r101" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-368"><code>}</code></span>
+<span class="codeline" id="line-369"><code></code></span>
+<span class="codeline" id="line-370"><code><span class="comment">// findBitRange64 returns the bit index of the first set of</span></code></span>
+<span class="codeline" id="line-371"><code><span class="comment">// n consecutive 1 bits. If no consecutive set of 1 bits of</span></code></span>
+<span class="codeline" id="line-372"><code><span class="comment">// size n may be found in c, then it returns an integer &gt;= 64.</span></code></span>
+<span class="codeline" id="line-373"><code><span class="comment">// n must be &gt; 0.</span></code></span>
+<span class="codeline" id="line-374"><code><span class="keyword">func</span> <label for="r102" class="ident"><a href="../../pkg/runtime.html#name-findBitRange64" class="ident">findBitRange64</a></label>(<label for="r103" class="ident">c</label> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <label for="r104" class="ident">n</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a> {</code></span>
+<span class="codeline" id="line-375"><code>	<span class="comment">// This implementation is based on shrinking the length of</span></code></span>
+<span class="codeline" id="line-376"><code><span class="comment">	// runs of contiguous 1 bits. We remove the top n-1 1 bits</span></code></span>
+<span class="codeline" id="line-377"><code><span class="comment">	// from each run of 1s, then look for the first remaining 1 bit.</span></code></span>
+<span class="codeline" id="line-378"><code>	<label for="r105" class="ident">p</label> := <label for="r104" class="ident">n</label> - <span class="lit-number">1</span>   <span class="comment">// number of 1s we want to remove.</span></code></span>
+<span class="codeline" id="line-379"><code>	<label for="r106" class="ident">k</label> := <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">1</span>) <span class="comment">// current minimum width of runs of 0 in c.</span></code></span>
+<span class="codeline" id="line-380"><code>	<span class="keyword">for</span> <label for="r105" class="ident">p</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-381"><code>		<span class="keyword">if</span> <label for="r105" class="ident">p</label> &lt;= <label for="r106" class="ident">k</label> {</code></span>
+<span class="codeline" id="line-382"><code>			<span class="comment">// Shift p 0s down into the top of each run of 1s.</span></code></span>
+<span class="codeline" id="line-383"><code>			<label for="r103" class="ident">c</label> &amp;= <label for="r103" class="ident">c</label> &gt;&gt; (<label for="r105" class="ident">p</label> &amp; <span class="lit-number">63</span>)</code></span>
+<span class="codeline" id="line-384"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-385"><code>		}</code></span>
+<span class="codeline" id="line-386"><code>		<span class="comment">// Shift k 0s down into the top of each run of 1s.</span></code></span>
+<span class="codeline" id="line-387"><code>		<label for="r103" class="ident">c</label> &amp;= <label for="r103" class="ident">c</label> &gt;&gt; (<label for="r106" class="ident">k</label> &amp; <span class="lit-number">63</span>)</code></span>
+<span class="codeline" id="line-388"><code>		<span class="keyword">if</span> <label for="r103" class="ident">c</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-389"><code>			<span class="keyword">return</span> <span class="lit-number">64</span></code></span>
+<span class="codeline" id="line-390"><code>		}</code></span>
+<span class="codeline" id="line-391"><code>		<label for="r105" class="ident">p</label> -= <label for="r106" class="ident">k</label></code></span>
+<span class="codeline" id="line-392"><code>		<span class="comment">// We've just doubled the minimum length of 0-runs.</span></code></span>
+<span class="codeline" id="line-393"><code><span class="comment">		// This allows us to shift farther in the next iteration.</span></code></span>
+<span class="codeline" id="line-394"><code>		<label for="r106" class="ident">k</label> *= <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-395"><code>	}</code></span>
+<span class="codeline" id="line-396"><code>	<span class="comment">// Find first remaining 1.</span></code></span>
+<span class="codeline" id="line-397"><code><span class="comment">	// Since we shrunk from the top down, the first 1 is in</span></code></span>
+<span class="codeline" id="line-398"><code><span class="comment">	// its correct original position.</span></code></span>
+<span class="codeline" id="line-399"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-111" class="ident">TrailingZeros64</a>(<label for="r103" class="ident">c</label>))</code></span>
+<span class="codeline" id="line-400"><code>}</code></span>
+<span class="codeline" id="line-401"><code></code></span>
+<span class="codeline" id="line-402"><code><span class="comment">// pallocData encapsulates pallocBits and a bitmap for</span></code></span>
+<span class="codeline" id="line-403"><code><span class="comment">// whether or not a given page is scavenged in a single</span></code></span>
+<span class="codeline" id="line-404"><code><span class="comment">// structure. It's effectively a pallocBits with</span></code></span>
+<span class="codeline" id="line-405"><code><span class="comment">// additional functionality.</span></code></span>
+<span class="codeline" id="line-406"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-407"><code><span class="comment">// Update the comment on (*pageAlloc).chunks should this</span></code></span>
+<span class="codeline" id="line-408"><code><span class="comment">// structure change.</span></code></span>
+<span class="codeline" id="line-409"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-pallocData" class="ident">pallocData</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-410"><code>	<a href="#line-121" class="ident">pallocBits</a></code></span>
+<span class="codeline" id="line-411"><code>	scavenged <a href="#line-12" class="ident">pageBits</a></code></span>
+<span class="codeline" id="line-412"><code>}</code></span>
+<span class="codeline" id="line-413"><code></code></span>
+<span class="codeline" id="line-414"><code><span class="comment">// allocRange sets bits [i, i+n) in the bitmap to 1 and</span></code></span>
+<span class="codeline" id="line-415"><code><span class="comment">// updates the scavenged bits appropriately.</span></code></span>
+<span class="codeline" id="line-416"><code><span class="keyword">func</span> (<label for="r107" class="ident">m</label> *<a href="#line-409" class="ident">pallocData</a>) <label for="r108" class="ident">allocRange</label>(<label for="r109" class="ident">i</label>, <label for="r110" class="ident">n</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) {</code></span>
+<span class="codeline" id="line-417"><code>	<span class="comment">// Clear the scavenged bits when we alloc the range.</span></code></span>
+<span class="codeline" id="line-418"><code>	<label for="r107" class="ident">m</label>.<a href="#line-410" class="ident">pallocBits</a>.<a href="#line-339" class="ident">allocRange</a>(<label for="r109" class="ident">i</label>, <label for="r110" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-419"><code>	<label for="r107" class="ident">m</label>.<a href="#line-411" class="ident">scavenged</a>.<a href="#line-66" class="ident">clearRange</a>(<label for="r109" class="ident">i</label>, <label for="r110" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-420"><code>}</code></span>
+<span class="codeline" id="line-421"><code></code></span>
+<span class="codeline" id="line-422"><code><span class="comment">// allocAll sets every bit in the bitmap to 1 and updates</span></code></span>
+<span class="codeline" id="line-423"><code><span class="comment">// the scavenged bits appropriately.</span></code></span>
+<span class="codeline" id="line-424"><code><span class="keyword">func</span> (<label for="r111" class="ident">m</label> *<a href="#line-409" class="ident">pallocData</a>) <label for="r112" class="ident">allocAll</label>() {</code></span>
+<span class="codeline" id="line-425"><code>	<span class="comment">// Clear the scavenged bits when we alloc the range.</span></code></span>
+<span class="codeline" id="line-426"><code>	<label for="r111" class="ident">m</label>.<a href="#line-410" class="ident">pallocBits</a>.<a href="#line-344" class="ident">allocAll</a>()</code></span>
+<span class="codeline" id="line-427"><code>	<label for="r111" class="ident">m</label>.<a href="#line-411" class="ident">scavenged</a>.<a href="#line-90" class="ident">clearAll</a>()</code></span>
+<span class="codeline" id="line-428"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

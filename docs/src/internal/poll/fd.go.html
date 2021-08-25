@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: fd.go in package internal/poll</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	fd.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/internal/poll.html">internal/poll</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2017 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package poll supports non-blocking I/O on file descriptors with polling.</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// This supports I/O operations that block only a goroutine, not a thread.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// This is used by the net and os packages.</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// It uses a poller built into the runtime, with support from the</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// runtime scheduler.</span></code></span></div><span class="codeline" id="line-10"><code><span class="keyword">package</span> poll</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-13"><code>	<label for="i0"><span class="lit-string i0">"errors"</span></label></code></span>
+<span class="codeline" id="line-14"><code>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// ErrNetClosing is returned when a network descriptor is used after</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// it has been closed. Keep this string consistent because of issue</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// #4373: since historically programs have not been able to detect</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// this error, they look for the string.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">var</span> <a href="../../../pkg/internal/poll.html#name-ErrNetClosing" class="ident">ErrNetClosing</a> = <a href="../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"use of closed network connection"</span>)</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// ErrFileClosing is returned when a file descriptor is used after it</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// has been closed.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="keyword">var</span> <a href="../../../pkg/internal/poll.html#name-ErrFileClosing" class="ident">ErrFileClosing</a> = <a href="../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"use of closed file"</span>)</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// ErrNoDeadline is returned when a request is made to set a deadline</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// on a file type that does not use the poller.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">var</span> <a href="../../../pkg/internal/poll.html#name-ErrNoDeadline" class="ident">ErrNoDeadline</a> = <a href="../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"file type does not support deadline"</span>)</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// Return the appropriate closing error based on isFile.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/internal/poll.html#name-errClosing" class="ident">errClosing</a></label>(<label for="r1" class="ident">isFile</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-32"><code>	<span class="keyword">if</span> <label for="r1" class="ident">isFile</label> {</code></span>
+<span class="codeline" id="line-33"><code>		<span class="keyword">return</span> <a href="#line-24" class="ident">ErrFileClosing</a></code></span>
+<span class="codeline" id="line-34"><code>	}</code></span>
+<span class="codeline" id="line-35"><code>	<span class="keyword">return</span> <a href="#line-20" class="ident">ErrNetClosing</a></code></span>
+<span class="codeline" id="line-36"><code>}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// ErrDeadlineExceeded is returned for an expired deadline.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// This is exported by the os package as os.ErrDeadlineExceeded.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="keyword">var</span> <a href="../../../pkg/internal/poll.html#name-ErrDeadlineExceeded" class="ident">ErrDeadlineExceeded</a> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> = &amp;<a href="#line-43" class="ident">DeadlineExceededError</a>{}</code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// DeadlineExceededError is returned for an expired deadline.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="keyword">type</span> <a href="../../../pkg/internal/poll.html#name-DeadlineExceededError" class="ident">DeadlineExceededError</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// Implement the net.Error interface.</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// The string is "i/o timeout" because that is what was returned</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// by earlier Go versions. Changing it may break programs that</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// match on error strings.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">func</span> (<label for="r2" class="ident">e</label> *<a href="#line-43" class="ident">DeadlineExceededError</a>) <label for="r3" class="ident"><a href="../../../imp/internal/poll.DeadlineExceededError.html#name-.Error" class="ident">Error</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>   { <span class="keyword">return</span> <span class="lit-string">"i/o timeout"</span> }</code></span>
+<span class="codeline" id="line-50"><code><span class="keyword">func</span> (<label for="r4" class="ident">e</label> *<a href="#line-43" class="ident">DeadlineExceededError</a>) <label for="r5" class="ident"><a href="../../../imp/internal/poll.DeadlineExceededError.html#name-.Timeout" class="ident">Timeout</a></label>() <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>   { <span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a> }</code></span>
+<span class="codeline" id="line-51"><code><span class="keyword">func</span> (<label for="r6" class="ident">e</label> *<a href="#line-43" class="ident">DeadlineExceededError</a>) <label for="r7" class="ident"><a href="../../../imp/internal/poll.DeadlineExceededError.html#name-.Temporary" class="ident">Temporary</a></label>() <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> { <span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a> }</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// ErrNotPollable is returned when the file or socket is not suitable</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// for event notification.</span></code></span>
+<span class="codeline" id="line-55"><code><span class="keyword">var</span> <a href="../../../pkg/internal/poll.html#name-ErrNotPollable" class="ident">ErrNotPollable</a> = <a href="../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"not pollable"</span>)</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// consume removes data from a slice of byte slices, for writev.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../../pkg/internal/poll.html#name-consume" class="ident">consume</a></label>(<label for="r9" class="ident">v</label> *[][]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r10" class="ident">n</label> <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>) {</code></span>
+<span class="codeline" id="line-59"><code>	<span class="keyword">for</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(*<label for="r9" class="ident">v</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-60"><code>		<label for="r11" class="ident">ln0</label> := <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>((*<label for="r9" class="ident">v</label>)[<span class="lit-number">0</span>]))</code></span>
+<span class="codeline" id="line-61"><code>		<span class="keyword">if</span> <label for="r11" class="ident">ln0</label> &gt; <label for="r10" class="ident">n</label> {</code></span>
+<span class="codeline" id="line-62"><code>			(*<label for="r9" class="ident">v</label>)[<span class="lit-number">0</span>] = (*<label for="r9" class="ident">v</label>)[<span class="lit-number">0</span>][<label for="r10" class="ident">n</label>:]</code></span>
+<span class="codeline" id="line-63"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-64"><code>		}</code></span>
+<span class="codeline" id="line-65"><code>		<label for="r10" class="ident">n</label> -= <label for="r11" class="ident">ln0</label></code></span>
+<span class="codeline" id="line-66"><code>		*<label for="r9" class="ident">v</label> = (*<label for="r9" class="ident">v</label>)[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-67"><code>	}</code></span>
+<span class="codeline" id="line-68"><code>}</code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// TestHookDidWritev is a hook for testing writev.</span></code></span>
+<span class="codeline" id="line-71"><code><span class="keyword">var</span> <a href="../../../pkg/internal/poll.html#name-TestHookDidWritev" class="ident">TestHookDidWritev</a> = <span class="keyword">func</span>(<label for="r12" class="ident">wrote</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) {}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

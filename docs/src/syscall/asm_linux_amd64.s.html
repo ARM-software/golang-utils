@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: asm_linux_amd64.s in package syscall</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	asm_linux_amd64.s
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/syscall.html">syscall</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code>// Copyright 2009 The Go Authors. All rights reserved.</code></span>
+<span class="codeline" id="line-2"><code>// Use of this source code is governed by a BSD-style</code></span>
+<span class="codeline" id="line-3"><code>// license that can be found in the LICENSE file.</code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code>#include "textflag.h"</code></span>
+<span class="codeline" id="line-6"><code>#include "funcdata.h"</code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code>//</code></span>
+<span class="codeline" id="line-9"><code>// System calls for AMD64, Linux</code></span>
+<span class="codeline" id="line-10"><code>//</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code>#define SYS_gettimeofday 96</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code>// func Syscall(trap int64, a1, a2, a3 uintptr) (r1, r2, err uintptr);</code></span>
+<span class="codeline" id="line-15"><code>// Trap # in AX, args in DI SI DX R10 R8 R9, return in AX DX</code></span>
+<span class="codeline" id="line-16"><code>// Note that this differs from "standard" ABI convention, which</code></span>
+<span class="codeline" id="line-17"><code>// would pass 4th arg in CX, not R10.</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code>TEXT ·Syscall(SB),NOSPLIT,$0-56</code></span>
+<span class="codeline" id="line-20"><code>	CALL	runtime·entersyscall(SB)</code></span>
+<span class="codeline" id="line-21"><code>	MOVQ	a1+8(FP), DI</code></span>
+<span class="codeline" id="line-22"><code>	MOVQ	a2+16(FP), SI</code></span>
+<span class="codeline" id="line-23"><code>	MOVQ	a3+24(FP), DX</code></span>
+<span class="codeline" id="line-24"><code>	MOVQ	trap+0(FP), AX	// syscall entry</code></span>
+<span class="codeline" id="line-25"><code>	SYSCALL</code></span>
+<span class="codeline" id="line-26"><code>	CMPQ	AX, $0xfffffffffffff001</code></span>
+<span class="codeline" id="line-27"><code>	JLS	ok</code></span>
+<span class="codeline" id="line-28"><code>	MOVQ	$-1, r1+32(FP)</code></span>
+<span class="codeline" id="line-29"><code>	MOVQ	$0, r2+40(FP)</code></span>
+<span class="codeline" id="line-30"><code>	NEGQ	AX</code></span>
+<span class="codeline" id="line-31"><code>	MOVQ	AX, err+48(FP)</code></span>
+<span class="codeline" id="line-32"><code>	CALL	runtime·exitsyscall(SB)</code></span>
+<span class="codeline" id="line-33"><code>	RET</code></span>
+<span class="codeline" id="line-34"><code>ok:</code></span>
+<span class="codeline" id="line-35"><code>	MOVQ	AX, r1+32(FP)</code></span>
+<span class="codeline" id="line-36"><code>	MOVQ	DX, r2+40(FP)</code></span>
+<span class="codeline" id="line-37"><code>	MOVQ	$0, err+48(FP)</code></span>
+<span class="codeline" id="line-38"><code>	CALL	runtime·exitsyscall(SB)</code></span>
+<span class="codeline" id="line-39"><code>	RET</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code>// func Syscall6(trap, a1, a2, a3, a4, a5, a6 uintptr) (r1, r2, err uintptr)</code></span>
+<span class="codeline" id="line-42"><code>TEXT ·Syscall6(SB),NOSPLIT,$0-80</code></span>
+<span class="codeline" id="line-43"><code>	CALL	runtime·entersyscall(SB)</code></span>
+<span class="codeline" id="line-44"><code>	MOVQ	a1+8(FP), DI</code></span>
+<span class="codeline" id="line-45"><code>	MOVQ	a2+16(FP), SI</code></span>
+<span class="codeline" id="line-46"><code>	MOVQ	a3+24(FP), DX</code></span>
+<span class="codeline" id="line-47"><code>	MOVQ	a4+32(FP), R10</code></span>
+<span class="codeline" id="line-48"><code>	MOVQ	a5+40(FP), R8</code></span>
+<span class="codeline" id="line-49"><code>	MOVQ	a6+48(FP), R9</code></span>
+<span class="codeline" id="line-50"><code>	MOVQ	trap+0(FP), AX	// syscall entry</code></span>
+<span class="codeline" id="line-51"><code>	SYSCALL</code></span>
+<span class="codeline" id="line-52"><code>	CMPQ	AX, $0xfffffffffffff001</code></span>
+<span class="codeline" id="line-53"><code>	JLS	ok6</code></span>
+<span class="codeline" id="line-54"><code>	MOVQ	$-1, r1+56(FP)</code></span>
+<span class="codeline" id="line-55"><code>	MOVQ	$0, r2+64(FP)</code></span>
+<span class="codeline" id="line-56"><code>	NEGQ	AX</code></span>
+<span class="codeline" id="line-57"><code>	MOVQ	AX, err+72(FP)</code></span>
+<span class="codeline" id="line-58"><code>	CALL	runtime·exitsyscall(SB)</code></span>
+<span class="codeline" id="line-59"><code>	RET</code></span>
+<span class="codeline" id="line-60"><code>ok6:</code></span>
+<span class="codeline" id="line-61"><code>	MOVQ	AX, r1+56(FP)</code></span>
+<span class="codeline" id="line-62"><code>	MOVQ	DX, r2+64(FP)</code></span>
+<span class="codeline" id="line-63"><code>	MOVQ	$0, err+72(FP)</code></span>
+<span class="codeline" id="line-64"><code>	CALL	runtime·exitsyscall(SB)</code></span>
+<span class="codeline" id="line-65"><code>	RET</code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code>// func RawSyscall(trap, a1, a2, a3 uintptr) (r1, r2, err uintptr)</code></span>
+<span class="codeline" id="line-68"><code>TEXT ·RawSyscall(SB),NOSPLIT,$0-56</code></span>
+<span class="codeline" id="line-69"><code>	MOVQ	a1+8(FP), DI</code></span>
+<span class="codeline" id="line-70"><code>	MOVQ	a2+16(FP), SI</code></span>
+<span class="codeline" id="line-71"><code>	MOVQ	a3+24(FP), DX</code></span>
+<span class="codeline" id="line-72"><code>	MOVQ	trap+0(FP), AX	// syscall entry</code></span>
+<span class="codeline" id="line-73"><code>	SYSCALL</code></span>
+<span class="codeline" id="line-74"><code>	CMPQ	AX, $0xfffffffffffff001</code></span>
+<span class="codeline" id="line-75"><code>	JLS	ok1</code></span>
+<span class="codeline" id="line-76"><code>	MOVQ	$-1, r1+32(FP)</code></span>
+<span class="codeline" id="line-77"><code>	MOVQ	$0, r2+40(FP)</code></span>
+<span class="codeline" id="line-78"><code>	NEGQ	AX</code></span>
+<span class="codeline" id="line-79"><code>	MOVQ	AX, err+48(FP)</code></span>
+<span class="codeline" id="line-80"><code>	RET</code></span>
+<span class="codeline" id="line-81"><code>ok1:</code></span>
+<span class="codeline" id="line-82"><code>	MOVQ	AX, r1+32(FP)</code></span>
+<span class="codeline" id="line-83"><code>	MOVQ	DX, r2+40(FP)</code></span>
+<span class="codeline" id="line-84"><code>	MOVQ	$0, err+48(FP)</code></span>
+<span class="codeline" id="line-85"><code>	RET</code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code>// func RawSyscall6(trap, a1, a2, a3, a4, a5, a6 uintptr) (r1, r2, err uintptr)</code></span>
+<span class="codeline" id="line-88"><code>TEXT ·RawSyscall6(SB),NOSPLIT,$0-80</code></span>
+<span class="codeline" id="line-89"><code>	MOVQ	a1+8(FP), DI</code></span>
+<span class="codeline" id="line-90"><code>	MOVQ	a2+16(FP), SI</code></span>
+<span class="codeline" id="line-91"><code>	MOVQ	a3+24(FP), DX</code></span>
+<span class="codeline" id="line-92"><code>	MOVQ	a4+32(FP), R10</code></span>
+<span class="codeline" id="line-93"><code>	MOVQ	a5+40(FP), R8</code></span>
+<span class="codeline" id="line-94"><code>	MOVQ	a6+48(FP), R9</code></span>
+<span class="codeline" id="line-95"><code>	MOVQ	trap+0(FP), AX	// syscall entry</code></span>
+<span class="codeline" id="line-96"><code>	SYSCALL</code></span>
+<span class="codeline" id="line-97"><code>	CMPQ	AX, $0xfffffffffffff001</code></span>
+<span class="codeline" id="line-98"><code>	JLS	ok2</code></span>
+<span class="codeline" id="line-99"><code>	MOVQ	$-1, r1+56(FP)</code></span>
+<span class="codeline" id="line-100"><code>	MOVQ	$0, r2+64(FP)</code></span>
+<span class="codeline" id="line-101"><code>	NEGQ	AX</code></span>
+<span class="codeline" id="line-102"><code>	MOVQ	AX, err+72(FP)</code></span>
+<span class="codeline" id="line-103"><code>	RET</code></span>
+<span class="codeline" id="line-104"><code>ok2:</code></span>
+<span class="codeline" id="line-105"><code>	MOVQ	AX, r1+56(FP)</code></span>
+<span class="codeline" id="line-106"><code>	MOVQ	DX, r2+64(FP)</code></span>
+<span class="codeline" id="line-107"><code>	MOVQ	$0, err+72(FP)</code></span>
+<span class="codeline" id="line-108"><code>	RET</code></span>
+<span class="codeline" id="line-109"><code></code></span>
+<span class="codeline" id="line-110"><code>// func rawVforkSyscall(trap, a1 uintptr) (r1, err uintptr)</code></span>
+<span class="codeline" id="line-111"><code>TEXT ·rawVforkSyscall(SB),NOSPLIT,$0-32</code></span>
+<span class="codeline" id="line-112"><code>	MOVQ	a1+8(FP), DI</code></span>
+<span class="codeline" id="line-113"><code>	MOVQ	$0, SI</code></span>
+<span class="codeline" id="line-114"><code>	MOVQ	$0, DX</code></span>
+<span class="codeline" id="line-115"><code>	MOVQ	$0, R10</code></span>
+<span class="codeline" id="line-116"><code>	MOVQ	$0, R8</code></span>
+<span class="codeline" id="line-117"><code>	MOVQ	$0, R9</code></span>
+<span class="codeline" id="line-118"><code>	MOVQ	trap+0(FP), AX	// syscall entry</code></span>
+<span class="codeline" id="line-119"><code>	POPQ	R12 // preserve return address</code></span>
+<span class="codeline" id="line-120"><code>	SYSCALL</code></span>
+<span class="codeline" id="line-121"><code>	PUSHQ	R12</code></span>
+<span class="codeline" id="line-122"><code>	CMPQ	AX, $0xfffffffffffff001</code></span>
+<span class="codeline" id="line-123"><code>	JLS	ok2</code></span>
+<span class="codeline" id="line-124"><code>	MOVQ	$-1, r1+16(FP)</code></span>
+<span class="codeline" id="line-125"><code>	NEGQ	AX</code></span>
+<span class="codeline" id="line-126"><code>	MOVQ	AX, err+24(FP)</code></span>
+<span class="codeline" id="line-127"><code>	RET</code></span>
+<span class="codeline" id="line-128"><code>ok2:</code></span>
+<span class="codeline" id="line-129"><code>	MOVQ	AX, r1+16(FP)</code></span>
+<span class="codeline" id="line-130"><code>	MOVQ	$0, err+24(FP)</code></span>
+<span class="codeline" id="line-131"><code>	RET</code></span>
+<span class="codeline" id="line-132"><code></code></span>
+<span class="codeline" id="line-133"><code>// func rawSyscallNoError(trap, a1, a2, a3 uintptr) (r1, r2 uintptr)</code></span>
+<span class="codeline" id="line-134"><code>TEXT ·rawSyscallNoError(SB),NOSPLIT,$0-48</code></span>
+<span class="codeline" id="line-135"><code>	MOVQ	a1+8(FP), DI</code></span>
+<span class="codeline" id="line-136"><code>	MOVQ	a2+16(FP), SI</code></span>
+<span class="codeline" id="line-137"><code>	MOVQ	a3+24(FP), DX</code></span>
+<span class="codeline" id="line-138"><code>	MOVQ	trap+0(FP), AX	// syscall entry</code></span>
+<span class="codeline" id="line-139"><code>	SYSCALL</code></span>
+<span class="codeline" id="line-140"><code>	MOVQ	AX, r1+32(FP)</code></span>
+<span class="codeline" id="line-141"><code>	MOVQ	DX, r2+40(FP)</code></span>
+<span class="codeline" id="line-142"><code>	RET</code></span>
+<span class="codeline" id="line-143"><code></code></span>
+<span class="codeline" id="line-144"><code>// func gettimeofday(tv *Timeval) (err uintptr)</code></span>
+<span class="codeline" id="line-145"><code>TEXT ·gettimeofday(SB),NOSPLIT,$0-16</code></span>
+<span class="codeline" id="line-146"><code>	MOVQ	tv+0(FP), DI</code></span>
+<span class="codeline" id="line-147"><code>	MOVQ	$0, SI</code></span>
+<span class="codeline" id="line-148"><code>	MOVQ	runtime·vdsoGettimeofdaySym(SB), AX</code></span>
+<span class="codeline" id="line-149"><code>	TESTQ   AX, AX</code></span>
+<span class="codeline" id="line-150"><code>	JZ fallback</code></span>
+<span class="codeline" id="line-151"><code>	CALL	AX</code></span>
+<span class="codeline" id="line-152"><code>ret:</code></span>
+<span class="codeline" id="line-153"><code>	CMPQ	AX, $0xfffffffffffff001</code></span>
+<span class="codeline" id="line-154"><code>	JLS	ok7</code></span>
+<span class="codeline" id="line-155"><code>	NEGQ	AX</code></span>
+<span class="codeline" id="line-156"><code>	MOVQ	AX, err+8(FP)</code></span>
+<span class="codeline" id="line-157"><code>	RET</code></span>
+<span class="codeline" id="line-158"><code>fallback:</code></span>
+<span class="codeline" id="line-159"><code>	MOVL	$SYS_gettimeofday, AX</code></span>
+<span class="codeline" id="line-160"><code>	SYSCALL</code></span>
+<span class="codeline" id="line-161"><code>	JMP ret</code></span>
+<span class="codeline" id="line-162"><code>ok7:</code></span>
+<span class="codeline" id="line-163"><code>	MOVQ	$0, err+8(FP)</code></span>
+<span class="codeline" id="line-164"><code>	RET</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

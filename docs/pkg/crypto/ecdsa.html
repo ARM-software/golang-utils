@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: crypto/ecdsa</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>ecdsa</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../index.html#pkg-crypto/ecdsa">crypto/ecdsa</a><i> (on <a href="https://pkg.go.dev/crypto/ecdsa" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../dep/crypto/ecdsa.html">11 packages</a>, and imported by <a href="../../dep/crypto/ecdsa.html#imported-by">2 packages</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<input type='checkbox' checked class="fold" id="file-0-fold-content"><label for="file-0-fold-content">   <a href="../../src/crypto/ecdsa/ecdsa.go.html#doc">d➜</a> <a href="../../src/crypto/ecdsa/ecdsa.go.html">ecdsa.go</a></label><span id='file-0-fold-content-items' class="fold-items">
+		Package ecdsa implements the Elliptic Curve Digital Signature Algorithm, as
+		defined in FIPS 186-3.
+
+		This implementation derives the nonce from an AES-CTR CSPRNG keyed by:
+
+		SHA2-512(priv.D || entropy || hash)[:32]
+
+		The CSPRNG key is indifferentiable from a random oracle as shown in
+		[Coron], the AES-CTR stream is indifferentiable from a random oracle
+		under standard cryptographic assumptions (see [Larsson] for examples).
+
+		References:
+		  [Coron]
+		    https://cs.nyu.edu/~dodis/ps/merkle.pdf
+		  [Larsson]
+		    https://www.nada.kth.se/kurser/kth/2D1441/semteo03/lecturenotes/assump.pdf
+</span>
+	<span class="nodocs">      <a href="../../src/crypto/ecdsa/ecdsa_noasm.go.html">ecdsa_noasm.go</a></span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content"></label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"crypto/ecdsa"
+			"crypto/elliptic"
+			"crypto/rand"
+			"crypto/sha256"
+			"fmt"
+		)
+		
+		func main() {
+			privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+			if err != nil {
+				panic(err)
+			}
+		
+			msg := "hello, world"
+			hash := sha256.Sum256([]byte(msg))
+		
+			sig, err := ecdsa.SignASN1(rand.Reader, privateKey, hash[:])
+			if err != nil {
+				panic(err)
+			}
+			fmt.Printf("signature: %x\n", sig)
+		
+			valid := ecdsa.VerifyASN1(&privateKey.PublicKey, hash[:], sig)
+			fmt.Println("signature verified:", valid)
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 5, in which 2 are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-PrivateKey" data-popularity="985">	<input type='checkbox' class="fold" id="PrivateKey-fold-content"><label for="PrivateKey-fold-content"> type <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-87">PrivateKey</a> <i>(struct)</i></label><span id='PrivateKey-fold-content-docs' class="fold-docs">
+		PrivateKey represents an ECDSA private key.
+
+		<input type='checkbox' class="fold" id="PrivateKey-fold-fields"><label for="PrivateKey-fold-fields">Fields (<i>total 5, all are exported</i>)</label><span id='PrivateKey-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../src/crypto/ecdsa/ecdsa.go.html#line-89">D</a> <i>*<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a></i></span></span><span>
+			<span class="nodocs"><a href="../../src/crypto/ecdsa/ecdsa.go.html#line-88">PublicKey</a> <i><a href="#name-PublicKey">PublicKey</a></i></span></span><span>
+			<span class="nodocs"><a href="../../src/crypto/ecdsa/ecdsa.go.html#line-88" class="path-duplicate">PublicKey</a>.<a href="../../src/crypto/ecdsa/ecdsa.go.html#line-61">Curve</a> <i><a href="elliptic.html">elliptic</a>.<a href="elliptic.html#name-Curve">Curve</a></i></span></span><span>
+			<span class="nodocs"><a href="../../src/crypto/ecdsa/ecdsa.go.html#line-88" class="path-duplicate">PublicKey</a>.<a href="../../src/crypto/ecdsa/ecdsa.go.html#line-62">X</a> <i>*<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a></i></span></span><span>
+			<span class="nodocs"><a href="../../src/crypto/ecdsa/ecdsa.go.html#line-88" class="path-duplicate">PublicKey</a>.<a href="../../src/crypto/ecdsa/ecdsa.go.html#line-62">Y</a> <i>*<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a></i></span></span></span>
+		<input type='checkbox' class="fold" id="PrivateKey-fold-methods"><label for="PrivateKey-fold-methods">Methods (<i>total 9, all are exported</i>)</label><span id='PrivateKey-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="PrivateKey-fold-method-Add"><label for="PrivateKey-fold-method-Add">( T) <a href="../../src/crypto/elliptic/elliptic.go.html#line-33">Add</a>(x1, y1, x2, y2 *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>) (x, y *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>)</label><span id='PrivateKey-fold-method-Add-docs' class="fold-docs">
+				Add returns the sum of (x1,y1) and (x2,y2)
+</span></span><span>
+			<input type='checkbox' class="fold" id="PrivateKey-fold-method-Double"><label for="PrivateKey-fold-method-Double">( T) <a href="../../src/crypto/elliptic/elliptic.go.html#line-35">Double</a>(x1, y1 *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>) (x, y *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>)</label><span id='PrivateKey-fold-method-Double-docs' class="fold-docs">
+				Double returns 2*(x,y)
+</span></span><span>
+			<input type='checkbox' class="fold" id="PrivateKey-fold-method-Equal"><label for="PrivateKey-fold-method-Equal">(*T) <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-100">Equal</a>(x <a href="../crypto.html">crypto</a>.<a href="../crypto.html#name-PrivateKey">PrivateKey</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='PrivateKey-fold-method-Equal-docs' class="fold-docs">
+				Equal reports whether priv and x have the same value.
+
+				See PublicKey.Equal for details on how Curve is compared.
+</span></span><span>
+			<input type='checkbox' class="fold" id="PrivateKey-fold-method-IsOnCurve"><label for="PrivateKey-fold-method-IsOnCurve">( T) <a href="../../src/crypto/elliptic/elliptic.go.html#line-31">IsOnCurve</a>(x, y *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='PrivateKey-fold-method-IsOnCurve-docs' class="fold-docs">
+				IsOnCurve reports whether the given (x,y) lies on the curve.
+</span></span><span>
+			<input type='checkbox' class="fold" id="PrivateKey-fold-method-Params"><label for="PrivateKey-fold-method-Params">( T) <a href="../../src/crypto/elliptic/elliptic.go.html#line-29">Params</a>() *<a href="elliptic.html">elliptic</a>.<a href="elliptic.html#name-CurveParams">CurveParams</a></label><span id='PrivateKey-fold-method-Params-docs' class="fold-docs">
+				Params returns the parameters for the curve.
+</span></span><span>
+			<input type='checkbox' class="fold" id="PrivateKey-fold-method-Public"><label for="PrivateKey-fold-method-Public">(*T) <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-93">Public</a>() <a href="../crypto.html">crypto</a>.<a href="../crypto.html#name-PublicKey">PublicKey</a></label><span id='PrivateKey-fold-method-Public-docs' class="fold-docs">
+				Public returns the public key corresponding to priv.
+</span></span><span>
+			<input type='checkbox' class="fold" id="PrivateKey-fold-method-ScalarBaseMult"><label for="PrivateKey-fold-method-ScalarBaseMult">( T) <a href="../../src/crypto/elliptic/elliptic.go.html#line-40">ScalarBaseMult</a>(k []<a href="../builtin.html#name-byte">byte</a>) (x, y *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>)</label><span id='PrivateKey-fold-method-ScalarBaseMult-docs' class="fold-docs">
+				ScalarBaseMult returns k*G, where G is the base point of the group
+				and k is an integer in big-endian form.
+</span></span><span>
+			<input type='checkbox' class="fold" id="PrivateKey-fold-method-ScalarMult"><label for="PrivateKey-fold-method-ScalarMult">( T) <a href="../../src/crypto/elliptic/elliptic.go.html#line-37">ScalarMult</a>(x1, y1 *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>, k []<a href="../builtin.html#name-byte">byte</a>) (x, y *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>)</label><span id='PrivateKey-fold-method-ScalarMult-docs' class="fold-docs">
+				ScalarMult returns k*(Bx,By) where k is a number in big-endian form.
+</span></span><span>
+			<input type='checkbox' class="fold" id="PrivateKey-fold-method-Sign"><label for="PrivateKey-fold-method-Sign">(*T) <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-115">Sign</a>(rand <a href="../io.html">io</a>.<a href="../io.html#name-Reader">Reader</a>, digest []<a href="../builtin.html#name-byte">byte</a>, opts <a href="../crypto.html">crypto</a>.<a href="../crypto.html#name-SignerOpts">SignerOpts</a>) ([]<a href="../builtin.html#name-byte">byte</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='PrivateKey-fold-method-Sign-docs' class="fold-docs">
+				Sign signs digest with priv, reading randomness from rand. The opts argument
+				is not currently used but, in keeping with the crypto.Signer interface,
+				should be the hash function used to digest the message.
+
+				This method implements crypto.Signer, which is an interface to support keys
+				where the private part is kept in, for example, a hardware module. Common
+				uses should use the Sign function in this package directly.
+</span></span></span>
+		<input type='checkbox' class="fold" id="PrivateKey-fold-impls"><label for="PrivateKey-fold-impls">Implements (<i>at least 2, both are exported</i>)</label><span id='PrivateKey-fold-impls-items' class="fold-items"><span>
+			*T : crypto.<a href="../crypto.html#name-Signer">Signer</a></span><span>
+			 T : crypto/elliptic.<a href="elliptic.html#name-Curve">Curve</a></span></span>
+		<input type='checkbox' class="fold" id="PrivateKey-fold-results"><label for="PrivateKey-fold-results">As Outputs Of (<i>at least 3, in which 2 are exported</i>)</label><span id='PrivateKey-fold-results-items' class="fold-items"><span>
+			func <a href="#name-GenerateKey">GenerateKey</a>(c <a href="elliptic.html">elliptic</a>.<a href="elliptic.html#name-Curve">Curve</a>, rand <a href="../io.html">io</a>.<a href="../io.html#name-Reader">Reader</a>) (*<b>PrivateKey</b>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func crypto/x509.<a href="x509.html#name-ParseECPrivateKey">ParseECPrivateKey</a>(der []<a href="../builtin.html#name-byte">byte</a>) (*<b>PrivateKey</b>, <a href="../builtin.html#name-error">error</a>)</span>
+			<input type='checkbox' class="showhide" id="PrivateKey-showhide-inputofs"><i><label for="PrivateKey-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="PrivateKey-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func crypto/x509.<a href="x509.html#name-parseECPrivateKey">parseECPrivateKey</a>(namedCurveOID *<a href="../encoding/asn1.html">asn1</a>.<a href="../encoding/asn1.html#name-ObjectIdentifier">ObjectIdentifier</a>, der []<a href="../builtin.html#name-byte">byte</a>) (key *<b>PrivateKey</b>, err <a href="../builtin.html#name-error">error</a>)</i></span></span>
+		<input type='checkbox' class="fold" id="PrivateKey-fold-params"><label for="PrivateKey-fold-params">As Inputs Of (<i>at least 6, in which 3 are exported</i>)</label><span id='PrivateKey-fold-params-items' class="fold-items"><span>
+			func <a href="#name-Sign">Sign</a>(rand <a href="../io.html">io</a>.<a href="../io.html#name-Reader">Reader</a>, priv *<b>PrivateKey</b>, hash []<a href="../builtin.html#name-byte">byte</a>) (r, s *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>, err <a href="../builtin.html#name-error">error</a>)</span><span>
+			func <a href="#name-SignASN1">SignASN1</a>(rand <a href="../io.html">io</a>.<a href="../io.html#name-Reader">Reader</a>, priv *<b>PrivateKey</b>, hash []<a href="../builtin.html#name-byte">byte</a>) ([]<a href="../builtin.html#name-byte">byte</a>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func crypto/x509.<a href="x509.html#name-MarshalECPrivateKey">MarshalECPrivateKey</a>(key *<b>PrivateKey</b>) ([]<a href="../builtin.html#name-byte">byte</a>, <a href="../builtin.html#name-error">error</a>)</span>
+			<input type='checkbox' class="showhide" id="PrivateKey-showhide-outputofs"><i><label for="PrivateKey-showhide-outputofs" class="show-inline">/* 3+ unexporteds ... */</label><label for="PrivateKey-showhide-outputofs" class="hide-inline">/* 3+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-sign">sign</a>(priv *<b>PrivateKey</b>, csprng *<a href="cipher.html">cipher</a>.<a href="cipher.html#name-StreamReader">StreamReader</a>, c <a href="elliptic.html">elliptic</a>.<a href="elliptic.html#name-Curve">Curve</a>, hash []<a href="../builtin.html#name-byte">byte</a>) (r, s *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>, err <a href="../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func <a href="#name-signGeneric">signGeneric</a>(priv *<b>PrivateKey</b>, csprng *<a href="cipher.html">cipher</a>.<a href="cipher.html#name-StreamReader">StreamReader</a>, c <a href="elliptic.html">elliptic</a>.<a href="elliptic.html#name-Curve">Curve</a>, hash []<a href="../builtin.html#name-byte">byte</a>) (r, s *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>, err <a href="../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func crypto/x509.<a href="x509.html#name-marshalECPrivateKeyWithOID">marshalECPrivateKeyWithOID</a>(key *<b>PrivateKey</b>, oid <a href="../encoding/asn1.html">asn1</a>.<a href="../encoding/asn1.html#name-ObjectIdentifier">ObjectIdentifier</a>) ([]<a href="../builtin.html#name-byte">byte</a>, <a href="../builtin.html#name-error">error</a>)</i></span></span>
+
+</span></div><div class="anchor type-res" id="name-PublicKey" data-popularity="540">	<input type='checkbox' class="fold" id="PublicKey-fold-content"><label for="PublicKey-fold-content"> type <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-60">PublicKey</a> <i>(struct)</i></label><span id='PublicKey-fold-content-docs' class="fold-docs">
+		PublicKey represents an ECDSA public key.
+
+		<input type='checkbox' class="fold" id="PublicKey-fold-fields"><label for="PublicKey-fold-fields">Fields (<i>total 3, all are exported</i>)</label><span id='PublicKey-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../src/crypto/ecdsa/ecdsa.go.html#line-61">Curve</a> <i><a href="elliptic.html">elliptic</a>.<a href="elliptic.html#name-Curve">Curve</a></i></span></span><span>
+			<span class="nodocs"><a href="../../src/crypto/ecdsa/ecdsa.go.html#line-62">X</a> <i>*<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a></i></span></span><span>
+			<span class="nodocs"><a href="../../src/crypto/ecdsa/ecdsa.go.html#line-62">Y</a> <i>*<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a></i></span></span></span>
+		<input type='checkbox' class="fold" id="PublicKey-fold-methods"><label for="PublicKey-fold-methods">Methods (<i>total 7, all are exported</i>)</label><span id='PublicKey-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="PublicKey-fold-method-Add"><label for="PublicKey-fold-method-Add">( T) <a href="../../src/crypto/elliptic/elliptic.go.html#line-33">Add</a>(x1, y1, x2, y2 *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>) (x, y *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>)</label><span id='PublicKey-fold-method-Add-docs' class="fold-docs">
+				Add returns the sum of (x1,y1) and (x2,y2)
+</span></span><span>
+			<input type='checkbox' class="fold" id="PublicKey-fold-method-Double"><label for="PublicKey-fold-method-Double">( T) <a href="../../src/crypto/elliptic/elliptic.go.html#line-35">Double</a>(x1, y1 *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>) (x, y *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>)</label><span id='PublicKey-fold-method-Double-docs' class="fold-docs">
+				Double returns 2*(x,y)
+</span></span><span>
+			<input type='checkbox' class="fold" id="PublicKey-fold-method-Equal"><label for="PublicKey-fold-method-Equal">(*T) <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-73">Equal</a>(x <a href="../crypto.html">crypto</a>.<a href="../crypto.html#name-PublicKey">PublicKey</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='PublicKey-fold-method-Equal-docs' class="fold-docs">
+				Equal reports whether pub and x have the same value.
+
+				Two keys are only considered to have the same value if they have the same Curve value.
+				Note that for example elliptic.P256() and elliptic.P256().Params() are different
+				values, as the latter is a generic not constant time implementation.
+</span></span><span>
+			<input type='checkbox' class="fold" id="PublicKey-fold-method-IsOnCurve"><label for="PublicKey-fold-method-IsOnCurve">( T) <a href="../../src/crypto/elliptic/elliptic.go.html#line-31">IsOnCurve</a>(x, y *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='PublicKey-fold-method-IsOnCurve-docs' class="fold-docs">
+				IsOnCurve reports whether the given (x,y) lies on the curve.
+</span></span><span>
+			<input type='checkbox' class="fold" id="PublicKey-fold-method-Params"><label for="PublicKey-fold-method-Params">( T) <a href="../../src/crypto/elliptic/elliptic.go.html#line-29">Params</a>() *<a href="elliptic.html">elliptic</a>.<a href="elliptic.html#name-CurveParams">CurveParams</a></label><span id='PublicKey-fold-method-Params-docs' class="fold-docs">
+				Params returns the parameters for the curve.
+</span></span><span>
+			<input type='checkbox' class="fold" id="PublicKey-fold-method-ScalarBaseMult"><label for="PublicKey-fold-method-ScalarBaseMult">( T) <a href="../../src/crypto/elliptic/elliptic.go.html#line-40">ScalarBaseMult</a>(k []<a href="../builtin.html#name-byte">byte</a>) (x, y *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>)</label><span id='PublicKey-fold-method-ScalarBaseMult-docs' class="fold-docs">
+				ScalarBaseMult returns k*G, where G is the base point of the group
+				and k is an integer in big-endian form.
+</span></span><span>
+			<input type='checkbox' class="fold" id="PublicKey-fold-method-ScalarMult"><label for="PublicKey-fold-method-ScalarMult">( T) <a href="../../src/crypto/elliptic/elliptic.go.html#line-37">ScalarMult</a>(x1, y1 *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>, k []<a href="../builtin.html#name-byte">byte</a>) (x, y *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>)</label><span id='PublicKey-fold-method-ScalarMult-docs' class="fold-docs">
+				ScalarMult returns k*(Bx,By) where k is a number in big-endian form.
+</span></span></span>
+		<input type='checkbox' class="fold" id="PublicKey-fold-impls"><label for="PublicKey-fold-impls">Implements (<i>at least one exported</i>)</label><span id='PublicKey-fold-impls-items' class="fold-items"><span>
+			 T : crypto/elliptic.<a href="elliptic.html#name-Curve">Curve</a></span></span>
+		<input type='checkbox' class="fold" id="PublicKey-fold-params"><label for="PublicKey-fold-params">As Inputs Of (<i>at least 4, in which 2 are exported</i>)</label><span id='PublicKey-fold-params-items' class="fold-items"><span>
+			func <a href="#name-Verify">Verify</a>(pub *<b>PublicKey</b>, hash []<a href="../builtin.html#name-byte">byte</a>, r, s *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>) <a href="../builtin.html#name-bool">bool</a></span><span>
+			func <a href="#name-VerifyASN1">VerifyASN1</a>(pub *<b>PublicKey</b>, hash, sig []<a href="../builtin.html#name-byte">byte</a>) <a href="../builtin.html#name-bool">bool</a></span>
+			<input type='checkbox' class="showhide" id="PublicKey-showhide-outputofs"><i><label for="PublicKey-showhide-outputofs" class="show-inline">/* 2+ unexporteds ... */</label><label for="PublicKey-showhide-outputofs" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-verify">verify</a>(pub *<b>PublicKey</b>, c <a href="elliptic.html">elliptic</a>.<a href="elliptic.html#name-Curve">Curve</a>, hash []<a href="../builtin.html#name-byte">byte</a>, r, s *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>) <a href="../builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func <a href="#name-verifyGeneric">verifyGeneric</a>(pub *<b>PublicKey</b>, c <a href="elliptic.html">elliptic</a>.<a href="elliptic.html#name-Curve">Curve</a>, hash []<a href="../builtin.html#name-byte">byte</a>, r, s *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>) <a href="../builtin.html#name-bool">bool</a></i></span></span>
+
+</span></div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* 3 unexporteds ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* 3 unexporteds: */</label></i><div class="anchor type-res hidden" id="name-combinedMult" data-popularity="200">	<input type='checkbox' class="fold" id="combinedMult-fold-content"><label for="combinedMult-fold-content"> type <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-51">combinedMult</a> <b><i>(interface)</i></b></label><span id='combinedMult-fold-content-docs' class="fold-docs">
+		combinedMult implements fast multiplication S1*g + S2*p (g - generator, p - arbitrary point)
+
+		<input type='checkbox' class="fold" id="combinedMult-fold-methods"><label for="combinedMult-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='combinedMult-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-52">CombinedMult</a>(bigX, bigY *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>, baseScalar, scalar []<a href="../builtin.html#name-byte">byte</a>) (x, y *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>)</span></span></span>
+		<input type='checkbox' class="fold" id="combinedMult-fold-impledby"><label for="combinedMult-fold-impledby">Implemented By (<i>at least one unexported</i>)</label><span id='combinedMult-fold-impledby-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="combinedMult-showhide-impedBys"><i><label for="combinedMult-showhide-impedBys" class="show-inline">/* at least one unexported ... */</label><label for="combinedMult-showhide-impedBys" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			 crypto/elliptic.<a href="elliptic.html#name-p256Curve">p256Curve</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-invertible" data-popularity="200">	<input type='checkbox' class="fold" id="invertible-fold-content"><label for="invertible-fold-content"> type <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-45">invertible</a> <b><i>(interface)</i></b></label><span id='invertible-fold-content-docs' class="fold-docs">
+		A invertible implements fast inverse mod Curve.Params().N
+
+		<input type='checkbox' class="fold" id="invertible-fold-methods"><label for="invertible-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='invertible-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="invertible-fold-method-Inverse"><label for="invertible-fold-method-Inverse">( T) <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-47">Inverse</a>(k *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>) *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a></label><span id='invertible-fold-method-Inverse-docs' class="fold-docs">
+				Inverse returns the inverse of k in GF(P)
+</span></span></span>
+		<input type='checkbox' class="fold" id="invertible-fold-impledby"><label for="invertible-fold-impledby">Implemented By (<i>at least one unexported</i>)</label><span id='invertible-fold-impledby-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="invertible-showhide-impedBys"><i><label for="invertible-showhide-impedBys" class="show-inline">/* at least one unexported ... */</label><label for="invertible-showhide-impedBys" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			 crypto/elliptic.<a href="elliptic.html#name-p256Curve">p256Curve</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-zr" data-popularity="105">	<input type='checkbox' class="fold" id="zr-fold-content"><label for="zr-fold-content"> type <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-355">zr</a> <i>(struct)</i></label><span id='zr-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="zr-fold-fields"><label for="zr-fold-fields">Fields (<i>only one, which is exported</i>)</label><span id='zr-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../src/io/io.go.html#line-617">Reader</a> <i><a href="../io.html">io</a>.<a href="../io.html#name-Reader">Reader</a></i></span></span></span>
+		<input type='checkbox' class="fold" id="zr-fold-methods"><label for="zr-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='zr-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="zr-fold-method-Read"><label for="zr-fold-method-Read">(*T) <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-360">Read</a>(dst []<a href="../builtin.html#name-byte">byte</a>) (n <a href="../builtin.html#name-int">int</a>, err <a href="../builtin.html#name-error">error</a>)</label><span id='zr-fold-method-Read-docs' class="fold-docs">
+				Read replaces the contents of dst with zeros.
+</span></span></span>
+		<input type='checkbox' class="fold" id="zr-fold-impls"><label for="zr-fold-impls">Implements (<i>at least one exported</i>)</label><span id='zr-fold-impls-items' class="fold-items"><span>
+			*T : io.<a href="../io.html#name-Reader">Reader</a></span></span>
+		<input type='checkbox' class="fold" id="zr-fold-values"><label for="zr-fold-values">As Types Of (<i>only one, which is unexported</i>)</label><span id='zr-fold-values-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="zr-showhide-values"><i><label for="zr-showhide-values" class="show-inline">/* one unexported ... */</label><label for="zr-showhide-values" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			  var <a href="#name-zeroReader">zeroReader</a> *zr</i></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 12, in which 5 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-GenerateKey">	<input type='checkbox' class="fold" id="GenerateKey-fold-content"><label for="GenerateKey-fold-content"> func <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-149">GenerateKey</a>(c <a href="elliptic.html">elliptic</a>.<a href="elliptic.html#name-Curve">Curve</a>, rand <a href="../io.html">io</a>.<a href="../io.html#name-Reader">Reader</a>) (*<a href="#name-PrivateKey">PrivateKey</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='GenerateKey-fold-content-docs' class="fold-docs">
+		GenerateKey generates a public and private key pair.
+
+</span></div><div class="anchor value-res" id="name-Sign">	<input type='checkbox' class="fold" id="Sign-fold-content"><label for="Sign-fold-content"> func <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-200">Sign</a>(rand <a href="../io.html">io</a>.<a href="../io.html#name-Reader">Reader</a>, priv *<a href="#name-PrivateKey">PrivateKey</a>, hash []<a href="../builtin.html#name-byte">byte</a>) (r, s *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>, err <a href="../builtin.html#name-error">error</a>)</label><span id='Sign-fold-content-docs' class="fold-docs">
+		Sign signs a hash (which should be the result of hashing a larger message)
+		using the private key, priv. If the hash is longer than the bit-length of the
+		private key's curve order, the hash will be truncated to that length. It
+		returns the signature as a pair of integers. The security of the private key
+		depends on the entropy of rand.
+
+</span></div><div class="anchor value-res" id="name-SignASN1">	<input type='checkbox' class="fold" id="SignASN1-fold-content"><label for="SignASN1-fold-content"> func <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-285">SignASN1</a>(rand <a href="../io.html">io</a>.<a href="../io.html#name-Reader">Reader</a>, priv *<a href="#name-PrivateKey">PrivateKey</a>, hash []<a href="../builtin.html#name-byte">byte</a>) ([]<a href="../builtin.html#name-byte">byte</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='SignASN1-fold-content-docs' class="fold-docs">
+		SignASN1 signs a hash (which should be the result of hashing a larger message)
+		using the private key, priv. If the hash is longer than the bit-length of the
+		private key's curve order, the hash will be truncated to that length. It
+		returns the ASN.1 encoded signature. The security of the private key
+		depends on the entropy of rand.
+
+</span></div><div class="anchor value-res" id="name-Verify">	<input type='checkbox' class="fold" id="Verify-fold-content"><label for="Verify-fold-content"> func <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-291">Verify</a>(pub *<a href="#name-PublicKey">PublicKey</a>, hash []<a href="../builtin.html#name-byte">byte</a>, r, s *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='Verify-fold-content-docs' class="fold-docs">
+		Verify verifies the signature in r, s of hash using the public key, pub. Its
+		return value records whether the signature is valid.
+
+</span></div><div class="anchor value-res" id="name-VerifyASN1">	<input type='checkbox' class="fold" id="VerifyASN1-fold-content"><label for="VerifyASN1-fold-content"> func <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-339">VerifyASN1</a>(pub *<a href="#name-PublicKey">PublicKey</a>, hash, sig []<a href="../builtin.html#name-byte">byte</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='VerifyASN1-fold-content-docs' class="fold-docs">
+		VerifyASN1 verifies the ASN.1 encoded signature, sig, of hash using the
+		public key, pub. Its return value records whether the signature is valid.
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 7 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 7 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-fermatInverse"><i>	<input type='checkbox' class="fold" id="fermatInverse-fold-content"><label for="fermatInverse-fold-content"> func <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-187">fermatInverse</a>(k, N *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>) *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a></label><span id='fermatInverse-fold-content-docs' class="fold-docs">
+		fermatInverse calculates the inverse of k in GF(P) using Fermat's method.
+		This has better constant-time properties than Euclid's method (implemented
+		in math/big.Int.ModInverse) although math/big itself isn't strictly
+		constant-time so it's not perfect.
+
+</span></i></div><div class="anchor value-res hidden" id="name-hashToInt"><i>	<input type='checkbox' class="fold" id="hashToInt-fold-content"><label for="hashToInt-fold-content"> func <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-168">hashToInt</a>(hash []<a href="../builtin.html#name-byte">byte</a>, c <a href="elliptic.html">elliptic</a>.<a href="elliptic.html#name-Curve">Curve</a>) *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a></label><span id='hashToInt-fold-content-docs' class="fold-docs">
+		hashToInt converts a hash value to an integer. There is some disagreement
+		about how this is done. [NSA] suggests that this is done in the obvious
+		manner, but [SECG] truncates the hash to the bit-length of the curve order
+		first. We follow [SECG] because that's what OpenSSL does. Additionally,
+		OpenSSL right shifts excess bits from the number if the hash is too large
+		and we mirror that too.
+
+</span></i></div><div class="anchor value-res hidden" id="name-randFieldElement"><i>	<input type='checkbox' class="fold" id="randFieldElement-fold-content"><label for="randFieldElement-fold-content"> func <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-133">randFieldElement</a>(c <a href="elliptic.html">elliptic</a>.<a href="elliptic.html#name-Curve">Curve</a>, rand <a href="../io.html">io</a>.<a href="../io.html#name-Reader">Reader</a>) (k *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>, err <a href="../builtin.html#name-error">error</a>)</label><span id='randFieldElement-fold-content-docs' class="fold-docs">
+		randFieldElement returns a random element of the field underlying the given
+		curve using the procedure given in [NSA] A.2.1.
+
+</span></i></div><div class="anchor value-res hidden" id="name-sign"><i>	<span class="nodocs"> func <a href="../../src/crypto/ecdsa/ecdsa_noasm.go.html#line-15">sign</a>(priv *<a href="#name-PrivateKey">PrivateKey</a>, csprng *<a href="cipher.html">cipher</a>.<a href="cipher.html#name-StreamReader">StreamReader</a>, c <a href="elliptic.html">elliptic</a>.<a href="elliptic.html#name-Curve">Curve</a>, hash []<a href="../builtin.html#name-byte">byte</a>) (r, s *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>, err <a href="../builtin.html#name-error">error</a>)</span></i></div><div class="anchor value-res hidden" id="name-signGeneric"><i>	<span class="nodocs"> func <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-240">signGeneric</a>(priv *<a href="#name-PrivateKey">PrivateKey</a>, csprng *<a href="cipher.html">cipher</a>.<a href="cipher.html#name-StreamReader">StreamReader</a>, c <a href="elliptic.html">elliptic</a>.<a href="elliptic.html#name-Curve">Curve</a>, hash []<a href="../builtin.html#name-byte">byte</a>) (r, s *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>, err <a href="../builtin.html#name-error">error</a>)</span></i></div><div class="anchor value-res hidden" id="name-verify"><i>	<span class="nodocs"> func <a href="../../src/crypto/ecdsa/ecdsa_noasm.go.html#line-19">verify</a>(pub *<a href="#name-PublicKey">PublicKey</a>, c <a href="elliptic.html">elliptic</a>.<a href="elliptic.html#name-Curve">Curve</a>, hash []<a href="../builtin.html#name-byte">byte</a>, r, s *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>) <a href="../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-verifyGeneric"><i>	<span class="nodocs"> func <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-305">verifyGeneric</a>(pub *<a href="#name-PublicKey">PublicKey</a>, c <a href="elliptic.html">elliptic</a>.<a href="elliptic.html#name-Curve">Curve</a>, hash []<a href="../builtin.html#name-byte">byte</a>, r, s *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a>) <a href="../builtin.html#name-bool">bool</a></span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (total 3, none are exported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* 3 unexporteds ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* 3 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-errZeroParam"><i>	<span class="nodocs">  var <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-193">errZeroParam</a> <a href="../builtin.html#name-error">error</a></span></i></div><div class="anchor value-res hidden" id="name-one"><i>	<span class="nodocs">  var <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-129">one</a> *<a href="../math/big.html">big</a>.<a href="../math/big.html#name-Int">Int</a></span></i></div><div class="anchor value-res hidden" id="name-zeroReader"><i>	<span class="nodocs">  var <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-367">zeroReader</a> *<a href="#name-zr">zr</a></span></i></div></div>
+<div id="exported-constants"><span class="title">Package-Level Constants<span class="title-stat"><i> (only one, which is unexported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-constants-showhide"><i><label for="unexported-constants-showhide" class="show-inline">/* one unexported ... */</label><label for="unexported-constants-showhide" class="hide-inline">/* one unexported: */</label></i><div class="anchor value-res hidden" id="name-aesIV"><i>	<span class="nodocs">const <a href="../../src/crypto/ecdsa/ecdsa.go.html#line-56">aesIV</a> = "IV for ECDSA CTR"</span></i></div></div></code></pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

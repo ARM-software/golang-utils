@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: zoneinfo_unix.go in package time</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	zoneinfo_unix.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/time.html">time</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// +build aix darwin,!ios dragonfly freebsd linux,!android netbsd openbsd solaris</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// Parse "zoneinfo" time zone file.</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// This is a fairly standard file format used on OS X, Linux, BSD, Sun, and others.</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// See tzfile(5), https://en.wikipedia.org/wiki/Zoneinfo,</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// and ftp://munnari.oz.au/pub/oldtz/</span></code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">package</span> time</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-15"><code>	<label for="i0"><span class="lit-string i0">"runtime"</span></label></code></span>
+<span class="codeline" id="line-16"><code>	<label for="i1"><span class="lit-string i1">"syscall"</span></label></code></span>
+<span class="codeline" id="line-17"><code>)</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// Many systems use /usr/share/zoneinfo, Solaris 2 has</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// /usr/share/lib/zoneinfo, IRIX 6 has /usr/lib/locale/TZ.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">var</span> <a href="../../pkg/time.html#name-zoneSources" class="ident">zoneSources</a> = []<a href="../../pkg/builtin.html#name-string" class="ident">string</a>{</code></span>
+<span class="codeline" id="line-22"><code>	<span class="lit-string">"/usr/share/zoneinfo/"</span>,</code></span>
+<span class="codeline" id="line-23"><code>	<span class="lit-string">"/usr/share/lib/zoneinfo/"</span>,</code></span>
+<span class="codeline" id="line-24"><code>	<span class="lit-string">"/usr/lib/locale/TZ/"</span>,</code></span>
+<span class="codeline" id="line-25"><code>	<a href="../../pkg/runtime.html" class="ident i0">runtime</a>.<a href="../runtime/extern.go.html#line-235" class="ident">GOROOT</a>() + <span class="lit-string">"/lib/time/zoneinfo.zip"</span>,</code></span>
+<span class="codeline" id="line-26"><code>}</code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/time.html#name-initLocal" class="ident">initLocal</a></label>() {</code></span>
+<span class="codeline" id="line-29"><code>	<span class="comment">// consult $TZ to find the time zone to use.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	// no $TZ means use the system default /etc/localtime.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	// $TZ="" means use UTC.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">	// $TZ="foo" or $TZ=":foo" if foo is an absolute path, then the file pointed</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	// by foo will be used to initialize timezone; otherwise, file</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	// /usr/share/zoneinfo/foo will be used.</span></code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code>	<label for="r1" class="ident">tz</label>, <label for="r2" class="ident">ok</label> := <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/env_unix.go.html#line-74" class="ident">Getenv</a>(<span class="lit-string">"TZ"</span>)</code></span>
+<span class="codeline" id="line-37"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-38"><code>	<span class="keyword">case</span> !<label for="r2" class="ident">ok</label>:</code></span>
+<span class="codeline" id="line-39"><code>		<label for="r3" class="ident">z</label>, <label for="r4" class="ident">err</label> := <a href="zoneinfo_read.go.html#line-529" class="ident">loadLocation</a>(<span class="lit-string">"localtime"</span>, []<a href="../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"/etc"</span>})</code></span>
+<span class="codeline" id="line-40"><code>		<span class="keyword">if</span> <label for="r4" class="ident">err</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-41"><code>			<a href="zoneinfo.go.html#line-84" class="ident">localLoc</a> = *<label for="r3" class="ident">z</label></code></span>
+<span class="codeline" id="line-42"><code>			<a href="zoneinfo.go.html#line-84" class="ident">localLoc</a>.<a href="zoneinfo.go.html#line-20" class="ident">name</a> = <span class="lit-string">"Local"</span></code></span>
+<span class="codeline" id="line-43"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-44"><code>		}</code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">case</span> <label for="r1" class="ident">tz</label> != <span class="lit-string">""</span>:</code></span>
+<span class="codeline" id="line-46"><code>		<span class="keyword">if</span> <label for="r1" class="ident">tz</label>[<span class="lit-number">0</span>] == <span class="lit-number">':'</span> {</code></span>
+<span class="codeline" id="line-47"><code>			<label for="r1" class="ident">tz</label> = <label for="r1" class="ident">tz</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-48"><code>		}</code></span>
+<span class="codeline" id="line-49"><code>		<span class="keyword">if</span> <label for="r1" class="ident">tz</label> != <span class="lit-string">""</span> &amp;&amp; <label for="r1" class="ident">tz</label>[<span class="lit-number">0</span>] == <span class="lit-number">'/'</span> {</code></span>
+<span class="codeline" id="line-50"><code>			<span class="keyword">if</span> <label for="r5" class="ident">z</label>, <label for="r6" class="ident">err</label> := <a href="zoneinfo_read.go.html#line-529" class="ident">loadLocation</a>(<label for="r1" class="ident">tz</label>, []<a href="../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">""</span>}); <label for="r6" class="ident">err</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-51"><code>				<a href="zoneinfo.go.html#line-84" class="ident">localLoc</a> = *<label for="r5" class="ident">z</label></code></span>
+<span class="codeline" id="line-52"><code>				<span class="keyword">if</span> <label for="r1" class="ident">tz</label> == <span class="lit-string">"/etc/localtime"</span> {</code></span>
+<span class="codeline" id="line-53"><code>					<a href="zoneinfo.go.html#line-84" class="ident">localLoc</a>.<a href="zoneinfo.go.html#line-20" class="ident">name</a> = <span class="lit-string">"Local"</span></code></span>
+<span class="codeline" id="line-54"><code>				} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-55"><code>					<a href="zoneinfo.go.html#line-84" class="ident">localLoc</a>.<a href="zoneinfo.go.html#line-20" class="ident">name</a> = <label for="r1" class="ident">tz</label></code></span>
+<span class="codeline" id="line-56"><code>				}</code></span>
+<span class="codeline" id="line-57"><code>				<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-58"><code>			}</code></span>
+<span class="codeline" id="line-59"><code>		} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r1" class="ident">tz</label> != <span class="lit-string">""</span> &amp;&amp; <label for="r1" class="ident">tz</label> != <span class="lit-string">"UTC"</span> {</code></span>
+<span class="codeline" id="line-60"><code>			<span class="keyword">if</span> <label for="r7" class="ident">z</label>, <label for="r8" class="ident">err</label> := <a href="zoneinfo_read.go.html#line-529" class="ident">loadLocation</a>(<label for="r1" class="ident">tz</label>, <a href="#line-21" class="ident">zoneSources</a>); <label for="r8" class="ident">err</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-61"><code>				<a href="zoneinfo.go.html#line-84" class="ident">localLoc</a> = *<label for="r7" class="ident">z</label></code></span>
+<span class="codeline" id="line-62"><code>				<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-63"><code>			}</code></span>
+<span class="codeline" id="line-64"><code>		}</code></span>
+<span class="codeline" id="line-65"><code>	}</code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code>	<span class="comment">// Fall back to UTC.</span></code></span>
+<span class="codeline" id="line-68"><code>	<a href="zoneinfo.go.html#line-84" class="ident">localLoc</a>.<a href="zoneinfo.go.html#line-20" class="ident">name</a> = <span class="lit-string">"UTC"</span></code></span>
+<span class="codeline" id="line-69"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

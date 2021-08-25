@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: dial.go in package net</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	dial.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/net.html">net</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104],
+input[id=r105]:checked ~pre label[for=r105],
+input[id=r106]:checked ~pre label[for=r106],
+input[id=r107]:checked ~pre label[for=r107],
+input[id=r108]:checked ~pre label[for=r108],
+input[id=r109]:checked ~pre label[for=r109],
+input[id=r110]:checked ~pre label[for=r110],
+input[id=r111]:checked ~pre label[for=r111],
+input[id=r112]:checked ~pre label[for=r112],
+input[id=r113]:checked ~pre label[for=r113],
+input[id=r114]:checked ~pre label[for=r114],
+input[id=r115]:checked ~pre label[for=r115],
+input[id=r116]:checked ~pre label[for=r116],
+input[id=r117]:checked ~pre label[for=r117],
+input[id=r118]:checked ~pre label[for=r118],
+input[id=r119]:checked ~pre label[for=r119],
+input[id=r120]:checked ~pre label[for=r120],
+input[id=r121]:checked ~pre label[for=r121],
+input[id=r122]:checked ~pre label[for=r122],
+input[id=r123]:checked ~pre label[for=r123],
+input[id=r124]:checked ~pre label[for=r124],
+input[id=r125]:checked ~pre label[for=r125],
+input[id=r126]:checked ~pre label[for=r126],
+input[id=r127]:checked ~pre label[for=r127],
+input[id=r128]:checked ~pre label[for=r128],
+input[id=r129]:checked ~pre label[for=r129],
+input[id=r130]:checked ~pre label[for=r130],
+input[id=r131]:checked ~pre label[for=r131],
+input[id=r132]:checked ~pre label[for=r132],
+input[id=r133]:checked ~pre label[for=r133],
+input[id=r134]:checked ~pre label[for=r134],
+input[id=r135]:checked ~pre label[for=r135],
+input[id=r136]:checked ~pre label[for=r136],
+input[id=r137]:checked ~pre label[for=r137],
+input[id=r138]:checked ~pre label[for=r138],
+input[id=r139]:checked ~pre label[for=r139],
+input[id=r140]:checked ~pre label[for=r140],
+input[id=r141]:checked ~pre label[for=r141],
+input[id=r142]:checked ~pre label[for=r142],
+input[id=r143]:checked ~pre label[for=r143],
+input[id=r144]:checked ~pre label[for=r144],
+input[id=r145]:checked ~pre label[for=r145],
+input[id=r146]:checked ~pre label[for=r146],
+input[id=r147]:checked ~pre label[for=r147],
+input[id=r148]:checked ~pre label[for=r148],
+input[id=r149]:checked ~pre label[for=r149],
+input[id=r150]:checked ~pre label[for=r150],
+input[id=r151]:checked ~pre label[for=r151],
+input[id=r152]:checked ~pre label[for=r152],
+input[id=r153]:checked ~pre label[for=r153],
+input[id=r154]:checked ~pre label[for=r154],
+input[id=r155]:checked ~pre label[for=r155],
+input[id=r156]:checked ~pre label[for=r156],
+input[id=r157]:checked ~pre label[for=r157],
+input[id=r158]:checked ~pre label[for=r158],
+input[id=r159]:checked ~pre label[for=r159],
+input[id=r160]:checked ~pre label[for=r160],
+input[id=r161]:checked ~pre label[for=r161],
+input[id=r162]:checked ~pre label[for=r162],
+input[id=r163]:checked ~pre label[for=r163],
+input[id=r164]:checked ~pre label[for=r164],
+input[id=r165]:checked ~pre label[for=r165],
+input[id=r166]:checked ~pre label[for=r166],
+input[id=r167]:checked ~pre label[for=r167],
+input[id=r168]:checked ~pre label[for=r168],
+input[id=r169]:checked ~pre label[for=r169],
+input[id=r170]:checked ~pre label[for=r170],
+input[id=r171]:checked ~pre label[for=r171],
+input[id=r172]:checked ~pre label[for=r172],
+input[id=r173]:checked ~pre label[for=r173],
+input[id=r174]:checked ~pre label[for=r174],
+input[id=r175]:checked ~pre label[for=r175],
+input[id=r176]:checked ~pre label[for=r176],
+input[id=r177]:checked ~pre label[for=r177],
+input[id=r178]:checked ~pre label[for=r178],
+input[id=r179]:checked ~pre label[for=r179],
+input[id=r180]:checked ~pre label[for=r180],
+input[id=r181]:checked ~pre label[for=r181],
+input[id=r182]:checked ~pre label[for=r182],
+input[id=r183]:checked ~pre label[for=r183],
+input[id=r184]:checked ~pre label[for=r184],
+input[id=r185]:checked ~pre label[for=r185],
+input[id=r186]:checked ~pre label[for=r186],
+input[id=r187]:checked ~pre label[for=r187],
+input[id=r188]:checked ~pre label[for=r188],
+input[id=r189]:checked ~pre label[for=r189],
+input[id=r190]:checked ~pre label[for=r190],
+input[id=r191]:checked ~pre label[for=r191],
+input[id=r192]:checked ~pre label[for=r192],
+input[id=r193]:checked ~pre label[for=r193],
+input[id=r194]:checked ~pre label[for=r194],
+input[id=r195]:checked ~pre label[for=r195],
+input[id=r196]:checked ~pre label[for=r196],
+input[id=r197]:checked ~pre label[for=r197],
+input[id=r198]:checked ~pre label[for=r198]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="r105" type="radio" name="g"/>
+<input id="r106" type="radio" name="g"/>
+<input id="r107" type="radio" name="g"/>
+<input id="r108" type="radio" name="g"/>
+<input id="r109" type="radio" name="g"/>
+<input id="r110" type="radio" name="g"/>
+<input id="r111" type="radio" name="g"/>
+<input id="r112" type="radio" name="g"/>
+<input id="r113" type="radio" name="g"/>
+<input id="r114" type="radio" name="g"/>
+<input id="r115" type="radio" name="g"/>
+<input id="r116" type="radio" name="g"/>
+<input id="r117" type="radio" name="g"/>
+<input id="r118" type="radio" name="g"/>
+<input id="r119" type="radio" name="g"/>
+<input id="r120" type="radio" name="g"/>
+<input id="r121" type="radio" name="g"/>
+<input id="r122" type="radio" name="g"/>
+<input id="r123" type="radio" name="g"/>
+<input id="r124" type="radio" name="g"/>
+<input id="r125" type="radio" name="g"/>
+<input id="r126" type="radio" name="g"/>
+<input id="r127" type="radio" name="g"/>
+<input id="r128" type="radio" name="g"/>
+<input id="r129" type="radio" name="g"/>
+<input id="r130" type="radio" name="g"/>
+<input id="r131" type="radio" name="g"/>
+<input id="r132" type="radio" name="g"/>
+<input id="r133" type="radio" name="g"/>
+<input id="r134" type="radio" name="g"/>
+<input id="r135" type="radio" name="g"/>
+<input id="r136" type="radio" name="g"/>
+<input id="r137" type="radio" name="g"/>
+<input id="r138" type="radio" name="g"/>
+<input id="r139" type="radio" name="g"/>
+<input id="r140" type="radio" name="g"/>
+<input id="r141" type="radio" name="g"/>
+<input id="r142" type="radio" name="g"/>
+<input id="r143" type="radio" name="g"/>
+<input id="r144" type="radio" name="g"/>
+<input id="r145" type="radio" name="g"/>
+<input id="r146" type="radio" name="g"/>
+<input id="r147" type="radio" name="g"/>
+<input id="r148" type="radio" name="g"/>
+<input id="r149" type="radio" name="g"/>
+<input id="r150" type="radio" name="g"/>
+<input id="r151" type="radio" name="g"/>
+<input id="r152" type="radio" name="g"/>
+<input id="r153" type="radio" name="g"/>
+<input id="r154" type="radio" name="g"/>
+<input id="r155" type="radio" name="g"/>
+<input id="r156" type="radio" name="g"/>
+<input id="r157" type="radio" name="g"/>
+<input id="r158" type="radio" name="g"/>
+<input id="r159" type="radio" name="g"/>
+<input id="r160" type="radio" name="g"/>
+<input id="r161" type="radio" name="g"/>
+<input id="r162" type="radio" name="g"/>
+<input id="r163" type="radio" name="g"/>
+<input id="r164" type="radio" name="g"/>
+<input id="r165" type="radio" name="g"/>
+<input id="r166" type="radio" name="g"/>
+<input id="r167" type="radio" name="g"/>
+<input id="r168" type="radio" name="g"/>
+<input id="r169" type="radio" name="g"/>
+<input id="r170" type="radio" name="g"/>
+<input id="r171" type="radio" name="g"/>
+<input id="r172" type="radio" name="g"/>
+<input id="r173" type="radio" name="g"/>
+<input id="r174" type="radio" name="g"/>
+<input id="r175" type="radio" name="g"/>
+<input id="r176" type="radio" name="g"/>
+<input id="r177" type="radio" name="g"/>
+<input id="r178" type="radio" name="g"/>
+<input id="r179" type="radio" name="g"/>
+<input id="r180" type="radio" name="g"/>
+<input id="r181" type="radio" name="g"/>
+<input id="r182" type="radio" name="g"/>
+<input id="r183" type="radio" name="g"/>
+<input id="r184" type="radio" name="g"/>
+<input id="r185" type="radio" name="g"/>
+<input id="r186" type="radio" name="g"/>
+<input id="r187" type="radio" name="g"/>
+<input id="r188" type="radio" name="g"/>
+<input id="r189" type="radio" name="g"/>
+<input id="r190" type="radio" name="g"/>
+<input id="r191" type="radio" name="g"/>
+<input id="r192" type="radio" name="g"/>
+<input id="r193" type="radio" name="g"/>
+<input id="r194" type="radio" name="g"/>
+<input id="r195" type="radio" name="g"/>
+<input id="r196" type="radio" name="g"/>
+<input id="r197" type="radio" name="g"/>
+<input id="r198" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2010 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> net</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"internal/nettrace"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"syscall"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i3"><span class="lit-string i3">"time"</span></label></code></span>
+<span class="codeline" id="line-12"><code>)</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// defaultTCPKeepAlive is a default constant value for TCPKeepAlive times</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// See golang.org/issue/31510</span></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-17"><code>	<a href="../../pkg/net.html#name-defaultTCPKeepAlive" class="ident">defaultTCPKeepAlive</a> = <span class="lit-number">15</span> * <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-605" class="ident">Second</a></code></span>
+<span class="codeline" id="line-18"><code>)</code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// A Dialer contains options for connecting to an address.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// The zero value for each field is equivalent to dialing</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// without that option. Dialing with the zero value of Dialer</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// is therefore equivalent to just calling the Dial function.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// It is safe to call Dialer's methods concurrently.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="keyword">type</span> <a href="../../pkg/net.html#name-Dialer" class="ident">Dialer</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-28"><code>	<span class="comment">// Timeout is the maximum amount of time a dial will wait for</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">	// a connect to complete. If Deadline is also set, it may fail</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	// earlier.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">	// The default is no timeout.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	// When using TCP and dialing a host name with multiple IP</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	// addresses, the timeout may be divided between them.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">	// With or without a timeout, the operating system may impose</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">	// its own earlier timeout. For instance, TCP timeouts are</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	// often around 3 minutes.</span></code></span>
+<span class="codeline" id="line-40"><code>	Timeout <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-583" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code>	<span class="comment">// Deadline is the absolute point in time after which dials</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// will fail. If Timeout is set, it may fail earlier.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	// Zero means no deadline, or dependent on the operating system</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	// as with the Timeout option.</span></code></span>
+<span class="codeline" id="line-46"><code>	Deadline <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-127" class="ident">Time</a></code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code>	<span class="comment">// LocalAddr is the local address to use when dialing an</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	// address. The address must be of a compatible type for the</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// network being dialed.</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// If nil, a local address is automatically chosen.</span></code></span>
+<span class="codeline" id="line-52"><code>	LocalAddr <a href="net.go.html#line-105" class="ident">Addr</a></code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code>	<span class="comment">// DualStack previously enabled RFC 6555 Fast Fallback</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	// support, also known as "Happy Eyeballs", in which IPv4 is</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">	// tried soon if IPv6 appears to be misconfigured and</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">	// hanging.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">	// Deprecated: Fast Fallback is enabled by default. To</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	// disable, set FallbackDelay to a negative value.</span></code></span>
+<span class="codeline" id="line-61"><code>	DualStack <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code>	<span class="comment">// FallbackDelay specifies the length of time to wait before</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">	// spawning a RFC 6555 Fast Fallback connection. That is, this</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">	// is the amount of time to wait for IPv6 to succeed before</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">	// assuming that IPv6 is misconfigured and falling back to</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">	// IPv4.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">	// If zero, a default delay of 300ms is used.</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">	// A negative value disables Fast Fallback support.</span></code></span>
+<span class="codeline" id="line-71"><code>	FallbackDelay <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-583" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code>	<span class="comment">// KeepAlive specifies the interval between keep-alive</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">	// probes for an active network connection.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">	// If zero, keep-alive probes are sent with a default value</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">	// (currently 15 seconds), if supported by the protocol and operating</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">	// system. Network protocols or operating systems that do</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">	// not support keep-alives ignore this field.</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">	// If negative, keep-alive probes are disabled.</span></code></span>
+<span class="codeline" id="line-80"><code>	KeepAlive <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-583" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-81"><code></code></span>
+<span class="codeline" id="line-82"><code>	<span class="comment">// Resolver optionally specifies an alternate resolver to use.</span></code></span>
+<span class="codeline" id="line-83"><code>	Resolver *<a href="lookup.go.html#line-119" class="ident">Resolver</a></code></span>
+<span class="codeline" id="line-84"><code></code></span>
+<span class="codeline" id="line-85"><code>	<span class="comment">// Cancel is an optional channel whose closure indicates that</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">	// the dial should be canceled. Not all types of dials support</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">	// cancellation.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">	// Deprecated: Use DialContext instead.</span></code></span>
+<span class="codeline" id="line-90"><code>	Cancel &lt;-<span class="keyword">chan</span> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-91"><code></code></span>
+<span class="codeline" id="line-92"><code>	<span class="comment">// If Control is not nil, it is called after creating the network</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">	// connection but before actually dialing.</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">	// Network and address parameters passed to Control method are not</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">	// necessarily the ones passed to Dial. For example, passing "tcp" to Dial</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">	// will cause the Control function to be called with "tcp4" or "tcp6".</span></code></span>
+<span class="codeline" id="line-98"><code>	Control <span class="keyword">func</span>(network, address <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, c <a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/net.go.html#line-8" class="ident">RawConn</a>) <a href="../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-99"><code>}</code></span>
+<span class="codeline" id="line-100"><code></code></span>
+<span class="codeline" id="line-101"><code><span class="keyword">func</span> (<label for="r0" class="ident">d</label> *<a href="#line-27" class="ident">Dialer</a>) <label for="r1" class="ident">dualStack</label>() <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> { <span class="keyword">return</span> <label for="r0" class="ident">d</label>.<a href="#line-71" class="ident">FallbackDelay</a> &gt;= <span class="lit-number">0</span> }</code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../pkg/net.html#name-minNonzeroTime" class="ident">minNonzeroTime</a></label>(<label for="r3" class="ident">a</label>, <label for="r4" class="ident">b</label> <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-127" class="ident">Time</a>) <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-127" class="ident">Time</a> {</code></span>
+<span class="codeline" id="line-104"><code>	<span class="keyword">if</span> <label for="r3" class="ident">a</label>.<a href="../time/time.go.html#line-426" class="ident">IsZero</a>() {</code></span>
+<span class="codeline" id="line-105"><code>		<span class="keyword">return</span> <label for="r4" class="ident">b</label></code></span>
+<span class="codeline" id="line-106"><code>	}</code></span>
+<span class="codeline" id="line-107"><code>	<span class="keyword">if</span> <label for="r4" class="ident">b</label>.<a href="../time/time.go.html#line-426" class="ident">IsZero</a>() || <label for="r3" class="ident">a</label>.<a href="../time/time.go.html#line-251" class="ident">Before</a>(<label for="r4" class="ident">b</label>) {</code></span>
+<span class="codeline" id="line-108"><code>		<span class="keyword">return</span> <label for="r3" class="ident">a</label></code></span>
+<span class="codeline" id="line-109"><code>	}</code></span>
+<span class="codeline" id="line-110"><code>	<span class="keyword">return</span> <label for="r4" class="ident">b</label></code></span>
+<span class="codeline" id="line-111"><code>}</code></span>
+<span class="codeline" id="line-112"><code></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">// deadline returns the earliest of:</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">//   - now+Timeout</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">//   - d.Deadline</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">//   - the context's deadline</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">// Or zero, if none of Timeout, Deadline, or context's deadline is set.</span></code></span>
+<span class="codeline" id="line-118"><code><span class="keyword">func</span> (<label for="r5" class="ident">d</label> *<a href="#line-27" class="ident">Dialer</a>) <label for="r6" class="ident">deadline</label>(<label for="r7" class="ident">ctx</label> <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a>, <label for="r8" class="ident">now</label> <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-127" class="ident">Time</a>) (<label for="r9" class="ident">earliest</label> <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-127" class="ident">Time</a>) {</code></span>
+<span class="codeline" id="line-119"><code>	<span class="keyword">if</span> <label for="r5" class="ident">d</label>.<a href="#line-40" class="ident">Timeout</a> != <span class="lit-number">0</span> { <span class="comment">// including negative, for historical reasons</span></code></span>
+<span class="codeline" id="line-120"><code>		<label for="r9" class="ident">earliest</label> = <label for="r8" class="ident">now</label>.<a href="../time/time.go.html#line-813" class="ident">Add</a>(<label for="r5" class="ident">d</label>.<a href="#line-40" class="ident">Timeout</a>)</code></span>
+<span class="codeline" id="line-121"><code>	}</code></span>
+<span class="codeline" id="line-122"><code>	<span class="keyword">if</span> <label for="r10" class="ident">d</label>, <label for="r11" class="ident">ok</label> := <label for="r7" class="ident">ctx</label>.<a href="../context/context.go.html#line-66" class="ident">Deadline</a>(); <label for="r11" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-123"><code>		<label for="r9" class="ident">earliest</label> = <a href="#line-103" class="ident">minNonzeroTime</a>(<label for="r9" class="ident">earliest</label>, <label for="r10" class="ident">d</label>)</code></span>
+<span class="codeline" id="line-124"><code>	}</code></span>
+<span class="codeline" id="line-125"><code>	<span class="keyword">return</span> <a href="#line-103" class="ident">minNonzeroTime</a>(<label for="r9" class="ident">earliest</label>, <label for="r5" class="ident">d</label>.<a href="#line-46" class="ident">Deadline</a>)</code></span>
+<span class="codeline" id="line-126"><code>}</code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code><span class="keyword">func</span> (<label for="r12" class="ident">d</label> *<a href="#line-27" class="ident">Dialer</a>) <label for="r13" class="ident">resolver</label>() *<a href="lookup.go.html#line-119" class="ident">Resolver</a> {</code></span>
+<span class="codeline" id="line-129"><code>	<span class="keyword">if</span> <label for="r12" class="ident">d</label>.<a href="#line-83" class="ident">Resolver</a> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-130"><code>		<span class="keyword">return</span> <label for="r12" class="ident">d</label>.<a href="#line-83" class="ident">Resolver</a></code></span>
+<span class="codeline" id="line-131"><code>	}</code></span>
+<span class="codeline" id="line-132"><code>	<span class="keyword">return</span> <a href="lookup.go.html#line-114" class="ident">DefaultResolver</a></code></span>
+<span class="codeline" id="line-133"><code>}</code></span>
+<span class="codeline" id="line-134"><code></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">// partialDeadline returns the deadline to use for a single address,</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">// when multiple addresses are pending.</span></code></span>
+<span class="codeline" id="line-137"><code><span class="keyword">func</span> <label for="r14" class="ident"><a href="../../pkg/net.html#name-partialDeadline" class="ident">partialDeadline</a></label>(<label for="r15" class="ident">now</label>, <label for="r16" class="ident">deadline</label> <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-127" class="ident">Time</a>, <label for="r17" class="ident">addrsRemaining</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) (<a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-127" class="ident">Time</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-138"><code>	<span class="keyword">if</span> <label for="r16" class="ident">deadline</label>.<a href="../time/time.go.html#line-426" class="ident">IsZero</a>() {</code></span>
+<span class="codeline" id="line-139"><code>		<span class="keyword">return</span> <label for="r16" class="ident">deadline</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-140"><code>	}</code></span>
+<span class="codeline" id="line-141"><code>	<label for="r18" class="ident">timeRemaining</label> := <label for="r16" class="ident">deadline</label>.<a href="../time/time.go.html#line-841" class="ident">Sub</a>(<label for="r15" class="ident">now</label>)</code></span>
+<span class="codeline" id="line-142"><code>	<span class="keyword">if</span> <label for="r18" class="ident">timeRemaining</label> &lt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-143"><code>		<span class="keyword">return</span> <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-127" class="ident">Time</a>{}, <a href="net.go.html#line-580" class="ident">errTimeout</a></code></span>
+<span class="codeline" id="line-144"><code>	}</code></span>
+<span class="codeline" id="line-145"><code>	<span class="comment">// Tentatively allocate equal time to each remaining address.</span></code></span>
+<span class="codeline" id="line-146"><code>	<label for="r19" class="ident">timeout</label> := <label for="r18" class="ident">timeRemaining</label> / <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-583" class="ident">Duration</a>(<label for="r17" class="ident">addrsRemaining</label>)</code></span>
+<span class="codeline" id="line-147"><code>	<span class="comment">// If the time per address is too short, steal from the end of the list.</span></code></span>
+<span class="codeline" id="line-148"><code>	<span class="keyword">const</span> <label for="r20" class="ident">saneMinimum</label> = <span class="lit-number">2</span> * <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-605" class="ident">Second</a></code></span>
+<span class="codeline" id="line-149"><code>	<span class="keyword">if</span> <label for="r19" class="ident">timeout</label> &lt; <label for="r20" class="ident">saneMinimum</label> {</code></span>
+<span class="codeline" id="line-150"><code>		<span class="keyword">if</span> <label for="r18" class="ident">timeRemaining</label> &lt; <label for="r20" class="ident">saneMinimum</label> {</code></span>
+<span class="codeline" id="line-151"><code>			<label for="r19" class="ident">timeout</label> = <label for="r18" class="ident">timeRemaining</label></code></span>
+<span class="codeline" id="line-152"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-153"><code>			<label for="r19" class="ident">timeout</label> = <label for="r20" class="ident">saneMinimum</label></code></span>
+<span class="codeline" id="line-154"><code>		}</code></span>
+<span class="codeline" id="line-155"><code>	}</code></span>
+<span class="codeline" id="line-156"><code>	<span class="keyword">return</span> <label for="r15" class="ident">now</label>.<a href="../time/time.go.html#line-813" class="ident">Add</a>(<label for="r19" class="ident">timeout</label>), <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-157"><code>}</code></span>
+<span class="codeline" id="line-158"><code></code></span>
+<span class="codeline" id="line-159"><code><span class="keyword">func</span> (<label for="r21" class="ident">d</label> *<a href="#line-27" class="ident">Dialer</a>) <label for="r22" class="ident">fallbackDelay</label>() <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-583" class="ident">Duration</a> {</code></span>
+<span class="codeline" id="line-160"><code>	<span class="keyword">if</span> <label for="r21" class="ident">d</label>.<a href="#line-71" class="ident">FallbackDelay</a> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-161"><code>		<span class="keyword">return</span> <label for="r21" class="ident">d</label>.<a href="#line-71" class="ident">FallbackDelay</a></code></span>
+<span class="codeline" id="line-162"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-163"><code>		<span class="keyword">return</span> <span class="lit-number">300</span> * <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-604" class="ident">Millisecond</a></code></span>
+<span class="codeline" id="line-164"><code>	}</code></span>
+<span class="codeline" id="line-165"><code>}</code></span>
+<span class="codeline" id="line-166"><code></code></span>
+<span class="codeline" id="line-167"><code><span class="keyword">func</span> <label for="r23" class="ident"><a href="../../pkg/net.html#name-parseNetwork" class="ident">parseNetwork</a></label>(<label for="r24" class="ident">ctx</label> <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a>, <label for="r25" class="ident">network</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r26" class="ident">needsProto</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) (<label for="r27" class="ident">afnet</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r28" class="ident">proto</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r29" class="ident">err</label> <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-168"><code>	<label for="r30" class="ident">i</label> := <a href="parse.go.html#line-227" class="ident">last</a>(<label for="r25" class="ident">network</label>, <span class="lit-number">':'</span>)</code></span>
+<span class="codeline" id="line-169"><code>	<span class="keyword">if</span> <label for="r30" class="ident">i</label> &lt; <span class="lit-number">0</span> { <span class="comment">// no colon</span></code></span>
+<span class="codeline" id="line-170"><code>		<span class="keyword">switch</span> <label for="r25" class="ident">network</label> {</code></span>
+<span class="codeline" id="line-171"><code>		<span class="keyword">case</span> <span class="lit-string">"tcp"</span>, <span class="lit-string">"tcp4"</span>, <span class="lit-string">"tcp6"</span>:</code></span>
+<span class="codeline" id="line-172"><code>		<span class="keyword">case</span> <span class="lit-string">"udp"</span>, <span class="lit-string">"udp4"</span>, <span class="lit-string">"udp6"</span>:</code></span>
+<span class="codeline" id="line-173"><code>		<span class="keyword">case</span> <span class="lit-string">"ip"</span>, <span class="lit-string">"ip4"</span>, <span class="lit-string">"ip6"</span>:</code></span>
+<span class="codeline" id="line-174"><code>			<span class="keyword">if</span> <label for="r26" class="ident">needsProto</label> {</code></span>
+<span class="codeline" id="line-175"><code>				<span class="keyword">return</span> <span class="lit-string">""</span>, <span class="lit-number">0</span>, <a href="net.go.html#line-561" class="ident">UnknownNetworkError</a>(<label for="r25" class="ident">network</label>)</code></span>
+<span class="codeline" id="line-176"><code>			}</code></span>
+<span class="codeline" id="line-177"><code>		<span class="keyword">case</span> <span class="lit-string">"unix"</span>, <span class="lit-string">"unixgram"</span>, <span class="lit-string">"unixpacket"</span>:</code></span>
+<span class="codeline" id="line-178"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-179"><code>			<span class="keyword">return</span> <span class="lit-string">""</span>, <span class="lit-number">0</span>, <a href="net.go.html#line-561" class="ident">UnknownNetworkError</a>(<label for="r25" class="ident">network</label>)</code></span>
+<span class="codeline" id="line-180"><code>		}</code></span>
+<span class="codeline" id="line-181"><code>		<span class="keyword">return</span> <label for="r25" class="ident">network</label>, <span class="lit-number">0</span>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-182"><code>	}</code></span>
+<span class="codeline" id="line-183"><code>	<label for="r27" class="ident">afnet</label> = <label for="r25" class="ident">network</label>[:<label for="r30" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-184"><code>	<span class="keyword">switch</span> <label for="r27" class="ident">afnet</label> {</code></span>
+<span class="codeline" id="line-185"><code>	<span class="keyword">case</span> <span class="lit-string">"ip"</span>, <span class="lit-string">"ip4"</span>, <span class="lit-string">"ip6"</span>:</code></span>
+<span class="codeline" id="line-186"><code>		<label for="r31" class="ident">protostr</label> := <label for="r25" class="ident">network</label>[<label for="r30" class="ident">i</label>+<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-187"><code>		<label for="r32" class="ident">proto</label>, <label for="r33" class="ident">i</label>, <label for="r34" class="ident">ok</label> := <a href="parse.go.html#line-122" class="ident">dtoi</a>(<label for="r31" class="ident">protostr</label>)</code></span>
+<span class="codeline" id="line-188"><code>		<span class="keyword">if</span> !<label for="r34" class="ident">ok</label> || <label for="r33" class="ident">i</label> != <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r31" class="ident">protostr</label>) {</code></span>
+<span class="codeline" id="line-189"><code>			<label for="r32" class="ident">proto</label>, <label for="r29" class="ident">err</label> = <a href="lookup_unix.go.html#line-53" class="ident">lookupProtocol</a>(<label for="r24" class="ident">ctx</label>, <label for="r31" class="ident">protostr</label>)</code></span>
+<span class="codeline" id="line-190"><code>			<span class="keyword">if</span> <label for="r29" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-191"><code>				<span class="keyword">return</span> <span class="lit-string">""</span>, <span class="lit-number">0</span>, <label for="r29" class="ident">err</label></code></span>
+<span class="codeline" id="line-192"><code>			}</code></span>
+<span class="codeline" id="line-193"><code>		}</code></span>
+<span class="codeline" id="line-194"><code>		<span class="keyword">return</span> <label for="r27" class="ident">afnet</label>, <label for="r32" class="ident">proto</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-195"><code>	}</code></span>
+<span class="codeline" id="line-196"><code>	<span class="keyword">return</span> <span class="lit-string">""</span>, <span class="lit-number">0</span>, <a href="net.go.html#line-561" class="ident">UnknownNetworkError</a>(<label for="r25" class="ident">network</label>)</code></span>
+<span class="codeline" id="line-197"><code>}</code></span>
+<span class="codeline" id="line-198"><code></code></span>
+<span class="codeline" id="line-199"><code><span class="comment">// resolveAddrList resolves addr using hint and returns a list of</span></code></span>
+<span class="codeline" id="line-200"><code><span class="comment">// addresses. The result contains at least one address when error is</span></code></span>
+<span class="codeline" id="line-201"><code><span class="comment">// nil.</span></code></span>
+<span class="codeline" id="line-202"><code><span class="keyword">func</span> (<label for="r35" class="ident">r</label> *<a href="lookup.go.html#line-119" class="ident">Resolver</a>) <label for="r36" class="ident">resolveAddrList</label>(<label for="r37" class="ident">ctx</label> <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a>, <label for="r38" class="ident">op</label>, <label for="r39" class="ident">network</label>, <label for="r40" class="ident">addr</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r41" class="ident">hint</label> <a href="net.go.html#line-105" class="ident">Addr</a>) (<a href="ipsock.go.html#line-52" class="ident">addrList</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-203"><code>	<label for="r42" class="ident">afnet</label>, <label for="r43" class="ident">_</label>, <label for="r44" class="ident">err</label> := <a href="#line-167" class="ident">parseNetwork</a>(<label for="r37" class="ident">ctx</label>, <label for="r39" class="ident">network</label>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-204"><code>	<span class="keyword">if</span> <label for="r44" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-205"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r44" class="ident">err</label></code></span>
+<span class="codeline" id="line-206"><code>	}</code></span>
+<span class="codeline" id="line-207"><code>	<span class="keyword">if</span> <label for="r38" class="ident">op</label> == <span class="lit-string">"dial"</span> &amp;&amp; <label for="r40" class="ident">addr</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-208"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="net.go.html#line-409" class="ident">errMissingAddress</a></code></span>
+<span class="codeline" id="line-209"><code>	}</code></span>
+<span class="codeline" id="line-210"><code>	<span class="keyword">switch</span> <label for="r42" class="ident">afnet</label> {</code></span>
+<span class="codeline" id="line-211"><code>	<span class="keyword">case</span> <span class="lit-string">"unix"</span>, <span class="lit-string">"unixgram"</span>, <span class="lit-string">"unixpacket"</span>:</code></span>
+<span class="codeline" id="line-212"><code>		<label for="r45" class="ident">addr</label>, <label for="r46" class="ident">err</label> := <a href="unixsock.go.html#line-57" class="ident">ResolveUnixAddr</a>(<label for="r42" class="ident">afnet</label>, <label for="r40" class="ident">addr</label>)</code></span>
+<span class="codeline" id="line-213"><code>		<span class="keyword">if</span> <label for="r46" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-214"><code>			<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r46" class="ident">err</label></code></span>
+<span class="codeline" id="line-215"><code>		}</code></span>
+<span class="codeline" id="line-216"><code>		<span class="keyword">if</span> <label for="r38" class="ident">op</label> == <span class="lit-string">"dial"</span> &amp;&amp; <label for="r41" class="ident">hint</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r45" class="ident">addr</label>.<a href="unixsock.go.html#line-29" class="ident">Network</a>() != <label for="r41" class="ident">hint</label>.<a href="net.go.html#line-106" class="ident">Network</a>() {</code></span>
+<span class="codeline" id="line-217"><code>			<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="net.go.html#line-542" class="ident">AddrError</a>{<a href="net.go.html#line-543" class="ident">Err</a>: <span class="lit-string">"mismatched local address type"</span>, <a href="net.go.html#line-544" class="ident">Addr</a>: <label for="r41" class="ident">hint</label>.<a href="net.go.html#line-107" class="ident">String</a>()}</code></span>
+<span class="codeline" id="line-218"><code>		}</code></span>
+<span class="codeline" id="line-219"><code>		<span class="keyword">return</span> <a href="ipsock.go.html#line-52" class="ident">addrList</a>{<label for="r45" class="ident">addr</label>}, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-220"><code>	}</code></span>
+<span class="codeline" id="line-221"><code>	<label for="r47" class="ident">addrs</label>, <label for="r44" class="ident">err</label> := <label for="r35" class="ident">r</label>.<a href="ipsock.go.html#line-240" class="ident">internetAddrList</a>(<label for="r37" class="ident">ctx</label>, <label for="r42" class="ident">afnet</label>, <label for="r40" class="ident">addr</label>)</code></span>
+<span class="codeline" id="line-222"><code>	<span class="keyword">if</span> <label for="r44" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> || <label for="r38" class="ident">op</label> != <span class="lit-string">"dial"</span> || <label for="r41" class="ident">hint</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-223"><code>		<span class="keyword">return</span> <label for="r47" class="ident">addrs</label>, <label for="r44" class="ident">err</label></code></span>
+<span class="codeline" id="line-224"><code>	}</code></span>
+<span class="codeline" id="line-225"><code>	<span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-226"><code>		<label for="r48" class="ident">tcp</label>      *<a href="tcpsock.go.html#line-19" class="ident">TCPAddr</a></code></span>
+<span class="codeline" id="line-227"><code>		<label for="r49" class="ident">udp</label>      *<a href="udpsock.go.html#line-22" class="ident">UDPAddr</a></code></span>
+<span class="codeline" id="line-228"><code>		<label for="r50" class="ident">ip</label>       *<a href="iprawsock.go.html#line-31" class="ident">IPAddr</a></code></span>
+<span class="codeline" id="line-229"><code>		<label for="r51" class="ident">wildcard</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-230"><code>	)</code></span>
+<span class="codeline" id="line-231"><code>	<span class="keyword">switch</span> hint := <label for="r41" class="ident">hint</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-232"><code>	<span class="keyword">case</span> *<a href="tcpsock.go.html#line-19" class="ident">TCPAddr</a>:</code></span>
+<span class="codeline" id="line-233"><code>		<label for="r48" class="ident">tcp</label> = <label for="r52" class="ident">hint</label></code></span>
+<span class="codeline" id="line-234"><code>		<label for="r51" class="ident">wildcard</label> = <label for="r48" class="ident">tcp</label>.<a href="tcpsock.go.html#line-39" class="ident">isWildcard</a>()</code></span>
+<span class="codeline" id="line-235"><code>	<span class="keyword">case</span> *<a href="udpsock.go.html#line-22" class="ident">UDPAddr</a>:</code></span>
+<span class="codeline" id="line-236"><code>		<label for="r49" class="ident">udp</label> = <label for="r53" class="ident">hint</label></code></span>
+<span class="codeline" id="line-237"><code>		<label for="r51" class="ident">wildcard</label> = <label for="r49" class="ident">udp</label>.<a href="udpsock.go.html#line-42" class="ident">isWildcard</a>()</code></span>
+<span class="codeline" id="line-238"><code>	<span class="keyword">case</span> *<a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>:</code></span>
+<span class="codeline" id="line-239"><code>		<label for="r50" class="ident">ip</label> = <label for="r54" class="ident">hint</label></code></span>
+<span class="codeline" id="line-240"><code>		<label for="r51" class="ident">wildcard</label> = <label for="r50" class="ident">ip</label>.<a href="iprawsock.go.html#line-50" class="ident">isWildcard</a>()</code></span>
+<span class="codeline" id="line-241"><code>	}</code></span>
+<span class="codeline" id="line-242"><code>	<label for="r55" class="ident">naddrs</label> := <label for="r47" class="ident">addrs</label>[:<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-243"><code>	<span class="keyword">for</span> <label for="r56" class="ident">_</label>, <label for="r57" class="ident">addr</label> := <span class="keyword">range</span> <label for="r47" class="ident">addrs</label> {</code></span>
+<span class="codeline" id="line-244"><code>		<span class="keyword">if</span> <label for="r57" class="ident">addr</label>.<a href="net.go.html#line-106" class="ident">Network</a>() != <label for="r41" class="ident">hint</label>.<a href="net.go.html#line-106" class="ident">Network</a>() {</code></span>
+<span class="codeline" id="line-245"><code>			<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="net.go.html#line-542" class="ident">AddrError</a>{<a href="net.go.html#line-543" class="ident">Err</a>: <span class="lit-string">"mismatched local address type"</span>, <a href="net.go.html#line-544" class="ident">Addr</a>: <label for="r41" class="ident">hint</label>.<a href="net.go.html#line-107" class="ident">String</a>()}</code></span>
+<span class="codeline" id="line-246"><code>		}</code></span>
+<span class="codeline" id="line-247"><code>		<span class="keyword">switch</span> addr := <label for="r57" class="ident">addr</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-248"><code>		<span class="keyword">case</span> *<a href="tcpsock.go.html#line-19" class="ident">TCPAddr</a>:</code></span>
+<span class="codeline" id="line-249"><code>			<span class="keyword">if</span> !<label for="r51" class="ident">wildcard</label> &amp;&amp; !<label for="r58" class="ident">addr</label>.<a href="tcpsock.go.html#line-39" class="ident">isWildcard</a>() &amp;&amp; !<label for="r58" class="ident">addr</label>.<a href="tcpsock.go.html#line-20" class="ident">IP</a>.<a href="ip.go.html#line-423" class="ident">matchAddrFamily</a>(<label for="r48" class="ident">tcp</label>.<a href="tcpsock.go.html#line-20" class="ident">IP</a>) {</code></span>
+<span class="codeline" id="line-250"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-251"><code>			}</code></span>
+<span class="codeline" id="line-252"><code>			<label for="r55" class="ident">naddrs</label> = <a href="../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r55" class="ident">naddrs</label>, <label for="r58" class="ident">addr</label>)</code></span>
+<span class="codeline" id="line-253"><code>		<span class="keyword">case</span> *<a href="udpsock.go.html#line-22" class="ident">UDPAddr</a>:</code></span>
+<span class="codeline" id="line-254"><code>			<span class="keyword">if</span> !<label for="r51" class="ident">wildcard</label> &amp;&amp; !<label for="r59" class="ident">addr</label>.<a href="udpsock.go.html#line-42" class="ident">isWildcard</a>() &amp;&amp; !<label for="r59" class="ident">addr</label>.<a href="udpsock.go.html#line-23" class="ident">IP</a>.<a href="ip.go.html#line-423" class="ident">matchAddrFamily</a>(<label for="r49" class="ident">udp</label>.<a href="udpsock.go.html#line-23" class="ident">IP</a>) {</code></span>
+<span class="codeline" id="line-255"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-256"><code>			}</code></span>
+<span class="codeline" id="line-257"><code>			<label for="r55" class="ident">naddrs</label> = <a href="../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r55" class="ident">naddrs</label>, <label for="r59" class="ident">addr</label>)</code></span>
+<span class="codeline" id="line-258"><code>		<span class="keyword">case</span> *<a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>:</code></span>
+<span class="codeline" id="line-259"><code>			<span class="keyword">if</span> !<label for="r51" class="ident">wildcard</label> &amp;&amp; !<label for="r60" class="ident">addr</label>.<a href="iprawsock.go.html#line-50" class="ident">isWildcard</a>() &amp;&amp; !<label for="r60" class="ident">addr</label>.<a href="iprawsock.go.html#line-32" class="ident">IP</a>.<a href="ip.go.html#line-423" class="ident">matchAddrFamily</a>(<label for="r50" class="ident">ip</label>.<a href="iprawsock.go.html#line-32" class="ident">IP</a>) {</code></span>
+<span class="codeline" id="line-260"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-261"><code>			}</code></span>
+<span class="codeline" id="line-262"><code>			<label for="r55" class="ident">naddrs</label> = <a href="../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r55" class="ident">naddrs</label>, <label for="r60" class="ident">addr</label>)</code></span>
+<span class="codeline" id="line-263"><code>		}</code></span>
+<span class="codeline" id="line-264"><code>	}</code></span>
+<span class="codeline" id="line-265"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r55" class="ident">naddrs</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-266"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="net.go.html#line-542" class="ident">AddrError</a>{<a href="net.go.html#line-543" class="ident">Err</a>: <a href="net.go.html#line-406" class="ident">errNoSuitableAddress</a>.Error(), <a href="net.go.html#line-544" class="ident">Addr</a>: <label for="r41" class="ident">hint</label>.<a href="net.go.html#line-107" class="ident">String</a>()}</code></span>
+<span class="codeline" id="line-267"><code>	}</code></span>
+<span class="codeline" id="line-268"><code>	<span class="keyword">return</span> <label for="r55" class="ident">naddrs</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-269"><code>}</code></span>
+<span class="codeline" id="line-270"><code></code></span>
+<span class="codeline" id="line-271"><code><span class="comment">// Dial connects to the address on the named network.</span></code></span>
+<span class="codeline" id="line-272"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-273"><code><span class="comment">// Known networks are "tcp", "tcp4" (IPv4-only), "tcp6" (IPv6-only),</span></code></span>
+<span class="codeline" id="line-274"><code><span class="comment">// "udp", "udp4" (IPv4-only), "udp6" (IPv6-only), "ip", "ip4"</span></code></span>
+<span class="codeline" id="line-275"><code><span class="comment">// (IPv4-only), "ip6" (IPv6-only), "unix", "unixgram" and</span></code></span>
+<span class="codeline" id="line-276"><code><span class="comment">// "unixpacket".</span></code></span>
+<span class="codeline" id="line-277"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-278"><code><span class="comment">// For TCP and UDP networks, the address has the form "host:port".</span></code></span>
+<span class="codeline" id="line-279"><code><span class="comment">// The host must be a literal IP address, or a host name that can be</span></code></span>
+<span class="codeline" id="line-280"><code><span class="comment">// resolved to IP addresses.</span></code></span>
+<span class="codeline" id="line-281"><code><span class="comment">// The port must be a literal port number or a service name.</span></code></span>
+<span class="codeline" id="line-282"><code><span class="comment">// If the host is a literal IPv6 address it must be enclosed in square</span></code></span>
+<span class="codeline" id="line-283"><code><span class="comment">// brackets, as in "[2001:db8::1]:80" or "[fe80::1%zone]:80".</span></code></span>
+<span class="codeline" id="line-284"><code><span class="comment">// The zone specifies the scope of the literal IPv6 address as defined</span></code></span>
+<span class="codeline" id="line-285"><code><span class="comment">// in RFC 4007.</span></code></span>
+<span class="codeline" id="line-286"><code><span class="comment">// The functions JoinHostPort and SplitHostPort manipulate a pair of</span></code></span>
+<span class="codeline" id="line-287"><code><span class="comment">// host and port in this form.</span></code></span>
+<span class="codeline" id="line-288"><code><span class="comment">// When using TCP, and the host resolves to multiple IP addresses,</span></code></span>
+<span class="codeline" id="line-289"><code><span class="comment">// Dial will try each IP address in order until one succeeds.</span></code></span>
+<span class="codeline" id="line-290"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-291"><code><span class="comment">// Examples:</span></code></span>
+<span class="codeline" id="line-292"><code><span class="comment">//	Dial("tcp", "golang.org:http")</span></code></span>
+<span class="codeline" id="line-293"><code><span class="comment">//	Dial("tcp", "192.0.2.1:http")</span></code></span>
+<span class="codeline" id="line-294"><code><span class="comment">//	Dial("tcp", "198.51.100.1:80")</span></code></span>
+<span class="codeline" id="line-295"><code><span class="comment">//	Dial("udp", "[2001:db8::1]:domain")</span></code></span>
+<span class="codeline" id="line-296"><code><span class="comment">//	Dial("udp", "[fe80::1%lo0]:53")</span></code></span>
+<span class="codeline" id="line-297"><code><span class="comment">//	Dial("tcp", ":80")</span></code></span>
+<span class="codeline" id="line-298"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-299"><code><span class="comment">// For IP networks, the network must be "ip", "ip4" or "ip6" followed</span></code></span>
+<span class="codeline" id="line-300"><code><span class="comment">// by a colon and a literal protocol number or a protocol name, and</span></code></span>
+<span class="codeline" id="line-301"><code><span class="comment">// the address has the form "host". The host must be a literal IP</span></code></span>
+<span class="codeline" id="line-302"><code><span class="comment">// address or a literal IPv6 address with zone.</span></code></span>
+<span class="codeline" id="line-303"><code><span class="comment">// It depends on each operating system how the operating system</span></code></span>
+<span class="codeline" id="line-304"><code><span class="comment">// behaves with a non-well known protocol number such as "0" or "255".</span></code></span>
+<span class="codeline" id="line-305"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-306"><code><span class="comment">// Examples:</span></code></span>
+<span class="codeline" id="line-307"><code><span class="comment">//	Dial("ip4:1", "192.0.2.1")</span></code></span>
+<span class="codeline" id="line-308"><code><span class="comment">//	Dial("ip6:ipv6-icmp", "2001:db8::1")</span></code></span>
+<span class="codeline" id="line-309"><code><span class="comment">//	Dial("ip6:58", "fe80::1%lo0")</span></code></span>
+<span class="codeline" id="line-310"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-311"><code><span class="comment">// For TCP, UDP and IP networks, if the host is empty or a literal</span></code></span>
+<span class="codeline" id="line-312"><code><span class="comment">// unspecified IP address, as in ":80", "0.0.0.0:80" or "[::]:80" for</span></code></span>
+<span class="codeline" id="line-313"><code><span class="comment">// TCP and UDP, "", "0.0.0.0" or "::" for IP, the local system is</span></code></span>
+<span class="codeline" id="line-314"><code><span class="comment">// assumed.</span></code></span>
+<span class="codeline" id="line-315"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-316"><code><span class="comment">// For Unix networks, the address must be a file system path.</span></code></span>
+<span class="codeline" id="line-317"><code><span class="keyword">func</span> <label for="r61" class="ident"><a href="../../pkg/net.html#name-Dial" class="ident">Dial</a></label>(<label for="r62" class="ident">network</label>, <label for="r63" class="ident">address</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="net.go.html#line-113" class="ident">Conn</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-318"><code>	<span class="keyword">var</span> <label for="r64" class="ident">d</label> <a href="#line-27" class="ident">Dialer</a></code></span>
+<span class="codeline" id="line-319"><code>	<span class="keyword">return</span> <label for="r64" class="ident">d</label>.<a href="#line-347" class="ident">Dial</a>(<label for="r62" class="ident">network</label>, <label for="r63" class="ident">address</label>)</code></span>
+<span class="codeline" id="line-320"><code>}</code></span>
+<span class="codeline" id="line-321"><code></code></span>
+<span class="codeline" id="line-322"><code><span class="comment">// DialTimeout acts like Dial but takes a timeout.</span></code></span>
+<span class="codeline" id="line-323"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-324"><code><span class="comment">// The timeout includes name resolution, if required.</span></code></span>
+<span class="codeline" id="line-325"><code><span class="comment">// When using TCP, and the host in the address parameter resolves to</span></code></span>
+<span class="codeline" id="line-326"><code><span class="comment">// multiple IP addresses, the timeout is spread over each consecutive</span></code></span>
+<span class="codeline" id="line-327"><code><span class="comment">// dial, such that each is given an appropriate fraction of the time</span></code></span>
+<span class="codeline" id="line-328"><code><span class="comment">// to connect.</span></code></span>
+<span class="codeline" id="line-329"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-330"><code><span class="comment">// See func Dial for a description of the network and address</span></code></span>
+<span class="codeline" id="line-331"><code><span class="comment">// parameters.</span></code></span>
+<span class="codeline" id="line-332"><code><span class="keyword">func</span> <label for="r65" class="ident"><a href="../../pkg/net.html#name-DialTimeout" class="ident">DialTimeout</a></label>(<label for="r66" class="ident">network</label>, <label for="r67" class="ident">address</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r68" class="ident">timeout</label> <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-583" class="ident">Duration</a>) (<a href="net.go.html#line-113" class="ident">Conn</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-333"><code>	<label for="r69" class="ident">d</label> := <a href="#line-27" class="ident">Dialer</a>{<a href="#line-40" class="ident">Timeout</a>: <label for="r68" class="ident">timeout</label>}</code></span>
+<span class="codeline" id="line-334"><code>	<span class="keyword">return</span> <label for="r69" class="ident">d</label>.<a href="#line-347" class="ident">Dial</a>(<label for="r66" class="ident">network</label>, <label for="r67" class="ident">address</label>)</code></span>
+<span class="codeline" id="line-335"><code>}</code></span>
+<span class="codeline" id="line-336"><code></code></span>
+<span class="codeline" id="line-337"><code><span class="comment">// sysDialer contains a Dial's parameters and configuration.</span></code></span>
+<span class="codeline" id="line-338"><code><span class="keyword">type</span> <a href="../../pkg/net.html#name-sysDialer" class="ident">sysDialer</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-339"><code>	<a href="#line-27" class="ident">Dialer</a></code></span>
+<span class="codeline" id="line-340"><code>	network, address <a href="../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-341"><code>}</code></span>
+<span class="codeline" id="line-342"><code></code></span>
+<span class="codeline" id="line-343"><code><span class="comment">// Dial connects to the address on the named network.</span></code></span>
+<span class="codeline" id="line-344"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-345"><code><span class="comment">// See func Dial for a description of the network and address</span></code></span>
+<span class="codeline" id="line-346"><code><span class="comment">// parameters.</span></code></span>
+<span class="codeline" id="line-347"><code><span class="keyword">func</span> (<label for="r70" class="ident">d</label> *<a href="#line-27" class="ident">Dialer</a>) <label for="r71" class="ident">Dial</label>(<label for="r72" class="ident">network</label>, <label for="r73" class="ident">address</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="net.go.html#line-113" class="ident">Conn</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-348"><code>	<span class="keyword">return</span> <label for="r70" class="ident">d</label>.<a href="#line-369" class="ident">DialContext</a>(<a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-208" class="ident">Background</a>(), <label for="r72" class="ident">network</label>, <label for="r73" class="ident">address</label>)</code></span>
+<span class="codeline" id="line-349"><code>}</code></span>
+<span class="codeline" id="line-350"><code></code></span>
+<span class="codeline" id="line-351"><code><span class="comment">// DialContext connects to the address on the named network using</span></code></span>
+<span class="codeline" id="line-352"><code><span class="comment">// the provided context.</span></code></span>
+<span class="codeline" id="line-353"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-354"><code><span class="comment">// The provided Context must be non-nil. If the context expires before</span></code></span>
+<span class="codeline" id="line-355"><code><span class="comment">// the connection is complete, an error is returned. Once successfully</span></code></span>
+<span class="codeline" id="line-356"><code><span class="comment">// connected, any expiration of the context will not affect the</span></code></span>
+<span class="codeline" id="line-357"><code><span class="comment">// connection.</span></code></span>
+<span class="codeline" id="line-358"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-359"><code><span class="comment">// When using TCP, and the host in the address parameter resolves to multiple</span></code></span>
+<span class="codeline" id="line-360"><code><span class="comment">// network addresses, any dial timeout (from d.Timeout or ctx) is spread</span></code></span>
+<span class="codeline" id="line-361"><code><span class="comment">// over each consecutive dial, such that each is given an appropriate</span></code></span>
+<span class="codeline" id="line-362"><code><span class="comment">// fraction of the time to connect.</span></code></span>
+<span class="codeline" id="line-363"><code><span class="comment">// For example, if a host has 4 IP addresses and the timeout is 1 minute,</span></code></span>
+<span class="codeline" id="line-364"><code><span class="comment">// the connect to each single address will be given 15 seconds to complete</span></code></span>
+<span class="codeline" id="line-365"><code><span class="comment">// before trying the next one.</span></code></span>
+<span class="codeline" id="line-366"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-367"><code><span class="comment">// See func Dial for a description of the network and address</span></code></span>
+<span class="codeline" id="line-368"><code><span class="comment">// parameters.</span></code></span>
+<span class="codeline" id="line-369"><code><span class="keyword">func</span> (<label for="r74" class="ident">d</label> *<a href="#line-27" class="ident">Dialer</a>) <label for="r75" class="ident">DialContext</label>(<label for="r76" class="ident">ctx</label> <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a>, <label for="r77" class="ident">network</label>, <label for="r78" class="ident">address</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="net.go.html#line-113" class="ident">Conn</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-370"><code>	<span class="keyword">if</span> <label for="r76" class="ident">ctx</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-371"><code>		<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"nil context"</span>)</code></span>
+<span class="codeline" id="line-372"><code>	}</code></span>
+<span class="codeline" id="line-373"><code>	<label for="r79" class="ident">deadline</label> := <label for="r74" class="ident">d</label>.<a href="#line-118" class="ident">deadline</a>(<label for="r76" class="ident">ctx</label>, <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-1066" class="ident">Now</a>())</code></span>
+<span class="codeline" id="line-374"><code>	<span class="keyword">if</span> !<label for="r79" class="ident">deadline</label>.<a href="../time/time.go.html#line-426" class="ident">IsZero</a>() {</code></span>
+<span class="codeline" id="line-375"><code>		<span class="keyword">if</span> <label for="r80" class="ident">d</label>, <label for="r81" class="ident">ok</label> := <label for="r76" class="ident">ctx</label>.<a href="../context/context.go.html#line-66" class="ident">Deadline</a>(); !<label for="r81" class="ident">ok</label> || <label for="r79" class="ident">deadline</label>.<a href="../time/time.go.html#line-251" class="ident">Before</a>(<label for="r80" class="ident">d</label>) {</code></span>
+<span class="codeline" id="line-376"><code>			<label for="r82" class="ident">subCtx</label>, <label for="r83" class="ident">cancel</label> := <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-430" class="ident">WithDeadline</a>(<label for="r76" class="ident">ctx</label>, <label for="r79" class="ident">deadline</label>)</code></span>
+<span class="codeline" id="line-377"><code>			<span class="keyword">defer</span> <label for="r83" class="ident">cancel</label>()</code></span>
+<span class="codeline" id="line-378"><code>			<label for="r76" class="ident">ctx</label> = <label for="r82" class="ident">subCtx</label></code></span>
+<span class="codeline" id="line-379"><code>		}</code></span>
+<span class="codeline" id="line-380"><code>	}</code></span>
+<span class="codeline" id="line-381"><code>	<span class="keyword">if</span> <label for="r84" class="ident">oldCancel</label> := <label for="r74" class="ident">d</label>.<a href="#line-90" class="ident">Cancel</a>; <label for="r84" class="ident">oldCancel</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-382"><code>		<label for="r85" class="ident">subCtx</label>, <label for="r86" class="ident">cancel</label> := <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-232" class="ident">WithCancel</a>(<label for="r76" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-383"><code>		<span class="keyword">defer</span> <label for="r86" class="ident">cancel</label>()</code></span>
+<span class="codeline" id="line-384"><code>		<span class="keyword">go</span> <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-385"><code>			<a href="../runtime/select.go.html#line-121"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-386"><code>			<span class="keyword">case</span> <a href="../runtime/chan.go.html#line-438">&lt;-</a><label for="r84" class="ident">oldCancel</label>:</code></span>
+<span class="codeline" id="line-387"><code>				<label for="r86" class="ident">cancel</label>()</code></span>
+<span class="codeline" id="line-388"><code>			<span class="keyword">case</span> <a href="../runtime/chan.go.html#line-438">&lt;-</a><label for="r85" class="ident">subCtx</label>.<a href="../context/context.go.html#line-99" class="ident">Done</a>():</code></span>
+<span class="codeline" id="line-389"><code>			}</code></span>
+<span class="codeline" id="line-390"><code>		}()</code></span>
+<span class="codeline" id="line-391"><code>		<label for="r76" class="ident">ctx</label> = <label for="r85" class="ident">subCtx</label></code></span>
+<span class="codeline" id="line-392"><code>	}</code></span>
+<span class="codeline" id="line-393"><code></code></span>
+<span class="codeline" id="line-394"><code>	<span class="comment">// Shadow the nettrace (if any) during resolve so Connect events don't fire for DNS lookups.</span></code></span>
+<span class="codeline" id="line-395"><code>	<label for="r87" class="ident">resolveCtx</label> := <label for="r76" class="ident">ctx</label></code></span>
+<span class="codeline" id="line-396"><code>	<span class="keyword">if</span> <label for="r88" class="ident">trace</label>, <label for="r89" class="ident">_</label> := <label for="r76" class="ident">ctx</label>.<a href="../context/context.go.html#line-153" class="ident">Value</a>(<a href="../../pkg/internal/nettrace.html" class="ident i1">nettrace</a>.<a href="../internal/nettrace/nettrace.go.html#line-13" class="ident">TraceKey</a>{}).(*<a href="../../pkg/internal/nettrace.html" class="ident i1">nettrace</a>.<a href="../internal/nettrace/nettrace.go.html#line-24" class="ident">Trace</a>); <label for="r88" class="ident">trace</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-397"><code>		<label for="r90" class="ident">shadow</label> := *<label for="r88" class="ident">trace</label></code></span>
+<span class="codeline" id="line-398"><code>		<label for="r90" class="ident">shadow</label>.<a href="../internal/nettrace/nettrace.go.html#line-39" class="ident">ConnectStart</a> = <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-399"><code>		<label for="r90" class="ident">shadow</label>.<a href="../internal/nettrace/nettrace.go.html#line-44" class="ident">ConnectDone</a> = <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-400"><code>		<label for="r87" class="ident">resolveCtx</label> = <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-519" class="ident">WithValue</a>(<label for="r87" class="ident">resolveCtx</label>, <a href="../../pkg/internal/nettrace.html" class="ident i1">nettrace</a>.<a href="../internal/nettrace/nettrace.go.html#line-13" class="ident">TraceKey</a>{}, &amp;<label for="r90" class="ident">shadow</label>)</code></span>
+<span class="codeline" id="line-401"><code>	}</code></span>
+<span class="codeline" id="line-402"><code></code></span>
+<span class="codeline" id="line-403"><code>	<label for="r91" class="ident">addrs</label>, <label for="r92" class="ident">err</label> := <label for="r74" class="ident">d</label>.<a href="#line-128" class="ident">resolver</a>().<a href="#line-202" class="ident">resolveAddrList</a>(<label for="r87" class="ident">resolveCtx</label>, <span class="lit-string">"dial"</span>, <label for="r77" class="ident">network</label>, <label for="r78" class="ident">address</label>, <label for="r74" class="ident">d</label>.<a href="#line-52" class="ident">LocalAddr</a>)</code></span>
+<span class="codeline" id="line-404"><code>	<span class="keyword">if</span> <label for="r92" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-405"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="net.go.html#line-435" class="ident">OpError</a>{<a href="net.go.html#line-438" class="ident">Op</a>: <span class="lit-string">"dial"</span>, <a href="net.go.html#line-442" class="ident">Net</a>: <label for="r77" class="ident">network</label>, <a href="net.go.html#line-447" class="ident">Source</a>: <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="net.go.html#line-455" class="ident">Addr</a>: <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="net.go.html#line-459" class="ident">Err</a>: <label for="r92" class="ident">err</label>}</code></span>
+<span class="codeline" id="line-406"><code>	}</code></span>
+<span class="codeline" id="line-407"><code></code></span>
+<span class="codeline" id="line-408"><code>	<label for="r93" class="ident">sd</label> := &amp;<a href="#line-338" class="ident">sysDialer</a>{</code></span>
+<span class="codeline" id="line-409"><code>		<a href="#line-339" class="ident">Dialer</a>:  *<label for="r74" class="ident">d</label>,</code></span>
+<span class="codeline" id="line-410"><code>		<a href="#line-340" class="ident">network</a>: <label for="r77" class="ident">network</label>,</code></span>
+<span class="codeline" id="line-411"><code>		<a href="#line-340" class="ident">address</a>: <label for="r78" class="ident">address</label>,</code></span>
+<span class="codeline" id="line-412"><code>	}</code></span>
+<span class="codeline" id="line-413"><code></code></span>
+<span class="codeline" id="line-414"><code>	<span class="keyword">var</span> <label for="r94" class="ident">primaries</label>, <label for="r95" class="ident">fallbacks</label> <a href="ipsock.go.html#line-52" class="ident">addrList</a></code></span>
+<span class="codeline" id="line-415"><code>	<span class="keyword">if</span> <label for="r74" class="ident">d</label>.<a href="#line-101" class="ident">dualStack</a>() &amp;&amp; <label for="r77" class="ident">network</label> == <span class="lit-string">"tcp"</span> {</code></span>
+<span class="codeline" id="line-416"><code>		<label for="r94" class="ident">primaries</label>, <label for="r95" class="ident">fallbacks</label> = <label for="r91" class="ident">addrs</label>.<a href="ipsock.go.html#line-106" class="ident">partition</a>(<a href="ipsock.go.html#line-55" class="ident">isIPv4</a>)</code></span>
+<span class="codeline" id="line-417"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-418"><code>		<label for="r94" class="ident">primaries</label> = <label for="r91" class="ident">addrs</label></code></span>
+<span class="codeline" id="line-419"><code>	}</code></span>
+<span class="codeline" id="line-420"><code></code></span>
+<span class="codeline" id="line-421"><code>	<span class="keyword">var</span> <label for="r96" class="ident">c</label> <a href="net.go.html#line-113" class="ident">Conn</a></code></span>
+<span class="codeline" id="line-422"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r95" class="ident">fallbacks</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-423"><code>		<label for="r96" class="ident">c</label>, <label for="r92" class="ident">err</label> = <label for="r93" class="ident">sd</label>.<a href="#line-447" class="ident">dialParallel</a>(<label for="r76" class="ident">ctx</label>, <label for="r94" class="ident">primaries</label>, <label for="r95" class="ident">fallbacks</label>)</code></span>
+<span class="codeline" id="line-424"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-425"><code>		<label for="r96" class="ident">c</label>, <label for="r92" class="ident">err</label> = <label for="r93" class="ident">sd</label>.<a href="#line-521" class="ident">dialSerial</a>(<label for="r76" class="ident">ctx</label>, <label for="r94" class="ident">primaries</label>)</code></span>
+<span class="codeline" id="line-426"><code>	}</code></span>
+<span class="codeline" id="line-427"><code>	<span class="keyword">if</span> <label for="r92" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-428"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r92" class="ident">err</label></code></span>
+<span class="codeline" id="line-429"><code>	}</code></span>
+<span class="codeline" id="line-430"><code></code></span>
+<span class="codeline" id="line-431"><code>	<span class="keyword">if</span> <label for="r97" class="ident">tc</label>, <label for="r98" class="ident">ok</label> := <label for="r96" class="ident">c</label>.(*<a href="tcpsock.go.html#line-85" class="ident">TCPConn</a>); <label for="r98" class="ident">ok</label> &amp;&amp; <label for="r74" class="ident">d</label>.<a href="#line-80" class="ident">KeepAlive</a> &gt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-432"><code>		<a href="sockopt_posix.go.html#line-116" class="ident">setKeepAlive</a>(<label for="r97" class="ident">tc</label>.<a href="net.go.html#line-171" class="ident">fd</a>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-433"><code>		<label for="r99" class="ident">ka</label> := <label for="r74" class="ident">d</label>.<a href="#line-80" class="ident">KeepAlive</a></code></span>
+<span class="codeline" id="line-434"><code>		<span class="keyword">if</span> <label for="r74" class="ident">d</label>.<a href="#line-80" class="ident">KeepAlive</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-435"><code>			<label for="r99" class="ident">ka</label> = <a href="#line-17" class="ident">defaultTCPKeepAlive</a></code></span>
+<span class="codeline" id="line-436"><code>		}</code></span>
+<span class="codeline" id="line-437"><code>		<a href="tcpsockopt_unix.go.html#line-15" class="ident">setKeepAlivePeriod</a>(<label for="r97" class="ident">tc</label>.<a href="net.go.html#line-171" class="ident">fd</a>, <label for="r99" class="ident">ka</label>)</code></span>
+<span class="codeline" id="line-438"><code>		<a href="hook.go.html#line-25" class="ident">testHookSetKeepAlive</a>(<label for="r99" class="ident">ka</label>)</code></span>
+<span class="codeline" id="line-439"><code>	}</code></span>
+<span class="codeline" id="line-440"><code>	<span class="keyword">return</span> <label for="r96" class="ident">c</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-441"><code>}</code></span>
+<span class="codeline" id="line-442"><code></code></span>
+<span class="codeline" id="line-443"><code><span class="comment">// dialParallel races two copies of dialSerial, giving the first a</span></code></span>
+<span class="codeline" id="line-444"><code><span class="comment">// head start. It returns the first established connection and</span></code></span>
+<span class="codeline" id="line-445"><code><span class="comment">// closes the others. Otherwise it returns an error from the first</span></code></span>
+<span class="codeline" id="line-446"><code><span class="comment">// primary address.</span></code></span>
+<span class="codeline" id="line-447"><code><span class="keyword">func</span> (<label for="r100" class="ident">sd</label> *<a href="#line-338" class="ident">sysDialer</a>) <label for="r101" class="ident">dialParallel</label>(<label for="r102" class="ident">ctx</label> <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a>, <label for="r103" class="ident">primaries</label>, <label for="r104" class="ident">fallbacks</label> <a href="ipsock.go.html#line-52" class="ident">addrList</a>) (<a href="net.go.html#line-113" class="ident">Conn</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-448"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r104" class="ident">fallbacks</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-449"><code>		<span class="keyword">return</span> <label for="r100" class="ident">sd</label>.<a href="#line-521" class="ident">dialSerial</a>(<label for="r102" class="ident">ctx</label>, <label for="r103" class="ident">primaries</label>)</code></span>
+<span class="codeline" id="line-450"><code>	}</code></span>
+<span class="codeline" id="line-451"><code></code></span>
+<span class="codeline" id="line-452"><code>	<label for="r105" class="ident">returned</label> := <a href="../runtime/chan.go.html#line-71">make</a>(<span class="keyword">chan</span> <span class="keyword">struct</span>{})</code></span>
+<span class="codeline" id="line-453"><code>	<span class="keyword">defer</span> <a href="../../pkg/builtin.html#name-close" class="ident">close</a>(<label for="r105" class="ident">returned</label>)</code></span>
+<span class="codeline" id="line-454"><code></code></span>
+<span class="codeline" id="line-455"><code>	<span class="keyword">type</span> <label for="r106" class="ident">dialResult</label> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-456"><code>		<a href="net.go.html#line-113" class="ident">Conn</a></code></span>
+<span class="codeline" id="line-457"><code>		<a href="../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-458"><code>		<label for="r107" class="ident">primary</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-459"><code>		<label for="r108" class="ident">done</label>    <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-460"><code>	}</code></span>
+<span class="codeline" id="line-461"><code>	<label for="r109" class="ident">results</label> := <a href="../runtime/chan.go.html#line-71">make</a>(<span class="keyword">chan</span> <label for="r106" class="ident">dialResult</label>) <span class="comment">// unbuffered</span></code></span>
+<span class="codeline" id="line-462"><code></code></span>
+<span class="codeline" id="line-463"><code>	<label for="r110" class="ident">startRacer</label> := <span class="keyword">func</span>(<label for="r111" class="ident">ctx</label> <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a>, <label for="r112" class="ident">primary</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-464"><code>		<label for="r113" class="ident">ras</label> := <label for="r103" class="ident">primaries</label></code></span>
+<span class="codeline" id="line-465"><code>		<span class="keyword">if</span> !<label for="r112" class="ident">primary</label> {</code></span>
+<span class="codeline" id="line-466"><code>			<label for="r113" class="ident">ras</label> = <label for="r104" class="ident">fallbacks</label></code></span>
+<span class="codeline" id="line-467"><code>		}</code></span>
+<span class="codeline" id="line-468"><code>		<label for="r114" class="ident">c</label>, <label for="r115" class="ident">err</label> := <label for="r100" class="ident">sd</label>.<a href="#line-521" class="ident">dialSerial</a>(<label for="r111" class="ident">ctx</label>, <label for="r113" class="ident">ras</label>)</code></span>
+<span class="codeline" id="line-469"><code>		<a href="../runtime/select.go.html#line-121"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-470"><code>		<span class="keyword">case</span> <label for="r109" class="ident">results</label> <a href="../runtime/chan.go.html#line-158">&lt;-</a> <label for="r106" class="ident">dialResult</label>{<label for="r116" class="ident">Conn</label>: <label for="r114" class="ident">c</label>, <label for="r117" class="ident">error</label>: <label for="r115" class="ident">err</label>, <label for="r107" class="ident">primary</label>: <label for="r112" class="ident">primary</label>, <label for="r108" class="ident">done</label>: <a href="../../pkg/builtin.html#name-true" class="ident">true</a>}:</code></span>
+<span class="codeline" id="line-471"><code>		<span class="keyword">case</span> <a href="../runtime/chan.go.html#line-438">&lt;-</a><label for="r105" class="ident">returned</label>:</code></span>
+<span class="codeline" id="line-472"><code>			<span class="keyword">if</span> <label for="r114" class="ident">c</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-473"><code>				<label for="r114" class="ident">c</label>.<a href="net.go.html#line-126" class="ident">Close</a>()</code></span>
+<span class="codeline" id="line-474"><code>			}</code></span>
+<span class="codeline" id="line-475"><code>		}</code></span>
+<span class="codeline" id="line-476"><code>	}</code></span>
+<span class="codeline" id="line-477"><code></code></span>
+<span class="codeline" id="line-478"><code>	<span class="keyword">var</span> <label for="r118" class="ident">primary</label>, <label for="r119" class="ident">fallback</label> <label for="r106" class="ident">dialResult</label></code></span>
+<span class="codeline" id="line-479"><code></code></span>
+<span class="codeline" id="line-480"><code>	<span class="comment">// Start the main racer.</span></code></span>
+<span class="codeline" id="line-481"><code>	<label for="r120" class="ident">primaryCtx</label>, <label for="r121" class="ident">primaryCancel</label> := <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-232" class="ident">WithCancel</a>(<label for="r102" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-482"><code>	<span class="keyword">defer</span> <label for="r121" class="ident">primaryCancel</label>()</code></span>
+<span class="codeline" id="line-483"><code>	<span class="keyword">go</span> <label for="r110" class="ident">startRacer</label>(<label for="r120" class="ident">primaryCtx</label>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-484"><code></code></span>
+<span class="codeline" id="line-485"><code>	<span class="comment">// Start the timer for the fallback racer.</span></code></span>
+<span class="codeline" id="line-486"><code>	<label for="r122" class="ident">fallbackTimer</label> := <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/sleep.go.html#line-86" class="ident">NewTimer</a>(<label for="r100" class="ident">sd</label>.<a href="#line-159" class="ident">fallbackDelay</a>())</code></span>
+<span class="codeline" id="line-487"><code>	<span class="keyword">defer</span> <label for="r122" class="ident">fallbackTimer</label>.<a href="../time/sleep.go.html#line-77" class="ident">Stop</a>()</code></span>
+<span class="codeline" id="line-488"><code></code></span>
+<span class="codeline" id="line-489"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-490"><code>		<a href="../runtime/select.go.html#line-121"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-491"><code>		<span class="keyword">case</span> <a href="../runtime/chan.go.html#line-438">&lt;-</a><label for="r122" class="ident">fallbackTimer</label>.<a href="../time/sleep.go.html#line-51" class="ident">C</a>:</code></span>
+<span class="codeline" id="line-492"><code>			<label for="r123" class="ident">fallbackCtx</label>, <label for="r124" class="ident">fallbackCancel</label> := <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-232" class="ident">WithCancel</a>(<label for="r102" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-493"><code>			<span class="keyword">defer</span> <label for="r124" class="ident">fallbackCancel</label>()</code></span>
+<span class="codeline" id="line-494"><code>			<span class="keyword">go</span> <label for="r110" class="ident">startRacer</label>(<label for="r123" class="ident">fallbackCtx</label>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-495"><code></code></span>
+<span class="codeline" id="line-496"><code>		<span class="keyword">case</span> <label for="r125" class="ident">res</label> := <a href="../runtime/chan.go.html#line-438">&lt;-</a><label for="r109" class="ident">results</label>:</code></span>
+<span class="codeline" id="line-497"><code>			<span class="keyword">if</span> <label for="r125" class="ident">res</label>.<label for="r117" class="ident">error</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-498"><code>				<span class="keyword">return</span> <label for="r125" class="ident">res</label>.<label for="r116" class="ident">Conn</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-499"><code>			}</code></span>
+<span class="codeline" id="line-500"><code>			<span class="keyword">if</span> <label for="r125" class="ident">res</label>.<label for="r107" class="ident">primary</label> {</code></span>
+<span class="codeline" id="line-501"><code>				<label for="r118" class="ident">primary</label> = <label for="r125" class="ident">res</label></code></span>
+<span class="codeline" id="line-502"><code>			} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-503"><code>				<label for="r119" class="ident">fallback</label> = <label for="r125" class="ident">res</label></code></span>
+<span class="codeline" id="line-504"><code>			}</code></span>
+<span class="codeline" id="line-505"><code>			<span class="keyword">if</span> <label for="r118" class="ident">primary</label>.<label for="r108" class="ident">done</label> &amp;&amp; <label for="r119" class="ident">fallback</label>.<label for="r108" class="ident">done</label> {</code></span>
+<span class="codeline" id="line-506"><code>				<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r118" class="ident">primary</label>.<label for="r117" class="ident">error</label></code></span>
+<span class="codeline" id="line-507"><code>			}</code></span>
+<span class="codeline" id="line-508"><code>			<span class="keyword">if</span> <label for="r125" class="ident">res</label>.<label for="r107" class="ident">primary</label> &amp;&amp; <label for="r122" class="ident">fallbackTimer</label>.<a href="../time/sleep.go.html#line-77" class="ident">Stop</a>() {</code></span>
+<span class="codeline" id="line-509"><code>				<span class="comment">// If we were able to stop the timer, that means it</span></code></span>
+<span class="codeline" id="line-510"><code><span class="comment">				// was running (hadn't yet started the fallback), but</span></code></span>
+<span class="codeline" id="line-511"><code><span class="comment">				// we just got an error on the primary path, so start</span></code></span>
+<span class="codeline" id="line-512"><code><span class="comment">				// the fallback immediately (in 0 nanoseconds).</span></code></span>
+<span class="codeline" id="line-513"><code>				<label for="r122" class="ident">fallbackTimer</label>.<a href="../time/sleep.go.html#line-134" class="ident">Reset</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-514"><code>			}</code></span>
+<span class="codeline" id="line-515"><code>		}</code></span>
+<span class="codeline" id="line-516"><code>	}</code></span>
+<span class="codeline" id="line-517"><code>}</code></span>
+<span class="codeline" id="line-518"><code></code></span>
+<span class="codeline" id="line-519"><code><span class="comment">// dialSerial connects to a list of addresses in sequence, returning</span></code></span>
+<span class="codeline" id="line-520"><code><span class="comment">// either the first successful connection, or the first error.</span></code></span>
+<span class="codeline" id="line-521"><code><span class="keyword">func</span> (<label for="r126" class="ident">sd</label> *<a href="#line-338" class="ident">sysDialer</a>) <label for="r127" class="ident">dialSerial</label>(<label for="r128" class="ident">ctx</label> <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a>, <label for="r129" class="ident">ras</label> <a href="ipsock.go.html#line-52" class="ident">addrList</a>) (<a href="net.go.html#line-113" class="ident">Conn</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-522"><code>	<span class="keyword">var</span> <label for="r130" class="ident">firstErr</label> <a href="../../pkg/builtin.html#name-error" class="ident">error</a> <span class="comment">// The error from the first address is most relevant.</span></code></span>
+<span class="codeline" id="line-523"><code></code></span>
+<span class="codeline" id="line-524"><code>	<span class="keyword">for</span> <label for="r131" class="ident">i</label>, <label for="r132" class="ident">ra</label> := <span class="keyword">range</span> <label for="r129" class="ident">ras</label> {</code></span>
+<span class="codeline" id="line-525"><code>		<a href="../runtime/chan.go.html#line-707"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-526"><code>		<span class="keyword">case</span> <a href="../runtime/chan.go.html#line-438">&lt;-</a><label for="r128" class="ident">ctx</label>.<a href="../context/context.go.html#line-99" class="ident">Done</a>():</code></span>
+<span class="codeline" id="line-527"><code>			<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="net.go.html#line-435" class="ident">OpError</a>{<a href="net.go.html#line-438" class="ident">Op</a>: <span class="lit-string">"dial"</span>, <a href="net.go.html#line-442" class="ident">Net</a>: <label for="r126" class="ident">sd</label>.<a href="#line-340" class="ident">network</a>, <a href="net.go.html#line-447" class="ident">Source</a>: <label for="r126" class="ident">sd</label>.<a href="#line-52" class="ident">LocalAddr</a>, <a href="net.go.html#line-455" class="ident">Addr</a>: <label for="r132" class="ident">ra</label>, <a href="net.go.html#line-459" class="ident">Err</a>: <a href="net.go.html#line-421" class="ident">mapErr</a>(<label for="r128" class="ident">ctx</label>.<a href="../context/context.go.html#line-106" class="ident">Err</a>())}</code></span>
+<span class="codeline" id="line-528"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-529"><code>		}</code></span>
+<span class="codeline" id="line-530"><code></code></span>
+<span class="codeline" id="line-531"><code>		<label for="r133" class="ident">dialCtx</label> := <label for="r128" class="ident">ctx</label></code></span>
+<span class="codeline" id="line-532"><code>		<span class="keyword">if</span> <label for="r134" class="ident">deadline</label>, <label for="r135" class="ident">hasDeadline</label> := <label for="r128" class="ident">ctx</label>.<a href="../context/context.go.html#line-66" class="ident">Deadline</a>(); <label for="r135" class="ident">hasDeadline</label> {</code></span>
+<span class="codeline" id="line-533"><code>			<label for="r136" class="ident">partialDeadline</label>, <label for="r137" class="ident">err</label> := <a href="#line-137" class="ident">partialDeadline</a>(<a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-1066" class="ident">Now</a>(), <label for="r134" class="ident">deadline</label>, <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r129" class="ident">ras</label>)-<label for="r131" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-534"><code>			<span class="keyword">if</span> <label for="r137" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-535"><code>				<span class="comment">// Ran out of time.</span></code></span>
+<span class="codeline" id="line-536"><code>				<span class="keyword">if</span> <label for="r130" class="ident">firstErr</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-537"><code>					<label for="r130" class="ident">firstErr</label> = &amp;<a href="net.go.html#line-435" class="ident">OpError</a>{<a href="net.go.html#line-438" class="ident">Op</a>: <span class="lit-string">"dial"</span>, <a href="net.go.html#line-442" class="ident">Net</a>: <label for="r126" class="ident">sd</label>.<a href="#line-340" class="ident">network</a>, <a href="net.go.html#line-447" class="ident">Source</a>: <label for="r126" class="ident">sd</label>.<a href="#line-52" class="ident">LocalAddr</a>, <a href="net.go.html#line-455" class="ident">Addr</a>: <label for="r132" class="ident">ra</label>, <a href="net.go.html#line-459" class="ident">Err</a>: <label for="r137" class="ident">err</label>}</code></span>
+<span class="codeline" id="line-538"><code>				}</code></span>
+<span class="codeline" id="line-539"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-540"><code>			}</code></span>
+<span class="codeline" id="line-541"><code>			<span class="keyword">if</span> <label for="r136" class="ident">partialDeadline</label>.<a href="../time/time.go.html#line-251" class="ident">Before</a>(<label for="r134" class="ident">deadline</label>) {</code></span>
+<span class="codeline" id="line-542"><code>				<span class="keyword">var</span> <label for="r138" class="ident">cancel</label> <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-224" class="ident">CancelFunc</a></code></span>
+<span class="codeline" id="line-543"><code>				<label for="r133" class="ident">dialCtx</label>, <label for="r138" class="ident">cancel</label> = <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-430" class="ident">WithDeadline</a>(<label for="r128" class="ident">ctx</label>, <label for="r136" class="ident">partialDeadline</label>)</code></span>
+<span class="codeline" id="line-544"><code>				<span class="keyword">defer</span> <label for="r138" class="ident">cancel</label>()</code></span>
+<span class="codeline" id="line-545"><code>			}</code></span>
+<span class="codeline" id="line-546"><code>		}</code></span>
+<span class="codeline" id="line-547"><code></code></span>
+<span class="codeline" id="line-548"><code>		<label for="r139" class="ident">c</label>, <label for="r140" class="ident">err</label> := <label for="r126" class="ident">sd</label>.<a href="#line-565" class="ident">dialSingle</a>(<label for="r133" class="ident">dialCtx</label>, <label for="r132" class="ident">ra</label>)</code></span>
+<span class="codeline" id="line-549"><code>		<span class="keyword">if</span> <label for="r140" class="ident">err</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-550"><code>			<span class="keyword">return</span> <label for="r139" class="ident">c</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-551"><code>		}</code></span>
+<span class="codeline" id="line-552"><code>		<span class="keyword">if</span> <label for="r130" class="ident">firstErr</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-553"><code>			<label for="r130" class="ident">firstErr</label> = <label for="r140" class="ident">err</label></code></span>
+<span class="codeline" id="line-554"><code>		}</code></span>
+<span class="codeline" id="line-555"><code>	}</code></span>
+<span class="codeline" id="line-556"><code></code></span>
+<span class="codeline" id="line-557"><code>	<span class="keyword">if</span> <label for="r130" class="ident">firstErr</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-558"><code>		<label for="r130" class="ident">firstErr</label> = &amp;<a href="net.go.html#line-435" class="ident">OpError</a>{<a href="net.go.html#line-438" class="ident">Op</a>: <span class="lit-string">"dial"</span>, <a href="net.go.html#line-442" class="ident">Net</a>: <label for="r126" class="ident">sd</label>.<a href="#line-340" class="ident">network</a>, <a href="net.go.html#line-447" class="ident">Source</a>: <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="net.go.html#line-455" class="ident">Addr</a>: <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="net.go.html#line-459" class="ident">Err</a>: <a href="net.go.html#line-409" class="ident">errMissingAddress</a>}</code></span>
+<span class="codeline" id="line-559"><code>	}</code></span>
+<span class="codeline" id="line-560"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r130" class="ident">firstErr</label></code></span>
+<span class="codeline" id="line-561"><code>}</code></span>
+<span class="codeline" id="line-562"><code></code></span>
+<span class="codeline" id="line-563"><code><span class="comment">// dialSingle attempts to establish and returns a single connection to</span></code></span>
+<span class="codeline" id="line-564"><code><span class="comment">// the destination address.</span></code></span>
+<span class="codeline" id="line-565"><code><span class="keyword">func</span> (<label for="r141" class="ident">sd</label> *<a href="#line-338" class="ident">sysDialer</a>) <label for="r142" class="ident">dialSingle</label>(<label for="r143" class="ident">ctx</label> <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a>, <label for="r144" class="ident">ra</label> <a href="net.go.html#line-105" class="ident">Addr</a>) (<label for="r145" class="ident">c</label> <a href="net.go.html#line-113" class="ident">Conn</a>, <label for="r146" class="ident">err</label> <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-566"><code>	<label for="r147" class="ident">trace</label>, <label for="r148" class="ident">_</label> := <label for="r143" class="ident">ctx</label>.<a href="../context/context.go.html#line-153" class="ident">Value</a>(<a href="../../pkg/internal/nettrace.html" class="ident i1">nettrace</a>.<a href="../internal/nettrace/nettrace.go.html#line-13" class="ident">TraceKey</a>{}).(*<a href="../../pkg/internal/nettrace.html" class="ident i1">nettrace</a>.<a href="../internal/nettrace/nettrace.go.html#line-24" class="ident">Trace</a>)</code></span>
+<span class="codeline" id="line-567"><code>	<span class="keyword">if</span> <label for="r147" class="ident">trace</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-568"><code>		<label for="r149" class="ident">raStr</label> := <label for="r144" class="ident">ra</label>.<a href="net.go.html#line-107" class="ident">String</a>()</code></span>
+<span class="codeline" id="line-569"><code>		<span class="keyword">if</span> <label for="r147" class="ident">trace</label>.<a href="../internal/nettrace/nettrace.go.html#line-39" class="ident">ConnectStart</a> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-570"><code>			<label for="r147" class="ident">trace</label>.<a href="../internal/nettrace/nettrace.go.html#line-39" class="ident">ConnectStart</a>(<label for="r141" class="ident">sd</label>.<a href="#line-340" class="ident">network</a>, <label for="r149" class="ident">raStr</label>)</code></span>
+<span class="codeline" id="line-571"><code>		}</code></span>
+<span class="codeline" id="line-572"><code>		<span class="keyword">if</span> <label for="r147" class="ident">trace</label>.<a href="../internal/nettrace/nettrace.go.html#line-44" class="ident">ConnectDone</a> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-573"><code>			<span class="keyword">defer</span> <span class="keyword">func</span>() { <label for="r147" class="ident">trace</label>.<a href="../internal/nettrace/nettrace.go.html#line-44" class="ident">ConnectDone</a>(<label for="r141" class="ident">sd</label>.<a href="#line-340" class="ident">network</a>, <label for="r149" class="ident">raStr</label>, <label for="r146" class="ident">err</label>) }()</code></span>
+<span class="codeline" id="line-574"><code>		}</code></span>
+<span class="codeline" id="line-575"><code>	}</code></span>
+<span class="codeline" id="line-576"><code>	<label for="r150" class="ident">la</label> := <label for="r141" class="ident">sd</label>.<a href="#line-52" class="ident">LocalAddr</a></code></span>
+<span class="codeline" id="line-577"><code>	<span class="keyword">switch</span> ra := <label for="r144" class="ident">ra</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-578"><code>	<span class="keyword">case</span> *<a href="tcpsock.go.html#line-19" class="ident">TCPAddr</a>:</code></span>
+<span class="codeline" id="line-579"><code>		<label for="r151" class="ident">la</label>, <label for="r152" class="ident">_</label> := <label for="r150" class="ident">la</label>.(*<a href="tcpsock.go.html#line-19" class="ident">TCPAddr</a>)</code></span>
+<span class="codeline" id="line-580"><code>		<label for="r145" class="ident">c</label>, <label for="r146" class="ident">err</label> = <label for="r141" class="ident">sd</label>.<a href="tcpsock_posix.go.html#line-57" class="ident">dialTCP</a>(<label for="r143" class="ident">ctx</label>, <label for="r151" class="ident">la</label>, <label for="r153" class="ident">ra</label>)</code></span>
+<span class="codeline" id="line-581"><code>	<span class="keyword">case</span> *<a href="udpsock.go.html#line-22" class="ident">UDPAddr</a>:</code></span>
+<span class="codeline" id="line-582"><code>		<label for="r154" class="ident">la</label>, <label for="r155" class="ident">_</label> := <label for="r150" class="ident">la</label>.(*<a href="udpsock.go.html#line-22" class="ident">UDPAddr</a>)</code></span>
+<span class="codeline" id="line-583"><code>		<label for="r145" class="ident">c</label>, <label for="r146" class="ident">err</label> = <label for="r141" class="ident">sd</label>.<a href="udpsock_posix.go.html#line-97" class="ident">dialUDP</a>(<label for="r143" class="ident">ctx</label>, <label for="r154" class="ident">la</label>, <label for="r156" class="ident">ra</label>)</code></span>
+<span class="codeline" id="line-584"><code>	<span class="keyword">case</span> *<a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>:</code></span>
+<span class="codeline" id="line-585"><code>		<label for="r157" class="ident">la</label>, <label for="r158" class="ident">_</label> := <label for="r150" class="ident">la</label>.(*<a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>)</code></span>
+<span class="codeline" id="line-586"><code>		<label for="r145" class="ident">c</label>, <label for="r146" class="ident">err</label> = <label for="r141" class="ident">sd</label>.<a href="iprawsock_posix.go.html#line-115" class="ident">dialIP</a>(<label for="r143" class="ident">ctx</label>, <label for="r157" class="ident">la</label>, <label for="r159" class="ident">ra</label>)</code></span>
+<span class="codeline" id="line-587"><code>	<span class="keyword">case</span> *<a href="unixsock.go.html#line-22" class="ident">UnixAddr</a>:</code></span>
+<span class="codeline" id="line-588"><code>		<label for="r160" class="ident">la</label>, <label for="r161" class="ident">_</label> := <label for="r150" class="ident">la</label>.(*<a href="unixsock.go.html#line-22" class="ident">UnixAddr</a>)</code></span>
+<span class="codeline" id="line-589"><code>		<label for="r145" class="ident">c</label>, <label for="r146" class="ident">err</label> = <label for="r141" class="ident">sd</label>.<a href="unixsock_posix.go.html#line-153" class="ident">dialUnix</a>(<label for="r143" class="ident">ctx</label>, <label for="r160" class="ident">la</label>, <label for="r162" class="ident">ra</label>)</code></span>
+<span class="codeline" id="line-590"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-591"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="net.go.html#line-435" class="ident">OpError</a>{<a href="net.go.html#line-438" class="ident">Op</a>: <span class="lit-string">"dial"</span>, <a href="net.go.html#line-442" class="ident">Net</a>: <label for="r141" class="ident">sd</label>.<a href="#line-340" class="ident">network</a>, <a href="net.go.html#line-447" class="ident">Source</a>: <label for="r150" class="ident">la</label>, <a href="net.go.html#line-455" class="ident">Addr</a>: <label for="r163" class="ident">ra</label>, <a href="net.go.html#line-459" class="ident">Err</a>: &amp;<a href="net.go.html#line-542" class="ident">AddrError</a>{<a href="net.go.html#line-543" class="ident">Err</a>: <span class="lit-string">"unexpected address type"</span>, <a href="net.go.html#line-544" class="ident">Addr</a>: <label for="r141" class="ident">sd</label>.<a href="#line-340" class="ident">address</a>}}</code></span>
+<span class="codeline" id="line-592"><code>	}</code></span>
+<span class="codeline" id="line-593"><code>	<span class="keyword">if</span> <label for="r146" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-594"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="net.go.html#line-435" class="ident">OpError</a>{<a href="net.go.html#line-438" class="ident">Op</a>: <span class="lit-string">"dial"</span>, <a href="net.go.html#line-442" class="ident">Net</a>: <label for="r141" class="ident">sd</label>.<a href="#line-340" class="ident">network</a>, <a href="net.go.html#line-447" class="ident">Source</a>: <label for="r150" class="ident">la</label>, <a href="net.go.html#line-455" class="ident">Addr</a>: <label for="r144" class="ident">ra</label>, <a href="net.go.html#line-459" class="ident">Err</a>: <label for="r146" class="ident">err</label>} <span class="comment">// c is non-nil interface containing nil pointer</span></code></span>
+<span class="codeline" id="line-595"><code>	}</code></span>
+<span class="codeline" id="line-596"><code>	<span class="keyword">return</span> <label for="r145" class="ident">c</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-597"><code>}</code></span>
+<span class="codeline" id="line-598"><code></code></span>
+<span class="codeline" id="line-599"><code><span class="comment">// ListenConfig contains options for listening to an address.</span></code></span>
+<span class="codeline" id="line-600"><code><span class="keyword">type</span> <a href="../../pkg/net.html#name-ListenConfig" class="ident">ListenConfig</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-601"><code>	<span class="comment">// If Control is not nil, it is called after creating the network</span></code></span>
+<span class="codeline" id="line-602"><code><span class="comment">	// connection but before binding it to the operating system.</span></code></span>
+<span class="codeline" id="line-603"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-604"><code><span class="comment">	// Network and address parameters passed to Control method are not</span></code></span>
+<span class="codeline" id="line-605"><code><span class="comment">	// necessarily the ones passed to Listen. For example, passing "tcp" to</span></code></span>
+<span class="codeline" id="line-606"><code><span class="comment">	// Listen will cause the Control function to be called with "tcp4" or "tcp6".</span></code></span>
+<span class="codeline" id="line-607"><code>	Control <span class="keyword">func</span>(network, address <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, c <a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/net.go.html#line-8" class="ident">RawConn</a>) <a href="../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-608"><code></code></span>
+<span class="codeline" id="line-609"><code>	<span class="comment">// KeepAlive specifies the keep-alive period for network</span></code></span>
+<span class="codeline" id="line-610"><code><span class="comment">	// connections accepted by this listener.</span></code></span>
+<span class="codeline" id="line-611"><code><span class="comment">	// If zero, keep-alives are enabled if supported by the protocol</span></code></span>
+<span class="codeline" id="line-612"><code><span class="comment">	// and operating system. Network protocols or operating systems</span></code></span>
+<span class="codeline" id="line-613"><code><span class="comment">	// that do not support keep-alives ignore this field.</span></code></span>
+<span class="codeline" id="line-614"><code><span class="comment">	// If negative, keep-alives are disabled.</span></code></span>
+<span class="codeline" id="line-615"><code>	KeepAlive <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-583" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-616"><code>}</code></span>
+<span class="codeline" id="line-617"><code></code></span>
+<span class="codeline" id="line-618"><code><span class="comment">// Listen announces on the local network address.</span></code></span>
+<span class="codeline" id="line-619"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-620"><code><span class="comment">// See func Listen for a description of the network and address</span></code></span>
+<span class="codeline" id="line-621"><code><span class="comment">// parameters.</span></code></span>
+<span class="codeline" id="line-622"><code><span class="keyword">func</span> (<label for="r164" class="ident">lc</label> *<a href="#line-600" class="ident">ListenConfig</a>) <label for="r165" class="ident">Listen</label>(<label for="r166" class="ident">ctx</label> <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a>, <label for="r167" class="ident">network</label>, <label for="r168" class="ident">address</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="net.go.html#line-384" class="ident">Listener</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-623"><code>	<label for="r169" class="ident">addrs</label>, <label for="r170" class="ident">err</label> := <a href="lookup.go.html#line-114" class="ident">DefaultResolver</a>.<a href="#line-202" class="ident">resolveAddrList</a>(<label for="r166" class="ident">ctx</label>, <span class="lit-string">"listen"</span>, <label for="r167" class="ident">network</label>, <label for="r168" class="ident">address</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-624"><code>	<span class="keyword">if</span> <label for="r170" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-625"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="net.go.html#line-435" class="ident">OpError</a>{<a href="net.go.html#line-438" class="ident">Op</a>: <span class="lit-string">"listen"</span>, <a href="net.go.html#line-442" class="ident">Net</a>: <label for="r167" class="ident">network</label>, <a href="net.go.html#line-447" class="ident">Source</a>: <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="net.go.html#line-455" class="ident">Addr</a>: <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="net.go.html#line-459" class="ident">Err</a>: <label for="r170" class="ident">err</label>}</code></span>
+<span class="codeline" id="line-626"><code>	}</code></span>
+<span class="codeline" id="line-627"><code>	<label for="r171" class="ident">sl</label> := &amp;<a href="#line-681" class="ident">sysListener</a>{</code></span>
+<span class="codeline" id="line-628"><code>		<a href="#line-682" class="ident">ListenConfig</a>: *<label for="r164" class="ident">lc</label>,</code></span>
+<span class="codeline" id="line-629"><code>		<a href="#line-683" class="ident">network</a>:      <label for="r167" class="ident">network</label>,</code></span>
+<span class="codeline" id="line-630"><code>		<a href="#line-683" class="ident">address</a>:      <label for="r168" class="ident">address</label>,</code></span>
+<span class="codeline" id="line-631"><code>	}</code></span>
+<span class="codeline" id="line-632"><code>	<span class="keyword">var</span> <label for="r172" class="ident">l</label> <a href="net.go.html#line-384" class="ident">Listener</a></code></span>
+<span class="codeline" id="line-633"><code>	<label for="r173" class="ident">la</label> := <label for="r169" class="ident">addrs</label>.<a href="ipsock.go.html#line-91" class="ident">first</a>(<a href="ipsock.go.html#line-55" class="ident">isIPv4</a>)</code></span>
+<span class="codeline" id="line-634"><code>	<span class="keyword">switch</span> la := <label for="r173" class="ident">la</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-635"><code>	<span class="keyword">case</span> *<a href="tcpsock.go.html#line-19" class="ident">TCPAddr</a>:</code></span>
+<span class="codeline" id="line-636"><code>		<label for="r172" class="ident">l</label>, <label for="r170" class="ident">err</label> = <label for="r171" class="ident">sl</label>.<a href="tcpsock_posix.go.html#line-167" class="ident">listenTCP</a>(<label for="r166" class="ident">ctx</label>, <label for="r174" class="ident">la</label>)</code></span>
+<span class="codeline" id="line-637"><code>	<span class="keyword">case</span> *<a href="unixsock.go.html#line-22" class="ident">UnixAddr</a>:</code></span>
+<span class="codeline" id="line-638"><code>		<label for="r172" class="ident">l</label>, <label for="r170" class="ident">err</label> = <label for="r171" class="ident">sl</label>.<a href="unixsock_posix.go.html#line-209" class="ident">listenUnix</a>(<label for="r166" class="ident">ctx</label>, <label for="r175" class="ident">la</label>)</code></span>
+<span class="codeline" id="line-639"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-640"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="net.go.html#line-435" class="ident">OpError</a>{<a href="net.go.html#line-438" class="ident">Op</a>: <span class="lit-string">"listen"</span>, <a href="net.go.html#line-442" class="ident">Net</a>: <label for="r171" class="ident">sl</label>.<a href="#line-683" class="ident">network</a>, <a href="net.go.html#line-447" class="ident">Source</a>: <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="net.go.html#line-455" class="ident">Addr</a>: <label for="r176" class="ident">la</label>, <a href="net.go.html#line-459" class="ident">Err</a>: &amp;<a href="net.go.html#line-542" class="ident">AddrError</a>{<a href="net.go.html#line-543" class="ident">Err</a>: <span class="lit-string">"unexpected address type"</span>, <a href="net.go.html#line-544" class="ident">Addr</a>: <label for="r168" class="ident">address</label>}}</code></span>
+<span class="codeline" id="line-641"><code>	}</code></span>
+<span class="codeline" id="line-642"><code>	<span class="keyword">if</span> <label for="r170" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-643"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="net.go.html#line-435" class="ident">OpError</a>{<a href="net.go.html#line-438" class="ident">Op</a>: <span class="lit-string">"listen"</span>, <a href="net.go.html#line-442" class="ident">Net</a>: <label for="r171" class="ident">sl</label>.<a href="#line-683" class="ident">network</a>, <a href="net.go.html#line-447" class="ident">Source</a>: <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="net.go.html#line-455" class="ident">Addr</a>: <label for="r173" class="ident">la</label>, <a href="net.go.html#line-459" class="ident">Err</a>: <label for="r170" class="ident">err</label>} <span class="comment">// l is non-nil interface containing nil pointer</span></code></span>
+<span class="codeline" id="line-644"><code>	}</code></span>
+<span class="codeline" id="line-645"><code>	<span class="keyword">return</span> <label for="r172" class="ident">l</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-646"><code>}</code></span>
+<span class="codeline" id="line-647"><code></code></span>
+<span class="codeline" id="line-648"><code><span class="comment">// ListenPacket announces on the local network address.</span></code></span>
+<span class="codeline" id="line-649"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-650"><code><span class="comment">// See func ListenPacket for a description of the network and address</span></code></span>
+<span class="codeline" id="line-651"><code><span class="comment">// parameters.</span></code></span>
+<span class="codeline" id="line-652"><code><span class="keyword">func</span> (<label for="r177" class="ident">lc</label> *<a href="#line-600" class="ident">ListenConfig</a>) <label for="r178" class="ident">ListenPacket</label>(<label for="r179" class="ident">ctx</label> <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a>, <label for="r180" class="ident">network</label>, <label for="r181" class="ident">address</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="net.go.html#line-309" class="ident">PacketConn</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-653"><code>	<label for="r182" class="ident">addrs</label>, <label for="r183" class="ident">err</label> := <a href="lookup.go.html#line-114" class="ident">DefaultResolver</a>.<a href="#line-202" class="ident">resolveAddrList</a>(<label for="r179" class="ident">ctx</label>, <span class="lit-string">"listen"</span>, <label for="r180" class="ident">network</label>, <label for="r181" class="ident">address</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-654"><code>	<span class="keyword">if</span> <label for="r183" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-655"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="net.go.html#line-435" class="ident">OpError</a>{<a href="net.go.html#line-438" class="ident">Op</a>: <span class="lit-string">"listen"</span>, <a href="net.go.html#line-442" class="ident">Net</a>: <label for="r180" class="ident">network</label>, <a href="net.go.html#line-447" class="ident">Source</a>: <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="net.go.html#line-455" class="ident">Addr</a>: <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="net.go.html#line-459" class="ident">Err</a>: <label for="r183" class="ident">err</label>}</code></span>
+<span class="codeline" id="line-656"><code>	}</code></span>
+<span class="codeline" id="line-657"><code>	<label for="r184" class="ident">sl</label> := &amp;<a href="#line-681" class="ident">sysListener</a>{</code></span>
+<span class="codeline" id="line-658"><code>		<a href="#line-682" class="ident">ListenConfig</a>: *<label for="r177" class="ident">lc</label>,</code></span>
+<span class="codeline" id="line-659"><code>		<a href="#line-683" class="ident">network</a>:      <label for="r180" class="ident">network</label>,</code></span>
+<span class="codeline" id="line-660"><code>		<a href="#line-683" class="ident">address</a>:      <label for="r181" class="ident">address</label>,</code></span>
+<span class="codeline" id="line-661"><code>	}</code></span>
+<span class="codeline" id="line-662"><code>	<span class="keyword">var</span> <label for="r185" class="ident">c</label> <a href="net.go.html#line-309" class="ident">PacketConn</a></code></span>
+<span class="codeline" id="line-663"><code>	<label for="r186" class="ident">la</label> := <label for="r182" class="ident">addrs</label>.<a href="ipsock.go.html#line-91" class="ident">first</a>(<a href="ipsock.go.html#line-55" class="ident">isIPv4</a>)</code></span>
+<span class="codeline" id="line-664"><code>	<span class="keyword">switch</span> la := <label for="r186" class="ident">la</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-665"><code>	<span class="keyword">case</span> *<a href="udpsock.go.html#line-22" class="ident">UDPAddr</a>:</code></span>
+<span class="codeline" id="line-666"><code>		<label for="r185" class="ident">c</label>, <label for="r183" class="ident">err</label> = <label for="r184" class="ident">sl</label>.<a href="udpsock_posix.go.html#line-105" class="ident">listenUDP</a>(<label for="r179" class="ident">ctx</label>, <label for="r187" class="ident">la</label>)</code></span>
+<span class="codeline" id="line-667"><code>	<span class="keyword">case</span> *<a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>:</code></span>
+<span class="codeline" id="line-668"><code>		<label for="r185" class="ident">c</label>, <label for="r183" class="ident">err</label> = <label for="r184" class="ident">sl</label>.<a href="iprawsock_posix.go.html#line-132" class="ident">listenIP</a>(<label for="r179" class="ident">ctx</label>, <label for="r188" class="ident">la</label>)</code></span>
+<span class="codeline" id="line-669"><code>	<span class="keyword">case</span> *<a href="unixsock.go.html#line-22" class="ident">UnixAddr</a>:</code></span>
+<span class="codeline" id="line-670"><code>		<label for="r185" class="ident">c</label>, <label for="r183" class="ident">err</label> = <label for="r184" class="ident">sl</label>.<a href="unixsock_posix.go.html#line-217" class="ident">listenUnixgram</a>(<label for="r179" class="ident">ctx</label>, <label for="r189" class="ident">la</label>)</code></span>
+<span class="codeline" id="line-671"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-672"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="net.go.html#line-435" class="ident">OpError</a>{<a href="net.go.html#line-438" class="ident">Op</a>: <span class="lit-string">"listen"</span>, <a href="net.go.html#line-442" class="ident">Net</a>: <label for="r184" class="ident">sl</label>.<a href="#line-683" class="ident">network</a>, <a href="net.go.html#line-447" class="ident">Source</a>: <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="net.go.html#line-455" class="ident">Addr</a>: <label for="r190" class="ident">la</label>, <a href="net.go.html#line-459" class="ident">Err</a>: &amp;<a href="net.go.html#line-542" class="ident">AddrError</a>{<a href="net.go.html#line-543" class="ident">Err</a>: <span class="lit-string">"unexpected address type"</span>, <a href="net.go.html#line-544" class="ident">Addr</a>: <label for="r181" class="ident">address</label>}}</code></span>
+<span class="codeline" id="line-673"><code>	}</code></span>
+<span class="codeline" id="line-674"><code>	<span class="keyword">if</span> <label for="r183" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-675"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="net.go.html#line-435" class="ident">OpError</a>{<a href="net.go.html#line-438" class="ident">Op</a>: <span class="lit-string">"listen"</span>, <a href="net.go.html#line-442" class="ident">Net</a>: <label for="r184" class="ident">sl</label>.<a href="#line-683" class="ident">network</a>, <a href="net.go.html#line-447" class="ident">Source</a>: <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="net.go.html#line-455" class="ident">Addr</a>: <label for="r186" class="ident">la</label>, <a href="net.go.html#line-459" class="ident">Err</a>: <label for="r183" class="ident">err</label>} <span class="comment">// c is non-nil interface containing nil pointer</span></code></span>
+<span class="codeline" id="line-676"><code>	}</code></span>
+<span class="codeline" id="line-677"><code>	<span class="keyword">return</span> <label for="r185" class="ident">c</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-678"><code>}</code></span>
+<span class="codeline" id="line-679"><code></code></span>
+<span class="codeline" id="line-680"><code><span class="comment">// sysListener contains a Listen's parameters and configuration.</span></code></span>
+<span class="codeline" id="line-681"><code><span class="keyword">type</span> <a href="../../pkg/net.html#name-sysListener" class="ident">sysListener</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-682"><code>	<a href="#line-600" class="ident">ListenConfig</a></code></span>
+<span class="codeline" id="line-683"><code>	network, address <a href="../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-684"><code>}</code></span>
+<span class="codeline" id="line-685"><code></code></span>
+<span class="codeline" id="line-686"><code><span class="comment">// Listen announces on the local network address.</span></code></span>
+<span class="codeline" id="line-687"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-688"><code><span class="comment">// The network must be "tcp", "tcp4", "tcp6", "unix" or "unixpacket".</span></code></span>
+<span class="codeline" id="line-689"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-690"><code><span class="comment">// For TCP networks, if the host in the address parameter is empty or</span></code></span>
+<span class="codeline" id="line-691"><code><span class="comment">// a literal unspecified IP address, Listen listens on all available</span></code></span>
+<span class="codeline" id="line-692"><code><span class="comment">// unicast and anycast IP addresses of the local system.</span></code></span>
+<span class="codeline" id="line-693"><code><span class="comment">// To only use IPv4, use network "tcp4".</span></code></span>
+<span class="codeline" id="line-694"><code><span class="comment">// The address can use a host name, but this is not recommended,</span></code></span>
+<span class="codeline" id="line-695"><code><span class="comment">// because it will create a listener for at most one of the host's IP</span></code></span>
+<span class="codeline" id="line-696"><code><span class="comment">// addresses.</span></code></span>
+<span class="codeline" id="line-697"><code><span class="comment">// If the port in the address parameter is empty or "0", as in</span></code></span>
+<span class="codeline" id="line-698"><code><span class="comment">// "127.0.0.1:" or "[::1]:0", a port number is automatically chosen.</span></code></span>
+<span class="codeline" id="line-699"><code><span class="comment">// The Addr method of Listener can be used to discover the chosen</span></code></span>
+<span class="codeline" id="line-700"><code><span class="comment">// port.</span></code></span>
+<span class="codeline" id="line-701"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-702"><code><span class="comment">// See func Dial for a description of the network and address</span></code></span>
+<span class="codeline" id="line-703"><code><span class="comment">// parameters.</span></code></span>
+<span class="codeline" id="line-704"><code><span class="keyword">func</span> <label for="r191" class="ident"><a href="../../pkg/net.html#name-Listen" class="ident">Listen</a></label>(<label for="r192" class="ident">network</label>, <label for="r193" class="ident">address</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="net.go.html#line-384" class="ident">Listener</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-705"><code>	<span class="keyword">var</span> <label for="r194" class="ident">lc</label> <a href="#line-600" class="ident">ListenConfig</a></code></span>
+<span class="codeline" id="line-706"><code>	<span class="keyword">return</span> <label for="r194" class="ident">lc</label>.<a href="#line-622" class="ident">Listen</a>(<a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-208" class="ident">Background</a>(), <label for="r192" class="ident">network</label>, <label for="r193" class="ident">address</label>)</code></span>
+<span class="codeline" id="line-707"><code>}</code></span>
+<span class="codeline" id="line-708"><code></code></span>
+<span class="codeline" id="line-709"><code><span class="comment">// ListenPacket announces on the local network address.</span></code></span>
+<span class="codeline" id="line-710"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-711"><code><span class="comment">// The network must be "udp", "udp4", "udp6", "unixgram", or an IP</span></code></span>
+<span class="codeline" id="line-712"><code><span class="comment">// transport. The IP transports are "ip", "ip4", or "ip6" followed by</span></code></span>
+<span class="codeline" id="line-713"><code><span class="comment">// a colon and a literal protocol number or a protocol name, as in</span></code></span>
+<span class="codeline" id="line-714"><code><span class="comment">// "ip:1" or "ip:icmp".</span></code></span>
+<span class="codeline" id="line-715"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-716"><code><span class="comment">// For UDP and IP networks, if the host in the address parameter is</span></code></span>
+<span class="codeline" id="line-717"><code><span class="comment">// empty or a literal unspecified IP address, ListenPacket listens on</span></code></span>
+<span class="codeline" id="line-718"><code><span class="comment">// all available IP addresses of the local system except multicast IP</span></code></span>
+<span class="codeline" id="line-719"><code><span class="comment">// addresses.</span></code></span>
+<span class="codeline" id="line-720"><code><span class="comment">// To only use IPv4, use network "udp4" or "ip4:proto".</span></code></span>
+<span class="codeline" id="line-721"><code><span class="comment">// The address can use a host name, but this is not recommended,</span></code></span>
+<span class="codeline" id="line-722"><code><span class="comment">// because it will create a listener for at most one of the host's IP</span></code></span>
+<span class="codeline" id="line-723"><code><span class="comment">// addresses.</span></code></span>
+<span class="codeline" id="line-724"><code><span class="comment">// If the port in the address parameter is empty or "0", as in</span></code></span>
+<span class="codeline" id="line-725"><code><span class="comment">// "127.0.0.1:" or "[::1]:0", a port number is automatically chosen.</span></code></span>
+<span class="codeline" id="line-726"><code><span class="comment">// The LocalAddr method of PacketConn can be used to discover the</span></code></span>
+<span class="codeline" id="line-727"><code><span class="comment">// chosen port.</span></code></span>
+<span class="codeline" id="line-728"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-729"><code><span class="comment">// See func Dial for a description of the network and address</span></code></span>
+<span class="codeline" id="line-730"><code><span class="comment">// parameters.</span></code></span>
+<span class="codeline" id="line-731"><code><span class="keyword">func</span> <label for="r195" class="ident"><a href="../../pkg/net.html#name-ListenPacket" class="ident">ListenPacket</a></label>(<label for="r196" class="ident">network</label>, <label for="r197" class="ident">address</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="net.go.html#line-309" class="ident">PacketConn</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-732"><code>	<span class="keyword">var</span> <label for="r198" class="ident">lc</label> <a href="#line-600" class="ident">ListenConfig</a></code></span>
+<span class="codeline" id="line-733"><code>	<span class="keyword">return</span> <label for="r198" class="ident">lc</label>.<a href="#line-652" class="ident">ListenPacket</a>(<a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-208" class="ident">Background</a>(), <label for="r196" class="ident">network</label>, <label for="r197" class="ident">address</label>)</code></span>
+<span class="codeline" id="line-734"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

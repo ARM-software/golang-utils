@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: sockoptip_posix.go in package net</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	sockoptip_posix.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/net.html">net</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// +build aix darwin dragonfly freebsd linux netbsd openbsd solaris windows</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> net</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<label for="i0"><span class="lit-string i0">"runtime"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i1"><span class="lit-string i1">"syscall"</span></label></code></span>
+<span class="codeline" id="line-12"><code>)</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/net.html#name-joinIPv4Group" class="ident">joinIPv4Group</a></label>(<label for="r1" class="ident">fd</label> *<a href="fd_posix.go.html#line-17" class="ident">netFD</a>, <label for="r2" class="ident">ifi</label> *<a href="interface.go.html#line-30" class="ident">Interface</a>, <label for="r3" class="ident">ip</label> <a href="ip.go.html#line-32" class="ident">IP</a>) <a href="../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-15"><code>	<label for="r4" class="ident">mreq</label> := &amp;<a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/ztypes_linux_amd64.go.html#line-216" class="ident">IPMreq</a>{<a href="../syscall/ztypes_linux_amd64.go.html#line-217" class="ident">Multiaddr</a>: [<span class="lit-number">4</span>]<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>{<label for="r3" class="ident">ip</label>[<span class="lit-number">0</span>], <label for="r3" class="ident">ip</label>[<span class="lit-number">1</span>], <label for="r3" class="ident">ip</label>[<span class="lit-number">2</span>], <label for="r3" class="ident">ip</label>[<span class="lit-number">3</span>]}}</code></span>
+<span class="codeline" id="line-16"><code>	<span class="keyword">if</span> <label for="r5" class="ident">err</label> := <a href="sockopt_posix.go.html#line-75" class="ident">setIPv4MreqToInterface</a>(<label for="r4" class="ident">mreq</label>, <label for="r2" class="ident">ifi</label>); <label for="r5" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-17"><code>		<span class="keyword">return</span> <label for="r5" class="ident">err</label></code></span>
+<span class="codeline" id="line-18"><code>	}</code></span>
+<span class="codeline" id="line-19"><code>	<label for="r6" class="ident">err</label> := <label for="r1" class="ident">fd</label>.<a href="fd_posix.go.html#line-18" class="ident">pfd</a>.<a href="../internal/poll/sockoptip.go.html#line-12" class="ident">SetsockoptIPMreq</a>(<a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-385" class="ident">IPPROTO_IP</a>, <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-449" class="ident">IP_ADD_MEMBERSHIP</a>, <label for="r4" class="ident">mreq</label>)</code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../pkg/runtime.html" class="ident i0">runtime</a>.<a href="../runtime/mfinal.go.html#line-446" class="ident">KeepAlive</a>(<label for="r1" class="ident">fd</label>)</code></span>
+<span class="codeline" id="line-21"><code>	<span class="keyword">return</span> <a href="error_posix.go.html#line-16" class="ident">wrapSyscallError</a>(<span class="lit-string">"setsockopt"</span>, <label for="r6" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-22"><code>}</code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../pkg/net.html#name-setIPv6MulticastInterface" class="ident">setIPv6MulticastInterface</a></label>(<label for="r8" class="ident">fd</label> *<a href="fd_posix.go.html#line-17" class="ident">netFD</a>, <label for="r9" class="ident">ifi</label> *<a href="interface.go.html#line-30" class="ident">Interface</a>) <a href="../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-25"><code>	<span class="keyword">var</span> <label for="r10" class="ident">v</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-26"><code>	<span class="keyword">if</span> <label for="r9" class="ident">ifi</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-27"><code>		<label for="r10" class="ident">v</label> = <label for="r9" class="ident">ifi</label>.<a href="interface.go.html#line-31" class="ident">Index</a></code></span>
+<span class="codeline" id="line-28"><code>	}</code></span>
+<span class="codeline" id="line-29"><code>	<label for="r11" class="ident">err</label> := <label for="r8" class="ident">fd</label>.<a href="fd_posix.go.html#line-18" class="ident">pfd</a>.<a href="../internal/poll/sockopt.go.html#line-12" class="ident">SetsockoptInt</a>(<a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-387" class="ident">IPPROTO_IPV6</a>, <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-422" class="ident">IPV6_MULTICAST_IF</a>, <label for="r10" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-30"><code>	<a href="../../pkg/runtime.html" class="ident i0">runtime</a>.<a href="../runtime/mfinal.go.html#line-446" class="ident">KeepAlive</a>(<label for="r8" class="ident">fd</label>)</code></span>
+<span class="codeline" id="line-31"><code>	<span class="keyword">return</span> <a href="error_posix.go.html#line-16" class="ident">wrapSyscallError</a>(<span class="lit-string">"setsockopt"</span>, <label for="r11" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-32"><code>}</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../pkg/net.html#name-setIPv6MulticastLoopback" class="ident">setIPv6MulticastLoopback</a></label>(<label for="r13" class="ident">fd</label> *<a href="fd_posix.go.html#line-17" class="ident">netFD</a>, <label for="r14" class="ident">v</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) <a href="../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-35"><code>	<label for="r15" class="ident">err</label> := <label for="r13" class="ident">fd</label>.<a href="fd_posix.go.html#line-18" class="ident">pfd</a>.<a href="../internal/poll/sockopt.go.html#line-12" class="ident">SetsockoptInt</a>(<a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-387" class="ident">IPPROTO_IPV6</a>, <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-423" class="ident">IPV6_MULTICAST_LOOP</a>, <a href="sockopt_posix.go.html#line-16" class="ident">boolint</a>(<label for="r14" class="ident">v</label>))</code></span>
+<span class="codeline" id="line-36"><code>	<a href="../../pkg/runtime.html" class="ident i0">runtime</a>.<a href="../runtime/mfinal.go.html#line-446" class="ident">KeepAlive</a>(<label for="r13" class="ident">fd</label>)</code></span>
+<span class="codeline" id="line-37"><code>	<span class="keyword">return</span> <a href="error_posix.go.html#line-16" class="ident">wrapSyscallError</a>(<span class="lit-string">"setsockopt"</span>, <label for="r15" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-38"><code>}</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code><span class="keyword">func</span> <label for="r16" class="ident"><a href="../../pkg/net.html#name-joinIPv6Group" class="ident">joinIPv6Group</a></label>(<label for="r17" class="ident">fd</label> *<a href="fd_posix.go.html#line-17" class="ident">netFD</a>, <label for="r18" class="ident">ifi</label> *<a href="interface.go.html#line-30" class="ident">Interface</a>, <label for="r19" class="ident">ip</label> <a href="ip.go.html#line-32" class="ident">IP</a>) <a href="../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-41"><code>	<label for="r20" class="ident">mreq</label> := &amp;<a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/ztypes_linux_amd64.go.html#line-227" class="ident">IPv6Mreq</a>{}</code></span>
+<span class="codeline" id="line-42"><code>	<a href="../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r20" class="ident">mreq</label>.<a href="../syscall/ztypes_linux_amd64.go.html#line-228" class="ident">Multiaddr</a>[:], <label for="r19" class="ident">ip</label>)</code></span>
+<span class="codeline" id="line-43"><code>	<span class="keyword">if</span> <label for="r18" class="ident">ifi</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-44"><code>		<label for="r20" class="ident">mreq</label>.<a href="../syscall/ztypes_linux_amd64.go.html#line-229" class="ident">Interface</a> = <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r18" class="ident">ifi</label>.<a href="interface.go.html#line-31" class="ident">Index</a>)</code></span>
+<span class="codeline" id="line-45"><code>	}</code></span>
+<span class="codeline" id="line-46"><code>	<label for="r21" class="ident">err</label> := <label for="r17" class="ident">fd</label>.<a href="fd_posix.go.html#line-18" class="ident">pfd</a>.<a href="../internal/poll/sockoptip.go.html#line-21" class="ident">SetsockoptIPv6Mreq</a>(<a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-387" class="ident">IPPROTO_IPV6</a>, <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-416" class="ident">IPV6_JOIN_GROUP</a>, <label for="r20" class="ident">mreq</label>)</code></span>
+<span class="codeline" id="line-47"><code>	<a href="../../pkg/runtime.html" class="ident i0">runtime</a>.<a href="../runtime/mfinal.go.html#line-446" class="ident">KeepAlive</a>(<label for="r17" class="ident">fd</label>)</code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">return</span> <a href="error_posix.go.html#line-16" class="ident">wrapSyscallError</a>(<span class="lit-string">"setsockopt"</span>, <label for="r21" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-49"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

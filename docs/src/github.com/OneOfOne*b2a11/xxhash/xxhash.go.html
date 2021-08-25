@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: xxhash.go in package github.com/OneOfOne/xxhash</title>
+<link href="../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	xxhash.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html">github.com/OneOfOne/xxhash</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104],
+input[id=r105]:checked ~pre label[for=r105],
+input[id=r106]:checked ~pre label[for=r106],
+input[id=r107]:checked ~pre label[for=r107],
+input[id=r108]:checked ~pre label[for=r108],
+input[id=r109]:checked ~pre label[for=r109],
+input[id=r110]:checked ~pre label[for=r110],
+input[id=r111]:checked ~pre label[for=r111],
+input[id=r112]:checked ~pre label[for=r112],
+input[id=r113]:checked ~pre label[for=r113],
+input[id=r114]:checked ~pre label[for=r114]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="r105" type="radio" name="g"/>
+<input id="r106" type="radio" name="g"/>
+<input id="r107" type="radio" name="g"/>
+<input id="r108" type="radio" name="g"/>
+<input id="r109" type="radio" name="g"/>
+<input id="r110" type="radio" name="g"/>
+<input id="r111" type="radio" name="g"/>
+<input id="r112" type="radio" name="g"/>
+<input id="r113" type="radio" name="g"/>
+<input id="r114" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> xxhash</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"encoding/binary"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"errors"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i2"><span class="lit-string i2">"hash"</span></label></code></span>
+<span class="codeline" id="line-7"><code>)</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-prime32x1" class="ident">prime32x1</a> <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> = <span class="lit-number">2654435761</span></code></span>
+<span class="codeline" id="line-11"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-prime32x2" class="ident">prime32x2</a> <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> = <span class="lit-number">2246822519</span></code></span>
+<span class="codeline" id="line-12"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-prime32x3" class="ident">prime32x3</a> <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> = <span class="lit-number">3266489917</span></code></span>
+<span class="codeline" id="line-13"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-prime32x4" class="ident">prime32x4</a> <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> = <span class="lit-number">668265263</span></code></span>
+<span class="codeline" id="line-14"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-prime32x5" class="ident">prime32x5</a> <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> = <span class="lit-number">374761393</span></code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-prime64x1" class="ident">prime64x1</a> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> = <span class="lit-number">11400714785074694791</span></code></span>
+<span class="codeline" id="line-17"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-prime64x2" class="ident">prime64x2</a> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> = <span class="lit-number">14029467366897019727</span></code></span>
+<span class="codeline" id="line-18"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-prime64x3" class="ident">prime64x3</a> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> = <span class="lit-number">1609587929392839161</span></code></span>
+<span class="codeline" id="line-19"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-prime64x4" class="ident">prime64x4</a> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> = <span class="lit-number">9650029242287828579</span></code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-prime64x5" class="ident">prime64x5</a> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> = <span class="lit-number">2870177450012600261</span></code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-maxInt32" class="ident">maxInt32</a> <a href="../../../../pkg/builtin.html#name-int32" class="ident">int32</a> = (<span class="lit-number">1</span>&lt;&lt;<span class="lit-number">31</span> - <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code>	<span class="comment">// precomputed zero Vs for seed 0</span></code></span>
+<span class="codeline" id="line-25"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-zero64x1" class="ident">zero64x1</a> = <span class="lit-number">0x60ea27eeadc0b5d6</span></code></span>
+<span class="codeline" id="line-26"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-zero64x2" class="ident">zero64x2</a> = <span class="lit-number">0xc2b2ae3d27d4eb4f</span></code></span>
+<span class="codeline" id="line-27"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-zero64x3" class="ident">zero64x3</a> = <span class="lit-number">0x0</span></code></span>
+<span class="codeline" id="line-28"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-zero64x4" class="ident">zero64x4</a> = <span class="lit-number">0x61c8864e7a143579</span></code></span>
+<span class="codeline" id="line-29"><code>)</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-magic32" class="ident">magic32</a>         = <span class="lit-string">"xxh\x07"</span></code></span>
+<span class="codeline" id="line-33"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-magic64" class="ident">magic64</a>         = <span class="lit-string">"xxh\x08"</span></code></span>
+<span class="codeline" id="line-34"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-marshaled32Size" class="ident">marshaled32Size</a> = <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-32" class="ident">magic32</a>) + <span class="lit-number">4</span>*<span class="lit-number">7</span> + <span class="lit-number">16</span></code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-marshaled64Size" class="ident">marshaled64Size</a> = <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-33" class="ident">magic64</a>) + <span class="lit-number">8</span>*<span class="lit-number">6</span> + <span class="lit-number">32</span> + <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-36"><code>)</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-NewHash32" class="ident">NewHash32</a></label>() <a href="../../../../pkg/hash.html" class="ident i2">hash</a>.<a href="../../../hash/hash.go.html#line-26" class="ident">Hash</a> { <span class="keyword">return</span> <a href="#line-81" class="ident">New32</a>() }</code></span>
+<span class="codeline" id="line-39"><code><span class="keyword">func</span> <label for="r1" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-NewHash64" class="ident">NewHash64</a></label>() <a href="../../../../pkg/hash.html" class="ident i2">hash</a>.<a href="../../../hash/hash.go.html#line-26" class="ident">Hash</a> { <span class="keyword">return</span> <a href="#line-176" class="ident">New64</a>() }</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// Checksum32 returns the checksum of the input data with the seed set to 0.</span></code></span>
+<span class="codeline" id="line-42"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-Checksum32" class="ident">Checksum32</a></label>(<label for="r3" class="ident">in</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> {</code></span>
+<span class="codeline" id="line-43"><code>	<span class="keyword">return</span> <a href="xxhash_go17.go.html#line-12" class="ident">Checksum32S</a>(<label for="r3" class="ident">in</label>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-44"><code>}</code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// ChecksumString32 returns the checksum of the input data, without creating a copy, with the seed set to 0.</span></code></span>
+<span class="codeline" id="line-47"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-ChecksumString32" class="ident">ChecksumString32</a></label>(<label for="r5" class="ident">s</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> {</code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">return</span> <a href="xxhash_unsafe.go.html#line-20" class="ident">ChecksumString32S</a>(<label for="r5" class="ident">s</label>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-49"><code>}</code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-XXHash32" class="ident">XXHash32</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-52"><code>	mem            [<span class="lit-number">16</span>]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-53"><code>	ln, memIdx     <a href="../../../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-54"><code>	v1, v2, v3, v4 <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-55"><code>	seed           <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-56"><code>}</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// Size returns the number of bytes Sum will return.</span></code></span>
+<span class="codeline" id="line-59"><code><span class="keyword">func</span> (<label for="r6" class="ident">xx</label> *<a href="#line-51" class="ident">XXHash32</a>) <label for="r7" class="ident"><a href="../../../../imp/github.com/OneOfOne*b2a11/xxhash.XXHash32.html#name-.Size" class="ident">Size</a></label>() <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">return</span> <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-61"><code>}</code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// BlockSize returns the hash's underlying block size.</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">// The Write method must be able to accept any amount</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// of data, but it may operate more efficiently if all writes</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// are a multiple of the block size.</span></code></span>
+<span class="codeline" id="line-67"><code><span class="keyword">func</span> (<label for="r8" class="ident">xx</label> *<a href="#line-51" class="ident">XXHash32</a>) <label for="r9" class="ident"><a href="../../../../imp/github.com/OneOfOne*b2a11/xxhash.XXHash32.html#name-.BlockSize" class="ident">BlockSize</a></label>() <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-68"><code>	<span class="keyword">return</span> <span class="lit-number">16</span></code></span>
+<span class="codeline" id="line-69"><code>}</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// NewS32 creates a new hash.Hash32 computing the 32bit xxHash checksum starting with the specific seed.</span></code></span>
+<span class="codeline" id="line-72"><code><span class="keyword">func</span> <label for="r10" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-NewS32" class="ident">NewS32</a></label>(<label for="r11" class="ident">seed</label> <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) (<label for="r12" class="ident">xx</label> *<a href="#line-51" class="ident">XXHash32</a>) {</code></span>
+<span class="codeline" id="line-73"><code>	<label for="r12" class="ident">xx</label> = &amp;<a href="#line-51" class="ident">XXHash32</a>{</code></span>
+<span class="codeline" id="line-74"><code>		<a href="#line-55" class="ident">seed</a>: <label for="r11" class="ident">seed</label>,</code></span>
+<span class="codeline" id="line-75"><code>	}</code></span>
+<span class="codeline" id="line-76"><code>	<label for="r12" class="ident">xx</label>.<a href="#line-85" class="ident">Reset</a>()</code></span>
+<span class="codeline" id="line-77"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-78"><code>}</code></span>
+<span class="codeline" id="line-79"><code></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// New32 creates a new hash.Hash32 computing the 32bit xxHash checksum starting with the seed set to 0.</span></code></span>
+<span class="codeline" id="line-81"><code><span class="keyword">func</span> <label for="r13" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-New32" class="ident">New32</a></label>() *<a href="#line-51" class="ident">XXHash32</a> {</code></span>
+<span class="codeline" id="line-82"><code>	<span class="keyword">return</span> <a href="#line-72" class="ident">NewS32</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-83"><code>}</code></span>
+<span class="codeline" id="line-84"><code></code></span>
+<span class="codeline" id="line-85"><code><span class="keyword">func</span> (<label for="r14" class="ident">xx</label> *<a href="#line-51" class="ident">XXHash32</a>) <label for="r15" class="ident"><a href="../../../../imp/github.com/OneOfOne*b2a11/xxhash.XXHash32.html#name-.Reset" class="ident">Reset</a></label>() {</code></span>
+<span class="codeline" id="line-86"><code>	<label for="r14" class="ident">xx</label>.<a href="#line-54" class="ident">v1</a> = <label for="r14" class="ident">xx</label>.<a href="#line-55" class="ident">seed</a> + <a href="#line-10" class="ident">prime32x1</a> + <a href="#line-11" class="ident">prime32x2</a></code></span>
+<span class="codeline" id="line-87"><code>	<label for="r14" class="ident">xx</label>.<a href="#line-54" class="ident">v2</a> = <label for="r14" class="ident">xx</label>.<a href="#line-55" class="ident">seed</a> + <a href="#line-11" class="ident">prime32x2</a></code></span>
+<span class="codeline" id="line-88"><code>	<label for="r14" class="ident">xx</label>.<a href="#line-54" class="ident">v3</a> = <label for="r14" class="ident">xx</label>.<a href="#line-55" class="ident">seed</a></code></span>
+<span class="codeline" id="line-89"><code>	<label for="r14" class="ident">xx</label>.<a href="#line-54" class="ident">v4</a> = <label for="r14" class="ident">xx</label>.<a href="#line-55" class="ident">seed</a> - <a href="#line-10" class="ident">prime32x1</a></code></span>
+<span class="codeline" id="line-90"><code>	<label for="r14" class="ident">xx</label>.<a href="#line-53" class="ident">ln</a>, <label for="r14" class="ident">xx</label>.<a href="#line-53" class="ident">memIdx</a> = <span class="lit-number">0</span>, <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-91"><code>}</code></span>
+<span class="codeline" id="line-92"><code></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">// Sum appends the current hash to b and returns the resulting slice.</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// It does not change the underlying hash state.</span></code></span>
+<span class="codeline" id="line-95"><code><span class="keyword">func</span> (<label for="r16" class="ident">xx</label> *<a href="#line-51" class="ident">XXHash32</a>) <label for="r17" class="ident"><a href="../../../../imp/github.com/OneOfOne*b2a11/xxhash.XXHash32.html#name-.Sum" class="ident">Sum</a></label>(<label for="r18" class="ident">in</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-96"><code>	<label for="r19" class="ident">s</label> := <label for="r16" class="ident">xx</label>.<a href="xxhash_go17.go.html#line-119" class="ident">Sum32</a>()</code></span>
+<span class="codeline" id="line-97"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r18" class="ident">in</label>, <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r19" class="ident">s</label>&gt;&gt;<span class="lit-number">24</span>), <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r19" class="ident">s</label>&gt;&gt;<span class="lit-number">16</span>), <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r19" class="ident">s</label>&gt;&gt;<span class="lit-number">8</span>), <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r19" class="ident">s</label>))</code></span>
+<span class="codeline" id="line-98"><code>}</code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">// MarshalBinary implements the encoding.BinaryMarshaler interface.</span></code></span>
+<span class="codeline" id="line-101"><code><span class="keyword">func</span> (<label for="r20" class="ident">xx</label> *<a href="#line-51" class="ident">XXHash32</a>) <label for="r21" class="ident"><a href="../../../../imp/github.com/OneOfOne*b2a11/xxhash.XXHash32.html#name-.MarshalBinary" class="ident">MarshalBinary</a></label>() ([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-102"><code>	<label for="r22" class="ident">b</label> := <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>, <a href="#line-34" class="ident">marshaled32Size</a>)</code></span>
+<span class="codeline" id="line-103"><code>	<label for="r22" class="ident">b</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r22" class="ident">b</label>, <a href="#line-32" class="ident">magic32</a>...)</code></span>
+<span class="codeline" id="line-104"><code>	<label for="r22" class="ident">b</label> = <a href="#line-230" class="ident">appendUint32</a>(<label for="r22" class="ident">b</label>, <label for="r20" class="ident">xx</label>.<a href="#line-54" class="ident">v1</a>)</code></span>
+<span class="codeline" id="line-105"><code>	<label for="r22" class="ident">b</label> = <a href="#line-230" class="ident">appendUint32</a>(<label for="r22" class="ident">b</label>, <label for="r20" class="ident">xx</label>.<a href="#line-54" class="ident">v2</a>)</code></span>
+<span class="codeline" id="line-106"><code>	<label for="r22" class="ident">b</label> = <a href="#line-230" class="ident">appendUint32</a>(<label for="r22" class="ident">b</label>, <label for="r20" class="ident">xx</label>.<a href="#line-54" class="ident">v3</a>)</code></span>
+<span class="codeline" id="line-107"><code>	<label for="r22" class="ident">b</label> = <a href="#line-230" class="ident">appendUint32</a>(<label for="r22" class="ident">b</label>, <label for="r20" class="ident">xx</label>.<a href="#line-54" class="ident">v4</a>)</code></span>
+<span class="codeline" id="line-108"><code>	<label for="r22" class="ident">b</label> = <a href="#line-230" class="ident">appendUint32</a>(<label for="r22" class="ident">b</label>, <label for="r20" class="ident">xx</label>.<a href="#line-55" class="ident">seed</a>)</code></span>
+<span class="codeline" id="line-109"><code>	<label for="r22" class="ident">b</label> = <a href="#line-228" class="ident">appendInt32</a>(<label for="r22" class="ident">b</label>, <label for="r20" class="ident">xx</label>.<a href="#line-53" class="ident">ln</a>)</code></span>
+<span class="codeline" id="line-110"><code>	<label for="r22" class="ident">b</label> = <a href="#line-228" class="ident">appendInt32</a>(<label for="r22" class="ident">b</label>, <label for="r20" class="ident">xx</label>.<a href="#line-53" class="ident">memIdx</a>)</code></span>
+<span class="codeline" id="line-111"><code>	<label for="r22" class="ident">b</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r22" class="ident">b</label>, <label for="r20" class="ident">xx</label>.<a href="#line-52" class="ident">mem</a>[:]...)</code></span>
+<span class="codeline" id="line-112"><code>	<span class="keyword">return</span> <label for="r22" class="ident">b</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-113"><code>}</code></span>
+<span class="codeline" id="line-114"><code></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">// UnmarshalBinary implements the encoding.BinaryUnmarshaler interface.</span></code></span>
+<span class="codeline" id="line-116"><code><span class="keyword">func</span> (<label for="r23" class="ident">xx</label> *<a href="#line-51" class="ident">XXHash32</a>) <label for="r24" class="ident"><a href="../../../../imp/github.com/OneOfOne*b2a11/xxhash.XXHash32.html#name-.UnmarshalBinary" class="ident">UnmarshalBinary</a></label>(<label for="r25" class="ident">b</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-117"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r25" class="ident">b</label>) &lt; <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-32" class="ident">magic32</a>) || <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r25" class="ident">b</label>[:<a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-32" class="ident">magic32</a>)]) != <a href="#line-32" class="ident">magic32</a> {</code></span>
+<span class="codeline" id="line-118"><code>		<span class="keyword">return</span> <a href="../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"xxhash: invalid hash state identifier"</span>)</code></span>
+<span class="codeline" id="line-119"><code>	}</code></span>
+<span class="codeline" id="line-120"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r25" class="ident">b</label>) != <a href="#line-34" class="ident">marshaled32Size</a> {</code></span>
+<span class="codeline" id="line-121"><code>		<span class="keyword">return</span> <a href="../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"xxhash: invalid hash state size"</span>)</code></span>
+<span class="codeline" id="line-122"><code>	}</code></span>
+<span class="codeline" id="line-123"><code>	<label for="r25" class="ident">b</label> = <label for="r25" class="ident">b</label>[<a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-32" class="ident">magic32</a>):]</code></span>
+<span class="codeline" id="line-124"><code>	<label for="r25" class="ident">b</label>, <label for="r23" class="ident">xx</label>.<a href="#line-54" class="ident">v1</a> = <a href="#line-243" class="ident">consumeUint32</a>(<label for="r25" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-125"><code>	<label for="r25" class="ident">b</label>, <label for="r23" class="ident">xx</label>.<a href="#line-54" class="ident">v2</a> = <a href="#line-243" class="ident">consumeUint32</a>(<label for="r25" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-126"><code>	<label for="r25" class="ident">b</label>, <label for="r23" class="ident">xx</label>.<a href="#line-54" class="ident">v3</a> = <a href="#line-243" class="ident">consumeUint32</a>(<label for="r25" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-127"><code>	<label for="r25" class="ident">b</label>, <label for="r23" class="ident">xx</label>.<a href="#line-54" class="ident">v4</a> = <a href="#line-243" class="ident">consumeUint32</a>(<label for="r25" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-128"><code>	<label for="r25" class="ident">b</label>, <label for="r23" class="ident">xx</label>.<a href="#line-55" class="ident">seed</a> = <a href="#line-243" class="ident">consumeUint32</a>(<label for="r25" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-129"><code>	<label for="r25" class="ident">b</label>, <label for="r23" class="ident">xx</label>.<a href="#line-53" class="ident">ln</a> = <a href="#line-242" class="ident">consumeInt32</a>(<label for="r25" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-130"><code>	<label for="r25" class="ident">b</label>, <label for="r23" class="ident">xx</label>.<a href="#line-53" class="ident">memIdx</a> = <a href="#line-242" class="ident">consumeInt32</a>(<label for="r25" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-131"><code>	<a href="../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r23" class="ident">xx</label>.<a href="#line-52" class="ident">mem</a>[:], <label for="r25" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-132"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-133"><code>}</code></span>
+<span class="codeline" id="line-134"><code></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">// Checksum64 an alias for Checksum64S(in, 0)</span></code></span>
+<span class="codeline" id="line-136"><code><span class="keyword">func</span> <label for="r26" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-Checksum64" class="ident">Checksum64</a></label>(<label for="r27" class="ident">in</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> {</code></span>
+<span class="codeline" id="line-137"><code>	<span class="keyword">return</span> <a href="xxhash_go17.go.html#line-151" class="ident">Checksum64S</a>(<label for="r27" class="ident">in</label>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-138"><code>}</code></span>
+<span class="codeline" id="line-139"><code></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">// ChecksumString64 returns the checksum of the input data, without creating a copy, with the seed set to 0.</span></code></span>
+<span class="codeline" id="line-141"><code><span class="keyword">func</span> <label for="r28" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-ChecksumString64" class="ident">ChecksumString64</a></label>(<label for="r29" class="ident">s</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> {</code></span>
+<span class="codeline" id="line-142"><code>	<span class="keyword">return</span> <a href="xxhash_unsafe.go.html#line-38" class="ident">ChecksumString64S</a>(<label for="r29" class="ident">s</label>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-143"><code>}</code></span>
+<span class="codeline" id="line-144"><code></code></span>
+<span class="codeline" id="line-145"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-XXHash64" class="ident">XXHash64</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-146"><code>	v1, v2, v3, v4 <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-147"><code>	seed           <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-148"><code>	ln             <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-149"><code>	mem            [<span class="lit-number">32</span>]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-150"><code>	memIdx         <a href="../../../../pkg/builtin.html#name-int8" class="ident">int8</a></code></span>
+<span class="codeline" id="line-151"><code>}</code></span>
+<span class="codeline" id="line-152"><code></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">// Size returns the number of bytes Sum will return.</span></code></span>
+<span class="codeline" id="line-154"><code><span class="keyword">func</span> (<label for="r30" class="ident">xx</label> *<a href="#line-145" class="ident">XXHash64</a>) <label for="r31" class="ident"><a href="../../../../imp/github.com/OneOfOne*b2a11/xxhash.XXHash64.html#name-.Size" class="ident">Size</a></label>() <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-155"><code>	<span class="keyword">return</span> <span class="lit-number">8</span></code></span>
+<span class="codeline" id="line-156"><code>}</code></span>
+<span class="codeline" id="line-157"><code></code></span>
+<span class="codeline" id="line-158"><code><span class="comment">// BlockSize returns the hash's underlying block size.</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">// The Write method must be able to accept any amount</span></code></span>
+<span class="codeline" id="line-160"><code><span class="comment">// of data, but it may operate more efficiently if all writes</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">// are a multiple of the block size.</span></code></span>
+<span class="codeline" id="line-162"><code><span class="keyword">func</span> (<label for="r32" class="ident">xx</label> *<a href="#line-145" class="ident">XXHash64</a>) <label for="r33" class="ident"><a href="../../../../imp/github.com/OneOfOne*b2a11/xxhash.XXHash64.html#name-.BlockSize" class="ident">BlockSize</a></label>() <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-163"><code>	<span class="keyword">return</span> <span class="lit-number">32</span></code></span>
+<span class="codeline" id="line-164"><code>}</code></span>
+<span class="codeline" id="line-165"><code></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">// NewS64 creates a new hash.Hash64 computing the 64bit xxHash checksum starting with the specific seed.</span></code></span>
+<span class="codeline" id="line-167"><code><span class="keyword">func</span> <label for="r34" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-NewS64" class="ident">NewS64</a></label>(<label for="r35" class="ident">seed</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) (<label for="r36" class="ident">xx</label> *<a href="#line-145" class="ident">XXHash64</a>) {</code></span>
+<span class="codeline" id="line-168"><code>	<label for="r36" class="ident">xx</label> = &amp;<a href="#line-145" class="ident">XXHash64</a>{</code></span>
+<span class="codeline" id="line-169"><code>		<a href="#line-147" class="ident">seed</a>: <label for="r35" class="ident">seed</label>,</code></span>
+<span class="codeline" id="line-170"><code>	}</code></span>
+<span class="codeline" id="line-171"><code>	<label for="r36" class="ident">xx</label>.<a href="#line-180" class="ident">Reset</a>()</code></span>
+<span class="codeline" id="line-172"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-173"><code>}</code></span>
+<span class="codeline" id="line-174"><code></code></span>
+<span class="codeline" id="line-175"><code><span class="comment">// New64 creates a new hash.Hash64 computing the 64bit xxHash checksum starting with the seed set to 0x0.</span></code></span>
+<span class="codeline" id="line-176"><code><span class="keyword">func</span> <label for="r37" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-New64" class="ident">New64</a></label>() *<a href="#line-145" class="ident">XXHash64</a> {</code></span>
+<span class="codeline" id="line-177"><code>	<span class="keyword">return</span> <a href="#line-167" class="ident">NewS64</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-178"><code>}</code></span>
+<span class="codeline" id="line-179"><code></code></span>
+<span class="codeline" id="line-180"><code><span class="keyword">func</span> (<label for="r38" class="ident">xx</label> *<a href="#line-145" class="ident">XXHash64</a>) <label for="r39" class="ident"><a href="../../../../imp/github.com/OneOfOne*b2a11/xxhash.XXHash64.html#name-.Reset" class="ident">Reset</a></label>() {</code></span>
+<span class="codeline" id="line-181"><code>	<label for="r38" class="ident">xx</label>.<a href="#line-148" class="ident">ln</a>, <label for="r38" class="ident">xx</label>.<a href="#line-150" class="ident">memIdx</a> = <span class="lit-number">0</span>, <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-182"><code>	<label for="r38" class="ident">xx</label>.<a href="#line-146" class="ident">v1</a>, <label for="r38" class="ident">xx</label>.<a href="#line-146" class="ident">v2</a>, <label for="r38" class="ident">xx</label>.<a href="#line-146" class="ident">v3</a>, <label for="r38" class="ident">xx</label>.<a href="#line-146" class="ident">v4</a> = <a href="#line-274" class="ident">resetVs64</a>(<label for="r38" class="ident">xx</label>.<a href="#line-147" class="ident">seed</a>)</code></span>
+<span class="codeline" id="line-183"><code>}</code></span>
+<span class="codeline" id="line-184"><code></code></span>
+<span class="codeline" id="line-185"><code><span class="comment">// Sum appends the current hash to b and returns the resulting slice.</span></code></span>
+<span class="codeline" id="line-186"><code><span class="comment">// It does not change the underlying hash state.</span></code></span>
+<span class="codeline" id="line-187"><code><span class="keyword">func</span> (<label for="r40" class="ident">xx</label> *<a href="#line-145" class="ident">XXHash64</a>) <label for="r41" class="ident"><a href="../../../../imp/github.com/OneOfOne*b2a11/xxhash.XXHash64.html#name-.Sum" class="ident">Sum</a></label>(<label for="r42" class="ident">in</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-188"><code>	<label for="r43" class="ident">s</label> := <label for="r40" class="ident">xx</label>.<a href="xxhash_unsafe.go.html#line-193" class="ident">Sum64</a>()</code></span>
+<span class="codeline" id="line-189"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r42" class="ident">in</label>, <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r43" class="ident">s</label>&gt;&gt;<span class="lit-number">56</span>), <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r43" class="ident">s</label>&gt;&gt;<span class="lit-number">48</span>), <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r43" class="ident">s</label>&gt;&gt;<span class="lit-number">40</span>), <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r43" class="ident">s</label>&gt;&gt;<span class="lit-number">32</span>), <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r43" class="ident">s</label>&gt;&gt;<span class="lit-number">24</span>), <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r43" class="ident">s</label>&gt;&gt;<span class="lit-number">16</span>), <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r43" class="ident">s</label>&gt;&gt;<span class="lit-number">8</span>), <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r43" class="ident">s</label>))</code></span>
+<span class="codeline" id="line-190"><code>}</code></span>
+<span class="codeline" id="line-191"><code></code></span>
+<span class="codeline" id="line-192"><code><span class="comment">// MarshalBinary implements the encoding.BinaryMarshaler interface.</span></code></span>
+<span class="codeline" id="line-193"><code><span class="keyword">func</span> (<label for="r44" class="ident">xx</label> *<a href="#line-145" class="ident">XXHash64</a>) <label for="r45" class="ident"><a href="../../../../imp/github.com/OneOfOne*b2a11/xxhash.XXHash64.html#name-.MarshalBinary" class="ident">MarshalBinary</a></label>() ([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-194"><code>	<label for="r46" class="ident">b</label> := <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>, <a href="#line-35" class="ident">marshaled64Size</a>)</code></span>
+<span class="codeline" id="line-195"><code>	<label for="r46" class="ident">b</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r46" class="ident">b</label>, <a href="#line-33" class="ident">magic64</a>...)</code></span>
+<span class="codeline" id="line-196"><code>	<label for="r46" class="ident">b</label> = <a href="#line-236" class="ident">appendUint64</a>(<label for="r46" class="ident">b</label>, <label for="r44" class="ident">xx</label>.<a href="#line-146" class="ident">v1</a>)</code></span>
+<span class="codeline" id="line-197"><code>	<label for="r46" class="ident">b</label> = <a href="#line-236" class="ident">appendUint64</a>(<label for="r46" class="ident">b</label>, <label for="r44" class="ident">xx</label>.<a href="#line-146" class="ident">v2</a>)</code></span>
+<span class="codeline" id="line-198"><code>	<label for="r46" class="ident">b</label> = <a href="#line-236" class="ident">appendUint64</a>(<label for="r46" class="ident">b</label>, <label for="r44" class="ident">xx</label>.<a href="#line-146" class="ident">v3</a>)</code></span>
+<span class="codeline" id="line-199"><code>	<label for="r46" class="ident">b</label> = <a href="#line-236" class="ident">appendUint64</a>(<label for="r46" class="ident">b</label>, <label for="r44" class="ident">xx</label>.<a href="#line-146" class="ident">v4</a>)</code></span>
+<span class="codeline" id="line-200"><code>	<label for="r46" class="ident">b</label> = <a href="#line-236" class="ident">appendUint64</a>(<label for="r46" class="ident">b</label>, <label for="r44" class="ident">xx</label>.<a href="#line-147" class="ident">seed</a>)</code></span>
+<span class="codeline" id="line-201"><code>	<label for="r46" class="ident">b</label> = <a href="#line-236" class="ident">appendUint64</a>(<label for="r46" class="ident">b</label>, <label for="r44" class="ident">xx</label>.<a href="#line-148" class="ident">ln</a>)</code></span>
+<span class="codeline" id="line-202"><code>	<label for="r46" class="ident">b</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r46" class="ident">b</label>, <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r44" class="ident">xx</label>.<a href="#line-150" class="ident">memIdx</a>))</code></span>
+<span class="codeline" id="line-203"><code>	<label for="r46" class="ident">b</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r46" class="ident">b</label>, <label for="r44" class="ident">xx</label>.<a href="#line-149" class="ident">mem</a>[:]...)</code></span>
+<span class="codeline" id="line-204"><code>	<span class="keyword">return</span> <label for="r46" class="ident">b</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-205"><code>}</code></span>
+<span class="codeline" id="line-206"><code></code></span>
+<span class="codeline" id="line-207"><code><span class="comment">// UnmarshalBinary implements the encoding.BinaryUnmarshaler interface.</span></code></span>
+<span class="codeline" id="line-208"><code><span class="keyword">func</span> (<label for="r47" class="ident">xx</label> *<a href="#line-145" class="ident">XXHash64</a>) <label for="r48" class="ident"><a href="../../../../imp/github.com/OneOfOne*b2a11/xxhash.XXHash64.html#name-.UnmarshalBinary" class="ident">UnmarshalBinary</a></label>(<label for="r49" class="ident">b</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-209"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r49" class="ident">b</label>) &lt; <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-33" class="ident">magic64</a>) || <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r49" class="ident">b</label>[:<a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-33" class="ident">magic64</a>)]) != <a href="#line-33" class="ident">magic64</a> {</code></span>
+<span class="codeline" id="line-210"><code>		<span class="keyword">return</span> <a href="../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"xxhash: invalid hash state identifier"</span>)</code></span>
+<span class="codeline" id="line-211"><code>	}</code></span>
+<span class="codeline" id="line-212"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r49" class="ident">b</label>) != <a href="#line-35" class="ident">marshaled64Size</a> {</code></span>
+<span class="codeline" id="line-213"><code>		<span class="keyword">return</span> <a href="../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"xxhash: invalid hash state size"</span>)</code></span>
+<span class="codeline" id="line-214"><code>	}</code></span>
+<span class="codeline" id="line-215"><code>	<label for="r49" class="ident">b</label> = <label for="r49" class="ident">b</label>[<a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-33" class="ident">magic64</a>):]</code></span>
+<span class="codeline" id="line-216"><code>	<label for="r49" class="ident">b</label>, <label for="r47" class="ident">xx</label>.<a href="#line-146" class="ident">v1</a> = <a href="#line-244" class="ident">consumeUint64</a>(<label for="r49" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-217"><code>	<label for="r49" class="ident">b</label>, <label for="r47" class="ident">xx</label>.<a href="#line-146" class="ident">v2</a> = <a href="#line-244" class="ident">consumeUint64</a>(<label for="r49" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-218"><code>	<label for="r49" class="ident">b</label>, <label for="r47" class="ident">xx</label>.<a href="#line-146" class="ident">v3</a> = <a href="#line-244" class="ident">consumeUint64</a>(<label for="r49" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-219"><code>	<label for="r49" class="ident">b</label>, <label for="r47" class="ident">xx</label>.<a href="#line-146" class="ident">v4</a> = <a href="#line-244" class="ident">consumeUint64</a>(<label for="r49" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-220"><code>	<label for="r49" class="ident">b</label>, <label for="r47" class="ident">xx</label>.<a href="#line-147" class="ident">seed</a> = <a href="#line-244" class="ident">consumeUint64</a>(<label for="r49" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-221"><code>	<label for="r49" class="ident">b</label>, <label for="r47" class="ident">xx</label>.<a href="#line-148" class="ident">ln</a> = <a href="#line-244" class="ident">consumeUint64</a>(<label for="r49" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-222"><code>	<label for="r47" class="ident">xx</label>.<a href="#line-150" class="ident">memIdx</a> = <a href="../../../../pkg/builtin.html#name-int8" class="ident">int8</a>(<label for="r49" class="ident">b</label>[<span class="lit-number">0</span>])</code></span>
+<span class="codeline" id="line-223"><code>	<label for="r49" class="ident">b</label> = <label for="r49" class="ident">b</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-224"><code>	<a href="../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r47" class="ident">xx</label>.<a href="#line-149" class="ident">mem</a>[:], <label for="r49" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-225"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-226"><code>}</code></span>
+<span class="codeline" id="line-227"><code></code></span>
+<span class="codeline" id="line-228"><code><span class="keyword">func</span> <label for="r50" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-appendInt32" class="ident">appendInt32</a></label>(<label for="r51" class="ident">b</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r52" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-int32" class="ident">int32</a>) []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a> { <span class="keyword">return</span> <a href="#line-230" class="ident">appendUint32</a>(<label for="r51" class="ident">b</label>, <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r52" class="ident">x</label>)) }</code></span>
+<span class="codeline" id="line-229"><code></code></span>
+<span class="codeline" id="line-230"><code><span class="keyword">func</span> <label for="r53" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-appendUint32" class="ident">appendUint32</a></label>(<label for="r54" class="ident">b</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r55" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-231"><code>	<span class="keyword">var</span> <label for="r56" class="ident">a</label> [<span class="lit-number">4</span>]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-232"><code>	<a href="../../../../pkg/encoding/binary.html" class="ident i0">binary</a>.<a href="../../../encoding/binary/binary.go.html#line-45" class="ident">LittleEndian</a>.<a href="../../../encoding/binary/binary.go.html#line-68" class="ident">PutUint32</a>(<label for="r56" class="ident">a</label>[:], <label for="r55" class="ident">x</label>)</code></span>
+<span class="codeline" id="line-233"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r54" class="ident">b</label>, <label for="r56" class="ident">a</label>[:]...)</code></span>
+<span class="codeline" id="line-234"><code>}</code></span>
+<span class="codeline" id="line-235"><code></code></span>
+<span class="codeline" id="line-236"><code><span class="keyword">func</span> <label for="r57" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-appendUint64" class="ident">appendUint64</a></label>(<label for="r58" class="ident">b</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r59" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-237"><code>	<span class="keyword">var</span> <label for="r60" class="ident">a</label> [<span class="lit-number">8</span>]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-238"><code>	<a href="../../../../pkg/encoding/binary.html" class="ident i0">binary</a>.<a href="../../../encoding/binary/binary.go.html#line-45" class="ident">LittleEndian</a>.<a href="../../../encoding/binary/binary.go.html#line-82" class="ident">PutUint64</a>(<label for="r60" class="ident">a</label>[:], <label for="r59" class="ident">x</label>)</code></span>
+<span class="codeline" id="line-239"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r58" class="ident">b</label>, <label for="r60" class="ident">a</label>[:]...)</code></span>
+<span class="codeline" id="line-240"><code>}</code></span>
+<span class="codeline" id="line-241"><code></code></span>
+<span class="codeline" id="line-242"><code><span class="keyword">func</span> <label for="r61" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-consumeInt32" class="ident">consumeInt32</a></label>(<label for="r62" class="ident">b</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) ([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../pkg/builtin.html#name-int32" class="ident">int32</a>)   { <label for="r63" class="ident">bn</label>, <label for="r64" class="ident">x</label> := <a href="#line-243" class="ident">consumeUint32</a>(<label for="r62" class="ident">b</label>); <span class="keyword">return</span> <label for="r63" class="ident">bn</label>, <a href="../../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r64" class="ident">x</label>) }</code></span>
+<span class="codeline" id="line-243"><code><span class="keyword">func</span> <label for="r65" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-consumeUint32" class="ident">consumeUint32</a></label>(<label for="r66" class="ident">b</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) ([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) { <label for="r67" class="ident">x</label> := <a href="xxhash_go17.go.html#line-3" class="ident">u32</a>(<label for="r66" class="ident">b</label>); <span class="keyword">return</span> <label for="r66" class="ident">b</label>[<span class="lit-number">4</span>:], <label for="r67" class="ident">x</label> }</code></span>
+<span class="codeline" id="line-244"><code><span class="keyword">func</span> <label for="r68" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-consumeUint64" class="ident">consumeUint64</a></label>(<label for="r69" class="ident">b</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) ([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) { <label for="r70" class="ident">x</label> := <a href="xxhash_go17.go.html#line-7" class="ident">u64</a>(<label for="r69" class="ident">b</label>); <span class="keyword">return</span> <label for="r69" class="ident">b</label>[<span class="lit-number">8</span>:], <label for="r70" class="ident">x</label> }</code></span>
+<span class="codeline" id="line-245"><code></code></span>
+<span class="codeline" id="line-246"><code><span class="comment">// force the compiler to use ROTL instructions</span></code></span>
+<span class="codeline" id="line-247"><code></code></span>
+<span class="codeline" id="line-248"><code><span class="keyword">func</span> <label for="r71" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-rotl32_1" class="ident">rotl32_1</a></label>(<label for="r72" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>  { <span class="keyword">return</span> (<label for="r72" class="ident">x</label> &lt;&lt; <span class="lit-number">1</span>) | (<label for="r72" class="ident">x</label> &gt;&gt; (<span class="lit-number">32</span> - <span class="lit-number">1</span>)) }</code></span>
+<span class="codeline" id="line-249"><code><span class="keyword">func</span> <label for="r73" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-rotl32_7" class="ident">rotl32_7</a></label>(<label for="r74" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>  { <span class="keyword">return</span> (<label for="r74" class="ident">x</label> &lt;&lt; <span class="lit-number">7</span>) | (<label for="r74" class="ident">x</label> &gt;&gt; (<span class="lit-number">32</span> - <span class="lit-number">7</span>)) }</code></span>
+<span class="codeline" id="line-250"><code><span class="keyword">func</span> <label for="r75" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-rotl32_11" class="ident">rotl32_11</a></label>(<label for="r76" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> { <span class="keyword">return</span> (<label for="r76" class="ident">x</label> &lt;&lt; <span class="lit-number">11</span>) | (<label for="r76" class="ident">x</label> &gt;&gt; (<span class="lit-number">32</span> - <span class="lit-number">11</span>)) }</code></span>
+<span class="codeline" id="line-251"><code><span class="keyword">func</span> <label for="r77" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-rotl32_12" class="ident">rotl32_12</a></label>(<label for="r78" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> { <span class="keyword">return</span> (<label for="r78" class="ident">x</label> &lt;&lt; <span class="lit-number">12</span>) | (<label for="r78" class="ident">x</label> &gt;&gt; (<span class="lit-number">32</span> - <span class="lit-number">12</span>)) }</code></span>
+<span class="codeline" id="line-252"><code><span class="keyword">func</span> <label for="r79" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-rotl32_13" class="ident">rotl32_13</a></label>(<label for="r80" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> { <span class="keyword">return</span> (<label for="r80" class="ident">x</label> &lt;&lt; <span class="lit-number">13</span>) | (<label for="r80" class="ident">x</label> &gt;&gt; (<span class="lit-number">32</span> - <span class="lit-number">13</span>)) }</code></span>
+<span class="codeline" id="line-253"><code><span class="keyword">func</span> <label for="r81" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-rotl32_17" class="ident">rotl32_17</a></label>(<label for="r82" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> { <span class="keyword">return</span> (<label for="r82" class="ident">x</label> &lt;&lt; <span class="lit-number">17</span>) | (<label for="r82" class="ident">x</label> &gt;&gt; (<span class="lit-number">32</span> - <span class="lit-number">17</span>)) }</code></span>
+<span class="codeline" id="line-254"><code><span class="keyword">func</span> <label for="r83" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-rotl32_18" class="ident">rotl32_18</a></label>(<label for="r84" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> { <span class="keyword">return</span> (<label for="r84" class="ident">x</label> &lt;&lt; <span class="lit-number">18</span>) | (<label for="r84" class="ident">x</label> &gt;&gt; (<span class="lit-number">32</span> - <span class="lit-number">18</span>)) }</code></span>
+<span class="codeline" id="line-255"><code></code></span>
+<span class="codeline" id="line-256"><code><span class="keyword">func</span> <label for="r85" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-rotl64_1" class="ident">rotl64_1</a></label>(<label for="r86" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>  { <span class="keyword">return</span> (<label for="r86" class="ident">x</label> &lt;&lt; <span class="lit-number">1</span>) | (<label for="r86" class="ident">x</label> &gt;&gt; (<span class="lit-number">64</span> - <span class="lit-number">1</span>)) }</code></span>
+<span class="codeline" id="line-257"><code><span class="keyword">func</span> <label for="r87" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-rotl64_7" class="ident">rotl64_7</a></label>(<label for="r88" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>  { <span class="keyword">return</span> (<label for="r88" class="ident">x</label> &lt;&lt; <span class="lit-number">7</span>) | (<label for="r88" class="ident">x</label> &gt;&gt; (<span class="lit-number">64</span> - <span class="lit-number">7</span>)) }</code></span>
+<span class="codeline" id="line-258"><code><span class="keyword">func</span> <label for="r89" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-rotl64_11" class="ident">rotl64_11</a></label>(<label for="r90" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> { <span class="keyword">return</span> (<label for="r90" class="ident">x</label> &lt;&lt; <span class="lit-number">11</span>) | (<label for="r90" class="ident">x</label> &gt;&gt; (<span class="lit-number">64</span> - <span class="lit-number">11</span>)) }</code></span>
+<span class="codeline" id="line-259"><code><span class="keyword">func</span> <label for="r91" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-rotl64_12" class="ident">rotl64_12</a></label>(<label for="r92" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> { <span class="keyword">return</span> (<label for="r92" class="ident">x</label> &lt;&lt; <span class="lit-number">12</span>) | (<label for="r92" class="ident">x</label> &gt;&gt; (<span class="lit-number">64</span> - <span class="lit-number">12</span>)) }</code></span>
+<span class="codeline" id="line-260"><code><span class="keyword">func</span> <label for="r93" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-rotl64_18" class="ident">rotl64_18</a></label>(<label for="r94" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> { <span class="keyword">return</span> (<label for="r94" class="ident">x</label> &lt;&lt; <span class="lit-number">18</span>) | (<label for="r94" class="ident">x</label> &gt;&gt; (<span class="lit-number">64</span> - <span class="lit-number">18</span>)) }</code></span>
+<span class="codeline" id="line-261"><code><span class="keyword">func</span> <label for="r95" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-rotl64_23" class="ident">rotl64_23</a></label>(<label for="r96" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> { <span class="keyword">return</span> (<label for="r96" class="ident">x</label> &lt;&lt; <span class="lit-number">23</span>) | (<label for="r96" class="ident">x</label> &gt;&gt; (<span class="lit-number">64</span> - <span class="lit-number">23</span>)) }</code></span>
+<span class="codeline" id="line-262"><code><span class="keyword">func</span> <label for="r97" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-rotl64_27" class="ident">rotl64_27</a></label>(<label for="r98" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> { <span class="keyword">return</span> (<label for="r98" class="ident">x</label> &lt;&lt; <span class="lit-number">27</span>) | (<label for="r98" class="ident">x</label> &gt;&gt; (<span class="lit-number">64</span> - <span class="lit-number">27</span>)) }</code></span>
+<span class="codeline" id="line-263"><code><span class="keyword">func</span> <label for="r99" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-rotl64_31" class="ident">rotl64_31</a></label>(<label for="r100" class="ident">x</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> { <span class="keyword">return</span> (<label for="r100" class="ident">x</label> &lt;&lt; <span class="lit-number">31</span>) | (<label for="r100" class="ident">x</label> &gt;&gt; (<span class="lit-number">64</span> - <span class="lit-number">31</span>)) }</code></span>
+<span class="codeline" id="line-264"><code></code></span>
+<span class="codeline" id="line-265"><code><span class="keyword">func</span> <label for="r101" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-mix64" class="ident">mix64</a></label>(<label for="r102" class="ident">h</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> {</code></span>
+<span class="codeline" id="line-266"><code>	<label for="r102" class="ident">h</label> ^= <label for="r102" class="ident">h</label> &gt;&gt; <span class="lit-number">33</span></code></span>
+<span class="codeline" id="line-267"><code>	<label for="r102" class="ident">h</label> *= <a href="#line-17" class="ident">prime64x2</a></code></span>
+<span class="codeline" id="line-268"><code>	<label for="r102" class="ident">h</label> ^= <label for="r102" class="ident">h</label> &gt;&gt; <span class="lit-number">29</span></code></span>
+<span class="codeline" id="line-269"><code>	<label for="r102" class="ident">h</label> *= <a href="#line-18" class="ident">prime64x3</a></code></span>
+<span class="codeline" id="line-270"><code>	<label for="r102" class="ident">h</label> ^= <label for="r102" class="ident">h</label> &gt;&gt; <span class="lit-number">32</span></code></span>
+<span class="codeline" id="line-271"><code>	<span class="keyword">return</span> <label for="r102" class="ident">h</label></code></span>
+<span class="codeline" id="line-272"><code>}</code></span>
+<span class="codeline" id="line-273"><code></code></span>
+<span class="codeline" id="line-274"><code><span class="keyword">func</span> <label for="r103" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-resetVs64" class="ident">resetVs64</a></label>(<label for="r104" class="ident">seed</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) (<label for="r105" class="ident">v1</label>, <label for="r106" class="ident">v2</label>, <label for="r107" class="ident">v3</label>, <label for="r108" class="ident">v4</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) {</code></span>
+<span class="codeline" id="line-275"><code>	<span class="keyword">if</span> <label for="r104" class="ident">seed</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-276"><code>		<span class="keyword">return</span> <a href="#line-25" class="ident">zero64x1</a>, <a href="#line-26" class="ident">zero64x2</a>, <a href="#line-27" class="ident">zero64x3</a>, <a href="#line-28" class="ident">zero64x4</a></code></span>
+<span class="codeline" id="line-277"><code>	}</code></span>
+<span class="codeline" id="line-278"><code>	<span class="keyword">return</span> (<label for="r104" class="ident">seed</label> + <a href="#line-16" class="ident">prime64x1</a> + <a href="#line-17" class="ident">prime64x2</a>), (<label for="r104" class="ident">seed</label> + <a href="#line-17" class="ident">prime64x2</a>), (<label for="r104" class="ident">seed</label>), (<label for="r104" class="ident">seed</label> - <a href="#line-16" class="ident">prime64x1</a>)</code></span>
+<span class="codeline" id="line-279"><code>}</code></span>
+<span class="codeline" id="line-280"><code></code></span>
+<span class="codeline" id="line-281"><code><span class="comment">// borrowed from cespare</span></code></span>
+<span class="codeline" id="line-282"><code><span class="keyword">func</span> <label for="r109" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-round64" class="ident">round64</a></label>(<label for="r110" class="ident">h</label>, <label for="r111" class="ident">v</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> {</code></span>
+<span class="codeline" id="line-283"><code>	<label for="r110" class="ident">h</label> += <label for="r111" class="ident">v</label> * <a href="#line-17" class="ident">prime64x2</a></code></span>
+<span class="codeline" id="line-284"><code>	<label for="r110" class="ident">h</label> = <a href="#line-263" class="ident">rotl64_31</a>(<label for="r110" class="ident">h</label>)</code></span>
+<span class="codeline" id="line-285"><code>	<label for="r110" class="ident">h</label> *= <a href="#line-16" class="ident">prime64x1</a></code></span>
+<span class="codeline" id="line-286"><code>	<span class="keyword">return</span> <label for="r110" class="ident">h</label></code></span>
+<span class="codeline" id="line-287"><code>}</code></span>
+<span class="codeline" id="line-288"><code></code></span>
+<span class="codeline" id="line-289"><code><span class="keyword">func</span> <label for="r112" class="ident"><a href="../../../../pkg/github.com/OneOfOne*b2a11/xxhash.html#name-mergeRound64" class="ident">mergeRound64</a></label>(<label for="r113" class="ident">h</label>, <label for="r114" class="ident">v</label> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> {</code></span>
+<span class="codeline" id="line-290"><code>	<label for="r114" class="ident">v</label> = <a href="#line-282" class="ident">round64</a>(<span class="lit-number">0</span>, <label for="r114" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-291"><code>	<label for="r113" class="ident">h</label> ^= <label for="r114" class="ident">v</label></code></span>
+<span class="codeline" id="line-292"><code>	<label for="r113" class="ident">h</label> = <label for="r113" class="ident">h</label>*<a href="#line-16" class="ident">prime64x1</a> + <a href="#line-19" class="ident">prime64x4</a></code></span>
+<span class="codeline" id="line-293"><code>	<span class="keyword">return</span> <label for="r113" class="ident">h</label></code></span>
+<span class="codeline" id="line-294"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

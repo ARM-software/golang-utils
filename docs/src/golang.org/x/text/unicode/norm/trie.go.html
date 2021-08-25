@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: trie.go in package golang.org/x/text/unicode/norm</title>
+<link href="../../../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	trie.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html">golang.org/x/text/unicode/norm</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> norm</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-valueRange" class="ident">valueRange</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-8"><code>	value  <a href="../../../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a> <span class="comment">// header: value:stride</span></code></span>
+<span class="codeline" id="line-9"><code>	lo, hi <a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>   <span class="comment">// header: lo:n</span></code></span>
+<span class="codeline" id="line-10"><code>}</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-sparseBlocks" class="ident">sparseBlocks</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-13"><code>	values []<a href="#line-7" class="ident">valueRange</a></code></span>
+<span class="codeline" id="line-14"><code>	offset []<a href="../../../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a></code></span>
+<span class="codeline" id="line-15"><code>}</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">var</span> <a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-nfcSparse" class="ident">nfcSparse</a> = <a href="#line-12" class="ident">sparseBlocks</a>{</code></span>
+<span class="codeline" id="line-18"><code>	<a href="#line-13" class="ident">values</a>: <a href="tables13.0.0.go.html#line-3550" class="ident">nfcSparseValues</a>[:],</code></span>
+<span class="codeline" id="line-19"><code>	<a href="#line-14" class="ident">offset</a>: <a href="tables13.0.0.go.html#line-3547" class="ident">nfcSparseOffset</a>[:],</code></span>
+<span class="codeline" id="line-20"><code>}</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">var</span> <a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-nfkcSparse" class="ident">nfkcSparse</a> = <a href="#line-12" class="ident">sparseBlocks</a>{</code></span>
+<span class="codeline" id="line-23"><code>	<a href="#line-13" class="ident">values</a>: <a href="tables13.0.0.go.html#line-5745" class="ident">nfkcSparseValues</a>[:],</code></span>
+<span class="codeline" id="line-24"><code>	<a href="#line-14" class="ident">offset</a>: <a href="tables13.0.0.go.html#line-5742" class="ident">nfkcSparseOffset</a>[:],</code></span>
+<span class="codeline" id="line-25"><code>}</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-28"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-nfcData" class="ident">nfcData</a>  = <a href="tables13.0.0.go.html#line-2908" class="ident">newNfcTrie</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-nfkcData" class="ident">nfkcData</a> = <a href="tables13.0.0.go.html#line-4586" class="ident">newNfkcTrie</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-30"><code>)</code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// lookupValue determines the type of block n and looks up the value for b.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// For n &lt; t.cutoff, the block is a simple lookup table. Otherwise, the block</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// is a list of ranges with an accompanying value. Given a matching range r,</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// the value for b is by r.value + (b - r.lo) * stride.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">func</span> (<label for="r0" class="ident">t</label> *<a href="#line-12" class="ident">sparseBlocks</a>) <label for="r1" class="ident">lookup</label>(<label for="r2" class="ident">n</label> <a href="../../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r3" class="ident">b</label> <a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a> {</code></span>
+<span class="codeline" id="line-37"><code>	<label for="r4" class="ident">offset</label> := <label for="r0" class="ident">t</label>.<a href="#line-14" class="ident">offset</a>[<label for="r2" class="ident">n</label>]</code></span>
+<span class="codeline" id="line-38"><code>	<label for="r5" class="ident">header</label> := <label for="r0" class="ident">t</label>.<a href="#line-13" class="ident">values</a>[<label for="r4" class="ident">offset</label>]</code></span>
+<span class="codeline" id="line-39"><code>	<label for="r6" class="ident">lo</label> := <label for="r4" class="ident">offset</label> + <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-40"><code>	<label for="r7" class="ident">hi</label> := <label for="r6" class="ident">lo</label> + <a href="../../../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r5" class="ident">header</label>.<a href="#line-9" class="ident">lo</a>)</code></span>
+<span class="codeline" id="line-41"><code>	<span class="keyword">for</span> <label for="r6" class="ident">lo</label> &lt; <label for="r7" class="ident">hi</label> {</code></span>
+<span class="codeline" id="line-42"><code>		<label for="r8" class="ident">m</label> := <label for="r6" class="ident">lo</label> + (<label for="r7" class="ident">hi</label>-<label for="r6" class="ident">lo</label>)/<span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-43"><code>		<label for="r9" class="ident">r</label> := <label for="r0" class="ident">t</label>.<a href="#line-13" class="ident">values</a>[<label for="r8" class="ident">m</label>]</code></span>
+<span class="codeline" id="line-44"><code>		<span class="keyword">if</span> <label for="r9" class="ident">r</label>.<a href="#line-9" class="ident">lo</a> &lt;= <label for="r3" class="ident">b</label> &amp;&amp; <label for="r3" class="ident">b</label> &lt;= <label for="r9" class="ident">r</label>.<a href="#line-9" class="ident">hi</a> {</code></span>
+<span class="codeline" id="line-45"><code>			<span class="keyword">return</span> <label for="r9" class="ident">r</label>.<a href="#line-8" class="ident">value</a> + <a href="../../../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r3" class="ident">b</label>-<label for="r9" class="ident">r</label>.<a href="#line-9" class="ident">lo</a>)*<label for="r5" class="ident">header</label>.<a href="#line-8" class="ident">value</a></code></span>
+<span class="codeline" id="line-46"><code>		}</code></span>
+<span class="codeline" id="line-47"><code>		<span class="keyword">if</span> <label for="r3" class="ident">b</label> &lt; <label for="r9" class="ident">r</label>.<a href="#line-9" class="ident">lo</a> {</code></span>
+<span class="codeline" id="line-48"><code>			<label for="r7" class="ident">hi</label> = <label for="r8" class="ident">m</label></code></span>
+<span class="codeline" id="line-49"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-50"><code>			<label for="r6" class="ident">lo</label> = <label for="r8" class="ident">m</label> + <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-51"><code>		}</code></span>
+<span class="codeline" id="line-52"><code>	}</code></span>
+<span class="codeline" id="line-53"><code>	<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-54"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

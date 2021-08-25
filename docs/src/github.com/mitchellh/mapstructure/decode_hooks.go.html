@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: decode_hooks.go in package github.com/mitchellh/mapstructure</title>
+<link href="../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	decode_hooks.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/github.com/mitchellh/mapstructure.html">github.com/mitchellh/mapstructure</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> mapstructure</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"encoding"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"errors"</span></label></code></span>
+<span class="codeline" id="line-6"><code>	<label for="i2"><span class="lit-string i2">"fmt"</span></label></code></span>
+<span class="codeline" id="line-7"><code>	<label for="i3"><span class="lit-string i3">"net"</span></label></code></span>
+<span class="codeline" id="line-8"><code>	<label for="i4"><span class="lit-string i4">"reflect"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i5"><span class="lit-string i5">"strconv"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i6"><span class="lit-string i6">"strings"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i7"><span class="lit-string i7">"time"</span></label></code></span>
+<span class="codeline" id="line-12"><code>)</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// typedDecodeHook takes a raw DecodeHookFunc (an interface{}) and turns</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// it into the proper DecodeHookFunc type, such as DecodeHookFuncType.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../pkg/github.com/mitchellh/mapstructure.html#name-typedDecodeHook" class="ident">typedDecodeHook</a></label>(<label for="r1" class="ident">h</label> <a href="mapstructure.go.html#line-185" class="ident">DecodeHookFunc</a>) <a href="mapstructure.go.html#line-185" class="ident">DecodeHookFunc</a> {</code></span>
+<span class="codeline" id="line-17"><code>	<span class="comment">// Create variables here so we can reference them with the reflect pkg</span></code></span>
+<span class="codeline" id="line-18"><code>	<span class="keyword">var</span> <label for="r2" class="ident">f1</label> <a href="mapstructure.go.html#line-189" class="ident">DecodeHookFuncType</a></code></span>
+<span class="codeline" id="line-19"><code>	<span class="keyword">var</span> <label for="r3" class="ident">f2</label> <a href="mapstructure.go.html#line-193" class="ident">DecodeHookFuncKind</a></code></span>
+<span class="codeline" id="line-20"><code>	<span class="keyword">var</span> <label for="r4" class="ident">f3</label> <a href="mapstructure.go.html#line-197" class="ident">DecodeHookFuncValue</a></code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code>	<span class="comment">// Fill in the variables into this interface and the rest is done</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	// automatically using the reflect package.</span></code></span>
+<span class="codeline" id="line-24"><code>	<label for="r5" class="ident">potential</label> := []<span class="keyword">interface</span>{}{<label for="r2" class="ident">f1</label>, <label for="r3" class="ident">f2</label>, <label for="r4" class="ident">f3</label>}</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code>	<label for="r6" class="ident">v</label> := <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/value.go.html#line-2351" class="ident">ValueOf</a>(<label for="r1" class="ident">h</label>)</code></span>
+<span class="codeline" id="line-27"><code>	<label for="r7" class="ident">vt</label> := <label for="r6" class="ident">v</label>.<a href="../../../reflect/value.go.html#line-1905" class="ident">Type</a>()</code></span>
+<span class="codeline" id="line-28"><code>	<span class="keyword">for</span> <label for="r8" class="ident">_</label>, <label for="r9" class="ident">raw</label> := <span class="keyword">range</span> <label for="r5" class="ident">potential</label> {</code></span>
+<span class="codeline" id="line-29"><code>		<label for="r10" class="ident">pt</label> := <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/value.go.html#line-2351" class="ident">ValueOf</a>(<label for="r9" class="ident">raw</label>).<a href="../../../reflect/value.go.html#line-1905" class="ident">Type</a>()</code></span>
+<span class="codeline" id="line-30"><code>		<span class="keyword">if</span> <label for="r7" class="ident">vt</label>.<a href="../../../reflect/type.go.html#line-109" class="ident">ConvertibleTo</a>(<label for="r10" class="ident">pt</label>) {</code></span>
+<span class="codeline" id="line-31"><code>			<span class="keyword">return</span> <label for="r6" class="ident">v</label>.<a href="../../../reflect/value.go.html#line-2457" class="ident">Convert</a>(<label for="r10" class="ident">pt</label>).<a href="../../../reflect/value.go.html#line-1015" class="ident">Interface</a>()</code></span>
+<span class="codeline" id="line-32"><code>		}</code></span>
+<span class="codeline" id="line-33"><code>	}</code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-36"><code>}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// DecodeHookExec executes the given decode hook. This should be used</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// since it'll naturally degrade to the older backwards compatible DecodeHookFunc</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// that took reflect.Kind instead of reflect.Type.</span></code></span>
+<span class="codeline" id="line-41"><code><span class="keyword">func</span> <label for="r11" class="ident"><a href="../../../../pkg/github.com/mitchellh/mapstructure.html#name-DecodeHookExec" class="ident">DecodeHookExec</a></label>(</code></span>
+<span class="codeline" id="line-42"><code>	<label for="r12" class="ident">raw</label> <a href="mapstructure.go.html#line-185" class="ident">DecodeHookFunc</a>,</code></span>
+<span class="codeline" id="line-43"><code>	<label for="r13" class="ident">from</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/value.go.html#line-37" class="ident">Value</a>, <label for="r14" class="ident">to</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/value.go.html#line-37" class="ident">Value</a>) (<span class="keyword">interface</span>{}, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">switch</span> f := <a href="#line-16" class="ident">typedDecodeHook</a>(<label for="r12" class="ident">raw</label>).(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-46"><code>	<span class="keyword">case</span> <a href="mapstructure.go.html#line-189" class="ident">DecodeHookFuncType</a>:</code></span>
+<span class="codeline" id="line-47"><code>		<span class="keyword">return</span> <label for="r15" class="ident">f</label>(<label for="r13" class="ident">from</label>.<a href="../../../reflect/value.go.html#line-1905" class="ident">Type</a>(), <label for="r14" class="ident">to</label>.<a href="../../../reflect/value.go.html#line-1905" class="ident">Type</a>(), <label for="r13" class="ident">from</label>.<a href="../../../reflect/value.go.html#line-1015" class="ident">Interface</a>())</code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">case</span> <a href="mapstructure.go.html#line-193" class="ident">DecodeHookFuncKind</a>:</code></span>
+<span class="codeline" id="line-49"><code>		<span class="keyword">return</span> <label for="r16" class="ident">f</label>(<label for="r13" class="ident">from</label>.<a href="../../../reflect/value.go.html#line-1140" class="ident">Kind</a>(), <label for="r14" class="ident">to</label>.<a href="../../../reflect/value.go.html#line-1140" class="ident">Kind</a>(), <label for="r13" class="ident">from</label>.<a href="../../../reflect/value.go.html#line-1015" class="ident">Interface</a>())</code></span>
+<span class="codeline" id="line-50"><code>	<span class="keyword">case</span> <a href="mapstructure.go.html#line-197" class="ident">DecodeHookFuncValue</a>:</code></span>
+<span class="codeline" id="line-51"><code>		<span class="keyword">return</span> <label for="r17" class="ident">f</label>(<label for="r13" class="ident">from</label>, <label for="r14" class="ident">to</label>)</code></span>
+<span class="codeline" id="line-52"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-53"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"invalid decode hook signature"</span>)</code></span>
+<span class="codeline" id="line-54"><code>	}</code></span>
+<span class="codeline" id="line-55"><code>}</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// ComposeDecodeHookFunc creates a single DecodeHookFunc that</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// automatically composes multiple DecodeHookFuncs.</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// The composed funcs are called in order, with the result of the</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">// previous transformation.</span></code></span>
+<span class="codeline" id="line-62"><code><span class="keyword">func</span> <label for="r18" class="ident"><a href="../../../../pkg/github.com/mitchellh/mapstructure.html#name-ComposeDecodeHookFunc" class="ident">ComposeDecodeHookFunc</a></label>(<label for="r19" class="ident">fs</label> ...<a href="mapstructure.go.html#line-185" class="ident">DecodeHookFunc</a>) <a href="mapstructure.go.html#line-185" class="ident">DecodeHookFunc</a> {</code></span>
+<span class="codeline" id="line-63"><code>	<span class="keyword">return</span> <span class="keyword">func</span>(<label for="r20" class="ident">f</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/value.go.html#line-37" class="ident">Value</a>, <label for="r21" class="ident">t</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/value.go.html#line-37" class="ident">Value</a>) (<span class="keyword">interface</span>{}, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-64"><code>		<span class="keyword">var</span> <label for="r22" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-65"><code>		<span class="keyword">var</span> <label for="r23" class="ident">data</label> <span class="keyword">interface</span>{}</code></span>
+<span class="codeline" id="line-66"><code>		<label for="r24" class="ident">newFrom</label> := <label for="r20" class="ident">f</label></code></span>
+<span class="codeline" id="line-67"><code>		<span class="keyword">for</span> <label for="r25" class="ident">_</label>, <label for="r26" class="ident">f1</label> := <span class="keyword">range</span> <label for="r19" class="ident">fs</label> {</code></span>
+<span class="codeline" id="line-68"><code>			<label for="r23" class="ident">data</label>, <label for="r22" class="ident">err</label> = <a href="#line-41" class="ident">DecodeHookExec</a>(<label for="r26" class="ident">f1</label>, <label for="r24" class="ident">newFrom</label>, <label for="r21" class="ident">t</label>)</code></span>
+<span class="codeline" id="line-69"><code>			<span class="keyword">if</span> <label for="r22" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-70"><code>				<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r22" class="ident">err</label></code></span>
+<span class="codeline" id="line-71"><code>			}</code></span>
+<span class="codeline" id="line-72"><code>			<label for="r24" class="ident">newFrom</label> = <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/value.go.html#line-2351" class="ident">ValueOf</a>(<label for="r23" class="ident">data</label>)</code></span>
+<span class="codeline" id="line-73"><code>		}</code></span>
+<span class="codeline" id="line-74"><code></code></span>
+<span class="codeline" id="line-75"><code>		<span class="keyword">return</span> <label for="r23" class="ident">data</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-76"><code>	}</code></span>
+<span class="codeline" id="line-77"><code>}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// StringToSliceHookFunc returns a DecodeHookFunc that converts</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// string to []string by splitting on the given sep.</span></code></span>
+<span class="codeline" id="line-81"><code><span class="keyword">func</span> <label for="r27" class="ident"><a href="../../../../pkg/github.com/mitchellh/mapstructure.html#name-StringToSliceHookFunc" class="ident">StringToSliceHookFunc</a></label>(<label for="r28" class="ident">sep</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="mapstructure.go.html#line-185" class="ident">DecodeHookFunc</a> {</code></span>
+<span class="codeline" id="line-82"><code>	<span class="keyword">return</span> <span class="keyword">func</span>(</code></span>
+<span class="codeline" id="line-83"><code>		<label for="r29" class="ident">f</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-232" class="ident">Kind</a>,</code></span>
+<span class="codeline" id="line-84"><code>		<label for="r30" class="ident">t</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-232" class="ident">Kind</a>,</code></span>
+<span class="codeline" id="line-85"><code>		<label for="r31" class="ident">data</label> <span class="keyword">interface</span>{}) (<span class="keyword">interface</span>{}, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-86"><code>		<span class="keyword">if</span> <label for="r29" class="ident">f</label> != <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-259" class="ident">String</a> || <label for="r30" class="ident">t</label> != <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-258" class="ident">Slice</a> {</code></span>
+<span class="codeline" id="line-87"><code>			<span class="keyword">return</span> <label for="r31" class="ident">data</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-88"><code>		}</code></span>
+<span class="codeline" id="line-89"><code></code></span>
+<span class="codeline" id="line-90"><code>		<label for="r32" class="ident">raw</label> := <label for="r31" class="ident">data</label>.(<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-91"><code>		<span class="keyword">if</span> <label for="r32" class="ident">raw</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-92"><code>			<span class="keyword">return</span> []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{}, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-93"><code>		}</code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code>		<span class="keyword">return</span> <a href="../../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../../strings/strings.go.html#line-299" class="ident">Split</a>(<label for="r32" class="ident">raw</label>, <label for="r28" class="ident">sep</label>), <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-96"><code>	}</code></span>
+<span class="codeline" id="line-97"><code>}</code></span>
+<span class="codeline" id="line-98"><code></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">// StringToTimeDurationHookFunc returns a DecodeHookFunc that converts</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">// strings to time.Duration.</span></code></span>
+<span class="codeline" id="line-101"><code><span class="keyword">func</span> <label for="r33" class="ident"><a href="../../../../pkg/github.com/mitchellh/mapstructure.html#name-StringToTimeDurationHookFunc" class="ident">StringToTimeDurationHookFunc</a></label>() <a href="mapstructure.go.html#line-185" class="ident">DecodeHookFunc</a> {</code></span>
+<span class="codeline" id="line-102"><code>	<span class="keyword">return</span> <span class="keyword">func</span>(</code></span>
+<span class="codeline" id="line-103"><code>		<label for="r34" class="ident">f</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-38" class="ident">Type</a>,</code></span>
+<span class="codeline" id="line-104"><code>		<label for="r35" class="ident">t</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-38" class="ident">Type</a>,</code></span>
+<span class="codeline" id="line-105"><code>		<label for="r36" class="ident">data</label> <span class="keyword">interface</span>{}) (<span class="keyword">interface</span>{}, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-106"><code>		<span class="keyword">if</span> <label for="r34" class="ident">f</label>.<a href="../../../reflect/type.go.html#line-100" class="ident">Kind</a>() != <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-259" class="ident">String</a> {</code></span>
+<span class="codeline" id="line-107"><code>			<span class="keyword">return</span> <label for="r36" class="ident">data</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-108"><code>		}</code></span>
+<span class="codeline" id="line-109"><code>		<span class="keyword">if</span> <label for="r35" class="ident">t</label> != <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-1368" class="ident">TypeOf</a>(<a href="../../../../pkg/time.html" class="ident i7">time</a>.<a href="../../../time/time.go.html#line-583" class="ident">Duration</a>(<span class="lit-number">5</span>)) {</code></span>
+<span class="codeline" id="line-110"><code>			<span class="keyword">return</span> <label for="r36" class="ident">data</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-111"><code>		}</code></span>
+<span class="codeline" id="line-112"><code></code></span>
+<span class="codeline" id="line-113"><code>		<span class="comment">// Convert it by parsing</span></code></span>
+<span class="codeline" id="line-114"><code>		<span class="keyword">return</span> <a href="../../../../pkg/time.html" class="ident i7">time</a>.<a href="../../../time/format.go.html#line-1374" class="ident">ParseDuration</a>(<label for="r36" class="ident">data</label>.(<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>))</code></span>
+<span class="codeline" id="line-115"><code>	}</code></span>
+<span class="codeline" id="line-116"><code>}</code></span>
+<span class="codeline" id="line-117"><code></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">// StringToIPHookFunc returns a DecodeHookFunc that converts</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">// strings to net.IP</span></code></span>
+<span class="codeline" id="line-120"><code><span class="keyword">func</span> <label for="r37" class="ident"><a href="../../../../pkg/github.com/mitchellh/mapstructure.html#name-StringToIPHookFunc" class="ident">StringToIPHookFunc</a></label>() <a href="mapstructure.go.html#line-185" class="ident">DecodeHookFunc</a> {</code></span>
+<span class="codeline" id="line-121"><code>	<span class="keyword">return</span> <span class="keyword">func</span>(</code></span>
+<span class="codeline" id="line-122"><code>		<label for="r38" class="ident">f</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-38" class="ident">Type</a>,</code></span>
+<span class="codeline" id="line-123"><code>		<label for="r39" class="ident">t</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-38" class="ident">Type</a>,</code></span>
+<span class="codeline" id="line-124"><code>		<label for="r40" class="ident">data</label> <span class="keyword">interface</span>{}) (<span class="keyword">interface</span>{}, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-125"><code>		<span class="keyword">if</span> <label for="r38" class="ident">f</label>.<a href="../../../reflect/type.go.html#line-100" class="ident">Kind</a>() != <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-259" class="ident">String</a> {</code></span>
+<span class="codeline" id="line-126"><code>			<span class="keyword">return</span> <label for="r40" class="ident">data</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-127"><code>		}</code></span>
+<span class="codeline" id="line-128"><code>		<span class="keyword">if</span> <label for="r39" class="ident">t</label> != <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-1368" class="ident">TypeOf</a>(<a href="../../../../pkg/net.html" class="ident i3">net</a>.<a href="../../../net/ip.go.html#line-32" class="ident">IP</a>{}) {</code></span>
+<span class="codeline" id="line-129"><code>			<span class="keyword">return</span> <label for="r40" class="ident">data</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-130"><code>		}</code></span>
+<span class="codeline" id="line-131"><code></code></span>
+<span class="codeline" id="line-132"><code>		<span class="comment">// Convert it by parsing</span></code></span>
+<span class="codeline" id="line-133"><code>		<label for="r41" class="ident">ip</label> := <a href="../../../../pkg/net.html" class="ident i3">net</a>.<a href="../../../net/ip.go.html#line-678" class="ident">ParseIP</a>(<label for="r40" class="ident">data</label>.(<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>))</code></span>
+<span class="codeline" id="line-134"><code>		<span class="keyword">if</span> <label for="r41" class="ident">ip</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-135"><code>			<span class="keyword">return</span> <a href="../../../../pkg/net.html" class="ident i3">net</a>.<a href="../../../net/ip.go.html#line-32" class="ident">IP</a>{}, <a href="../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"failed parsing ip %v"</span>, <label for="r40" class="ident">data</label>)</code></span>
+<span class="codeline" id="line-136"><code>		}</code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code>		<span class="keyword">return</span> <label for="r41" class="ident">ip</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-139"><code>	}</code></span>
+<span class="codeline" id="line-140"><code>}</code></span>
+<span class="codeline" id="line-141"><code></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">// StringToIPNetHookFunc returns a DecodeHookFunc that converts</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">// strings to net.IPNet</span></code></span>
+<span class="codeline" id="line-144"><code><span class="keyword">func</span> <label for="r42" class="ident"><a href="../../../../pkg/github.com/mitchellh/mapstructure.html#name-StringToIPNetHookFunc" class="ident">StringToIPNetHookFunc</a></label>() <a href="mapstructure.go.html#line-185" class="ident">DecodeHookFunc</a> {</code></span>
+<span class="codeline" id="line-145"><code>	<span class="keyword">return</span> <span class="keyword">func</span>(</code></span>
+<span class="codeline" id="line-146"><code>		<label for="r43" class="ident">f</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-38" class="ident">Type</a>,</code></span>
+<span class="codeline" id="line-147"><code>		<label for="r44" class="ident">t</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-38" class="ident">Type</a>,</code></span>
+<span class="codeline" id="line-148"><code>		<label for="r45" class="ident">data</label> <span class="keyword">interface</span>{}) (<span class="keyword">interface</span>{}, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-149"><code>		<span class="keyword">if</span> <label for="r43" class="ident">f</label>.<a href="../../../reflect/type.go.html#line-100" class="ident">Kind</a>() != <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-259" class="ident">String</a> {</code></span>
+<span class="codeline" id="line-150"><code>			<span class="keyword">return</span> <label for="r45" class="ident">data</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-151"><code>		}</code></span>
+<span class="codeline" id="line-152"><code>		<span class="keyword">if</span> <label for="r44" class="ident">t</label> != <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-1368" class="ident">TypeOf</a>(<a href="../../../../pkg/net.html" class="ident i3">net</a>.<a href="../../../net/ip.go.html#line-41" class="ident">IPNet</a>{}) {</code></span>
+<span class="codeline" id="line-153"><code>			<span class="keyword">return</span> <label for="r45" class="ident">data</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-154"><code>		}</code></span>
+<span class="codeline" id="line-155"><code></code></span>
+<span class="codeline" id="line-156"><code>		<span class="comment">// Convert it by parsing</span></code></span>
+<span class="codeline" id="line-157"><code>		<label for="r46" class="ident">_</label>, <label for="r47" class="ident">net</label>, <label for="r48" class="ident">err</label> := <a href="../../../../pkg/net.html" class="ident i3">net</a>.<a href="../../../net/ip.go.html#line-712" class="ident">ParseCIDR</a>(<label for="r45" class="ident">data</label>.(<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>))</code></span>
+<span class="codeline" id="line-158"><code>		<span class="keyword">return</span> <label for="r47" class="ident">net</label>, <label for="r48" class="ident">err</label></code></span>
+<span class="codeline" id="line-159"><code>	}</code></span>
+<span class="codeline" id="line-160"><code>}</code></span>
+<span class="codeline" id="line-161"><code></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">// StringToTimeHookFunc returns a DecodeHookFunc that converts</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">// strings to time.Time.</span></code></span>
+<span class="codeline" id="line-164"><code><span class="keyword">func</span> <label for="r49" class="ident"><a href="../../../../pkg/github.com/mitchellh/mapstructure.html#name-StringToTimeHookFunc" class="ident">StringToTimeHookFunc</a></label>(<label for="r50" class="ident">layout</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="mapstructure.go.html#line-185" class="ident">DecodeHookFunc</a> {</code></span>
+<span class="codeline" id="line-165"><code>	<span class="keyword">return</span> <span class="keyword">func</span>(</code></span>
+<span class="codeline" id="line-166"><code>		<label for="r51" class="ident">f</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-38" class="ident">Type</a>,</code></span>
+<span class="codeline" id="line-167"><code>		<label for="r52" class="ident">t</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-38" class="ident">Type</a>,</code></span>
+<span class="codeline" id="line-168"><code>		<label for="r53" class="ident">data</label> <span class="keyword">interface</span>{}) (<span class="keyword">interface</span>{}, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-169"><code>		<span class="keyword">if</span> <label for="r51" class="ident">f</label>.<a href="../../../reflect/type.go.html#line-100" class="ident">Kind</a>() != <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-259" class="ident">String</a> {</code></span>
+<span class="codeline" id="line-170"><code>			<span class="keyword">return</span> <label for="r53" class="ident">data</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-171"><code>		}</code></span>
+<span class="codeline" id="line-172"><code>		<span class="keyword">if</span> <label for="r52" class="ident">t</label> != <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-1368" class="ident">TypeOf</a>(<a href="../../../../pkg/time.html" class="ident i7">time</a>.<a href="../../../time/time.go.html#line-127" class="ident">Time</a>{}) {</code></span>
+<span class="codeline" id="line-173"><code>			<span class="keyword">return</span> <label for="r53" class="ident">data</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-174"><code>		}</code></span>
+<span class="codeline" id="line-175"><code></code></span>
+<span class="codeline" id="line-176"><code>		<span class="comment">// Convert it by parsing</span></code></span>
+<span class="codeline" id="line-177"><code>		<span class="keyword">return</span> <a href="../../../../pkg/time.html" class="ident i7">time</a>.<a href="../../../time/format.go.html#line-814" class="ident">Parse</a>(<label for="r50" class="ident">layout</label>, <label for="r53" class="ident">data</label>.(<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>))</code></span>
+<span class="codeline" id="line-178"><code>	}</code></span>
+<span class="codeline" id="line-179"><code>}</code></span>
+<span class="codeline" id="line-180"><code></code></span>
+<span class="codeline" id="line-181"><code><span class="comment">// WeaklyTypedHook is a DecodeHookFunc which adds support for weak typing to</span></code></span>
+<span class="codeline" id="line-182"><code><span class="comment">// the decoder.</span></code></span>
+<span class="codeline" id="line-183"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-184"><code><span class="comment">// Note that this is significantly different from the WeaklyTypedInput option</span></code></span>
+<span class="codeline" id="line-185"><code><span class="comment">// of the DecoderConfig.</span></code></span>
+<span class="codeline" id="line-186"><code><span class="keyword">func</span> <label for="r54" class="ident"><a href="../../../../pkg/github.com/mitchellh/mapstructure.html#name-WeaklyTypedHook" class="ident">WeaklyTypedHook</a></label>(</code></span>
+<span class="codeline" id="line-187"><code>	<label for="r55" class="ident">f</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-232" class="ident">Kind</a>,</code></span>
+<span class="codeline" id="line-188"><code>	<label for="r56" class="ident">t</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-232" class="ident">Kind</a>,</code></span>
+<span class="codeline" id="line-189"><code>	<label for="r57" class="ident">data</label> <span class="keyword">interface</span>{}) (<span class="keyword">interface</span>{}, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-190"><code>	<label for="r58" class="ident">dataVal</label> := <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/value.go.html#line-2351" class="ident">ValueOf</a>(<label for="r57" class="ident">data</label>)</code></span>
+<span class="codeline" id="line-191"><code>	<span class="keyword">switch</span> <label for="r56" class="ident">t</label> {</code></span>
+<span class="codeline" id="line-192"><code>	<span class="keyword">case</span> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-259" class="ident">String</a>:</code></span>
+<span class="codeline" id="line-193"><code>		<span class="keyword">switch</span> <label for="r55" class="ident">f</label> {</code></span>
+<span class="codeline" id="line-194"><code>		<span class="keyword">case</span> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-236" class="ident">Bool</a>:</code></span>
+<span class="codeline" id="line-195"><code>			<span class="keyword">if</span> <label for="r58" class="ident">dataVal</label>.<a href="../../../reflect/value.go.html#line-281" class="ident">Bool</a>() {</code></span>
+<span class="codeline" id="line-196"><code>				<span class="keyword">return</span> <span class="lit-string">"1"</span>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-197"><code>			}</code></span>
+<span class="codeline" id="line-198"><code>			<span class="keyword">return</span> <span class="lit-string">"0"</span>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-199"><code>		<span class="keyword">case</span> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-248" class="ident">Float32</a>:</code></span>
+<span class="codeline" id="line-200"><code>			<span class="keyword">return</span> <a href="../../../../pkg/strconv.html" class="ident i5">strconv</a>.<a href="../../../strconv/ftoa.go.html#line-47" class="ident">FormatFloat</a>(<label for="r58" class="ident">dataVal</label>.<a href="../../../reflect/value.go.html#line-923" class="ident">Float</a>(), <span class="lit-number">'f'</span>, -<span class="lit-number">1</span>, <span class="lit-number">64</span>), <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-201"><code>		<span class="keyword">case</span> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-237" class="ident">Int</a>:</code></span>
+<span class="codeline" id="line-202"><code>			<span class="keyword">return</span> <a href="../../../../pkg/strconv.html" class="ident i5">strconv</a>.<a href="../../../strconv/itoa.go.html#line-25" class="ident">FormatInt</a>(<label for="r58" class="ident">dataVal</label>.<a href="../../../reflect/value.go.html#line-984" class="ident">Int</a>(), <span class="lit-number">10</span>), <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-203"><code>		<span class="keyword">case</span> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-258" class="ident">Slice</a>:</code></span>
+<span class="codeline" id="line-204"><code>			<label for="r59" class="ident">dataType</label> := <label for="r58" class="ident">dataVal</label>.<a href="../../../reflect/value.go.html#line-1905" class="ident">Type</a>()</code></span>
+<span class="codeline" id="line-205"><code>			<label for="r60" class="ident">elemKind</label> := <label for="r59" class="ident">dataType</label>.<a href="../../../reflect/type.go.html#line-151" class="ident">Elem</a>().<a href="../../../reflect/type.go.html#line-100" class="ident">Kind</a>()</code></span>
+<span class="codeline" id="line-206"><code>			<span class="keyword">if</span> <label for="r60" class="ident">elemKind</label> == <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-243" class="ident">Uint8</a> {</code></span>
+<span class="codeline" id="line-207"><code>				<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r58" class="ident">dataVal</label>.<a href="../../../reflect/value.go.html#line-1015" class="ident">Interface</a>().([]<a href="../../../../pkg/builtin.html#name-uint8" class="ident">uint8</a>)), <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-208"><code>			}</code></span>
+<span class="codeline" id="line-209"><code>		<span class="keyword">case</span> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-242" class="ident">Uint</a>:</code></span>
+<span class="codeline" id="line-210"><code>			<span class="keyword">return</span> <a href="../../../../pkg/strconv.html" class="ident i5">strconv</a>.<a href="../../../strconv/itoa.go.html#line-14" class="ident">FormatUint</a>(<label for="r58" class="ident">dataVal</label>.<a href="../../../reflect/value.go.html#line-1938" class="ident">Uint</a>(), <span class="lit-number">10</span>), <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-211"><code>		}</code></span>
+<span class="codeline" id="line-212"><code>	}</code></span>
+<span class="codeline" id="line-213"><code></code></span>
+<span class="codeline" id="line-214"><code>	<span class="keyword">return</span> <label for="r57" class="ident">data</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-215"><code>}</code></span>
+<span class="codeline" id="line-216"><code></code></span>
+<span class="codeline" id="line-217"><code><span class="keyword">func</span> <label for="r61" class="ident"><a href="../../../../pkg/github.com/mitchellh/mapstructure.html#name-RecursiveStructToMapHookFunc" class="ident">RecursiveStructToMapHookFunc</a></label>() <a href="mapstructure.go.html#line-185" class="ident">DecodeHookFunc</a> {</code></span>
+<span class="codeline" id="line-218"><code>	<span class="keyword">return</span> <span class="keyword">func</span>(<label for="r62" class="ident">f</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/value.go.html#line-37" class="ident">Value</a>, <label for="r63" class="ident">t</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/value.go.html#line-37" class="ident">Value</a>) (<span class="keyword">interface</span>{}, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-219"><code>		<span class="keyword">if</span> <label for="r62" class="ident">f</label>.<a href="../../../reflect/value.go.html#line-1140" class="ident">Kind</a>() != <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-260" class="ident">Struct</a> {</code></span>
+<span class="codeline" id="line-220"><code>			<span class="keyword">return</span> <label for="r62" class="ident">f</label>.<a href="../../../reflect/value.go.html#line-1015" class="ident">Interface</a>(), <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-221"><code>		}</code></span>
+<span class="codeline" id="line-222"><code></code></span>
+<span class="codeline" id="line-223"><code>		<span class="keyword">var</span> <label for="r64" class="ident">i</label> <span class="keyword">interface</span>{} = <span class="keyword">struct</span>{}{}</code></span>
+<span class="codeline" id="line-224"><code>		<span class="keyword">if</span> <label for="r63" class="ident">t</label>.<a href="../../../reflect/value.go.html#line-1905" class="ident">Type</a>() != <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-1368" class="ident">TypeOf</a>(&amp;<label for="r64" class="ident">i</label>).<a href="../../../reflect/type.go.html#line-151" class="ident">Elem</a>() {</code></span>
+<span class="codeline" id="line-225"><code>			<span class="keyword">return</span> <label for="r62" class="ident">f</label>.<a href="../../../reflect/value.go.html#line-1015" class="ident">Interface</a>(), <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-226"><code>		}</code></span>
+<span class="codeline" id="line-227"><code></code></span>
+<span class="codeline" id="line-228"><code>		<label for="r65" class="ident">m</label> := <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>]<span class="keyword">interface</span>{})</code></span>
+<span class="codeline" id="line-229"><code>		<label for="r63" class="ident">t</label>.<a href="../../../reflect/value.go.html#line-1557" class="ident">Set</a>(<a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/value.go.html#line-2351" class="ident">ValueOf</a>(<label for="r65" class="ident">m</label>))</code></span>
+<span class="codeline" id="line-230"><code></code></span>
+<span class="codeline" id="line-231"><code>		<span class="keyword">return</span> <label for="r62" class="ident">f</label>.<a href="../../../reflect/value.go.html#line-1015" class="ident">Interface</a>(), <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-232"><code>	}</code></span>
+<span class="codeline" id="line-233"><code>}</code></span>
+<span class="codeline" id="line-234"><code></code></span>
+<span class="codeline" id="line-235"><code><span class="comment">// TextUnmarshallerHookFunc returns a DecodeHookFunc that applies</span></code></span>
+<span class="codeline" id="line-236"><code><span class="comment">// strings to the UnmarshalText function, when the target type</span></code></span>
+<span class="codeline" id="line-237"><code><span class="comment">// implements the encoding.TextUnmarshaler interface</span></code></span>
+<span class="codeline" id="line-238"><code><span class="keyword">func</span> <label for="r66" class="ident"><a href="../../../../pkg/github.com/mitchellh/mapstructure.html#name-TextUnmarshallerHookFunc" class="ident">TextUnmarshallerHookFunc</a></label>() <a href="mapstructure.go.html#line-189" class="ident">DecodeHookFuncType</a> {</code></span>
+<span class="codeline" id="line-239"><code>	<span class="keyword">return</span> <span class="keyword">func</span>(</code></span>
+<span class="codeline" id="line-240"><code>		<label for="r67" class="ident">f</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-38" class="ident">Type</a>,</code></span>
+<span class="codeline" id="line-241"><code>		<label for="r68" class="ident">t</label> <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-38" class="ident">Type</a>,</code></span>
+<span class="codeline" id="line-242"><code>		<label for="r69" class="ident">data</label> <span class="keyword">interface</span>{}) (<span class="keyword">interface</span>{}, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-243"><code>		<span class="keyword">if</span> <label for="r67" class="ident">f</label>.<a href="../../../reflect/type.go.html#line-100" class="ident">Kind</a>() != <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/type.go.html#line-259" class="ident">String</a> {</code></span>
+<span class="codeline" id="line-244"><code>			<span class="keyword">return</span> <label for="r69" class="ident">data</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-245"><code>		}</code></span>
+<span class="codeline" id="line-246"><code>		<label for="r70" class="ident">result</label> := <a href="../../../../pkg/reflect.html" class="ident i4">reflect</a>.<a href="../../../reflect/value.go.html#line-2396" class="ident">New</a>(<label for="r68" class="ident">t</label>).<a href="../../../reflect/value.go.html#line-1015" class="ident">Interface</a>()</code></span>
+<span class="codeline" id="line-247"><code>		<label for="r71" class="ident">unmarshaller</label>, <label for="r72" class="ident">ok</label> := <label for="r70" class="ident">result</label>.(<a href="../../../../pkg/encoding.html" class="ident i0">encoding</a>.<a href="../../../encoding/encoding.go.html#line-46" class="ident">TextUnmarshaler</a>)</code></span>
+<span class="codeline" id="line-248"><code>		<span class="keyword">if</span> !<label for="r72" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-249"><code>			<span class="keyword">return</span> <label for="r69" class="ident">data</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-250"><code>		}</code></span>
+<span class="codeline" id="line-251"><code>		<span class="keyword">if</span> <label for="r73" class="ident">err</label> := <label for="r71" class="ident">unmarshaller</label>.<a href="../../../encoding/encoding.go.html#line-47" class="ident">UnmarshalText</a>([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r69" class="ident">data</label>.(<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>))); <label for="r73" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-252"><code>			<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r73" class="ident">err</label></code></span>
+<span class="codeline" id="line-253"><code>		}</code></span>
+<span class="codeline" id="line-254"><code>		<span class="keyword">return</span> <label for="r70" class="ident">result</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-255"><code>	}</code></span>
+<span class="codeline" id="line-256"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

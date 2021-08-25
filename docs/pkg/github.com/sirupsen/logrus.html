@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: github.com/sirupsen/logrus</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>logrus</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../../index.html#pkg-github.com/sirupsen/logrus">github.com/sirupsen/logrus</a><i> (on <a href="https://pkg.go.dev/github.com/sirupsen/logrus" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../../dep/github.com/sirupsen/logrus.html">18 packages</a>, and imported by <a href="../../../dep/github.com/sirupsen/logrus.html#imported-by">one package</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<span class="nodocs">      <a href="../../../src/github.com/sirupsen/logrus/alt_exit.go.html">alt_exit.go</a></span>
+	<span class="nodocs">      <a href="../../../src/github.com/sirupsen/logrus/buffer_pool.go.html">buffer_pool.go</a></span>
+	<input type='checkbox' checked class="fold" id="file-2-fold-content"><label for="file-2-fold-content">   <a href="../../../src/github.com/sirupsen/logrus/doc.go.html#doc">d➜</a> <a href="../../../src/github.com/sirupsen/logrus/doc.go.html">doc.go</a></label><span id='file-2-fold-content-items' class="fold-items">
+		Package logrus is a structured logger for Go, completely API compatible with the standard library logger.
+
+		The simplest way to use Logrus is simply the package-level exported logger:
+
+		  package main
+
+		  import (
+		    log "github.com/sirupsen/logrus"
+		  )
+
+		  func main() {
+		    log.WithFields(log.Fields{
+		      "animal": "walrus",
+		      "number": 1,
+		      "size":   10,
+		    }).Info("A walrus appears")
+		  }
+
+		Output:
+		  time="2015-09-07T08:48:33Z" level=info msg="A walrus appears" animal=walrus number=1 size=10
+
+		For a full guide visit https://github.com/sirupsen/logrus
+</span>
+	<span class="nodocs">      <a href="../../../src/github.com/sirupsen/logrus/entry.go.html">entry.go</a></span>
+	<span class="nodocs">      <a href="../../../src/github.com/sirupsen/logrus/exported.go.html">exported.go</a></span>
+	<span class="nodocs">      <a href="../../../src/github.com/sirupsen/logrus/formatter.go.html">formatter.go</a></span>
+	<span class="nodocs">      <a href="../../../src/github.com/sirupsen/logrus/hooks.go.html">hooks.go</a></span>
+	<span class="nodocs">      <a href="../../../src/github.com/sirupsen/logrus/json_formatter.go.html">json_formatter.go</a></span>
+	<span class="nodocs">      <a href="../../../src/github.com/sirupsen/logrus/logger.go.html">logger.go</a></span>
+	<span class="nodocs">      <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html">logrus.go</a></span>
+	<span class="nodocs">      <a href="../../../src/github.com/sirupsen/logrus/terminal_check_notappengine.go.html">terminal_check_notappengine.go</a></span>
+	<span class="nodocs">      <a href="../../../src/github.com/sirupsen/logrus/terminal_check_unix.go.html">terminal_check_unix.go</a></span>
+	<span class="nodocs">      <a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html">text_formatter.go</a></span>
+	<span class="nodocs">      <a href="../../../src/github.com/sirupsen/logrus/writer.go.html">writer.go</a></span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content">DefaultFieldHook</label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"os"
+		
+			"github.com/sirupsen/logrus"
+		)
+		
+		type DefaultFieldHook struct {
+			GetValue func() string
+		}
+		
+		func (h *DefaultFieldHook) Levels() []logrus.Level {
+			return logrus.AllLevels
+		}
+		
+		func (h *DefaultFieldHook) Fire(e *logrus.Entry) error {
+			e.Data["aDefaultField"] = h.GetValue()
+			return nil
+		}
+		
+		func main() {
+			l := logrus.New()
+			l.Out = os.Stdout
+			l.Formatter = &logrus.TextFormatter{DisableTimestamp: true, DisableColors: true}
+		
+			l.AddHook(&DefaultFieldHook{GetValue: func() string { return "with its default value" }})
+			l.Info("first log")
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-1-fold-content"><label for="example-1-fold-content">GlobalHook</label><span id='example-1-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"os"
+		
+			"github.com/sirupsen/logrus"
+		)
+		
+		var (
+			mystring string
+		)
+		
+		type GlobalHook struct {
+		}
+		
+		func (h *GlobalHook) Levels() []logrus.Level {
+			return logrus.AllLevels
+		}
+		
+		func (h *GlobalHook) Fire(e *logrus.Entry) error {
+			e.Data["mystring"] = mystring
+			return nil
+		}
+		
+		func main() {
+			l := logrus.New()
+			l.Out = os.Stdout
+			l.Formatter = &logrus.TextFormatter{DisableTimestamp: true, DisableColors: true}
+			l.AddHook(&GlobalHook{})
+			mystring = "first value"
+			l.Info("first log")
+			mystring = "another value"
+			l.Info("second log")
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-2-fold-content"><label for="example-2-fold-content">JSONFormatter_CallerPrettyfier</label><span id='example-2-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"github.com/sirupsen/logrus"
+			"os"
+			"path"
+			"runtime"
+			"strings"
+		)
+		
+		func main() {
+			l := logrus.New()
+			l.SetReportCaller(true)
+			l.Out = os.Stdout
+			l.Formatter = &logrus.JSONFormatter{
+				DisableTimestamp: true,
+				CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+					s := strings.Split(f.Function, ".")
+					funcname := s[len(s)-1]
+					_, filename := path.Split(f.File)
+					return funcname, filename
+				},
+			}
+			l.Info("example of custom format caller")
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-3-fold-content"><label for="example-3-fold-content">_basic</label><span id='example-3-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"github.com/sirupsen/logrus"
+			"os"
+		)
+		
+		func main() {
+			var log = logrus.New()
+			log.Formatter = new(logrus.JSONFormatter)
+			log.Formatter = new(logrus.TextFormatter)                     //default
+			log.Formatter.(*logrus.TextFormatter).DisableColors = true    // remove colors
+			log.Formatter.(*logrus.TextFormatter).DisableTimestamp = true // remove timestamp from test output
+			log.Level = logrus.TraceLevel
+			log.Out = os.Stdout
+		
+			// file, err := os.OpenFile("logrus.log", os.O_CREATE|os.O_WRONLY, 0666)
+			// if err == nil {
+			// 	log.Out = file
+			// } else {
+			// 	log.Info("Failed to log to file, using default stderr")
+			// }
+		
+			defer func() {
+				err := recover()
+				if err != nil {
+					entry := err.(*logrus.Entry)
+					log.WithFields(logrus.Fields{
+						"omg":         true,
+						"err_animal":  entry.Data["animal"],
+						"err_size":    entry.Data["size"],
+						"err_level":   entry.Level,
+						"err_message": entry.Message,
+						"number":      100,
+					}).Error("The ice breaks!") // or use Fatal() to force the process to exit with a nonzero code
+				}
+			}()
+		
+			log.WithFields(logrus.Fields{
+				"animal": "walrus",
+				"number": 0,
+			}).Trace("Went to the beach")
+		
+			log.WithFields(logrus.Fields{
+				"animal": "walrus",
+				"number": 8,
+			}).Debug("Started observing beach")
+		
+			log.WithFields(logrus.Fields{
+				"animal": "walrus",
+				"size":   10,
+			}).Info("A group of walrus emerges from the ocean")
+		
+			log.WithFields(logrus.Fields{
+				"omg":    true,
+				"number": 122,
+			}).Warn("The group's number increased tremendously!")
+		
+			log.WithFields(logrus.Fields{
+				"temperature": -4,
+			}).Debug("Temperature changes")
+		
+			log.WithFields(logrus.Fields{
+				"animal": "orca",
+				"size":   9009,
+			}).Panic("It's over 9000!")
+		
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-4-fold-content"><label for="example-4-fold-content">_hook</label><span id='example-4-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"github.com/sirupsen/logrus"
+			slhooks "github.com/sirupsen/logrus/hooks/syslog"
+			"log/syslog"
+			"os"
+		)
+		
+		func main() {
+			var log = logrus.New()
+			log.Formatter = new(logrus.TextFormatter)                     // default
+			log.Formatter.(*logrus.TextFormatter).DisableColors = true    // remove colors
+			log.Formatter.(*logrus.TextFormatter).DisableTimestamp = true // remove timestamp from test output
+			if sl, err := slhooks.NewSyslogHook("udp", "localhost:514", syslog.LOG_INFO, ""); err == nil {
+				log.Hooks.Add(sl)
+			}
+			log.Out = os.Stdout
+		
+			log.WithFields(logrus.Fields{
+				"animal": "walrus",
+				"size":   10,
+			}).Info("A group of walrus emerges from the ocean")
+		
+			log.WithFields(logrus.Fields{
+				"omg":    true,
+				"number": 122,
+			}).Warn("The group's number increased tremendously!")
+		
+			log.WithFields(logrus.Fields{
+				"omg":    true,
+				"number": 100,
+			}).Error("The ice breaks!")
+		
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 19, in which 16 are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-BufferPool" data-popularity="290">	<input type='checkbox' class="fold" id="BufferPool-fold-content"><label for="BufferPool-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/buffer_pool.go.html#line-12">BufferPool</a> <b><i>(interface)</i></b></label><span id='BufferPool-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="BufferPool-fold-methods"><label for="BufferPool-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='BufferPool-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/buffer_pool.go.html#line-14">Get</a>() *<a href="../../bytes.html">bytes</a>.<a href="../../bytes.html#name-Buffer">Buffer</a></span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/buffer_pool.go.html#line-13">Put</a>(*<a href="../../bytes.html">bytes</a>.<a href="../../bytes.html#name-Buffer">Buffer</a>)</span></span></span>
+		<input type='checkbox' class="fold" id="BufferPool-fold-impledby"><label for="BufferPool-fold-impledby">Implemented By (<i>at least one unexported</i>)</label><span id='BufferPool-fold-impledby-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="BufferPool-showhide-impedBys"><i><label for="BufferPool-showhide-impedBys" class="show-inline">/* at least one unexported ... */</label><label for="BufferPool-showhide-impedBys" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			*<a href="#name-defaultPool">defaultPool</a></i></span></span>
+		<input type='checkbox' class="fold" id="BufferPool-fold-params"><label for="BufferPool-fold-params">As Inputs Of (<i>at least one exported</i>)</label><span id='BufferPool-fold-params-items' class="fold-items"><span>
+			func <a href="#name-SetBufferPool">SetBufferPool</a>(bp <b>BufferPool</b>)</span></span>
+		<input type='checkbox' class="fold" id="BufferPool-fold-values"><label for="BufferPool-fold-values">As Types Of (<i>only one, which is unexported</i>)</label><span id='BufferPool-fold-values-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="BufferPool-showhide-values"><i><label for="BufferPool-showhide-values" class="show-inline">/* one unexported ... */</label><label for="BufferPool-showhide-values" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			  var <a href="#name-bufferPool">bufferPool</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Entry" data-popularity="4580">	<input type='checkbox' class="fold" id="Entry-fold-content"><label for="Entry-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-44">Entry</a> <i>(struct)</i></label><span id='Entry-fold-content-docs' class="fold-docs">
+		An entry is the final or intermediate Logrus logging entry. It contains all
+		the fields passed with WithField{,s}. It's finally logged when Trace, Debug,
+		Info, Warn, Error, Fatal or Panic is called on it. These objects can be
+		reused and passed around as much as you wish to avoid field duplication.
+
+		<input type='checkbox' class="fold" id="Entry-fold-fields"><label for="Entry-fold-fields">Fields (<i>total 9, in which 8 are exported</i>)</label><span id='Entry-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Entry-fold-field-Buffer"><label for="Entry-fold-field-Buffer"><a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-64">Buffer</a> <i>*<a href="../../bytes.html">bytes</a>.<a href="../../bytes.html#name-Buffer">Buffer</a></i></label><span id='Entry-fold-field-Buffer-docs' class="fold-docs">
+				When formatter is called in entry.log(), a Buffer may be set to entry
+</span></span><span>
+			<input type='checkbox' class="fold" id="Entry-fold-field-Caller"><label for="Entry-fold-field-Caller"><a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-58">Caller</a> <i>*<a href="../../runtime.html">runtime</a>.<a href="../../runtime.html#name-Frame">Frame</a></i></label><span id='Entry-fold-field-Caller-docs' class="fold-docs">
+				Calling method, with package name
+</span></span><span>
+			<input type='checkbox' class="fold" id="Entry-fold-field-Context"><label for="Entry-fold-field-Context"><a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-67">Context</a> <i><a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a></i></label><span id='Entry-fold-field-Context-docs' class="fold-docs">
+				Contains the context set by the user. Useful for hook processing etc.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Entry-fold-field-Data"><label for="Entry-fold-field-Data"><a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-48">Data</a> <i><a href="#name-Fields">Fields</a></i></label><span id='Entry-fold-field-Data-docs' class="fold-docs">
+				Contains all the fields set by the user.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Entry-fold-field-Level"><label for="Entry-fold-field-Level"><a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-55">Level</a> <i><a href="#name-Level">Level</a></i></label><span id='Entry-fold-field-Level-docs' class="fold-docs">
+				Level the log entry was logged at: Trace, Debug, Info, Warn, Error, Fatal or Panic
+				This field will be set on entry firing and the value will be equal to the one in Logger struct field.
+</span></span><span>
+			<span class="nodocs"><a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-45">Logger</a> <i>*<a href="#name-Logger">Logger</a></i></span></span><span>
+			<input type='checkbox' class="fold" id="Entry-fold-field-Message"><label for="Entry-fold-field-Message"><a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-61">Message</a> <i><a href="../../builtin.html#name-string">string</a></i></label><span id='Entry-fold-field-Message-docs' class="fold-docs">
+				Message passed to Trace, Debug, Info, Warn, Error, Fatal or Panic
+</span></span><span>
+			<input type='checkbox' class="fold" id="Entry-fold-field-Time"><label for="Entry-fold-field-Time"><a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-51">Time</a> <i><a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a></i></label><span id='Entry-fold-field-Time-docs' class="fold-docs">
+				Time at which the log entry was created
+</span></span>
+			<input type='checkbox' class="showhide" id="Entry-showhide-fields"><i><label for="Entry-showhide-fields" class="show-inline">/* one unexported ... */</label><label for="Entry-showhide-fields" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Entry-fold-field-err"><label for="Entry-fold-field-err"><a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-70">err</a> <i><a href="../../builtin.html#name-string">string</a></i></label><span id='Entry-fold-field-err-docs' class="fold-docs">
+				err may contain a field formatting error
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Entry-fold-methods"><label for="Entry-fold-methods">Methods (<i>total 46, in which 41 are exported</i>)</label><span id='Entry-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Entry-fold-method-Bytes"><label for="Entry-fold-method-Bytes">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-90">Bytes</a>() ([]<a href="../../builtin.html#name-byte">byte</a>, <a href="../../builtin.html#name-error">error</a>)</label><span id='Entry-fold-method-Bytes-docs' class="fold-docs">
+				Returns the bytes representation of this entry from the formatter.
+</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-301">Debug</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-346">Debugf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-391">Debugln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-81">Dup</a>() *<b>Entry</b></span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-321">Error</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-366">Errorf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-411">Errorln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-325">Fatal</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-370">Fatalf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-415">Fatalln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-215">HasCaller</a>() (has <a href="../../builtin.html#name-bool">bool</a>)</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-309">Info</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-350">Infof</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-395">Infoln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-291">Log</a>(level <a href="#name-Level">Level</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-336">Logf</a>(level <a href="#name-Level">Level</a>, format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-381">Logln</a>(level <a href="#name-Level">Level</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-330">Panic</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-375">Panicf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-420">Panicln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-305">Print</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-354">Printf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-399">Println</a>(args ...interface{})</span></span><span>
+			<input type='checkbox' class="fold" id="Entry-fold-method-String"><label for="Entry-fold-method-String">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-96">String</a>() (<a href="../../builtin.html#name-string">string</a>, <a href="../../builtin.html#name-error">error</a>)</label><span id='Entry-fold-method-String-docs' class="fold-docs">
+				Returns the string representation from the reader and ultimately the
+				formatter.
+</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-297">Trace</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-342">Tracef</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-387">Traceln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-313">Warn</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-358">Warnf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-317">Warning</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-362">Warningf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-407">Warningln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-403">Warnln</a>(args ...interface{})</span></span><span>
+			<input type='checkbox' class="fold" id="Entry-fold-method-WithContext"><label for="Entry-fold-method-WithContext">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-111">WithContext</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>) *<b>Entry</b></label><span id='Entry-fold-method-WithContext-docs' class="fold-docs">
+				Add a context to the Entry.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Entry-fold-method-WithError"><label for="Entry-fold-method-WithError">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-106">WithError</a>(err <a href="../../builtin.html#name-error">error</a>) *<b>Entry</b></label><span id='Entry-fold-method-WithError-docs' class="fold-docs">
+				Add an error as single field (using the key defined in ErrorKey) to the Entry.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Entry-fold-method-WithField"><label for="Entry-fold-method-WithField">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-120">WithField</a>(key <a href="../../builtin.html#name-string">string</a>, value interface{}) *<b>Entry</b></label><span id='Entry-fold-method-WithField-docs' class="fold-docs">
+				Add a single field to the Entry.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Entry-fold-method-WithFields"><label for="Entry-fold-method-WithFields">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-125">WithFields</a>(fields <a href="#name-Fields">Fields</a>) *<b>Entry</b></label><span id='Entry-fold-method-WithFields-docs' class="fold-docs">
+				Add a map of fields to the Entry.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Entry-fold-method-WithTime"><label for="Entry-fold-method-WithTime">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-154">WithTime</a>(t <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a>) *<b>Entry</b></label><span id='Entry-fold-method-WithTime-docs' class="fold-docs">
+				Overrides the time of the Entry.
+</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/writer.go.html#line-23">Writer</a>() *<a href="../../io.html">io</a>.<a href="../../io.html#name-PipeWriter">PipeWriter</a></span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/writer.go.html#line-27">WriterLevel</a>(level <a href="#name-Level">Level</a>) *<a href="../../io.html">io</a>.<a href="../../io.html#name-PipeWriter">PipeWriter</a></span></span>
+			<input type='checkbox' class="showhide" id="Entry-showhide-methods"><i><label for="Entry-showhide-methods" class="show-inline">/* 5 unexporteds ... */</label><label for="Entry-showhide-methods" class="hide-inline">/* 5 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-263">fireHooks</a>()</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-221">log</a>(level <a href="#name-Level">Level</a>, msg <a href="../../builtin.html#name-string">string</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Entry-fold-method-sprintlnn"><label for="Entry-fold-method-sprintlnn">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-428">sprintlnn</a>(args ...interface{}) <a href="../../builtin.html#name-string">string</a></label><span id='Entry-fold-method-sprintlnn-docs' class="fold-docs">
+				Sprintlnn =&gt; Sprint no newline. This is to get the behavior of how
+				fmt.Sprintln where spaces are always added between operands, regardless of
+				their type. Instead of vendoring the Sprintln implementation to spare a
+				string allocation, we do the simplest thing.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-278">write</a>()</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/writer.go.html#line-57">writerScanner</a>(reader *<a href="../../io.html">io</a>.<a href="../../io.html#name-PipeReader">PipeReader</a>, printFunc func(args ...interface{}))</span></i></span></span>
+		<input type='checkbox' class="fold" id="Entry-fold-impls"><label for="Entry-fold-impls">Implements (<i>at least 4, all are exported</i>)</label><span id='Entry-fold-impls-items' class="fold-items"><span>
+			*T : <a href="#name-Ext1FieldLogger">Ext1FieldLogger</a></span><span>
+			*T : <a href="#name-FieldLogger">FieldLogger</a></span><span>
+			*T : <a href="#name-StdLogger">StdLogger</a></span><span>
+			*T : github.com/hashicorp/go-retryablehttp.<a href="../hashicorp/go-retryablehttp.html#name-Logger">Logger</a></span></span>
+		<input type='checkbox' class="fold" id="Entry-fold-results"><label for="Entry-fold-results">As Outputs Of (<i>at least 24, in which 23 are exported</i>)</label><span id='Entry-fold-results-items' class="fold-items"><span>
+			func <a href="#name-NewEntry">NewEntry</a>(logger *<a href="#name-Logger">Logger</a>) *<b>Entry</b></span><span>
+			func <a href="#name-WithContext">WithContext</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>) *<b>Entry</b></span><span>
+			func <a href="#name-WithError">WithError</a>(err <a href="../../builtin.html#name-error">error</a>) *<b>Entry</b></span><span>
+			func <a href="#name-WithField">WithField</a>(key <a href="../../builtin.html#name-string">string</a>, value interface{}) *<b>Entry</b></span><span>
+			func <a href="#name-WithFields">WithFields</a>(fields <a href="#name-Fields">Fields</a>) *<b>Entry</b></span><span>
+			func <a href="#name-WithTime">WithTime</a>(t <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a>) *<b>Entry</b></span><span>
+			func (*Entry).<a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-81">Dup</a>() *<b>Entry</b></span><span>
+			func (*Entry).<a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-111">WithContext</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>) *<b>Entry</b></span><span>
+			func (*Entry).<a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-106">WithError</a>(err <a href="../../builtin.html#name-error">error</a>) *<b>Entry</b></span><span>
+			func (*Entry).<a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-120">WithField</a>(key <a href="../../builtin.html#name-string">string</a>, value interface{}) *<b>Entry</b></span><span>
+			func (*Entry).<a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-125">WithFields</a>(fields <a href="#name-Fields">Fields</a>) *<b>Entry</b></span><span>
+			func (*Entry).<a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-154">WithTime</a>(t <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a>) *<b>Entry</b></span><span>
+			func <a href="#name-Ext1FieldLogger">Ext1FieldLogger</a>.<a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-142">WithError</a>(err <a href="../../builtin.html#name-error">error</a>) *<b>Entry</b></span><span>
+			func <a href="#name-Ext1FieldLogger">Ext1FieldLogger</a>.<a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-140">WithField</a>(key <a href="../../builtin.html#name-string">string</a>, value interface{}) *<b>Entry</b></span><span>
+			func <a href="#name-Ext1FieldLogger">Ext1FieldLogger</a>.<a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-141">WithFields</a>(fields <a href="#name-Fields">Fields</a>) *<b>Entry</b></span><span>
+			func <a href="#name-FieldLogger">FieldLogger</a>.<a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-142">WithError</a>(err <a href="../../builtin.html#name-error">error</a>) *<b>Entry</b></span><span>
+			func <a href="#name-FieldLogger">FieldLogger</a>.<a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-140">WithField</a>(key <a href="../../builtin.html#name-string">string</a>, value interface{}) *<b>Entry</b></span><span>
+			func <a href="#name-FieldLogger">FieldLogger</a>.<a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-141">WithFields</a>(fields <a href="#name-Fields">Fields</a>) *<b>Entry</b></span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-135">WithContext</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>) *<b>Entry</b></span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-128">WithError</a>(err <a href="../../builtin.html#name-error">error</a>) *<b>Entry</b></span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-112">WithField</a>(key <a href="../../builtin.html#name-string">string</a>, value interface{}) *<b>Entry</b></span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-120">WithFields</a>(fields <a href="#name-Fields">Fields</a>) *<b>Entry</b></span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-142">WithTime</a>(t <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a>) *<b>Entry</b></span>
+			<input type='checkbox' class="showhide" id="Entry-showhide-inputofs"><i><label for="Entry-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="Entry-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-95">newEntry</a>() *<b>Entry</b></i></span></span>
+		<input type='checkbox' class="fold" id="Entry-fold-params"><label for="Entry-fold-params">As Inputs Of (<i>at least 8, in which 5 are exported</i>)</label><span id='Entry-fold-params-items' class="fold-items"><span>
+			func <a href="#name-Formatter">Formatter</a>.<a href="../../../src/github.com/sirupsen/logrus/formatter.go.html#line-27">Format</a>(*<b>Entry</b>) ([]<a href="../../builtin.html#name-byte">byte</a>, <a href="../../builtin.html#name-error">error</a>)</span><span>
+			func <a href="#name-Hook">Hook</a>.<a href="../../../src/github.com/sirupsen/logrus/hooks.go.html#line-10">Fire</a>(*<b>Entry</b>) <a href="../../builtin.html#name-error">error</a></span><span>
+			func (*<a href="#name-JSONFormatter">JSONFormatter</a>).<a href="../../../src/github.com/sirupsen/logrus/json_formatter.go.html#line-63">Format</a>(entry *<b>Entry</b>) ([]<a href="../../builtin.html#name-byte">byte</a>, <a href="../../builtin.html#name-error">error</a>)</span><span>
+			func <a href="#name-LevelHooks">LevelHooks</a>.<a href="../../../src/github.com/sirupsen/logrus/hooks.go.html#line-26">Fire</a>(level <a href="#name-Level">Level</a>, entry *<b>Entry</b>) <a href="../../builtin.html#name-error">error</a></span><span>
+			func (*<a href="#name-TextFormatter">TextFormatter</a>).<a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-133">Format</a>(entry *<b>Entry</b>) ([]<a href="../../builtin.html#name-byte">byte</a>, <a href="../../builtin.html#name-error">error</a>)</span>
+			<input type='checkbox' class="showhide" id="Entry-showhide-outputofs"><i><label for="Entry-showhide-outputofs" class="show-inline">/* 3+ unexporteds ... */</label><label for="Entry-showhide-outputofs" class="hide-inline">/* 3+ unexporteds: */</label></i><span class="hidden"><i>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-103">releaseEntry</a>(entry *<b>Entry</b>)</i></span><span class="hidden"><i>
+			func (*<a href="#name-TextFormatter">TextFormatter</a>).<a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-104">init</a>(entry *<b>Entry</b>)</i></span><span class="hidden"><i>
+			func (*<a href="#name-TextFormatter">TextFormatter</a>).<a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-232">printColored</a>(b *<a href="../../bytes.html">bytes</a>.<a href="../../bytes.html#name-Buffer">Buffer</a>, entry *<b>Entry</b>, keys []<a href="../../builtin.html#name-string">string</a>, data <a href="#name-Fields">Fields</a>, timestampFormat <a href="../../builtin.html#name-string">string</a>)</i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Ext1FieldLogger" data-popularity="1950">	<input type='checkbox' class="fold" id="Ext1FieldLogger-fold-content"><label for="Ext1FieldLogger-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-181">Ext1FieldLogger</a> <b><i>(interface)</i></b></label><span id='Ext1FieldLogger-fold-content-docs' class="fold-docs">
+		Ext1FieldLogger (the first extension to FieldLogger) is superfluous, it is
+		here for consistancy. Do not use. Use Logger or Entry instead.
+
+		<input type='checkbox' class="fold" id="Ext1FieldLogger-fold-methods"><label for="Ext1FieldLogger-fold-methods">Methods (<i>total 30, all are exported</i>)</label><span id='Ext1FieldLogger-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-153">Debug</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-144">Debugf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-162">Debugln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-158">Error</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-149">Errorf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-167">Errorln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-159">Fatal</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-150">Fatalf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-168">Fatalln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-154">Info</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-145">Infof</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-163">Infoln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-160">Panic</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-151">Panicf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-169">Panicln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-155">Print</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-146">Printf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-164">Println</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-184">Trace</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-183">Tracef</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-185">Traceln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-156">Warn</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-147">Warnf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-157">Warning</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-148">Warningf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-166">Warningln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-165">Warnln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-142">WithError</a>(err <a href="../../builtin.html#name-error">error</a>) *<a href="#name-Entry">Entry</a></span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-140">WithField</a>(key <a href="../../builtin.html#name-string">string</a>, value interface{}) *<a href="#name-Entry">Entry</a></span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-141">WithFields</a>(fields <a href="#name-Fields">Fields</a>) *<a href="#name-Entry">Entry</a></span></span></span>
+		<input type='checkbox' class="fold" id="Ext1FieldLogger-fold-impledby"><label for="Ext1FieldLogger-fold-impledby">Implemented By (<i>at least 2, both are exported</i>)</label><span id='Ext1FieldLogger-fold-impledby-items' class="fold-items"><span>
+			*<a href="#name-Entry">Entry</a></span><span>
+			*<a href="#name-Logger">Logger</a></span></span>
+		<input type='checkbox' class="fold" id="Ext1FieldLogger-fold-impls"><label for="Ext1FieldLogger-fold-impls">Implements (<i>at least 3, all are exported</i>)</label><span id='Ext1FieldLogger-fold-impls-items' class="fold-items"><span>
+			 T : <a href="#name-FieldLogger">FieldLogger</a></span><span>
+			 T : <a href="#name-StdLogger">StdLogger</a></span><span>
+			 T : github.com/hashicorp/go-retryablehttp.<a href="../hashicorp/go-retryablehttp.html#name-Logger">Logger</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-FieldLogger" data-popularity="1900">	<input type='checkbox' class="fold" id="FieldLogger-fold-content"><label for="FieldLogger-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-139">FieldLogger</a> <b><i>(interface)</i></b></label><span id='FieldLogger-fold-content-docs' class="fold-docs">
+		The FieldLogger interface generalizes the Entry and Logger types
+
+		<input type='checkbox' class="fold" id="FieldLogger-fold-methods"><label for="FieldLogger-fold-methods">Methods (<i>total 27, all are exported</i>)</label><span id='FieldLogger-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-153">Debug</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-144">Debugf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-162">Debugln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-158">Error</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-149">Errorf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-167">Errorln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-159">Fatal</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-150">Fatalf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-168">Fatalln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-154">Info</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-145">Infof</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-163">Infoln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-160">Panic</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-151">Panicf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-169">Panicln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-155">Print</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-146">Printf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-164">Println</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-156">Warn</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-147">Warnf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-157">Warning</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-148">Warningf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-166">Warningln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-165">Warnln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-142">WithError</a>(err <a href="../../builtin.html#name-error">error</a>) *<a href="#name-Entry">Entry</a></span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-140">WithField</a>(key <a href="../../builtin.html#name-string">string</a>, value interface{}) *<a href="#name-Entry">Entry</a></span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-141">WithFields</a>(fields <a href="#name-Fields">Fields</a>) *<a href="#name-Entry">Entry</a></span></span></span>
+		<input type='checkbox' class="fold" id="FieldLogger-fold-impledby"><label for="FieldLogger-fold-impledby">Implemented By (<i>at least 3, all are exported</i>)</label><span id='FieldLogger-fold-impledby-items' class="fold-items"><span>
+			*<a href="#name-Entry">Entry</a></span><span>
+			 <a href="#name-Ext1FieldLogger">Ext1FieldLogger</a> <i>(interface)</i></span><span>
+			*<a href="#name-Logger">Logger</a></span></span>
+		<input type='checkbox' class="fold" id="FieldLogger-fold-impls"><label for="FieldLogger-fold-impls">Implements (<i>at least 2, both are exported</i>)</label><span id='FieldLogger-fold-impls-items' class="fold-items"><span>
+			 T : <a href="#name-StdLogger">StdLogger</a></span><span>
+			 T : github.com/hashicorp/go-retryablehttp.<a href="../hashicorp/go-retryablehttp.html#name-Logger">Logger</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-FieldMap" data-popularity="85">	<input type='checkbox' class="fold" id="FieldMap-fold-content"><label for="FieldMap-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/json_formatter.go.html#line-13">FieldMap</a> <i>(map)</i></label><span id='FieldMap-fold-content-docs' class="fold-docs">
+		FieldMap allows customization of the key names for default fields.
+
+		<input type='checkbox' class="fold" id="FieldMap-fold-methods"><label for="FieldMap-fold-methods">Methods (<i>only one, which is unexported</i>)</label><span id='FieldMap-fold-methods-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="FieldMap-showhide-methods"><i><label for="FieldMap-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="FieldMap-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/json_formatter.go.html#line-15">resolve</a>(key <a href="#name-fieldKey">fieldKey</a>) <a href="../../builtin.html#name-string">string</a></span></i></span></span>
+		<input type='checkbox' class="fold" id="FieldMap-fold-params"><label for="FieldMap-fold-params">As Inputs Of (<i>at least one unexported</i>)</label><span id='FieldMap-fold-params-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="FieldMap-showhide-outputofs"><i><label for="FieldMap-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="FieldMap-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-prefixFieldClashes">prefixFieldClashes</a>(data <a href="#name-Fields">Fields</a>, fieldMap <b>FieldMap</b>, reportCaller <a href="../../builtin.html#name-bool">bool</a>)</i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Fields" data-popularity="245">	<input type='checkbox' class="fold" id="Fields-fold-content"><label for="Fields-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-10">Fields</a> <i>(map)</i></label><span id='Fields-fold-content-docs' class="fold-docs">
+		Fields type, used to pass to `WithFields`.
+
+		<input type='checkbox' class="fold" id="Fields-fold-params"><label for="Fields-fold-params">As Inputs Of (<i>at least 7, in which 5 are exported</i>)</label><span id='Fields-fold-params-items' class="fold-items"><span>
+			func <a href="#name-WithFields">WithFields</a>(fields <b>Fields</b>) *<a href="#name-Entry">Entry</a></span><span>
+			func (*<a href="#name-Entry">Entry</a>).<a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-125">WithFields</a>(fields <b>Fields</b>) *<a href="#name-Entry">Entry</a></span><span>
+			func <a href="#name-Ext1FieldLogger">Ext1FieldLogger</a>.<a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-141">WithFields</a>(fields <b>Fields</b>) *<a href="#name-Entry">Entry</a></span><span>
+			func <a href="#name-FieldLogger">FieldLogger</a>.<a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-141">WithFields</a>(fields <b>Fields</b>) *<a href="#name-Entry">Entry</a></span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-120">WithFields</a>(fields <b>Fields</b>) *<a href="#name-Entry">Entry</a></span>
+			<input type='checkbox' class="showhide" id="Fields-showhide-outputofs"><i><label for="Fields-showhide-outputofs" class="show-inline">/* 2+ unexporteds ... */</label><label for="Fields-showhide-outputofs" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-prefixFieldClashes">prefixFieldClashes</a>(data <b>Fields</b>, fieldMap <a href="#name-FieldMap">FieldMap</a>, reportCaller <a href="../../builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func (*<a href="#name-TextFormatter">TextFormatter</a>).<a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-232">printColored</a>(b *<a href="../../bytes.html">bytes</a>.<a href="../../bytes.html#name-Buffer">Buffer</a>, entry *<a href="#name-Entry">Entry</a>, keys []<a href="../../builtin.html#name-string">string</a>, data <b>Fields</b>, timestampFormat <a href="../../builtin.html#name-string">string</a>)</i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Formatter" data-popularity="420">	<input type='checkbox' class="fold" id="Formatter-fold-content"><label for="Formatter-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/formatter.go.html#line-26">Formatter</a> <b><i>(interface)</i></b></label><span id='Formatter-fold-content-docs' class="fold-docs">
+		The Formatter interface is used to implement a custom Formatter. It takes an
+		`Entry`. It exposes all the fields, including the default ones:
+
+		* `entry.Data["msg"]`. The message passed from Info, Warn, Error ..
+		* `entry.Data["time"]`. The timestamp.
+		* `entry.Data["level"]. The level the entry was logged at.
+
+		Any additional fields added with `WithField` or `WithFields` are also in
+		`entry.Data`. Format is expected to return an array of bytes which are then
+		logged to `logger.Out`.
+
+		<input type='checkbox' class="fold" id="Formatter-fold-methods"><label for="Formatter-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='Formatter-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/formatter.go.html#line-27">Format</a>(*<a href="#name-Entry">Entry</a>) ([]<a href="../../builtin.html#name-byte">byte</a>, <a href="../../builtin.html#name-error">error</a>)</span></span></span>
+		<input type='checkbox' class="fold" id="Formatter-fold-impledby"><label for="Formatter-fold-impledby">Implemented By (<i>at least 2, both are exported</i>)</label><span id='Formatter-fold-impledby-items' class="fold-items"><span>
+			*<a href="#name-JSONFormatter">JSONFormatter</a></span><span>
+			*<a href="#name-TextFormatter">TextFormatter</a></span></span>
+		<input type='checkbox' class="fold" id="Formatter-fold-params"><label for="Formatter-fold-params">As Inputs Of (<i>at least 2, both are exported</i>)</label><span id='Formatter-fold-params-items' class="fold-items"><span>
+			func <a href="#name-SetFormatter">SetFormatter</a>(formatter <b>Formatter</b>)</span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-378">SetFormatter</a>(formatter <b>Formatter</b>)</span></span>
+
+</span></div><div class="anchor type-res" id="name-Hook" data-popularity="205">	<input type='checkbox' class="fold" id="Hook-fold-content"><label for="Hook-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/hooks.go.html#line-8">Hook</a> <b><i>(interface)</i></b></label><span id='Hook-fold-content-docs' class="fold-docs">
+		A hook to be fired when logging on the logging levels returned from
+		`Levels()` on your implementation of the interface. Note that this is not
+		fired in a goroutine or a channel with workers, you should handle such
+		functionality yourself if your call is non-blocking and you don't wish for
+		the logging calls for levels returned from `Levels()` to block.
+
+		<input type='checkbox' class="fold" id="Hook-fold-methods"><label for="Hook-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='Hook-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/hooks.go.html#line-10">Fire</a>(*<a href="#name-Entry">Entry</a>) <a href="../../builtin.html#name-error">error</a></span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/hooks.go.html#line-9">Levels</a>() []<a href="#name-Level">Level</a></span></span></span>
+		<input type='checkbox' class="fold" id="Hook-fold-params"><label for="Hook-fold-params">As Inputs Of (<i>at least 3, all are exported</i>)</label><span id='Hook-fold-params-items' class="fold-items"><span>
+			func <a href="#name-AddHook">AddHook</a>(hook <b>Hook</b>)</span><span>
+			func <a href="#name-LevelHooks">LevelHooks</a>.<a href="../../../src/github.com/sirupsen/logrus/hooks.go.html#line-18">Add</a>(hook <b>Hook</b>)</span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-366">AddHook</a>(hook <b>Hook</b>)</span></span>
+
+</span></div><div class="anchor type-res" id="name-JSONFormatter" data-popularity="100">	<input type='checkbox' class="fold" id="JSONFormatter-fold-content"><label for="JSONFormatter-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/json_formatter.go.html#line-24">JSONFormatter</a> <i>(struct)</i></label><span id='JSONFormatter-fold-content-docs' class="fold-docs">
+		JSONFormatter formats logs into parsable json
+
+		<input type='checkbox' class="fold" id="JSONFormatter-fold-fields"><label for="JSONFormatter-fold-fields">Fields (<i>total 7, all are exported</i>)</label><span id='JSONFormatter-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="JSONFormatter-fold-field-CallerPrettyfier"><label for="JSONFormatter-fold-field-CallerPrettyfier"><a href="../../../src/github.com/sirupsen/logrus/json_formatter.go.html#line-56">CallerPrettyfier</a> <i>func(*<a href="../../runtime.html">runtime</a>.<a href="../../runtime.html#name-Frame">Frame</a>) (function <a href="../../builtin.html#name-string">string</a>, file <a href="../../builtin.html#name-string">string</a>)</i></label><span id='JSONFormatter-fold-field-CallerPrettyfier-docs' class="fold-docs">
+				CallerPrettyfier can be set by the user to modify the content
+				of the function and file keys in the json data when ReportCaller is
+				activated. If any of the returned value is the empty string the
+				corresponding key will be removed from json fields.
+</span></span><span>
+			<input type='checkbox' class="fold" id="JSONFormatter-fold-field-DataKey"><label for="JSONFormatter-fold-field-DataKey"><a href="../../../src/github.com/sirupsen/logrus/json_formatter.go.html#line-38">DataKey</a> <i><a href="../../builtin.html#name-string">string</a></i></label><span id='JSONFormatter-fold-field-DataKey-docs' class="fold-docs">
+				DataKey allows users to put all the log entry parameters into a nested dictionary at a given key.
+</span></span><span>
+			<input type='checkbox' class="fold" id="JSONFormatter-fold-field-DisableHTMLEscape"><label for="JSONFormatter-fold-field-DisableHTMLEscape"><a href="../../../src/github.com/sirupsen/logrus/json_formatter.go.html#line-35">DisableHTMLEscape</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='JSONFormatter-fold-field-DisableHTMLEscape-docs' class="fold-docs">
+				DisableHTMLEscape allows disabling html escaping in output
+</span></span><span>
+			<input type='checkbox' class="fold" id="JSONFormatter-fold-field-DisableTimestamp"><label for="JSONFormatter-fold-field-DisableTimestamp"><a href="../../../src/github.com/sirupsen/logrus/json_formatter.go.html#line-32">DisableTimestamp</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='JSONFormatter-fold-field-DisableTimestamp-docs' class="fold-docs">
+				DisableTimestamp allows disabling automatic timestamps in output
+</span></span><span>
+			<input type='checkbox' class="fold" id="JSONFormatter-fold-field-FieldMap"><label for="JSONFormatter-fold-field-FieldMap"><a href="../../../src/github.com/sirupsen/logrus/json_formatter.go.html#line-50">FieldMap</a> <i><a href="#name-FieldMap">FieldMap</a></i></label><span id='JSONFormatter-fold-field-FieldMap-docs' class="fold-docs">
+				FieldMap allows users to customize the names of keys for default fields.
+				As an example:
+				formatter := &amp;JSONFormatter{
+				  	FieldMap: FieldMap{
+						 FieldKeyTime:  "@timestamp",
+						 FieldKeyLevel: "@level",
+						 FieldKeyMsg:   "@message",
+						 FieldKeyFunc:  "@caller",
+				   },
+				}
+</span></span><span>
+			<input type='checkbox' class="fold" id="JSONFormatter-fold-field-PrettyPrint"><label for="JSONFormatter-fold-field-PrettyPrint"><a href="../../../src/github.com/sirupsen/logrus/json_formatter.go.html#line-59">PrettyPrint</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='JSONFormatter-fold-field-PrettyPrint-docs' class="fold-docs">
+				PrettyPrint will indent all json logs
+</span></span><span>
+			<input type='checkbox' class="fold" id="JSONFormatter-fold-field-TimestampFormat"><label for="JSONFormatter-fold-field-TimestampFormat"><a href="../../../src/github.com/sirupsen/logrus/json_formatter.go.html#line-29">TimestampFormat</a> <i><a href="../../builtin.html#name-string">string</a></i></label><span id='JSONFormatter-fold-field-TimestampFormat-docs' class="fold-docs">
+				TimestampFormat sets the format used for marshaling timestamps.
+				The format to use is the same than for time.Format or time.Parse from the standard
+				library.
+				The standard Library already provides a set of predefined format.
+</span></span></span>
+		<input type='checkbox' class="fold" id="JSONFormatter-fold-methods"><label for="JSONFormatter-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='JSONFormatter-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="JSONFormatter-fold-method-Format"><label for="JSONFormatter-fold-method-Format">(*T) <a href="../../../src/github.com/sirupsen/logrus/json_formatter.go.html#line-63">Format</a>(entry *<a href="#name-Entry">Entry</a>) ([]<a href="../../builtin.html#name-byte">byte</a>, <a href="../../builtin.html#name-error">error</a>)</label><span id='JSONFormatter-fold-method-Format-docs' class="fold-docs">
+				Format renders a single log entry
+</span></span></span>
+		<input type='checkbox' class="fold" id="JSONFormatter-fold-impls"><label for="JSONFormatter-fold-impls">Implements (<i>at least one exported</i>)</label><span id='JSONFormatter-fold-impls-items' class="fold-items"><span>
+			*T : <a href="#name-Formatter">Formatter</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-Level" data-popularity="1315">	<input type='checkbox' class="fold" id="Level-fold-content"><label for="Level-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-13">Level</a> <a href="../../builtin.html#name-uint32">uint32</a> <i>(basic type)</i></label><span id='Level-fold-content-docs' class="fold-docs">
+		Level type
+
+		<input type='checkbox' class="fold" id="Level-fold-methods"><label for="Level-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='Level-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-59">MarshalText</a>() ([]<a href="../../builtin.html#name-byte">byte</a>, <a href="../../builtin.html#name-error">error</a>)</span></span><span>
+			<input type='checkbox' class="fold" id="Level-fold-method-String"><label for="Level-fold-method-String">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-16">String</a>() <a href="../../builtin.html#name-string">string</a></label><span id='Level-fold-method-String-docs' class="fold-docs">
+				Convert the Level to a string. E.g. PanicLevel becomes "panic".
+</span></span><span>
+			<input type='checkbox' class="fold" id="Level-fold-method-UnmarshalText"><label for="Level-fold-method-UnmarshalText">(*T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-48">UnmarshalText</a>(text []<a href="../../builtin.html#name-byte">byte</a>) <a href="../../builtin.html#name-error">error</a></label><span id='Level-fold-method-UnmarshalText-docs' class="fold-docs">
+				UnmarshalText implements encoding.TextUnmarshaler.
+</span></span></span>
+		<input type='checkbox' class="fold" id="Level-fold-impls"><label for="Level-fold-impls">Implements (<i>at least 5, in which 3 are exported</i>)</label><span id='Level-fold-impls-items' class="fold-items"><span>
+			 T : encoding.<a href="../../encoding.html#name-TextMarshaler">TextMarshaler</a></span><span>
+			*T : encoding.<a href="../../encoding.html#name-TextUnmarshaler">TextUnmarshaler</a></span><span>
+			 T : fmt.<a href="../../fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="Level-showhide-impls"><i><label for="Level-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="Level-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			 T : context.<a href="../../context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			 T : runtime.<a href="../../runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="Level-fold-results"><label for="Level-fold-results">As Outputs Of (<i>at least 5, in which 4 are exported</i>)</label><span id='Level-fold-results-items' class="fold-items"><span>
+			func <a href="#name-GetLevel">GetLevel</a>() <b>Level</b></span><span>
+			func <a href="#name-ParseLevel">ParseLevel</a>(lvl <a href="../../builtin.html#name-string">string</a>) (<b>Level</b>, <a href="../../builtin.html#name-error">error</a>)</span><span>
+			func <a href="#name-Hook">Hook</a>.<a href="../../../src/github.com/sirupsen/logrus/hooks.go.html#line-9">Levels</a>() []<b>Level</b></span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-361">GetLevel</a>() <b>Level</b></span>
+			<input type='checkbox' class="showhide" id="Level-showhide-inputofs"><i><label for="Level-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="Level-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-351">level</a>() <b>Level</b></i></span></span>
+		<input type='checkbox' class="fold" id="Level-fold-params"><label for="Level-fold-params">As Inputs Of (<i>at least 15, in which 14 are exported</i>)</label><span id='Level-fold-params-items' class="fold-items"><span>
+			func <a href="#name-IsLevelEnabled">IsLevelEnabled</a>(level <b>Level</b>) <a href="../../builtin.html#name-bool">bool</a></span><span>
+			func <a href="#name-SetLevel">SetLevel</a>(level <b>Level</b>)</span><span>
+			func (*<a href="#name-Entry">Entry</a>).<a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-291">Log</a>(level <b>Level</b>, args ...interface{})</span><span>
+			func (*<a href="#name-Entry">Entry</a>).<a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-336">Logf</a>(level <b>Level</b>, format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span><span>
+			func (*<a href="#name-Entry">Entry</a>).<a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-381">Logln</a>(level <b>Level</b>, args ...interface{})</span><span>
+			func (*<a href="#name-Entry">Entry</a>).<a href="../../../src/github.com/sirupsen/logrus/writer.go.html#line-27">WriterLevel</a>(level <b>Level</b>) *<a href="../../io.html">io</a>.<a href="../../io.html#name-PipeWriter">PipeWriter</a></span><span>
+			func <a href="#name-LevelHooks">LevelHooks</a>.<a href="../../../src/github.com/sirupsen/logrus/hooks.go.html#line-26">Fire</a>(level <b>Level</b>, entry *<a href="#name-Entry">Entry</a>) <a href="../../builtin.html#name-error">error</a></span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-373">IsLevelEnabled</a>(level <b>Level</b>) <a href="../../builtin.html#name-bool">bool</a></span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-195">Log</a>(level <b>Level</b>, args ...interface{})</span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-148">Logf</a>(level <b>Level</b>, format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-203">LogFn</a>(level <b>Level</b>, fn <a href="#name-LogFunction">LogFunction</a>)</span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-289">Logln</a>(level <b>Level</b>, args ...interface{})</span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-356">SetLevel</a>(level <b>Level</b>)</span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/writer.go.html#line-19">WriterLevel</a>(level <b>Level</b>) *<a href="../../io.html">io</a>.<a href="../../io.html#name-PipeWriter">PipeWriter</a></span>
+			<input type='checkbox' class="showhide" id="Level-showhide-outputofs"><i><label for="Level-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="Level-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func (*<a href="#name-Entry">Entry</a>).<a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-221">log</a>(level <b>Level</b>, msg <a href="../../builtin.html#name-string">string</a>)</i></span></span>
+		<input type='checkbox' class="fold" id="Level-fold-values"><label for="Level-fold-values">As Types Of (<i>total 7, all are exported</i>)</label><span id='Level-fold-values-items' class="fold-items"><span>
+			const <a href="#name-DebugLevel">DebugLevel</a></span><span>
+			const <a href="#name-ErrorLevel">ErrorLevel</a></span><span>
+			const <a href="#name-FatalLevel">FatalLevel</a></span><span>
+			const <a href="#name-InfoLevel">InfoLevel</a></span><span>
+			const <a href="#name-PanicLevel">PanicLevel</a></span><span>
+			const <a href="#name-TraceLevel">TraceLevel</a></span><span>
+			const <a href="#name-WarnLevel">WarnLevel</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-LevelHooks" data-popularity="210">	<input type='checkbox' class="fold" id="LevelHooks-fold-content"><label for="LevelHooks-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/hooks.go.html#line-14">LevelHooks</a> <i>(map)</i></label><span id='LevelHooks-fold-content-docs' class="fold-docs">
+		Internal type for storing the hooks on a logger instance.
+
+		<input type='checkbox' class="fold" id="LevelHooks-fold-methods"><label for="LevelHooks-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='LevelHooks-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="LevelHooks-fold-method-Add"><label for="LevelHooks-fold-method-Add">( T) <a href="../../../src/github.com/sirupsen/logrus/hooks.go.html#line-18">Add</a>(hook <a href="#name-Hook">Hook</a>)</label><span id='LevelHooks-fold-method-Add-docs' class="fold-docs">
+				Add a hook to an instance of logger. This is called with
+				`log.Hooks.Add(new(MyHook))` where `MyHook` implements the `Hook` interface.
+</span></span><span>
+			<input type='checkbox' class="fold" id="LevelHooks-fold-method-Fire"><label for="LevelHooks-fold-method-Fire">( T) <a href="../../../src/github.com/sirupsen/logrus/hooks.go.html#line-26">Fire</a>(level <a href="#name-Level">Level</a>, entry *<a href="#name-Entry">Entry</a>) <a href="../../builtin.html#name-error">error</a></label><span id='LevelHooks-fold-method-Fire-docs' class="fold-docs">
+				Fire all the hooks for the passed level. Used by `entry.log` to fire
+				appropriate hooks for a log entry.
+</span></span></span>
+		<input type='checkbox' class="fold" id="LevelHooks-fold-results"><label for="LevelHooks-fold-results">As Outputs Of (<i>at least one exported</i>)</label><span id='LevelHooks-fold-results-items' class="fold-items"><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-398">ReplaceHooks</a>(hooks <b>LevelHooks</b>) <b>LevelHooks</b></span></span>
+		<input type='checkbox' class="fold" id="LevelHooks-fold-params"><label for="LevelHooks-fold-params">As Inputs Of (<i>at least one exported</i>)</label><span id='LevelHooks-fold-params-items' class="fold-items"><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-398">ReplaceHooks</a>(hooks <b>LevelHooks</b>) <b>LevelHooks</b></span></span>
+
+</span></div><div class="anchor type-res" id="name-LogFunction" data-popularity="665">	<input type='checkbox' class="fold" id="LogFunction-fold-content"><label for="LogFunction-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-15">LogFunction</a> <i>(func)</i></label><span id='LogFunction-fold-content-docs' class="fold-docs">
+		LogFunction For big messages, it can be more efficient to pass a function
+		and only call it if the log level is actually enables rather than
+		generating the log message and then checking if the level is enabled
+
+		<input type='checkbox' class="fold" id="LogFunction-fold-params"><label for="LogFunction-fold-params">As Inputs Of (<i>at least 19, all are exported</i>)</label><span id='LogFunction-fold-params-items' class="fold-items"><span>
+			func <a href="#name-DebugFn">DebugFn</a>(fn <b>LogFunction</b>)</span><span>
+			func <a href="#name-ErrorFn">ErrorFn</a>(fn <b>LogFunction</b>)</span><span>
+			func <a href="#name-FatalFn">FatalFn</a>(fn <b>LogFunction</b>)</span><span>
+			func <a href="#name-InfoFn">InfoFn</a>(fn <b>LogFunction</b>)</span><span>
+			func <a href="#name-PanicFn">PanicFn</a>(fn <b>LogFunction</b>)</span><span>
+			func <a href="#name-PrintFn">PrintFn</a>(fn <b>LogFunction</b>)</span><span>
+			func <a href="#name-TraceFn">TraceFn</a>(fn <b>LogFunction</b>)</span><span>
+			func <a href="#name-WarnFn">WarnFn</a>(fn <b>LogFunction</b>)</span><span>
+			func <a href="#name-WarningFn">WarningFn</a>(fn <b>LogFunction</b>)</span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-254">DebugFn</a>(fn <b>LogFunction</b>)</span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-276">ErrorFn</a>(fn <b>LogFunction</b>)</span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-280">FatalFn</a>(fn <b>LogFunction</b>)</span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-258">InfoFn</a>(fn <b>LogFunction</b>)</span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-203">LogFn</a>(level <a href="#name-Level">Level</a>, fn <b>LogFunction</b>)</span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-285">PanicFn</a>(fn <b>LogFunction</b>)</span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-262">PrintFn</a>(fn <b>LogFunction</b>)</span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-250">TraceFn</a>(fn <b>LogFunction</b>)</span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-268">WarnFn</a>(fn <b>LogFunction</b>)</span><span>
+			func (*<a href="#name-Logger">Logger</a>).<a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-272">WarningFn</a>(fn <b>LogFunction</b>)</span></span>
+
+</span></div><div class="anchor type-res" id="name-Logger" data-popularity="3425">	<input type='checkbox' class="fold" id="Logger-fold-content"><label for="Logger-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-17">Logger</a> <i>(struct)</i></label><span id='Logger-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="Logger-fold-fields"><label for="Logger-fold-fields">Fields (<i>total 8, in which 6 are exported</i>)</label><span id='Logger-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Logger-fold-field-ExitFunc"><label for="Logger-fold-field-ExitFunc"><a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-46">ExitFunc</a> <i><a href="#name-exitFunc">exitFunc</a></i></label><span id='Logger-fold-field-ExitFunc-docs' class="fold-docs">
+				Function to exit the application, defaults to `os.Exit()`
+</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-field-Formatter"><label for="Logger-fold-field-Formatter"><a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-32">Formatter</a> <i><a href="#name-Formatter">Formatter</a></i></label><span id='Logger-fold-field-Formatter-docs' class="fold-docs">
+				All log entries pass through the formatter before logged to Out. The
+				included formatters are `TextFormatter` and `JSONFormatter` for which
+				TextFormatter is the default. In development (when a TTY is attached) it
+				logs with colors, but to a file it wouldn't. You can easily implement your
+				own that implements the `Formatter` interface, see the `README` or included
+				formatters for examples.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-field-Hooks"><label for="Logger-fold-field-Hooks"><a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-25">Hooks</a> <i><a href="#name-LevelHooks">LevelHooks</a></i></label><span id='Logger-fold-field-Hooks-docs' class="fold-docs">
+				Hooks for the logger instance. These allow firing events based on logging
+				levels and log entries. For example, to send errors to an error tracking
+				service, log to StatsD or dump the core on fatal errors.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-field-Level"><label for="Logger-fold-field-Level"><a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-40">Level</a> <i><a href="#name-Level">Level</a></i></label><span id='Logger-fold-field-Level-docs' class="fold-docs">
+				The logging level the logger should log at. This is typically (and defaults
+				to) `logrus.Info`, which allows Info(), Warn(), Error() and Fatal() to be
+				logged.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-field-Out"><label for="Logger-fold-field-Out"><a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-21">Out</a> <i><a href="../../io.html">io</a>.<a href="../../io.html#name-Writer">Writer</a></i></label><span id='Logger-fold-field-Out-docs' class="fold-docs">
+				The logs are `io.Copy`'d to this in a mutex. It's common to set this to a
+				file, or leave it default which is `os.Stderr`. You can also set this to
+				something more adventurous, such as logging to Kafka.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-field-ReportCaller"><label for="Logger-fold-field-ReportCaller"><a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-35">ReportCaller</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='Logger-fold-field-ReportCaller-docs' class="fold-docs">
+				Flag for whether to log caller info (off by default)
+</span></span>
+			<input type='checkbox' class="showhide" id="Logger-showhide-fields"><i><label for="Logger-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="Logger-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Logger-fold-field-entryPool"><label for="Logger-fold-field-entryPool"><a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-44">entryPool</a> <i><a href="../../sync.html">sync</a>.<a href="../../sync.html#name-Pool">Pool</a></i></label><span id='Logger-fold-field-entryPool-docs' class="fold-docs">
+				Reusable empty entry
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Logger-fold-field-mu"><label for="Logger-fold-field-mu"><a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-42">mu</a> <i><a href="#name-MutexWrap">MutexWrap</a></i></label><span id='Logger-fold-field-mu-docs' class="fold-docs">
+				Used to sync writing to the log. Locking is enabled by Default
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Logger-fold-methods"><label for="Logger-fold-methods">Methods (<i>total 60, in which 57 are exported</i>)</label><span id='Logger-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Logger-fold-method-AddHook"><label for="Logger-fold-method-AddHook">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-366">AddHook</a>(hook <a href="#name-Hook">Hook</a>)</label><span id='Logger-fold-method-AddHook-docs' class="fold-docs">
+				AddHook adds a hook to the logger hooks.
+</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-215">Debug</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-254">DebugFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-160">Debugf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-301">Debugln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-237">Error</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-276">ErrorFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-182">Errorf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-323">Errorln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-336">Exit</a>(code <a href="../../builtin.html#name-int">int</a>)</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-241">Fatal</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-280">FatalFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-186">Fatalf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-327">Fatalln</a>(args ...interface{})</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-method-GetLevel"><label for="Logger-fold-method-GetLevel">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-361">GetLevel</a>() <a href="#name-Level">Level</a></label><span id='Logger-fold-method-GetLevel-docs' class="fold-docs">
+				GetLevel returns the logger level.
+</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-219">Info</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-258">InfoFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-164">Infof</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-305">Infoln</a>(args ...interface{})</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-method-IsLevelEnabled"><label for="Logger-fold-method-IsLevelEnabled">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-373">IsLevelEnabled</a>(level <a href="#name-Level">Level</a>) <a href="../../builtin.html#name-bool">bool</a></label><span id='Logger-fold-method-IsLevelEnabled-docs' class="fold-docs">
+				IsLevelEnabled checks if the log level of the logger is greater than the level param
+</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-195">Log</a>(level <a href="#name-Level">Level</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-203">LogFn</a>(level <a href="#name-Level">Level</a>, fn <a href="#name-LogFunction">LogFunction</a>)</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-148">Logf</a>(level <a href="#name-Level">Level</a>, format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-289">Logln</a>(level <a href="#name-Level">Level</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-246">Panic</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-285">PanicFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-191">Panicf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-332">Panicln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-223">Print</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-262">PrintFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-168">Printf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-309">Println</a>(args ...interface{})</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-method-ReplaceHooks"><label for="Logger-fold-method-ReplaceHooks">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-398">ReplaceHooks</a>(hooks <a href="#name-LevelHooks">LevelHooks</a>) <a href="#name-LevelHooks">LevelHooks</a></label><span id='Logger-fold-method-ReplaceHooks-docs' class="fold-docs">
+				ReplaceHooks replaces the logger hooks and returns the old ones
+</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-method-SetFormatter"><label for="Logger-fold-method-SetFormatter">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-378">SetFormatter</a>(formatter <a href="#name-Formatter">Formatter</a>)</label><span id='Logger-fold-method-SetFormatter-docs' class="fold-docs">
+				SetFormatter sets the logger formatter.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-method-SetLevel"><label for="Logger-fold-method-SetLevel">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-356">SetLevel</a>(level <a href="#name-Level">Level</a>)</label><span id='Logger-fold-method-SetLevel-docs' class="fold-docs">
+				SetLevel sets the logger level.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-method-SetNoLock"><label for="Logger-fold-method-SetNoLock">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-347">SetNoLock</a>()</label><span id='Logger-fold-method-SetNoLock-docs' class="fold-docs">
+				When file is opened with appending mode, it's safe to
+				write concurrently to a file (within 4k message on Linux).
+				In these cases user can choose to disable the lock.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-method-SetOutput"><label for="Logger-fold-method-SetOutput">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-385">SetOutput</a>(output <a href="../../io.html">io</a>.<a href="../../io.html#name-Writer">Writer</a>)</label><span id='Logger-fold-method-SetOutput-docs' class="fold-docs">
+				SetOutput sets the logger output.
+</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-391">SetReportCaller</a>(reportCaller <a href="../../builtin.html#name-bool">bool</a>)</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-211">Trace</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-250">TraceFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-156">Tracef</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-297">Traceln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-229">Warn</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-268">WarnFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-174">Warnf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-233">Warning</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-272">WarningFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-178">Warningf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-319">Warningln</a>(args ...interface{})</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-315">Warnln</a>(args ...interface{})</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-method-WithContext"><label for="Logger-fold-method-WithContext">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-135">WithContext</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>) *<a href="#name-Entry">Entry</a></label><span id='Logger-fold-method-WithContext-docs' class="fold-docs">
+				Add a context to the log entry.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-method-WithError"><label for="Logger-fold-method-WithError">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-128">WithError</a>(err <a href="../../builtin.html#name-error">error</a>) *<a href="#name-Entry">Entry</a></label><span id='Logger-fold-method-WithError-docs' class="fold-docs">
+				Add an error as single field to the log entry.  All it does is call
+				`WithError` for the given `error`.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-method-WithField"><label for="Logger-fold-method-WithField">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-112">WithField</a>(key <a href="../../builtin.html#name-string">string</a>, value interface{}) *<a href="#name-Entry">Entry</a></label><span id='Logger-fold-method-WithField-docs' class="fold-docs">
+				WithField allocates a new entry and adds a field to it.
+				Debug, Print, Info, Warn, Error, Fatal or Panic must be then applied to
+				this new returned entry.
+				If you want multiple fields, use `WithFields`.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-method-WithFields"><label for="Logger-fold-method-WithFields">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-120">WithFields</a>(fields <a href="#name-Fields">Fields</a>) *<a href="#name-Entry">Entry</a></label><span id='Logger-fold-method-WithFields-docs' class="fold-docs">
+				Adds a struct of fields to the log entry. All it does is call `WithField` for
+				each `Field`.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-method-WithTime"><label for="Logger-fold-method-WithTime">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-142">WithTime</a>(t <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a>) *<a href="#name-Entry">Entry</a></label><span id='Logger-fold-method-WithTime-docs' class="fold-docs">
+				Overrides the time of the log entry.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-method-Writer"><label for="Logger-fold-method-Writer">(*T) <a href="../../../src/github.com/sirupsen/logrus/writer.go.html#line-10">Writer</a>() *<a href="../../io.html">io</a>.<a href="../../io.html#name-PipeWriter">PipeWriter</a></label><span id='Logger-fold-method-Writer-docs' class="fold-docs">
+				Writer at INFO level. See WriterLevel for details.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Logger-fold-method-WriterLevel"><label for="Logger-fold-method-WriterLevel">(*T) <a href="../../../src/github.com/sirupsen/logrus/writer.go.html#line-19">WriterLevel</a>(level <a href="#name-Level">Level</a>) *<a href="../../io.html">io</a>.<a href="../../io.html#name-PipeWriter">PipeWriter</a></label><span id='Logger-fold-method-WriterLevel-docs' class="fold-docs">
+				WriterLevel returns an io.Writer that can be used to write arbitrary text to
+				the logger at the given log level. Each line written to the writer will be
+				printed in the usual way using formatters and hooks. The writer is part of an
+				io.Pipe and it is the callers responsibility to close the writer when done.
+				This can be used to override the standard library logger easily.
+</span></span>
+			<input type='checkbox' class="showhide" id="Logger-showhide-methods"><i><label for="Logger-showhide-methods" class="show-inline">/* 3 unexporteds ... */</label><label for="Logger-showhide-methods" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-351">level</a>() <a href="#name-Level">Level</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-95">newEntry</a>() *<a href="#name-Entry">Entry</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-103">releaseEntry</a>(entry *<a href="#name-Entry">Entry</a>)</span></i></span></span>
+		<input type='checkbox' class="fold" id="Logger-fold-impls"><label for="Logger-fold-impls">Implements (<i>at least 4, all are exported</i>)</label><span id='Logger-fold-impls-items' class="fold-items"><span>
+			*T : <a href="#name-Ext1FieldLogger">Ext1FieldLogger</a></span><span>
+			*T : <a href="#name-FieldLogger">FieldLogger</a></span><span>
+			*T : <a href="#name-StdLogger">StdLogger</a></span><span>
+			*T : github.com/hashicorp/go-retryablehttp.<a href="../hashicorp/go-retryablehttp.html#name-Logger">Logger</a></span></span>
+		<input type='checkbox' class="fold" id="Logger-fold-results"><label for="Logger-fold-results">As Outputs Of (<i>at least 2, both are exported</i>)</label><span id='Logger-fold-results-items' class="fold-items"><span>
+			func <a href="#name-New">New</a>() *<b>Logger</b></span><span>
+			func <a href="#name-StandardLogger">StandardLogger</a>() *<b>Logger</b></span></span>
+		<input type='checkbox' class="fold" id="Logger-fold-params"><label for="Logger-fold-params">As Inputs Of (<i>at least 2, both are exported</i>)</label><span id='Logger-fold-params-items' class="fold-items"><span>
+			func <a href="#name-NewEntry">NewEntry</a>(logger *<b>Logger</b>) *<a href="#name-Entry">Entry</a></span><span>
+			func github.com/ARM-software/golang-utils/utils/logs.<a href="../ARM-software*34f8c/golang-utils/utils/logs.html#name-NewLogrusLogger">NewLogrusLogger</a>(logrusL *<b>Logger</b>, loggerSource <a href="../../builtin.html#name-string">string</a>) (loggers <a href="../ARM-software*34f8c/golang-utils/utils/logs.html">logs</a>.<a href="../ARM-software*34f8c/golang-utils/utils/logs.html#name-Loggers">Loggers</a>, err <a href="../../builtin.html#name-error">error</a>)</span></span>
+		<input type='checkbox' class="fold" id="Logger-fold-values"><label for="Logger-fold-values">As Types Of (<i>only one, which is unexported</i>)</label><span id='Logger-fold-values-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Logger-showhide-values"><i><label for="Logger-showhide-values" class="show-inline">/* one unexported ... */</label><label for="Logger-showhide-values" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			  var <a href="#name-std">std</a> *Logger</i></span></span>
+
+</span></div><div class="anchor type-res" id="name-MutexWrap" data-popularity="200">	<input type='checkbox' class="fold" id="MutexWrap-fold-content"><label for="MutexWrap-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-51">MutexWrap</a> <i>(struct)</i></label><span id='MutexWrap-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="MutexWrap-fold-fields"><label for="MutexWrap-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='MutexWrap-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="MutexWrap-showhide-fields"><i><label for="MutexWrap-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="MutexWrap-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-53">disabled</a> <i><a href="../../builtin.html#name-bool">bool</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-52">lock</a> <i><a href="../../sync.html">sync</a>.<a href="../../sync.html#name-Mutex">Mutex</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="MutexWrap-fold-methods"><label for="MutexWrap-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='MutexWrap-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-68">Disable</a>()</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-56">Lock</a>()</span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-62">Unlock</a>()</span></span></span>
+		<input type='checkbox' class="fold" id="MutexWrap-fold-impls"><label for="MutexWrap-fold-impls">Implements (<i>at least one exported</i>)</label><span id='MutexWrap-fold-impls-items' class="fold-items"><span>
+			*T : sync.<a href="../../sync.html#name-Locker">Locker</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-StdLogger" data-popularity="1250">	<input type='checkbox' class="fold" id="StdLogger-fold-content"><label for="StdLogger-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-124">StdLogger</a> <b><i>(interface)</i></b></label><span id='StdLogger-fold-content-docs' class="fold-docs">
+		StdLogger is what your logrus-enabled library should take, that way
+		it'll accept a stdlib logger and a logrus logger. There's no standard
+		interface, this is the closest we get, unfortunately.
+
+		<input type='checkbox' class="fold" id="StdLogger-fold-methods"><label for="StdLogger-fold-methods">Methods (<i>total 9, all are exported</i>)</label><span id='StdLogger-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-129">Fatal</a>(...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-130">Fatalf</a>(<a href="../../builtin.html#name-string">string</a>, ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-131">Fatalln</a>(...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-133">Panic</a>(...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-134">Panicf</a>(<a href="../../builtin.html#name-string">string</a>, ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-135">Panicln</a>(...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-125">Print</a>(...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-126">Printf</a>(<a href="../../builtin.html#name-string">string</a>, ...interface{})</span></span><span>
+			<span class="nodocs">( T) <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-127">Println</a>(...interface{})</span></span></span>
+		<input type='checkbox' class="fold" id="StdLogger-fold-impledby"><label for="StdLogger-fold-impledby">Implemented By (<i>at least 5, all are exported</i>)</label><span id='StdLogger-fold-impledby-items' class="fold-items"><span>
+			*<a href="#name-Entry">Entry</a></span><span>
+			 <a href="#name-Ext1FieldLogger">Ext1FieldLogger</a> <i>(interface)</i></span><span>
+			 <a href="#name-FieldLogger">FieldLogger</a> <i>(interface)</i></span><span>
+			*<a href="#name-Logger">Logger</a></span><span>
+			*log.<a href="../../log.html#name-Logger">Logger</a></span></span>
+		<input type='checkbox' class="fold" id="StdLogger-fold-impls"><label for="StdLogger-fold-impls">Implements (<i>at least one exported</i>)</label><span id='StdLogger-fold-impls-items' class="fold-items"><span>
+			 T : github.com/hashicorp/go-retryablehttp.<a href="../hashicorp/go-retryablehttp.html#name-Logger">Logger</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-TextFormatter" data-popularity="400">	<input type='checkbox' class="fold" id="TextFormatter-fold-content"><label for="TextFormatter-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-30">TextFormatter</a> <i>(struct)</i></label><span id='TextFormatter-fold-content-docs' class="fold-docs">
+		TextFormatter formats logs into text
+
+		<input type='checkbox' class="fold" id="TextFormatter-fold-fields"><label for="TextFormatter-fold-fields">Fields (<i>total 18, in which 15 are exported</i>)</label><span id='TextFormatter-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-field-CallerPrettyfier"><label for="TextFormatter-fold-field-CallerPrettyfier"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-96">CallerPrettyfier</a> <i>func(*<a href="../../runtime.html">runtime</a>.<a href="../../runtime.html#name-Frame">Frame</a>) (function <a href="../../builtin.html#name-string">string</a>, file <a href="../../builtin.html#name-string">string</a>)</i></label><span id='TextFormatter-fold-field-CallerPrettyfier-docs' class="fold-docs">
+				CallerPrettyfier can be set by the user to modify the content
+				of the function and file keys in the data when ReportCaller is
+				activated. If any of the returned value is the empty string the
+				corresponding key will be removed from fields.
+</span></span><span>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-field-DisableColors"><label for="TextFormatter-fold-field-DisableColors"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-35">DisableColors</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='TextFormatter-fold-field-DisableColors-docs' class="fold-docs">
+				Force disabling colors.
+</span></span><span>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-field-DisableLevelTruncation"><label for="TextFormatter-fold-field-DisableLevelTruncation"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-71">DisableLevelTruncation</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='TextFormatter-fold-field-DisableLevelTruncation-docs' class="fold-docs">
+				Disables the truncation of the level text to 4 characters.
+</span></span><span>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-field-DisableQuote"><label for="TextFormatter-fold-field-DisableQuote"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-43">DisableQuote</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='TextFormatter-fold-field-DisableQuote-docs' class="fold-docs">
+				DisableQuote disables quoting for all values.
+				DisableQuote will have a lower priority than ForceQuote.
+				If both of them are set to true, quote will be forced on all values.
+</span></span><span>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-field-DisableSorting"><label for="TextFormatter-fold-field-DisableSorting"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-65">DisableSorting</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='TextFormatter-fold-field-DisableSorting-docs' class="fold-docs">
+				The fields are sorted by default for a consistent output. For applications
+				that log extremely frequently and don't use the JSON formatter this may not
+				be desired.
+</span></span><span>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-field-DisableTimestamp"><label for="TextFormatter-fold-field-DisableTimestamp"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-50">DisableTimestamp</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='TextFormatter-fold-field-DisableTimestamp-docs' class="fold-docs">
+				Disable timestamp logging. useful when output is redirected to logging
+				system that already adds timestamps.
+</span></span><span>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-field-EnvironmentOverrideColors"><label for="TextFormatter-fold-field-EnvironmentOverrideColors"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-46">EnvironmentOverrideColors</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='TextFormatter-fold-field-EnvironmentOverrideColors-docs' class="fold-docs">
+				Override coloring based on CLICOLOR and CLICOLOR_FORCE. - https://bixense.com/clicolors/
+</span></span><span>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-field-FieldMap"><label for="TextFormatter-fold-field-FieldMap"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-90">FieldMap</a> <i><a href="#name-FieldMap">FieldMap</a></i></label><span id='TextFormatter-fold-field-FieldMap-docs' class="fold-docs">
+				FieldMap allows users to customize the names of keys for default fields.
+				As an example:
+				formatter := &amp;TextFormatter{
+				    FieldMap: FieldMap{
+				        FieldKeyTime:  "@timestamp",
+				        FieldKeyLevel: "@level",
+				        FieldKeyMsg:   "@message"}}
+</span></span><span>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-field-ForceColors"><label for="TextFormatter-fold-field-ForceColors"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-32">ForceColors</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='TextFormatter-fold-field-ForceColors-docs' class="fold-docs">
+				Set to true to bypass checking for a TTY before outputting colors.
+</span></span><span>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-field-ForceQuote"><label for="TextFormatter-fold-field-ForceQuote"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-38">ForceQuote</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='TextFormatter-fold-field-ForceQuote-docs' class="fold-docs">
+				Force quoting of all values
+</span></span><span>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-field-FullTimestamp"><label for="TextFormatter-fold-field-FullTimestamp"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-54">FullTimestamp</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='TextFormatter-fold-field-FullTimestamp-docs' class="fold-docs">
+				Enable logging the full timestamp when a TTY is attached instead of just
+				the time passed since beginning of execution.
+</span></span><span>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-field-PadLevelText"><label for="TextFormatter-fold-field-PadLevelText"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-75">PadLevelText</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='TextFormatter-fold-field-PadLevelText-docs' class="fold-docs">
+				PadLevelText Adds padding the level text so that all the levels output at the same length
+				PadLevelText is a superset of the DisableLevelTruncation option
+</span></span><span>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-field-QuoteEmptyFields"><label for="TextFormatter-fold-field-QuoteEmptyFields"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-78">QuoteEmptyFields</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='TextFormatter-fold-field-QuoteEmptyFields-docs' class="fold-docs">
+				QuoteEmptyFields will wrap empty fields in quotes if true
+</span></span><span>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-field-SortingFunc"><label for="TextFormatter-fold-field-SortingFunc"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-68">SortingFunc</a> <i>func([]<a href="../../builtin.html#name-string">string</a>)</i></label><span id='TextFormatter-fold-field-SortingFunc-docs' class="fold-docs">
+				The keys sorting function, when uninitialized it uses sort.Strings.
+</span></span><span>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-field-TimestampFormat"><label for="TextFormatter-fold-field-TimestampFormat"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-60">TimestampFormat</a> <i><a href="../../builtin.html#name-string">string</a></i></label><span id='TextFormatter-fold-field-TimestampFormat-docs' class="fold-docs">
+				TimestampFormat to use for display when a full timestamp is printed.
+				The format to use is the same than for time.Format or time.Parse from the standard
+				library.
+				The standard Library already provides a set of predefined format.
+</span></span>
+			<input type='checkbox' class="showhide" id="TextFormatter-showhide-fields"><i><label for="TextFormatter-showhide-fields" class="show-inline">/* 3 unexporteds ... */</label><label for="TextFormatter-showhide-fields" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-field-isTerminal"><label for="TextFormatter-fold-field-isTerminal"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-81">isTerminal</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='TextFormatter-fold-field-isTerminal-docs' class="fold-docs">
+				Whether the logger's out is to a terminal
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-field-levelTextMaxLength"><label for="TextFormatter-fold-field-levelTextMaxLength"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-101">levelTextMaxLength</a> <i><a href="../../builtin.html#name-int">int</a></i></label><span id='TextFormatter-fold-field-levelTextMaxLength-docs' class="fold-docs">
+				The max length of the level text, generated dynamically on init
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-98">terminalInitOnce</a> <i><a href="../../sync.html">sync</a>.<a href="../../sync.html#name-Once">Once</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="TextFormatter-fold-methods"><label for="TextFormatter-fold-methods">Methods (<i>total 7, in which 1 are exported</i>)</label><span id='TextFormatter-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="TextFormatter-fold-method-Format"><label for="TextFormatter-fold-method-Format">(*T) <a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-133">Format</a>(entry *<a href="#name-Entry">Entry</a>) ([]<a href="../../builtin.html#name-byte">byte</a>, <a href="../../builtin.html#name-error">error</a>)</label><span id='TextFormatter-fold-method-Format-docs' class="fold-docs">
+				Format renders a single log entry
+</span></span>
+			<input type='checkbox' class="showhide" id="TextFormatter-showhide-methods"><i><label for="TextFormatter-showhide-methods" class="show-inline">/* 6 unexporteds ... */</label><label for="TextFormatter-showhide-methods" class="hide-inline">/* 6 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-319">appendKeyValue</a>(b *<a href="../../bytes.html">bytes</a>.<a href="../../bytes.html#name-Buffer">Buffer</a>, key <a href="../../builtin.html#name-string">string</a>, value interface{})</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-328">appendValue</a>(b *<a href="../../bytes.html">bytes</a>.<a href="../../bytes.html#name-Buffer">Buffer</a>, value interface{})</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-104">init</a>(entry *<a href="#name-Entry">Entry</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-117">isColored</a>() <a href="../../builtin.html#name-bool">bool</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-298">needsQuoting</a>(text <a href="../../builtin.html#name-string">string</a>) <a href="../../builtin.html#name-bool">bool</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-232">printColored</a>(b *<a href="../../bytes.html">bytes</a>.<a href="../../bytes.html#name-Buffer">Buffer</a>, entry *<a href="#name-Entry">Entry</a>, keys []<a href="../../builtin.html#name-string">string</a>, data <a href="#name-Fields">Fields</a>, timestampFormat <a href="../../builtin.html#name-string">string</a>)</span></i></span></span>
+		<input type='checkbox' class="fold" id="TextFormatter-fold-impls"><label for="TextFormatter-fold-impls">Implements (<i>at least one exported</i>)</label><span id='TextFormatter-fold-impls-items' class="fold-items"><span>
+			*T : <a href="#name-Formatter">Formatter</a></span></span>
+
+</span></div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* 3 unexporteds ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* 3 unexporteds: */</label></i><div class="anchor type-res hidden" id="name-defaultPool" data-popularity="150">	<input type='checkbox' class="fold" id="defaultPool-fold-content"><label for="defaultPool-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/buffer_pool.go.html#line-17">defaultPool</a> <i>(struct)</i></label><span id='defaultPool-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="defaultPool-fold-fields"><label for="defaultPool-fold-fields">Fields (<i>only one, which is unexported</i>)</label><span id='defaultPool-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="defaultPool-showhide-fields"><i><label for="defaultPool-showhide-fields" class="show-inline">/* one unexported ... */</label><label for="defaultPool-showhide-fields" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/github.com/sirupsen/logrus/buffer_pool.go.html#line-18">pool</a> <i>*<a href="../../sync.html">sync</a>.<a href="../../sync.html#name-Pool">Pool</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="defaultPool-fold-methods"><label for="defaultPool-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='defaultPool-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/buffer_pool.go.html#line-25">Get</a>() *<a href="../../bytes.html">bytes</a>.<a href="../../bytes.html#name-Buffer">Buffer</a></span></span><span>
+			<span class="nodocs">(*T) <a href="../../../src/github.com/sirupsen/logrus/buffer_pool.go.html#line-21">Put</a>(buf *<a href="../../bytes.html">bytes</a>.<a href="../../bytes.html#name-Buffer">Buffer</a>)</span></span></span>
+		<input type='checkbox' class="fold" id="defaultPool-fold-impls"><label for="defaultPool-fold-impls">Implements (<i>at least one exported</i>)</label><span id='defaultPool-fold-impls-items' class="fold-items"><span>
+			*T : <a href="#name-BufferPool">BufferPool</a></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-exitFunc" data-popularity="0">	<span class="nodocs"> type <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-49">exitFunc</a> <i>(func)</i></span></div><div class="anchor type-res hidden" id="name-fieldKey" data-popularity="35">	<input type='checkbox' class="fold" id="fieldKey-fold-content"><label for="fieldKey-fold-content"> type <a href="../../../src/github.com/sirupsen/logrus/json_formatter.go.html#line-10">fieldKey</a> <a href="../../builtin.html#name-string">string</a> <i>(basic type)</i></label><span id='fieldKey-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="fieldKey-fold-params"><label for="fieldKey-fold-params">As Inputs Of (<i>at least one unexported</i>)</label><span id='fieldKey-fold-params-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="fieldKey-showhide-outputofs"><i><label for="fieldKey-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="fieldKey-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-FieldMap">FieldMap</a>.<a href="../../../src/github.com/sirupsen/logrus/json_formatter.go.html#line-15">resolve</a>(key <b>fieldKey</b>) <a href="../../builtin.html#name-string">string</a></i></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 69, in which 56 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-AddHook">	<input type='checkbox' class="fold" id="AddHook-fold-content"><label for="AddHook-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-50">AddHook</a>(hook <a href="#name-Hook">Hook</a>)</label><span id='AddHook-fold-content-docs' class="fold-docs">
+		AddHook adds a hook to the standard logger hooks.
+
+</span></div><div class="anchor value-res" id="name-Debug">	<input type='checkbox' class="fold" id="Debug-fold-content"><label for="Debug-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-98">Debug</a>(args ...interface{})</label><span id='Debug-fold-content-docs' class="fold-docs">
+		Debug logs a message at level Debug on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Debugf">	<input type='checkbox' class="fold" id="Debugf-fold-content"><label for="Debugf-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-188">Debugf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</label><span id='Debugf-fold-content-docs' class="fold-docs">
+		Debugf logs a message at level Debug on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-DebugFn">	<input type='checkbox' class="fold" id="DebugFn-fold-content"><label for="DebugFn-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-143">DebugFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</label><span id='DebugFn-fold-content-docs' class="fold-docs">
+		DebugFn logs a message from a func at level Debug on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Debugln">	<input type='checkbox' class="fold" id="Debugln-fold-content"><label for="Debugln-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-233">Debugln</a>(args ...interface{})</label><span id='Debugln-fold-content-docs' class="fold-docs">
+		Debugln logs a message at level Debug on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-DeferExitHandler">	<input type='checkbox' class="fold" id="DeferExitHandler-fold-content"><label for="DeferExitHandler-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/alt_exit.go.html#line-74">DeferExitHandler</a>(handler func())</label><span id='DeferExitHandler-fold-content-docs' class="fold-docs">
+		DeferExitHandler prepends a Logrus Exit handler to the list of handlers,
+		call logrus.Exit to invoke all handlers. The handlers will also be invoked when
+		any Fatal log entry is made.
+
+		This method is useful when a caller wishes to use logrus to log a fatal
+		message but also needs to gracefully shutdown. An example usecase could be
+		closing database connections, or sending a alert that the application is
+		closing.
+
+</span></div><div class="anchor value-res" id="name-Error">	<input type='checkbox' class="fold" id="Error-fold-content"><label for="Error-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-123">Error</a>(args ...interface{})</label><span id='Error-fold-content-docs' class="fold-docs">
+		Error logs a message at level Error on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Errorf">	<input type='checkbox' class="fold" id="Errorf-fold-content"><label for="Errorf-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-213">Errorf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</label><span id='Errorf-fold-content-docs' class="fold-docs">
+		Errorf logs a message at level Error on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-ErrorFn">	<input type='checkbox' class="fold" id="ErrorFn-fold-content"><label for="ErrorFn-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-168">ErrorFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</label><span id='ErrorFn-fold-content-docs' class="fold-docs">
+		ErrorFn logs a message from a func at level Error on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Errorln">	<input type='checkbox' class="fold" id="Errorln-fold-content"><label for="Errorln-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-258">Errorln</a>(args ...interface{})</label><span id='Errorln-fold-content-docs' class="fold-docs">
+		Errorln logs a message at level Error on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Exit">	<input type='checkbox' class="fold" id="Exit-fold-content"><label for="Exit-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/alt_exit.go.html#line-49">Exit</a>(code <a href="../../builtin.html#name-int">int</a>)</label><span id='Exit-fold-content-docs' class="fold-docs">
+		Exit runs all the Logrus atexit handlers and then terminates the program using os.Exit(code)
+
+</span></div><div class="anchor value-res" id="name-Fatal">	<input type='checkbox' class="fold" id="Fatal-fold-content"><label for="Fatal-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-133">Fatal</a>(args ...interface{})</label><span id='Fatal-fold-content-docs' class="fold-docs">
+		Fatal logs a message at level Fatal on the standard logger then the process will exit with status set to 1.
+
+</span></div><div class="anchor value-res" id="name-Fatalf">	<input type='checkbox' class="fold" id="Fatalf-fold-content"><label for="Fatalf-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-223">Fatalf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</label><span id='Fatalf-fold-content-docs' class="fold-docs">
+		Fatalf logs a message at level Fatal on the standard logger then the process will exit with status set to 1.
+
+</span></div><div class="anchor value-res" id="name-FatalFn">	<input type='checkbox' class="fold" id="FatalFn-fold-content"><label for="FatalFn-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-178">FatalFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</label><span id='FatalFn-fold-content-docs' class="fold-docs">
+		FatalFn logs a message from a func at level Fatal on the standard logger then the process will exit with status set to 1.
+
+</span></div><div class="anchor value-res" id="name-Fatalln">	<input type='checkbox' class="fold" id="Fatalln-fold-content"><label for="Fatalln-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-268">Fatalln</a>(args ...interface{})</label><span id='Fatalln-fold-content-docs' class="fold-docs">
+		Fatalln logs a message at level Fatal on the standard logger then the process will exit with status set to 1.
+
+</span></div><div class="anchor value-res" id="name-GetLevel">	<input type='checkbox' class="fold" id="GetLevel-fold-content"><label for="GetLevel-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-40">GetLevel</a>() <a href="#name-Level">Level</a></label><span id='GetLevel-fold-content-docs' class="fold-docs">
+		GetLevel returns the standard logger level.
+
+</span></div><div class="anchor value-res" id="name-Info">	<input type='checkbox' class="fold" id="Info-fold-content"><label for="Info-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-108">Info</a>(args ...interface{})</label><span id='Info-fold-content-docs' class="fold-docs">
+		Info logs a message at level Info on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Infof">	<input type='checkbox' class="fold" id="Infof-fold-content"><label for="Infof-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-198">Infof</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</label><span id='Infof-fold-content-docs' class="fold-docs">
+		Infof logs a message at level Info on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-InfoFn">	<input type='checkbox' class="fold" id="InfoFn-fold-content"><label for="InfoFn-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-153">InfoFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</label><span id='InfoFn-fold-content-docs' class="fold-docs">
+		InfoFn logs a message from a func at level Info on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Infoln">	<input type='checkbox' class="fold" id="Infoln-fold-content"><label for="Infoln-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-243">Infoln</a>(args ...interface{})</label><span id='Infoln-fold-content-docs' class="fold-docs">
+		Infoln logs a message at level Info on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-IsLevelEnabled">	<input type='checkbox' class="fold" id="IsLevelEnabled-fold-content"><label for="IsLevelEnabled-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-45">IsLevelEnabled</a>(level <a href="#name-Level">Level</a>) <a href="../../builtin.html#name-bool">bool</a></label><span id='IsLevelEnabled-fold-content-docs' class="fold-docs">
+		IsLevelEnabled checks if the log level of the standard logger is greater than the level param
+
+</span></div><div class="anchor value-res" id="name-New">	<input type='checkbox' class="fold" id="New-fold-content"><label for="New-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/logger.go.html#line-84">New</a>() *<a href="#name-Logger">Logger</a></label><span id='New-fold-content-docs' class="fold-docs">
+		Creates a new logger. Configuration should be set by changing `Formatter`,
+		`Out` and `Hooks` directly on the default logger instance. You can also just
+		instantiate your own:
+
+		   var log = &amp;logrus.Logger{
+		     Out: os.Stderr,
+		     Formatter: new(logrus.TextFormatter),
+		     Hooks: make(logrus.LevelHooks),
+		     Level: logrus.DebugLevel,
+		   }
+
+		It's recommended to make this a global instance called `log`.
+
+</span></div><div class="anchor value-res" id="name-NewEntry">	<span class="nodocs"> func <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-73">NewEntry</a>(logger *<a href="#name-Logger">Logger</a>) *<a href="#name-Entry">Entry</a></span></div><div class="anchor value-res" id="name-Panic">	<input type='checkbox' class="fold" id="Panic-fold-content"><label for="Panic-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-128">Panic</a>(args ...interface{})</label><span id='Panic-fold-content-docs' class="fold-docs">
+		Panic logs a message at level Panic on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Panicf">	<input type='checkbox' class="fold" id="Panicf-fold-content"><label for="Panicf-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-218">Panicf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</label><span id='Panicf-fold-content-docs' class="fold-docs">
+		Panicf logs a message at level Panic on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-PanicFn">	<input type='checkbox' class="fold" id="PanicFn-fold-content"><label for="PanicFn-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-173">PanicFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</label><span id='PanicFn-fold-content-docs' class="fold-docs">
+		PanicFn logs a message from a func at level Panic on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Panicln">	<input type='checkbox' class="fold" id="Panicln-fold-content"><label for="Panicln-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-263">Panicln</a>(args ...interface{})</label><span id='Panicln-fold-content-docs' class="fold-docs">
+		Panicln logs a message at level Panic on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-ParseLevel">	<input type='checkbox' class="fold" id="ParseLevel-fold-content"><label for="ParseLevel-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-25">ParseLevel</a>(lvl <a href="../../builtin.html#name-string">string</a>) (<a href="#name-Level">Level</a>, <a href="../../builtin.html#name-error">error</a>)</label><span id='ParseLevel-fold-content-docs' class="fold-docs">
+		ParseLevel takes a string level and returns the Logrus log level constant.
+
+</span></div><div class="anchor value-res" id="name-Print">	<input type='checkbox' class="fold" id="Print-fold-content"><label for="Print-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-103">Print</a>(args ...interface{})</label><span id='Print-fold-content-docs' class="fold-docs">
+		Print logs a message at level Info on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Printf">	<input type='checkbox' class="fold" id="Printf-fold-content"><label for="Printf-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-193">Printf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</label><span id='Printf-fold-content-docs' class="fold-docs">
+		Printf logs a message at level Info on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-PrintFn">	<input type='checkbox' class="fold" id="PrintFn-fold-content"><label for="PrintFn-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-148">PrintFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</label><span id='PrintFn-fold-content-docs' class="fold-docs">
+		PrintFn logs a message from a func at level Info on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Println">	<input type='checkbox' class="fold" id="Println-fold-content"><label for="Println-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-238">Println</a>(args ...interface{})</label><span id='Println-fold-content-docs' class="fold-docs">
+		Println logs a message at level Info on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-RegisterExitHandler">	<input type='checkbox' class="fold" id="RegisterExitHandler-fold-content"><label for="RegisterExitHandler-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/alt_exit.go.html#line-62">RegisterExitHandler</a>(handler func())</label><span id='RegisterExitHandler-fold-content-docs' class="fold-docs">
+		RegisterExitHandler appends a Logrus Exit handler to the list of handlers,
+		call logrus.Exit to invoke all handlers. The handlers will also be invoked when
+		any Fatal log entry is made.
+
+		This method is useful when a caller wishes to use logrus to log a fatal
+		message but also needs to gracefully shutdown. An example usecase could be
+		closing database connections, or sending a alert that the application is
+		closing.
+
+</span></div><div class="anchor value-res" id="name-SetBufferPool">	<input type='checkbox' class="fold" id="SetBufferPool-fold-content"><label for="SetBufferPool-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/buffer_pool.go.html#line-40">SetBufferPool</a>(bp <a href="#name-BufferPool">BufferPool</a>)</label><span id='SetBufferPool-fold-content-docs' class="fold-docs">
+		SetBufferPool allows to replace the default logrus buffer pool
+		to better meets the specific needs of an application.
+
+</span></div><div class="anchor value-res" id="name-SetFormatter">	<input type='checkbox' class="fold" id="SetFormatter-fold-content"><label for="SetFormatter-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-24">SetFormatter</a>(formatter <a href="#name-Formatter">Formatter</a>)</label><span id='SetFormatter-fold-content-docs' class="fold-docs">
+		SetFormatter sets the standard logger formatter.
+
+</span></div><div class="anchor value-res" id="name-SetLevel">	<input type='checkbox' class="fold" id="SetLevel-fold-content"><label for="SetLevel-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-35">SetLevel</a>(level <a href="#name-Level">Level</a>)</label><span id='SetLevel-fold-content-docs' class="fold-docs">
+		SetLevel sets the standard logger level.
+
+</span></div><div class="anchor value-res" id="name-SetOutput">	<input type='checkbox' class="fold" id="SetOutput-fold-content"><label for="SetOutput-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-19">SetOutput</a>(out <a href="../../io.html">io</a>.<a href="../../io.html#name-Writer">Writer</a>)</label><span id='SetOutput-fold-content-docs' class="fold-docs">
+		SetOutput sets the standard logger output.
+
+</span></div><div class="anchor value-res" id="name-SetReportCaller">	<input type='checkbox' class="fold" id="SetReportCaller-fold-content"><label for="SetReportCaller-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-30">SetReportCaller</a>(include <a href="../../builtin.html#name-bool">bool</a>)</label><span id='SetReportCaller-fold-content-docs' class="fold-docs">
+		SetReportCaller sets whether the standard logger will include the calling
+		method as a field.
+
+</span></div><div class="anchor value-res" id="name-StandardLogger">	<span class="nodocs"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-14">StandardLogger</a>() *<a href="#name-Logger">Logger</a></span></div><div class="anchor value-res" id="name-Trace">	<input type='checkbox' class="fold" id="Trace-fold-content"><label for="Trace-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-93">Trace</a>(args ...interface{})</label><span id='Trace-fold-content-docs' class="fold-docs">
+		Trace logs a message at level Trace on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Tracef">	<input type='checkbox' class="fold" id="Tracef-fold-content"><label for="Tracef-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-183">Tracef</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</label><span id='Tracef-fold-content-docs' class="fold-docs">
+		Tracef logs a message at level Trace on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-TraceFn">	<input type='checkbox' class="fold" id="TraceFn-fold-content"><label for="TraceFn-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-138">TraceFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</label><span id='TraceFn-fold-content-docs' class="fold-docs">
+		TraceFn logs a message from a func at level Trace on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Traceln">	<input type='checkbox' class="fold" id="Traceln-fold-content"><label for="Traceln-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-228">Traceln</a>(args ...interface{})</label><span id='Traceln-fold-content-docs' class="fold-docs">
+		Traceln logs a message at level Trace on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Warn">	<input type='checkbox' class="fold" id="Warn-fold-content"><label for="Warn-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-113">Warn</a>(args ...interface{})</label><span id='Warn-fold-content-docs' class="fold-docs">
+		Warn logs a message at level Warn on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Warnf">	<input type='checkbox' class="fold" id="Warnf-fold-content"><label for="Warnf-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-203">Warnf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</label><span id='Warnf-fold-content-docs' class="fold-docs">
+		Warnf logs a message at level Warn on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-WarnFn">	<input type='checkbox' class="fold" id="WarnFn-fold-content"><label for="WarnFn-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-158">WarnFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</label><span id='WarnFn-fold-content-docs' class="fold-docs">
+		WarnFn logs a message from a func at level Warn on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Warning">	<input type='checkbox' class="fold" id="Warning-fold-content"><label for="Warning-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-118">Warning</a>(args ...interface{})</label><span id='Warning-fold-content-docs' class="fold-docs">
+		Warning logs a message at level Warn on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Warningf">	<input type='checkbox' class="fold" id="Warningf-fold-content"><label for="Warningf-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-208">Warningf</a>(format <a href="../../builtin.html#name-string">string</a>, args ...interface{})</label><span id='Warningf-fold-content-docs' class="fold-docs">
+		Warningf logs a message at level Warn on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-WarningFn">	<input type='checkbox' class="fold" id="WarningFn-fold-content"><label for="WarningFn-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-163">WarningFn</a>(fn <a href="#name-LogFunction">LogFunction</a>)</label><span id='WarningFn-fold-content-docs' class="fold-docs">
+		WarningFn logs a message from a func at level Warn on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Warningln">	<input type='checkbox' class="fold" id="Warningln-fold-content"><label for="Warningln-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-253">Warningln</a>(args ...interface{})</label><span id='Warningln-fold-content-docs' class="fold-docs">
+		Warningln logs a message at level Warn on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-Warnln">	<input type='checkbox' class="fold" id="Warnln-fold-content"><label for="Warnln-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-248">Warnln</a>(args ...interface{})</label><span id='Warnln-fold-content-docs' class="fold-docs">
+		Warnln logs a message at level Warn on the standard logger.
+
+</span></div><div class="anchor value-res" id="name-WithContext">	<input type='checkbox' class="fold" id="WithContext-fold-content"><label for="WithContext-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-60">WithContext</a>(ctx <a href="../../context.html">context</a>.<a href="../../context.html#name-Context">Context</a>) *<a href="#name-Entry">Entry</a></label><span id='WithContext-fold-content-docs' class="fold-docs">
+		WithContext creates an entry from the standard logger and adds a context to it.
+
+</span></div><div class="anchor value-res" id="name-WithError">	<input type='checkbox' class="fold" id="WithError-fold-content"><label for="WithError-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-55">WithError</a>(err <a href="../../builtin.html#name-error">error</a>) *<a href="#name-Entry">Entry</a></label><span id='WithError-fold-content-docs' class="fold-docs">
+		WithError creates an entry from the standard logger and adds an error to it, using the value defined in ErrorKey as key.
+
+</span></div><div class="anchor value-res" id="name-WithField">	<input type='checkbox' class="fold" id="WithField-fold-content"><label for="WithField-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-69">WithField</a>(key <a href="../../builtin.html#name-string">string</a>, value interface{}) *<a href="#name-Entry">Entry</a></label><span id='WithField-fold-content-docs' class="fold-docs">
+		WithField creates an entry from the standard logger and adds a field to
+		it. If you want multiple fields, use `WithFields`.
+
+		Note that it doesn't log until you call Debug, Print, Info, Warn, Fatal
+		or Panic on the Entry it returns.
+
+</span></div><div class="anchor value-res" id="name-WithFields">	<input type='checkbox' class="fold" id="WithFields-fold-content"><label for="WithFields-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-79">WithFields</a>(fields <a href="#name-Fields">Fields</a>) *<a href="#name-Entry">Entry</a></label><span id='WithFields-fold-content-docs' class="fold-docs">
+		WithFields creates an entry from the standard logger and adds multiple
+		fields to it. This is simply a helper for `WithField`, invoking it
+		once for each field.
+
+		Note that it doesn't log until you call Debug, Print, Info, Warn, Fatal
+		or Panic on the Entry it returns.
+
+</span></div><div class="anchor value-res" id="name-WithTime">	<input type='checkbox' class="fold" id="WithTime-fold-content"><label for="WithTime-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-88">WithTime</a>(t <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a>) *<a href="#name-Entry">Entry</a></label><span id='WithTime-fold-content-docs' class="fold-docs">
+		WithTime creates an entry from the standard logger and overrides the time of
+		logs generated with it.
+
+		Note that it doesn't log until you call Debug, Print, Info, Warn, Fatal
+		or Panic on the Entry it returns.
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 13 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 13 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-checkIfTerminal"><i>	<span class="nodocs"> func <a href="../../../src/github.com/sirupsen/logrus/terminal_check_notappengine.go.html#line-10">checkIfTerminal</a>(w <a href="../../io.html">io</a>.<a href="../../io.html#name-Writer">Writer</a>) <a href="../../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-getBuffer"><i>	<span class="nodocs"> func <a href="../../../src/github.com/sirupsen/logrus/buffer_pool.go.html#line-29">getBuffer</a>() *<a href="../../bytes.html">bytes</a>.<a href="../../bytes.html#name-Buffer">Buffer</a></span></i></div><div class="anchor value-res hidden" id="name-getCaller"><i>	<input type='checkbox' class="fold" id="getCaller-fold-content"><label for="getCaller-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-179">getCaller</a>() *<a href="../../runtime.html">runtime</a>.<a href="../../runtime.html#name-Frame">Frame</a></label><span id='getCaller-fold-content-docs' class="fold-docs">
+		getCaller retrieves the name of the first non-logrus calling function
+
+</span></i></div><div class="anchor value-res hidden" id="name-getPackageName"><i>	<input type='checkbox' class="fold" id="getPackageName-fold-content"><label for="getPackageName-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-164">getPackageName</a>(f <a href="../../builtin.html#name-string">string</a>) <a href="../../builtin.html#name-string">string</a></label><span id='getPackageName-fold-content-docs' class="fold-docs">
+		getPackageName reduces a fully qualified function name to the package name
+		There really ought to be to be a better way...
+
+</span></i></div><div class="anchor value-res hidden" id="name-init"><i>	<span class="nodocs"> func <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-32">init</a>()</span></i></div><div class="anchor value-res hidden" id="name-init"><i>	<span class="nodocs"> func <a href="../../../src/github.com/sirupsen/logrus/buffer_pool.go.html#line-44">init</a>()</span></i></div><div class="anchor value-res hidden" id="name-init"><i>	<span class="nodocs"> func <a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-25">init</a>()</span></i></div><div class="anchor value-res hidden" id="name-isTerminal"><i>	<span class="nodocs"> func <a href="../../../src/github.com/sirupsen/logrus/terminal_check_unix.go.html#line-10">isTerminal</a>(fd <a href="../../builtin.html#name-int">int</a>) <a href="../../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-prefixFieldClashes"><i>	<input type='checkbox' class="fold" id="prefixFieldClashes-fold-content"><label for="prefixFieldClashes-fold-content"> func <a href="../../../src/github.com/sirupsen/logrus/formatter.go.html#line-42">prefixFieldClashes</a>(data <a href="#name-Fields">Fields</a>, fieldMap <a href="#name-FieldMap">FieldMap</a>, reportCaller <a href="../../builtin.html#name-bool">bool</a>)</label><span id='prefixFieldClashes-fold-content-docs' class="fold-docs">
+		This is to not silently overwrite `time`, `msg`, `func` and `level` fields when
+		dumping it. If this code wasn't there doing:
+
+		 logrus.WithField("level", 1).Info("hello")
+
+		Would just silently drop the user provided level. Instead with this code
+		it'll logged as:
+
+		 {"level": "info", "fields.level": 1, "msg": "hello", "time": "..."}
+
+		It's not exported because it's still using Data in an opinionated way. It's to
+		avoid code duplication between the two default formatters.
+
+</span></i></div><div class="anchor value-res hidden" id="name-putBuffer"><i>	<span class="nodocs"> func <a href="../../../src/github.com/sirupsen/logrus/buffer_pool.go.html#line-33">putBuffer</a>(buf *<a href="../../bytes.html">bytes</a>.<a href="../../bytes.html#name-Buffer">Buffer</a>)</span></i></div><div class="anchor value-res hidden" id="name-runHandler"><i>	<span class="nodocs"> func <a href="../../../src/github.com/sirupsen/logrus/alt_exit.go.html#line-32">runHandler</a>(handler func())</span></i></div><div class="anchor value-res hidden" id="name-runHandlers"><i>	<span class="nodocs"> func <a href="../../../src/github.com/sirupsen/logrus/alt_exit.go.html#line-42">runHandlers</a>()</span></i></div><div class="anchor value-res hidden" id="name-writerFinalizer"><i>	<span class="nodocs"> func <a href="../../../src/github.com/sirupsen/logrus/writer.go.html#line-68">writerFinalizer</a>(writer *<a href="../../io.html">io</a>.<a href="../../io.html#name-PipeWriter">PipeWriter</a>)</span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (total 9, in which 2 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-AllLevels">	<input type='checkbox' class="fold" id="AllLevels-fold-content"><label for="AllLevels-fold-content">  var <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-81">AllLevels</a> []<a href="#name-Level">Level</a></label><span id='AllLevels-fold-content-docs' class="fold-docs">
+		A constant exposing all logging levels
+
+</span></div><div class="anchor value-res" id="name-ErrorKey">	<input type='checkbox' class="fold" id="ErrorKey-fold-content"><label for="ErrorKey-fold-content">  var <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-38">ErrorKey</a> <a href="../../builtin.html#name-string">string</a></label><span id='ErrorKey-fold-content-docs' class="fold-docs">
+		Defines the key when adding errors using WithError.
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* 7 unexporteds ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* 7 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-baseTimestamp"><i>	<span class="nodocs">  var <a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-23">baseTimestamp</a> <a href="../../time.html">time</a>.<a href="../../time.html#name-Time">Time</a></span></i></div><div class="anchor value-res hidden" id="name-bufferPool"><i>	<span class="nodocs">  var <a href="../../../src/github.com/sirupsen/logrus/buffer_pool.go.html#line-9">bufferPool</a> <a href="#name-BufferPool">BufferPool</a></span></i></div><div class="anchor value-res hidden" id="name-callerInitOnce"><i>	<input type='checkbox' class="fold" id="callerInitOnce-fold-content"><label for="callerInitOnce-fold-content">  var <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-24">callerInitOnce</a> <a href="../../sync.html">sync</a>.<a href="../../sync.html#name-Once">Once</a></label><span id='callerInitOnce-fold-content-docs' class="fold-docs">
+		Used for caller information initialisation
+
+</span></i></div><div class="anchor value-res hidden" id="name-handlers"><i>	<span class="nodocs">  var <a href="../../../src/github.com/sirupsen/logrus/alt_exit.go.html#line-30">handlers</a> []func()</span></i></div><div class="anchor value-res hidden" id="name-logrusPackage"><i>	<input type='checkbox' class="fold" id="logrusPackage-fold-content"><label for="logrusPackage-fold-content">  var <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-18">logrusPackage</a> <a href="../../builtin.html#name-string">string</a></label><span id='logrusPackage-fold-content-docs' class="fold-docs">
+		qualified package name, cached at first use
+
+</span></i></div><div class="anchor value-res hidden" id="name-minimumCallerDepth"><i>	<input type='checkbox' class="fold" id="minimumCallerDepth-fold-content"><label for="minimumCallerDepth-fold-content">  var <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-21">minimumCallerDepth</a> <a href="../../builtin.html#name-int">int</a></label><span id='minimumCallerDepth-fold-content-docs' class="fold-docs">
+		Positions in the call stack when tracing to report the calling method
+
+</span></i></div><div class="anchor value-res hidden" id="name-std"><i>	<input type='checkbox' class="fold" id="std-fold-content"><label for="std-fold-content">  var <a href="../../../src/github.com/sirupsen/logrus/exported.go.html#line-11">std</a> *<a href="#name-Logger">Logger</a></label><span id='std-fold-content-docs' class="fold-docs">
+		std is the name of the standard logger in stdlib `log`
+
+</span></i></div></div>
+<div id="exported-constants"><span class="title">Package-Level Constants<span class="title-stat"><i> (total 21, in which 13 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-DebugLevel">	<input type='checkbox' class="fold" id="DebugLevel-fold-content"><label for="DebugLevel-fold-content">const <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-109">DebugLevel</a> <a href="#name-Level">Level</a> = 5</label><span id='DebugLevel-fold-content-docs' class="fold-docs">
+		DebugLevel level. Usually only enabled when debugging. Very verbose logging.
+
+</span></div><div class="anchor value-res" id="name-ErrorLevel">	<input type='checkbox' class="fold" id="ErrorLevel-fold-content"><label for="ErrorLevel-fold-content">const <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-102">ErrorLevel</a> <a href="#name-Level">Level</a> = 2</label><span id='ErrorLevel-fold-content-docs' class="fold-docs">
+		ErrorLevel level. Logs. Used for errors that should definitely be noted.
+		Commonly used for hooks to send errors to an error tracking service.
+
+</span></div><div class="anchor value-res" id="name-FatalLevel">	<input type='checkbox' class="fold" id="FatalLevel-fold-content"><label for="FatalLevel-fold-content">const <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-99">FatalLevel</a> <a href="#name-Level">Level</a> = 1</label><span id='FatalLevel-fold-content-docs' class="fold-docs">
+		FatalLevel level. Logs and then calls `logger.Exit(1)`. It will exit even if the
+		logging level is set to Panic.
+
+</span></div><div class="anchor value-res" id="name-FieldKeyFile">	<input type='checkbox' class="fold" id="FieldKeyFile-fold-content"><label for="FieldKeyFile-fold-content">const <a href="../../../src/github.com/sirupsen/logrus/formatter.go.html#line-13">FieldKeyFile</a> = "file"</label><span id='FieldKeyFile-fold-content-docs' class="fold-docs">
+		Default key names for the default fields
+
+</span></div><div class="anchor value-res" id="name-FieldKeyFunc">	<input type='checkbox' class="fold" id="FieldKeyFunc-fold-content"><label for="FieldKeyFunc-fold-content">const <a href="../../../src/github.com/sirupsen/logrus/formatter.go.html#line-12">FieldKeyFunc</a> = "func"</label><span id='FieldKeyFunc-fold-content-docs' class="fold-docs">
+		Default key names for the default fields
+
+</span></div><div class="anchor value-res" id="name-FieldKeyLevel">	<input type='checkbox' class="fold" id="FieldKeyLevel-fold-content"><label for="FieldKeyLevel-fold-content">const <a href="../../../src/github.com/sirupsen/logrus/formatter.go.html#line-9">FieldKeyLevel</a> = "level"</label><span id='FieldKeyLevel-fold-content-docs' class="fold-docs">
+		Default key names for the default fields
+
+</span></div><div class="anchor value-res" id="name-FieldKeyLogrusError">	<input type='checkbox' class="fold" id="FieldKeyLogrusError-fold-content"><label for="FieldKeyLogrusError-fold-content">const <a href="../../../src/github.com/sirupsen/logrus/formatter.go.html#line-11">FieldKeyLogrusError</a> = "logrus_error"</label><span id='FieldKeyLogrusError-fold-content-docs' class="fold-docs">
+		Default key names for the default fields
+
+</span></div><div class="anchor value-res" id="name-FieldKeyMsg">	<input type='checkbox' class="fold" id="FieldKeyMsg-fold-content"><label for="FieldKeyMsg-fold-content">const <a href="../../../src/github.com/sirupsen/logrus/formatter.go.html#line-8">FieldKeyMsg</a> = "msg"</label><span id='FieldKeyMsg-fold-content-docs' class="fold-docs">
+		Default key names for the default fields
+
+</span></div><div class="anchor value-res" id="name-FieldKeyTime">	<input type='checkbox' class="fold" id="FieldKeyTime-fold-content"><label for="FieldKeyTime-fold-content">const <a href="../../../src/github.com/sirupsen/logrus/formatter.go.html#line-10">FieldKeyTime</a> = "time"</label><span id='FieldKeyTime-fold-content-docs' class="fold-docs">
+		Default key names for the default fields
+
+</span></div><div class="anchor value-res" id="name-InfoLevel">	<input type='checkbox' class="fold" id="InfoLevel-fold-content"><label for="InfoLevel-fold-content">const <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-107">InfoLevel</a> <a href="#name-Level">Level</a> = 4</label><span id='InfoLevel-fold-content-docs' class="fold-docs">
+		InfoLevel level. General operational entries about what's going on inside the
+		application.
+
+</span></div><div class="anchor value-res" id="name-PanicLevel">	<input type='checkbox' class="fold" id="PanicLevel-fold-content"><label for="PanicLevel-fold-content">const <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-96">PanicLevel</a> <a href="#name-Level">Level</a> = 0</label><span id='PanicLevel-fold-content-docs' class="fold-docs">
+		PanicLevel level, highest level of severity. Logs and then calls panic with the
+		message passed to Debug, Info, ...
+
+</span></div><div class="anchor value-res" id="name-TraceLevel">	<input type='checkbox' class="fold" id="TraceLevel-fold-content"><label for="TraceLevel-fold-content">const <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-111">TraceLevel</a> <a href="#name-Level">Level</a> = 6</label><span id='TraceLevel-fold-content-docs' class="fold-docs">
+		TraceLevel level. Designates finer-grained informational events than the Debug.
+
+</span></div><div class="anchor value-res" id="name-WarnLevel">	<input type='checkbox' class="fold" id="WarnLevel-fold-content"><label for="WarnLevel-fold-content">const <a href="../../../src/github.com/sirupsen/logrus/logrus.go.html#line-104">WarnLevel</a> <a href="#name-Level">Level</a> = 3</label><span id='WarnLevel-fold-content-docs' class="fold-docs">
+		WarnLevel level. Non-critical entries that deserve eyes.
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-constants-showhide"><i><label for="unexported-constants-showhide" class="show-inline">/* 8 unexporteds ... */</label><label for="unexported-constants-showhide" class="hide-inline">/* 8 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-blue"><i>	<span class="nodocs">const <a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-19">blue</a> = 36</span></i></div><div class="anchor value-res hidden" id="name-defaultTimestampFormat"><i>	<input type='checkbox' class="fold" id="defaultTimestampFormat-fold-content"><label for="defaultTimestampFormat-fold-content">const <a href="../../../src/github.com/sirupsen/logrus/formatter.go.html#line-7">defaultTimestampFormat</a> = "2006-01-02T15:04:05Z07:00"</label><span id='defaultTimestampFormat-fold-content-docs' class="fold-docs">
+		Default key names for the default fields
+
+</span></i></div><div class="anchor value-res hidden" id="name-gray"><i>	<span class="nodocs">const <a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-20">gray</a> = 37</span></i></div><div class="anchor value-res hidden" id="name-ioctlReadTermios"><i>	<span class="nodocs">const <a href="../../../src/github.com/sirupsen/logrus/terminal_check_unix.go.html#line-8">ioctlReadTermios</a> = 21505</span></i></div><div class="anchor value-res hidden" id="name-knownLogrusFrames"><i>	<span class="nodocs">const <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-29">knownLogrusFrames</a> <a href="../../builtin.html#name-int">int</a> = 4</span></i></div><div class="anchor value-res hidden" id="name-maximumCallerDepth"><i>	<span class="nodocs">const <a href="../../../src/github.com/sirupsen/logrus/entry.go.html#line-28">maximumCallerDepth</a> <a href="../../builtin.html#name-int">int</a> = 25</span></i></div><div class="anchor value-res hidden" id="name-red"><i>	<span class="nodocs">const <a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-17">red</a> = 31</span></i></div><div class="anchor value-res hidden" id="name-yellow"><i>	<span class="nodocs">const <a href="../../../src/github.com/sirupsen/logrus/text_formatter.go.html#line-18">yellow</a> = 33</span></i></div></div></code></pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

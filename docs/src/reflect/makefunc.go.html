@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: makefunc.go in package reflect</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	makefunc.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/reflect.html">reflect</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2012 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// MakeFunc implementation.</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> reflect</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<label for="i0"><span class="lit-string i0">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// makeFuncImpl is the closure value implementing the function</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// returned by MakeFunc.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// The first three words of this type must be kept in sync with</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// methodValue and runtime.reflectMethodValue.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// Any changes should be reflected in all three.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">type</span> <a href="../../pkg/reflect.html#name-makeFuncImpl" class="ident">makeFuncImpl</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-19"><code>	code   <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a></code></span>
+<span class="codeline" id="line-20"><code>	stack  *<a href="type.go.html#line-3082" class="ident">bitVector</a> <span class="comment">// ptrmap for both args and results</span></code></span>
+<span class="codeline" id="line-21"><code>	argLen <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>    <span class="comment">// just args</span></code></span>
+<span class="codeline" id="line-22"><code>	ftyp   *<a href="type.go.html#line-376" class="ident">funcType</a></code></span>
+<span class="codeline" id="line-23"><code>	fn     <span class="keyword">func</span>([]<a href="value.go.html#line-37" class="ident">Value</a>) []<a href="value.go.html#line-37" class="ident">Value</a></code></span>
+<span class="codeline" id="line-24"><code>}</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// MakeFunc returns a new function of the given Type</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// that wraps the function fn. When called, that new function</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// does the following:</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">//	- converts its arguments to a slice of Values.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">//	- runs results := fn(args).</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">//	- returns the results as a slice of Values, one per formal result.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// The implementation fn can assume that the argument Value slice</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// has the number and type of arguments given by typ.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// If typ describes a variadic function, the final Value is itself</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// a slice representing the variadic arguments, as in the</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// body of a variadic function. The result Value slice returned by fn</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// must have the number and type of results given by typ.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// The Value.Call method allows the caller to invoke a typed function</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// in terms of Values; in contrast, MakeFunc allows the caller to implement</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// a typed function in terms of Values.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// The Examples section of the documentation includes an illustration</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// of how to use MakeFunc to build a swap function for different types.</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-48"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/reflect.html#name-MakeFunc" class="ident">MakeFunc</a></label>(<label for="r1" class="ident">typ</label> <a href="type.go.html#line-38" class="ident">Type</a>, <label for="r2" class="ident">fn</label> <span class="keyword">func</span>(<label for="r3" class="ident">args</label> []<a href="value.go.html#line-37" class="ident">Value</a>) (<label for="r4" class="ident">results</label> []<a href="value.go.html#line-37" class="ident">Value</a>)) <a href="value.go.html#line-37" class="ident">Value</a> {</code></span>
+<span class="codeline" id="line-49"><code>	<span class="keyword">if</span> <label for="r1" class="ident">typ</label>.<a href="type.go.html#line-100" class="ident">Kind</a>() != <a href="type.go.html#line-254" class="ident">Func</a> {</code></span>
+<span class="codeline" id="line-50"><code>		<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"reflect: call of MakeFunc with non-Func type"</span>)</code></span>
+<span class="codeline" id="line-51"><code>	}</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code>	<label for="r5" class="ident">t</label> := <label for="r1" class="ident">typ</label>.<a href="type.go.html#line-212" class="ident">common</a>()</code></span>
+<span class="codeline" id="line-54"><code>	<label for="r6" class="ident">ftyp</label> := (*<a href="type.go.html#line-376" class="ident">funcType</a>)(<a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r5" class="ident">t</label>))</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code>	<span class="comment">// Indirect Go func value (dummy) to obtain</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">	// actual code address. (A Go func value is a pointer</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	// to a C function pointer. https://golang.org/s/go11func.)</span></code></span>
+<span class="codeline" id="line-59"><code>	<label for="r7" class="ident">dummy</label> := <a href="#line-75" class="ident">makeFuncStub</a></code></span>
+<span class="codeline" id="line-60"><code>	<label for="r8" class="ident">code</label> := **(**<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>)(<a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r7" class="ident">dummy</label>))</code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code>	<span class="comment">// makeFuncImpl contains a stack map for use by the runtime</span></code></span>
+<span class="codeline" id="line-63"><code>	<label for="r9" class="ident">_</label>, <label for="r10" class="ident">argLen</label>, <label for="r11" class="ident">_</label>, <label for="r12" class="ident">stack</label>, <label for="r13" class="ident">_</label> := <a href="type.go.html#line-3001" class="ident">funcLayout</a>(<label for="r6" class="ident">ftyp</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code>	<label for="r14" class="ident">impl</label> := &amp;<a href="#line-18" class="ident">makeFuncImpl</a>{<a href="#line-19" class="ident">code</a>: <label for="r8" class="ident">code</label>, <a href="#line-20" class="ident">stack</a>: <label for="r12" class="ident">stack</label>, <a href="#line-21" class="ident">argLen</a>: <label for="r10" class="ident">argLen</label>, <a href="#line-22" class="ident">ftyp</a>: <label for="r6" class="ident">ftyp</label>, <a href="#line-23" class="ident">fn</a>: <label for="r2" class="ident">fn</label>}</code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">return</span> <a href="value.go.html#line-37" class="ident">Value</a>{<label for="r5" class="ident">t</label>, <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r14" class="ident">impl</label>), <a href="value.go.html#line-66" class="ident">flag</a>(<a href="type.go.html#line-254" class="ident">Func</a>)}</code></span>
+<span class="codeline" id="line-68"><code>}</code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// makeFuncStub is an assembly function that is the code half of</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// the function returned from MakeFunc. It expects a *callReflectFunc</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">// as its context register, and its job is to invoke callReflect(ctxt, frame)</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// where ctxt is the context register and frame is a pointer to the first</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// word in the passed-in argument frame.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="keyword">func</span> <label for="r15" class="ident"><a href="../../pkg/reflect.html#name-makeFuncStub" class="ident">makeFuncStub</a></label>()</code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">// The first 3 words of this type must be kept in sync with</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// makeFuncImpl and runtime.reflectMethodValue.</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// Any changes should be reflected in all three.</span></code></span>
+<span class="codeline" id="line-80"><code><span class="keyword">type</span> <a href="../../pkg/reflect.html#name-methodValue" class="ident">methodValue</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-81"><code>	fn     <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a></code></span>
+<span class="codeline" id="line-82"><code>	stack  *<a href="type.go.html#line-3082" class="ident">bitVector</a> <span class="comment">// ptrmap for both args and results</span></code></span>
+<span class="codeline" id="line-83"><code>	argLen <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>    <span class="comment">// just args</span></code></span>
+<span class="codeline" id="line-84"><code>	method <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-85"><code>	rcvr   <a href="value.go.html#line-37" class="ident">Value</a></code></span>
+<span class="codeline" id="line-86"><code>}</code></span>
+<span class="codeline" id="line-87"><code></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">// makeMethodValue converts v from the rcvr+method index representation</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">// of a method value to an actual method func value, which is</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// basically the receiver value with a special bit set, into a true</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">// func value - a value holding an actual func. The output is</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">// semantically equivalent to the input as far as the user of package</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">// reflect can tell, but the true func representation can be handled</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// by code like Convert and Interface and Assign.</span></code></span>
+<span class="codeline" id="line-95"><code><span class="keyword">func</span> <label for="r16" class="ident"><a href="../../pkg/reflect.html#name-makeMethodValue" class="ident">makeMethodValue</a></label>(<label for="r17" class="ident">op</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r18" class="ident">v</label> <a href="value.go.html#line-37" class="ident">Value</a>) <a href="value.go.html#line-37" class="ident">Value</a> {</code></span>
+<span class="codeline" id="line-96"><code>	<span class="keyword">if</span> <label for="r18" class="ident">v</label>.<a href="value.go.html#line-57" class="ident">flag</a>&amp;<a href="value.go.html#line-75" class="ident">flagMethod</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-97"><code>		<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"reflect: internal error: invalid use of makeMethodValue"</span>)</code></span>
+<span class="codeline" id="line-98"><code>	}</code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code>	<span class="comment">// Ignoring the flagMethod bit, v describes the receiver, not the method type.</span></code></span>
+<span class="codeline" id="line-101"><code>	<label for="r19" class="ident">fl</label> := <label for="r18" class="ident">v</label>.<a href="value.go.html#line-57" class="ident">flag</a> &amp; (<a href="value.go.html#line-77" class="ident">flagRO</a> | <a href="value.go.html#line-74" class="ident">flagAddr</a> | <a href="value.go.html#line-73" class="ident">flagIndir</a>)</code></span>
+<span class="codeline" id="line-102"><code>	<label for="r19" class="ident">fl</label> |= <a href="value.go.html#line-66" class="ident">flag</a>(<label for="r18" class="ident">v</label>.<a href="value.go.html#line-39" class="ident">typ</a>.<a href="type.go.html#line-780" class="ident">Kind</a>())</code></span>
+<span class="codeline" id="line-103"><code>	<label for="r20" class="ident">rcvr</label> := <a href="value.go.html#line-37" class="ident">Value</a>{<label for="r18" class="ident">v</label>.<a href="value.go.html#line-39" class="ident">typ</a>, <label for="r18" class="ident">v</label>.<a href="value.go.html#line-43" class="ident">ptr</a>, <label for="r19" class="ident">fl</label>}</code></span>
+<span class="codeline" id="line-104"><code></code></span>
+<span class="codeline" id="line-105"><code>	<span class="comment">// v.Type returns the actual type of the method value.</span></code></span>
+<span class="codeline" id="line-106"><code>	<label for="r21" class="ident">ftyp</label> := (*<a href="type.go.html#line-376" class="ident">funcType</a>)(<a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r18" class="ident">v</label>.<a href="value.go.html#line-1905" class="ident">Type</a>().(*<a href="type.go.html#line-305" class="ident">rtype</a>)))</code></span>
+<span class="codeline" id="line-107"><code></code></span>
+<span class="codeline" id="line-108"><code>	<span class="comment">// Indirect Go func value (dummy) to obtain</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">	// actual code address. (A Go func value is a pointer</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">	// to a C function pointer. https://golang.org/s/go11func.)</span></code></span>
+<span class="codeline" id="line-111"><code>	<label for="r22" class="ident">dummy</label> := <a href="#line-138" class="ident">methodValueCall</a></code></span>
+<span class="codeline" id="line-112"><code>	<label for="r23" class="ident">code</label> := **(**<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>)(<a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r22" class="ident">dummy</label>))</code></span>
+<span class="codeline" id="line-113"><code></code></span>
+<span class="codeline" id="line-114"><code>	<span class="comment">// methodValue contains a stack map for use by the runtime</span></code></span>
+<span class="codeline" id="line-115"><code>	<label for="r24" class="ident">_</label>, <label for="r25" class="ident">argLen</label>, <label for="r26" class="ident">_</label>, <label for="r27" class="ident">stack</label>, <label for="r28" class="ident">_</label> := <a href="type.go.html#line-3001" class="ident">funcLayout</a>(<label for="r21" class="ident">ftyp</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-116"><code></code></span>
+<span class="codeline" id="line-117"><code>	<label for="r29" class="ident">fv</label> := &amp;<a href="#line-80" class="ident">methodValue</a>{</code></span>
+<span class="codeline" id="line-118"><code>		<a href="#line-81" class="ident">fn</a>:     <label for="r23" class="ident">code</label>,</code></span>
+<span class="codeline" id="line-119"><code>		<a href="#line-82" class="ident">stack</a>:  <label for="r27" class="ident">stack</label>,</code></span>
+<span class="codeline" id="line-120"><code>		<a href="#line-83" class="ident">argLen</a>: <label for="r25" class="ident">argLen</label>,</code></span>
+<span class="codeline" id="line-121"><code>		<a href="#line-84" class="ident">method</a>: <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r18" class="ident">v</label>.<a href="value.go.html#line-57" class="ident">flag</a>) &gt;&gt; <a href="value.go.html#line-76" class="ident">flagMethodShift</a>,</code></span>
+<span class="codeline" id="line-122"><code>		<a href="#line-85" class="ident">rcvr</a>:   <label for="r20" class="ident">rcvr</label>,</code></span>
+<span class="codeline" id="line-123"><code>	}</code></span>
+<span class="codeline" id="line-124"><code></code></span>
+<span class="codeline" id="line-125"><code>	<span class="comment">// Cause panic if method is not appropriate.</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">	// The panic would still happen during the call if we omit this,</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">	// but we want Interface() and other operations to fail early.</span></code></span>
+<span class="codeline" id="line-128"><code>	<a href="value.go.html#line-635" class="ident">methodReceiver</a>(<label for="r17" class="ident">op</label>, <label for="r29" class="ident">fv</label>.<a href="#line-85" class="ident">rcvr</a>, <label for="r29" class="ident">fv</label>.<a href="#line-84" class="ident">method</a>)</code></span>
+<span class="codeline" id="line-129"><code></code></span>
+<span class="codeline" id="line-130"><code>	<span class="keyword">return</span> <a href="value.go.html#line-37" class="ident">Value</a>{&amp;<label for="r21" class="ident">ftyp</label>.<a href="type.go.html#line-377" class="ident">rtype</a>, <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r29" class="ident">fv</label>), <label for="r18" class="ident">v</label>.<a href="value.go.html#line-57" class="ident">flag</a>&amp;<a href="value.go.html#line-77" class="ident">flagRO</a> | <a href="value.go.html#line-66" class="ident">flag</a>(<a href="type.go.html#line-254" class="ident">Func</a>)}</code></span>
+<span class="codeline" id="line-131"><code>}</code></span>
+<span class="codeline" id="line-132"><code></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">// methodValueCall is an assembly function that is the code half of</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">// the function returned from makeMethodValue. It expects a *methodValue</span></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">// as its context register, and its job is to invoke callMethod(ctxt, frame)</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">// where ctxt is the context register and frame is a pointer to the first</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">// word in the passed-in argument frame.</span></code></span>
+<span class="codeline" id="line-138"><code><span class="keyword">func</span> <label for="r30" class="ident"><a href="../../pkg/reflect.html#name-methodValueCall" class="ident">methodValueCall</a></label>()</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: rwmutex.go in package runtime</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	rwmutex.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2017 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"runtime/internal/atomic"</span></label></code></span>
+<span class="codeline" id="line-9"><code>)</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// This is a copy of sync/rwmutex.go rewritten to work in the runtime.</span></code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// A rwmutex is a reader/writer mutual exclusion lock.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// The lock can be held by an arbitrary number of readers or a single writer.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// This is a variant of sync.RWMutex, for the runtime package.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// Like mutex, rwmutex blocks the calling M.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// It does not interact with the goroutine scheduler.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-rwmutex" class="ident">rwmutex</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-19"><code>	rLock      <a href="runtime2.go.html#line-162" class="ident">mutex</a>    <span class="comment">// protects readers, readerPass, writer</span></code></span>
+<span class="codeline" id="line-20"><code>	readers    <a href="runtime2.go.html#line-297" class="ident">muintptr</a> <span class="comment">// list of pending readers</span></code></span>
+<span class="codeline" id="line-21"><code>	readerPass <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>   <span class="comment">// number of pending readers to skip readers list</span></code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code>	wLock  <a href="runtime2.go.html#line-162" class="ident">mutex</a>    <span class="comment">// serializes writers</span></code></span>
+<span class="codeline" id="line-24"><code>	writer <a href="runtime2.go.html#line-297" class="ident">muintptr</a> <span class="comment">// pending writer waiting for completing readers</span></code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code>	readerCount <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">// number of pending readers</span></code></span>
+<span class="codeline" id="line-27"><code>	readerWait  <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">// number of departing readers</span></code></span>
+<span class="codeline" id="line-28"><code>}</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">const</span> <a href="../../pkg/runtime.html#name-rwmutexMaxReaders" class="ident">rwmutexMaxReaders</a> = <span class="lit-number">1</span> &lt;&lt; <span class="lit-number">30</span></code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// rlock locks rw for reading.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">func</span> (<label for="r0" class="ident">rw</label> *<a href="#line-18" class="ident">rwmutex</a>) <label for="r1" class="ident">rlock</label>() {</code></span>
+<span class="codeline" id="line-34"><code>	<span class="comment">// The reader must not be allowed to lose its P or else other</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	// things blocking on the lock may consume all of the Ps and</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	// deadlock (issue #20903). Alternatively, we could drop the P</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">	// while sleeping.</span></code></span>
+<span class="codeline" id="line-38"><code>	<a href="runtime1.go.html#line-467" class="ident">acquirem</a>()</code></span>
+<span class="codeline" id="line-39"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../pkg/runtime/internal/atomic.html" class="ident i0">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-51" class="ident">Xadd</a>(&amp;<label for="r0" class="ident">rw</label>.<a href="#line-26" class="ident">readerCount</a>, <span class="lit-number">1</span>)) &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-40"><code>		<span class="comment">// A writer is pending. Park on the reader queue.</span></code></span>
+<span class="codeline" id="line-41"><code>		<a href="stubs.go.html#line-54" class="ident">systemstack</a>(<span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-42"><code>			<a href="lockrank_off.go.html#line-21" class="ident">lockWithRank</a>(&amp;<label for="r0" class="ident">rw</label>.<a href="#line-19" class="ident">rLock</a>, <a href="lockrank.go.html#line-68" class="ident">lockRankRwmutexR</a>)</code></span>
+<span class="codeline" id="line-43"><code>			<span class="keyword">if</span> <label for="r0" class="ident">rw</label>.<a href="#line-21" class="ident">readerPass</a> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-44"><code>				<span class="comment">// Writer finished.</span></code></span>
+<span class="codeline" id="line-45"><code>				<label for="r0" class="ident">rw</label>.<a href="#line-21" class="ident">readerPass</a> -= <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-46"><code>				<a href="lock_futex.go.html#line-110" class="ident">unlock</a>(&amp;<label for="r0" class="ident">rw</label>.<a href="#line-19" class="ident">rLock</a>)</code></span>
+<span class="codeline" id="line-47"><code>			} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-48"><code>				<span class="comment">// Queue this reader to be woken by</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">				// the writer.</span></code></span>
+<span class="codeline" id="line-50"><code>				<label for="r2" class="ident">m</label> := <a href="stubs.go.html#line-18" class="ident">getg</a>().<a href="runtime2.go.html#line-418" class="ident">m</a></code></span>
+<span class="codeline" id="line-51"><code>				<label for="r2" class="ident">m</label>.<a href="runtime2.go.html#line-526" class="ident">schedlink</a> = <label for="r0" class="ident">rw</label>.<a href="#line-20" class="ident">readers</a></code></span>
+<span class="codeline" id="line-52"><code>				<label for="r0" class="ident">rw</label>.<a href="#line-20" class="ident">readers</a>.<a href="runtime2.go.html#line-303" class="ident">set</a>(<label for="r2" class="ident">m</label>)</code></span>
+<span class="codeline" id="line-53"><code>				<a href="lock_futex.go.html#line-110" class="ident">unlock</a>(&amp;<label for="r0" class="ident">rw</label>.<a href="#line-19" class="ident">rLock</a>)</code></span>
+<span class="codeline" id="line-54"><code>				<a href="lock_futex.go.html#line-147" class="ident">notesleep</a>(&amp;<label for="r2" class="ident">m</label>.<a href="runtime2.go.html#line-524" class="ident">park</a>)</code></span>
+<span class="codeline" id="line-55"><code>				<a href="lock_futex.go.html#line-134" class="ident">noteclear</a>(&amp;<label for="r2" class="ident">m</label>.<a href="runtime2.go.html#line-524" class="ident">park</a>)</code></span>
+<span class="codeline" id="line-56"><code>			}</code></span>
+<span class="codeline" id="line-57"><code>		})</code></span>
+<span class="codeline" id="line-58"><code>	}</code></span>
+<span class="codeline" id="line-59"><code>}</code></span>
+<span class="codeline" id="line-60"><code></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">// runlock undoes a single rlock call on rw.</span></code></span>
+<span class="codeline" id="line-62"><code><span class="keyword">func</span> (<label for="r3" class="ident">rw</label> *<a href="#line-18" class="ident">rwmutex</a>) <label for="r4" class="ident">runlock</label>() {</code></span>
+<span class="codeline" id="line-63"><code>	<span class="keyword">if</span> <label for="r5" class="ident">r</label> := <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../pkg/runtime/internal/atomic.html" class="ident i0">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-51" class="ident">Xadd</a>(&amp;<label for="r3" class="ident">rw</label>.<a href="#line-26" class="ident">readerCount</a>, -<span class="lit-number">1</span>)); <label for="r5" class="ident">r</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-64"><code>		<span class="keyword">if</span> <label for="r5" class="ident">r</label>+<span class="lit-number">1</span> == <span class="lit-number">0</span> || <label for="r5" class="ident">r</label>+<span class="lit-number">1</span> == -<a href="#line-30" class="ident">rwmutexMaxReaders</a> {</code></span>
+<span class="codeline" id="line-65"><code>			<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"runlock of unlocked rwmutex"</span>)</code></span>
+<span class="codeline" id="line-66"><code>		}</code></span>
+<span class="codeline" id="line-67"><code>		<span class="comment">// A writer is pending.</span></code></span>
+<span class="codeline" id="line-68"><code>		<span class="keyword">if</span> <a href="../../pkg/runtime/internal/atomic.html" class="ident i0">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-51" class="ident">Xadd</a>(&amp;<label for="r3" class="ident">rw</label>.<a href="#line-27" class="ident">readerWait</a>, -<span class="lit-number">1</span>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-69"><code>			<span class="comment">// The last reader unblocks the writer.</span></code></span>
+<span class="codeline" id="line-70"><code>			<a href="lockrank_off.go.html#line-21" class="ident">lockWithRank</a>(&amp;<label for="r3" class="ident">rw</label>.<a href="#line-19" class="ident">rLock</a>, <a href="lockrank.go.html#line-68" class="ident">lockRankRwmutexR</a>)</code></span>
+<span class="codeline" id="line-71"><code>			<label for="r6" class="ident">w</label> := <label for="r3" class="ident">rw</label>.<a href="#line-24" class="ident">writer</a>.<a href="runtime2.go.html#line-300" class="ident">ptr</a>()</code></span>
+<span class="codeline" id="line-72"><code>			<span class="keyword">if</span> <label for="r6" class="ident">w</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-73"><code>				<a href="lock_futex.go.html#line-138" class="ident">notewakeup</a>(&amp;<label for="r6" class="ident">w</label>.<a href="runtime2.go.html#line-524" class="ident">park</a>)</code></span>
+<span class="codeline" id="line-74"><code>			}</code></span>
+<span class="codeline" id="line-75"><code>			<a href="lock_futex.go.html#line-110" class="ident">unlock</a>(&amp;<label for="r3" class="ident">rw</label>.<a href="#line-19" class="ident">rLock</a>)</code></span>
+<span class="codeline" id="line-76"><code>		}</code></span>
+<span class="codeline" id="line-77"><code>	}</code></span>
+<span class="codeline" id="line-78"><code>	<a href="runtime1.go.html#line-474" class="ident">releasem</a>(<a href="stubs.go.html#line-18" class="ident">getg</a>().<a href="runtime2.go.html#line-418" class="ident">m</a>)</code></span>
+<span class="codeline" id="line-79"><code>}</code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// lock locks rw for writing.</span></code></span>
+<span class="codeline" id="line-82"><code><span class="keyword">func</span> (<label for="r7" class="ident">rw</label> *<a href="#line-18" class="ident">rwmutex</a>) <label for="r8" class="ident">lock</label>() {</code></span>
+<span class="codeline" id="line-83"><code>	<span class="comment">// Resolve competition with other writers and stick to our P.</span></code></span>
+<span class="codeline" id="line-84"><code>	<a href="lockrank_off.go.html#line-21" class="ident">lockWithRank</a>(&amp;<label for="r7" class="ident">rw</label>.<a href="#line-23" class="ident">wLock</a>, <a href="lockrank.go.html#line-67" class="ident">lockRankRwmutexW</a>)</code></span>
+<span class="codeline" id="line-85"><code>	<label for="r9" class="ident">m</label> := <a href="stubs.go.html#line-18" class="ident">getg</a>().<a href="runtime2.go.html#line-418" class="ident">m</a></code></span>
+<span class="codeline" id="line-86"><code>	<span class="comment">// Announce that there is a pending writer.</span></code></span>
+<span class="codeline" id="line-87"><code>	<label for="r10" class="ident">r</label> := <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../pkg/runtime/internal/atomic.html" class="ident i0">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-51" class="ident">Xadd</a>(&amp;<label for="r7" class="ident">rw</label>.<a href="#line-26" class="ident">readerCount</a>, -<a href="#line-30" class="ident">rwmutexMaxReaders</a>)) + <a href="#line-30" class="ident">rwmutexMaxReaders</a></code></span>
+<span class="codeline" id="line-88"><code>	<span class="comment">// Wait for any active readers to complete.</span></code></span>
+<span class="codeline" id="line-89"><code>	<a href="lockrank_off.go.html#line-21" class="ident">lockWithRank</a>(&amp;<label for="r7" class="ident">rw</label>.<a href="#line-19" class="ident">rLock</a>, <a href="lockrank.go.html#line-68" class="ident">lockRankRwmutexR</a>)</code></span>
+<span class="codeline" id="line-90"><code>	<span class="keyword">if</span> <label for="r10" class="ident">r</label> != <span class="lit-number">0</span> &amp;&amp; <a href="../../pkg/runtime/internal/atomic.html" class="ident i0">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-51" class="ident">Xadd</a>(&amp;<label for="r7" class="ident">rw</label>.<a href="#line-27" class="ident">readerWait</a>, <label for="r10" class="ident">r</label>) != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-91"><code>		<span class="comment">// Wait for reader to wake us up.</span></code></span>
+<span class="codeline" id="line-92"><code>		<a href="stubs.go.html#line-54" class="ident">systemstack</a>(<span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-93"><code>			<label for="r7" class="ident">rw</label>.<a href="#line-24" class="ident">writer</a>.<a href="runtime2.go.html#line-303" class="ident">set</a>(<label for="r9" class="ident">m</label>)</code></span>
+<span class="codeline" id="line-94"><code>			<a href="lock_futex.go.html#line-110" class="ident">unlock</a>(&amp;<label for="r7" class="ident">rw</label>.<a href="#line-19" class="ident">rLock</a>)</code></span>
+<span class="codeline" id="line-95"><code>			<a href="lock_futex.go.html#line-147" class="ident">notesleep</a>(&amp;<label for="r9" class="ident">m</label>.<a href="runtime2.go.html#line-524" class="ident">park</a>)</code></span>
+<span class="codeline" id="line-96"><code>			<a href="lock_futex.go.html#line-134" class="ident">noteclear</a>(&amp;<label for="r9" class="ident">m</label>.<a href="runtime2.go.html#line-524" class="ident">park</a>)</code></span>
+<span class="codeline" id="line-97"><code>		})</code></span>
+<span class="codeline" id="line-98"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-99"><code>		<a href="lock_futex.go.html#line-110" class="ident">unlock</a>(&amp;<label for="r7" class="ident">rw</label>.<a href="#line-19" class="ident">rLock</a>)</code></span>
+<span class="codeline" id="line-100"><code>	}</code></span>
+<span class="codeline" id="line-101"><code>}</code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">// unlock unlocks rw for writing.</span></code></span>
+<span class="codeline" id="line-104"><code><span class="keyword">func</span> (<label for="r11" class="ident">rw</label> *<a href="#line-18" class="ident">rwmutex</a>) <label for="r12" class="ident">unlock</label>() {</code></span>
+<span class="codeline" id="line-105"><code>	<span class="comment">// Announce to readers that there is no active writer.</span></code></span>
+<span class="codeline" id="line-106"><code>	<label for="r13" class="ident">r</label> := <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../pkg/runtime/internal/atomic.html" class="ident i0">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-51" class="ident">Xadd</a>(&amp;<label for="r11" class="ident">rw</label>.<a href="#line-26" class="ident">readerCount</a>, <a href="#line-30" class="ident">rwmutexMaxReaders</a>))</code></span>
+<span class="codeline" id="line-107"><code>	<span class="keyword">if</span> <label for="r13" class="ident">r</label> &gt;= <a href="#line-30" class="ident">rwmutexMaxReaders</a> {</code></span>
+<span class="codeline" id="line-108"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"unlock of unlocked rwmutex"</span>)</code></span>
+<span class="codeline" id="line-109"><code>	}</code></span>
+<span class="codeline" id="line-110"><code>	<span class="comment">// Unblock blocked readers.</span></code></span>
+<span class="codeline" id="line-111"><code>	<a href="lockrank_off.go.html#line-21" class="ident">lockWithRank</a>(&amp;<label for="r11" class="ident">rw</label>.<a href="#line-19" class="ident">rLock</a>, <a href="lockrank.go.html#line-68" class="ident">lockRankRwmutexR</a>)</code></span>
+<span class="codeline" id="line-112"><code>	<span class="keyword">for</span> <label for="r11" class="ident">rw</label>.<a href="#line-20" class="ident">readers</a>.<a href="runtime2.go.html#line-300" class="ident">ptr</a>() != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-113"><code>		<label for="r14" class="ident">reader</label> := <label for="r11" class="ident">rw</label>.<a href="#line-20" class="ident">readers</a>.<a href="runtime2.go.html#line-300" class="ident">ptr</a>()</code></span>
+<span class="codeline" id="line-114"><code>		<label for="r11" class="ident">rw</label>.<a href="#line-20" class="ident">readers</a> = <label for="r14" class="ident">reader</label>.<a href="runtime2.go.html#line-526" class="ident">schedlink</a></code></span>
+<span class="codeline" id="line-115"><code>		<label for="r14" class="ident">reader</label>.<a href="runtime2.go.html#line-526" class="ident">schedlink</a>.<a href="runtime2.go.html#line-303" class="ident">set</a>(<a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-116"><code>		<a href="lock_futex.go.html#line-138" class="ident">notewakeup</a>(&amp;<label for="r14" class="ident">reader</label>.<a href="runtime2.go.html#line-524" class="ident">park</a>)</code></span>
+<span class="codeline" id="line-117"><code>		<label for="r13" class="ident">r</label> -= <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-118"><code>	}</code></span>
+<span class="codeline" id="line-119"><code>	<span class="comment">// If r &gt; 0, there are pending readers that aren't on the</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">	// queue. Tell them to skip waiting.</span></code></span>
+<span class="codeline" id="line-121"><code>	<label for="r11" class="ident">rw</label>.<a href="#line-21" class="ident">readerPass</a> += <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r13" class="ident">r</label>)</code></span>
+<span class="codeline" id="line-122"><code>	<a href="lock_futex.go.html#line-110" class="ident">unlock</a>(&amp;<label for="r11" class="ident">rw</label>.<a href="#line-19" class="ident">rLock</a>)</code></span>
+<span class="codeline" id="line-123"><code>	<span class="comment">// Allow other writers to proceed.</span></code></span>
+<span class="codeline" id="line-124"><code>	<a href="lock_futex.go.html#line-110" class="ident">unlock</a>(&amp;<label for="r11" class="ident">rw</label>.<a href="#line-23" class="ident">wLock</a>)</code></span>
+<span class="codeline" id="line-125"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

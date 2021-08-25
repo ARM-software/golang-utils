@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: retry.go in package github.com/avast/retry-go</title>
+<link href="../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	retry.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/github.com/avast/retry-go.html">github.com/avast/retry-go</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<div class="anchor" id="doc"><span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">Simple library for retry mechanism</span></code></span>
+<span class="codeline" id="line-3"><code></code></span>
+<span class="codeline" id="line-4"><code><span class="comment">slightly inspired by [Try::Tiny::Retry](https://metacpan.org/pod/Try::Tiny::Retry)</span></code></span>
+<span class="codeline" id="line-5"><code></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">SYNOPSIS</span></code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">http get with retry:</span></code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">	url := "http://example.com"</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">	var body []byte</span></code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">	err := retry.Do(</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">		func() error {</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">			resp, err := http.Get(url)</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">			if err != nil {</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">				return err</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">			}</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">			defer resp.Body.Close()</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">			body, err = ioutil.ReadAll(resp.Body)</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">			if err != nil {</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">				return err</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">			}</span></code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">			return nil</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">		},</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">	)</span></code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">	fmt.Println(body)</span></code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">[next examples](https://github.com/avast/retry-go/tree/master/examples)</span></code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">SEE ALSO</span></code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">* [giantswarm/retry-go](https://github.com/giantswarm/retry-go) - slightly complicated interface.</span></code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">* [sethgrid/pester](https://github.com/sethgrid/pester) - only http retry for http calls with retries and backoff</span></code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">* [cenkalti/backoff](https://github.com/cenkalti/backoff) - Go port of the exponential backoff algorithm from Google's HTTP Client Library for Java. Really complicated interface.</span></code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">* [rafaeljesus/retry-go](https://github.com/rafaeljesus/retry-go) - looks good, slightly similar as this package, don't have 'simple' `Retry` method</span></code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">* [matryer/try](https://github.com/matryer/try) - very popular package, nonintuitive interface (for me)</span></code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">BREAKING CHANGES</span></code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">3.0.0</span></code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">* `DelayTypeFunc` accepts a new parameter `err` - this breaking change affects only your custom Delay Functions. This change allow [make delay functions based on error](examples/delay_based_on_error_test.go).</span></code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">1.0.2 -&gt; 2.0.0</span></code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">* argument of `retry.Delay` is final delay (no multiplication by `retry.Units` anymore)</span></code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">* function `retry.Units` are removed</span></code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">* [more about this breaking change](https://github.com/avast/retry-go/issues/7)</span></code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">0.3.0 -&gt; 1.0.0</span></code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">* `retry.Retry` function are changed to `retry.Do` function</span></code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">* `retry.RetryCustom` (OnRetry) and `retry.RetryCustomWithOpts` functions are now implement via functions produces Options (aka `retry.OnRetry`)</span></code></span>
+<span class="codeline" id="line-68"><code></code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">*/</span></code></span></div><span class="codeline" id="line-71"><code><span class="keyword">package</span> retry</code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-74"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-75"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-76"><code>	<label for="i2"><span class="lit-string i2">"strings"</span></label></code></span>
+<span class="codeline" id="line-77"><code>	<label for="i3"><span class="lit-string i3">"time"</span></label></code></span>
+<span class="codeline" id="line-78"><code>)</code></span>
+<span class="codeline" id="line-79"><code></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// Function signature of retryable function</span></code></span>
+<span class="codeline" id="line-81"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/avast/retry-go.html#name-RetryableFunc" class="ident">RetryableFunc</a> <span class="keyword">func</span>() <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-84"><code>	<a href="../../../../pkg/github.com/avast/retry-go.html#name-DefaultAttempts" class="ident">DefaultAttempts</a>      = <a href="../../../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">10</span>)</code></span>
+<span class="codeline" id="line-85"><code>	<a href="../../../../pkg/github.com/avast/retry-go.html#name-DefaultDelay" class="ident">DefaultDelay</a>         = <span class="lit-number">100</span> * <a href="../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../time/time.go.html#line-604" class="ident">Millisecond</a></code></span>
+<span class="codeline" id="line-86"><code>	<a href="../../../../pkg/github.com/avast/retry-go.html#name-DefaultMaxJitter" class="ident">DefaultMaxJitter</a>     = <span class="lit-number">100</span> * <a href="../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../time/time.go.html#line-604" class="ident">Millisecond</a></code></span>
+<span class="codeline" id="line-87"><code>	<a href="../../../../pkg/github.com/avast/retry-go.html#name-DefaultOnRetry" class="ident">DefaultOnRetry</a>       = <span class="keyword">func</span>(<label for="r0" class="ident">n</label> <a href="../../../../pkg/builtin.html#name-uint" class="ident">uint</a>, <label for="r1" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {}</code></span>
+<span class="codeline" id="line-88"><code>	<a href="../../../../pkg/github.com/avast/retry-go.html#name-DefaultRetryIf" class="ident">DefaultRetryIf</a>       = <a href="#line-214" class="ident">IsRecoverable</a></code></span>
+<span class="codeline" id="line-89"><code>	<a href="../../../../pkg/github.com/avast/retry-go.html#name-DefaultDelayType" class="ident">DefaultDelayType</a>     = <a href="options.go.html#line-115" class="ident">CombineDelay</a>(<a href="options.go.html#line-85" class="ident">BackOffDelay</a>, <a href="options.go.html#line-110" class="ident">RandomDelay</a>)</code></span>
+<span class="codeline" id="line-90"><code>	<a href="../../../../pkg/github.com/avast/retry-go.html#name-DefaultLastErrorOnly" class="ident">DefaultLastErrorOnly</a> = <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-91"><code>	<a href="../../../../pkg/github.com/avast/retry-go.html#name-DefaultContext" class="ident">DefaultContext</a>       = <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-208" class="ident">Background</a>()</code></span>
+<span class="codeline" id="line-92"><code>)</code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../../../pkg/github.com/avast/retry-go.html#name-Do" class="ident">Do</a></label>(<label for="r3" class="ident">retryableFunc</label> <a href="#line-81" class="ident">RetryableFunc</a>, <label for="r4" class="ident">opts</label> ...<a href="options.go.html#line-35" class="ident">Option</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-95"><code>	<span class="keyword">var</span> <label for="r5" class="ident">n</label> <a href="../../../../pkg/builtin.html#name-uint" class="ident">uint</a></code></span>
+<span class="codeline" id="line-96"><code></code></span>
+<span class="codeline" id="line-97"><code>	<span class="comment">//default</span></code></span>
+<span class="codeline" id="line-98"><code>	<label for="r6" class="ident">config</label> := &amp;<a href="options.go.html#line-20" class="ident">Config</a>{</code></span>
+<span class="codeline" id="line-99"><code>		<a href="options.go.html#line-21" class="ident">attempts</a>:      <a href="#line-84" class="ident">DefaultAttempts</a>,</code></span>
+<span class="codeline" id="line-100"><code>		<a href="options.go.html#line-22" class="ident">delay</a>:         <a href="#line-85" class="ident">DefaultDelay</a>,</code></span>
+<span class="codeline" id="line-101"><code>		<a href="options.go.html#line-24" class="ident">maxJitter</a>:     <a href="#line-86" class="ident">DefaultMaxJitter</a>,</code></span>
+<span class="codeline" id="line-102"><code>		<a href="options.go.html#line-25" class="ident">onRetry</a>:       <a href="#line-87" class="ident">DefaultOnRetry</a>,</code></span>
+<span class="codeline" id="line-103"><code>		<a href="options.go.html#line-26" class="ident">retryIf</a>:       <a href="#line-88" class="ident">DefaultRetryIf</a>,</code></span>
+<span class="codeline" id="line-104"><code>		<a href="options.go.html#line-27" class="ident">delayType</a>:     <a href="#line-89" class="ident">DefaultDelayType</a>,</code></span>
+<span class="codeline" id="line-105"><code>		<a href="options.go.html#line-28" class="ident">lastErrorOnly</a>: <a href="#line-90" class="ident">DefaultLastErrorOnly</a>,</code></span>
+<span class="codeline" id="line-106"><code>		<a href="options.go.html#line-29" class="ident">context</a>:       <a href="#line-91" class="ident">DefaultContext</a>,</code></span>
+<span class="codeline" id="line-107"><code>	}</code></span>
+<span class="codeline" id="line-108"><code></code></span>
+<span class="codeline" id="line-109"><code>	<span class="comment">//apply opts</span></code></span>
+<span class="codeline" id="line-110"><code>	<span class="keyword">for</span> <label for="r7" class="ident">_</label>, <label for="r8" class="ident">opt</label> := <span class="keyword">range</span> <label for="r4" class="ident">opts</label> {</code></span>
+<span class="codeline" id="line-111"><code>		<label for="r8" class="ident">opt</label>(<label for="r6" class="ident">config</label>)</code></span>
+<span class="codeline" id="line-112"><code>	}</code></span>
+<span class="codeline" id="line-113"><code></code></span>
+<span class="codeline" id="line-114"><code>	<span class="keyword">if</span> <label for="r9" class="ident">err</label> := <label for="r6" class="ident">config</label>.<a href="options.go.html#line-29" class="ident">context</a>.<a href="../../../context/context.go.html#line-106" class="ident">Err</a>(); <label for="r9" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-115"><code>		<span class="keyword">return</span> <label for="r9" class="ident">err</label></code></span>
+<span class="codeline" id="line-116"><code>	}</code></span>
+<span class="codeline" id="line-117"><code></code></span>
+<span class="codeline" id="line-118"><code>	<span class="keyword">var</span> <label for="r10" class="ident">errorLog</label> <a href="#line-171" class="ident">Error</a></code></span>
+<span class="codeline" id="line-119"><code>	<span class="keyword">if</span> !<label for="r6" class="ident">config</label>.<a href="options.go.html#line-28" class="ident">lastErrorOnly</a> {</code></span>
+<span class="codeline" id="line-120"><code>		<label for="r10" class="ident">errorLog</label> = <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>(<a href="#line-171" class="ident">Error</a>, <label for="r6" class="ident">config</label>.<a href="options.go.html#line-21" class="ident">attempts</a>)</code></span>
+<span class="codeline" id="line-121"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-122"><code>		<label for="r10" class="ident">errorLog</label> = <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>(<a href="#line-171" class="ident">Error</a>, <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-123"><code>	}</code></span>
+<span class="codeline" id="line-124"><code></code></span>
+<span class="codeline" id="line-125"><code>	<label for="r11" class="ident">lastErrIndex</label> := <label for="r5" class="ident">n</label></code></span>
+<span class="codeline" id="line-126"><code>	<span class="keyword">for</span> <label for="r5" class="ident">n</label> &lt; <label for="r6" class="ident">config</label>.<a href="options.go.html#line-21" class="ident">attempts</a> {</code></span>
+<span class="codeline" id="line-127"><code>		<label for="r12" class="ident">err</label> := <label for="r3" class="ident">retryableFunc</label>()</code></span>
+<span class="codeline" id="line-128"><code></code></span>
+<span class="codeline" id="line-129"><code>		<span class="keyword">if</span> <label for="r12" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-130"><code>			<label for="r10" class="ident">errorLog</label>[<label for="r11" class="ident">lastErrIndex</label>] = <a href="#line-219" class="ident">unpackUnrecoverable</a>(<label for="r12" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-131"><code></code></span>
+<span class="codeline" id="line-132"><code>			<span class="keyword">if</span> !<label for="r6" class="ident">config</label>.<a href="options.go.html#line-26" class="ident">retryIf</a>(<label for="r12" class="ident">err</label>) {</code></span>
+<span class="codeline" id="line-133"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-134"><code>			}</code></span>
+<span class="codeline" id="line-135"><code></code></span>
+<span class="codeline" id="line-136"><code>			<label for="r6" class="ident">config</label>.<a href="options.go.html#line-25" class="ident">onRetry</a>(<label for="r5" class="ident">n</label>, <label for="r12" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code>			<span class="comment">// if this is last attempt - don't wait</span></code></span>
+<span class="codeline" id="line-139"><code>			<span class="keyword">if</span> <label for="r5" class="ident">n</label> == <label for="r6" class="ident">config</label>.<a href="options.go.html#line-21" class="ident">attempts</a>-<span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-140"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-141"><code>			}</code></span>
+<span class="codeline" id="line-142"><code></code></span>
+<span class="codeline" id="line-143"><code>			<label for="r13" class="ident">delayTime</label> := <label for="r6" class="ident">config</label>.<a href="options.go.html#line-27" class="ident">delayType</a>(<label for="r5" class="ident">n</label>, <label for="r12" class="ident">err</label>, <label for="r6" class="ident">config</label>)</code></span>
+<span class="codeline" id="line-144"><code>			<span class="keyword">if</span> <label for="r6" class="ident">config</label>.<a href="options.go.html#line-23" class="ident">maxDelay</a> &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r13" class="ident">delayTime</label> &gt; <label for="r6" class="ident">config</label>.<a href="options.go.html#line-23" class="ident">maxDelay</a> {</code></span>
+<span class="codeline" id="line-145"><code>				<label for="r13" class="ident">delayTime</label> = <label for="r6" class="ident">config</label>.<a href="options.go.html#line-23" class="ident">maxDelay</a></code></span>
+<span class="codeline" id="line-146"><code>			}</code></span>
+<span class="codeline" id="line-147"><code></code></span>
+<span class="codeline" id="line-148"><code>			<a href="../../../runtime/select.go.html#line-121"><span class="keyword">select</span></a> {</code></span>
+<span class="codeline" id="line-149"><code>			<span class="keyword">case</span> <a href="../../../runtime/chan.go.html#line-438">&lt;-</a><a href="../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../time/sleep.go.html#line-160" class="ident">After</a>(<label for="r13" class="ident">delayTime</label>):</code></span>
+<span class="codeline" id="line-150"><code>			<span class="keyword">case</span> <a href="../../../runtime/chan.go.html#line-438">&lt;-</a><label for="r6" class="ident">config</label>.<a href="options.go.html#line-29" class="ident">context</a>.<a href="../../../context/context.go.html#line-99" class="ident">Done</a>():</code></span>
+<span class="codeline" id="line-151"><code>				<span class="keyword">return</span> <label for="r6" class="ident">config</label>.<a href="options.go.html#line-29" class="ident">context</a>.<a href="../../../context/context.go.html#line-106" class="ident">Err</a>()</code></span>
+<span class="codeline" id="line-152"><code>			}</code></span>
+<span class="codeline" id="line-153"><code></code></span>
+<span class="codeline" id="line-154"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-155"><code>			<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-156"><code>		}</code></span>
+<span class="codeline" id="line-157"><code></code></span>
+<span class="codeline" id="line-158"><code>		<label for="r5" class="ident">n</label>++</code></span>
+<span class="codeline" id="line-159"><code>		<span class="keyword">if</span> !<label for="r6" class="ident">config</label>.<a href="options.go.html#line-28" class="ident">lastErrorOnly</a> {</code></span>
+<span class="codeline" id="line-160"><code>			<label for="r11" class="ident">lastErrIndex</label> = <label for="r5" class="ident">n</label></code></span>
+<span class="codeline" id="line-161"><code>		}</code></span>
+<span class="codeline" id="line-162"><code>	}</code></span>
+<span class="codeline" id="line-163"><code></code></span>
+<span class="codeline" id="line-164"><code>	<span class="keyword">if</span> <label for="r6" class="ident">config</label>.<a href="options.go.html#line-28" class="ident">lastErrorOnly</a> {</code></span>
+<span class="codeline" id="line-165"><code>		<span class="keyword">return</span> <label for="r10" class="ident">errorLog</label>[<label for="r11" class="ident">lastErrIndex</label>]</code></span>
+<span class="codeline" id="line-166"><code>	}</code></span>
+<span class="codeline" id="line-167"><code>	<span class="keyword">return</span> <label for="r10" class="ident">errorLog</label></code></span>
+<span class="codeline" id="line-168"><code>}</code></span>
+<span class="codeline" id="line-169"><code></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">// Error type represents list of errors in retry</span></code></span>
+<span class="codeline" id="line-171"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/avast/retry-go.html#name-Error" class="ident">Error</a> []<a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-172"><code></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">// Error method return string representation of Error</span></code></span>
+<span class="codeline" id="line-174"><code><span class="comment">// It is an implementation of error interface</span></code></span>
+<span class="codeline" id="line-175"><code><span class="keyword">func</span> (<label for="r14" class="ident">e</label> <a href="#line-171" class="ident">Error</a>) <label for="r15" class="ident"><a href="../../../../imp/github.com/avast/retry-go.Error.html#name-.Error" class="ident">Error</a></label>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-176"><code>	<label for="r16" class="ident">logWithNumber</label> := <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="#line-186" class="ident">lenWithoutNil</a>(<label for="r14" class="ident">e</label>))</code></span>
+<span class="codeline" id="line-177"><code>	<span class="keyword">for</span> <label for="r17" class="ident">i</label>, <label for="r18" class="ident">l</label> := <span class="keyword">range</span> <label for="r14" class="ident">e</label> {</code></span>
+<span class="codeline" id="line-178"><code>		<span class="keyword">if</span> <label for="r18" class="ident">l</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-179"><code>			<label for="r16" class="ident">logWithNumber</label>[<label for="r17" class="ident">i</label>] = <a href="../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(<span class="lit-string">"#%d: %s"</span>, <label for="r17" class="ident">i</label>+<span class="lit-number">1</span>, <label for="r18" class="ident">l</label>.Error())</code></span>
+<span class="codeline" id="line-180"><code>		}</code></span>
+<span class="codeline" id="line-181"><code>	}</code></span>
+<span class="codeline" id="line-182"><code></code></span>
+<span class="codeline" id="line-183"><code>	<span class="keyword">return</span> <a href="../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(<span class="lit-string">"All attempts fail:\n%s"</span>, <a href="../../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../../strings/strings.go.html#line-421" class="ident">Join</a>(<label for="r16" class="ident">logWithNumber</label>, <span class="lit-string">"\n"</span>))</code></span>
+<span class="codeline" id="line-184"><code>}</code></span>
+<span class="codeline" id="line-185"><code></code></span>
+<span class="codeline" id="line-186"><code><span class="keyword">func</span> <label for="r19" class="ident"><a href="../../../../pkg/github.com/avast/retry-go.html#name-lenWithoutNil" class="ident">lenWithoutNil</a></label>(<label for="r20" class="ident">e</label> <a href="#line-171" class="ident">Error</a>) (<label for="r21" class="ident">count</label> <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-187"><code>	<span class="keyword">for</span> <label for="r22" class="ident">_</label>, <label for="r23" class="ident">v</label> := <span class="keyword">range</span> <label for="r20" class="ident">e</label> {</code></span>
+<span class="codeline" id="line-188"><code>		<span class="keyword">if</span> <label for="r23" class="ident">v</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-189"><code>			<label for="r21" class="ident">count</label>++</code></span>
+<span class="codeline" id="line-190"><code>		}</code></span>
+<span class="codeline" id="line-191"><code>	}</code></span>
+<span class="codeline" id="line-192"><code></code></span>
+<span class="codeline" id="line-193"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-194"><code>}</code></span>
+<span class="codeline" id="line-195"><code></code></span>
+<span class="codeline" id="line-196"><code><span class="comment">// WrappedErrors returns the list of errors that this Error is wrapping.</span></code></span>
+<span class="codeline" id="line-197"><code><span class="comment">// It is an implementation of the `errwrap.Wrapper` interface</span></code></span>
+<span class="codeline" id="line-198"><code><span class="comment">// in package [errwrap](https://github.com/hashicorp/errwrap) so that</span></code></span>
+<span class="codeline" id="line-199"><code><span class="comment">// `retry.Error` can be used with that library.</span></code></span>
+<span class="codeline" id="line-200"><code><span class="keyword">func</span> (<label for="r24" class="ident">e</label> <a href="#line-171" class="ident">Error</a>) <label for="r25" class="ident">WrappedErrors</label>() []<a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-201"><code>	<span class="keyword">return</span> <label for="r24" class="ident">e</label></code></span>
+<span class="codeline" id="line-202"><code>}</code></span>
+<span class="codeline" id="line-203"><code></code></span>
+<span class="codeline" id="line-204"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/avast/retry-go.html#name-unrecoverableError" class="ident">unrecoverableError</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-205"><code>	<a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-206"><code>}</code></span>
+<span class="codeline" id="line-207"><code></code></span>
+<span class="codeline" id="line-208"><code><span class="comment">// Unrecoverable wraps an error in `unrecoverableError` struct</span></code></span>
+<span class="codeline" id="line-209"><code><span class="keyword">func</span> <label for="r26" class="ident"><a href="../../../../pkg/github.com/avast/retry-go.html#name-Unrecoverable" class="ident">Unrecoverable</a></label>(<label for="r27" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-210"><code>	<span class="keyword">return</span> <a href="#line-204" class="ident">unrecoverableError</a>{<label for="r27" class="ident">err</label>}</code></span>
+<span class="codeline" id="line-211"><code>}</code></span>
+<span class="codeline" id="line-212"><code></code></span>
+<span class="codeline" id="line-213"><code><span class="comment">// IsRecoverable checks if error is an instance of `unrecoverableError`</span></code></span>
+<span class="codeline" id="line-214"><code><span class="keyword">func</span> <label for="r28" class="ident"><a href="../../../../pkg/github.com/avast/retry-go.html#name-IsRecoverable" class="ident">IsRecoverable</a></label>(<label for="r29" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-215"><code>	<label for="r30" class="ident">_</label>, <label for="r31" class="ident">isUnrecoverable</label> := <label for="r29" class="ident">err</label>.(<a href="#line-204" class="ident">unrecoverableError</a>)</code></span>
+<span class="codeline" id="line-216"><code>	<span class="keyword">return</span> !<label for="r31" class="ident">isUnrecoverable</label></code></span>
+<span class="codeline" id="line-217"><code>}</code></span>
+<span class="codeline" id="line-218"><code></code></span>
+<span class="codeline" id="line-219"><code><span class="keyword">func</span> <label for="r32" class="ident"><a href="../../../../pkg/github.com/avast/retry-go.html#name-unpackUnrecoverable" class="ident">unpackUnrecoverable</a></label>(<label for="r33" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-220"><code>	<span class="keyword">if</span> <label for="r34" class="ident">unrecoverable</label>, <label for="r35" class="ident">isUnrecoverable</label> := <label for="r33" class="ident">err</label>.(<a href="#line-204" class="ident">unrecoverableError</a>); <label for="r35" class="ident">isUnrecoverable</label> {</code></span>
+<span class="codeline" id="line-221"><code>		<span class="keyword">return</span> <label for="r34" class="ident">unrecoverable</label>.<a href="#line-205" class="ident">error</a></code></span>
+<span class="codeline" id="line-222"><code>	}</code></span>
+<span class="codeline" id="line-223"><code></code></span>
+<span class="codeline" id="line-224"><code>	<span class="keyword">return</span> <label for="r33" class="ident">err</label></code></span>
+<span class="codeline" id="line-225"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

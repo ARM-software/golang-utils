@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: sockopt_linux.go in package net</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	sockopt_linux.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/net.html">net</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> net</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"os"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"syscall"</span></label></code></span>
+<span class="codeline" id="line-10"><code>)</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/net.html#name-setDefaultSockopts" class="ident">setDefaultSockopts</a></label>(<label for="r1" class="ident">s</label>, <label for="r2" class="ident">family</label>, <label for="r3" class="ident">sotype</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r4" class="ident">ipv6only</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) <a href="../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-13"><code>	<span class="keyword">if</span> <label for="r2" class="ident">family</label> == <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-27" class="ident">AF_INET6</a> &amp;&amp; <label for="r3" class="ident">sotype</label> != <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1007" class="ident">SOCK_RAW</a> {</code></span>
+<span class="codeline" id="line-14"><code>		<span class="comment">// Allow both IP versions even if the OS default</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">		// is otherwise. Note that some operating systems</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">		// never admit this option.</span></code></span>
+<span class="codeline" id="line-17"><code>		<a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/syscall_unix.go.html#line-305" class="ident">SetsockoptInt</a>(<label for="r1" class="ident">s</label>, <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-387" class="ident">IPPROTO_IPV6</a>, <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-447" class="ident">IPV6_V6ONLY</a>, <a href="sockopt_posix.go.html#line-16" class="ident">boolint</a>(<label for="r4" class="ident">ipv6only</label>))</code></span>
+<span class="codeline" id="line-18"><code>	}</code></span>
+<span class="codeline" id="line-19"><code>	<span class="keyword">if</span> (<label for="r3" class="ident">sotype</label> == <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1004" class="ident">SOCK_DGRAM</a> || <label for="r3" class="ident">sotype</label> == <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1007" class="ident">SOCK_RAW</a>) &amp;&amp; <label for="r2" class="ident">family</label> != <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-49" class="ident">AF_UNIX</a> {</code></span>
+<span class="codeline" id="line-20"><code>		<span class="comment">// Allow broadcast.</span></code></span>
+<span class="codeline" id="line-21"><code>		<span class="keyword">return</span> <a href="../../pkg/os.html" class="ident i0">os</a>.<a href="../os/error.go.html#line-69" class="ident">NewSyscallError</a>(<span class="lit-string">"setsockopt"</span>, <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/syscall_unix.go.html#line-305" class="ident">SetsockoptInt</a>(<label for="r1" class="ident">s</label>, <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1020" class="ident">SOL_SOCKET</a>, <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1027" class="ident">SO_BROADCAST</a>, <span class="lit-number">1</span>))</code></span>
+<span class="codeline" id="line-22"><code>	}</code></span>
+<span class="codeline" id="line-23"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-24"><code>}</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../pkg/net.html#name-setDefaultListenerSockopts" class="ident">setDefaultListenerSockopts</a></label>(<label for="r6" class="ident">s</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-27"><code>	<span class="comment">// Allow reuse of recently-used addresses.</span></code></span>
+<span class="codeline" id="line-28"><code>	<span class="keyword">return</span> <a href="../../pkg/os.html" class="ident i0">os</a>.<a href="../os/error.go.html#line-69" class="ident">NewSyscallError</a>(<span class="lit-string">"setsockopt"</span>, <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/syscall_unix.go.html#line-305" class="ident">SetsockoptInt</a>(<label for="r6" class="ident">s</label>, <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1020" class="ident">SOL_SOCKET</a>, <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1050" class="ident">SO_REUSEADDR</a>, <span class="lit-number">1</span>))</code></span>
+<span class="codeline" id="line-29"><code>}</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../pkg/net.html#name-setDefaultMulticastSockopts" class="ident">setDefaultMulticastSockopts</a></label>(<label for="r8" class="ident">s</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-32"><code>	<span class="comment">// Allow multicast UDP and raw IP datagram sockets to listen</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	// concurrently across multiple listeners.</span></code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">return</span> <a href="../../pkg/os.html" class="ident i0">os</a>.<a href="../os/error.go.html#line-69" class="ident">NewSyscallError</a>(<span class="lit-string">"setsockopt"</span>, <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/syscall_unix.go.html#line-305" class="ident">SetsockoptInt</a>(<label for="r8" class="ident">s</label>, <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1020" class="ident">SOL_SOCKET</a>, <a href="../../pkg/syscall.html" class="ident i1">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1050" class="ident">SO_REUSEADDR</a>, <span class="lit-number">1</span>))</code></span>
+<span class="codeline" id="line-35"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

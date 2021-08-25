@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: pkcs1.go in package crypto/x509</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	pkcs1.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/crypto/x509.html">crypto/x509</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> x509</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"crypto/rsa"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"encoding/asn1"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"errors"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i3"><span class="lit-string i3">"math/big"</span></label></code></span>
+<span class="codeline" id="line-12"><code>)</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// pkcs1PrivateKey is a structure which mirrors the PKCS #1 ASN.1 for an RSA private key.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="keyword">type</span> <a href="../../../pkg/crypto/x509.html#name-pkcs1PrivateKey" class="ident">pkcs1PrivateKey</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-16"><code>	Version <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-17"><code>	N       *<a href="../../../pkg/math/big.html" class="ident i3">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a></code></span>
+<span class="codeline" id="line-18"><code>	E       <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-19"><code>	D       *<a href="../../../pkg/math/big.html" class="ident i3">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a></code></span>
+<span class="codeline" id="line-20"><code>	P       *<a href="../../../pkg/math/big.html" class="ident i3">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a></code></span>
+<span class="codeline" id="line-21"><code>	Q       *<a href="../../../pkg/math/big.html" class="ident i3">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a></code></span>
+<span class="codeline" id="line-22"><code>	<span class="comment">// We ignore these values, if present, because rsa will calculate them.</span></code></span>
+<span class="codeline" id="line-23"><code>	Dp   *<a href="../../../pkg/math/big.html" class="ident i3">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a> <span class="lit-string">`asn1:"optional"`</span></code></span>
+<span class="codeline" id="line-24"><code>	Dq   *<a href="../../../pkg/math/big.html" class="ident i3">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a> <span class="lit-string">`asn1:"optional"`</span></code></span>
+<span class="codeline" id="line-25"><code>	Qinv *<a href="../../../pkg/math/big.html" class="ident i3">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a> <span class="lit-string">`asn1:"optional"`</span></code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code>	AdditionalPrimes []<a href="#line-30" class="ident">pkcs1AdditionalRSAPrime</a> <span class="lit-string">`asn1:"optional,omitempty"`</span></code></span>
+<span class="codeline" id="line-28"><code>}</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">type</span> <a href="../../../pkg/crypto/x509.html#name-pkcs1AdditionalRSAPrime" class="ident">pkcs1AdditionalRSAPrime</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-31"><code>	Prime *<a href="../../../pkg/math/big.html" class="ident i3">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a></code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code>	<span class="comment">// We ignore these values because rsa will calculate them.</span></code></span>
+<span class="codeline" id="line-34"><code>	Exp   *<a href="../../../pkg/math/big.html" class="ident i3">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a></code></span>
+<span class="codeline" id="line-35"><code>	Coeff *<a href="../../../pkg/math/big.html" class="ident i3">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a></code></span>
+<span class="codeline" id="line-36"><code>}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// pkcs1PublicKey reflects the ASN.1 structure of a PKCS #1 public key.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="keyword">type</span> <a href="../../../pkg/crypto/x509.html#name-pkcs1PublicKey" class="ident">pkcs1PublicKey</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-40"><code>	N *<a href="../../../pkg/math/big.html" class="ident i3">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a></code></span>
+<span class="codeline" id="line-41"><code>	E <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-42"><code>}</code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// ParsePKCS1PrivateKey parses an RSA private key in PKCS #1, ASN.1 DER form.</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// This kind of key is commonly encoded in PEM blocks of type "RSA PRIVATE KEY".</span></code></span>
+<span class="codeline" id="line-47"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/crypto/x509.html#name-ParsePKCS1PrivateKey" class="ident">ParsePKCS1PrivateKey</a></label>(<label for="r1" class="ident">der</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (*<a href="../../../pkg/crypto/rsa.html" class="ident i0">rsa</a>.<a href="../rsa/rsa.go.html#line-100" class="ident">PrivateKey</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">var</span> <label for="r2" class="ident">priv</label> <a href="#line-15" class="ident">pkcs1PrivateKey</a></code></span>
+<span class="codeline" id="line-49"><code>	<label for="r3" class="ident">rest</label>, <label for="r4" class="ident">err</label> := <a href="../../../pkg/encoding/asn1.html" class="ident i1">asn1</a>.<a href="../../encoding/asn1/asn1.go.html#line-1089" class="ident">Unmarshal</a>(<label for="r1" class="ident">der</label>, &amp;<label for="r2" class="ident">priv</label>)</code></span>
+<span class="codeline" id="line-50"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r3" class="ident">rest</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-51"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/encoding/asn1.html" class="ident i1">asn1</a>.<a href="../../encoding/asn1/asn1.go.html#line-43" class="ident">SyntaxError</a>{<a href="../../encoding/asn1/asn1.go.html#line-44" class="ident">Msg</a>: <span class="lit-string">"trailing data"</span>}</code></span>
+<span class="codeline" id="line-52"><code>	}</code></span>
+<span class="codeline" id="line-53"><code>	<span class="keyword">if</span> <label for="r4" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-54"><code>		<span class="keyword">if</span> <label for="r5" class="ident">_</label>, <label for="r6" class="ident">err</label> := <a href="../../../pkg/encoding/asn1.html" class="ident i1">asn1</a>.<a href="../../encoding/asn1/asn1.go.html#line-1089" class="ident">Unmarshal</a>(<label for="r1" class="ident">der</label>, &amp;<a href="sec1.go.html#line-24" class="ident">ecPrivateKey</a>{}); <label for="r6" class="ident">err</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-55"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i2">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"x509: failed to parse private key (use ParseECPrivateKey instead for this key format)"</span>)</code></span>
+<span class="codeline" id="line-56"><code>		}</code></span>
+<span class="codeline" id="line-57"><code>		<span class="keyword">if</span> <label for="r7" class="ident">_</label>, <label for="r8" class="ident">err</label> := <a href="../../../pkg/encoding/asn1.html" class="ident i1">asn1</a>.<a href="../../encoding/asn1/asn1.go.html#line-1089" class="ident">Unmarshal</a>(<label for="r1" class="ident">der</label>, &amp;<a href="pkcs8.go.html#line-20" class="ident">pkcs8</a>{}); <label for="r8" class="ident">err</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-58"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i2">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"x509: failed to parse private key (use ParsePKCS8PrivateKey instead for this key format)"</span>)</code></span>
+<span class="codeline" id="line-59"><code>		}</code></span>
+<span class="codeline" id="line-60"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r4" class="ident">err</label></code></span>
+<span class="codeline" id="line-61"><code>	}</code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code>	<span class="keyword">if</span> <label for="r2" class="ident">priv</label>.<a href="#line-16" class="ident">Version</a> &gt; <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-64"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i2">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"x509: unsupported private key version"</span>)</code></span>
+<span class="codeline" id="line-65"><code>	}</code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">if</span> <label for="r2" class="ident">priv</label>.<a href="#line-17" class="ident">N</a>.<a href="../../math/big/int.go.html#line-38" class="ident">Sign</a>() &lt;= <span class="lit-number">0</span> || <label for="r2" class="ident">priv</label>.<a href="#line-19" class="ident">D</a>.<a href="../../math/big/int.go.html#line-38" class="ident">Sign</a>() &lt;= <span class="lit-number">0</span> || <label for="r2" class="ident">priv</label>.<a href="#line-20" class="ident">P</a>.<a href="../../math/big/int.go.html#line-38" class="ident">Sign</a>() &lt;= <span class="lit-number">0</span> || <label for="r2" class="ident">priv</label>.<a href="#line-21" class="ident">Q</a>.<a href="../../math/big/int.go.html#line-38" class="ident">Sign</a>() &lt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-68"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i2">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"x509: private key contains zero or negative value"</span>)</code></span>
+<span class="codeline" id="line-69"><code>	}</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code>	<label for="r9" class="ident">key</label> := <a href="../../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="../../../pkg/crypto/rsa.html" class="ident i0">rsa</a>.<a href="../rsa/rsa.go.html#line-100" class="ident">PrivateKey</a>)</code></span>
+<span class="codeline" id="line-72"><code>	<label for="r9" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-101" class="ident">PublicKey</a> = <a href="../../../pkg/crypto/rsa.html" class="ident i0">rsa</a>.<a href="../rsa/rsa.go.html#line-42" class="ident">PublicKey</a>{</code></span>
+<span class="codeline" id="line-73"><code>		<a href="../rsa/rsa.go.html#line-44" class="ident">E</a>: <label for="r2" class="ident">priv</label>.<a href="#line-18" class="ident">E</a>,</code></span>
+<span class="codeline" id="line-74"><code>		<a href="../rsa/rsa.go.html#line-43" class="ident">N</a>: <label for="r2" class="ident">priv</label>.<a href="#line-17" class="ident">N</a>,</code></span>
+<span class="codeline" id="line-75"><code>	}</code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code>	<label for="r9" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-102" class="ident">D</a> = <label for="r2" class="ident">priv</label>.<a href="#line-19" class="ident">D</a></code></span>
+<span class="codeline" id="line-78"><code>	<label for="r9" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-103" class="ident">Primes</a> = <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]*<a href="../../../pkg/math/big.html" class="ident i3">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a>, <span class="lit-number">2</span>+<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">priv</label>.<a href="#line-27" class="ident">AdditionalPrimes</a>))</code></span>
+<span class="codeline" id="line-79"><code>	<label for="r9" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-103" class="ident">Primes</a>[<span class="lit-number">0</span>] = <label for="r2" class="ident">priv</label>.<a href="#line-20" class="ident">P</a></code></span>
+<span class="codeline" id="line-80"><code>	<label for="r9" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-103" class="ident">Primes</a>[<span class="lit-number">1</span>] = <label for="r2" class="ident">priv</label>.<a href="#line-21" class="ident">Q</a></code></span>
+<span class="codeline" id="line-81"><code>	<span class="keyword">for</span> <label for="r10" class="ident">i</label>, <label for="r11" class="ident">a</label> := <span class="keyword">range</span> <label for="r2" class="ident">priv</label>.<a href="#line-27" class="ident">AdditionalPrimes</a> {</code></span>
+<span class="codeline" id="line-82"><code>		<span class="keyword">if</span> <label for="r11" class="ident">a</label>.<a href="#line-31" class="ident">Prime</a>.<a href="../../math/big/int.go.html#line-38" class="ident">Sign</a>() &lt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-83"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i2">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"x509: private key contains zero or negative prime"</span>)</code></span>
+<span class="codeline" id="line-84"><code>		}</code></span>
+<span class="codeline" id="line-85"><code>		<label for="r9" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-103" class="ident">Primes</a>[<label for="r10" class="ident">i</label>+<span class="lit-number">2</span>] = <label for="r11" class="ident">a</label>.<a href="#line-31" class="ident">Prime</a></code></span>
+<span class="codeline" id="line-86"><code>		<span class="comment">// We ignore the other two values because rsa will calculate</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">		// them as needed.</span></code></span>
+<span class="codeline" id="line-88"><code>	}</code></span>
+<span class="codeline" id="line-89"><code></code></span>
+<span class="codeline" id="line-90"><code>	<label for="r4" class="ident">err</label> = <label for="r9" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-203" class="ident">Validate</a>()</code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">if</span> <label for="r4" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-92"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r4" class="ident">err</label></code></span>
+<span class="codeline" id="line-93"><code>	}</code></span>
+<span class="codeline" id="line-94"><code>	<label for="r9" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-458" class="ident">Precompute</a>()</code></span>
+<span class="codeline" id="line-95"><code></code></span>
+<span class="codeline" id="line-96"><code>	<span class="keyword">return</span> <label for="r9" class="ident">key</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-97"><code>}</code></span>
+<span class="codeline" id="line-98"><code></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">// MarshalPKCS1PrivateKey converts an RSA private key to PKCS #1, ASN.1 DER form.</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// This kind of key is commonly encoded in PEM blocks of type "RSA PRIVATE KEY".</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// For a more flexible key format which is not RSA specific, use</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">// MarshalPKCS8PrivateKey.</span></code></span>
+<span class="codeline" id="line-104"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../../pkg/crypto/x509.html#name-MarshalPKCS1PrivateKey" class="ident">MarshalPKCS1PrivateKey</a></label>(<label for="r13" class="ident">key</label> *<a href="../../../pkg/crypto/rsa.html" class="ident i0">rsa</a>.<a href="../rsa/rsa.go.html#line-100" class="ident">PrivateKey</a>) []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-105"><code>	<label for="r13" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-458" class="ident">Precompute</a>()</code></span>
+<span class="codeline" id="line-106"><code></code></span>
+<span class="codeline" id="line-107"><code>	<label for="r14" class="ident">version</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-108"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r13" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-103" class="ident">Primes</a>) &gt; <span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-109"><code>		<label for="r14" class="ident">version</label> = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-110"><code>	}</code></span>
+<span class="codeline" id="line-111"><code></code></span>
+<span class="codeline" id="line-112"><code>	<label for="r15" class="ident">priv</label> := <a href="#line-15" class="ident">pkcs1PrivateKey</a>{</code></span>
+<span class="codeline" id="line-113"><code>		<a href="#line-16" class="ident">Version</a>: <label for="r14" class="ident">version</label>,</code></span>
+<span class="codeline" id="line-114"><code>		<a href="#line-17" class="ident">N</a>:       <label for="r13" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-43" class="ident">N</a>,</code></span>
+<span class="codeline" id="line-115"><code>		<a href="#line-18" class="ident">E</a>:       <label for="r13" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-101" class="ident">PublicKey</a>.<a href="../rsa/rsa.go.html#line-44" class="ident">E</a>,</code></span>
+<span class="codeline" id="line-116"><code>		<a href="#line-19" class="ident">D</a>:       <label for="r13" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-102" class="ident">D</a>,</code></span>
+<span class="codeline" id="line-117"><code>		<a href="#line-20" class="ident">P</a>:       <label for="r13" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-103" class="ident">Primes</a>[<span class="lit-number">0</span>],</code></span>
+<span class="codeline" id="line-118"><code>		<a href="#line-21" class="ident">Q</a>:       <label for="r13" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-103" class="ident">Primes</a>[<span class="lit-number">1</span>],</code></span>
+<span class="codeline" id="line-119"><code>		<a href="#line-23" class="ident">Dp</a>:      <label for="r13" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-107" class="ident">Precomputed</a>.<a href="../rsa/rsa.go.html#line-184" class="ident">Dp</a>,</code></span>
+<span class="codeline" id="line-120"><code>		<a href="#line-24" class="ident">Dq</a>:      <label for="r13" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-107" class="ident">Precomputed</a>.<a href="../rsa/rsa.go.html#line-184" class="ident">Dq</a>,</code></span>
+<span class="codeline" id="line-121"><code>		<a href="#line-25" class="ident">Qinv</a>:    <label for="r13" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-107" class="ident">Precomputed</a>.<a href="../rsa/rsa.go.html#line-185" class="ident">Qinv</a>,</code></span>
+<span class="codeline" id="line-122"><code>	}</code></span>
+<span class="codeline" id="line-123"><code></code></span>
+<span class="codeline" id="line-124"><code>	<label for="r15" class="ident">priv</label>.<a href="#line-27" class="ident">AdditionalPrimes</a> = <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="#line-30" class="ident">pkcs1AdditionalRSAPrime</a>, <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r13" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-107" class="ident">Precomputed</a>.<a href="../rsa/rsa.go.html#line-191" class="ident">CRTValues</a>))</code></span>
+<span class="codeline" id="line-125"><code>	<span class="keyword">for</span> <label for="r16" class="ident">i</label>, <label for="r17" class="ident">values</label> := <span class="keyword">range</span> <label for="r13" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-107" class="ident">Precomputed</a>.<a href="../rsa/rsa.go.html#line-191" class="ident">CRTValues</a> {</code></span>
+<span class="codeline" id="line-126"><code>		<label for="r15" class="ident">priv</label>.<a href="#line-27" class="ident">AdditionalPrimes</a>[<label for="r16" class="ident">i</label>].<a href="#line-31" class="ident">Prime</a> = <label for="r13" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-103" class="ident">Primes</a>[<span class="lit-number">2</span>+<label for="r16" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-127"><code>		<label for="r15" class="ident">priv</label>.<a href="#line-27" class="ident">AdditionalPrimes</a>[<label for="r16" class="ident">i</label>].<a href="#line-34" class="ident">Exp</a> = <label for="r17" class="ident">values</label>.<a href="../rsa/rsa.go.html#line-196" class="ident">Exp</a></code></span>
+<span class="codeline" id="line-128"><code>		<label for="r15" class="ident">priv</label>.<a href="#line-27" class="ident">AdditionalPrimes</a>[<label for="r16" class="ident">i</label>].<a href="#line-35" class="ident">Coeff</a> = <label for="r17" class="ident">values</label>.<a href="../rsa/rsa.go.html#line-197" class="ident">Coeff</a></code></span>
+<span class="codeline" id="line-129"><code>	}</code></span>
+<span class="codeline" id="line-130"><code></code></span>
+<span class="codeline" id="line-131"><code>	<label for="r18" class="ident">b</label>, <label for="r19" class="ident">_</label> := <a href="../../../pkg/encoding/asn1.html" class="ident i1">asn1</a>.<a href="../../encoding/asn1/marshal.go.html#line-733" class="ident">Marshal</a>(<label for="r15" class="ident">priv</label>)</code></span>
+<span class="codeline" id="line-132"><code>	<span class="keyword">return</span> <label for="r18" class="ident">b</label></code></span>
+<span class="codeline" id="line-133"><code>}</code></span>
+<span class="codeline" id="line-134"><code></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">// ParsePKCS1PublicKey parses an RSA public key in PKCS #1, ASN.1 DER form.</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">// This kind of key is commonly encoded in PEM blocks of type "RSA PUBLIC KEY".</span></code></span>
+<span class="codeline" id="line-138"><code><span class="keyword">func</span> <label for="r20" class="ident"><a href="../../../pkg/crypto/x509.html#name-ParsePKCS1PublicKey" class="ident">ParsePKCS1PublicKey</a></label>(<label for="r21" class="ident">der</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (*<a href="../../../pkg/crypto/rsa.html" class="ident i0">rsa</a>.<a href="../rsa/rsa.go.html#line-42" class="ident">PublicKey</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-139"><code>	<span class="keyword">var</span> <label for="r22" class="ident">pub</label> <a href="#line-39" class="ident">pkcs1PublicKey</a></code></span>
+<span class="codeline" id="line-140"><code>	<label for="r23" class="ident">rest</label>, <label for="r24" class="ident">err</label> := <a href="../../../pkg/encoding/asn1.html" class="ident i1">asn1</a>.<a href="../../encoding/asn1/asn1.go.html#line-1089" class="ident">Unmarshal</a>(<label for="r21" class="ident">der</label>, &amp;<label for="r22" class="ident">pub</label>)</code></span>
+<span class="codeline" id="line-141"><code>	<span class="keyword">if</span> <label for="r24" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-142"><code>		<span class="keyword">if</span> <label for="r25" class="ident">_</label>, <label for="r26" class="ident">err</label> := <a href="../../../pkg/encoding/asn1.html" class="ident i1">asn1</a>.<a href="../../encoding/asn1/asn1.go.html#line-1089" class="ident">Unmarshal</a>(<label for="r21" class="ident">der</label>, &amp;<a href="x509.go.html#line-170" class="ident">publicKeyInfo</a>{}); <label for="r26" class="ident">err</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-143"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i2">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"x509: failed to parse public key (use ParsePKIXPublicKey instead for this key format)"</span>)</code></span>
+<span class="codeline" id="line-144"><code>		}</code></span>
+<span class="codeline" id="line-145"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r24" class="ident">err</label></code></span>
+<span class="codeline" id="line-146"><code>	}</code></span>
+<span class="codeline" id="line-147"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r23" class="ident">rest</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-148"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/encoding/asn1.html" class="ident i1">asn1</a>.<a href="../../encoding/asn1/asn1.go.html#line-43" class="ident">SyntaxError</a>{<a href="../../encoding/asn1/asn1.go.html#line-44" class="ident">Msg</a>: <span class="lit-string">"trailing data"</span>}</code></span>
+<span class="codeline" id="line-149"><code>	}</code></span>
+<span class="codeline" id="line-150"><code></code></span>
+<span class="codeline" id="line-151"><code>	<span class="keyword">if</span> <label for="r22" class="ident">pub</label>.<a href="#line-40" class="ident">N</a>.<a href="../../math/big/int.go.html#line-38" class="ident">Sign</a>() &lt;= <span class="lit-number">0</span> || <label for="r22" class="ident">pub</label>.<a href="#line-41" class="ident">E</a> &lt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-152"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i2">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"x509: public key contains zero or negative value"</span>)</code></span>
+<span class="codeline" id="line-153"><code>	}</code></span>
+<span class="codeline" id="line-154"><code>	<span class="keyword">if</span> <label for="r22" class="ident">pub</label>.<a href="#line-41" class="ident">E</a> &gt; <span class="lit-number">1</span>&lt;&lt;<span class="lit-number">31</span>-<span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-155"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i2">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"x509: public key contains large public exponent"</span>)</code></span>
+<span class="codeline" id="line-156"><code>	}</code></span>
+<span class="codeline" id="line-157"><code></code></span>
+<span class="codeline" id="line-158"><code>	<span class="keyword">return</span> &amp;<a href="../../../pkg/crypto/rsa.html" class="ident i0">rsa</a>.<a href="../rsa/rsa.go.html#line-42" class="ident">PublicKey</a>{</code></span>
+<span class="codeline" id="line-159"><code>		<a href="../rsa/rsa.go.html#line-44" class="ident">E</a>: <label for="r22" class="ident">pub</label>.<a href="#line-41" class="ident">E</a>,</code></span>
+<span class="codeline" id="line-160"><code>		<a href="../rsa/rsa.go.html#line-43" class="ident">N</a>: <label for="r22" class="ident">pub</label>.<a href="#line-40" class="ident">N</a>,</code></span>
+<span class="codeline" id="line-161"><code>	}, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-162"><code>}</code></span>
+<span class="codeline" id="line-163"><code></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">// MarshalPKCS1PublicKey converts an RSA public key to PKCS #1, ASN.1 DER form.</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">// This kind of key is commonly encoded in PEM blocks of type "RSA PUBLIC KEY".</span></code></span>
+<span class="codeline" id="line-167"><code><span class="keyword">func</span> <label for="r27" class="ident"><a href="../../../pkg/crypto/x509.html#name-MarshalPKCS1PublicKey" class="ident">MarshalPKCS1PublicKey</a></label>(<label for="r28" class="ident">key</label> *<a href="../../../pkg/crypto/rsa.html" class="ident i0">rsa</a>.<a href="../rsa/rsa.go.html#line-42" class="ident">PublicKey</a>) []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-168"><code>	<label for="r29" class="ident">derBytes</label>, <label for="r30" class="ident">_</label> := <a href="../../../pkg/encoding/asn1.html" class="ident i1">asn1</a>.<a href="../../encoding/asn1/marshal.go.html#line-733" class="ident">Marshal</a>(<a href="#line-39" class="ident">pkcs1PublicKey</a>{</code></span>
+<span class="codeline" id="line-169"><code>		<a href="#line-40" class="ident">N</a>: <label for="r28" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-43" class="ident">N</a>,</code></span>
+<span class="codeline" id="line-170"><code>		<a href="#line-41" class="ident">E</a>: <label for="r28" class="ident">key</label>.<a href="../rsa/rsa.go.html#line-44" class="ident">E</a>,</code></span>
+<span class="codeline" id="line-171"><code>	})</code></span>
+<span class="codeline" id="line-172"><code>	<span class="keyword">return</span> <label for="r29" class="ident">derBytes</label></code></span>
+<span class="codeline" id="line-173"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

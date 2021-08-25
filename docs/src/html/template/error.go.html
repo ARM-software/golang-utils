@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: error.go in package html/template</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	error.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/html/template.html">html/template</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> template</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"fmt"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"text/template/parse"</span></label></code></span>
+<span class="codeline" id="line-10"><code>)</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// Error describes a problem encountered during template Escaping.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">type</span> <a href="../../../pkg/html/template.html#name-Error" class="ident">Error</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-14"><code>	<span class="comment">// ErrorCode describes the kind of error.</span></code></span>
+<span class="codeline" id="line-15"><code>	ErrorCode <a href="#line-28" class="ident">ErrorCode</a></code></span>
+<span class="codeline" id="line-16"><code>	<span class="comment">// Node is the node that caused the problem, if known.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">	// If not nil, it overrides Name and Line.</span></code></span>
+<span class="codeline" id="line-18"><code>	Node <a href="../../../pkg/text/template/parse.html" class="ident i1">parse</a>.<a href="../../text/template/parse/node.go.html#line-20" class="ident">Node</a></code></span>
+<span class="codeline" id="line-19"><code>	<span class="comment">// Name is the name of the template in which the error was encountered.</span></code></span>
+<span class="codeline" id="line-20"><code>	Name <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-21"><code>	<span class="comment">// Line is the line number of the error in the template source or 0.</span></code></span>
+<span class="codeline" id="line-22"><code>	Line <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-23"><code>	<span class="comment">// Description is a human-readable description of the problem.</span></code></span>
+<span class="codeline" id="line-24"><code>	Description <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-25"><code>}</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// ErrorCode is a code for a kind of error.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">type</span> <a href="../../../pkg/html/template.html#name-ErrorCode" class="ident">ErrorCode</a> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// We define codes for each error that manifests while escaping templates, but</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// escaped templates may also fail at runtime.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// Output: "ZgotmplZ"</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// Example:</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">//   &lt;img src="{{.X}}"&gt;</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">//   where {{.X}} evaluates to `javascript:...`</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// Discussion:</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">//   "ZgotmplZ" is a special value that indicates that unsafe content reached a</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">//   CSS or URL context at runtime. The output of the example will be</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">//     &lt;img src="#ZgotmplZ"&gt;</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">//   If the data comes from a trusted source, use content types to exempt it</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">//   from filtering: URL(`javascript:...`).</span></code></span>
+<span class="codeline" id="line-43"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-44"><code>	<span class="comment">// OK indicates the lack of an error.</span></code></span>
+<span class="codeline" id="line-45"><code>	<a href="../../../pkg/html/template.html#name-OK" class="ident">OK</a> <a href="#line-28" class="ident">ErrorCode</a> = <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code>	<span class="comment">// ErrAmbigContext: "... appears in an ambiguous context within a URL"</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	// Example:</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	//   &lt;a href="</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	//      {{if .C}}</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	//        /path/</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	//      {{else}}</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">	//        /search?q=</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">	//      {{end}}</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	//      {{.X}}</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">	//   "&gt;</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">	// Discussion:</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	//   {{.X}} is in an ambiguous URL context since, depending on {{.C}},</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">	//  it may be either a URL suffix or a query parameter.</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	//   Moving {{.X}} into the condition removes the ambiguity:</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">	//   &lt;a href="{{if .C}}/path/{{.X}}{{else}}/search?q={{.X}}"&gt;</span></code></span>
+<span class="codeline" id="line-62"><code>	<a href="../../../pkg/html/template.html#name-ErrAmbigContext" class="ident">ErrAmbigContext</a></code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code>	<span class="comment">// ErrBadHTML: "expected space, attr name, or end of tag, but got ...",</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">	//   "... in unquoted attr", "... in attribute name"</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">	// Example:</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">	//   &lt;a href = /search?q=foo&gt;</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">	//   &lt;href=foo&gt;</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">	//   &lt;form na&lt;e=...&gt;</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">	//   &lt;option selected&lt;</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">	// Discussion:</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">	//   This is often due to a typo in an HTML element, but some runes</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">	//   are banned in tag names, attribute names, and unquoted attribute</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">	//   values because they can tickle parser ambiguities.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">	//   Quoting all attributes is the best policy.</span></code></span>
+<span class="codeline" id="line-76"><code>	<a href="../../../pkg/html/template.html#name-ErrBadHTML" class="ident">ErrBadHTML</a></code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code>	<span class="comment">// ErrBranchEnd: "{{if}} branches end in different contexts"</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">	// Example:</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">	//   {{if .C}}&lt;a href="{{end}}{{.X}}</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">	// Discussion:</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">	//   Package html/template statically examines each path through an</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">	//   {{if}}, {{range}}, or {{with}} to escape any following pipelines.</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">	//   The example is ambiguous since {{.X}} might be an HTML text node,</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">	//   or a URL prefix in an HTML attribute. The context of {{.X}} is</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">	//   used to figure out how to escape it, but that context depends on</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">	//   the run-time value of {{.C}} which is not statically known.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">	//   The problem is usually something like missing quotes or angle</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">	//   brackets, or can be avoided by refactoring to put the two contexts</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">	//   into different branches of an if, range or with. If the problem</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">	//   is in a {{range}} over a collection that should never be empty,</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">	//   adding a dummy {{else}} can help.</span></code></span>
+<span class="codeline" id="line-94"><code>	<a href="../../../pkg/html/template.html#name-ErrBranchEnd" class="ident">ErrBranchEnd</a></code></span>
+<span class="codeline" id="line-95"><code></code></span>
+<span class="codeline" id="line-96"><code>	<span class="comment">// ErrEndContext: "... ends in a non-text context: ..."</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">	// Examples:</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">	//   &lt;div</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">	//   &lt;div title="no close quote&gt;</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">	//   &lt;script&gt;f()</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">	// Discussion:</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">	//   Executed templates should produce a DocumentFragment of HTML.</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">	//   Templates that end without closing tags will trigger this error.</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">	//   Templates that should not be used in an HTML context or that</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">	//   produce incomplete Fragments should not be executed directly.</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">	//   {{define "main"}} &lt;script&gt;{{template "helper"}}&lt;/script&gt; {{end}}</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">	//   {{define "helper"}} document.write(' &lt;div title=" ') {{end}}</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">	//   "helper" does not produce a valid document fragment, so should</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">	//   not be Executed directly.</span></code></span>
+<span class="codeline" id="line-112"><code>	<a href="../../../pkg/html/template.html#name-ErrEndContext" class="ident">ErrEndContext</a></code></span>
+<span class="codeline" id="line-113"><code></code></span>
+<span class="codeline" id="line-114"><code>	<span class="comment">// ErrNoSuchTemplate: "no such template ..."</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">	// Examples:</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">	//   {{define "main"}}&lt;div {{template "attrs"}}&gt;{{end}}</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">	//   {{define "attrs"}}href="{{.URL}}"{{end}}</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">	// Discussion:</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">	//   Package html/template looks through template calls to compute the</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">	//   context.</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">	//   Here the {{.URL}} in "attrs" must be treated as a URL when called</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">	//   from "main", but you will get this error if "attrs" is not defined</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">	//   when "main" is parsed.</span></code></span>
+<span class="codeline" id="line-124"><code>	<a href="../../../pkg/html/template.html#name-ErrNoSuchTemplate" class="ident">ErrNoSuchTemplate</a></code></span>
+<span class="codeline" id="line-125"><code></code></span>
+<span class="codeline" id="line-126"><code>	<span class="comment">// ErrOutputContext: "cannot compute output context for template ..."</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">	// Examples:</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">	//   {{define "t"}}{{if .T}}{{template "t" .T}}{{end}}{{.H}}",{{end}}</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">	// Discussion:</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">	//   A recursive template does not end in the same context in which it</span></code></span>
+<span class="codeline" id="line-131"><code><span class="comment">	//   starts, and a reliable output context cannot be computed.</span></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">	//   Look for typos in the named template.</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">	//   If the template should not be called in the named start context,</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">	//   look for calls to that template in unexpected contexts.</span></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">	//   Maybe refactor recursive templates to not be recursive.</span></code></span>
+<span class="codeline" id="line-136"><code>	<a href="../../../pkg/html/template.html#name-ErrOutputContext" class="ident">ErrOutputContext</a></code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code>	<span class="comment">// ErrPartialCharset: "unfinished JS regexp charset in ..."</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">	// Example:</span></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">	//     &lt;script&gt;var pattern = /foo[{{.Chars}}]/&lt;/script&gt;</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">	// Discussion:</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">	//   Package html/template does not support interpolation into regular</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">	//   expression literal character sets.</span></code></span>
+<span class="codeline" id="line-144"><code>	<a href="../../../pkg/html/template.html#name-ErrPartialCharset" class="ident">ErrPartialCharset</a></code></span>
+<span class="codeline" id="line-145"><code></code></span>
+<span class="codeline" id="line-146"><code>	<span class="comment">// ErrPartialEscape: "unfinished escape sequence in ..."</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">	// Example:</span></code></span>
+<span class="codeline" id="line-148"><code><span class="comment">	//   &lt;script&gt;alert("\{{.X}}")&lt;/script&gt;</span></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">	// Discussion:</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">	//   Package html/template does not support actions following a</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">	//   backslash.</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">	//   This is usually an error and there are better solutions; for</span></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">	//   example</span></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">	//     &lt;script&gt;alert("{{.X}}")&lt;/script&gt;</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">	//   should work, and if {{.X}} is a partial escape sequence such as</span></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">	//   "xA0", mark the whole sequence as safe content: JSStr(`\xA0`)</span></code></span>
+<span class="codeline" id="line-157"><code>	<a href="../../../pkg/html/template.html#name-ErrPartialEscape" class="ident">ErrPartialEscape</a></code></span>
+<span class="codeline" id="line-158"><code></code></span>
+<span class="codeline" id="line-159"><code>	<span class="comment">// ErrRangeLoopReentry: "on range loop re-entry: ..."</span></code></span>
+<span class="codeline" id="line-160"><code><span class="comment">	// Example:</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">	//   &lt;script&gt;var x = [{{range .}}'{{.}},{{end}}]&lt;/script&gt;</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">	// Discussion:</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">	//   If an iteration through a range would cause it to end in a</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">	//   different context than an earlier pass, there is no single context.</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">	//   In the example, there is missing a quote, so it is not clear</span></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">	//   whether {{.}} is meant to be inside a JS string or in a JS value</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">	//   context. The second iteration would produce something like</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">	//     &lt;script&gt;var x = ['firstValue,'secondValue]&lt;/script&gt;</span></code></span>
+<span class="codeline" id="line-170"><code>	<a href="../../../pkg/html/template.html#name-ErrRangeLoopReentry" class="ident">ErrRangeLoopReentry</a></code></span>
+<span class="codeline" id="line-171"><code></code></span>
+<span class="codeline" id="line-172"><code>	<span class="comment">// ErrSlashAmbig: '/' could start a division or regexp.</span></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">	// Example:</span></code></span>
+<span class="codeline" id="line-174"><code><span class="comment">	//   &lt;script&gt;</span></code></span>
+<span class="codeline" id="line-175"><code><span class="comment">	//     {{if .C}}var x = 1{{end}}</span></code></span>
+<span class="codeline" id="line-176"><code><span class="comment">	//     /-{{.N}}/i.test(x) ? doThis : doThat();</span></code></span>
+<span class="codeline" id="line-177"><code><span class="comment">	//   &lt;/script&gt;</span></code></span>
+<span class="codeline" id="line-178"><code><span class="comment">	// Discussion:</span></code></span>
+<span class="codeline" id="line-179"><code><span class="comment">	//   The example above could produce `var x = 1/-2/i.test(s)...`</span></code></span>
+<span class="codeline" id="line-180"><code><span class="comment">	//   in which the first '/' is a mathematical division operator or it</span></code></span>
+<span class="codeline" id="line-181"><code><span class="comment">	//   could produce `/-2/i.test(s)` in which the first '/' starts a</span></code></span>
+<span class="codeline" id="line-182"><code><span class="comment">	//   regexp literal.</span></code></span>
+<span class="codeline" id="line-183"><code><span class="comment">	//   Look for missing semicolons inside branches, and maybe add</span></code></span>
+<span class="codeline" id="line-184"><code><span class="comment">	//   parentheses to make it clear which interpretation you intend.</span></code></span>
+<span class="codeline" id="line-185"><code>	<a href="../../../pkg/html/template.html#name-ErrSlashAmbig" class="ident">ErrSlashAmbig</a></code></span>
+<span class="codeline" id="line-186"><code></code></span>
+<span class="codeline" id="line-187"><code>	<span class="comment">// ErrPredefinedEscaper: "predefined escaper ... disallowed in template"</span></code></span>
+<span class="codeline" id="line-188"><code><span class="comment">	// Example:</span></code></span>
+<span class="codeline" id="line-189"><code><span class="comment">	//   &lt;div class={{. | html}}&gt;Hello&lt;div&gt;</span></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">	// Discussion:</span></code></span>
+<span class="codeline" id="line-191"><code><span class="comment">	//   Package html/template already contextually escapes all pipelines to</span></code></span>
+<span class="codeline" id="line-192"><code><span class="comment">	//   produce HTML output safe against code injection. Manually escaping</span></code></span>
+<span class="codeline" id="line-193"><code><span class="comment">	//   pipeline output using the predefined escapers "html" or "urlquery" is</span></code></span>
+<span class="codeline" id="line-194"><code><span class="comment">	//   unnecessary, and may affect the correctness or safety of the escaped</span></code></span>
+<span class="codeline" id="line-195"><code><span class="comment">	//   pipeline output in Go 1.8 and earlier.</span></code></span>
+<span class="codeline" id="line-196"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-197"><code><span class="comment">	//   In most cases, such as the given example, this error can be resolved by</span></code></span>
+<span class="codeline" id="line-198"><code><span class="comment">	//   simply removing the predefined escaper from the pipeline and letting the</span></code></span>
+<span class="codeline" id="line-199"><code><span class="comment">	//   contextual autoescaper handle the escaping of the pipeline. In other</span></code></span>
+<span class="codeline" id="line-200"><code><span class="comment">	//   instances, where the predefined escaper occurs in the middle of a</span></code></span>
+<span class="codeline" id="line-201"><code><span class="comment">	//   pipeline where subsequent commands expect escaped input, e.g.</span></code></span>
+<span class="codeline" id="line-202"><code><span class="comment">	//     {{.X | html | makeALink}}</span></code></span>
+<span class="codeline" id="line-203"><code><span class="comment">	//   where makeALink does</span></code></span>
+<span class="codeline" id="line-204"><code><span class="comment">	//     return `&lt;a href="`+input+`"&gt;link&lt;/a&gt;`</span></code></span>
+<span class="codeline" id="line-205"><code><span class="comment">	//   consider refactoring the surrounding template to make use of the</span></code></span>
+<span class="codeline" id="line-206"><code><span class="comment">	//   contextual autoescaper, i.e.</span></code></span>
+<span class="codeline" id="line-207"><code><span class="comment">	//     &lt;a href="{{.X}}"&gt;link&lt;/a&gt;</span></code></span>
+<span class="codeline" id="line-208"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-209"><code><span class="comment">	//   To ease migration to Go 1.9 and beyond, "html" and "urlquery" will</span></code></span>
+<span class="codeline" id="line-210"><code><span class="comment">	//   continue to be allowed as the last command in a pipeline. However, if the</span></code></span>
+<span class="codeline" id="line-211"><code><span class="comment">	//   pipeline occurs in an unquoted attribute value context, "html" is</span></code></span>
+<span class="codeline" id="line-212"><code><span class="comment">	//   disallowed. Avoid using "html" and "urlquery" entirely in new templates.</span></code></span>
+<span class="codeline" id="line-213"><code>	<a href="../../../pkg/html/template.html#name-ErrPredefinedEscaper" class="ident">ErrPredefinedEscaper</a></code></span>
+<span class="codeline" id="line-214"><code>)</code></span>
+<span class="codeline" id="line-215"><code></code></span>
+<span class="codeline" id="line-216"><code><span class="keyword">func</span> (<label for="r0" class="ident">e</label> *<a href="#line-13" class="ident">Error</a>) <label for="r1" class="ident"><a href="../../../imp/html/template.Error.html#name-.Error" class="ident">Error</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-217"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-218"><code>	<span class="keyword">case</span> <label for="r0" class="ident">e</label>.<a href="#line-18" class="ident">Node</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>:</code></span>
+<span class="codeline" id="line-219"><code>		<label for="r2" class="ident">loc</label>, <label for="r3" class="ident">_</label> := (*<a href="../../../pkg/text/template/parse.html" class="ident i1">parse</a>.<a href="../../text/template/parse/parse.go.html#line-20" class="ident">Tree</a>)(<a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>).<a href="../../text/template/parse/parse.go.html#line-140" class="ident">ErrorContext</a>(<label for="r0" class="ident">e</label>.<a href="#line-18" class="ident">Node</a>)</code></span>
+<span class="codeline" id="line-220"><code>		<span class="keyword">return</span> <a href="../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(<span class="lit-string">"html/template:%s: %s"</span>, <label for="r2" class="ident">loc</label>, <label for="r0" class="ident">e</label>.<a href="#line-24" class="ident">Description</a>)</code></span>
+<span class="codeline" id="line-221"><code>	<span class="keyword">case</span> <label for="r0" class="ident">e</label>.<a href="#line-22" class="ident">Line</a> != <span class="lit-number">0</span>:</code></span>
+<span class="codeline" id="line-222"><code>		<span class="keyword">return</span> <a href="../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(<span class="lit-string">"html/template:%s:%d: %s"</span>, <label for="r0" class="ident">e</label>.<a href="#line-20" class="ident">Name</a>, <label for="r0" class="ident">e</label>.<a href="#line-22" class="ident">Line</a>, <label for="r0" class="ident">e</label>.<a href="#line-24" class="ident">Description</a>)</code></span>
+<span class="codeline" id="line-223"><code>	<span class="keyword">case</span> <label for="r0" class="ident">e</label>.<a href="#line-20" class="ident">Name</a> != <span class="lit-string">""</span>:</code></span>
+<span class="codeline" id="line-224"><code>		<span class="keyword">return</span> <a href="../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(<span class="lit-string">"html/template:%s: %s"</span>, <label for="r0" class="ident">e</label>.<a href="#line-20" class="ident">Name</a>, <label for="r0" class="ident">e</label>.<a href="#line-24" class="ident">Description</a>)</code></span>
+<span class="codeline" id="line-225"><code>	}</code></span>
+<span class="codeline" id="line-226"><code>	<span class="keyword">return</span> <span class="lit-string">"html/template: "</span> + <label for="r0" class="ident">e</label>.<a href="#line-24" class="ident">Description</a></code></span>
+<span class="codeline" id="line-227"><code>}</code></span>
+<span class="codeline" id="line-228"><code></code></span>
+<span class="codeline" id="line-229"><code><span class="comment">// errorf creates an error given a format string f and args.</span></code></span>
+<span class="codeline" id="line-230"><code><span class="comment">// The template Name still needs to be supplied.</span></code></span>
+<span class="codeline" id="line-231"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../pkg/html/template.html#name-errorf" class="ident">errorf</a></label>(<label for="r5" class="ident">k</label> <a href="#line-28" class="ident">ErrorCode</a>, <label for="r6" class="ident">node</label> <a href="../../../pkg/text/template/parse.html" class="ident i1">parse</a>.<a href="../../text/template/parse/node.go.html#line-20" class="ident">Node</a>, <label for="r7" class="ident">line</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r8" class="ident">f</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r9" class="ident">args</label> ...<span class="keyword">interface</span>{}) *<a href="#line-13" class="ident">Error</a> {</code></span>
+<span class="codeline" id="line-232"><code>	<span class="keyword">return</span> &amp;<a href="#line-13" class="ident">Error</a>{<label for="r5" class="ident">k</label>, <label for="r6" class="ident">node</label>, <span class="lit-string">""</span>, <label for="r7" class="ident">line</label>, <a href="../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(<label for="r8" class="ident">f</label>, <label for="r9" class="ident">args</label>...)}</code></span>
+<span class="codeline" id="line-233"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

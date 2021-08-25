@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: fsnotify.go in package github.com/fsnotify/fsnotify</title>
+<link href="../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	fsnotify.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/github.com/fsnotify/fsnotify.html">github.com/fsnotify/fsnotify</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2012 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// +build !plan9</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-7"><code><span class="comment">// Package fsnotify provides a platform-independent interface for file system notifications.</span></code></span></div><span class="codeline" id="line-8"><code><span class="keyword">package</span> fsnotify</code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-11"><code>	<label for="i0"><span class="lit-string i0">"bytes"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i1"><span class="lit-string i1">"errors"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i2"><span class="lit-string i2">"fmt"</span></label></code></span>
+<span class="codeline" id="line-14"><code>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// Event represents a single file system notification.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/fsnotify/fsnotify.html#name-Event" class="ident">Event</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-18"><code>	Name <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// Relative path to the file or directory.</span></code></span>
+<span class="codeline" id="line-19"><code>	Op   <a href="#line-23" class="ident">Op</a>     <span class="comment">// File operation that triggered the event.</span></code></span>
+<span class="codeline" id="line-20"><code>}</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// Op describes a set of file operations.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/fsnotify/fsnotify.html#name-Op" class="ident">Op</a> <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// These are the generalized file operations that can trigger a notification.</span></code></span>
+<span class="codeline" id="line-26"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-27"><code>	<a href="../../../../pkg/github.com/fsnotify/fsnotify.html#name-Create" class="ident">Create</a> <a href="#line-23" class="ident">Op</a> = <span class="lit-number">1</span> &lt;&lt; <a href="../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-28"><code>	<a href="../../../../pkg/github.com/fsnotify/fsnotify.html#name-Write" class="ident">Write</a></code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../../../pkg/github.com/fsnotify/fsnotify.html#name-Remove" class="ident">Remove</a></code></span>
+<span class="codeline" id="line-30"><code>	<a href="../../../../pkg/github.com/fsnotify/fsnotify.html#name-Rename" class="ident">Rename</a></code></span>
+<span class="codeline" id="line-31"><code>	<a href="../../../../pkg/github.com/fsnotify/fsnotify.html#name-Chmod" class="ident">Chmod</a></code></span>
+<span class="codeline" id="line-32"><code>)</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="keyword">func</span> (<label for="r0" class="ident">op</label> <a href="#line-23" class="ident">Op</a>) <label for="r1" class="ident"><a href="../../../../imp/github.com/fsnotify/fsnotify.Op.html#name-.String" class="ident">String</a></label>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-35"><code>	<span class="comment">// Use a buffer for efficient string concatenation</span></code></span>
+<span class="codeline" id="line-36"><code>	<span class="keyword">var</span> <label for="r2" class="ident">buffer</label> <a href="../../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../../bytes/buffer.go.html#line-20" class="ident">Buffer</a></code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code>	<span class="keyword">if</span> <label for="r0" class="ident">op</label>&amp;<a href="#line-27" class="ident">Create</a> == <a href="#line-27" class="ident">Create</a> {</code></span>
+<span class="codeline" id="line-39"><code>		<label for="r2" class="ident">buffer</label>.<a href="../../../bytes/buffer.go.html#line-180" class="ident">WriteString</a>(<span class="lit-string">"|CREATE"</span>)</code></span>
+<span class="codeline" id="line-40"><code>	}</code></span>
+<span class="codeline" id="line-41"><code>	<span class="keyword">if</span> <label for="r0" class="ident">op</label>&amp;<a href="#line-29" class="ident">Remove</a> == <a href="#line-29" class="ident">Remove</a> {</code></span>
+<span class="codeline" id="line-42"><code>		<label for="r2" class="ident">buffer</label>.<a href="../../../bytes/buffer.go.html#line-180" class="ident">WriteString</a>(<span class="lit-string">"|REMOVE"</span>)</code></span>
+<span class="codeline" id="line-43"><code>	}</code></span>
+<span class="codeline" id="line-44"><code>	<span class="keyword">if</span> <label for="r0" class="ident">op</label>&amp;<a href="#line-28" class="ident">Write</a> == <a href="#line-28" class="ident">Write</a> {</code></span>
+<span class="codeline" id="line-45"><code>		<label for="r2" class="ident">buffer</label>.<a href="../../../bytes/buffer.go.html#line-180" class="ident">WriteString</a>(<span class="lit-string">"|WRITE"</span>)</code></span>
+<span class="codeline" id="line-46"><code>	}</code></span>
+<span class="codeline" id="line-47"><code>	<span class="keyword">if</span> <label for="r0" class="ident">op</label>&amp;<a href="#line-30" class="ident">Rename</a> == <a href="#line-30" class="ident">Rename</a> {</code></span>
+<span class="codeline" id="line-48"><code>		<label for="r2" class="ident">buffer</label>.<a href="../../../bytes/buffer.go.html#line-180" class="ident">WriteString</a>(<span class="lit-string">"|RENAME"</span>)</code></span>
+<span class="codeline" id="line-49"><code>	}</code></span>
+<span class="codeline" id="line-50"><code>	<span class="keyword">if</span> <label for="r0" class="ident">op</label>&amp;<a href="#line-31" class="ident">Chmod</a> == <a href="#line-31" class="ident">Chmod</a> {</code></span>
+<span class="codeline" id="line-51"><code>		<label for="r2" class="ident">buffer</label>.<a href="../../../bytes/buffer.go.html#line-180" class="ident">WriteString</a>(<span class="lit-string">"|CHMOD"</span>)</code></span>
+<span class="codeline" id="line-52"><code>	}</code></span>
+<span class="codeline" id="line-53"><code>	<span class="keyword">if</span> <label for="r2" class="ident">buffer</label>.<a href="../../../bytes/buffer.go.html#line-73" class="ident">Len</a>() == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-54"><code>		<span class="keyword">return</span> <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-55"><code>	}</code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">return</span> <label for="r2" class="ident">buffer</label>.<a href="../../../bytes/buffer.go.html#line-60" class="ident">String</a>()[<span class="lit-number">1</span>:] <span class="comment">// Strip leading pipe</span></code></span>
+<span class="codeline" id="line-57"><code>}</code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">// String returns a string representation of the event in the form</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// "file: REMOVE|WRITE|..."</span></code></span>
+<span class="codeline" id="line-61"><code><span class="keyword">func</span> (<label for="r3" class="ident">e</label> <a href="#line-17" class="ident">Event</a>) <label for="r4" class="ident"><a href="../../../../imp/github.com/fsnotify/fsnotify.Event.html#name-.String" class="ident">String</a></label>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-62"><code>	<span class="keyword">return</span> <a href="../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(<span class="lit-string">"%q: %s"</span>, <label for="r3" class="ident">e</label>.<a href="#line-18" class="ident">Name</a>, <label for="r3" class="ident">e</label>.<a href="#line-19" class="ident">Op</a>.<a href="#line-34" class="ident">String</a>())</code></span>
+<span class="codeline" id="line-63"><code>}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// Common errors that can be reported by a watcher</span></code></span>
+<span class="codeline" id="line-66"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-67"><code>	<a href="../../../../pkg/github.com/fsnotify/fsnotify.html#name-ErrEventOverflow" class="ident">ErrEventOverflow</a> = <a href="../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"fsnotify queue overflow"</span>)</code></span>
+<span class="codeline" id="line-68"><code>)</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

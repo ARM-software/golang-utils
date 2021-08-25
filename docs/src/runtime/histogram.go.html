@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: histogram.go in package runtime</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	histogram.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2020 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"runtime/internal/atomic"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"runtime/internal/sys"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-14"><code>	<span class="comment">// For the time histogram type, we use an HDR histogram.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">	// Values are placed in super-buckets based solely on the most</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">	// significant set bit. Thus, super-buckets are power-of-2 sized.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">	// Values are then placed into sub-buckets based on the value of</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">	// the next timeHistSubBucketBits most significant bits. Thus,</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">	// sub-buckets are linear within a super-bucket.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">	// Therefore, the number of sub-buckets (timeHistNumSubBuckets)</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">	// defines the error. This error may be computed as</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	// 1/timeHistNumSubBuckets*100%. For example, for 16 sub-buckets</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">	// per super-bucket the error is approximately 6%.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">	// The number of super-buckets (timeHistNumSuperBuckets), on the</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">	// other hand, defines the range. To reserve room for sub-buckets,</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">	// bit timeHistSubBucketBits is the first bit considered for</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">	// super-buckets, so super-bucket indices are adjusted accordingly.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	// As an example, consider 45 super-buckets with 16 sub-buckets.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	//    00110</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	//    ^----</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	//    │  ^</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	//    │  └---- Lowest 4 bits -&gt; sub-bucket 6</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">	//    └------- Bit 4 unset -&gt; super-bucket 0</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	//    10110</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">	//    ^----</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">	//    │  ^</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	//    │  └---- Next 4 bits -&gt; sub-bucket 6</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	//    └------- Bit 4 set -&gt; super-bucket 1</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	//    100010</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	//    ^----^</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	//    │  ^ └-- Lower bits ignored</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	//    │  └---- Next 4 bits -&gt; sub-bucket 1</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	//    └------- Bit 5 set -&gt; super-bucket 2</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// Following this pattern, bucket 45 will have the bit 48 set. We don't</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// have any buckets for higher values, so the highest sub-bucket will</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	// contain values of 2^48-1 nanoseconds or approx. 3 days. This range is</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">	// more than enough to handle durations produced by the runtime.</span></code></span>
+<span class="codeline" id="line-54"><code>	<a href="../../pkg/runtime.html#name-timeHistSubBucketBits" class="ident">timeHistSubBucketBits</a>   = <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-55"><code>	<a href="../../pkg/runtime.html#name-timeHistNumSubBuckets" class="ident">timeHistNumSubBuckets</a>   = <span class="lit-number">1</span> &lt;&lt; <a href="#line-54" class="ident">timeHistSubBucketBits</a></code></span>
+<span class="codeline" id="line-56"><code>	<a href="../../pkg/runtime.html#name-timeHistNumSuperBuckets" class="ident">timeHistNumSuperBuckets</a> = <span class="lit-number">45</span></code></span>
+<span class="codeline" id="line-57"><code>	<a href="../../pkg/runtime.html#name-timeHistTotalBuckets" class="ident">timeHistTotalBuckets</a>    = <a href="#line-56" class="ident">timeHistNumSuperBuckets</a>*<a href="#line-55" class="ident">timeHistNumSubBuckets</a> + <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-58"><code>)</code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// timeHistogram represents a distribution of durations in</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">// nanoseconds.</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// The accuracy and range of the histogram is defined by the</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">// timeHistSubBucketBits and timeHistNumSuperBuckets constants.</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// It is an HDR histogram with exponentially-distributed</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// buckets and linearly distributed sub-buckets.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// Counts in the histogram are updated atomically, so it is safe</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// for concurrent use. It is also safe to read all the values</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// atomically.</span></code></span>
+<span class="codeline" id="line-72"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-timeHistogram" class="ident">timeHistogram</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-73"><code>	counts [<a href="#line-56" class="ident">timeHistNumSuperBuckets</a> * <a href="#line-55" class="ident">timeHistNumSubBuckets</a>]<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-74"><code></code></span>
+<span class="codeline" id="line-75"><code>	<span class="comment">// underflow counts all the times we got a negative duration</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">	// sample. Because of how time works on some platforms, it's</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">	// possible to measure negative durations. We could ignore them,</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">	// but we record them anyway because it's better to have some</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">	// signal that it's happening than just missing samples.</span></code></span>
+<span class="codeline" id="line-80"><code>	underflow <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-81"><code>}</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// record adds the given duration to the distribution.</span></code></span>
+<span class="codeline" id="line-84"><code><span class="keyword">func</span> (<label for="r0" class="ident">h</label> *<a href="#line-72" class="ident">timeHistogram</a>) <label for="r1" class="ident">record</label>(<label for="r2" class="ident">duration</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) {</code></span>
+<span class="codeline" id="line-85"><code>	<span class="keyword">if</span> <label for="r2" class="ident">duration</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-86"><code>		<a href="../../pkg/runtime/internal/atomic.html" class="ident i0">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-54" class="ident">Xadd64</a>(&amp;<label for="r0" class="ident">h</label>.<a href="#line-80" class="ident">underflow</a>, <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-87"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-88"><code>	}</code></span>
+<span class="codeline" id="line-89"><code>	<span class="comment">// The index of the exponential bucket is just the index</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">	// of the highest set bit adjusted for how many bits we</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">	// use for the subbucket. Note that it's timeHistSubBucketsBits-1</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">	// because we use the 0th bucket to hold values &lt; timeHistNumSubBuckets.</span></code></span>
+<span class="codeline" id="line-93"><code>	<span class="keyword">var</span> <label for="r3" class="ident">superBucket</label>, <label for="r4" class="ident">subBucket</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a></code></span>
+<span class="codeline" id="line-94"><code>	<span class="keyword">if</span> <label for="r2" class="ident">duration</label> &gt;= <a href="#line-55" class="ident">timeHistNumSubBuckets</a> {</code></span>
+<span class="codeline" id="line-95"><code>		<span class="comment">// At this point, we know the duration value will always be</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">		// at least timeHistSubBucketsBits long.</span></code></span>
+<span class="codeline" id="line-97"><code>		<label for="r3" class="ident">superBucket</label> = <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/runtime/internal/sys.html" class="ident i1">sys</a>.<a href="internal/sys/intrinsics_common.go.html#line-48" class="ident">Len64</a>(<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r2" class="ident">duration</label>))) - <a href="#line-54" class="ident">timeHistSubBucketBits</a></code></span>
+<span class="codeline" id="line-98"><code>		<span class="keyword">if</span> <label for="r3" class="ident">superBucket</label>*<a href="#line-55" class="ident">timeHistNumSubBuckets</a> &gt;= <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r0" class="ident">h</label>.<a href="#line-73" class="ident">counts</a>)) {</code></span>
+<span class="codeline" id="line-99"><code>			<span class="comment">// The bucket index we got is larger than what we support, so</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">			// include this count in the highest bucket, which extends to</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">			// infinity.</span></code></span>
+<span class="codeline" id="line-102"><code>			<label for="r3" class="ident">superBucket</label> = <a href="#line-56" class="ident">timeHistNumSuperBuckets</a> - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-103"><code>			<label for="r4" class="ident">subBucket</label> = <a href="#line-55" class="ident">timeHistNumSubBuckets</a> - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-104"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-105"><code>			<span class="comment">// The linear subbucket index is just the timeHistSubBucketsBits</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">			// bits after the top bit. To extract that value, shift down</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">			// the duration such that we leave the top bit and the next bits</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">			// intact, then extract the index.</span></code></span>
+<span class="codeline" id="line-109"><code>			<label for="r4" class="ident">subBucket</label> = <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>((<label for="r2" class="ident">duration</label> &gt;&gt; (<label for="r3" class="ident">superBucket</label> - <span class="lit-number">1</span>)) % <a href="#line-55" class="ident">timeHistNumSubBuckets</a>)</code></span>
+<span class="codeline" id="line-110"><code>		}</code></span>
+<span class="codeline" id="line-111"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-112"><code>		<label for="r4" class="ident">subBucket</label> = <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<label for="r2" class="ident">duration</label>)</code></span>
+<span class="codeline" id="line-113"><code>	}</code></span>
+<span class="codeline" id="line-114"><code>	<a href="../../pkg/runtime/internal/atomic.html" class="ident i0">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-54" class="ident">Xadd64</a>(&amp;<label for="r0" class="ident">h</label>.<a href="#line-73" class="ident">counts</a>[<label for="r3" class="ident">superBucket</label>*<a href="#line-55" class="ident">timeHistNumSubBuckets</a>+<label for="r4" class="ident">subBucket</label>], <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-115"><code>}</code></span>
+<span class="codeline" id="line-116"><code></code></span>
+<span class="codeline" id="line-117"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-118"><code>	<a href="../../pkg/runtime.html#name-fInf" class="ident">fInf</a>    = <span class="lit-number">0x7FF0000000000000</span></code></span>
+<span class="codeline" id="line-119"><code>	<a href="../../pkg/runtime.html#name-fNegInf" class="ident">fNegInf</a> = <span class="lit-number">0xFFF0000000000000</span></code></span>
+<span class="codeline" id="line-120"><code>)</code></span>
+<span class="codeline" id="line-121"><code></code></span>
+<span class="codeline" id="line-122"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../pkg/runtime.html#name-float64Inf" class="ident">float64Inf</a></label>() <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a> {</code></span>
+<span class="codeline" id="line-123"><code>	<label for="r6" class="ident">inf</label> := <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="#line-118" class="ident">fInf</a>)</code></span>
+<span class="codeline" id="line-124"><code>	<span class="keyword">return</span> *(*<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>)(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r6" class="ident">inf</label>))</code></span>
+<span class="codeline" id="line-125"><code>}</code></span>
+<span class="codeline" id="line-126"><code></code></span>
+<span class="codeline" id="line-127"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../pkg/runtime.html#name-float64NegInf" class="ident">float64NegInf</a></label>() <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a> {</code></span>
+<span class="codeline" id="line-128"><code>	<label for="r8" class="ident">inf</label> := <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="#line-119" class="ident">fNegInf</a>)</code></span>
+<span class="codeline" id="line-129"><code>	<span class="keyword">return</span> *(*<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>)(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r8" class="ident">inf</label>))</code></span>
+<span class="codeline" id="line-130"><code>}</code></span>
+<span class="codeline" id="line-131"><code></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">// timeHistogramMetricsBuckets generates a slice of boundaries for</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">// the timeHistogram. These boundaries are represented in seconds,</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">// not nanoseconds like the timeHistogram represents durations.</span></code></span>
+<span class="codeline" id="line-135"><code><span class="keyword">func</span> <label for="r9" class="ident"><a href="../../pkg/runtime.html#name-timeHistogramMetricsBuckets" class="ident">timeHistogramMetricsBuckets</a></label>() []<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a> {</code></span>
+<span class="codeline" id="line-136"><code>	<label for="r10" class="ident">b</label> := <a href="../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>, <a href="#line-57" class="ident">timeHistTotalBuckets</a>+<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-137"><code>	<label for="r10" class="ident">b</label>[<span class="lit-number">0</span>] = <a href="#line-127" class="ident">float64NegInf</a>()</code></span>
+<span class="codeline" id="line-138"><code>	<span class="keyword">for</span> <label for="r11" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r11" class="ident">i</label> &lt; <a href="#line-56" class="ident">timeHistNumSuperBuckets</a>; <label for="r11" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-139"><code>		<label for="r12" class="ident">superBucketMin</label> := <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-140"><code>		<span class="comment">// The (inclusive) minimum for the first non-negative bucket is 0.</span></code></span>
+<span class="codeline" id="line-141"><code>		<span class="keyword">if</span> <label for="r11" class="ident">i</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-142"><code>			<span class="comment">// The minimum for the second bucket will be</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">			// 1 &lt;&lt; timeHistSubBucketBits, indicating that all</span></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">			// sub-buckets are represented by the next timeHistSubBucketBits</span></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">			// bits.</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">			// Thereafter, we shift up by 1 each time, so we can represent</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">			// this pattern as (i-1)+timeHistSubBucketBits.</span></code></span>
+<span class="codeline" id="line-148"><code>			<label for="r12" class="ident">superBucketMin</label> = <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<span class="lit-number">1</span>) &lt;&lt; <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<label for="r11" class="ident">i</label>-<span class="lit-number">1</span>+<a href="#line-54" class="ident">timeHistSubBucketBits</a>)</code></span>
+<span class="codeline" id="line-149"><code>		}</code></span>
+<span class="codeline" id="line-150"><code>		<span class="comment">// subBucketShift is the amount that we need to shift the sub-bucket</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">		// index to combine it with the bucketMin.</span></code></span>
+<span class="codeline" id="line-152"><code>		<label for="r13" class="ident">subBucketShift</label> := <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-153"><code>		<span class="keyword">if</span> <label for="r11" class="ident">i</label> &gt; <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-154"><code>			<span class="comment">// The first two super buckets are exact with respect to integers,</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">			// so we'll never have to shift the sub-bucket index. Thereafter,</span></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">			// we shift up by 1 with each subsequent bucket.</span></code></span>
+<span class="codeline" id="line-157"><code>			<label for="r13" class="ident">subBucketShift</label> = <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<label for="r11" class="ident">i</label> - <span class="lit-number">2</span>)</code></span>
+<span class="codeline" id="line-158"><code>		}</code></span>
+<span class="codeline" id="line-159"><code>		<span class="keyword">for</span> <label for="r14" class="ident">j</label> := <span class="lit-number">0</span>; <label for="r14" class="ident">j</label> &lt; <a href="#line-55" class="ident">timeHistNumSubBuckets</a>; <label for="r14" class="ident">j</label>++ {</code></span>
+<span class="codeline" id="line-160"><code>			<span class="comment">// j is the sub-bucket index. By shifting the index into position to</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">			// combine with the bucket minimum, we obtain the minimum value for that</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">			// sub-bucket.</span></code></span>
+<span class="codeline" id="line-163"><code>			<label for="r15" class="ident">subBucketMin</label> := <label for="r12" class="ident">superBucketMin</label> + (<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r14" class="ident">j</label>) &lt;&lt; <label for="r13" class="ident">subBucketShift</label>)</code></span>
+<span class="codeline" id="line-164"><code></code></span>
+<span class="codeline" id="line-165"><code>			<span class="comment">// Convert the subBucketMin which is in nanoseconds to a float64 seconds value.</span></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">			// These values will all be exactly representable by a float64.</span></code></span>
+<span class="codeline" id="line-167"><code>			<label for="r10" class="ident">b</label>[<label for="r11" class="ident">i</label>*<a href="#line-55" class="ident">timeHistNumSubBuckets</a>+<label for="r14" class="ident">j</label>+<span class="lit-number">1</span>] = <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>(<label for="r15" class="ident">subBucketMin</label>) / <span class="lit-number">1e9</span></code></span>
+<span class="codeline" id="line-168"><code>		}</code></span>
+<span class="codeline" id="line-169"><code>	}</code></span>
+<span class="codeline" id="line-170"><code>	<label for="r10" class="ident">b</label>[<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r10" class="ident">b</label>)-<span class="lit-number">1</span>] = <a href="#line-122" class="ident">float64Inf</a>()</code></span>
+<span class="codeline" id="line-171"><code>	<span class="keyword">return</span> <label for="r10" class="ident">b</label></code></span>
+<span class="codeline" id="line-172"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

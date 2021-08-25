@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: exec.go in package regexp</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	exec.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/regexp.html">regexp</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104],
+input[id=r105]:checked ~pre label[for=r105],
+input[id=r106]:checked ~pre label[for=r106],
+input[id=r107]:checked ~pre label[for=r107],
+input[id=r108]:checked ~pre label[for=r108],
+input[id=r109]:checked ~pre label[for=r109],
+input[id=r110]:checked ~pre label[for=r110],
+input[id=r111]:checked ~pre label[for=r111],
+input[id=r112]:checked ~pre label[for=r112],
+input[id=r113]:checked ~pre label[for=r113],
+input[id=r114]:checked ~pre label[for=r114],
+input[id=r115]:checked ~pre label[for=r115],
+input[id=r116]:checked ~pre label[for=r116],
+input[id=r117]:checked ~pre label[for=r117],
+input[id=r118]:checked ~pre label[for=r118],
+input[id=r119]:checked ~pre label[for=r119],
+input[id=r120]:checked ~pre label[for=r120],
+input[id=r121]:checked ~pre label[for=r121],
+input[id=r122]:checked ~pre label[for=r122],
+input[id=r123]:checked ~pre label[for=r123],
+input[id=r124]:checked ~pre label[for=r124],
+input[id=r125]:checked ~pre label[for=r125]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="r105" type="radio" name="g"/>
+<input id="r106" type="radio" name="g"/>
+<input id="r107" type="radio" name="g"/>
+<input id="r108" type="radio" name="g"/>
+<input id="r109" type="radio" name="g"/>
+<input id="r110" type="radio" name="g"/>
+<input id="r111" type="radio" name="g"/>
+<input id="r112" type="radio" name="g"/>
+<input id="r113" type="radio" name="g"/>
+<input id="r114" type="radio" name="g"/>
+<input id="r115" type="radio" name="g"/>
+<input id="r116" type="radio" name="g"/>
+<input id="r117" type="radio" name="g"/>
+<input id="r118" type="radio" name="g"/>
+<input id="r119" type="radio" name="g"/>
+<input id="r120" type="radio" name="g"/>
+<input id="r121" type="radio" name="g"/>
+<input id="r122" type="radio" name="g"/>
+<input id="r123" type="radio" name="g"/>
+<input id="r124" type="radio" name="g"/>
+<input id="r125" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> regexp</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"io"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"regexp/syntax"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"sync"</span></label></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// A queue is a 'sparse array' holding pending threads of execution.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// See https://research.swtch.com/2008/03/using-uninitialized-memory-for-fun-and.html</span></code></span>
+<span class="codeline" id="line-15"><code><span class="keyword">type</span> <a href="../../pkg/regexp.html#name-queue" class="ident">queue</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-16"><code>	sparse []<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-17"><code>	dense  []<a href="#line-24" class="ident">entry</a></code></span>
+<span class="codeline" id="line-18"><code>}</code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// An entry is an entry on a queue.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// It holds both the instruction pc and the actual thread.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// Some queue entries are just place holders so that the machine</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// knows it has considered that pc. Such entries have t == nil.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="keyword">type</span> <a href="../../pkg/regexp.html#name-entry" class="ident">entry</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-25"><code>	pc <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-26"><code>	t  *<a href="#line-32" class="ident">thread</a></code></span>
+<span class="codeline" id="line-27"><code>}</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// A thread is the state of a single path through the machine:</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// an instruction and a corresponding capture array.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// See https://swtch.com/~rsc/regexp/regexp2.html</span></code></span>
+<span class="codeline" id="line-32"><code><span class="keyword">type</span> <a href="../../pkg/regexp.html#name-thread" class="ident">thread</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-33"><code>	inst *<a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-112" class="ident">Inst</a></code></span>
+<span class="codeline" id="line-34"><code>	cap  []<a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-35"><code>}</code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// A machine holds all the state during an NFA simulation for p.</span></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">type</span> <a href="../../pkg/regexp.html#name-machine" class="ident">machine</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-39"><code>	re       *<a href="regexp.go.html#line-82" class="ident">Regexp</a>      <span class="comment">// corresponding Regexp</span></code></span>
+<span class="codeline" id="line-40"><code>	p        *<a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-17" class="ident">Prog</a> <span class="comment">// compiled program</span></code></span>
+<span class="codeline" id="line-41"><code>	q0, q1   <a href="#line-15" class="ident">queue</a>        <span class="comment">// two queues for runq, nextq</span></code></span>
+<span class="codeline" id="line-42"><code>	pool     []*<a href="#line-32" class="ident">thread</a>    <span class="comment">// pool of available threads</span></code></span>
+<span class="codeline" id="line-43"><code>	matched  <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>         <span class="comment">// whether a match was found</span></code></span>
+<span class="codeline" id="line-44"><code>	matchcap []<a href="../../pkg/builtin.html#name-int" class="ident">int</a>        <span class="comment">// capture information for the match</span></code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code>	inputs <a href="#line-49" class="ident">inputs</a></code></span>
+<span class="codeline" id="line-47"><code>}</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">type</span> <a href="../../pkg/regexp.html#name-inputs" class="ident">inputs</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-50"><code>	<span class="comment">// cached inputs, to avoid allocation</span></code></span>
+<span class="codeline" id="line-51"><code>	bytes  <a href="regexp.go.html#line-426" class="ident">inputBytes</a></code></span>
+<span class="codeline" id="line-52"><code>	string <a href="regexp.go.html#line-379" class="ident">inputString</a></code></span>
+<span class="codeline" id="line-53"><code>	reader <a href="regexp.go.html#line-473" class="ident">inputReader</a></code></span>
+<span class="codeline" id="line-54"><code>}</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code><span class="keyword">func</span> (<label for="r0" class="ident">i</label> *<a href="#line-49" class="ident">inputs</a>) <label for="r1" class="ident">newBytes</label>(<label for="r2" class="ident">b</label> []<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="regexp.go.html#line-370" class="ident">input</a> {</code></span>
+<span class="codeline" id="line-57"><code>	<label for="r0" class="ident">i</label>.<a href="#line-51" class="ident">bytes</a>.<a href="regexp.go.html#line-427" class="ident">str</a> = <label for="r2" class="ident">b</label></code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">return</span> &amp;<label for="r0" class="ident">i</label>.<a href="#line-51" class="ident">bytes</a></code></span>
+<span class="codeline" id="line-59"><code>}</code></span>
+<span class="codeline" id="line-60"><code></code></span>
+<span class="codeline" id="line-61"><code><span class="keyword">func</span> (<label for="r3" class="ident">i</label> *<a href="#line-49" class="ident">inputs</a>) <label for="r4" class="ident">newString</label>(<label for="r5" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="regexp.go.html#line-370" class="ident">input</a> {</code></span>
+<span class="codeline" id="line-62"><code>	<label for="r3" class="ident">i</label>.<a href="#line-52" class="ident">string</a>.<a href="regexp.go.html#line-380" class="ident">str</a> = <label for="r5" class="ident">s</label></code></span>
+<span class="codeline" id="line-63"><code>	<span class="keyword">return</span> &amp;<label for="r3" class="ident">i</label>.<a href="#line-52" class="ident">string</a></code></span>
+<span class="codeline" id="line-64"><code>}</code></span>
+<span class="codeline" id="line-65"><code></code></span>
+<span class="codeline" id="line-66"><code><span class="keyword">func</span> (<label for="r6" class="ident">i</label> *<a href="#line-49" class="ident">inputs</a>) <label for="r7" class="ident">newReader</label>(<label for="r8" class="ident">r</label> <a href="../../pkg/io.html" class="ident i0">io</a>.<a href="../io/io.go.html#line-283" class="ident">RuneReader</a>) <a href="regexp.go.html#line-370" class="ident">input</a> {</code></span>
+<span class="codeline" id="line-67"><code>	<label for="r6" class="ident">i</label>.<a href="#line-53" class="ident">reader</a>.<a href="regexp.go.html#line-474" class="ident">r</a> = <label for="r8" class="ident">r</label></code></span>
+<span class="codeline" id="line-68"><code>	<label for="r6" class="ident">i</label>.<a href="#line-53" class="ident">reader</a>.<a href="regexp.go.html#line-475" class="ident">atEOT</a> = <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-69"><code>	<label for="r6" class="ident">i</label>.<a href="#line-53" class="ident">reader</a>.<a href="regexp.go.html#line-476" class="ident">pos</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">return</span> &amp;<label for="r6" class="ident">i</label>.<a href="#line-53" class="ident">reader</a></code></span>
+<span class="codeline" id="line-71"><code>}</code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code><span class="keyword">func</span> (<label for="r9" class="ident">i</label> *<a href="#line-49" class="ident">inputs</a>) <label for="r10" class="ident">clear</label>() {</code></span>
+<span class="codeline" id="line-74"><code>	<span class="comment">// We need to clear 1 of these.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">	// Avoid the expense of clearing the others (pointer write barrier).</span></code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">if</span> <label for="r9" class="ident">i</label>.<a href="#line-51" class="ident">bytes</a>.<a href="regexp.go.html#line-427" class="ident">str</a> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-77"><code>		<label for="r9" class="ident">i</label>.<a href="#line-51" class="ident">bytes</a>.<a href="regexp.go.html#line-427" class="ident">str</a> = <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-78"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r9" class="ident">i</label>.<a href="#line-53" class="ident">reader</a>.<a href="regexp.go.html#line-474" class="ident">r</a> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-79"><code>		<label for="r9" class="ident">i</label>.<a href="#line-53" class="ident">reader</a>.<a href="regexp.go.html#line-474" class="ident">r</a> = <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-80"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-81"><code>		<label for="r9" class="ident">i</label>.<a href="#line-52" class="ident">string</a>.<a href="regexp.go.html#line-380" class="ident">str</a> = <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-82"><code>	}</code></span>
+<span class="codeline" id="line-83"><code>}</code></span>
+<span class="codeline" id="line-84"><code></code></span>
+<span class="codeline" id="line-85"><code><span class="keyword">func</span> (<label for="r11" class="ident">i</label> *<a href="#line-49" class="ident">inputs</a>) <label for="r12" class="ident">init</label>(<label for="r13" class="ident">r</label> <a href="../../pkg/io.html" class="ident i0">io</a>.<a href="../io/io.go.html#line-283" class="ident">RuneReader</a>, <label for="r14" class="ident">b</label> []<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r15" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="regexp.go.html#line-370" class="ident">input</a>, <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-86"><code>	<span class="keyword">if</span> <label for="r13" class="ident">r</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-87"><code>		<span class="keyword">return</span> <label for="r11" class="ident">i</label>.<a href="#line-66" class="ident">newReader</a>(<label for="r13" class="ident">r</label>), <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-88"><code>	}</code></span>
+<span class="codeline" id="line-89"><code>	<span class="keyword">if</span> <label for="r14" class="ident">b</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-90"><code>		<span class="keyword">return</span> <label for="r11" class="ident">i</label>.<a href="#line-56" class="ident">newBytes</a>(<label for="r14" class="ident">b</label>), <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r14" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-91"><code>	}</code></span>
+<span class="codeline" id="line-92"><code>	<span class="keyword">return</span> <label for="r11" class="ident">i</label>.<a href="#line-61" class="ident">newString</a>(<label for="r15" class="ident">s</label>), <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r15" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-93"><code>}</code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code><span class="keyword">func</span> (<label for="r16" class="ident">m</label> *<a href="#line-38" class="ident">machine</a>) <label for="r17" class="ident">init</label>(<label for="r18" class="ident">ncap</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-96"><code>	<span class="keyword">for</span> <label for="r19" class="ident">_</label>, <label for="r20" class="ident">t</label> := <span class="keyword">range</span> <label for="r16" class="ident">m</label>.<a href="#line-42" class="ident">pool</a> {</code></span>
+<span class="codeline" id="line-97"><code>		<label for="r20" class="ident">t</label>.<a href="#line-34" class="ident">cap</a> = <label for="r20" class="ident">t</label>.<a href="#line-34" class="ident">cap</a>[:<label for="r18" class="ident">ncap</label>]</code></span>
+<span class="codeline" id="line-98"><code>	}</code></span>
+<span class="codeline" id="line-99"><code>	<label for="r16" class="ident">m</label>.<a href="#line-44" class="ident">matchcap</a> = <label for="r16" class="ident">m</label>.<a href="#line-44" class="ident">matchcap</a>[:<label for="r18" class="ident">ncap</label>]</code></span>
+<span class="codeline" id="line-100"><code>}</code></span>
+<span class="codeline" id="line-101"><code></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// alloc allocates a new thread with the given instruction.</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">// It uses the free pool if possible.</span></code></span>
+<span class="codeline" id="line-104"><code><span class="keyword">func</span> (<label for="r21" class="ident">m</label> *<a href="#line-38" class="ident">machine</a>) <label for="r22" class="ident">alloc</label>(<label for="r23" class="ident">i</label> *<a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-112" class="ident">Inst</a>) *<a href="#line-32" class="ident">thread</a> {</code></span>
+<span class="codeline" id="line-105"><code>	<span class="keyword">var</span> <label for="r24" class="ident">t</label> *<a href="#line-32" class="ident">thread</a></code></span>
+<span class="codeline" id="line-106"><code>	<span class="keyword">if</span> <label for="r25" class="ident">n</label> := <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r21" class="ident">m</label>.<a href="#line-42" class="ident">pool</a>); <label for="r25" class="ident">n</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-107"><code>		<label for="r24" class="ident">t</label> = <label for="r21" class="ident">m</label>.<a href="#line-42" class="ident">pool</a>[<label for="r25" class="ident">n</label>-<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-108"><code>		<label for="r21" class="ident">m</label>.<a href="#line-42" class="ident">pool</a> = <label for="r21" class="ident">m</label>.<a href="#line-42" class="ident">pool</a>[:<label for="r25" class="ident">n</label>-<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-109"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-110"><code>		<label for="r24" class="ident">t</label> = <a href="../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="#line-32" class="ident">thread</a>)</code></span>
+<span class="codeline" id="line-111"><code>		<label for="r24" class="ident">t</label>.<a href="#line-34" class="ident">cap</a> = <a href="../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r21" class="ident">m</label>.<a href="#line-44" class="ident">matchcap</a>), <a href="../../pkg/builtin.html#name-cap" class="ident">cap</a>(<label for="r21" class="ident">m</label>.<a href="#line-44" class="ident">matchcap</a>))</code></span>
+<span class="codeline" id="line-112"><code>	}</code></span>
+<span class="codeline" id="line-113"><code>	<label for="r24" class="ident">t</label>.<a href="#line-33" class="ident">inst</a> = <label for="r23" class="ident">i</label></code></span>
+<span class="codeline" id="line-114"><code>	<span class="keyword">return</span> <label for="r24" class="ident">t</label></code></span>
+<span class="codeline" id="line-115"><code>}</code></span>
+<span class="codeline" id="line-116"><code></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">// A lazyFlag is a lazily-evaluated syntax.EmptyOp,</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">// for checking zero-width flags like ^ $ \A \z \B \b.</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">// It records the pair of relevant runes and does not</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">// determine the implied flags until absolutely necessary</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">// (most of the time, that means never).</span></code></span>
+<span class="codeline" id="line-122"><code><span class="keyword">type</span> <a href="../../pkg/regexp.html#name-lazyFlag" class="ident">lazyFlag</a> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-123"><code></code></span>
+<span class="codeline" id="line-124"><code><span class="keyword">func</span> <label for="r26" class="ident"><a href="../../pkg/regexp.html#name-newLazyFlag" class="ident">newLazyFlag</a></label>(<label for="r27" class="ident">r1</label>, <label for="r28" class="ident">r2</label> <a href="../../pkg/builtin.html#name-rune" class="ident">rune</a>) <a href="#line-122" class="ident">lazyFlag</a> {</code></span>
+<span class="codeline" id="line-125"><code>	<span class="keyword">return</span> <a href="#line-122" class="ident">lazyFlag</a>(<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r27" class="ident">r1</label>)&lt;&lt;<span class="lit-number">32</span> | <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r28" class="ident">r2</label>)))</code></span>
+<span class="codeline" id="line-126"><code>}</code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code><span class="keyword">func</span> (<label for="r29" class="ident">f</label> <a href="#line-122" class="ident">lazyFlag</a>) <label for="r30" class="ident">match</label>(<label for="r31" class="ident">op</label> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-62" class="ident">EmptyOp</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-129"><code>	<span class="keyword">if</span> <label for="r31" class="ident">op</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-130"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-131"><code>	}</code></span>
+<span class="codeline" id="line-132"><code>	<label for="r32" class="ident">r1</label> := <a href="../../pkg/builtin.html#name-rune" class="ident">rune</a>(<label for="r29" class="ident">f</label> &gt;&gt; <span class="lit-number">32</span>)</code></span>
+<span class="codeline" id="line-133"><code>	<span class="keyword">if</span> <label for="r31" class="ident">op</label>&amp;<a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-65" class="ident">EmptyBeginLine</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-134"><code>		<span class="keyword">if</span> <label for="r32" class="ident">r1</label> != <span class="lit-number">'\n'</span> &amp;&amp; <label for="r32" class="ident">r1</label> &gt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-135"><code>			<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-136"><code>		}</code></span>
+<span class="codeline" id="line-137"><code>		<label for="r31" class="ident">op</label> &amp;^= <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-65" class="ident">EmptyBeginLine</a></code></span>
+<span class="codeline" id="line-138"><code>	}</code></span>
+<span class="codeline" id="line-139"><code>	<span class="keyword">if</span> <label for="r31" class="ident">op</label>&amp;<a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-67" class="ident">EmptyBeginText</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-140"><code>		<span class="keyword">if</span> <label for="r32" class="ident">r1</label> &gt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-141"><code>			<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-142"><code>		}</code></span>
+<span class="codeline" id="line-143"><code>		<label for="r31" class="ident">op</label> &amp;^= <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-67" class="ident">EmptyBeginText</a></code></span>
+<span class="codeline" id="line-144"><code>	}</code></span>
+<span class="codeline" id="line-145"><code>	<span class="keyword">if</span> <label for="r31" class="ident">op</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-146"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-147"><code>	}</code></span>
+<span class="codeline" id="line-148"><code>	<label for="r33" class="ident">r2</label> := <a href="../../pkg/builtin.html#name-rune" class="ident">rune</a>(<label for="r29" class="ident">f</label>)</code></span>
+<span class="codeline" id="line-149"><code>	<span class="keyword">if</span> <label for="r31" class="ident">op</label>&amp;<a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-66" class="ident">EmptyEndLine</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-150"><code>		<span class="keyword">if</span> <label for="r33" class="ident">r2</label> != <span class="lit-number">'\n'</span> &amp;&amp; <label for="r33" class="ident">r2</label> &gt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-151"><code>			<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-152"><code>		}</code></span>
+<span class="codeline" id="line-153"><code>		<label for="r31" class="ident">op</label> &amp;^= <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-66" class="ident">EmptyEndLine</a></code></span>
+<span class="codeline" id="line-154"><code>	}</code></span>
+<span class="codeline" id="line-155"><code>	<span class="keyword">if</span> <label for="r31" class="ident">op</label>&amp;<a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-68" class="ident">EmptyEndText</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-156"><code>		<span class="keyword">if</span> <label for="r33" class="ident">r2</label> &gt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-157"><code>			<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-158"><code>		}</code></span>
+<span class="codeline" id="line-159"><code>		<label for="r31" class="ident">op</label> &amp;^= <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-68" class="ident">EmptyEndText</a></code></span>
+<span class="codeline" id="line-160"><code>	}</code></span>
+<span class="codeline" id="line-161"><code>	<span class="keyword">if</span> <label for="r31" class="ident">op</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-162"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-163"><code>	}</code></span>
+<span class="codeline" id="line-164"><code>	<span class="keyword">if</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-107" class="ident">IsWordChar</a>(<label for="r32" class="ident">r1</label>) != <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-107" class="ident">IsWordChar</a>(<label for="r33" class="ident">r2</label>) {</code></span>
+<span class="codeline" id="line-165"><code>		<label for="r31" class="ident">op</label> &amp;^= <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-69" class="ident">EmptyWordBoundary</a></code></span>
+<span class="codeline" id="line-166"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-167"><code>		<label for="r31" class="ident">op</label> &amp;^= <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-70" class="ident">EmptyNoWordBoundary</a></code></span>
+<span class="codeline" id="line-168"><code>	}</code></span>
+<span class="codeline" id="line-169"><code>	<span class="keyword">return</span> <label for="r31" class="ident">op</label> == <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-170"><code>}</code></span>
+<span class="codeline" id="line-171"><code></code></span>
+<span class="codeline" id="line-172"><code><span class="comment">// match runs the machine over the input starting at pos.</span></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">// It reports whether a match was found.</span></code></span>
+<span class="codeline" id="line-174"><code><span class="comment">// If so, m.matchcap holds the submatch information.</span></code></span>
+<span class="codeline" id="line-175"><code><span class="keyword">func</span> (<label for="r34" class="ident">m</label> *<a href="#line-38" class="ident">machine</a>) <label for="r35" class="ident">match</label>(<label for="r36" class="ident">i</label> <a href="regexp.go.html#line-370" class="ident">input</a>, <label for="r37" class="ident">pos</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-176"><code>	<label for="r38" class="ident">startCond</label> := <label for="r34" class="ident">m</label>.<a href="#line-39" class="ident">re</a>.<a href="regexp.go.html#line-96" class="ident">cond</a></code></span>
+<span class="codeline" id="line-177"><code>	<span class="keyword">if</span> <label for="r38" class="ident">startCond</label> == ^<a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-62" class="ident">EmptyOp</a>(<span class="lit-number">0</span>) { <span class="comment">// impossible</span></code></span>
+<span class="codeline" id="line-178"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-179"><code>	}</code></span>
+<span class="codeline" id="line-180"><code>	<label for="r34" class="ident">m</label>.<a href="#line-43" class="ident">matched</a> = <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-181"><code>	<span class="keyword">for</span> <label for="r39" class="ident">i</label> := <span class="keyword">range</span> <label for="r34" class="ident">m</label>.<a href="#line-44" class="ident">matchcap</a> {</code></span>
+<span class="codeline" id="line-182"><code>		<label for="r34" class="ident">m</label>.<a href="#line-44" class="ident">matchcap</a>[<label for="r39" class="ident">i</label>] = -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-183"><code>	}</code></span>
+<span class="codeline" id="line-184"><code>	<label for="r40" class="ident">runq</label>, <label for="r41" class="ident">nextq</label> := &amp;<label for="r34" class="ident">m</label>.<a href="#line-41" class="ident">q0</a>, &amp;<label for="r34" class="ident">m</label>.<a href="#line-41" class="ident">q1</a></code></span>
+<span class="codeline" id="line-185"><code>	<label for="r42" class="ident">r</label>, <label for="r43" class="ident">r1</label> := <a href="regexp.go.html#line-366" class="ident">endOfText</a>, <a href="regexp.go.html#line-366" class="ident">endOfText</a></code></span>
+<span class="codeline" id="line-186"><code>	<label for="r44" class="ident">width</label>, <label for="r45" class="ident">width1</label> := <span class="lit-number">0</span>, <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-187"><code>	<label for="r42" class="ident">r</label>, <label for="r44" class="ident">width</label> = <label for="r36" class="ident">i</label>.<a href="regexp.go.html#line-371" class="ident">step</a>(<label for="r37" class="ident">pos</label>)</code></span>
+<span class="codeline" id="line-188"><code>	<span class="keyword">if</span> <label for="r42" class="ident">r</label> != <a href="regexp.go.html#line-366" class="ident">endOfText</a> {</code></span>
+<span class="codeline" id="line-189"><code>		<label for="r43" class="ident">r1</label>, <label for="r45" class="ident">width1</label> = <label for="r36" class="ident">i</label>.<a href="regexp.go.html#line-371" class="ident">step</a>(<label for="r37" class="ident">pos</label> + <label for="r44" class="ident">width</label>)</code></span>
+<span class="codeline" id="line-190"><code>	}</code></span>
+<span class="codeline" id="line-191"><code>	<span class="keyword">var</span> <label for="r46" class="ident">flag</label> <a href="#line-122" class="ident">lazyFlag</a></code></span>
+<span class="codeline" id="line-192"><code>	<span class="keyword">if</span> <label for="r37" class="ident">pos</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-193"><code>		<label for="r46" class="ident">flag</label> = <a href="#line-124" class="ident">newLazyFlag</a>(-<span class="lit-number">1</span>, <label for="r42" class="ident">r</label>)</code></span>
+<span class="codeline" id="line-194"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-195"><code>		<label for="r46" class="ident">flag</label> = <label for="r36" class="ident">i</label>.<a href="regexp.go.html#line-375" class="ident">context</a>(<label for="r37" class="ident">pos</label>)</code></span>
+<span class="codeline" id="line-196"><code>	}</code></span>
+<span class="codeline" id="line-197"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-198"><code>		<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r40" class="ident">runq</label>.<a href="#line-17" class="ident">dense</a>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-199"><code>			<span class="keyword">if</span> <label for="r38" class="ident">startCond</label>&amp;<a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-67" class="ident">EmptyBeginText</a> != <span class="lit-number">0</span> &amp;&amp; <label for="r37" class="ident">pos</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-200"><code>				<span class="comment">// Anchored match, past beginning of text.</span></code></span>
+<span class="codeline" id="line-201"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-202"><code>			}</code></span>
+<span class="codeline" id="line-203"><code>			<span class="keyword">if</span> <label for="r34" class="ident">m</label>.<a href="#line-43" class="ident">matched</a> {</code></span>
+<span class="codeline" id="line-204"><code>				<span class="comment">// Have match; finished exploring alternatives.</span></code></span>
+<span class="codeline" id="line-205"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-206"><code>			}</code></span>
+<span class="codeline" id="line-207"><code>			<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r34" class="ident">m</label>.<a href="#line-39" class="ident">re</a>.<a href="regexp.go.html#line-89" class="ident">prefix</a>) &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r43" class="ident">r1</label> != <label for="r34" class="ident">m</label>.<a href="#line-39" class="ident">re</a>.<a href="regexp.go.html#line-91" class="ident">prefixRune</a> &amp;&amp; <label for="r36" class="ident">i</label>.<a href="regexp.go.html#line-372" class="ident">canCheckPrefix</a>() {</code></span>
+<span class="codeline" id="line-208"><code>				<span class="comment">// Match requires literal prefix; fast search for it.</span></code></span>
+<span class="codeline" id="line-209"><code>				<label for="r47" class="ident">advance</label> := <label for="r36" class="ident">i</label>.<a href="regexp.go.html#line-374" class="ident">index</a>(<label for="r34" class="ident">m</label>.<a href="#line-39" class="ident">re</a>, <label for="r37" class="ident">pos</label>)</code></span>
+<span class="codeline" id="line-210"><code>				<span class="keyword">if</span> <label for="r47" class="ident">advance</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-211"><code>					<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-212"><code>				}</code></span>
+<span class="codeline" id="line-213"><code>				<label for="r37" class="ident">pos</label> += <label for="r47" class="ident">advance</label></code></span>
+<span class="codeline" id="line-214"><code>				<label for="r42" class="ident">r</label>, <label for="r44" class="ident">width</label> = <label for="r36" class="ident">i</label>.<a href="regexp.go.html#line-371" class="ident">step</a>(<label for="r37" class="ident">pos</label>)</code></span>
+<span class="codeline" id="line-215"><code>				<label for="r43" class="ident">r1</label>, <label for="r45" class="ident">width1</label> = <label for="r36" class="ident">i</label>.<a href="regexp.go.html#line-371" class="ident">step</a>(<label for="r37" class="ident">pos</label> + <label for="r44" class="ident">width</label>)</code></span>
+<span class="codeline" id="line-216"><code>			}</code></span>
+<span class="codeline" id="line-217"><code>		}</code></span>
+<span class="codeline" id="line-218"><code>		<span class="keyword">if</span> !<label for="r34" class="ident">m</label>.<a href="#line-43" class="ident">matched</a> {</code></span>
+<span class="codeline" id="line-219"><code>			<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r34" class="ident">m</label>.<a href="#line-44" class="ident">matchcap</a>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-220"><code>				<label for="r34" class="ident">m</label>.<a href="#line-44" class="ident">matchcap</a>[<span class="lit-number">0</span>] = <label for="r37" class="ident">pos</label></code></span>
+<span class="codeline" id="line-221"><code>			}</code></span>
+<span class="codeline" id="line-222"><code>			<label for="r34" class="ident">m</label>.<a href="#line-317" class="ident">add</a>(<label for="r40" class="ident">runq</label>, <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r34" class="ident">m</label>.<a href="#line-40" class="ident">p</a>.<a href="syntax/prog.go.html#line-19" class="ident">Start</a>), <label for="r37" class="ident">pos</label>, <label for="r34" class="ident">m</label>.<a href="#line-44" class="ident">matchcap</a>, &amp;<label for="r46" class="ident">flag</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-223"><code>		}</code></span>
+<span class="codeline" id="line-224"><code>		<label for="r46" class="ident">flag</label> = <a href="#line-124" class="ident">newLazyFlag</a>(<label for="r42" class="ident">r</label>, <label for="r43" class="ident">r1</label>)</code></span>
+<span class="codeline" id="line-225"><code>		<label for="r34" class="ident">m</label>.<a href="#line-260" class="ident">step</a>(<label for="r40" class="ident">runq</label>, <label for="r41" class="ident">nextq</label>, <label for="r37" class="ident">pos</label>, <label for="r37" class="ident">pos</label>+<label for="r44" class="ident">width</label>, <label for="r42" class="ident">r</label>, &amp;<label for="r46" class="ident">flag</label>)</code></span>
+<span class="codeline" id="line-226"><code>		<span class="keyword">if</span> <label for="r44" class="ident">width</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-227"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-228"><code>		}</code></span>
+<span class="codeline" id="line-229"><code>		<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r34" class="ident">m</label>.<a href="#line-44" class="ident">matchcap</a>) == <span class="lit-number">0</span> &amp;&amp; <label for="r34" class="ident">m</label>.<a href="#line-43" class="ident">matched</a> {</code></span>
+<span class="codeline" id="line-230"><code>			<span class="comment">// Found a match and not paying attention</span></code></span>
+<span class="codeline" id="line-231"><code><span class="comment">			// to where it is, so any match will do.</span></code></span>
+<span class="codeline" id="line-232"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-233"><code>		}</code></span>
+<span class="codeline" id="line-234"><code>		<label for="r37" class="ident">pos</label> += <label for="r44" class="ident">width</label></code></span>
+<span class="codeline" id="line-235"><code>		<label for="r42" class="ident">r</label>, <label for="r44" class="ident">width</label> = <label for="r43" class="ident">r1</label>, <label for="r45" class="ident">width1</label></code></span>
+<span class="codeline" id="line-236"><code>		<span class="keyword">if</span> <label for="r42" class="ident">r</label> != <a href="regexp.go.html#line-366" class="ident">endOfText</a> {</code></span>
+<span class="codeline" id="line-237"><code>			<label for="r43" class="ident">r1</label>, <label for="r45" class="ident">width1</label> = <label for="r36" class="ident">i</label>.<a href="regexp.go.html#line-371" class="ident">step</a>(<label for="r37" class="ident">pos</label> + <label for="r44" class="ident">width</label>)</code></span>
+<span class="codeline" id="line-238"><code>		}</code></span>
+<span class="codeline" id="line-239"><code>		<label for="r40" class="ident">runq</label>, <label for="r41" class="ident">nextq</label> = <label for="r41" class="ident">nextq</label>, <label for="r40" class="ident">runq</label></code></span>
+<span class="codeline" id="line-240"><code>	}</code></span>
+<span class="codeline" id="line-241"><code>	<label for="r34" class="ident">m</label>.<a href="#line-246" class="ident">clear</a>(<label for="r41" class="ident">nextq</label>)</code></span>
+<span class="codeline" id="line-242"><code>	<span class="keyword">return</span> <label for="r34" class="ident">m</label>.<a href="#line-43" class="ident">matched</a></code></span>
+<span class="codeline" id="line-243"><code>}</code></span>
+<span class="codeline" id="line-244"><code></code></span>
+<span class="codeline" id="line-245"><code><span class="comment">// clear frees all threads on the thread queue.</span></code></span>
+<span class="codeline" id="line-246"><code><span class="keyword">func</span> (<label for="r48" class="ident">m</label> *<a href="#line-38" class="ident">machine</a>) <label for="r49" class="ident">clear</label>(<label for="r50" class="ident">q</label> *<a href="#line-15" class="ident">queue</a>) {</code></span>
+<span class="codeline" id="line-247"><code>	<span class="keyword">for</span> <label for="r51" class="ident">_</label>, <label for="r52" class="ident">d</label> := <span class="keyword">range</span> <label for="r50" class="ident">q</label>.<a href="#line-17" class="ident">dense</a> {</code></span>
+<span class="codeline" id="line-248"><code>		<span class="keyword">if</span> <label for="r52" class="ident">d</label>.<a href="#line-26" class="ident">t</a> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-249"><code>			<label for="r48" class="ident">m</label>.<a href="#line-42" class="ident">pool</a> = <a href="../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r48" class="ident">m</label>.<a href="#line-42" class="ident">pool</a>, <label for="r52" class="ident">d</label>.<a href="#line-26" class="ident">t</a>)</code></span>
+<span class="codeline" id="line-250"><code>		}</code></span>
+<span class="codeline" id="line-251"><code>	}</code></span>
+<span class="codeline" id="line-252"><code>	<label for="r50" class="ident">q</label>.<a href="#line-17" class="ident">dense</a> = <label for="r50" class="ident">q</label>.<a href="#line-17" class="ident">dense</a>[:<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-253"><code>}</code></span>
+<span class="codeline" id="line-254"><code></code></span>
+<span class="codeline" id="line-255"><code><span class="comment">// step executes one step of the machine, running each of the threads</span></code></span>
+<span class="codeline" id="line-256"><code><span class="comment">// on runq and appending new threads to nextq.</span></code></span>
+<span class="codeline" id="line-257"><code><span class="comment">// The step processes the rune c (which may be endOfText),</span></code></span>
+<span class="codeline" id="line-258"><code><span class="comment">// which starts at position pos and ends at nextPos.</span></code></span>
+<span class="codeline" id="line-259"><code><span class="comment">// nextCond gives the setting for the empty-width flags after c.</span></code></span>
+<span class="codeline" id="line-260"><code><span class="keyword">func</span> (<label for="r53" class="ident">m</label> *<a href="#line-38" class="ident">machine</a>) <label for="r54" class="ident">step</label>(<label for="r55" class="ident">runq</label>, <label for="r56" class="ident">nextq</label> *<a href="#line-15" class="ident">queue</a>, <label for="r57" class="ident">pos</label>, <label for="r58" class="ident">nextPos</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r59" class="ident">c</label> <a href="../../pkg/builtin.html#name-rune" class="ident">rune</a>, <label for="r60" class="ident">nextCond</label> *<a href="#line-122" class="ident">lazyFlag</a>) {</code></span>
+<span class="codeline" id="line-261"><code>	<label for="r61" class="ident">longest</label> := <label for="r53" class="ident">m</label>.<a href="#line-39" class="ident">re</a>.<a href="regexp.go.html#line-101" class="ident">longest</a></code></span>
+<span class="codeline" id="line-262"><code>	<span class="keyword">for</span> <label for="r62" class="ident">j</label> := <span class="lit-number">0</span>; <label for="r62" class="ident">j</label> &lt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r55" class="ident">runq</label>.<a href="#line-17" class="ident">dense</a>); <label for="r62" class="ident">j</label>++ {</code></span>
+<span class="codeline" id="line-263"><code>		<label for="r63" class="ident">d</label> := &amp;<label for="r55" class="ident">runq</label>.<a href="#line-17" class="ident">dense</a>[<label for="r62" class="ident">j</label>]</code></span>
+<span class="codeline" id="line-264"><code>		<label for="r64" class="ident">t</label> := <label for="r63" class="ident">d</label>.<a href="#line-26" class="ident">t</a></code></span>
+<span class="codeline" id="line-265"><code>		<span class="keyword">if</span> <label for="r64" class="ident">t</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-266"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-267"><code>		}</code></span>
+<span class="codeline" id="line-268"><code>		<span class="keyword">if</span> <label for="r61" class="ident">longest</label> &amp;&amp; <label for="r53" class="ident">m</label>.<a href="#line-43" class="ident">matched</a> &amp;&amp; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r64" class="ident">t</label>.<a href="#line-34" class="ident">cap</a>) &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r53" class="ident">m</label>.<a href="#line-44" class="ident">matchcap</a>[<span class="lit-number">0</span>] &lt; <label for="r64" class="ident">t</label>.<a href="#line-34" class="ident">cap</a>[<span class="lit-number">0</span>] {</code></span>
+<span class="codeline" id="line-269"><code>			<label for="r53" class="ident">m</label>.<a href="#line-42" class="ident">pool</a> = <a href="../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r53" class="ident">m</label>.<a href="#line-42" class="ident">pool</a>, <label for="r64" class="ident">t</label>)</code></span>
+<span class="codeline" id="line-270"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-271"><code>		}</code></span>
+<span class="codeline" id="line-272"><code>		<label for="r65" class="ident">i</label> := <label for="r64" class="ident">t</label>.<a href="#line-33" class="ident">inst</a></code></span>
+<span class="codeline" id="line-273"><code>		<label for="r66" class="ident">add</label> := <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-274"><code>		<span class="keyword">switch</span> <label for="r65" class="ident">i</label>.<a href="syntax/prog.go.html#line-113" class="ident">Op</a> {</code></span>
+<span class="codeline" id="line-275"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-276"><code>			<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"bad inst"</span>)</code></span>
+<span class="codeline" id="line-277"><code></code></span>
+<span class="codeline" id="line-278"><code>		<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-31" class="ident">InstMatch</a>:</code></span>
+<span class="codeline" id="line-279"><code>			<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r64" class="ident">t</label>.<a href="#line-34" class="ident">cap</a>) &gt; <span class="lit-number">0</span> &amp;&amp; (!<label for="r61" class="ident">longest</label> || !<label for="r53" class="ident">m</label>.<a href="#line-43" class="ident">matched</a> || <label for="r53" class="ident">m</label>.<a href="#line-44" class="ident">matchcap</a>[<span class="lit-number">1</span>] &lt; <label for="r57" class="ident">pos</label>) {</code></span>
+<span class="codeline" id="line-280"><code>				<label for="r64" class="ident">t</label>.<a href="#line-34" class="ident">cap</a>[<span class="lit-number">1</span>] = <label for="r57" class="ident">pos</label></code></span>
+<span class="codeline" id="line-281"><code>				<a href="../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r53" class="ident">m</label>.<a href="#line-44" class="ident">matchcap</a>, <label for="r64" class="ident">t</label>.<a href="#line-34" class="ident">cap</a>)</code></span>
+<span class="codeline" id="line-282"><code>			}</code></span>
+<span class="codeline" id="line-283"><code>			<span class="keyword">if</span> !<label for="r61" class="ident">longest</label> {</code></span>
+<span class="codeline" id="line-284"><code>				<span class="comment">// First-match mode: cut off all lower-priority threads.</span></code></span>
+<span class="codeline" id="line-285"><code>				<span class="keyword">for</span> <label for="r67" class="ident">_</label>, <label for="r68" class="ident">d</label> := <span class="keyword">range</span> <label for="r55" class="ident">runq</label>.<a href="#line-17" class="ident">dense</a>[<label for="r62" class="ident">j</label>+<span class="lit-number">1</span>:] {</code></span>
+<span class="codeline" id="line-286"><code>					<span class="keyword">if</span> <label for="r68" class="ident">d</label>.<a href="#line-26" class="ident">t</a> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-287"><code>						<label for="r53" class="ident">m</label>.<a href="#line-42" class="ident">pool</a> = <a href="../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r53" class="ident">m</label>.<a href="#line-42" class="ident">pool</a>, <label for="r68" class="ident">d</label>.<a href="#line-26" class="ident">t</a>)</code></span>
+<span class="codeline" id="line-288"><code>					}</code></span>
+<span class="codeline" id="line-289"><code>				}</code></span>
+<span class="codeline" id="line-290"><code>				<label for="r55" class="ident">runq</label>.<a href="#line-17" class="ident">dense</a> = <label for="r55" class="ident">runq</label>.<a href="#line-17" class="ident">dense</a>[:<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-291"><code>			}</code></span>
+<span class="codeline" id="line-292"><code>			<label for="r53" class="ident">m</label>.<a href="#line-43" class="ident">matched</a> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-293"><code></code></span>
+<span class="codeline" id="line-294"><code>		<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-34" class="ident">InstRune</a>:</code></span>
+<span class="codeline" id="line-295"><code>			<label for="r66" class="ident">add</label> = <label for="r65" class="ident">i</label>.<a href="syntax/prog.go.html#line-192" class="ident">MatchRune</a>(<label for="r59" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-296"><code>		<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-35" class="ident">InstRune1</a>:</code></span>
+<span class="codeline" id="line-297"><code>			<label for="r66" class="ident">add</label> = <label for="r59" class="ident">c</label> == <label for="r65" class="ident">i</label>.<a href="syntax/prog.go.html#line-116" class="ident">Rune</a>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-298"><code>		<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-36" class="ident">InstRuneAny</a>:</code></span>
+<span class="codeline" id="line-299"><code>			<label for="r66" class="ident">add</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-300"><code>		<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-37" class="ident">InstRuneAnyNotNL</a>:</code></span>
+<span class="codeline" id="line-301"><code>			<label for="r66" class="ident">add</label> = <label for="r59" class="ident">c</label> != <span class="lit-number">'\n'</span></code></span>
+<span class="codeline" id="line-302"><code>		}</code></span>
+<span class="codeline" id="line-303"><code>		<span class="keyword">if</span> <label for="r66" class="ident">add</label> {</code></span>
+<span class="codeline" id="line-304"><code>			<label for="r64" class="ident">t</label> = <label for="r53" class="ident">m</label>.<a href="#line-317" class="ident">add</a>(<label for="r56" class="ident">nextq</label>, <label for="r65" class="ident">i</label>.<a href="syntax/prog.go.html#line-114" class="ident">Out</a>, <label for="r58" class="ident">nextPos</label>, <label for="r64" class="ident">t</label>.<a href="#line-34" class="ident">cap</a>, <label for="r60" class="ident">nextCond</label>, <label for="r64" class="ident">t</label>)</code></span>
+<span class="codeline" id="line-305"><code>		}</code></span>
+<span class="codeline" id="line-306"><code>		<span class="keyword">if</span> <label for="r64" class="ident">t</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-307"><code>			<label for="r53" class="ident">m</label>.<a href="#line-42" class="ident">pool</a> = <a href="../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r53" class="ident">m</label>.<a href="#line-42" class="ident">pool</a>, <label for="r64" class="ident">t</label>)</code></span>
+<span class="codeline" id="line-308"><code>		}</code></span>
+<span class="codeline" id="line-309"><code>	}</code></span>
+<span class="codeline" id="line-310"><code>	<label for="r55" class="ident">runq</label>.<a href="#line-17" class="ident">dense</a> = <label for="r55" class="ident">runq</label>.<a href="#line-17" class="ident">dense</a>[:<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-311"><code>}</code></span>
+<span class="codeline" id="line-312"><code></code></span>
+<span class="codeline" id="line-313"><code><span class="comment">// add adds an entry to q for pc, unless the q already has such an entry.</span></code></span>
+<span class="codeline" id="line-314"><code><span class="comment">// It also recursively adds an entry for all instructions reachable from pc by following</span></code></span>
+<span class="codeline" id="line-315"><code><span class="comment">// empty-width conditions satisfied by cond.  pos gives the current position</span></code></span>
+<span class="codeline" id="line-316"><code><span class="comment">// in the input.</span></code></span>
+<span class="codeline" id="line-317"><code><span class="keyword">func</span> (<label for="r69" class="ident">m</label> *<a href="#line-38" class="ident">machine</a>) <label for="r70" class="ident">add</label>(<label for="r71" class="ident">q</label> *<a href="#line-15" class="ident">queue</a>, <label for="r72" class="ident">pc</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r73" class="ident">pos</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r74" class="ident">cap</label> []<a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r75" class="ident">cond</label> *<a href="#line-122" class="ident">lazyFlag</a>, <label for="r76" class="ident">t</label> *<a href="#line-32" class="ident">thread</a>) *<a href="#line-32" class="ident">thread</a> {</code></span>
+<span class="codeline" id="line-318"><code><label for="r77" class="ident">Again</label>:</code></span>
+<span class="codeline" id="line-319"><code>	<span class="keyword">if</span> <label for="r72" class="ident">pc</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-320"><code>		<span class="keyword">return</span> <label for="r76" class="ident">t</label></code></span>
+<span class="codeline" id="line-321"><code>	}</code></span>
+<span class="codeline" id="line-322"><code>	<span class="keyword">if</span> <label for="r78" class="ident">j</label> := <label for="r71" class="ident">q</label>.<a href="#line-16" class="ident">sparse</a>[<label for="r72" class="ident">pc</label>]; <label for="r78" class="ident">j</label> &lt; <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r71" class="ident">q</label>.<a href="#line-17" class="ident">dense</a>)) &amp;&amp; <label for="r71" class="ident">q</label>.<a href="#line-17" class="ident">dense</a>[<label for="r78" class="ident">j</label>].<a href="#line-25" class="ident">pc</a> == <label for="r72" class="ident">pc</label> {</code></span>
+<span class="codeline" id="line-323"><code>		<span class="keyword">return</span> <label for="r76" class="ident">t</label></code></span>
+<span class="codeline" id="line-324"><code>	}</code></span>
+<span class="codeline" id="line-325"><code></code></span>
+<span class="codeline" id="line-326"><code>	<label for="r79" class="ident">j</label> := <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r71" class="ident">q</label>.<a href="#line-17" class="ident">dense</a>)</code></span>
+<span class="codeline" id="line-327"><code>	<label for="r71" class="ident">q</label>.<a href="#line-17" class="ident">dense</a> = <label for="r71" class="ident">q</label>.<a href="#line-17" class="ident">dense</a>[:<label for="r79" class="ident">j</label>+<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-328"><code>	<label for="r80" class="ident">d</label> := &amp;<label for="r71" class="ident">q</label>.<a href="#line-17" class="ident">dense</a>[<label for="r79" class="ident">j</label>]</code></span>
+<span class="codeline" id="line-329"><code>	<label for="r80" class="ident">d</label>.<a href="#line-26" class="ident">t</a> = <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-330"><code>	<label for="r80" class="ident">d</label>.<a href="#line-25" class="ident">pc</a> = <label for="r72" class="ident">pc</label></code></span>
+<span class="codeline" id="line-331"><code>	<label for="r71" class="ident">q</label>.<a href="#line-16" class="ident">sparse</a>[<label for="r72" class="ident">pc</label>] = <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r79" class="ident">j</label>)</code></span>
+<span class="codeline" id="line-332"><code></code></span>
+<span class="codeline" id="line-333"><code>	<label for="r81" class="ident">i</label> := &amp;<label for="r69" class="ident">m</label>.<a href="#line-40" class="ident">p</a>.<a href="syntax/prog.go.html#line-18" class="ident">Inst</a>[<label for="r72" class="ident">pc</label>]</code></span>
+<span class="codeline" id="line-334"><code>	<span class="keyword">switch</span> <label for="r81" class="ident">i</label>.<a href="syntax/prog.go.html#line-113" class="ident">Op</a> {</code></span>
+<span class="codeline" id="line-335"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-336"><code>		<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"unhandled"</span>)</code></span>
+<span class="codeline" id="line-337"><code>	<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-32" class="ident">InstFail</a>:</code></span>
+<span class="codeline" id="line-338"><code>		<span class="comment">// nothing</span></code></span>
+<span class="codeline" id="line-339"><code>	<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-27" class="ident">InstAlt</a>, <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-28" class="ident">InstAltMatch</a>:</code></span>
+<span class="codeline" id="line-340"><code>		<label for="r76" class="ident">t</label> = <label for="r69" class="ident">m</label>.<label for="r70" class="ident">add</label>(<label for="r71" class="ident">q</label>, <label for="r81" class="ident">i</label>.<a href="syntax/prog.go.html#line-114" class="ident">Out</a>, <label for="r73" class="ident">pos</label>, <label for="r74" class="ident">cap</label>, <label for="r75" class="ident">cond</label>, <label for="r76" class="ident">t</label>)</code></span>
+<span class="codeline" id="line-341"><code>		<label for="r72" class="ident">pc</label> = <label for="r81" class="ident">i</label>.<a href="syntax/prog.go.html#line-115" class="ident">Arg</a></code></span>
+<span class="codeline" id="line-342"><code>		<span class="keyword">goto</span> <label for="r77" class="ident">Again</label></code></span>
+<span class="codeline" id="line-343"><code>	<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-30" class="ident">InstEmptyWidth</a>:</code></span>
+<span class="codeline" id="line-344"><code>		<span class="keyword">if</span> <label for="r75" class="ident">cond</label>.<a href="#line-128" class="ident">match</a>(<a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-62" class="ident">EmptyOp</a>(<label for="r81" class="ident">i</label>.<a href="syntax/prog.go.html#line-115" class="ident">Arg</a>)) {</code></span>
+<span class="codeline" id="line-345"><code>			<label for="r72" class="ident">pc</label> = <label for="r81" class="ident">i</label>.<a href="syntax/prog.go.html#line-114" class="ident">Out</a></code></span>
+<span class="codeline" id="line-346"><code>			<span class="keyword">goto</span> <label for="r77" class="ident">Again</label></code></span>
+<span class="codeline" id="line-347"><code>		}</code></span>
+<span class="codeline" id="line-348"><code>	<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-33" class="ident">InstNop</a>:</code></span>
+<span class="codeline" id="line-349"><code>		<label for="r72" class="ident">pc</label> = <label for="r81" class="ident">i</label>.<a href="syntax/prog.go.html#line-114" class="ident">Out</a></code></span>
+<span class="codeline" id="line-350"><code>		<span class="keyword">goto</span> <label for="r77" class="ident">Again</label></code></span>
+<span class="codeline" id="line-351"><code>	<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-29" class="ident">InstCapture</a>:</code></span>
+<span class="codeline" id="line-352"><code>		<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r81" class="ident">i</label>.<a href="syntax/prog.go.html#line-115" class="ident">Arg</a>) &lt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r74" class="ident">cap</label>) {</code></span>
+<span class="codeline" id="line-353"><code>			<label for="r82" class="ident">opos</label> := <label for="r74" class="ident">cap</label>[<label for="r81" class="ident">i</label>.<a href="syntax/prog.go.html#line-115" class="ident">Arg</a>]</code></span>
+<span class="codeline" id="line-354"><code>			<label for="r74" class="ident">cap</label>[<label for="r81" class="ident">i</label>.<a href="syntax/prog.go.html#line-115" class="ident">Arg</a>] = <label for="r73" class="ident">pos</label></code></span>
+<span class="codeline" id="line-355"><code>			<label for="r69" class="ident">m</label>.<label for="r70" class="ident">add</label>(<label for="r71" class="ident">q</label>, <label for="r81" class="ident">i</label>.<a href="syntax/prog.go.html#line-114" class="ident">Out</a>, <label for="r73" class="ident">pos</label>, <label for="r74" class="ident">cap</label>, <label for="r75" class="ident">cond</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-356"><code>			<label for="r74" class="ident">cap</label>[<label for="r81" class="ident">i</label>.<a href="syntax/prog.go.html#line-115" class="ident">Arg</a>] = <label for="r82" class="ident">opos</label></code></span>
+<span class="codeline" id="line-357"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-358"><code>			<label for="r72" class="ident">pc</label> = <label for="r81" class="ident">i</label>.<a href="syntax/prog.go.html#line-114" class="ident">Out</a></code></span>
+<span class="codeline" id="line-359"><code>			<span class="keyword">goto</span> <label for="r77" class="ident">Again</label></code></span>
+<span class="codeline" id="line-360"><code>		}</code></span>
+<span class="codeline" id="line-361"><code>	<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-31" class="ident">InstMatch</a>, <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-34" class="ident">InstRune</a>, <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-35" class="ident">InstRune1</a>, <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-36" class="ident">InstRuneAny</a>, <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-37" class="ident">InstRuneAnyNotNL</a>:</code></span>
+<span class="codeline" id="line-362"><code>		<span class="keyword">if</span> <label for="r76" class="ident">t</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-363"><code>			<label for="r76" class="ident">t</label> = <label for="r69" class="ident">m</label>.<a href="#line-104" class="ident">alloc</a>(<label for="r81" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-364"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-365"><code>			<label for="r76" class="ident">t</label>.<a href="#line-33" class="ident">inst</a> = <label for="r81" class="ident">i</label></code></span>
+<span class="codeline" id="line-366"><code>		}</code></span>
+<span class="codeline" id="line-367"><code>		<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r74" class="ident">cap</label>) &gt; <span class="lit-number">0</span> &amp;&amp; &amp;<label for="r76" class="ident">t</label>.<a href="#line-34" class="ident">cap</a>[<span class="lit-number">0</span>] != &amp;<label for="r74" class="ident">cap</label>[<span class="lit-number">0</span>] {</code></span>
+<span class="codeline" id="line-368"><code>			<a href="../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r76" class="ident">t</label>.<a href="#line-34" class="ident">cap</a>, <label for="r74" class="ident">cap</label>)</code></span>
+<span class="codeline" id="line-369"><code>		}</code></span>
+<span class="codeline" id="line-370"><code>		<label for="r80" class="ident">d</label>.<a href="#line-26" class="ident">t</a> = <label for="r76" class="ident">t</label></code></span>
+<span class="codeline" id="line-371"><code>		<label for="r76" class="ident">t</label> = <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-372"><code>	}</code></span>
+<span class="codeline" id="line-373"><code>	<span class="keyword">return</span> <label for="r76" class="ident">t</label></code></span>
+<span class="codeline" id="line-374"><code>}</code></span>
+<span class="codeline" id="line-375"><code></code></span>
+<span class="codeline" id="line-376"><code><span class="keyword">type</span> <a href="../../pkg/regexp.html#name-onePassMachine" class="ident">onePassMachine</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-377"><code>	inputs   <a href="#line-49" class="ident">inputs</a></code></span>
+<span class="codeline" id="line-378"><code>	matchcap []<a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-379"><code>}</code></span>
+<span class="codeline" id="line-380"><code></code></span>
+<span class="codeline" id="line-381"><code><span class="keyword">var</span> <a href="../../pkg/regexp.html#name-onePassPool" class="ident">onePassPool</a> <a href="../../pkg/sync.html" class="ident i2">sync</a>.<a href="../sync/pool.go.html#line-44" class="ident">Pool</a></code></span>
+<span class="codeline" id="line-382"><code></code></span>
+<span class="codeline" id="line-383"><code><span class="keyword">func</span> <label for="r83" class="ident"><a href="../../pkg/regexp.html#name-newOnePassMachine" class="ident">newOnePassMachine</a></label>() *<a href="#line-376" class="ident">onePassMachine</a> {</code></span>
+<span class="codeline" id="line-384"><code>	<label for="r84" class="ident">m</label>, <label for="r85" class="ident">ok</label> := <a href="#line-381" class="ident">onePassPool</a>.<a href="../sync/pool.go.html#line-124" class="ident">Get</a>().(*<a href="#line-376" class="ident">onePassMachine</a>)</code></span>
+<span class="codeline" id="line-385"><code>	<span class="keyword">if</span> !<label for="r85" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-386"><code>		<label for="r84" class="ident">m</label> = <a href="../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="#line-376" class="ident">onePassMachine</a>)</code></span>
+<span class="codeline" id="line-387"><code>	}</code></span>
+<span class="codeline" id="line-388"><code>	<span class="keyword">return</span> <label for="r84" class="ident">m</label></code></span>
+<span class="codeline" id="line-389"><code>}</code></span>
+<span class="codeline" id="line-390"><code></code></span>
+<span class="codeline" id="line-391"><code><span class="keyword">func</span> <label for="r86" class="ident"><a href="../../pkg/regexp.html#name-freeOnePassMachine" class="ident">freeOnePassMachine</a></label>(<label for="r87" class="ident">m</label> *<a href="#line-376" class="ident">onePassMachine</a>) {</code></span>
+<span class="codeline" id="line-392"><code>	<label for="r87" class="ident">m</label>.<a href="#line-377" class="ident">inputs</a>.<a href="#line-73" class="ident">clear</a>()</code></span>
+<span class="codeline" id="line-393"><code>	<a href="#line-381" class="ident">onePassPool</a>.<a href="../sync/pool.go.html#line-90" class="ident">Put</a>(<label for="r87" class="ident">m</label>)</code></span>
+<span class="codeline" id="line-394"><code>}</code></span>
+<span class="codeline" id="line-395"><code></code></span>
+<span class="codeline" id="line-396"><code><span class="comment">// doOnePass implements r.doExecute using the one-pass execution engine.</span></code></span>
+<span class="codeline" id="line-397"><code><span class="keyword">func</span> (<label for="r88" class="ident">re</label> *<a href="regexp.go.html#line-82" class="ident">Regexp</a>) <label for="r89" class="ident">doOnePass</label>(<label for="r90" class="ident">ir</label> <a href="../../pkg/io.html" class="ident i0">io</a>.<a href="../io/io.go.html#line-283" class="ident">RuneReader</a>, <label for="r91" class="ident">ib</label> []<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r92" class="ident">is</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r93" class="ident">pos</label>, <label for="r94" class="ident">ncap</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r95" class="ident">dstCap</label> []<a href="../../pkg/builtin.html#name-int" class="ident">int</a>) []<a href="../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-398"><code>	<label for="r96" class="ident">startCond</label> := <label for="r88" class="ident">re</label>.<a href="regexp.go.html#line-96" class="ident">cond</a></code></span>
+<span class="codeline" id="line-399"><code>	<span class="keyword">if</span> <label for="r96" class="ident">startCond</label> == ^<a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-62" class="ident">EmptyOp</a>(<span class="lit-number">0</span>) { <span class="comment">// impossible</span></code></span>
+<span class="codeline" id="line-400"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-401"><code>	}</code></span>
+<span class="codeline" id="line-402"><code></code></span>
+<span class="codeline" id="line-403"><code>	<label for="r97" class="ident">m</label> := <a href="#line-383" class="ident">newOnePassMachine</a>()</code></span>
+<span class="codeline" id="line-404"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-cap" class="ident">cap</a>(<label for="r97" class="ident">m</label>.<a href="#line-378" class="ident">matchcap</a>) &lt; <label for="r94" class="ident">ncap</label> {</code></span>
+<span class="codeline" id="line-405"><code>		<label for="r97" class="ident">m</label>.<a href="#line-378" class="ident">matchcap</a> = <a href="../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r94" class="ident">ncap</label>)</code></span>
+<span class="codeline" id="line-406"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-407"><code>		<label for="r97" class="ident">m</label>.<a href="#line-378" class="ident">matchcap</a> = <label for="r97" class="ident">m</label>.<a href="#line-378" class="ident">matchcap</a>[:<label for="r94" class="ident">ncap</label>]</code></span>
+<span class="codeline" id="line-408"><code>	}</code></span>
+<span class="codeline" id="line-409"><code></code></span>
+<span class="codeline" id="line-410"><code>	<label for="r98" class="ident">matched</label> := <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-411"><code>	<span class="keyword">for</span> <label for="r99" class="ident">i</label> := <span class="keyword">range</span> <label for="r97" class="ident">m</label>.<a href="#line-378" class="ident">matchcap</a> {</code></span>
+<span class="codeline" id="line-412"><code>		<label for="r97" class="ident">m</label>.<a href="#line-378" class="ident">matchcap</a>[<label for="r99" class="ident">i</label>] = -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-413"><code>	}</code></span>
+<span class="codeline" id="line-414"><code></code></span>
+<span class="codeline" id="line-415"><code>	<label for="r100" class="ident">i</label>, <label for="r101" class="ident">_</label> := <label for="r97" class="ident">m</label>.<a href="#line-377" class="ident">inputs</a>.<a href="#line-85" class="ident">init</a>(<label for="r90" class="ident">ir</label>, <label for="r91" class="ident">ib</label>, <label for="r92" class="ident">is</label>)</code></span>
+<span class="codeline" id="line-416"><code></code></span>
+<span class="codeline" id="line-417"><code>	<label for="r102" class="ident">r</label>, <label for="r103" class="ident">r1</label> := <a href="regexp.go.html#line-366" class="ident">endOfText</a>, <a href="regexp.go.html#line-366" class="ident">endOfText</a></code></span>
+<span class="codeline" id="line-418"><code>	<label for="r104" class="ident">width</label>, <label for="r105" class="ident">width1</label> := <span class="lit-number">0</span>, <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-419"><code>	<label for="r102" class="ident">r</label>, <label for="r104" class="ident">width</label> = <label for="r100" class="ident">i</label>.<a href="regexp.go.html#line-371" class="ident">step</a>(<label for="r93" class="ident">pos</label>)</code></span>
+<span class="codeline" id="line-420"><code>	<span class="keyword">if</span> <label for="r102" class="ident">r</label> != <a href="regexp.go.html#line-366" class="ident">endOfText</a> {</code></span>
+<span class="codeline" id="line-421"><code>		<label for="r103" class="ident">r1</label>, <label for="r105" class="ident">width1</label> = <label for="r100" class="ident">i</label>.<a href="regexp.go.html#line-371" class="ident">step</a>(<label for="r93" class="ident">pos</label> + <label for="r104" class="ident">width</label>)</code></span>
+<span class="codeline" id="line-422"><code>	}</code></span>
+<span class="codeline" id="line-423"><code>	<span class="keyword">var</span> <label for="r106" class="ident">flag</label> <a href="#line-122" class="ident">lazyFlag</a></code></span>
+<span class="codeline" id="line-424"><code>	<span class="keyword">if</span> <label for="r93" class="ident">pos</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-425"><code>		<label for="r106" class="ident">flag</label> = <a href="#line-124" class="ident">newLazyFlag</a>(-<span class="lit-number">1</span>, <label for="r102" class="ident">r</label>)</code></span>
+<span class="codeline" id="line-426"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-427"><code>		<label for="r106" class="ident">flag</label> = <label for="r100" class="ident">i</label>.<a href="regexp.go.html#line-375" class="ident">context</a>(<label for="r93" class="ident">pos</label>)</code></span>
+<span class="codeline" id="line-428"><code>	}</code></span>
+<span class="codeline" id="line-429"><code>	<label for="r107" class="ident">pc</label> := <label for="r88" class="ident">re</label>.<a href="regexp.go.html#line-85" class="ident">onepass</a>.<a href="onepass.go.html#line-24" class="ident">Start</a></code></span>
+<span class="codeline" id="line-430"><code>	<label for="r108" class="ident">inst</label> := <label for="r88" class="ident">re</label>.<a href="regexp.go.html#line-85" class="ident">onepass</a>.<a href="onepass.go.html#line-23" class="ident">Inst</a>[<label for="r107" class="ident">pc</label>]</code></span>
+<span class="codeline" id="line-431"><code>	<span class="comment">// If there is a simple literal prefix, skip over it.</span></code></span>
+<span class="codeline" id="line-432"><code>	<span class="keyword">if</span> <label for="r93" class="ident">pos</label> == <span class="lit-number">0</span> &amp;&amp; <label for="r106" class="ident">flag</label>.<a href="#line-128" class="ident">match</a>(<a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-62" class="ident">EmptyOp</a>(<label for="r108" class="ident">inst</label>.<a href="syntax/prog.go.html#line-115" class="ident">Arg</a>)) &amp;&amp;</code></span>
+<span class="codeline" id="line-433"><code>		<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r88" class="ident">re</label>.<a href="regexp.go.html#line-89" class="ident">prefix</a>) &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r100" class="ident">i</label>.<a href="regexp.go.html#line-372" class="ident">canCheckPrefix</a>() {</code></span>
+<span class="codeline" id="line-434"><code>		<span class="comment">// Match requires literal prefix; fast search for it.</span></code></span>
+<span class="codeline" id="line-435"><code>		<span class="keyword">if</span> !<label for="r100" class="ident">i</label>.<a href="regexp.go.html#line-373" class="ident">hasPrefix</a>(<label for="r88" class="ident">re</label>) {</code></span>
+<span class="codeline" id="line-436"><code>			<span class="keyword">goto</span> <label for="r109" class="ident">Return</label></code></span>
+<span class="codeline" id="line-437"><code>		}</code></span>
+<span class="codeline" id="line-438"><code>		<label for="r93" class="ident">pos</label> += <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r88" class="ident">re</label>.<a href="regexp.go.html#line-89" class="ident">prefix</a>)</code></span>
+<span class="codeline" id="line-439"><code>		<label for="r102" class="ident">r</label>, <label for="r104" class="ident">width</label> = <label for="r100" class="ident">i</label>.<a href="regexp.go.html#line-371" class="ident">step</a>(<label for="r93" class="ident">pos</label>)</code></span>
+<span class="codeline" id="line-440"><code>		<label for="r103" class="ident">r1</label>, <label for="r105" class="ident">width1</label> = <label for="r100" class="ident">i</label>.<a href="regexp.go.html#line-371" class="ident">step</a>(<label for="r93" class="ident">pos</label> + <label for="r104" class="ident">width</label>)</code></span>
+<span class="codeline" id="line-441"><code>		<label for="r106" class="ident">flag</label> = <label for="r100" class="ident">i</label>.<a href="regexp.go.html#line-375" class="ident">context</a>(<label for="r93" class="ident">pos</label>)</code></span>
+<span class="codeline" id="line-442"><code>		<label for="r107" class="ident">pc</label> = <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r88" class="ident">re</label>.<a href="regexp.go.html#line-92" class="ident">prefixEnd</a>)</code></span>
+<span class="codeline" id="line-443"><code>	}</code></span>
+<span class="codeline" id="line-444"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-445"><code>		<label for="r108" class="ident">inst</label> = <label for="r88" class="ident">re</label>.<a href="regexp.go.html#line-85" class="ident">onepass</a>.<a href="onepass.go.html#line-23" class="ident">Inst</a>[<label for="r107" class="ident">pc</label>]</code></span>
+<span class="codeline" id="line-446"><code>		<label for="r107" class="ident">pc</label> = <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r108" class="ident">inst</label>.<a href="syntax/prog.go.html#line-114" class="ident">Out</a>)</code></span>
+<span class="codeline" id="line-447"><code>		<span class="keyword">switch</span> <label for="r108" class="ident">inst</label>.<a href="syntax/prog.go.html#line-113" class="ident">Op</a> {</code></span>
+<span class="codeline" id="line-448"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-449"><code>			<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"bad inst"</span>)</code></span>
+<span class="codeline" id="line-450"><code>		<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-31" class="ident">InstMatch</a>:</code></span>
+<span class="codeline" id="line-451"><code>			<label for="r98" class="ident">matched</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-452"><code>			<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r97" class="ident">m</label>.<a href="#line-378" class="ident">matchcap</a>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-453"><code>				<label for="r97" class="ident">m</label>.<a href="#line-378" class="ident">matchcap</a>[<span class="lit-number">0</span>] = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-454"><code>				<label for="r97" class="ident">m</label>.<a href="#line-378" class="ident">matchcap</a>[<span class="lit-number">1</span>] = <label for="r93" class="ident">pos</label></code></span>
+<span class="codeline" id="line-455"><code>			}</code></span>
+<span class="codeline" id="line-456"><code>			<span class="keyword">goto</span> <label for="r109" class="ident">Return</label></code></span>
+<span class="codeline" id="line-457"><code>		<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-34" class="ident">InstRune</a>:</code></span>
+<span class="codeline" id="line-458"><code>			<span class="keyword">if</span> !<label for="r108" class="ident">inst</label>.<a href="syntax/prog.go.html#line-192" class="ident">MatchRune</a>(<label for="r102" class="ident">r</label>) {</code></span>
+<span class="codeline" id="line-459"><code>				<span class="keyword">goto</span> <label for="r109" class="ident">Return</label></code></span>
+<span class="codeline" id="line-460"><code>			}</code></span>
+<span class="codeline" id="line-461"><code>		<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-35" class="ident">InstRune1</a>:</code></span>
+<span class="codeline" id="line-462"><code>			<span class="keyword">if</span> <label for="r102" class="ident">r</label> != <label for="r108" class="ident">inst</label>.<a href="syntax/prog.go.html#line-116" class="ident">Rune</a>[<span class="lit-number">0</span>] {</code></span>
+<span class="codeline" id="line-463"><code>				<span class="keyword">goto</span> <label for="r109" class="ident">Return</label></code></span>
+<span class="codeline" id="line-464"><code>			}</code></span>
+<span class="codeline" id="line-465"><code>		<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-36" class="ident">InstRuneAny</a>:</code></span>
+<span class="codeline" id="line-466"><code>			<span class="comment">// Nothing</span></code></span>
+<span class="codeline" id="line-467"><code>		<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-37" class="ident">InstRuneAnyNotNL</a>:</code></span>
+<span class="codeline" id="line-468"><code>			<span class="keyword">if</span> <label for="r102" class="ident">r</label> == <span class="lit-number">'\n'</span> {</code></span>
+<span class="codeline" id="line-469"><code>				<span class="keyword">goto</span> <label for="r109" class="ident">Return</label></code></span>
+<span class="codeline" id="line-470"><code>			}</code></span>
+<span class="codeline" id="line-471"><code>		<span class="comment">// peek at the input rune to see which branch of the Alt to take</span></code></span>
+<span class="codeline" id="line-472"><code>		<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-27" class="ident">InstAlt</a>, <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-28" class="ident">InstAltMatch</a>:</code></span>
+<span class="codeline" id="line-473"><code>			<label for="r107" class="ident">pc</label> = <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<a href="onepass.go.html#line-74" class="ident">onePassNext</a>(&amp;<label for="r108" class="ident">inst</label>, <label for="r102" class="ident">r</label>))</code></span>
+<span class="codeline" id="line-474"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-475"><code>		<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-32" class="ident">InstFail</a>:</code></span>
+<span class="codeline" id="line-476"><code>			<span class="keyword">goto</span> <label for="r109" class="ident">Return</label></code></span>
+<span class="codeline" id="line-477"><code>		<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-33" class="ident">InstNop</a>:</code></span>
+<span class="codeline" id="line-478"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-479"><code>		<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-30" class="ident">InstEmptyWidth</a>:</code></span>
+<span class="codeline" id="line-480"><code>			<span class="keyword">if</span> !<label for="r106" class="ident">flag</label>.<a href="#line-128" class="ident">match</a>(<a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-62" class="ident">EmptyOp</a>(<label for="r108" class="ident">inst</label>.<a href="syntax/prog.go.html#line-115" class="ident">Arg</a>)) {</code></span>
+<span class="codeline" id="line-481"><code>				<span class="keyword">goto</span> <label for="r109" class="ident">Return</label></code></span>
+<span class="codeline" id="line-482"><code>			}</code></span>
+<span class="codeline" id="line-483"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-484"><code>		<span class="keyword">case</span> <a href="../../pkg/regexp/syntax.html" class="ident i1">syntax</a>.<a href="syntax/prog.go.html#line-29" class="ident">InstCapture</a>:</code></span>
+<span class="codeline" id="line-485"><code>			<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r108" class="ident">inst</label>.<a href="syntax/prog.go.html#line-115" class="ident">Arg</a>) &lt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r97" class="ident">m</label>.<a href="#line-378" class="ident">matchcap</a>) {</code></span>
+<span class="codeline" id="line-486"><code>				<label for="r97" class="ident">m</label>.<a href="#line-378" class="ident">matchcap</a>[<label for="r108" class="ident">inst</label>.<a href="syntax/prog.go.html#line-115" class="ident">Arg</a>] = <label for="r93" class="ident">pos</label></code></span>
+<span class="codeline" id="line-487"><code>			}</code></span>
+<span class="codeline" id="line-488"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-489"><code>		}</code></span>
+<span class="codeline" id="line-490"><code>		<span class="keyword">if</span> <label for="r104" class="ident">width</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-491"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-492"><code>		}</code></span>
+<span class="codeline" id="line-493"><code>		<label for="r106" class="ident">flag</label> = <a href="#line-124" class="ident">newLazyFlag</a>(<label for="r102" class="ident">r</label>, <label for="r103" class="ident">r1</label>)</code></span>
+<span class="codeline" id="line-494"><code>		<label for="r93" class="ident">pos</label> += <label for="r104" class="ident">width</label></code></span>
+<span class="codeline" id="line-495"><code>		<label for="r102" class="ident">r</label>, <label for="r104" class="ident">width</label> = <label for="r103" class="ident">r1</label>, <label for="r105" class="ident">width1</label></code></span>
+<span class="codeline" id="line-496"><code>		<span class="keyword">if</span> <label for="r102" class="ident">r</label> != <a href="regexp.go.html#line-366" class="ident">endOfText</a> {</code></span>
+<span class="codeline" id="line-497"><code>			<label for="r103" class="ident">r1</label>, <label for="r105" class="ident">width1</label> = <label for="r100" class="ident">i</label>.<a href="regexp.go.html#line-371" class="ident">step</a>(<label for="r93" class="ident">pos</label> + <label for="r104" class="ident">width</label>)</code></span>
+<span class="codeline" id="line-498"><code>		}</code></span>
+<span class="codeline" id="line-499"><code>	}</code></span>
+<span class="codeline" id="line-500"><code></code></span>
+<span class="codeline" id="line-501"><code><label for="r109" class="ident">Return</label>:</code></span>
+<span class="codeline" id="line-502"><code>	<span class="keyword">if</span> !<label for="r98" class="ident">matched</label> {</code></span>
+<span class="codeline" id="line-503"><code>		<a href="#line-391" class="ident">freeOnePassMachine</a>(<label for="r97" class="ident">m</label>)</code></span>
+<span class="codeline" id="line-504"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-505"><code>	}</code></span>
+<span class="codeline" id="line-506"><code></code></span>
+<span class="codeline" id="line-507"><code>	<label for="r95" class="ident">dstCap</label> = <a href="../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r95" class="ident">dstCap</label>, <label for="r97" class="ident">m</label>.<a href="#line-378" class="ident">matchcap</a>...)</code></span>
+<span class="codeline" id="line-508"><code>	<a href="#line-391" class="ident">freeOnePassMachine</a>(<label for="r97" class="ident">m</label>)</code></span>
+<span class="codeline" id="line-509"><code>	<span class="keyword">return</span> <label for="r95" class="ident">dstCap</label></code></span>
+<span class="codeline" id="line-510"><code>}</code></span>
+<span class="codeline" id="line-511"><code></code></span>
+<span class="codeline" id="line-512"><code><span class="comment">// doMatch reports whether either r, b or s match the regexp.</span></code></span>
+<span class="codeline" id="line-513"><code><span class="keyword">func</span> (<label for="r110" class="ident">re</label> *<a href="regexp.go.html#line-82" class="ident">Regexp</a>) <label for="r111" class="ident">doMatch</label>(<label for="r112" class="ident">r</label> <a href="../../pkg/io.html" class="ident i0">io</a>.<a href="../io/io.go.html#line-283" class="ident">RuneReader</a>, <label for="r113" class="ident">b</label> []<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r114" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-514"><code>	<span class="keyword">return</span> <label for="r110" class="ident">re</label>.<a href="#line-521" class="ident">doExecute</a>(<label for="r112" class="ident">r</label>, <label for="r113" class="ident">b</label>, <label for="r114" class="ident">s</label>, <span class="lit-number">0</span>, <span class="lit-number">0</span>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>) != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-515"><code>}</code></span>
+<span class="codeline" id="line-516"><code></code></span>
+<span class="codeline" id="line-517"><code><span class="comment">// doExecute finds the leftmost match in the input, appends the position</span></code></span>
+<span class="codeline" id="line-518"><code><span class="comment">// of its subexpressions to dstCap and returns dstCap.</span></code></span>
+<span class="codeline" id="line-519"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-520"><code><span class="comment">// nil is returned if no matches are found and non-nil if matches are found.</span></code></span>
+<span class="codeline" id="line-521"><code><span class="keyword">func</span> (<label for="r115" class="ident">re</label> *<a href="regexp.go.html#line-82" class="ident">Regexp</a>) <label for="r116" class="ident">doExecute</label>(<label for="r117" class="ident">r</label> <a href="../../pkg/io.html" class="ident i0">io</a>.<a href="../io/io.go.html#line-283" class="ident">RuneReader</a>, <label for="r118" class="ident">b</label> []<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r119" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r120" class="ident">pos</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r121" class="ident">ncap</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r122" class="ident">dstCap</label> []<a href="../../pkg/builtin.html#name-int" class="ident">int</a>) []<a href="../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-522"><code>	<span class="keyword">if</span> <label for="r122" class="ident">dstCap</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-523"><code>		<span class="comment">// Make sure 'return dstCap' is non-nil.</span></code></span>
+<span class="codeline" id="line-524"><code>		<label for="r122" class="ident">dstCap</label> = <a href="#line-554" class="ident">arrayNoInts</a>[:<span class="lit-number">0</span>:<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-525"><code>	}</code></span>
+<span class="codeline" id="line-526"><code></code></span>
+<span class="codeline" id="line-527"><code>	<span class="keyword">if</span> <label for="r117" class="ident">r</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r118" class="ident">b</label>)+<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r119" class="ident">s</label>) &lt; <label for="r115" class="ident">re</label>.<a href="regexp.go.html#line-97" class="ident">minInputLen</a> {</code></span>
+<span class="codeline" id="line-528"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-529"><code>	}</code></span>
+<span class="codeline" id="line-530"><code></code></span>
+<span class="codeline" id="line-531"><code>	<span class="keyword">if</span> <label for="r115" class="ident">re</label>.<a href="regexp.go.html#line-85" class="ident">onepass</a> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-532"><code>		<span class="keyword">return</span> <label for="r115" class="ident">re</label>.<a href="#line-397" class="ident">doOnePass</a>(<label for="r117" class="ident">r</label>, <label for="r118" class="ident">b</label>, <label for="r119" class="ident">s</label>, <label for="r120" class="ident">pos</label>, <label for="r121" class="ident">ncap</label>, <label for="r122" class="ident">dstCap</label>)</code></span>
+<span class="codeline" id="line-533"><code>	}</code></span>
+<span class="codeline" id="line-534"><code>	<span class="keyword">if</span> <label for="r117" class="ident">r</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r118" class="ident">b</label>)+<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r119" class="ident">s</label>) &lt; <label for="r115" class="ident">re</label>.<a href="regexp.go.html#line-87" class="ident">maxBitStateLen</a> {</code></span>
+<span class="codeline" id="line-535"><code>		<span class="keyword">return</span> <label for="r115" class="ident">re</label>.<a href="backtrack.go.html#line-307" class="ident">backtrack</a>(<label for="r118" class="ident">b</label>, <label for="r119" class="ident">s</label>, <label for="r120" class="ident">pos</label>, <label for="r121" class="ident">ncap</label>, <label for="r122" class="ident">dstCap</label>)</code></span>
+<span class="codeline" id="line-536"><code>	}</code></span>
+<span class="codeline" id="line-537"><code></code></span>
+<span class="codeline" id="line-538"><code>	<label for="r123" class="ident">m</label> := <label for="r115" class="ident">re</label>.<a href="regexp.go.html#line-234" class="ident">get</a>()</code></span>
+<span class="codeline" id="line-539"><code>	<label for="r124" class="ident">i</label>, <label for="r125" class="ident">_</label> := <label for="r123" class="ident">m</label>.<a href="#line-46" class="ident">inputs</a>.<a href="#line-85" class="ident">init</a>(<label for="r117" class="ident">r</label>, <label for="r118" class="ident">b</label>, <label for="r119" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-540"><code></code></span>
+<span class="codeline" id="line-541"><code>	<label for="r123" class="ident">m</label>.<a href="#line-95" class="ident">init</a>(<label for="r121" class="ident">ncap</label>)</code></span>
+<span class="codeline" id="line-542"><code>	<span class="keyword">if</span> !<label for="r123" class="ident">m</label>.<a href="#line-175" class="ident">match</a>(<label for="r124" class="ident">i</label>, <label for="r120" class="ident">pos</label>) {</code></span>
+<span class="codeline" id="line-543"><code>		<label for="r115" class="ident">re</label>.<a href="regexp.go.html#line-262" class="ident">put</a>(<label for="r123" class="ident">m</label>)</code></span>
+<span class="codeline" id="line-544"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-545"><code>	}</code></span>
+<span class="codeline" id="line-546"><code></code></span>
+<span class="codeline" id="line-547"><code>	<label for="r122" class="ident">dstCap</label> = <a href="../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r122" class="ident">dstCap</label>, <label for="r123" class="ident">m</label>.<a href="#line-44" class="ident">matchcap</a>...)</code></span>
+<span class="codeline" id="line-548"><code>	<label for="r115" class="ident">re</label>.<a href="regexp.go.html#line-262" class="ident">put</a>(<label for="r123" class="ident">m</label>)</code></span>
+<span class="codeline" id="line-549"><code>	<span class="keyword">return</span> <label for="r122" class="ident">dstCap</label></code></span>
+<span class="codeline" id="line-550"><code>}</code></span>
+<span class="codeline" id="line-551"><code></code></span>
+<span class="codeline" id="line-552"><code><span class="comment">// arrayNoInts is returned by doExecute match if nil dstCap is passed</span></code></span>
+<span class="codeline" id="line-553"><code><span class="comment">// to it with ncap=0.</span></code></span>
+<span class="codeline" id="line-554"><code><span class="keyword">var</span> <a href="../../pkg/regexp.html#name-arrayNoInts" class="ident">arrayNoInts</a> [<span class="lit-number">0</span>]<a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

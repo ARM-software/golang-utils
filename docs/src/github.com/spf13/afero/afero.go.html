@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: afero.go in package github.com/spf13/afero</title>
+<link href="../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	afero.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/github.com/spf13/afero.html">github.com/spf13/afero</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright © 2014 Steve Francia &lt;spf@spf13.com&gt;.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Copyright 2013 tsuru authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment">// Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// limitations under the License.</span></code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// Package afero provides types and methods for interacting with the filesystem,</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// as an abstraction layer.</span></code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// Afero also provides a few implementations that are mostly interoperable. One that</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// uses the operating system filesystem, one that uses memory to store files</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// (cross platform) and an interface that should be implemented if you want to</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// provide your own filesystem.</span></code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">package</span> afero</code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-26"><code>	<label for="i0"><span class="lit-string i0">"errors"</span></label></code></span>
+<span class="codeline" id="line-27"><code>	<label for="i1"><span class="lit-string i1">"io"</span></label></code></span>
+<span class="codeline" id="line-28"><code>	<label for="i2"><span class="lit-string i2">"os"</span></label></code></span>
+<span class="codeline" id="line-29"><code>	<label for="i3"><span class="lit-string i3">"time"</span></label></code></span>
+<span class="codeline" id="line-30"><code>)</code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/spf13/afero.html#name-Afero" class="ident">Afero</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-33"><code>	<a href="#line-57" class="ident">Fs</a></code></span>
+<span class="codeline" id="line-34"><code>}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// File represents a file in the filesystem.</span></code></span>
+<span class="codeline" id="line-37"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/spf13/afero.html#name-File" class="ident">File</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../../../pkg/io.html" class="ident i1">io</a>.<a href="../../../io/io.go.html#line-104" class="ident">Closer</a></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../pkg/io.html" class="ident i1">io</a>.<a href="../../../io/io.go.html#line-83" class="ident">Reader</a></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../pkg/io.html" class="ident i1">io</a>.<a href="../../../io/io.go.html#line-225" class="ident">ReaderAt</a></code></span>
+<span class="codeline" id="line-41"><code>	<a href="../../../../pkg/io.html" class="ident i1">io</a>.<a href="../../../io/io.go.html#line-121" class="ident">Seeker</a></code></span>
+<span class="codeline" id="line-42"><code>	<a href="../../../../pkg/io.html" class="ident i1">io</a>.<a href="../../../io/io.go.html#line-96" class="ident">Writer</a></code></span>
+<span class="codeline" id="line-43"><code>	<a href="../../../../pkg/io.html" class="ident i1">io</a>.<a href="../../../io/io.go.html#line-244" class="ident">WriterAt</a></code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code>	<a href="../../../../imp/github.com/spf13/afero.File.html#name-Name" class="ident">Name</a>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-46"><code>	<a href="../../../../imp/github.com/spf13/afero.File.html#name-Readdir" class="ident">Readdir</a>(count <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>) ([]<a href="../../../../pkg/os.html" class="ident i2">os</a>.<a href="../../../os/types.go.html#line-21" class="ident">FileInfo</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-47"><code>	<a href="../../../../imp/github.com/spf13/afero.File.html#name-Readdirnames" class="ident">Readdirnames</a>(n <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>) ([]<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-48"><code>	<a href="../../../../imp/github.com/spf13/afero.File.html#name-Stat" class="ident">Stat</a>() (<a href="../../../../pkg/os.html" class="ident i2">os</a>.<a href="../../../os/types.go.html#line-21" class="ident">FileInfo</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-49"><code>	<a href="../../../../imp/github.com/spf13/afero.File.html#name-Sync" class="ident">Sync</a>() <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-50"><code>	<a href="../../../../imp/github.com/spf13/afero.File.html#name-Truncate" class="ident">Truncate</a>(size <a href="../../../../pkg/builtin.html#name-int64" class="ident">int64</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../../imp/github.com/spf13/afero.File.html#name-WriteString" class="ident">WriteString</a>(s <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (ret <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>, err <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-52"><code>}</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// Fs is the filesystem interface.</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// Any simulated or real filesystem should implement this interface.</span></code></span>
+<span class="codeline" id="line-57"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/spf13/afero.html#name-Fs" class="ident">Fs</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-58"><code>	<span class="comment">// Create creates a file in the filesystem, returning the file and an</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">	// error, if any happens.</span></code></span>
+<span class="codeline" id="line-60"><code>	<a href="../../../../imp/github.com/spf13/afero.Fs*a1242.html#name-Create" class="ident">Create</a>(name <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="#line-37" class="ident">File</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code>	<span class="comment">// Mkdir creates a directory in the filesystem, return an error if any</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">	// happens.</span></code></span>
+<span class="codeline" id="line-64"><code>	<a href="../../../../imp/github.com/spf13/afero.Fs*a1242.html#name-Mkdir" class="ident">Mkdir</a>(name <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, perm <a href="../../../../pkg/os.html" class="ident i2">os</a>.<a href="../../../os/types.go.html#line-28" class="ident">FileMode</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-65"><code></code></span>
+<span class="codeline" id="line-66"><code>	<span class="comment">// MkdirAll creates a directory path and all parents that does not exist</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">	// yet.</span></code></span>
+<span class="codeline" id="line-68"><code>	<a href="../../../../imp/github.com/spf13/afero.Fs*a1242.html#name-MkdirAll" class="ident">MkdirAll</a>(path <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, perm <a href="../../../../pkg/os.html" class="ident i2">os</a>.<a href="../../../os/types.go.html#line-28" class="ident">FileMode</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code>	<span class="comment">// Open opens a file, returning it or an error, if any happens.</span></code></span>
+<span class="codeline" id="line-71"><code>	<a href="../../../../imp/github.com/spf13/afero.Fs*a1242.html#name-Open" class="ident">Open</a>(name <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="#line-37" class="ident">File</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code>	<span class="comment">// OpenFile opens a file using the given flags and the given mode.</span></code></span>
+<span class="codeline" id="line-74"><code>	<a href="../../../../imp/github.com/spf13/afero.Fs*a1242.html#name-OpenFile" class="ident">OpenFile</a>(name <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, flag <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>, perm <a href="../../../../pkg/os.html" class="ident i2">os</a>.<a href="../../../os/types.go.html#line-28" class="ident">FileMode</a>) (<a href="#line-37" class="ident">File</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-75"><code></code></span>
+<span class="codeline" id="line-76"><code>	<span class="comment">// Remove removes a file identified by name, returning an error, if any</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">	// happens.</span></code></span>
+<span class="codeline" id="line-78"><code>	<a href="../../../../imp/github.com/spf13/afero.Fs*a1242.html#name-Remove" class="ident">Remove</a>(name <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-79"><code></code></span>
+<span class="codeline" id="line-80"><code>	<span class="comment">// RemoveAll removes a directory path and any children it contains. It</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">	// does not fail if the path does not exist (return nil).</span></code></span>
+<span class="codeline" id="line-82"><code>	<a href="../../../../imp/github.com/spf13/afero.Fs*a1242.html#name-RemoveAll" class="ident">RemoveAll</a>(path <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code>	<span class="comment">// Rename renames a file.</span></code></span>
+<span class="codeline" id="line-85"><code>	<a href="../../../../imp/github.com/spf13/afero.Fs*a1242.html#name-Rename" class="ident">Rename</a>(oldname, newname <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code>	<span class="comment">// Stat returns a FileInfo describing the named file, or an error, if any</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">	// happens.</span></code></span>
+<span class="codeline" id="line-89"><code>	<a href="../../../../imp/github.com/spf13/afero.Fs*a1242.html#name-Stat" class="ident">Stat</a>(name <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../pkg/os.html" class="ident i2">os</a>.<a href="../../../os/types.go.html#line-21" class="ident">FileInfo</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-90"><code></code></span>
+<span class="codeline" id="line-91"><code>	<span class="comment">// The name of this FileSystem</span></code></span>
+<span class="codeline" id="line-92"><code>	<a href="../../../../imp/github.com/spf13/afero.Fs*a1242.html#name-Name" class="ident">Name</a>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code>	<span class="comment">// Chmod changes the mode of the named file to mode.</span></code></span>
+<span class="codeline" id="line-95"><code>	<a href="../../../../imp/github.com/spf13/afero.Fs*a1242.html#name-Chmod" class="ident">Chmod</a>(name <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, mode <a href="../../../../pkg/os.html" class="ident i2">os</a>.<a href="../../../os/types.go.html#line-28" class="ident">FileMode</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-96"><code></code></span>
+<span class="codeline" id="line-97"><code>	<span class="comment">// Chown changes the uid and gid of the named file.</span></code></span>
+<span class="codeline" id="line-98"><code>	<a href="../../../../imp/github.com/spf13/afero.Fs*a1242.html#name-Chown" class="ident">Chown</a>(name <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, uid, gid <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code>	<span class="comment">//Chtimes changes the access and modification times of the named file</span></code></span>
+<span class="codeline" id="line-101"><code>	<a href="../../../../imp/github.com/spf13/afero.Fs*a1242.html#name-Chtimes" class="ident">Chtimes</a>(name <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, atime <a href="../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../time/time.go.html#line-127" class="ident">Time</a>, mtime <a href="../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../time/time.go.html#line-127" class="ident">Time</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-102"><code>}</code></span>
+<span class="codeline" id="line-103"><code></code></span>
+<span class="codeline" id="line-104"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-105"><code>	<a href="../../../../pkg/github.com/spf13/afero.html#name-ErrFileClosed" class="ident">ErrFileClosed</a>        = <a href="../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"File is closed"</span>)</code></span>
+<span class="codeline" id="line-106"><code>	<a href="../../../../pkg/github.com/spf13/afero.html#name-ErrOutOfRange" class="ident">ErrOutOfRange</a>        = <a href="../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"Out of range"</span>)</code></span>
+<span class="codeline" id="line-107"><code>	<a href="../../../../pkg/github.com/spf13/afero.html#name-ErrTooLarge" class="ident">ErrTooLarge</a>          = <a href="../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"Too large"</span>)</code></span>
+<span class="codeline" id="line-108"><code>	<a href="../../../../pkg/github.com/spf13/afero.html#name-ErrFileNotFound" class="ident">ErrFileNotFound</a>      = <a href="../../../../pkg/os.html" class="ident i2">os</a>.<a href="../../../os/error.go.html#line-24" class="ident">ErrNotExist</a></code></span>
+<span class="codeline" id="line-109"><code>	<a href="../../../../pkg/github.com/spf13/afero.html#name-ErrFileExists" class="ident">ErrFileExists</a>        = <a href="../../../../pkg/os.html" class="ident i2">os</a>.<a href="../../../os/error.go.html#line-23" class="ident">ErrExist</a></code></span>
+<span class="codeline" id="line-110"><code>	<a href="../../../../pkg/github.com/spf13/afero.html#name-ErrDestinationExists" class="ident">ErrDestinationExists</a> = <a href="../../../../pkg/os.html" class="ident i2">os</a>.<a href="../../../os/error.go.html#line-23" class="ident">ErrExist</a></code></span>
+<span class="codeline" id="line-111"><code>)</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

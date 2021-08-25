@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: libcgo.h in package runtime/cgo</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	libcgo.h
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/runtime/cgo.html">runtime/cgo</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code>// Copyright 2009 The Go Authors. All rights reserved.</code></span>
+<span class="codeline" id="line-2"><code>// Use of this source code is governed by a BSD-style</code></span>
+<span class="codeline" id="line-3"><code>// license that can be found in the LICENSE file.</code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code>#include &lt;stdint.h&gt;</code></span>
+<span class="codeline" id="line-6"><code>#include &lt;stdlib.h&gt;</code></span>
+<span class="codeline" id="line-7"><code>#include &lt;stdio.h&gt;</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code>#undef nil</code></span>
+<span class="codeline" id="line-10"><code>#define nil ((void*)0)</code></span>
+<span class="codeline" id="line-11"><code>#define nelem(x) (sizeof(x)/sizeof((x)[0]))</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code>typedef uint32_t uint32;</code></span>
+<span class="codeline" id="line-14"><code>typedef uint64_t uint64;</code></span>
+<span class="codeline" id="line-15"><code>typedef uintptr_t uintptr;</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code>/*</code></span>
+<span class="codeline" id="line-18"><code> * The beginning of the per-goroutine structure,</code></span>
+<span class="codeline" id="line-19"><code> * as defined in ../pkg/runtime/runtime.h.</code></span>
+<span class="codeline" id="line-20"><code> * Just enough to edit these two fields.</code></span>
+<span class="codeline" id="line-21"><code> */</code></span>
+<span class="codeline" id="line-22"><code>typedef struct G G;</code></span>
+<span class="codeline" id="line-23"><code>struct G</code></span>
+<span class="codeline" id="line-24"><code>{</code></span>
+<span class="codeline" id="line-25"><code>	uintptr stacklo;</code></span>
+<span class="codeline" id="line-26"><code>	uintptr stackhi;</code></span>
+<span class="codeline" id="line-27"><code>};</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code>/*</code></span>
+<span class="codeline" id="line-30"><code> * Arguments to the _cgo_thread_start call.</code></span>
+<span class="codeline" id="line-31"><code> * Also known to ../pkg/runtime/runtime.h.</code></span>
+<span class="codeline" id="line-32"><code> */</code></span>
+<span class="codeline" id="line-33"><code>typedef struct ThreadStart ThreadStart;</code></span>
+<span class="codeline" id="line-34"><code>struct ThreadStart</code></span>
+<span class="codeline" id="line-35"><code>{</code></span>
+<span class="codeline" id="line-36"><code>	G *g;</code></span>
+<span class="codeline" id="line-37"><code>	uintptr *tls;</code></span>
+<span class="codeline" id="line-38"><code>	void (*fn)(void);</code></span>
+<span class="codeline" id="line-39"><code>};</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code>/*</code></span>
+<span class="codeline" id="line-42"><code> * Called by 5c/6c/8c world.</code></span>
+<span class="codeline" id="line-43"><code> * Makes a local copy of the ThreadStart and</code></span>
+<span class="codeline" id="line-44"><code> * calls _cgo_sys_thread_start(ts).</code></span>
+<span class="codeline" id="line-45"><code> */</code></span>
+<span class="codeline" id="line-46"><code>extern void (*_cgo_thread_start)(ThreadStart *ts);</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code>/*</code></span>
+<span class="codeline" id="line-49"><code> * Creates a new operating system thread without updating any Go state</code></span>
+<span class="codeline" id="line-50"><code> * (OS dependent).</code></span>
+<span class="codeline" id="line-51"><code> */</code></span>
+<span class="codeline" id="line-52"><code>extern void (*_cgo_sys_thread_create)(void* (*func)(void*), void* arg);</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code>/*</code></span>
+<span class="codeline" id="line-55"><code> * Creates the new operating system thread (OS, arch dependent).</code></span>
+<span class="codeline" id="line-56"><code> */</code></span>
+<span class="codeline" id="line-57"><code>void _cgo_sys_thread_start(ThreadStart *ts);</code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code>/*</code></span>
+<span class="codeline" id="line-60"><code> * Waits for the Go runtime to be initialized (OS dependent).</code></span>
+<span class="codeline" id="line-61"><code> * If runtime.SetCgoTraceback is used to set a context function,</code></span>
+<span class="codeline" id="line-62"><code> * calls the context function and returns the context value.</code></span>
+<span class="codeline" id="line-63"><code> */</code></span>
+<span class="codeline" id="line-64"><code>uintptr_t _cgo_wait_runtime_init_done(void);</code></span>
+<span class="codeline" id="line-65"><code></code></span>
+<span class="codeline" id="line-66"><code>/*</code></span>
+<span class="codeline" id="line-67"><code> * Call fn in the 6c world.</code></span>
+<span class="codeline" id="line-68"><code> */</code></span>
+<span class="codeline" id="line-69"><code>void crosscall_amd64(void (*fn)(void));</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code>/*</code></span>
+<span class="codeline" id="line-72"><code> * Call fn in the 8c world.</code></span>
+<span class="codeline" id="line-73"><code> */</code></span>
+<span class="codeline" id="line-74"><code>void crosscall_386(void (*fn)(void));</code></span>
+<span class="codeline" id="line-75"><code></code></span>
+<span class="codeline" id="line-76"><code>/*</code></span>
+<span class="codeline" id="line-77"><code> * Prints error then calls abort. For linux and android.</code></span>
+<span class="codeline" id="line-78"><code> */</code></span>
+<span class="codeline" id="line-79"><code>void fatalf(const char* format, ...);</code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code>/*</code></span>
+<span class="codeline" id="line-82"><code> * Registers the current mach thread port for EXC_BAD_ACCESS processing.</code></span>
+<span class="codeline" id="line-83"><code> */</code></span>
+<span class="codeline" id="line-84"><code>void darwin_arm_init_thread_exception_port(void);</code></span>
+<span class="codeline" id="line-85"><code></code></span>
+<span class="codeline" id="line-86"><code>/*</code></span>
+<span class="codeline" id="line-87"><code> * Starts a mach message server processing EXC_BAD_ACCESS.</code></span>
+<span class="codeline" id="line-88"><code> */</code></span>
+<span class="codeline" id="line-89"><code>void darwin_arm_init_mach_exception_handler(void);</code></span>
+<span class="codeline" id="line-90"><code></code></span>
+<span class="codeline" id="line-91"><code>/*</code></span>
+<span class="codeline" id="line-92"><code> * The cgo context function. See runtime.SetCgoTraceback.</code></span>
+<span class="codeline" id="line-93"><code> */</code></span>
+<span class="codeline" id="line-94"><code>struct context_arg {</code></span>
+<span class="codeline" id="line-95"><code>	uintptr_t Context;</code></span>
+<span class="codeline" id="line-96"><code>};</code></span>
+<span class="codeline" id="line-97"><code>extern void (*(_cgo_get_context_function(void)))(struct context_arg*);</code></span>
+<span class="codeline" id="line-98"><code></code></span>
+<span class="codeline" id="line-99"><code>/*</code></span>
+<span class="codeline" id="line-100"><code> * The argument for the cgo traceback callback. See runtime.SetCgoTraceback.</code></span>
+<span class="codeline" id="line-101"><code> */</code></span>
+<span class="codeline" id="line-102"><code>struct cgoTracebackArg {</code></span>
+<span class="codeline" id="line-103"><code>	uintptr_t  Context;</code></span>
+<span class="codeline" id="line-104"><code>	uintptr_t  SigContext;</code></span>
+<span class="codeline" id="line-105"><code>	uintptr_t* Buf;</code></span>
+<span class="codeline" id="line-106"><code>	uintptr_t  Max;</code></span>
+<span class="codeline" id="line-107"><code>};</code></span>
+<span class="codeline" id="line-108"><code></code></span>
+<span class="codeline" id="line-109"><code>/*</code></span>
+<span class="codeline" id="line-110"><code> * TSAN support.  This is only useful when building with</code></span>
+<span class="codeline" id="line-111"><code> *   CGO_CFLAGS="-fsanitize=thread" CGO_LDFLAGS="-fsanitize=thread" go install</code></span>
+<span class="codeline" id="line-112"><code> */</code></span>
+<span class="codeline" id="line-113"><code>#undef CGO_TSAN</code></span>
+<span class="codeline" id="line-114"><code>#if defined(__has_feature)</code></span>
+<span class="codeline" id="line-115"><code># if __has_feature(thread_sanitizer)</code></span>
+<span class="codeline" id="line-116"><code>#  define CGO_TSAN</code></span>
+<span class="codeline" id="line-117"><code># endif</code></span>
+<span class="codeline" id="line-118"><code>#elif defined(__SANITIZE_THREAD__)</code></span>
+<span class="codeline" id="line-119"><code># define CGO_TSAN</code></span>
+<span class="codeline" id="line-120"><code>#endif</code></span>
+<span class="codeline" id="line-121"><code></code></span>
+<span class="codeline" id="line-122"><code>#ifdef CGO_TSAN</code></span>
+<span class="codeline" id="line-123"><code></code></span>
+<span class="codeline" id="line-124"><code>// These must match the definitions in yesTsanProlog in cmd/cgo/out.go.</code></span>
+<span class="codeline" id="line-125"><code>// In general we should call _cgo_tsan_acquire when we enter C code,</code></span>
+<span class="codeline" id="line-126"><code>// and call _cgo_tsan_release when we return to Go code.</code></span>
+<span class="codeline" id="line-127"><code>// This is only necessary when calling code that might be instrumented</code></span>
+<span class="codeline" id="line-128"><code>// by TSAN, which mostly means system library calls that TSAN intercepts.</code></span>
+<span class="codeline" id="line-129"><code>// See the comment in cmd/cgo/out.go for more details.</code></span>
+<span class="codeline" id="line-130"><code></code></span>
+<span class="codeline" id="line-131"><code>long long _cgo_sync __attribute__ ((common));</code></span>
+<span class="codeline" id="line-132"><code></code></span>
+<span class="codeline" id="line-133"><code>extern void __tsan_acquire(void*);</code></span>
+<span class="codeline" id="line-134"><code>extern void __tsan_release(void*);</code></span>
+<span class="codeline" id="line-135"><code></code></span>
+<span class="codeline" id="line-136"><code>__attribute__ ((unused))</code></span>
+<span class="codeline" id="line-137"><code>static void _cgo_tsan_acquire() {</code></span>
+<span class="codeline" id="line-138"><code>	__tsan_acquire(&amp;_cgo_sync);</code></span>
+<span class="codeline" id="line-139"><code>}</code></span>
+<span class="codeline" id="line-140"><code></code></span>
+<span class="codeline" id="line-141"><code>__attribute__ ((unused))</code></span>
+<span class="codeline" id="line-142"><code>static void _cgo_tsan_release() {</code></span>
+<span class="codeline" id="line-143"><code>	__tsan_release(&amp;_cgo_sync);</code></span>
+<span class="codeline" id="line-144"><code>}</code></span>
+<span class="codeline" id="line-145"><code></code></span>
+<span class="codeline" id="line-146"><code>#else // !defined(CGO_TSAN)</code></span>
+<span class="codeline" id="line-147"><code></code></span>
+<span class="codeline" id="line-148"><code>#define _cgo_tsan_acquire()</code></span>
+<span class="codeline" id="line-149"><code>#define _cgo_tsan_release()</code></span>
+<span class="codeline" id="line-150"><code></code></span>
+<span class="codeline" id="line-151"><code>#endif // !defined(CGO_TSAN)</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

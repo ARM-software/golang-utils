@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: asm_amd64.s in package runtime</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	asm_amd64.s
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code>// Copyright 2009 The Go Authors. All rights reserved.</code></span>
+<span class="codeline" id="line-2"><code>// Use of this source code is governed by a BSD-style</code></span>
+<span class="codeline" id="line-3"><code>// license that can be found in the LICENSE file.</code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code>#include "go_asm.h"</code></span>
+<span class="codeline" id="line-6"><code>#include "go_tls.h"</code></span>
+<span class="codeline" id="line-7"><code>#include "funcdata.h"</code></span>
+<span class="codeline" id="line-8"><code>#include "textflag.h"</code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code>// _rt0_amd64 is common startup code for most amd64 systems when using</code></span>
+<span class="codeline" id="line-11"><code>// internal linking. This is the entry point for the program from the</code></span>
+<span class="codeline" id="line-12"><code>// kernel for an ordinary -buildmode=exe program. The stack holds the</code></span>
+<span class="codeline" id="line-13"><code>// number of arguments and the C-style argv.</code></span>
+<span class="codeline" id="line-14"><code>TEXT _rt0_amd64(SB),NOSPLIT,$-8</code></span>
+<span class="codeline" id="line-15"><code>	MOVQ	0(SP), DI	// argc</code></span>
+<span class="codeline" id="line-16"><code>	LEAQ	8(SP), SI	// argv</code></span>
+<span class="codeline" id="line-17"><code>	JMP	runtime·rt0_go(SB)</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code>// main is common startup code for most amd64 systems when using</code></span>
+<span class="codeline" id="line-20"><code>// external linking. The C startup code will call the symbol "main"</code></span>
+<span class="codeline" id="line-21"><code>// passing argc and argv in the usual C ABI registers DI and SI.</code></span>
+<span class="codeline" id="line-22"><code>TEXT main(SB),NOSPLIT,$-8</code></span>
+<span class="codeline" id="line-23"><code>	JMP	runtime·rt0_go(SB)</code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code>// _rt0_amd64_lib is common startup code for most amd64 systems when</code></span>
+<span class="codeline" id="line-26"><code>// using -buildmode=c-archive or -buildmode=c-shared. The linker will</code></span>
+<span class="codeline" id="line-27"><code>// arrange to invoke this function as a global constructor (for</code></span>
+<span class="codeline" id="line-28"><code>// c-archive) or when the shared library is loaded (for c-shared).</code></span>
+<span class="codeline" id="line-29"><code>// We expect argc and argv to be passed in the usual C ABI registers</code></span>
+<span class="codeline" id="line-30"><code>// DI and SI.</code></span>
+<span class="codeline" id="line-31"><code>TEXT _rt0_amd64_lib(SB),NOSPLIT,$0x50</code></span>
+<span class="codeline" id="line-32"><code>	// Align stack per ELF ABI requirements.</code></span>
+<span class="codeline" id="line-33"><code>	MOVQ	SP, AX</code></span>
+<span class="codeline" id="line-34"><code>	ANDQ	$~15, SP</code></span>
+<span class="codeline" id="line-35"><code>	// Save C ABI callee-saved registers, as caller may need them.</code></span>
+<span class="codeline" id="line-36"><code>	MOVQ	BX, 0x10(SP)</code></span>
+<span class="codeline" id="line-37"><code>	MOVQ	BP, 0x18(SP)</code></span>
+<span class="codeline" id="line-38"><code>	MOVQ	R12, 0x20(SP)</code></span>
+<span class="codeline" id="line-39"><code>	MOVQ	R13, 0x28(SP)</code></span>
+<span class="codeline" id="line-40"><code>	MOVQ	R14, 0x30(SP)</code></span>
+<span class="codeline" id="line-41"><code>	MOVQ	R15, 0x38(SP)</code></span>
+<span class="codeline" id="line-42"><code>	MOVQ	AX, 0x40(SP)</code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code>	MOVQ	DI, _rt0_amd64_lib_argc&lt;&gt;(SB)</code></span>
+<span class="codeline" id="line-45"><code>	MOVQ	SI, _rt0_amd64_lib_argv&lt;&gt;(SB)</code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code>	// Synchronous initialization.</code></span>
+<span class="codeline" id="line-48"><code>	CALL	runtime·libpreinit(SB)</code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code>	// Create a new thread to finish Go runtime initialization.</code></span>
+<span class="codeline" id="line-51"><code>	MOVQ	_cgo_sys_thread_create(SB), AX</code></span>
+<span class="codeline" id="line-52"><code>	TESTQ	AX, AX</code></span>
+<span class="codeline" id="line-53"><code>	JZ	nocgo</code></span>
+<span class="codeline" id="line-54"><code>	MOVQ	$_rt0_amd64_lib_go(SB), DI</code></span>
+<span class="codeline" id="line-55"><code>	MOVQ	$0, SI</code></span>
+<span class="codeline" id="line-56"><code>	CALL	AX</code></span>
+<span class="codeline" id="line-57"><code>	JMP	restore</code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code>nocgo:</code></span>
+<span class="codeline" id="line-60"><code>	MOVQ	$0x800000, 0(SP)		// stacksize</code></span>
+<span class="codeline" id="line-61"><code>	MOVQ	$_rt0_amd64_lib_go(SB), AX</code></span>
+<span class="codeline" id="line-62"><code>	MOVQ	AX, 8(SP)			// fn</code></span>
+<span class="codeline" id="line-63"><code>	CALL	runtime·newosproc0(SB)</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code>restore:</code></span>
+<span class="codeline" id="line-66"><code>	MOVQ	0x10(SP), BX</code></span>
+<span class="codeline" id="line-67"><code>	MOVQ	0x18(SP), BP</code></span>
+<span class="codeline" id="line-68"><code>	MOVQ	0x20(SP), R12</code></span>
+<span class="codeline" id="line-69"><code>	MOVQ	0x28(SP), R13</code></span>
+<span class="codeline" id="line-70"><code>	MOVQ	0x30(SP), R14</code></span>
+<span class="codeline" id="line-71"><code>	MOVQ	0x38(SP), R15</code></span>
+<span class="codeline" id="line-72"><code>	MOVQ	0x40(SP), SP</code></span>
+<span class="codeline" id="line-73"><code>	RET</code></span>
+<span class="codeline" id="line-74"><code></code></span>
+<span class="codeline" id="line-75"><code>// _rt0_amd64_lib_go initializes the Go runtime.</code></span>
+<span class="codeline" id="line-76"><code>// This is started in a separate thread by _rt0_amd64_lib.</code></span>
+<span class="codeline" id="line-77"><code>TEXT _rt0_amd64_lib_go(SB),NOSPLIT,$0</code></span>
+<span class="codeline" id="line-78"><code>	MOVQ	_rt0_amd64_lib_argc&lt;&gt;(SB), DI</code></span>
+<span class="codeline" id="line-79"><code>	MOVQ	_rt0_amd64_lib_argv&lt;&gt;(SB), SI</code></span>
+<span class="codeline" id="line-80"><code>	JMP	runtime·rt0_go(SB)</code></span>
+<span class="codeline" id="line-81"><code></code></span>
+<span class="codeline" id="line-82"><code>DATA _rt0_amd64_lib_argc&lt;&gt;(SB)/8, $0</code></span>
+<span class="codeline" id="line-83"><code>GLOBL _rt0_amd64_lib_argc&lt;&gt;(SB),NOPTR, $8</code></span>
+<span class="codeline" id="line-84"><code>DATA _rt0_amd64_lib_argv&lt;&gt;(SB)/8, $0</code></span>
+<span class="codeline" id="line-85"><code>GLOBL _rt0_amd64_lib_argv&lt;&gt;(SB),NOPTR, $8</code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code>// Defined as ABIInternal since it does not use the stack-based Go ABI (and</code></span>
+<span class="codeline" id="line-88"><code>// in addition there are no calls to this entry point from Go code).</code></span>
+<span class="codeline" id="line-89"><code>TEXT runtime·rt0_go&lt;ABIInternal&gt;(SB),NOSPLIT,$0</code></span>
+<span class="codeline" id="line-90"><code>	// copy arguments forward on an even stack</code></span>
+<span class="codeline" id="line-91"><code>	MOVQ	DI, AX		// argc</code></span>
+<span class="codeline" id="line-92"><code>	MOVQ	SI, BX		// argv</code></span>
+<span class="codeline" id="line-93"><code>	SUBQ	$(4*8+7), SP		// 2args 2auto</code></span>
+<span class="codeline" id="line-94"><code>	ANDQ	$~15, SP</code></span>
+<span class="codeline" id="line-95"><code>	MOVQ	AX, 16(SP)</code></span>
+<span class="codeline" id="line-96"><code>	MOVQ	BX, 24(SP)</code></span>
+<span class="codeline" id="line-97"><code></code></span>
+<span class="codeline" id="line-98"><code>	// create istack out of the given (operating system) stack.</code></span>
+<span class="codeline" id="line-99"><code>	// _cgo_init may update stackguard.</code></span>
+<span class="codeline" id="line-100"><code>	MOVQ	$runtime·g0(SB), DI</code></span>
+<span class="codeline" id="line-101"><code>	LEAQ	(-64*1024+104)(SP), BX</code></span>
+<span class="codeline" id="line-102"><code>	MOVQ	BX, g_stackguard0(DI)</code></span>
+<span class="codeline" id="line-103"><code>	MOVQ	BX, g_stackguard1(DI)</code></span>
+<span class="codeline" id="line-104"><code>	MOVQ	BX, (g_stack+stack_lo)(DI)</code></span>
+<span class="codeline" id="line-105"><code>	MOVQ	SP, (g_stack+stack_hi)(DI)</code></span>
+<span class="codeline" id="line-106"><code></code></span>
+<span class="codeline" id="line-107"><code>	// find out information about the processor we're on</code></span>
+<span class="codeline" id="line-108"><code>	MOVL	$0, AX</code></span>
+<span class="codeline" id="line-109"><code>	CPUID</code></span>
+<span class="codeline" id="line-110"><code>	MOVL	AX, SI</code></span>
+<span class="codeline" id="line-111"><code>	CMPL	AX, $0</code></span>
+<span class="codeline" id="line-112"><code>	JE	nocpuinfo</code></span>
+<span class="codeline" id="line-113"><code></code></span>
+<span class="codeline" id="line-114"><code>	// Figure out how to serialize RDTSC.</code></span>
+<span class="codeline" id="line-115"><code>	// On Intel processors LFENCE is enough. AMD requires MFENCE.</code></span>
+<span class="codeline" id="line-116"><code>	// Don't know about the rest, so let's do MFENCE.</code></span>
+<span class="codeline" id="line-117"><code>	CMPL	BX, $0x756E6547  // "Genu"</code></span>
+<span class="codeline" id="line-118"><code>	JNE	notintel</code></span>
+<span class="codeline" id="line-119"><code>	CMPL	DX, $0x49656E69  // "ineI"</code></span>
+<span class="codeline" id="line-120"><code>	JNE	notintel</code></span>
+<span class="codeline" id="line-121"><code>	CMPL	CX, $0x6C65746E  // "ntel"</code></span>
+<span class="codeline" id="line-122"><code>	JNE	notintel</code></span>
+<span class="codeline" id="line-123"><code>	MOVB	$1, runtime·isIntel(SB)</code></span>
+<span class="codeline" id="line-124"><code>	MOVB	$1, runtime·lfenceBeforeRdtsc(SB)</code></span>
+<span class="codeline" id="line-125"><code>notintel:</code></span>
+<span class="codeline" id="line-126"><code></code></span>
+<span class="codeline" id="line-127"><code>	// Load EAX=1 cpuid flags</code></span>
+<span class="codeline" id="line-128"><code>	MOVL	$1, AX</code></span>
+<span class="codeline" id="line-129"><code>	CPUID</code></span>
+<span class="codeline" id="line-130"><code>	MOVL	AX, runtime·processorVersionInfo(SB)</code></span>
+<span class="codeline" id="line-131"><code></code></span>
+<span class="codeline" id="line-132"><code>nocpuinfo:</code></span>
+<span class="codeline" id="line-133"><code>	// if there is an _cgo_init, call it.</code></span>
+<span class="codeline" id="line-134"><code>	MOVQ	_cgo_init(SB), AX</code></span>
+<span class="codeline" id="line-135"><code>	TESTQ	AX, AX</code></span>
+<span class="codeline" id="line-136"><code>	JZ	needtls</code></span>
+<span class="codeline" id="line-137"><code>	// arg 1: g0, already in DI</code></span>
+<span class="codeline" id="line-138"><code>	MOVQ	$setg_gcc&lt;&gt;(SB), SI // arg 2: setg_gcc</code></span>
+<span class="codeline" id="line-139"><code>#ifdef GOOS_android</code></span>
+<span class="codeline" id="line-140"><code>	MOVQ	$runtime·tls_g(SB), DX 	// arg 3: &amp;tls_g</code></span>
+<span class="codeline" id="line-141"><code>	// arg 4: TLS base, stored in slot 0 (Android's TLS_SLOT_SELF).</code></span>
+<span class="codeline" id="line-142"><code>	// Compensate for tls_g (+16).</code></span>
+<span class="codeline" id="line-143"><code>	MOVQ	-16(TLS), CX</code></span>
+<span class="codeline" id="line-144"><code>#else</code></span>
+<span class="codeline" id="line-145"><code>	MOVQ	$0, DX	// arg 3, 4: not used when using platform's TLS</code></span>
+<span class="codeline" id="line-146"><code>	MOVQ	$0, CX</code></span>
+<span class="codeline" id="line-147"><code>#endif</code></span>
+<span class="codeline" id="line-148"><code>#ifdef GOOS_windows</code></span>
+<span class="codeline" id="line-149"><code>	// Adjust for the Win64 calling convention.</code></span>
+<span class="codeline" id="line-150"><code>	MOVQ	CX, R9 // arg 4</code></span>
+<span class="codeline" id="line-151"><code>	MOVQ	DX, R8 // arg 3</code></span>
+<span class="codeline" id="line-152"><code>	MOVQ	SI, DX // arg 2</code></span>
+<span class="codeline" id="line-153"><code>	MOVQ	DI, CX // arg 1</code></span>
+<span class="codeline" id="line-154"><code>#endif</code></span>
+<span class="codeline" id="line-155"><code>	CALL	AX</code></span>
+<span class="codeline" id="line-156"><code></code></span>
+<span class="codeline" id="line-157"><code>	// update stackguard after _cgo_init</code></span>
+<span class="codeline" id="line-158"><code>	MOVQ	$runtime·g0(SB), CX</code></span>
+<span class="codeline" id="line-159"><code>	MOVQ	(g_stack+stack_lo)(CX), AX</code></span>
+<span class="codeline" id="line-160"><code>	ADDQ	$const__StackGuard, AX</code></span>
+<span class="codeline" id="line-161"><code>	MOVQ	AX, g_stackguard0(CX)</code></span>
+<span class="codeline" id="line-162"><code>	MOVQ	AX, g_stackguard1(CX)</code></span>
+<span class="codeline" id="line-163"><code></code></span>
+<span class="codeline" id="line-164"><code>#ifndef GOOS_windows</code></span>
+<span class="codeline" id="line-165"><code>	JMP ok</code></span>
+<span class="codeline" id="line-166"><code>#endif</code></span>
+<span class="codeline" id="line-167"><code>needtls:</code></span>
+<span class="codeline" id="line-168"><code>#ifdef GOOS_plan9</code></span>
+<span class="codeline" id="line-169"><code>	// skip TLS setup on Plan 9</code></span>
+<span class="codeline" id="line-170"><code>	JMP ok</code></span>
+<span class="codeline" id="line-171"><code>#endif</code></span>
+<span class="codeline" id="line-172"><code>#ifdef GOOS_solaris</code></span>
+<span class="codeline" id="line-173"><code>	// skip TLS setup on Solaris</code></span>
+<span class="codeline" id="line-174"><code>	JMP ok</code></span>
+<span class="codeline" id="line-175"><code>#endif</code></span>
+<span class="codeline" id="line-176"><code>#ifdef GOOS_illumos</code></span>
+<span class="codeline" id="line-177"><code>	// skip TLS setup on illumos</code></span>
+<span class="codeline" id="line-178"><code>	JMP ok</code></span>
+<span class="codeline" id="line-179"><code>#endif</code></span>
+<span class="codeline" id="line-180"><code>#ifdef GOOS_darwin</code></span>
+<span class="codeline" id="line-181"><code>	// skip TLS setup on Darwin</code></span>
+<span class="codeline" id="line-182"><code>	JMP ok</code></span>
+<span class="codeline" id="line-183"><code>#endif</code></span>
+<span class="codeline" id="line-184"><code>#ifdef GOOS_openbsd</code></span>
+<span class="codeline" id="line-185"><code>	// skip TLS setup on OpenBSD</code></span>
+<span class="codeline" id="line-186"><code>	JMP ok</code></span>
+<span class="codeline" id="line-187"><code>#endif</code></span>
+<span class="codeline" id="line-188"><code></code></span>
+<span class="codeline" id="line-189"><code>	LEAQ	runtime·m0+m_tls(SB), DI</code></span>
+<span class="codeline" id="line-190"><code>	CALL	runtime·settls(SB)</code></span>
+<span class="codeline" id="line-191"><code></code></span>
+<span class="codeline" id="line-192"><code>	// store through it, to make sure it works</code></span>
+<span class="codeline" id="line-193"><code>	get_tls(BX)</code></span>
+<span class="codeline" id="line-194"><code>	MOVQ	$0x123, g(BX)</code></span>
+<span class="codeline" id="line-195"><code>	MOVQ	runtime·m0+m_tls(SB), AX</code></span>
+<span class="codeline" id="line-196"><code>	CMPQ	AX, $0x123</code></span>
+<span class="codeline" id="line-197"><code>	JEQ 2(PC)</code></span>
+<span class="codeline" id="line-198"><code>	CALL	runtime·abort(SB)</code></span>
+<span class="codeline" id="line-199"><code>ok:</code></span>
+<span class="codeline" id="line-200"><code>	// set the per-goroutine and per-mach "registers"</code></span>
+<span class="codeline" id="line-201"><code>	get_tls(BX)</code></span>
+<span class="codeline" id="line-202"><code>	LEAQ	runtime·g0(SB), CX</code></span>
+<span class="codeline" id="line-203"><code>	MOVQ	CX, g(BX)</code></span>
+<span class="codeline" id="line-204"><code>	LEAQ	runtime·m0(SB), AX</code></span>
+<span class="codeline" id="line-205"><code></code></span>
+<span class="codeline" id="line-206"><code>	// save m-&gt;g0 = g0</code></span>
+<span class="codeline" id="line-207"><code>	MOVQ	CX, m_g0(AX)</code></span>
+<span class="codeline" id="line-208"><code>	// save m0 to g0-&gt;m</code></span>
+<span class="codeline" id="line-209"><code>	MOVQ	AX, g_m(CX)</code></span>
+<span class="codeline" id="line-210"><code></code></span>
+<span class="codeline" id="line-211"><code>	CLD				// convention is D is always left cleared</code></span>
+<span class="codeline" id="line-212"><code>	CALL	runtime·check(SB)</code></span>
+<span class="codeline" id="line-213"><code></code></span>
+<span class="codeline" id="line-214"><code>	MOVL	16(SP), AX		// copy argc</code></span>
+<span class="codeline" id="line-215"><code>	MOVL	AX, 0(SP)</code></span>
+<span class="codeline" id="line-216"><code>	MOVQ	24(SP), AX		// copy argv</code></span>
+<span class="codeline" id="line-217"><code>	MOVQ	AX, 8(SP)</code></span>
+<span class="codeline" id="line-218"><code>	CALL	runtime·args(SB)</code></span>
+<span class="codeline" id="line-219"><code>	CALL	runtime·osinit(SB)</code></span>
+<span class="codeline" id="line-220"><code>	CALL	runtime·schedinit(SB)</code></span>
+<span class="codeline" id="line-221"><code></code></span>
+<span class="codeline" id="line-222"><code>	// create a new goroutine to start program</code></span>
+<span class="codeline" id="line-223"><code>	MOVQ	$runtime·mainPC(SB), AX		// entry</code></span>
+<span class="codeline" id="line-224"><code>	PUSHQ	AX</code></span>
+<span class="codeline" id="line-225"><code>	PUSHQ	$0			// arg size</code></span>
+<span class="codeline" id="line-226"><code>	CALL	runtime·newproc(SB)</code></span>
+<span class="codeline" id="line-227"><code>	POPQ	AX</code></span>
+<span class="codeline" id="line-228"><code>	POPQ	AX</code></span>
+<span class="codeline" id="line-229"><code></code></span>
+<span class="codeline" id="line-230"><code>	// start this M</code></span>
+<span class="codeline" id="line-231"><code>	CALL	runtime·mstart(SB)</code></span>
+<span class="codeline" id="line-232"><code></code></span>
+<span class="codeline" id="line-233"><code>	CALL	runtime·abort(SB)	// mstart should never return</code></span>
+<span class="codeline" id="line-234"><code>	RET</code></span>
+<span class="codeline" id="line-235"><code></code></span>
+<span class="codeline" id="line-236"><code>	// Prevent dead-code elimination of debugCallV1, which is</code></span>
+<span class="codeline" id="line-237"><code>	// intended to be called by debuggers.</code></span>
+<span class="codeline" id="line-238"><code>	MOVQ	$runtime·debugCallV1&lt;ABIInternal&gt;(SB), AX</code></span>
+<span class="codeline" id="line-239"><code>	RET</code></span>
+<span class="codeline" id="line-240"><code></code></span>
+<span class="codeline" id="line-241"><code>// mainPC is a function value for runtime.main, to be passed to newproc.</code></span>
+<span class="codeline" id="line-242"><code>// The reference to runtime.main is made via ABIInternal, since the</code></span>
+<span class="codeline" id="line-243"><code>// actual function (not the ABI0 wrapper) is needed by newproc.</code></span>
+<span class="codeline" id="line-244"><code>DATA	runtime·mainPC+0(SB)/8,$runtime·main&lt;ABIInternal&gt;(SB)</code></span>
+<span class="codeline" id="line-245"><code>GLOBL	runtime·mainPC(SB),RODATA,$8</code></span>
+<span class="codeline" id="line-246"><code></code></span>
+<span class="codeline" id="line-247"><code>TEXT runtime·breakpoint(SB),NOSPLIT,$0-0</code></span>
+<span class="codeline" id="line-248"><code>	BYTE	$0xcc</code></span>
+<span class="codeline" id="line-249"><code>	RET</code></span>
+<span class="codeline" id="line-250"><code></code></span>
+<span class="codeline" id="line-251"><code>TEXT runtime·asminit(SB),NOSPLIT,$0-0</code></span>
+<span class="codeline" id="line-252"><code>	// No per-thread init.</code></span>
+<span class="codeline" id="line-253"><code>	RET</code></span>
+<span class="codeline" id="line-254"><code></code></span>
+<span class="codeline" id="line-255"><code>/*</code></span>
+<span class="codeline" id="line-256"><code> *  go-routine</code></span>
+<span class="codeline" id="line-257"><code> */</code></span>
+<span class="codeline" id="line-258"><code></code></span>
+<span class="codeline" id="line-259"><code>// func gosave(buf *gobuf)</code></span>
+<span class="codeline" id="line-260"><code>// save state in Gobuf; setjmp</code></span>
+<span class="codeline" id="line-261"><code>TEXT runtime·gosave(SB), NOSPLIT, $0-8</code></span>
+<span class="codeline" id="line-262"><code>	MOVQ	buf+0(FP), AX		// gobuf</code></span>
+<span class="codeline" id="line-263"><code>	LEAQ	buf+0(FP), BX		// caller's SP</code></span>
+<span class="codeline" id="line-264"><code>	MOVQ	BX, gobuf_sp(AX)</code></span>
+<span class="codeline" id="line-265"><code>	MOVQ	0(SP), BX		// caller's PC</code></span>
+<span class="codeline" id="line-266"><code>	MOVQ	BX, gobuf_pc(AX)</code></span>
+<span class="codeline" id="line-267"><code>	MOVQ	$0, gobuf_ret(AX)</code></span>
+<span class="codeline" id="line-268"><code>	MOVQ	BP, gobuf_bp(AX)</code></span>
+<span class="codeline" id="line-269"><code>	// Assert ctxt is zero. See func save.</code></span>
+<span class="codeline" id="line-270"><code>	MOVQ	gobuf_ctxt(AX), BX</code></span>
+<span class="codeline" id="line-271"><code>	TESTQ	BX, BX</code></span>
+<span class="codeline" id="line-272"><code>	JZ	2(PC)</code></span>
+<span class="codeline" id="line-273"><code>	CALL	runtime·badctxt(SB)</code></span>
+<span class="codeline" id="line-274"><code>	get_tls(CX)</code></span>
+<span class="codeline" id="line-275"><code>	MOVQ	g(CX), BX</code></span>
+<span class="codeline" id="line-276"><code>	MOVQ	BX, gobuf_g(AX)</code></span>
+<span class="codeline" id="line-277"><code>	RET</code></span>
+<span class="codeline" id="line-278"><code></code></span>
+<span class="codeline" id="line-279"><code>// func gogo(buf *gobuf)</code></span>
+<span class="codeline" id="line-280"><code>// restore state from Gobuf; longjmp</code></span>
+<span class="codeline" id="line-281"><code>TEXT runtime·gogo(SB), NOSPLIT, $16-8</code></span>
+<span class="codeline" id="line-282"><code>	MOVQ	buf+0(FP), BX		// gobuf</code></span>
+<span class="codeline" id="line-283"><code>	MOVQ	gobuf_g(BX), DX</code></span>
+<span class="codeline" id="line-284"><code>	MOVQ	0(DX), CX		// make sure g != nil</code></span>
+<span class="codeline" id="line-285"><code>	get_tls(CX)</code></span>
+<span class="codeline" id="line-286"><code>	MOVQ	DX, g(CX)</code></span>
+<span class="codeline" id="line-287"><code>	MOVQ	gobuf_sp(BX), SP	// restore SP</code></span>
+<span class="codeline" id="line-288"><code>	MOVQ	gobuf_ret(BX), AX</code></span>
+<span class="codeline" id="line-289"><code>	MOVQ	gobuf_ctxt(BX), DX</code></span>
+<span class="codeline" id="line-290"><code>	MOVQ	gobuf_bp(BX), BP</code></span>
+<span class="codeline" id="line-291"><code>	MOVQ	$0, gobuf_sp(BX)	// clear to help garbage collector</code></span>
+<span class="codeline" id="line-292"><code>	MOVQ	$0, gobuf_ret(BX)</code></span>
+<span class="codeline" id="line-293"><code>	MOVQ	$0, gobuf_ctxt(BX)</code></span>
+<span class="codeline" id="line-294"><code>	MOVQ	$0, gobuf_bp(BX)</code></span>
+<span class="codeline" id="line-295"><code>	MOVQ	gobuf_pc(BX), BX</code></span>
+<span class="codeline" id="line-296"><code>	JMP	BX</code></span>
+<span class="codeline" id="line-297"><code></code></span>
+<span class="codeline" id="line-298"><code>// func mcall(fn func(*g))</code></span>
+<span class="codeline" id="line-299"><code>// Switch to m-&gt;g0's stack, call fn(g).</code></span>
+<span class="codeline" id="line-300"><code>// Fn must never return. It should gogo(&amp;g-&gt;sched)</code></span>
+<span class="codeline" id="line-301"><code>// to keep running g.</code></span>
+<span class="codeline" id="line-302"><code>TEXT runtime·mcall(SB), NOSPLIT, $0-8</code></span>
+<span class="codeline" id="line-303"><code>	MOVQ	fn+0(FP), DI</code></span>
+<span class="codeline" id="line-304"><code></code></span>
+<span class="codeline" id="line-305"><code>	get_tls(CX)</code></span>
+<span class="codeline" id="line-306"><code>	MOVQ	g(CX), AX	// save state in g-&gt;sched</code></span>
+<span class="codeline" id="line-307"><code>	MOVQ	0(SP), BX	// caller's PC</code></span>
+<span class="codeline" id="line-308"><code>	MOVQ	BX, (g_sched+gobuf_pc)(AX)</code></span>
+<span class="codeline" id="line-309"><code>	LEAQ	fn+0(FP), BX	// caller's SP</code></span>
+<span class="codeline" id="line-310"><code>	MOVQ	BX, (g_sched+gobuf_sp)(AX)</code></span>
+<span class="codeline" id="line-311"><code>	MOVQ	AX, (g_sched+gobuf_g)(AX)</code></span>
+<span class="codeline" id="line-312"><code>	MOVQ	BP, (g_sched+gobuf_bp)(AX)</code></span>
+<span class="codeline" id="line-313"><code></code></span>
+<span class="codeline" id="line-314"><code>	// switch to m-&gt;g0 &amp; its stack, call fn</code></span>
+<span class="codeline" id="line-315"><code>	MOVQ	g(CX), BX</code></span>
+<span class="codeline" id="line-316"><code>	MOVQ	g_m(BX), BX</code></span>
+<span class="codeline" id="line-317"><code>	MOVQ	m_g0(BX), SI</code></span>
+<span class="codeline" id="line-318"><code>	CMPQ	SI, AX	// if g == m-&gt;g0 call badmcall</code></span>
+<span class="codeline" id="line-319"><code>	JNE	3(PC)</code></span>
+<span class="codeline" id="line-320"><code>	MOVQ	$runtime·badmcall(SB), AX</code></span>
+<span class="codeline" id="line-321"><code>	JMP	AX</code></span>
+<span class="codeline" id="line-322"><code>	MOVQ	SI, g(CX)	// g = m-&gt;g0</code></span>
+<span class="codeline" id="line-323"><code>	MOVQ	(g_sched+gobuf_sp)(SI), SP	// sp = m-&gt;g0-&gt;sched.sp</code></span>
+<span class="codeline" id="line-324"><code>	PUSHQ	AX</code></span>
+<span class="codeline" id="line-325"><code>	MOVQ	DI, DX</code></span>
+<span class="codeline" id="line-326"><code>	MOVQ	0(DI), DI</code></span>
+<span class="codeline" id="line-327"><code>	CALL	DI</code></span>
+<span class="codeline" id="line-328"><code>	POPQ	AX</code></span>
+<span class="codeline" id="line-329"><code>	MOVQ	$runtime·badmcall2(SB), AX</code></span>
+<span class="codeline" id="line-330"><code>	JMP	AX</code></span>
+<span class="codeline" id="line-331"><code>	RET</code></span>
+<span class="codeline" id="line-332"><code></code></span>
+<span class="codeline" id="line-333"><code>// systemstack_switch is a dummy routine that systemstack leaves at the bottom</code></span>
+<span class="codeline" id="line-334"><code>// of the G stack. We need to distinguish the routine that</code></span>
+<span class="codeline" id="line-335"><code>// lives at the bottom of the G stack from the one that lives</code></span>
+<span class="codeline" id="line-336"><code>// at the top of the system stack because the one at the top of</code></span>
+<span class="codeline" id="line-337"><code>// the system stack terminates the stack walk (see topofstack()).</code></span>
+<span class="codeline" id="line-338"><code>TEXT runtime·systemstack_switch(SB), NOSPLIT, $0-0</code></span>
+<span class="codeline" id="line-339"><code>	RET</code></span>
+<span class="codeline" id="line-340"><code></code></span>
+<span class="codeline" id="line-341"><code>// func systemstack(fn func())</code></span>
+<span class="codeline" id="line-342"><code>TEXT runtime·systemstack(SB), NOSPLIT, $0-8</code></span>
+<span class="codeline" id="line-343"><code>	MOVQ	fn+0(FP), DI	// DI = fn</code></span>
+<span class="codeline" id="line-344"><code>	get_tls(CX)</code></span>
+<span class="codeline" id="line-345"><code>	MOVQ	g(CX), AX	// AX = g</code></span>
+<span class="codeline" id="line-346"><code>	MOVQ	g_m(AX), BX	// BX = m</code></span>
+<span class="codeline" id="line-347"><code></code></span>
+<span class="codeline" id="line-348"><code>	CMPQ	AX, m_gsignal(BX)</code></span>
+<span class="codeline" id="line-349"><code>	JEQ	noswitch</code></span>
+<span class="codeline" id="line-350"><code></code></span>
+<span class="codeline" id="line-351"><code>	MOVQ	m_g0(BX), DX	// DX = g0</code></span>
+<span class="codeline" id="line-352"><code>	CMPQ	AX, DX</code></span>
+<span class="codeline" id="line-353"><code>	JEQ	noswitch</code></span>
+<span class="codeline" id="line-354"><code></code></span>
+<span class="codeline" id="line-355"><code>	CMPQ	AX, m_curg(BX)</code></span>
+<span class="codeline" id="line-356"><code>	JNE	bad</code></span>
+<span class="codeline" id="line-357"><code></code></span>
+<span class="codeline" id="line-358"><code>	// switch stacks</code></span>
+<span class="codeline" id="line-359"><code>	// save our state in g-&gt;sched. Pretend to</code></span>
+<span class="codeline" id="line-360"><code>	// be systemstack_switch if the G stack is scanned.</code></span>
+<span class="codeline" id="line-361"><code>	MOVQ	$runtime·systemstack_switch(SB), SI</code></span>
+<span class="codeline" id="line-362"><code>	MOVQ	SI, (g_sched+gobuf_pc)(AX)</code></span>
+<span class="codeline" id="line-363"><code>	MOVQ	SP, (g_sched+gobuf_sp)(AX)</code></span>
+<span class="codeline" id="line-364"><code>	MOVQ	AX, (g_sched+gobuf_g)(AX)</code></span>
+<span class="codeline" id="line-365"><code>	MOVQ	BP, (g_sched+gobuf_bp)(AX)</code></span>
+<span class="codeline" id="line-366"><code></code></span>
+<span class="codeline" id="line-367"><code>	// switch to g0</code></span>
+<span class="codeline" id="line-368"><code>	MOVQ	DX, g(CX)</code></span>
+<span class="codeline" id="line-369"><code>	MOVQ	(g_sched+gobuf_sp)(DX), BX</code></span>
+<span class="codeline" id="line-370"><code>	// make it look like mstart called systemstack on g0, to stop traceback</code></span>
+<span class="codeline" id="line-371"><code>	SUBQ	$8, BX</code></span>
+<span class="codeline" id="line-372"><code>	MOVQ	$runtime·mstart(SB), DX</code></span>
+<span class="codeline" id="line-373"><code>	MOVQ	DX, 0(BX)</code></span>
+<span class="codeline" id="line-374"><code>	MOVQ	BX, SP</code></span>
+<span class="codeline" id="line-375"><code></code></span>
+<span class="codeline" id="line-376"><code>	// call target function</code></span>
+<span class="codeline" id="line-377"><code>	MOVQ	DI, DX</code></span>
+<span class="codeline" id="line-378"><code>	MOVQ	0(DI), DI</code></span>
+<span class="codeline" id="line-379"><code>	CALL	DI</code></span>
+<span class="codeline" id="line-380"><code></code></span>
+<span class="codeline" id="line-381"><code>	// switch back to g</code></span>
+<span class="codeline" id="line-382"><code>	get_tls(CX)</code></span>
+<span class="codeline" id="line-383"><code>	MOVQ	g(CX), AX</code></span>
+<span class="codeline" id="line-384"><code>	MOVQ	g_m(AX), BX</code></span>
+<span class="codeline" id="line-385"><code>	MOVQ	m_curg(BX), AX</code></span>
+<span class="codeline" id="line-386"><code>	MOVQ	AX, g(CX)</code></span>
+<span class="codeline" id="line-387"><code>	MOVQ	(g_sched+gobuf_sp)(AX), SP</code></span>
+<span class="codeline" id="line-388"><code>	MOVQ	$0, (g_sched+gobuf_sp)(AX)</code></span>
+<span class="codeline" id="line-389"><code>	RET</code></span>
+<span class="codeline" id="line-390"><code></code></span>
+<span class="codeline" id="line-391"><code>noswitch:</code></span>
+<span class="codeline" id="line-392"><code>	// already on m stack; tail call the function</code></span>
+<span class="codeline" id="line-393"><code>	// Using a tail call here cleans up tracebacks since we won't stop</code></span>
+<span class="codeline" id="line-394"><code>	// at an intermediate systemstack.</code></span>
+<span class="codeline" id="line-395"><code>	MOVQ	DI, DX</code></span>
+<span class="codeline" id="line-396"><code>	MOVQ	0(DI), DI</code></span>
+<span class="codeline" id="line-397"><code>	JMP	DI</code></span>
+<span class="codeline" id="line-398"><code></code></span>
+<span class="codeline" id="line-399"><code>bad:</code></span>
+<span class="codeline" id="line-400"><code>	// Bad: g is not gsignal, not g0, not curg. What is it?</code></span>
+<span class="codeline" id="line-401"><code>	MOVQ	$runtime·badsystemstack(SB), AX</code></span>
+<span class="codeline" id="line-402"><code>	CALL	AX</code></span>
+<span class="codeline" id="line-403"><code>	INT	$3</code></span>
+<span class="codeline" id="line-404"><code></code></span>
+<span class="codeline" id="line-405"><code></code></span>
+<span class="codeline" id="line-406"><code>/*</code></span>
+<span class="codeline" id="line-407"><code> * support for morestack</code></span>
+<span class="codeline" id="line-408"><code> */</code></span>
+<span class="codeline" id="line-409"><code></code></span>
+<span class="codeline" id="line-410"><code>// Called during function prolog when more stack is needed.</code></span>
+<span class="codeline" id="line-411"><code>//</code></span>
+<span class="codeline" id="line-412"><code>// The traceback routines see morestack on a g0 as being</code></span>
+<span class="codeline" id="line-413"><code>// the top of a stack (for example, morestack calling newstack</code></span>
+<span class="codeline" id="line-414"><code>// calling the scheduler calling newm calling gc), so we must</code></span>
+<span class="codeline" id="line-415"><code>// record an argument size. For that purpose, it has no arguments.</code></span>
+<span class="codeline" id="line-416"><code>TEXT runtime·morestack(SB),NOSPLIT,$0-0</code></span>
+<span class="codeline" id="line-417"><code>	// Cannot grow scheduler stack (m-&gt;g0).</code></span>
+<span class="codeline" id="line-418"><code>	get_tls(CX)</code></span>
+<span class="codeline" id="line-419"><code>	MOVQ	g(CX), BX</code></span>
+<span class="codeline" id="line-420"><code>	MOVQ	g_m(BX), BX</code></span>
+<span class="codeline" id="line-421"><code>	MOVQ	m_g0(BX), SI</code></span>
+<span class="codeline" id="line-422"><code>	CMPQ	g(CX), SI</code></span>
+<span class="codeline" id="line-423"><code>	JNE	3(PC)</code></span>
+<span class="codeline" id="line-424"><code>	CALL	runtime·badmorestackg0(SB)</code></span>
+<span class="codeline" id="line-425"><code>	CALL	runtime·abort(SB)</code></span>
+<span class="codeline" id="line-426"><code></code></span>
+<span class="codeline" id="line-427"><code>	// Cannot grow signal stack (m-&gt;gsignal).</code></span>
+<span class="codeline" id="line-428"><code>	MOVQ	m_gsignal(BX), SI</code></span>
+<span class="codeline" id="line-429"><code>	CMPQ	g(CX), SI</code></span>
+<span class="codeline" id="line-430"><code>	JNE	3(PC)</code></span>
+<span class="codeline" id="line-431"><code>	CALL	runtime·badmorestackgsignal(SB)</code></span>
+<span class="codeline" id="line-432"><code>	CALL	runtime·abort(SB)</code></span>
+<span class="codeline" id="line-433"><code></code></span>
+<span class="codeline" id="line-434"><code>	// Called from f.</code></span>
+<span class="codeline" id="line-435"><code>	// Set m-&gt;morebuf to f's caller.</code></span>
+<span class="codeline" id="line-436"><code>	NOP	SP	// tell vet SP changed - stop checking offsets</code></span>
+<span class="codeline" id="line-437"><code>	MOVQ	8(SP), AX	// f's caller's PC</code></span>
+<span class="codeline" id="line-438"><code>	MOVQ	AX, (m_morebuf+gobuf_pc)(BX)</code></span>
+<span class="codeline" id="line-439"><code>	LEAQ	16(SP), AX	// f's caller's SP</code></span>
+<span class="codeline" id="line-440"><code>	MOVQ	AX, (m_morebuf+gobuf_sp)(BX)</code></span>
+<span class="codeline" id="line-441"><code>	get_tls(CX)</code></span>
+<span class="codeline" id="line-442"><code>	MOVQ	g(CX), SI</code></span>
+<span class="codeline" id="line-443"><code>	MOVQ	SI, (m_morebuf+gobuf_g)(BX)</code></span>
+<span class="codeline" id="line-444"><code></code></span>
+<span class="codeline" id="line-445"><code>	// Set g-&gt;sched to context in f.</code></span>
+<span class="codeline" id="line-446"><code>	MOVQ	0(SP), AX // f's PC</code></span>
+<span class="codeline" id="line-447"><code>	MOVQ	AX, (g_sched+gobuf_pc)(SI)</code></span>
+<span class="codeline" id="line-448"><code>	MOVQ	SI, (g_sched+gobuf_g)(SI)</code></span>
+<span class="codeline" id="line-449"><code>	LEAQ	8(SP), AX // f's SP</code></span>
+<span class="codeline" id="line-450"><code>	MOVQ	AX, (g_sched+gobuf_sp)(SI)</code></span>
+<span class="codeline" id="line-451"><code>	MOVQ	BP, (g_sched+gobuf_bp)(SI)</code></span>
+<span class="codeline" id="line-452"><code>	MOVQ	DX, (g_sched+gobuf_ctxt)(SI)</code></span>
+<span class="codeline" id="line-453"><code></code></span>
+<span class="codeline" id="line-454"><code>	// Call newstack on m-&gt;g0's stack.</code></span>
+<span class="codeline" id="line-455"><code>	MOVQ	m_g0(BX), BX</code></span>
+<span class="codeline" id="line-456"><code>	MOVQ	BX, g(CX)</code></span>
+<span class="codeline" id="line-457"><code>	MOVQ	(g_sched+gobuf_sp)(BX), SP</code></span>
+<span class="codeline" id="line-458"><code>	CALL	runtime·newstack(SB)</code></span>
+<span class="codeline" id="line-459"><code>	CALL	runtime·abort(SB)	// crash if newstack returns</code></span>
+<span class="codeline" id="line-460"><code>	RET</code></span>
+<span class="codeline" id="line-461"><code></code></span>
+<span class="codeline" id="line-462"><code>// morestack but not preserving ctxt.</code></span>
+<span class="codeline" id="line-463"><code>TEXT runtime·morestack_noctxt(SB),NOSPLIT,$0</code></span>
+<span class="codeline" id="line-464"><code>	MOVL	$0, DX</code></span>
+<span class="codeline" id="line-465"><code>	JMP	runtime·morestack(SB)</code></span>
+<span class="codeline" id="line-466"><code></code></span>
+<span class="codeline" id="line-467"><code>// reflectcall: call a function with the given argument list</code></span>
+<span class="codeline" id="line-468"><code>// func call(argtype *_type, f *FuncVal, arg *byte, argsize, retoffset uint32).</code></span>
+<span class="codeline" id="line-469"><code>// we don't have variable-sized frames, so we use a small number</code></span>
+<span class="codeline" id="line-470"><code>// of constant-sized-frame functions to encode a few bits of size in the pc.</code></span>
+<span class="codeline" id="line-471"><code>// Caution: ugly multiline assembly macros in your future!</code></span>
+<span class="codeline" id="line-472"><code></code></span>
+<span class="codeline" id="line-473"><code>#define DISPATCH(NAME,MAXSIZE)		\</code></span>
+<span class="codeline" id="line-474"><code>	CMPQ	CX, $MAXSIZE;		\</code></span>
+<span class="codeline" id="line-475"><code>	JA	3(PC);			\</code></span>
+<span class="codeline" id="line-476"><code>	MOVQ	$NAME(SB), AX;		\</code></span>
+<span class="codeline" id="line-477"><code>	JMP	AX</code></span>
+<span class="codeline" id="line-478"><code>// Note: can't just "JMP NAME(SB)" - bad inlining results.</code></span>
+<span class="codeline" id="line-479"><code></code></span>
+<span class="codeline" id="line-480"><code>TEXT ·reflectcall&lt;ABIInternal&gt;(SB), NOSPLIT, $0-32</code></span>
+<span class="codeline" id="line-481"><code>	MOVLQZX argsize+24(FP), CX</code></span>
+<span class="codeline" id="line-482"><code>	DISPATCH(runtime·call16, 16)</code></span>
+<span class="codeline" id="line-483"><code>	DISPATCH(runtime·call32, 32)</code></span>
+<span class="codeline" id="line-484"><code>	DISPATCH(runtime·call64, 64)</code></span>
+<span class="codeline" id="line-485"><code>	DISPATCH(runtime·call128, 128)</code></span>
+<span class="codeline" id="line-486"><code>	DISPATCH(runtime·call256, 256)</code></span>
+<span class="codeline" id="line-487"><code>	DISPATCH(runtime·call512, 512)</code></span>
+<span class="codeline" id="line-488"><code>	DISPATCH(runtime·call1024, 1024)</code></span>
+<span class="codeline" id="line-489"><code>	DISPATCH(runtime·call2048, 2048)</code></span>
+<span class="codeline" id="line-490"><code>	DISPATCH(runtime·call4096, 4096)</code></span>
+<span class="codeline" id="line-491"><code>	DISPATCH(runtime·call8192, 8192)</code></span>
+<span class="codeline" id="line-492"><code>	DISPATCH(runtime·call16384, 16384)</code></span>
+<span class="codeline" id="line-493"><code>	DISPATCH(runtime·call32768, 32768)</code></span>
+<span class="codeline" id="line-494"><code>	DISPATCH(runtime·call65536, 65536)</code></span>
+<span class="codeline" id="line-495"><code>	DISPATCH(runtime·call131072, 131072)</code></span>
+<span class="codeline" id="line-496"><code>	DISPATCH(runtime·call262144, 262144)</code></span>
+<span class="codeline" id="line-497"><code>	DISPATCH(runtime·call524288, 524288)</code></span>
+<span class="codeline" id="line-498"><code>	DISPATCH(runtime·call1048576, 1048576)</code></span>
+<span class="codeline" id="line-499"><code>	DISPATCH(runtime·call2097152, 2097152)</code></span>
+<span class="codeline" id="line-500"><code>	DISPATCH(runtime·call4194304, 4194304)</code></span>
+<span class="codeline" id="line-501"><code>	DISPATCH(runtime·call8388608, 8388608)</code></span>
+<span class="codeline" id="line-502"><code>	DISPATCH(runtime·call16777216, 16777216)</code></span>
+<span class="codeline" id="line-503"><code>	DISPATCH(runtime·call33554432, 33554432)</code></span>
+<span class="codeline" id="line-504"><code>	DISPATCH(runtime·call67108864, 67108864)</code></span>
+<span class="codeline" id="line-505"><code>	DISPATCH(runtime·call134217728, 134217728)</code></span>
+<span class="codeline" id="line-506"><code>	DISPATCH(runtime·call268435456, 268435456)</code></span>
+<span class="codeline" id="line-507"><code>	DISPATCH(runtime·call536870912, 536870912)</code></span>
+<span class="codeline" id="line-508"><code>	DISPATCH(runtime·call1073741824, 1073741824)</code></span>
+<span class="codeline" id="line-509"><code>	MOVQ	$runtime·badreflectcall(SB), AX</code></span>
+<span class="codeline" id="line-510"><code>	JMP	AX</code></span>
+<span class="codeline" id="line-511"><code></code></span>
+<span class="codeline" id="line-512"><code>#define CALLFN(NAME,MAXSIZE)			\</code></span>
+<span class="codeline" id="line-513"><code>TEXT NAME(SB), WRAPPER, $MAXSIZE-32;		\</code></span>
+<span class="codeline" id="line-514"><code>	NO_LOCAL_POINTERS;			\</code></span>
+<span class="codeline" id="line-515"><code>	/* copy arguments to stack */		\</code></span>
+<span class="codeline" id="line-516"><code>	MOVQ	argptr+16(FP), SI;		\</code></span>
+<span class="codeline" id="line-517"><code>	MOVLQZX argsize+24(FP), CX;		\</code></span>
+<span class="codeline" id="line-518"><code>	MOVQ	SP, DI;				\</code></span>
+<span class="codeline" id="line-519"><code>	REP;MOVSB;				\</code></span>
+<span class="codeline" id="line-520"><code>	/* call function */			\</code></span>
+<span class="codeline" id="line-521"><code>	MOVQ	f+8(FP), DX;			\</code></span>
+<span class="codeline" id="line-522"><code>	PCDATA  $PCDATA_StackMapIndex, $0;	\</code></span>
+<span class="codeline" id="line-523"><code>	MOVQ	(DX), AX;			\</code></span>
+<span class="codeline" id="line-524"><code>	CALL	AX;				\</code></span>
+<span class="codeline" id="line-525"><code>	/* copy return values back */		\</code></span>
+<span class="codeline" id="line-526"><code>	MOVQ	argtype+0(FP), DX;		\</code></span>
+<span class="codeline" id="line-527"><code>	MOVQ	argptr+16(FP), DI;		\</code></span>
+<span class="codeline" id="line-528"><code>	MOVLQZX	argsize+24(FP), CX;		\</code></span>
+<span class="codeline" id="line-529"><code>	MOVLQZX	retoffset+28(FP), BX;		\</code></span>
+<span class="codeline" id="line-530"><code>	MOVQ	SP, SI;				\</code></span>
+<span class="codeline" id="line-531"><code>	ADDQ	BX, DI;				\</code></span>
+<span class="codeline" id="line-532"><code>	ADDQ	BX, SI;				\</code></span>
+<span class="codeline" id="line-533"><code>	SUBQ	BX, CX;				\</code></span>
+<span class="codeline" id="line-534"><code>	CALL	callRet&lt;&gt;(SB);			\</code></span>
+<span class="codeline" id="line-535"><code>	RET</code></span>
+<span class="codeline" id="line-536"><code></code></span>
+<span class="codeline" id="line-537"><code>// callRet copies return values back at the end of call*. This is a</code></span>
+<span class="codeline" id="line-538"><code>// separate function so it can allocate stack space for the arguments</code></span>
+<span class="codeline" id="line-539"><code>// to reflectcallmove. It does not follow the Go ABI; it expects its</code></span>
+<span class="codeline" id="line-540"><code>// arguments in registers.</code></span>
+<span class="codeline" id="line-541"><code>TEXT callRet&lt;&gt;(SB), NOSPLIT, $32-0</code></span>
+<span class="codeline" id="line-542"><code>	NO_LOCAL_POINTERS</code></span>
+<span class="codeline" id="line-543"><code>	MOVQ	DX, 0(SP)</code></span>
+<span class="codeline" id="line-544"><code>	MOVQ	DI, 8(SP)</code></span>
+<span class="codeline" id="line-545"><code>	MOVQ	SI, 16(SP)</code></span>
+<span class="codeline" id="line-546"><code>	MOVQ	CX, 24(SP)</code></span>
+<span class="codeline" id="line-547"><code>	CALL	runtime·reflectcallmove(SB)</code></span>
+<span class="codeline" id="line-548"><code>	RET</code></span>
+<span class="codeline" id="line-549"><code></code></span>
+<span class="codeline" id="line-550"><code>CALLFN(·call16, 16)</code></span>
+<span class="codeline" id="line-551"><code>CALLFN(·call32, 32)</code></span>
+<span class="codeline" id="line-552"><code>CALLFN(·call64, 64)</code></span>
+<span class="codeline" id="line-553"><code>CALLFN(·call128, 128)</code></span>
+<span class="codeline" id="line-554"><code>CALLFN(·call256, 256)</code></span>
+<span class="codeline" id="line-555"><code>CALLFN(·call512, 512)</code></span>
+<span class="codeline" id="line-556"><code>CALLFN(·call1024, 1024)</code></span>
+<span class="codeline" id="line-557"><code>CALLFN(·call2048, 2048)</code></span>
+<span class="codeline" id="line-558"><code>CALLFN(·call4096, 4096)</code></span>
+<span class="codeline" id="line-559"><code>CALLFN(·call8192, 8192)</code></span>
+<span class="codeline" id="line-560"><code>CALLFN(·call16384, 16384)</code></span>
+<span class="codeline" id="line-561"><code>CALLFN(·call32768, 32768)</code></span>
+<span class="codeline" id="line-562"><code>CALLFN(·call65536, 65536)</code></span>
+<span class="codeline" id="line-563"><code>CALLFN(·call131072, 131072)</code></span>
+<span class="codeline" id="line-564"><code>CALLFN(·call262144, 262144)</code></span>
+<span class="codeline" id="line-565"><code>CALLFN(·call524288, 524288)</code></span>
+<span class="codeline" id="line-566"><code>CALLFN(·call1048576, 1048576)</code></span>
+<span class="codeline" id="line-567"><code>CALLFN(·call2097152, 2097152)</code></span>
+<span class="codeline" id="line-568"><code>CALLFN(·call4194304, 4194304)</code></span>
+<span class="codeline" id="line-569"><code>CALLFN(·call8388608, 8388608)</code></span>
+<span class="codeline" id="line-570"><code>CALLFN(·call16777216, 16777216)</code></span>
+<span class="codeline" id="line-571"><code>CALLFN(·call33554432, 33554432)</code></span>
+<span class="codeline" id="line-572"><code>CALLFN(·call67108864, 67108864)</code></span>
+<span class="codeline" id="line-573"><code>CALLFN(·call134217728, 134217728)</code></span>
+<span class="codeline" id="line-574"><code>CALLFN(·call268435456, 268435456)</code></span>
+<span class="codeline" id="line-575"><code>CALLFN(·call536870912, 536870912)</code></span>
+<span class="codeline" id="line-576"><code>CALLFN(·call1073741824, 1073741824)</code></span>
+<span class="codeline" id="line-577"><code></code></span>
+<span class="codeline" id="line-578"><code>TEXT runtime·procyield(SB),NOSPLIT,$0-0</code></span>
+<span class="codeline" id="line-579"><code>	MOVL	cycles+0(FP), AX</code></span>
+<span class="codeline" id="line-580"><code>again:</code></span>
+<span class="codeline" id="line-581"><code>	PAUSE</code></span>
+<span class="codeline" id="line-582"><code>	SUBL	$1, AX</code></span>
+<span class="codeline" id="line-583"><code>	JNZ	again</code></span>
+<span class="codeline" id="line-584"><code>	RET</code></span>
+<span class="codeline" id="line-585"><code></code></span>
+<span class="codeline" id="line-586"><code></code></span>
+<span class="codeline" id="line-587"><code>TEXT ·publicationBarrier(SB),NOSPLIT,$0-0</code></span>
+<span class="codeline" id="line-588"><code>	// Stores are already ordered on x86, so this is just a</code></span>
+<span class="codeline" id="line-589"><code>	// compile barrier.</code></span>
+<span class="codeline" id="line-590"><code>	RET</code></span>
+<span class="codeline" id="line-591"><code></code></span>
+<span class="codeline" id="line-592"><code>// func jmpdefer(fv *funcval, argp uintptr)</code></span>
+<span class="codeline" id="line-593"><code>// argp is a caller SP.</code></span>
+<span class="codeline" id="line-594"><code>// called from deferreturn.</code></span>
+<span class="codeline" id="line-595"><code>// 1. pop the caller</code></span>
+<span class="codeline" id="line-596"><code>// 2. sub 5 bytes from the callers return</code></span>
+<span class="codeline" id="line-597"><code>// 3. jmp to the argument</code></span>
+<span class="codeline" id="line-598"><code>TEXT runtime·jmpdefer(SB), NOSPLIT, $0-16</code></span>
+<span class="codeline" id="line-599"><code>	MOVQ	fv+0(FP), DX	// fn</code></span>
+<span class="codeline" id="line-600"><code>	MOVQ	argp+8(FP), BX	// caller sp</code></span>
+<span class="codeline" id="line-601"><code>	LEAQ	-8(BX), SP	// caller sp after CALL</code></span>
+<span class="codeline" id="line-602"><code>	MOVQ	-8(SP), BP	// restore BP as if deferreturn returned (harmless if framepointers not in use)</code></span>
+<span class="codeline" id="line-603"><code>	SUBQ	$5, (SP)	// return to CALL again</code></span>
+<span class="codeline" id="line-604"><code>	MOVQ	0(DX), BX</code></span>
+<span class="codeline" id="line-605"><code>	JMP	BX	// but first run the deferred function</code></span>
+<span class="codeline" id="line-606"><code></code></span>
+<span class="codeline" id="line-607"><code>// Save state of caller into g-&gt;sched. Smashes R8, R9.</code></span>
+<span class="codeline" id="line-608"><code>TEXT gosave&lt;&gt;(SB),NOSPLIT,$0</code></span>
+<span class="codeline" id="line-609"><code>	get_tls(R8)</code></span>
+<span class="codeline" id="line-610"><code>	MOVQ	g(R8), R8</code></span>
+<span class="codeline" id="line-611"><code>	MOVQ	0(SP), R9</code></span>
+<span class="codeline" id="line-612"><code>	MOVQ	R9, (g_sched+gobuf_pc)(R8)</code></span>
+<span class="codeline" id="line-613"><code>	LEAQ	8(SP), R9</code></span>
+<span class="codeline" id="line-614"><code>	MOVQ	R9, (g_sched+gobuf_sp)(R8)</code></span>
+<span class="codeline" id="line-615"><code>	MOVQ	$0, (g_sched+gobuf_ret)(R8)</code></span>
+<span class="codeline" id="line-616"><code>	MOVQ	BP, (g_sched+gobuf_bp)(R8)</code></span>
+<span class="codeline" id="line-617"><code>	// Assert ctxt is zero. See func save.</code></span>
+<span class="codeline" id="line-618"><code>	MOVQ	(g_sched+gobuf_ctxt)(R8), R9</code></span>
+<span class="codeline" id="line-619"><code>	TESTQ	R9, R9</code></span>
+<span class="codeline" id="line-620"><code>	JZ	2(PC)</code></span>
+<span class="codeline" id="line-621"><code>	CALL	runtime·badctxt(SB)</code></span>
+<span class="codeline" id="line-622"><code>	RET</code></span>
+<span class="codeline" id="line-623"><code></code></span>
+<span class="codeline" id="line-624"><code>// func asmcgocall(fn, arg unsafe.Pointer) int32</code></span>
+<span class="codeline" id="line-625"><code>// Call fn(arg) on the scheduler stack,</code></span>
+<span class="codeline" id="line-626"><code>// aligned appropriately for the gcc ABI.</code></span>
+<span class="codeline" id="line-627"><code>// See cgocall.go for more details.</code></span>
+<span class="codeline" id="line-628"><code>TEXT ·asmcgocall(SB),NOSPLIT,$0-20</code></span>
+<span class="codeline" id="line-629"><code>	MOVQ	fn+0(FP), AX</code></span>
+<span class="codeline" id="line-630"><code>	MOVQ	arg+8(FP), BX</code></span>
+<span class="codeline" id="line-631"><code></code></span>
+<span class="codeline" id="line-632"><code>	MOVQ	SP, DX</code></span>
+<span class="codeline" id="line-633"><code></code></span>
+<span class="codeline" id="line-634"><code>	// Figure out if we need to switch to m-&gt;g0 stack.</code></span>
+<span class="codeline" id="line-635"><code>	// We get called to create new OS threads too, and those</code></span>
+<span class="codeline" id="line-636"><code>	// come in on the m-&gt;g0 stack already.</code></span>
+<span class="codeline" id="line-637"><code>	get_tls(CX)</code></span>
+<span class="codeline" id="line-638"><code>	MOVQ	g(CX), R8</code></span>
+<span class="codeline" id="line-639"><code>	CMPQ	R8, $0</code></span>
+<span class="codeline" id="line-640"><code>	JEQ	nosave</code></span>
+<span class="codeline" id="line-641"><code>	MOVQ	g_m(R8), R8</code></span>
+<span class="codeline" id="line-642"><code>	MOVQ	m_g0(R8), SI</code></span>
+<span class="codeline" id="line-643"><code>	MOVQ	g(CX), DI</code></span>
+<span class="codeline" id="line-644"><code>	CMPQ	SI, DI</code></span>
+<span class="codeline" id="line-645"><code>	JEQ	nosave</code></span>
+<span class="codeline" id="line-646"><code>	MOVQ	m_gsignal(R8), SI</code></span>
+<span class="codeline" id="line-647"><code>	CMPQ	SI, DI</code></span>
+<span class="codeline" id="line-648"><code>	JEQ	nosave</code></span>
+<span class="codeline" id="line-649"><code></code></span>
+<span class="codeline" id="line-650"><code>	// Switch to system stack.</code></span>
+<span class="codeline" id="line-651"><code>	MOVQ	m_g0(R8), SI</code></span>
+<span class="codeline" id="line-652"><code>	CALL	gosave&lt;&gt;(SB)</code></span>
+<span class="codeline" id="line-653"><code>	MOVQ	SI, g(CX)</code></span>
+<span class="codeline" id="line-654"><code>	MOVQ	(g_sched+gobuf_sp)(SI), SP</code></span>
+<span class="codeline" id="line-655"><code></code></span>
+<span class="codeline" id="line-656"><code>	// Now on a scheduling stack (a pthread-created stack).</code></span>
+<span class="codeline" id="line-657"><code>	// Make sure we have enough room for 4 stack-backed fast-call</code></span>
+<span class="codeline" id="line-658"><code>	// registers as per windows amd64 calling convention.</code></span>
+<span class="codeline" id="line-659"><code>	SUBQ	$64, SP</code></span>
+<span class="codeline" id="line-660"><code>	ANDQ	$~15, SP	// alignment for gcc ABI</code></span>
+<span class="codeline" id="line-661"><code>	MOVQ	DI, 48(SP)	// save g</code></span>
+<span class="codeline" id="line-662"><code>	MOVQ	(g_stack+stack_hi)(DI), DI</code></span>
+<span class="codeline" id="line-663"><code>	SUBQ	DX, DI</code></span>
+<span class="codeline" id="line-664"><code>	MOVQ	DI, 40(SP)	// save depth in stack (can't just save SP, as stack might be copied during a callback)</code></span>
+<span class="codeline" id="line-665"><code>	MOVQ	BX, DI		// DI = first argument in AMD64 ABI</code></span>
+<span class="codeline" id="line-666"><code>	MOVQ	BX, CX		// CX = first argument in Win64</code></span>
+<span class="codeline" id="line-667"><code>	CALL	AX</code></span>
+<span class="codeline" id="line-668"><code></code></span>
+<span class="codeline" id="line-669"><code>	// Restore registers, g, stack pointer.</code></span>
+<span class="codeline" id="line-670"><code>	get_tls(CX)</code></span>
+<span class="codeline" id="line-671"><code>	MOVQ	48(SP), DI</code></span>
+<span class="codeline" id="line-672"><code>	MOVQ	(g_stack+stack_hi)(DI), SI</code></span>
+<span class="codeline" id="line-673"><code>	SUBQ	40(SP), SI</code></span>
+<span class="codeline" id="line-674"><code>	MOVQ	DI, g(CX)</code></span>
+<span class="codeline" id="line-675"><code>	MOVQ	SI, SP</code></span>
+<span class="codeline" id="line-676"><code></code></span>
+<span class="codeline" id="line-677"><code>	MOVL	AX, ret+16(FP)</code></span>
+<span class="codeline" id="line-678"><code>	RET</code></span>
+<span class="codeline" id="line-679"><code></code></span>
+<span class="codeline" id="line-680"><code>nosave:</code></span>
+<span class="codeline" id="line-681"><code>	// Running on a system stack, perhaps even without a g.</code></span>
+<span class="codeline" id="line-682"><code>	// Having no g can happen during thread creation or thread teardown</code></span>
+<span class="codeline" id="line-683"><code>	// (see needm/dropm on Solaris, for example).</code></span>
+<span class="codeline" id="line-684"><code>	// This code is like the above sequence but without saving/restoring g</code></span>
+<span class="codeline" id="line-685"><code>	// and without worrying about the stack moving out from under us</code></span>
+<span class="codeline" id="line-686"><code>	// (because we're on a system stack, not a goroutine stack).</code></span>
+<span class="codeline" id="line-687"><code>	// The above code could be used directly if already on a system stack,</code></span>
+<span class="codeline" id="line-688"><code>	// but then the only path through this code would be a rare case on Solaris.</code></span>
+<span class="codeline" id="line-689"><code>	// Using this code for all "already on system stack" calls exercises it more,</code></span>
+<span class="codeline" id="line-690"><code>	// which should help keep it correct.</code></span>
+<span class="codeline" id="line-691"><code>	SUBQ	$64, SP</code></span>
+<span class="codeline" id="line-692"><code>	ANDQ	$~15, SP</code></span>
+<span class="codeline" id="line-693"><code>	MOVQ	$0, 48(SP)		// where above code stores g, in case someone looks during debugging</code></span>
+<span class="codeline" id="line-694"><code>	MOVQ	DX, 40(SP)	// save original stack pointer</code></span>
+<span class="codeline" id="line-695"><code>	MOVQ	BX, DI		// DI = first argument in AMD64 ABI</code></span>
+<span class="codeline" id="line-696"><code>	MOVQ	BX, CX		// CX = first argument in Win64</code></span>
+<span class="codeline" id="line-697"><code>	CALL	AX</code></span>
+<span class="codeline" id="line-698"><code>	MOVQ	40(SP), SI	// restore original stack pointer</code></span>
+<span class="codeline" id="line-699"><code>	MOVQ	SI, SP</code></span>
+<span class="codeline" id="line-700"><code>	MOVL	AX, ret+16(FP)</code></span>
+<span class="codeline" id="line-701"><code>	RET</code></span>
+<span class="codeline" id="line-702"><code></code></span>
+<span class="codeline" id="line-703"><code>// func cgocallback(fn, frame unsafe.Pointer, ctxt uintptr)</code></span>
+<span class="codeline" id="line-704"><code>// See cgocall.go for more details.</code></span>
+<span class="codeline" id="line-705"><code>TEXT ·cgocallback(SB),NOSPLIT,$24-24</code></span>
+<span class="codeline" id="line-706"><code>	NO_LOCAL_POINTERS</code></span>
+<span class="codeline" id="line-707"><code></code></span>
+<span class="codeline" id="line-708"><code>	// If g is nil, Go did not create the current thread.</code></span>
+<span class="codeline" id="line-709"><code>	// Call needm to obtain one m for temporary use.</code></span>
+<span class="codeline" id="line-710"><code>	// In this case, we're running on the thread stack, so there's</code></span>
+<span class="codeline" id="line-711"><code>	// lots of space, but the linker doesn't know. Hide the call from</code></span>
+<span class="codeline" id="line-712"><code>	// the linker analysis by using an indirect call through AX.</code></span>
+<span class="codeline" id="line-713"><code>	get_tls(CX)</code></span>
+<span class="codeline" id="line-714"><code>#ifdef GOOS_windows</code></span>
+<span class="codeline" id="line-715"><code>	MOVL	$0, BX</code></span>
+<span class="codeline" id="line-716"><code>	CMPQ	CX, $0</code></span>
+<span class="codeline" id="line-717"><code>	JEQ	2(PC)</code></span>
+<span class="codeline" id="line-718"><code>#endif</code></span>
+<span class="codeline" id="line-719"><code>	MOVQ	g(CX), BX</code></span>
+<span class="codeline" id="line-720"><code>	CMPQ	BX, $0</code></span>
+<span class="codeline" id="line-721"><code>	JEQ	needm</code></span>
+<span class="codeline" id="line-722"><code>	MOVQ	g_m(BX), BX</code></span>
+<span class="codeline" id="line-723"><code>	MOVQ	BX, savedm-8(SP)	// saved copy of oldm</code></span>
+<span class="codeline" id="line-724"><code>	JMP	havem</code></span>
+<span class="codeline" id="line-725"><code>needm:</code></span>
+<span class="codeline" id="line-726"><code>	MOVQ    $runtime·needm(SB), AX</code></span>
+<span class="codeline" id="line-727"><code>	CALL	AX</code></span>
+<span class="codeline" id="line-728"><code>	MOVQ	$0, savedm-8(SP) // dropm on return</code></span>
+<span class="codeline" id="line-729"><code>	get_tls(CX)</code></span>
+<span class="codeline" id="line-730"><code>	MOVQ	g(CX), BX</code></span>
+<span class="codeline" id="line-731"><code>	MOVQ	g_m(BX), BX</code></span>
+<span class="codeline" id="line-732"><code></code></span>
+<span class="codeline" id="line-733"><code>	// Set m-&gt;sched.sp = SP, so that if a panic happens</code></span>
+<span class="codeline" id="line-734"><code>	// during the function we are about to execute, it will</code></span>
+<span class="codeline" id="line-735"><code>	// have a valid SP to run on the g0 stack.</code></span>
+<span class="codeline" id="line-736"><code>	// The next few lines (after the havem label)</code></span>
+<span class="codeline" id="line-737"><code>	// will save this SP onto the stack and then write</code></span>
+<span class="codeline" id="line-738"><code>	// the same SP back to m-&gt;sched.sp. That seems redundant,</code></span>
+<span class="codeline" id="line-739"><code>	// but if an unrecovered panic happens, unwindm will</code></span>
+<span class="codeline" id="line-740"><code>	// restore the g-&gt;sched.sp from the stack location</code></span>
+<span class="codeline" id="line-741"><code>	// and then systemstack will try to use it. If we don't set it here,</code></span>
+<span class="codeline" id="line-742"><code>	// that restored SP will be uninitialized (typically 0) and</code></span>
+<span class="codeline" id="line-743"><code>	// will not be usable.</code></span>
+<span class="codeline" id="line-744"><code>	MOVQ	m_g0(BX), SI</code></span>
+<span class="codeline" id="line-745"><code>	MOVQ	SP, (g_sched+gobuf_sp)(SI)</code></span>
+<span class="codeline" id="line-746"><code></code></span>
+<span class="codeline" id="line-747"><code>havem:</code></span>
+<span class="codeline" id="line-748"><code>	// Now there's a valid m, and we're running on its m-&gt;g0.</code></span>
+<span class="codeline" id="line-749"><code>	// Save current m-&gt;g0-&gt;sched.sp on stack and then set it to SP.</code></span>
+<span class="codeline" id="line-750"><code>	// Save current sp in m-&gt;g0-&gt;sched.sp in preparation for</code></span>
+<span class="codeline" id="line-751"><code>	// switch back to m-&gt;curg stack.</code></span>
+<span class="codeline" id="line-752"><code>	// NOTE: unwindm knows that the saved g-&gt;sched.sp is at 0(SP).</code></span>
+<span class="codeline" id="line-753"><code>	MOVQ	m_g0(BX), SI</code></span>
+<span class="codeline" id="line-754"><code>	MOVQ	(g_sched+gobuf_sp)(SI), AX</code></span>
+<span class="codeline" id="line-755"><code>	MOVQ	AX, 0(SP)</code></span>
+<span class="codeline" id="line-756"><code>	MOVQ	SP, (g_sched+gobuf_sp)(SI)</code></span>
+<span class="codeline" id="line-757"><code></code></span>
+<span class="codeline" id="line-758"><code>	// Switch to m-&gt;curg stack and call runtime.cgocallbackg.</code></span>
+<span class="codeline" id="line-759"><code>	// Because we are taking over the execution of m-&gt;curg</code></span>
+<span class="codeline" id="line-760"><code>	// but *not* resuming what had been running, we need to</code></span>
+<span class="codeline" id="line-761"><code>	// save that information (m-&gt;curg-&gt;sched) so we can restore it.</code></span>
+<span class="codeline" id="line-762"><code>	// We can restore m-&gt;curg-&gt;sched.sp easily, because calling</code></span>
+<span class="codeline" id="line-763"><code>	// runtime.cgocallbackg leaves SP unchanged upon return.</code></span>
+<span class="codeline" id="line-764"><code>	// To save m-&gt;curg-&gt;sched.pc, we push it onto the curg stack and</code></span>
+<span class="codeline" id="line-765"><code>	// open a frame the same size as cgocallback's g0 frame.</code></span>
+<span class="codeline" id="line-766"><code>	// Once we switch to the curg stack, the pushed PC will appear</code></span>
+<span class="codeline" id="line-767"><code>	// to be the return PC of cgocallback, so that the traceback</code></span>
+<span class="codeline" id="line-768"><code>	// will seamlessly trace back into the earlier calls.</code></span>
+<span class="codeline" id="line-769"><code>	MOVQ	m_curg(BX), SI</code></span>
+<span class="codeline" id="line-770"><code>	MOVQ	SI, g(CX)</code></span>
+<span class="codeline" id="line-771"><code>	MOVQ	(g_sched+gobuf_sp)(SI), DI  // prepare stack as DI</code></span>
+<span class="codeline" id="line-772"><code>	MOVQ	(g_sched+gobuf_pc)(SI), BX</code></span>
+<span class="codeline" id="line-773"><code>	MOVQ	BX, -8(DI)  // "push" return PC on the g stack</code></span>
+<span class="codeline" id="line-774"><code>	// Gather our arguments into registers.</code></span>
+<span class="codeline" id="line-775"><code>	MOVQ	fn+0(FP), BX</code></span>
+<span class="codeline" id="line-776"><code>	MOVQ	frame+8(FP), CX</code></span>
+<span class="codeline" id="line-777"><code>	MOVQ	ctxt+16(FP), DX</code></span>
+<span class="codeline" id="line-778"><code>	// Compute the size of the frame, including return PC and, if</code></span>
+<span class="codeline" id="line-779"><code>	// GOEXPERIMENT=framepointer, the saved base pointer</code></span>
+<span class="codeline" id="line-780"><code>	LEAQ	fn+0(FP), AX</code></span>
+<span class="codeline" id="line-781"><code>	SUBQ	SP, AX   // AX is our actual frame size</code></span>
+<span class="codeline" id="line-782"><code>	SUBQ	AX, DI   // Allocate the same frame size on the g stack</code></span>
+<span class="codeline" id="line-783"><code>	MOVQ	DI, SP</code></span>
+<span class="codeline" id="line-784"><code></code></span>
+<span class="codeline" id="line-785"><code>	MOVQ	BX, 0(SP)</code></span>
+<span class="codeline" id="line-786"><code>	MOVQ	CX, 8(SP)</code></span>
+<span class="codeline" id="line-787"><code>	MOVQ	DX, 16(SP)</code></span>
+<span class="codeline" id="line-788"><code>	CALL	runtime·cgocallbackg(SB)</code></span>
+<span class="codeline" id="line-789"><code></code></span>
+<span class="codeline" id="line-790"><code>	// Compute the size of the frame again. FP and SP have</code></span>
+<span class="codeline" id="line-791"><code>	// completely different values here than they did above,</code></span>
+<span class="codeline" id="line-792"><code>	// but only their difference matters.</code></span>
+<span class="codeline" id="line-793"><code>	LEAQ	fn+0(FP), AX</code></span>
+<span class="codeline" id="line-794"><code>	SUBQ	SP, AX</code></span>
+<span class="codeline" id="line-795"><code></code></span>
+<span class="codeline" id="line-796"><code>	// Restore g-&gt;sched (== m-&gt;curg-&gt;sched) from saved values.</code></span>
+<span class="codeline" id="line-797"><code>	get_tls(CX)</code></span>
+<span class="codeline" id="line-798"><code>	MOVQ	g(CX), SI</code></span>
+<span class="codeline" id="line-799"><code>	MOVQ	SP, DI</code></span>
+<span class="codeline" id="line-800"><code>	ADDQ	AX, DI</code></span>
+<span class="codeline" id="line-801"><code>	MOVQ	-8(DI), BX</code></span>
+<span class="codeline" id="line-802"><code>	MOVQ	BX, (g_sched+gobuf_pc)(SI)</code></span>
+<span class="codeline" id="line-803"><code>	MOVQ	DI, (g_sched+gobuf_sp)(SI)</code></span>
+<span class="codeline" id="line-804"><code></code></span>
+<span class="codeline" id="line-805"><code>	// Switch back to m-&gt;g0's stack and restore m-&gt;g0-&gt;sched.sp.</code></span>
+<span class="codeline" id="line-806"><code>	// (Unlike m-&gt;curg, the g0 goroutine never uses sched.pc,</code></span>
+<span class="codeline" id="line-807"><code>	// so we do not have to restore it.)</code></span>
+<span class="codeline" id="line-808"><code>	MOVQ	g(CX), BX</code></span>
+<span class="codeline" id="line-809"><code>	MOVQ	g_m(BX), BX</code></span>
+<span class="codeline" id="line-810"><code>	MOVQ	m_g0(BX), SI</code></span>
+<span class="codeline" id="line-811"><code>	MOVQ	SI, g(CX)</code></span>
+<span class="codeline" id="line-812"><code>	MOVQ	(g_sched+gobuf_sp)(SI), SP</code></span>
+<span class="codeline" id="line-813"><code>	MOVQ	0(SP), AX</code></span>
+<span class="codeline" id="line-814"><code>	MOVQ	AX, (g_sched+gobuf_sp)(SI)</code></span>
+<span class="codeline" id="line-815"><code></code></span>
+<span class="codeline" id="line-816"><code>	// If the m on entry was nil, we called needm above to borrow an m</code></span>
+<span class="codeline" id="line-817"><code>	// for the duration of the call. Since the call is over, return it with dropm.</code></span>
+<span class="codeline" id="line-818"><code>	MOVQ	savedm-8(SP), BX</code></span>
+<span class="codeline" id="line-819"><code>	CMPQ	BX, $0</code></span>
+<span class="codeline" id="line-820"><code>	JNE 3(PC)</code></span>
+<span class="codeline" id="line-821"><code>	MOVQ	$runtime·dropm(SB), AX</code></span>
+<span class="codeline" id="line-822"><code>	CALL	AX</code></span>
+<span class="codeline" id="line-823"><code></code></span>
+<span class="codeline" id="line-824"><code>	// Done!</code></span>
+<span class="codeline" id="line-825"><code>	RET</code></span>
+<span class="codeline" id="line-826"><code></code></span>
+<span class="codeline" id="line-827"><code>// func setg(gg *g)</code></span>
+<span class="codeline" id="line-828"><code>// set g. for use by needm.</code></span>
+<span class="codeline" id="line-829"><code>TEXT runtime·setg(SB), NOSPLIT, $0-8</code></span>
+<span class="codeline" id="line-830"><code>	MOVQ	gg+0(FP), BX</code></span>
+<span class="codeline" id="line-831"><code>#ifdef GOOS_windows</code></span>
+<span class="codeline" id="line-832"><code>	CMPQ	BX, $0</code></span>
+<span class="codeline" id="line-833"><code>	JNE	settls</code></span>
+<span class="codeline" id="line-834"><code>	MOVQ	$0, 0x28(GS)</code></span>
+<span class="codeline" id="line-835"><code>	RET</code></span>
+<span class="codeline" id="line-836"><code>settls:</code></span>
+<span class="codeline" id="line-837"><code>	MOVQ	g_m(BX), AX</code></span>
+<span class="codeline" id="line-838"><code>	LEAQ	m_tls(AX), AX</code></span>
+<span class="codeline" id="line-839"><code>	MOVQ	AX, 0x28(GS)</code></span>
+<span class="codeline" id="line-840"><code>#endif</code></span>
+<span class="codeline" id="line-841"><code>	get_tls(CX)</code></span>
+<span class="codeline" id="line-842"><code>	MOVQ	BX, g(CX)</code></span>
+<span class="codeline" id="line-843"><code>	RET</code></span>
+<span class="codeline" id="line-844"><code></code></span>
+<span class="codeline" id="line-845"><code>// void setg_gcc(G*); set g called from gcc.</code></span>
+<span class="codeline" id="line-846"><code>TEXT setg_gcc&lt;&gt;(SB),NOSPLIT,$0</code></span>
+<span class="codeline" id="line-847"><code>	get_tls(AX)</code></span>
+<span class="codeline" id="line-848"><code>	MOVQ	DI, g(AX)</code></span>
+<span class="codeline" id="line-849"><code>	RET</code></span>
+<span class="codeline" id="line-850"><code></code></span>
+<span class="codeline" id="line-851"><code>TEXT runtime·abort(SB),NOSPLIT,$0-0</code></span>
+<span class="codeline" id="line-852"><code>	INT	$3</code></span>
+<span class="codeline" id="line-853"><code>loop:</code></span>
+<span class="codeline" id="line-854"><code>	JMP	loop</code></span>
+<span class="codeline" id="line-855"><code></code></span>
+<span class="codeline" id="line-856"><code>// check that SP is in range [g-&gt;stack.lo, g-&gt;stack.hi)</code></span>
+<span class="codeline" id="line-857"><code>TEXT runtime·stackcheck(SB), NOSPLIT, $0-0</code></span>
+<span class="codeline" id="line-858"><code>	get_tls(CX)</code></span>
+<span class="codeline" id="line-859"><code>	MOVQ	g(CX), AX</code></span>
+<span class="codeline" id="line-860"><code>	CMPQ	(g_stack+stack_hi)(AX), SP</code></span>
+<span class="codeline" id="line-861"><code>	JHI	2(PC)</code></span>
+<span class="codeline" id="line-862"><code>	CALL	runtime·abort(SB)</code></span>
+<span class="codeline" id="line-863"><code>	CMPQ	SP, (g_stack+stack_lo)(AX)</code></span>
+<span class="codeline" id="line-864"><code>	JHI	2(PC)</code></span>
+<span class="codeline" id="line-865"><code>	CALL	runtime·abort(SB)</code></span>
+<span class="codeline" id="line-866"><code>	RET</code></span>
+<span class="codeline" id="line-867"><code></code></span>
+<span class="codeline" id="line-868"><code>// func cputicks() int64</code></span>
+<span class="codeline" id="line-869"><code>TEXT runtime·cputicks(SB),NOSPLIT,$0-0</code></span>
+<span class="codeline" id="line-870"><code>	CMPB	runtime·lfenceBeforeRdtsc(SB), $1</code></span>
+<span class="codeline" id="line-871"><code>	JNE	mfence</code></span>
+<span class="codeline" id="line-872"><code>	LFENCE</code></span>
+<span class="codeline" id="line-873"><code>	JMP	done</code></span>
+<span class="codeline" id="line-874"><code>mfence:</code></span>
+<span class="codeline" id="line-875"><code>	MFENCE</code></span>
+<span class="codeline" id="line-876"><code>done:</code></span>
+<span class="codeline" id="line-877"><code>	RDTSC</code></span>
+<span class="codeline" id="line-878"><code>	SHLQ	$32, DX</code></span>
+<span class="codeline" id="line-879"><code>	ADDQ	DX, AX</code></span>
+<span class="codeline" id="line-880"><code>	MOVQ	AX, ret+0(FP)</code></span>
+<span class="codeline" id="line-881"><code>	RET</code></span>
+<span class="codeline" id="line-882"><code></code></span>
+<span class="codeline" id="line-883"><code>// func memhash(p unsafe.Pointer, h, s uintptr) uintptr</code></span>
+<span class="codeline" id="line-884"><code>// hash function using AES hardware instructions</code></span>
+<span class="codeline" id="line-885"><code>TEXT runtime·memhash(SB),NOSPLIT,$0-32</code></span>
+<span class="codeline" id="line-886"><code>	CMPB	runtime·useAeshash(SB), $0</code></span>
+<span class="codeline" id="line-887"><code>	JEQ	noaes</code></span>
+<span class="codeline" id="line-888"><code>	MOVQ	p+0(FP), AX	// ptr to data</code></span>
+<span class="codeline" id="line-889"><code>	MOVQ	s+16(FP), CX	// size</code></span>
+<span class="codeline" id="line-890"><code>	LEAQ	ret+24(FP), DX</code></span>
+<span class="codeline" id="line-891"><code>	JMP	aeshashbody&lt;&gt;(SB)</code></span>
+<span class="codeline" id="line-892"><code>noaes:</code></span>
+<span class="codeline" id="line-893"><code>	JMP	runtime·memhashFallback(SB)</code></span>
+<span class="codeline" id="line-894"><code></code></span>
+<span class="codeline" id="line-895"><code>// func strhash(p unsafe.Pointer, h uintptr) uintptr</code></span>
+<span class="codeline" id="line-896"><code>TEXT runtime·strhash(SB),NOSPLIT,$0-24</code></span>
+<span class="codeline" id="line-897"><code>	CMPB	runtime·useAeshash(SB), $0</code></span>
+<span class="codeline" id="line-898"><code>	JEQ	noaes</code></span>
+<span class="codeline" id="line-899"><code>	MOVQ	p+0(FP), AX	// ptr to string struct</code></span>
+<span class="codeline" id="line-900"><code>	MOVQ	8(AX), CX	// length of string</code></span>
+<span class="codeline" id="line-901"><code>	MOVQ	(AX), AX	// string data</code></span>
+<span class="codeline" id="line-902"><code>	LEAQ	ret+16(FP), DX</code></span>
+<span class="codeline" id="line-903"><code>	JMP	aeshashbody&lt;&gt;(SB)</code></span>
+<span class="codeline" id="line-904"><code>noaes:</code></span>
+<span class="codeline" id="line-905"><code>	JMP	runtime·strhashFallback(SB)</code></span>
+<span class="codeline" id="line-906"><code></code></span>
+<span class="codeline" id="line-907"><code>// AX: data</code></span>
+<span class="codeline" id="line-908"><code>// CX: length</code></span>
+<span class="codeline" id="line-909"><code>// DX: address to put return value</code></span>
+<span class="codeline" id="line-910"><code>TEXT aeshashbody&lt;&gt;(SB),NOSPLIT,$0-0</code></span>
+<span class="codeline" id="line-911"><code>	// Fill an SSE register with our seeds.</code></span>
+<span class="codeline" id="line-912"><code>	MOVQ	h+8(FP), X0			// 64 bits of per-table hash seed</code></span>
+<span class="codeline" id="line-913"><code>	PINSRW	$4, CX, X0			// 16 bits of length</code></span>
+<span class="codeline" id="line-914"><code>	PSHUFHW $0, X0, X0			// repeat length 4 times total</code></span>
+<span class="codeline" id="line-915"><code>	MOVO	X0, X1				// save unscrambled seed</code></span>
+<span class="codeline" id="line-916"><code>	PXOR	runtime·aeskeysched(SB), X0	// xor in per-process seed</code></span>
+<span class="codeline" id="line-917"><code>	AESENC	X0, X0				// scramble seed</code></span>
+<span class="codeline" id="line-918"><code></code></span>
+<span class="codeline" id="line-919"><code>	CMPQ	CX, $16</code></span>
+<span class="codeline" id="line-920"><code>	JB	aes0to15</code></span>
+<span class="codeline" id="line-921"><code>	JE	aes16</code></span>
+<span class="codeline" id="line-922"><code>	CMPQ	CX, $32</code></span>
+<span class="codeline" id="line-923"><code>	JBE	aes17to32</code></span>
+<span class="codeline" id="line-924"><code>	CMPQ	CX, $64</code></span>
+<span class="codeline" id="line-925"><code>	JBE	aes33to64</code></span>
+<span class="codeline" id="line-926"><code>	CMPQ	CX, $128</code></span>
+<span class="codeline" id="line-927"><code>	JBE	aes65to128</code></span>
+<span class="codeline" id="line-928"><code>	JMP	aes129plus</code></span>
+<span class="codeline" id="line-929"><code></code></span>
+<span class="codeline" id="line-930"><code>aes0to15:</code></span>
+<span class="codeline" id="line-931"><code>	TESTQ	CX, CX</code></span>
+<span class="codeline" id="line-932"><code>	JE	aes0</code></span>
+<span class="codeline" id="line-933"><code></code></span>
+<span class="codeline" id="line-934"><code>	ADDQ	$16, AX</code></span>
+<span class="codeline" id="line-935"><code>	TESTW	$0xff0, AX</code></span>
+<span class="codeline" id="line-936"><code>	JE	endofpage</code></span>
+<span class="codeline" id="line-937"><code></code></span>
+<span class="codeline" id="line-938"><code>	// 16 bytes loaded at this address won't cross</code></span>
+<span class="codeline" id="line-939"><code>	// a page boundary, so we can load it directly.</code></span>
+<span class="codeline" id="line-940"><code>	MOVOU	-16(AX), X1</code></span>
+<span class="codeline" id="line-941"><code>	ADDQ	CX, CX</code></span>
+<span class="codeline" id="line-942"><code>	MOVQ	$masks&lt;&gt;(SB), AX</code></span>
+<span class="codeline" id="line-943"><code>	PAND	(AX)(CX*8), X1</code></span>
+<span class="codeline" id="line-944"><code>final1:</code></span>
+<span class="codeline" id="line-945"><code>	PXOR	X0, X1	// xor data with seed</code></span>
+<span class="codeline" id="line-946"><code>	AESENC	X1, X1	// scramble combo 3 times</code></span>
+<span class="codeline" id="line-947"><code>	AESENC	X1, X1</code></span>
+<span class="codeline" id="line-948"><code>	AESENC	X1, X1</code></span>
+<span class="codeline" id="line-949"><code>	MOVQ	X1, (DX)</code></span>
+<span class="codeline" id="line-950"><code>	RET</code></span>
+<span class="codeline" id="line-951"><code></code></span>
+<span class="codeline" id="line-952"><code>endofpage:</code></span>
+<span class="codeline" id="line-953"><code>	// address ends in 1111xxxx. Might be up against</code></span>
+<span class="codeline" id="line-954"><code>	// a page boundary, so load ending at last byte.</code></span>
+<span class="codeline" id="line-955"><code>	// Then shift bytes down using pshufb.</code></span>
+<span class="codeline" id="line-956"><code>	MOVOU	-32(AX)(CX*1), X1</code></span>
+<span class="codeline" id="line-957"><code>	ADDQ	CX, CX</code></span>
+<span class="codeline" id="line-958"><code>	MOVQ	$shifts&lt;&gt;(SB), AX</code></span>
+<span class="codeline" id="line-959"><code>	PSHUFB	(AX)(CX*8), X1</code></span>
+<span class="codeline" id="line-960"><code>	JMP	final1</code></span>
+<span class="codeline" id="line-961"><code></code></span>
+<span class="codeline" id="line-962"><code>aes0:</code></span>
+<span class="codeline" id="line-963"><code>	// Return scrambled input seed</code></span>
+<span class="codeline" id="line-964"><code>	AESENC	X0, X0</code></span>
+<span class="codeline" id="line-965"><code>	MOVQ	X0, (DX)</code></span>
+<span class="codeline" id="line-966"><code>	RET</code></span>
+<span class="codeline" id="line-967"><code></code></span>
+<span class="codeline" id="line-968"><code>aes16:</code></span>
+<span class="codeline" id="line-969"><code>	MOVOU	(AX), X1</code></span>
+<span class="codeline" id="line-970"><code>	JMP	final1</code></span>
+<span class="codeline" id="line-971"><code></code></span>
+<span class="codeline" id="line-972"><code>aes17to32:</code></span>
+<span class="codeline" id="line-973"><code>	// make second starting seed</code></span>
+<span class="codeline" id="line-974"><code>	PXOR	runtime·aeskeysched+16(SB), X1</code></span>
+<span class="codeline" id="line-975"><code>	AESENC	X1, X1</code></span>
+<span class="codeline" id="line-976"><code></code></span>
+<span class="codeline" id="line-977"><code>	// load data to be hashed</code></span>
+<span class="codeline" id="line-978"><code>	MOVOU	(AX), X2</code></span>
+<span class="codeline" id="line-979"><code>	MOVOU	-16(AX)(CX*1), X3</code></span>
+<span class="codeline" id="line-980"><code></code></span>
+<span class="codeline" id="line-981"><code>	// xor with seed</code></span>
+<span class="codeline" id="line-982"><code>	PXOR	X0, X2</code></span>
+<span class="codeline" id="line-983"><code>	PXOR	X1, X3</code></span>
+<span class="codeline" id="line-984"><code></code></span>
+<span class="codeline" id="line-985"><code>	// scramble 3 times</code></span>
+<span class="codeline" id="line-986"><code>	AESENC	X2, X2</code></span>
+<span class="codeline" id="line-987"><code>	AESENC	X3, X3</code></span>
+<span class="codeline" id="line-988"><code>	AESENC	X2, X2</code></span>
+<span class="codeline" id="line-989"><code>	AESENC	X3, X3</code></span>
+<span class="codeline" id="line-990"><code>	AESENC	X2, X2</code></span>
+<span class="codeline" id="line-991"><code>	AESENC	X3, X3</code></span>
+<span class="codeline" id="line-992"><code></code></span>
+<span class="codeline" id="line-993"><code>	// combine results</code></span>
+<span class="codeline" id="line-994"><code>	PXOR	X3, X2</code></span>
+<span class="codeline" id="line-995"><code>	MOVQ	X2, (DX)</code></span>
+<span class="codeline" id="line-996"><code>	RET</code></span>
+<span class="codeline" id="line-997"><code></code></span>
+<span class="codeline" id="line-998"><code>aes33to64:</code></span>
+<span class="codeline" id="line-999"><code>	// make 3 more starting seeds</code></span>
+<span class="codeline" id="line-1000"><code>	MOVO	X1, X2</code></span>
+<span class="codeline" id="line-1001"><code>	MOVO	X1, X3</code></span>
+<span class="codeline" id="line-1002"><code>	PXOR	runtime·aeskeysched+16(SB), X1</code></span>
+<span class="codeline" id="line-1003"><code>	PXOR	runtime·aeskeysched+32(SB), X2</code></span>
+<span class="codeline" id="line-1004"><code>	PXOR	runtime·aeskeysched+48(SB), X3</code></span>
+<span class="codeline" id="line-1005"><code>	AESENC	X1, X1</code></span>
+<span class="codeline" id="line-1006"><code>	AESENC	X2, X2</code></span>
+<span class="codeline" id="line-1007"><code>	AESENC	X3, X3</code></span>
+<span class="codeline" id="line-1008"><code></code></span>
+<span class="codeline" id="line-1009"><code>	MOVOU	(AX), X4</code></span>
+<span class="codeline" id="line-1010"><code>	MOVOU	16(AX), X5</code></span>
+<span class="codeline" id="line-1011"><code>	MOVOU	-32(AX)(CX*1), X6</code></span>
+<span class="codeline" id="line-1012"><code>	MOVOU	-16(AX)(CX*1), X7</code></span>
+<span class="codeline" id="line-1013"><code></code></span>
+<span class="codeline" id="line-1014"><code>	PXOR	X0, X4</code></span>
+<span class="codeline" id="line-1015"><code>	PXOR	X1, X5</code></span>
+<span class="codeline" id="line-1016"><code>	PXOR	X2, X6</code></span>
+<span class="codeline" id="line-1017"><code>	PXOR	X3, X7</code></span>
+<span class="codeline" id="line-1018"><code></code></span>
+<span class="codeline" id="line-1019"><code>	AESENC	X4, X4</code></span>
+<span class="codeline" id="line-1020"><code>	AESENC	X5, X5</code></span>
+<span class="codeline" id="line-1021"><code>	AESENC	X6, X6</code></span>
+<span class="codeline" id="line-1022"><code>	AESENC	X7, X7</code></span>
+<span class="codeline" id="line-1023"><code></code></span>
+<span class="codeline" id="line-1024"><code>	AESENC	X4, X4</code></span>
+<span class="codeline" id="line-1025"><code>	AESENC	X5, X5</code></span>
+<span class="codeline" id="line-1026"><code>	AESENC	X6, X6</code></span>
+<span class="codeline" id="line-1027"><code>	AESENC	X7, X7</code></span>
+<span class="codeline" id="line-1028"><code></code></span>
+<span class="codeline" id="line-1029"><code>	AESENC	X4, X4</code></span>
+<span class="codeline" id="line-1030"><code>	AESENC	X5, X5</code></span>
+<span class="codeline" id="line-1031"><code>	AESENC	X6, X6</code></span>
+<span class="codeline" id="line-1032"><code>	AESENC	X7, X7</code></span>
+<span class="codeline" id="line-1033"><code></code></span>
+<span class="codeline" id="line-1034"><code>	PXOR	X6, X4</code></span>
+<span class="codeline" id="line-1035"><code>	PXOR	X7, X5</code></span>
+<span class="codeline" id="line-1036"><code>	PXOR	X5, X4</code></span>
+<span class="codeline" id="line-1037"><code>	MOVQ	X4, (DX)</code></span>
+<span class="codeline" id="line-1038"><code>	RET</code></span>
+<span class="codeline" id="line-1039"><code></code></span>
+<span class="codeline" id="line-1040"><code>aes65to128:</code></span>
+<span class="codeline" id="line-1041"><code>	// make 7 more starting seeds</code></span>
+<span class="codeline" id="line-1042"><code>	MOVO	X1, X2</code></span>
+<span class="codeline" id="line-1043"><code>	MOVO	X1, X3</code></span>
+<span class="codeline" id="line-1044"><code>	MOVO	X1, X4</code></span>
+<span class="codeline" id="line-1045"><code>	MOVO	X1, X5</code></span>
+<span class="codeline" id="line-1046"><code>	MOVO	X1, X6</code></span>
+<span class="codeline" id="line-1047"><code>	MOVO	X1, X7</code></span>
+<span class="codeline" id="line-1048"><code>	PXOR	runtime·aeskeysched+16(SB), X1</code></span>
+<span class="codeline" id="line-1049"><code>	PXOR	runtime·aeskeysched+32(SB), X2</code></span>
+<span class="codeline" id="line-1050"><code>	PXOR	runtime·aeskeysched+48(SB), X3</code></span>
+<span class="codeline" id="line-1051"><code>	PXOR	runtime·aeskeysched+64(SB), X4</code></span>
+<span class="codeline" id="line-1052"><code>	PXOR	runtime·aeskeysched+80(SB), X5</code></span>
+<span class="codeline" id="line-1053"><code>	PXOR	runtime·aeskeysched+96(SB), X6</code></span>
+<span class="codeline" id="line-1054"><code>	PXOR	runtime·aeskeysched+112(SB), X7</code></span>
+<span class="codeline" id="line-1055"><code>	AESENC	X1, X1</code></span>
+<span class="codeline" id="line-1056"><code>	AESENC	X2, X2</code></span>
+<span class="codeline" id="line-1057"><code>	AESENC	X3, X3</code></span>
+<span class="codeline" id="line-1058"><code>	AESENC	X4, X4</code></span>
+<span class="codeline" id="line-1059"><code>	AESENC	X5, X5</code></span>
+<span class="codeline" id="line-1060"><code>	AESENC	X6, X6</code></span>
+<span class="codeline" id="line-1061"><code>	AESENC	X7, X7</code></span>
+<span class="codeline" id="line-1062"><code></code></span>
+<span class="codeline" id="line-1063"><code>	// load data</code></span>
+<span class="codeline" id="line-1064"><code>	MOVOU	(AX), X8</code></span>
+<span class="codeline" id="line-1065"><code>	MOVOU	16(AX), X9</code></span>
+<span class="codeline" id="line-1066"><code>	MOVOU	32(AX), X10</code></span>
+<span class="codeline" id="line-1067"><code>	MOVOU	48(AX), X11</code></span>
+<span class="codeline" id="line-1068"><code>	MOVOU	-64(AX)(CX*1), X12</code></span>
+<span class="codeline" id="line-1069"><code>	MOVOU	-48(AX)(CX*1), X13</code></span>
+<span class="codeline" id="line-1070"><code>	MOVOU	-32(AX)(CX*1), X14</code></span>
+<span class="codeline" id="line-1071"><code>	MOVOU	-16(AX)(CX*1), X15</code></span>
+<span class="codeline" id="line-1072"><code></code></span>
+<span class="codeline" id="line-1073"><code>	// xor with seed</code></span>
+<span class="codeline" id="line-1074"><code>	PXOR	X0, X8</code></span>
+<span class="codeline" id="line-1075"><code>	PXOR	X1, X9</code></span>
+<span class="codeline" id="line-1076"><code>	PXOR	X2, X10</code></span>
+<span class="codeline" id="line-1077"><code>	PXOR	X3, X11</code></span>
+<span class="codeline" id="line-1078"><code>	PXOR	X4, X12</code></span>
+<span class="codeline" id="line-1079"><code>	PXOR	X5, X13</code></span>
+<span class="codeline" id="line-1080"><code>	PXOR	X6, X14</code></span>
+<span class="codeline" id="line-1081"><code>	PXOR	X7, X15</code></span>
+<span class="codeline" id="line-1082"><code></code></span>
+<span class="codeline" id="line-1083"><code>	// scramble 3 times</code></span>
+<span class="codeline" id="line-1084"><code>	AESENC	X8, X8</code></span>
+<span class="codeline" id="line-1085"><code>	AESENC	X9, X9</code></span>
+<span class="codeline" id="line-1086"><code>	AESENC	X10, X10</code></span>
+<span class="codeline" id="line-1087"><code>	AESENC	X11, X11</code></span>
+<span class="codeline" id="line-1088"><code>	AESENC	X12, X12</code></span>
+<span class="codeline" id="line-1089"><code>	AESENC	X13, X13</code></span>
+<span class="codeline" id="line-1090"><code>	AESENC	X14, X14</code></span>
+<span class="codeline" id="line-1091"><code>	AESENC	X15, X15</code></span>
+<span class="codeline" id="line-1092"><code></code></span>
+<span class="codeline" id="line-1093"><code>	AESENC	X8, X8</code></span>
+<span class="codeline" id="line-1094"><code>	AESENC	X9, X9</code></span>
+<span class="codeline" id="line-1095"><code>	AESENC	X10, X10</code></span>
+<span class="codeline" id="line-1096"><code>	AESENC	X11, X11</code></span>
+<span class="codeline" id="line-1097"><code>	AESENC	X12, X12</code></span>
+<span class="codeline" id="line-1098"><code>	AESENC	X13, X13</code></span>
+<span class="codeline" id="line-1099"><code>	AESENC	X14, X14</code></span>
+<span class="codeline" id="line-1100"><code>	AESENC	X15, X15</code></span>
+<span class="codeline" id="line-1101"><code></code></span>
+<span class="codeline" id="line-1102"><code>	AESENC	X8, X8</code></span>
+<span class="codeline" id="line-1103"><code>	AESENC	X9, X9</code></span>
+<span class="codeline" id="line-1104"><code>	AESENC	X10, X10</code></span>
+<span class="codeline" id="line-1105"><code>	AESENC	X11, X11</code></span>
+<span class="codeline" id="line-1106"><code>	AESENC	X12, X12</code></span>
+<span class="codeline" id="line-1107"><code>	AESENC	X13, X13</code></span>
+<span class="codeline" id="line-1108"><code>	AESENC	X14, X14</code></span>
+<span class="codeline" id="line-1109"><code>	AESENC	X15, X15</code></span>
+<span class="codeline" id="line-1110"><code></code></span>
+<span class="codeline" id="line-1111"><code>	// combine results</code></span>
+<span class="codeline" id="line-1112"><code>	PXOR	X12, X8</code></span>
+<span class="codeline" id="line-1113"><code>	PXOR	X13, X9</code></span>
+<span class="codeline" id="line-1114"><code>	PXOR	X14, X10</code></span>
+<span class="codeline" id="line-1115"><code>	PXOR	X15, X11</code></span>
+<span class="codeline" id="line-1116"><code>	PXOR	X10, X8</code></span>
+<span class="codeline" id="line-1117"><code>	PXOR	X11, X9</code></span>
+<span class="codeline" id="line-1118"><code>	PXOR	X9, X8</code></span>
+<span class="codeline" id="line-1119"><code>	MOVQ	X8, (DX)</code></span>
+<span class="codeline" id="line-1120"><code>	RET</code></span>
+<span class="codeline" id="line-1121"><code></code></span>
+<span class="codeline" id="line-1122"><code>aes129plus:</code></span>
+<span class="codeline" id="line-1123"><code>	// make 7 more starting seeds</code></span>
+<span class="codeline" id="line-1124"><code>	MOVO	X1, X2</code></span>
+<span class="codeline" id="line-1125"><code>	MOVO	X1, X3</code></span>
+<span class="codeline" id="line-1126"><code>	MOVO	X1, X4</code></span>
+<span class="codeline" id="line-1127"><code>	MOVO	X1, X5</code></span>
+<span class="codeline" id="line-1128"><code>	MOVO	X1, X6</code></span>
+<span class="codeline" id="line-1129"><code>	MOVO	X1, X7</code></span>
+<span class="codeline" id="line-1130"><code>	PXOR	runtime·aeskeysched+16(SB), X1</code></span>
+<span class="codeline" id="line-1131"><code>	PXOR	runtime·aeskeysched+32(SB), X2</code></span>
+<span class="codeline" id="line-1132"><code>	PXOR	runtime·aeskeysched+48(SB), X3</code></span>
+<span class="codeline" id="line-1133"><code>	PXOR	runtime·aeskeysched+64(SB), X4</code></span>
+<span class="codeline" id="line-1134"><code>	PXOR	runtime·aeskeysched+80(SB), X5</code></span>
+<span class="codeline" id="line-1135"><code>	PXOR	runtime·aeskeysched+96(SB), X6</code></span>
+<span class="codeline" id="line-1136"><code>	PXOR	runtime·aeskeysched+112(SB), X7</code></span>
+<span class="codeline" id="line-1137"><code>	AESENC	X1, X1</code></span>
+<span class="codeline" id="line-1138"><code>	AESENC	X2, X2</code></span>
+<span class="codeline" id="line-1139"><code>	AESENC	X3, X3</code></span>
+<span class="codeline" id="line-1140"><code>	AESENC	X4, X4</code></span>
+<span class="codeline" id="line-1141"><code>	AESENC	X5, X5</code></span>
+<span class="codeline" id="line-1142"><code>	AESENC	X6, X6</code></span>
+<span class="codeline" id="line-1143"><code>	AESENC	X7, X7</code></span>
+<span class="codeline" id="line-1144"><code></code></span>
+<span class="codeline" id="line-1145"><code>	// start with last (possibly overlapping) block</code></span>
+<span class="codeline" id="line-1146"><code>	MOVOU	-128(AX)(CX*1), X8</code></span>
+<span class="codeline" id="line-1147"><code>	MOVOU	-112(AX)(CX*1), X9</code></span>
+<span class="codeline" id="line-1148"><code>	MOVOU	-96(AX)(CX*1), X10</code></span>
+<span class="codeline" id="line-1149"><code>	MOVOU	-80(AX)(CX*1), X11</code></span>
+<span class="codeline" id="line-1150"><code>	MOVOU	-64(AX)(CX*1), X12</code></span>
+<span class="codeline" id="line-1151"><code>	MOVOU	-48(AX)(CX*1), X13</code></span>
+<span class="codeline" id="line-1152"><code>	MOVOU	-32(AX)(CX*1), X14</code></span>
+<span class="codeline" id="line-1153"><code>	MOVOU	-16(AX)(CX*1), X15</code></span>
+<span class="codeline" id="line-1154"><code></code></span>
+<span class="codeline" id="line-1155"><code>	// xor in seed</code></span>
+<span class="codeline" id="line-1156"><code>	PXOR	X0, X8</code></span>
+<span class="codeline" id="line-1157"><code>	PXOR	X1, X9</code></span>
+<span class="codeline" id="line-1158"><code>	PXOR	X2, X10</code></span>
+<span class="codeline" id="line-1159"><code>	PXOR	X3, X11</code></span>
+<span class="codeline" id="line-1160"><code>	PXOR	X4, X12</code></span>
+<span class="codeline" id="line-1161"><code>	PXOR	X5, X13</code></span>
+<span class="codeline" id="line-1162"><code>	PXOR	X6, X14</code></span>
+<span class="codeline" id="line-1163"><code>	PXOR	X7, X15</code></span>
+<span class="codeline" id="line-1164"><code></code></span>
+<span class="codeline" id="line-1165"><code>	// compute number of remaining 128-byte blocks</code></span>
+<span class="codeline" id="line-1166"><code>	DECQ	CX</code></span>
+<span class="codeline" id="line-1167"><code>	SHRQ	$7, CX</code></span>
+<span class="codeline" id="line-1168"><code></code></span>
+<span class="codeline" id="line-1169"><code>aesloop:</code></span>
+<span class="codeline" id="line-1170"><code>	// scramble state</code></span>
+<span class="codeline" id="line-1171"><code>	AESENC	X8, X8</code></span>
+<span class="codeline" id="line-1172"><code>	AESENC	X9, X9</code></span>
+<span class="codeline" id="line-1173"><code>	AESENC	X10, X10</code></span>
+<span class="codeline" id="line-1174"><code>	AESENC	X11, X11</code></span>
+<span class="codeline" id="line-1175"><code>	AESENC	X12, X12</code></span>
+<span class="codeline" id="line-1176"><code>	AESENC	X13, X13</code></span>
+<span class="codeline" id="line-1177"><code>	AESENC	X14, X14</code></span>
+<span class="codeline" id="line-1178"><code>	AESENC	X15, X15</code></span>
+<span class="codeline" id="line-1179"><code></code></span>
+<span class="codeline" id="line-1180"><code>	// scramble state, xor in a block</code></span>
+<span class="codeline" id="line-1181"><code>	MOVOU	(AX), X0</code></span>
+<span class="codeline" id="line-1182"><code>	MOVOU	16(AX), X1</code></span>
+<span class="codeline" id="line-1183"><code>	MOVOU	32(AX), X2</code></span>
+<span class="codeline" id="line-1184"><code>	MOVOU	48(AX), X3</code></span>
+<span class="codeline" id="line-1185"><code>	AESENC	X0, X8</code></span>
+<span class="codeline" id="line-1186"><code>	AESENC	X1, X9</code></span>
+<span class="codeline" id="line-1187"><code>	AESENC	X2, X10</code></span>
+<span class="codeline" id="line-1188"><code>	AESENC	X3, X11</code></span>
+<span class="codeline" id="line-1189"><code>	MOVOU	64(AX), X4</code></span>
+<span class="codeline" id="line-1190"><code>	MOVOU	80(AX), X5</code></span>
+<span class="codeline" id="line-1191"><code>	MOVOU	96(AX), X6</code></span>
+<span class="codeline" id="line-1192"><code>	MOVOU	112(AX), X7</code></span>
+<span class="codeline" id="line-1193"><code>	AESENC	X4, X12</code></span>
+<span class="codeline" id="line-1194"><code>	AESENC	X5, X13</code></span>
+<span class="codeline" id="line-1195"><code>	AESENC	X6, X14</code></span>
+<span class="codeline" id="line-1196"><code>	AESENC	X7, X15</code></span>
+<span class="codeline" id="line-1197"><code></code></span>
+<span class="codeline" id="line-1198"><code>	ADDQ	$128, AX</code></span>
+<span class="codeline" id="line-1199"><code>	DECQ	CX</code></span>
+<span class="codeline" id="line-1200"><code>	JNE	aesloop</code></span>
+<span class="codeline" id="line-1201"><code></code></span>
+<span class="codeline" id="line-1202"><code>	// 3 more scrambles to finish</code></span>
+<span class="codeline" id="line-1203"><code>	AESENC	X8, X8</code></span>
+<span class="codeline" id="line-1204"><code>	AESENC	X9, X9</code></span>
+<span class="codeline" id="line-1205"><code>	AESENC	X10, X10</code></span>
+<span class="codeline" id="line-1206"><code>	AESENC	X11, X11</code></span>
+<span class="codeline" id="line-1207"><code>	AESENC	X12, X12</code></span>
+<span class="codeline" id="line-1208"><code>	AESENC	X13, X13</code></span>
+<span class="codeline" id="line-1209"><code>	AESENC	X14, X14</code></span>
+<span class="codeline" id="line-1210"><code>	AESENC	X15, X15</code></span>
+<span class="codeline" id="line-1211"><code>	AESENC	X8, X8</code></span>
+<span class="codeline" id="line-1212"><code>	AESENC	X9, X9</code></span>
+<span class="codeline" id="line-1213"><code>	AESENC	X10, X10</code></span>
+<span class="codeline" id="line-1214"><code>	AESENC	X11, X11</code></span>
+<span class="codeline" id="line-1215"><code>	AESENC	X12, X12</code></span>
+<span class="codeline" id="line-1216"><code>	AESENC	X13, X13</code></span>
+<span class="codeline" id="line-1217"><code>	AESENC	X14, X14</code></span>
+<span class="codeline" id="line-1218"><code>	AESENC	X15, X15</code></span>
+<span class="codeline" id="line-1219"><code>	AESENC	X8, X8</code></span>
+<span class="codeline" id="line-1220"><code>	AESENC	X9, X9</code></span>
+<span class="codeline" id="line-1221"><code>	AESENC	X10, X10</code></span>
+<span class="codeline" id="line-1222"><code>	AESENC	X11, X11</code></span>
+<span class="codeline" id="line-1223"><code>	AESENC	X12, X12</code></span>
+<span class="codeline" id="line-1224"><code>	AESENC	X13, X13</code></span>
+<span class="codeline" id="line-1225"><code>	AESENC	X14, X14</code></span>
+<span class="codeline" id="line-1226"><code>	AESENC	X15, X15</code></span>
+<span class="codeline" id="line-1227"><code></code></span>
+<span class="codeline" id="line-1228"><code>	PXOR	X12, X8</code></span>
+<span class="codeline" id="line-1229"><code>	PXOR	X13, X9</code></span>
+<span class="codeline" id="line-1230"><code>	PXOR	X14, X10</code></span>
+<span class="codeline" id="line-1231"><code>	PXOR	X15, X11</code></span>
+<span class="codeline" id="line-1232"><code>	PXOR	X10, X8</code></span>
+<span class="codeline" id="line-1233"><code>	PXOR	X11, X9</code></span>
+<span class="codeline" id="line-1234"><code>	PXOR	X9, X8</code></span>
+<span class="codeline" id="line-1235"><code>	MOVQ	X8, (DX)</code></span>
+<span class="codeline" id="line-1236"><code>	RET</code></span>
+<span class="codeline" id="line-1237"><code></code></span>
+<span class="codeline" id="line-1238"><code>// func memhash32(p unsafe.Pointer, h uintptr) uintptr</code></span>
+<span class="codeline" id="line-1239"><code>TEXT runtime·memhash32(SB),NOSPLIT,$0-24</code></span>
+<span class="codeline" id="line-1240"><code>	CMPB	runtime·useAeshash(SB), $0</code></span>
+<span class="codeline" id="line-1241"><code>	JEQ	noaes</code></span>
+<span class="codeline" id="line-1242"><code>	MOVQ	p+0(FP), AX	// ptr to data</code></span>
+<span class="codeline" id="line-1243"><code>	MOVQ	h+8(FP), X0	// seed</code></span>
+<span class="codeline" id="line-1244"><code>	PINSRD	$2, (AX), X0	// data</code></span>
+<span class="codeline" id="line-1245"><code>	AESENC	runtime·aeskeysched+0(SB), X0</code></span>
+<span class="codeline" id="line-1246"><code>	AESENC	runtime·aeskeysched+16(SB), X0</code></span>
+<span class="codeline" id="line-1247"><code>	AESENC	runtime·aeskeysched+32(SB), X0</code></span>
+<span class="codeline" id="line-1248"><code>	MOVQ	X0, ret+16(FP)</code></span>
+<span class="codeline" id="line-1249"><code>	RET</code></span>
+<span class="codeline" id="line-1250"><code>noaes:</code></span>
+<span class="codeline" id="line-1251"><code>	JMP	runtime·memhash32Fallback(SB)</code></span>
+<span class="codeline" id="line-1252"><code></code></span>
+<span class="codeline" id="line-1253"><code>// func memhash64(p unsafe.Pointer, h uintptr) uintptr</code></span>
+<span class="codeline" id="line-1254"><code>TEXT runtime·memhash64(SB),NOSPLIT,$0-24</code></span>
+<span class="codeline" id="line-1255"><code>	CMPB	runtime·useAeshash(SB), $0</code></span>
+<span class="codeline" id="line-1256"><code>	JEQ	noaes</code></span>
+<span class="codeline" id="line-1257"><code>	MOVQ	p+0(FP), AX	// ptr to data</code></span>
+<span class="codeline" id="line-1258"><code>	MOVQ	h+8(FP), X0	// seed</code></span>
+<span class="codeline" id="line-1259"><code>	PINSRQ	$1, (AX), X0	// data</code></span>
+<span class="codeline" id="line-1260"><code>	AESENC	runtime·aeskeysched+0(SB), X0</code></span>
+<span class="codeline" id="line-1261"><code>	AESENC	runtime·aeskeysched+16(SB), X0</code></span>
+<span class="codeline" id="line-1262"><code>	AESENC	runtime·aeskeysched+32(SB), X0</code></span>
+<span class="codeline" id="line-1263"><code>	MOVQ	X0, ret+16(FP)</code></span>
+<span class="codeline" id="line-1264"><code>	RET</code></span>
+<span class="codeline" id="line-1265"><code>noaes:</code></span>
+<span class="codeline" id="line-1266"><code>	JMP	runtime·memhash64Fallback(SB)</code></span>
+<span class="codeline" id="line-1267"><code></code></span>
+<span class="codeline" id="line-1268"><code>// simple mask to get rid of data in the high part of the register.</code></span>
+<span class="codeline" id="line-1269"><code>DATA masks&lt;&gt;+0x00(SB)/8, $0x0000000000000000</code></span>
+<span class="codeline" id="line-1270"><code>DATA masks&lt;&gt;+0x08(SB)/8, $0x0000000000000000</code></span>
+<span class="codeline" id="line-1271"><code>DATA masks&lt;&gt;+0x10(SB)/8, $0x00000000000000ff</code></span>
+<span class="codeline" id="line-1272"><code>DATA masks&lt;&gt;+0x18(SB)/8, $0x0000000000000000</code></span>
+<span class="codeline" id="line-1273"><code>DATA masks&lt;&gt;+0x20(SB)/8, $0x000000000000ffff</code></span>
+<span class="codeline" id="line-1274"><code>DATA masks&lt;&gt;+0x28(SB)/8, $0x0000000000000000</code></span>
+<span class="codeline" id="line-1275"><code>DATA masks&lt;&gt;+0x30(SB)/8, $0x0000000000ffffff</code></span>
+<span class="codeline" id="line-1276"><code>DATA masks&lt;&gt;+0x38(SB)/8, $0x0000000000000000</code></span>
+<span class="codeline" id="line-1277"><code>DATA masks&lt;&gt;+0x40(SB)/8, $0x00000000ffffffff</code></span>
+<span class="codeline" id="line-1278"><code>DATA masks&lt;&gt;+0x48(SB)/8, $0x0000000000000000</code></span>
+<span class="codeline" id="line-1279"><code>DATA masks&lt;&gt;+0x50(SB)/8, $0x000000ffffffffff</code></span>
+<span class="codeline" id="line-1280"><code>DATA masks&lt;&gt;+0x58(SB)/8, $0x0000000000000000</code></span>
+<span class="codeline" id="line-1281"><code>DATA masks&lt;&gt;+0x60(SB)/8, $0x0000ffffffffffff</code></span>
+<span class="codeline" id="line-1282"><code>DATA masks&lt;&gt;+0x68(SB)/8, $0x0000000000000000</code></span>
+<span class="codeline" id="line-1283"><code>DATA masks&lt;&gt;+0x70(SB)/8, $0x00ffffffffffffff</code></span>
+<span class="codeline" id="line-1284"><code>DATA masks&lt;&gt;+0x78(SB)/8, $0x0000000000000000</code></span>
+<span class="codeline" id="line-1285"><code>DATA masks&lt;&gt;+0x80(SB)/8, $0xffffffffffffffff</code></span>
+<span class="codeline" id="line-1286"><code>DATA masks&lt;&gt;+0x88(SB)/8, $0x0000000000000000</code></span>
+<span class="codeline" id="line-1287"><code>DATA masks&lt;&gt;+0x90(SB)/8, $0xffffffffffffffff</code></span>
+<span class="codeline" id="line-1288"><code>DATA masks&lt;&gt;+0x98(SB)/8, $0x00000000000000ff</code></span>
+<span class="codeline" id="line-1289"><code>DATA masks&lt;&gt;+0xa0(SB)/8, $0xffffffffffffffff</code></span>
+<span class="codeline" id="line-1290"><code>DATA masks&lt;&gt;+0xa8(SB)/8, $0x000000000000ffff</code></span>
+<span class="codeline" id="line-1291"><code>DATA masks&lt;&gt;+0xb0(SB)/8, $0xffffffffffffffff</code></span>
+<span class="codeline" id="line-1292"><code>DATA masks&lt;&gt;+0xb8(SB)/8, $0x0000000000ffffff</code></span>
+<span class="codeline" id="line-1293"><code>DATA masks&lt;&gt;+0xc0(SB)/8, $0xffffffffffffffff</code></span>
+<span class="codeline" id="line-1294"><code>DATA masks&lt;&gt;+0xc8(SB)/8, $0x00000000ffffffff</code></span>
+<span class="codeline" id="line-1295"><code>DATA masks&lt;&gt;+0xd0(SB)/8, $0xffffffffffffffff</code></span>
+<span class="codeline" id="line-1296"><code>DATA masks&lt;&gt;+0xd8(SB)/8, $0x000000ffffffffff</code></span>
+<span class="codeline" id="line-1297"><code>DATA masks&lt;&gt;+0xe0(SB)/8, $0xffffffffffffffff</code></span>
+<span class="codeline" id="line-1298"><code>DATA masks&lt;&gt;+0xe8(SB)/8, $0x0000ffffffffffff</code></span>
+<span class="codeline" id="line-1299"><code>DATA masks&lt;&gt;+0xf0(SB)/8, $0xffffffffffffffff</code></span>
+<span class="codeline" id="line-1300"><code>DATA masks&lt;&gt;+0xf8(SB)/8, $0x00ffffffffffffff</code></span>
+<span class="codeline" id="line-1301"><code>GLOBL masks&lt;&gt;(SB),RODATA,$256</code></span>
+<span class="codeline" id="line-1302"><code></code></span>
+<span class="codeline" id="line-1303"><code>// func checkASM() bool</code></span>
+<span class="codeline" id="line-1304"><code>TEXT ·checkASM(SB),NOSPLIT,$0-1</code></span>
+<span class="codeline" id="line-1305"><code>	// check that masks&lt;&gt;(SB) and shifts&lt;&gt;(SB) are aligned to 16-byte</code></span>
+<span class="codeline" id="line-1306"><code>	MOVQ	$masks&lt;&gt;(SB), AX</code></span>
+<span class="codeline" id="line-1307"><code>	MOVQ	$shifts&lt;&gt;(SB), BX</code></span>
+<span class="codeline" id="line-1308"><code>	ORQ	BX, AX</code></span>
+<span class="codeline" id="line-1309"><code>	TESTQ	$15, AX</code></span>
+<span class="codeline" id="line-1310"><code>	SETEQ	ret+0(FP)</code></span>
+<span class="codeline" id="line-1311"><code>	RET</code></span>
+<span class="codeline" id="line-1312"><code></code></span>
+<span class="codeline" id="line-1313"><code>// these are arguments to pshufb. They move data down from</code></span>
+<span class="codeline" id="line-1314"><code>// the high bytes of the register to the low bytes of the register.</code></span>
+<span class="codeline" id="line-1315"><code>// index is how many bytes to move.</code></span>
+<span class="codeline" id="line-1316"><code>DATA shifts&lt;&gt;+0x00(SB)/8, $0x0000000000000000</code></span>
+<span class="codeline" id="line-1317"><code>DATA shifts&lt;&gt;+0x08(SB)/8, $0x0000000000000000</code></span>
+<span class="codeline" id="line-1318"><code>DATA shifts&lt;&gt;+0x10(SB)/8, $0xffffffffffffff0f</code></span>
+<span class="codeline" id="line-1319"><code>DATA shifts&lt;&gt;+0x18(SB)/8, $0xffffffffffffffff</code></span>
+<span class="codeline" id="line-1320"><code>DATA shifts&lt;&gt;+0x20(SB)/8, $0xffffffffffff0f0e</code></span>
+<span class="codeline" id="line-1321"><code>DATA shifts&lt;&gt;+0x28(SB)/8, $0xffffffffffffffff</code></span>
+<span class="codeline" id="line-1322"><code>DATA shifts&lt;&gt;+0x30(SB)/8, $0xffffffffff0f0e0d</code></span>
+<span class="codeline" id="line-1323"><code>DATA shifts&lt;&gt;+0x38(SB)/8, $0xffffffffffffffff</code></span>
+<span class="codeline" id="line-1324"><code>DATA shifts&lt;&gt;+0x40(SB)/8, $0xffffffff0f0e0d0c</code></span>
+<span class="codeline" id="line-1325"><code>DATA shifts&lt;&gt;+0x48(SB)/8, $0xffffffffffffffff</code></span>
+<span class="codeline" id="line-1326"><code>DATA shifts&lt;&gt;+0x50(SB)/8, $0xffffff0f0e0d0c0b</code></span>
+<span class="codeline" id="line-1327"><code>DATA shifts&lt;&gt;+0x58(SB)/8, $0xffffffffffffffff</code></span>
+<span class="codeline" id="line-1328"><code>DATA shifts&lt;&gt;+0x60(SB)/8, $0xffff0f0e0d0c0b0a</code></span>
+<span class="codeline" id="line-1329"><code>DATA shifts&lt;&gt;+0x68(SB)/8, $0xffffffffffffffff</code></span>
+<span class="codeline" id="line-1330"><code>DATA shifts&lt;&gt;+0x70(SB)/8, $0xff0f0e0d0c0b0a09</code></span>
+<span class="codeline" id="line-1331"><code>DATA shifts&lt;&gt;+0x78(SB)/8, $0xffffffffffffffff</code></span>
+<span class="codeline" id="line-1332"><code>DATA shifts&lt;&gt;+0x80(SB)/8, $0x0f0e0d0c0b0a0908</code></span>
+<span class="codeline" id="line-1333"><code>DATA shifts&lt;&gt;+0x88(SB)/8, $0xffffffffffffffff</code></span>
+<span class="codeline" id="line-1334"><code>DATA shifts&lt;&gt;+0x90(SB)/8, $0x0e0d0c0b0a090807</code></span>
+<span class="codeline" id="line-1335"><code>DATA shifts&lt;&gt;+0x98(SB)/8, $0xffffffffffffff0f</code></span>
+<span class="codeline" id="line-1336"><code>DATA shifts&lt;&gt;+0xa0(SB)/8, $0x0d0c0b0a09080706</code></span>
+<span class="codeline" id="line-1337"><code>DATA shifts&lt;&gt;+0xa8(SB)/8, $0xffffffffffff0f0e</code></span>
+<span class="codeline" id="line-1338"><code>DATA shifts&lt;&gt;+0xb0(SB)/8, $0x0c0b0a0908070605</code></span>
+<span class="codeline" id="line-1339"><code>DATA shifts&lt;&gt;+0xb8(SB)/8, $0xffffffffff0f0e0d</code></span>
+<span class="codeline" id="line-1340"><code>DATA shifts&lt;&gt;+0xc0(SB)/8, $0x0b0a090807060504</code></span>
+<span class="codeline" id="line-1341"><code>DATA shifts&lt;&gt;+0xc8(SB)/8, $0xffffffff0f0e0d0c</code></span>
+<span class="codeline" id="line-1342"><code>DATA shifts&lt;&gt;+0xd0(SB)/8, $0x0a09080706050403</code></span>
+<span class="codeline" id="line-1343"><code>DATA shifts&lt;&gt;+0xd8(SB)/8, $0xffffff0f0e0d0c0b</code></span>
+<span class="codeline" id="line-1344"><code>DATA shifts&lt;&gt;+0xe0(SB)/8, $0x0908070605040302</code></span>
+<span class="codeline" id="line-1345"><code>DATA shifts&lt;&gt;+0xe8(SB)/8, $0xffff0f0e0d0c0b0a</code></span>
+<span class="codeline" id="line-1346"><code>DATA shifts&lt;&gt;+0xf0(SB)/8, $0x0807060504030201</code></span>
+<span class="codeline" id="line-1347"><code>DATA shifts&lt;&gt;+0xf8(SB)/8, $0xff0f0e0d0c0b0a09</code></span>
+<span class="codeline" id="line-1348"><code>GLOBL shifts&lt;&gt;(SB),RODATA,$256</code></span>
+<span class="codeline" id="line-1349"><code></code></span>
+<span class="codeline" id="line-1350"><code>TEXT runtime·return0(SB), NOSPLIT, $0</code></span>
+<span class="codeline" id="line-1351"><code>	MOVL	$0, AX</code></span>
+<span class="codeline" id="line-1352"><code>	RET</code></span>
+<span class="codeline" id="line-1353"><code></code></span>
+<span class="codeline" id="line-1354"><code></code></span>
+<span class="codeline" id="line-1355"><code>// Called from cgo wrappers, this function returns g-&gt;m-&gt;curg.stack.hi.</code></span>
+<span class="codeline" id="line-1356"><code>// Must obey the gcc calling convention.</code></span>
+<span class="codeline" id="line-1357"><code>TEXT _cgo_topofstack(SB),NOSPLIT,$0</code></span>
+<span class="codeline" id="line-1358"><code>	get_tls(CX)</code></span>
+<span class="codeline" id="line-1359"><code>	MOVQ	g(CX), AX</code></span>
+<span class="codeline" id="line-1360"><code>	MOVQ	g_m(AX), AX</code></span>
+<span class="codeline" id="line-1361"><code>	MOVQ	m_curg(AX), AX</code></span>
+<span class="codeline" id="line-1362"><code>	MOVQ	(g_stack+stack_hi)(AX), AX</code></span>
+<span class="codeline" id="line-1363"><code>	RET</code></span>
+<span class="codeline" id="line-1364"><code></code></span>
+<span class="codeline" id="line-1365"><code>// The top-most function running on a goroutine</code></span>
+<span class="codeline" id="line-1366"><code>// returns to goexit+PCQuantum. Defined as ABIInternal</code></span>
+<span class="codeline" id="line-1367"><code>// so as to make it identifiable to traceback (this</code></span>
+<span class="codeline" id="line-1368"><code>// function it used as a sentinel; traceback wants to</code></span>
+<span class="codeline" id="line-1369"><code>// see the func PC, not a wrapper PC).</code></span>
+<span class="codeline" id="line-1370"><code>TEXT runtime·goexit&lt;ABIInternal&gt;(SB),NOSPLIT,$0-0</code></span>
+<span class="codeline" id="line-1371"><code>	BYTE	$0x90	// NOP</code></span>
+<span class="codeline" id="line-1372"><code>	CALL	runtime·goexit1(SB)	// does not return</code></span>
+<span class="codeline" id="line-1373"><code>	// traceback from goexit1 must hit code range of goexit</code></span>
+<span class="codeline" id="line-1374"><code>	BYTE	$0x90	// NOP</code></span>
+<span class="codeline" id="line-1375"><code></code></span>
+<span class="codeline" id="line-1376"><code>// This is called from .init_array and follows the platform, not Go, ABI.</code></span>
+<span class="codeline" id="line-1377"><code>TEXT runtime·addmoduledata(SB),NOSPLIT,$0-0</code></span>
+<span class="codeline" id="line-1378"><code>	PUSHQ	R15 // The access to global variables below implicitly uses R15, which is callee-save</code></span>
+<span class="codeline" id="line-1379"><code>	MOVQ	runtime·lastmoduledatap(SB), AX</code></span>
+<span class="codeline" id="line-1380"><code>	MOVQ	DI, moduledata_next(AX)</code></span>
+<span class="codeline" id="line-1381"><code>	MOVQ	DI, runtime·lastmoduledatap(SB)</code></span>
+<span class="codeline" id="line-1382"><code>	POPQ	R15</code></span>
+<span class="codeline" id="line-1383"><code>	RET</code></span>
+<span class="codeline" id="line-1384"><code></code></span>
+<span class="codeline" id="line-1385"><code>// gcWriteBarrier performs a heap pointer write and informs the GC.</code></span>
+<span class="codeline" id="line-1386"><code>//</code></span>
+<span class="codeline" id="line-1387"><code>// gcWriteBarrier does NOT follow the Go ABI. It takes two arguments:</code></span>
+<span class="codeline" id="line-1388"><code>// - DI is the destination of the write</code></span>
+<span class="codeline" id="line-1389"><code>// - AX is the value being written at DI</code></span>
+<span class="codeline" id="line-1390"><code>// It clobbers FLAGS. It does not clobber any general-purpose registers,</code></span>
+<span class="codeline" id="line-1391"><code>// but may clobber others (e.g., SSE registers).</code></span>
+<span class="codeline" id="line-1392"><code>// Defined as ABIInternal since it does not use the stack-based Go ABI.</code></span>
+<span class="codeline" id="line-1393"><code>TEXT runtime·gcWriteBarrier&lt;ABIInternal&gt;(SB),NOSPLIT,$120</code></span>
+<span class="codeline" id="line-1394"><code>	// Save the registers clobbered by the fast path. This is slightly</code></span>
+<span class="codeline" id="line-1395"><code>	// faster than having the caller spill these.</code></span>
+<span class="codeline" id="line-1396"><code>	MOVQ	R14, 104(SP)</code></span>
+<span class="codeline" id="line-1397"><code>	MOVQ	R13, 112(SP)</code></span>
+<span class="codeline" id="line-1398"><code>	// TODO: Consider passing g.m.p in as an argument so they can be shared</code></span>
+<span class="codeline" id="line-1399"><code>	// across a sequence of write barriers.</code></span>
+<span class="codeline" id="line-1400"><code>	get_tls(R13)</code></span>
+<span class="codeline" id="line-1401"><code>	MOVQ	g(R13), R13</code></span>
+<span class="codeline" id="line-1402"><code>	MOVQ	g_m(R13), R13</code></span>
+<span class="codeline" id="line-1403"><code>	MOVQ	m_p(R13), R13</code></span>
+<span class="codeline" id="line-1404"><code>	MOVQ	(p_wbBuf+wbBuf_next)(R13), R14</code></span>
+<span class="codeline" id="line-1405"><code>	// Increment wbBuf.next position.</code></span>
+<span class="codeline" id="line-1406"><code>	LEAQ	16(R14), R14</code></span>
+<span class="codeline" id="line-1407"><code>	MOVQ	R14, (p_wbBuf+wbBuf_next)(R13)</code></span>
+<span class="codeline" id="line-1408"><code>	CMPQ	R14, (p_wbBuf+wbBuf_end)(R13)</code></span>
+<span class="codeline" id="line-1409"><code>	// Record the write.</code></span>
+<span class="codeline" id="line-1410"><code>	MOVQ	AX, -16(R14)	// Record value</code></span>
+<span class="codeline" id="line-1411"><code>	// Note: This turns bad pointer writes into bad</code></span>
+<span class="codeline" id="line-1412"><code>	// pointer reads, which could be confusing. We could avoid</code></span>
+<span class="codeline" id="line-1413"><code>	// reading from obviously bad pointers, which would</code></span>
+<span class="codeline" id="line-1414"><code>	// take care of the vast majority of these. We could</code></span>
+<span class="codeline" id="line-1415"><code>	// patch this up in the signal handler, or use XCHG to</code></span>
+<span class="codeline" id="line-1416"><code>	// combine the read and the write.</code></span>
+<span class="codeline" id="line-1417"><code>	MOVQ	(DI), R13</code></span>
+<span class="codeline" id="line-1418"><code>	MOVQ	R13, -8(R14)	// Record *slot</code></span>
+<span class="codeline" id="line-1419"><code>	// Is the buffer full? (flags set in CMPQ above)</code></span>
+<span class="codeline" id="line-1420"><code>	JEQ	flush</code></span>
+<span class="codeline" id="line-1421"><code>ret:</code></span>
+<span class="codeline" id="line-1422"><code>	MOVQ	104(SP), R14</code></span>
+<span class="codeline" id="line-1423"><code>	MOVQ	112(SP), R13</code></span>
+<span class="codeline" id="line-1424"><code>	// Do the write.</code></span>
+<span class="codeline" id="line-1425"><code>	MOVQ	AX, (DI)</code></span>
+<span class="codeline" id="line-1426"><code>	RET</code></span>
+<span class="codeline" id="line-1427"><code></code></span>
+<span class="codeline" id="line-1428"><code>flush:</code></span>
+<span class="codeline" id="line-1429"><code>	// Save all general purpose registers since these could be</code></span>
+<span class="codeline" id="line-1430"><code>	// clobbered by wbBufFlush and were not saved by the caller.</code></span>
+<span class="codeline" id="line-1431"><code>	// It is possible for wbBufFlush to clobber other registers</code></span>
+<span class="codeline" id="line-1432"><code>	// (e.g., SSE registers), but the compiler takes care of saving</code></span>
+<span class="codeline" id="line-1433"><code>	// those in the caller if necessary. This strikes a balance</code></span>
+<span class="codeline" id="line-1434"><code>	// with registers that are likely to be used.</code></span>
+<span class="codeline" id="line-1435"><code>	//</code></span>
+<span class="codeline" id="line-1436"><code>	// We don't have type information for these, but all code under</code></span>
+<span class="codeline" id="line-1437"><code>	// here is NOSPLIT, so nothing will observe these.</code></span>
+<span class="codeline" id="line-1438"><code>	//</code></span>
+<span class="codeline" id="line-1439"><code>	// TODO: We could strike a different balance; e.g., saving X0</code></span>
+<span class="codeline" id="line-1440"><code>	// and not saving GP registers that are less likely to be used.</code></span>
+<span class="codeline" id="line-1441"><code>	MOVQ	DI, 0(SP)	// Also first argument to wbBufFlush</code></span>
+<span class="codeline" id="line-1442"><code>	MOVQ	AX, 8(SP)	// Also second argument to wbBufFlush</code></span>
+<span class="codeline" id="line-1443"><code>	MOVQ	BX, 16(SP)</code></span>
+<span class="codeline" id="line-1444"><code>	MOVQ	CX, 24(SP)</code></span>
+<span class="codeline" id="line-1445"><code>	MOVQ	DX, 32(SP)</code></span>
+<span class="codeline" id="line-1446"><code>	// DI already saved</code></span>
+<span class="codeline" id="line-1447"><code>	MOVQ	SI, 40(SP)</code></span>
+<span class="codeline" id="line-1448"><code>	MOVQ	BP, 48(SP)</code></span>
+<span class="codeline" id="line-1449"><code>	MOVQ	R8, 56(SP)</code></span>
+<span class="codeline" id="line-1450"><code>	MOVQ	R9, 64(SP)</code></span>
+<span class="codeline" id="line-1451"><code>	MOVQ	R10, 72(SP)</code></span>
+<span class="codeline" id="line-1452"><code>	MOVQ	R11, 80(SP)</code></span>
+<span class="codeline" id="line-1453"><code>	MOVQ	R12, 88(SP)</code></span>
+<span class="codeline" id="line-1454"><code>	// R13 already saved</code></span>
+<span class="codeline" id="line-1455"><code>	// R14 already saved</code></span>
+<span class="codeline" id="line-1456"><code>	MOVQ	R15, 96(SP)</code></span>
+<span class="codeline" id="line-1457"><code></code></span>
+<span class="codeline" id="line-1458"><code>	// This takes arguments DI and AX</code></span>
+<span class="codeline" id="line-1459"><code>	CALL	runtime·wbBufFlush(SB)</code></span>
+<span class="codeline" id="line-1460"><code></code></span>
+<span class="codeline" id="line-1461"><code>	MOVQ	0(SP), DI</code></span>
+<span class="codeline" id="line-1462"><code>	MOVQ	8(SP), AX</code></span>
+<span class="codeline" id="line-1463"><code>	MOVQ	16(SP), BX</code></span>
+<span class="codeline" id="line-1464"><code>	MOVQ	24(SP), CX</code></span>
+<span class="codeline" id="line-1465"><code>	MOVQ	32(SP), DX</code></span>
+<span class="codeline" id="line-1466"><code>	MOVQ	40(SP), SI</code></span>
+<span class="codeline" id="line-1467"><code>	MOVQ	48(SP), BP</code></span>
+<span class="codeline" id="line-1468"><code>	MOVQ	56(SP), R8</code></span>
+<span class="codeline" id="line-1469"><code>	MOVQ	64(SP), R9</code></span>
+<span class="codeline" id="line-1470"><code>	MOVQ	72(SP), R10</code></span>
+<span class="codeline" id="line-1471"><code>	MOVQ	80(SP), R11</code></span>
+<span class="codeline" id="line-1472"><code>	MOVQ	88(SP), R12</code></span>
+<span class="codeline" id="line-1473"><code>	MOVQ	96(SP), R15</code></span>
+<span class="codeline" id="line-1474"><code>	JMP	ret</code></span>
+<span class="codeline" id="line-1475"><code></code></span>
+<span class="codeline" id="line-1476"><code>// gcWriteBarrierCX is gcWriteBarrier, but with args in DI and CX.</code></span>
+<span class="codeline" id="line-1477"><code>// Defined as ABIInternal since it does not use the stable Go ABI.</code></span>
+<span class="codeline" id="line-1478"><code>TEXT runtime·gcWriteBarrierCX&lt;ABIInternal&gt;(SB),NOSPLIT,$0</code></span>
+<span class="codeline" id="line-1479"><code>	XCHGQ CX, AX</code></span>
+<span class="codeline" id="line-1480"><code>	CALL runtime·gcWriteBarrier&lt;ABIInternal&gt;(SB)</code></span>
+<span class="codeline" id="line-1481"><code>	XCHGQ CX, AX</code></span>
+<span class="codeline" id="line-1482"><code>	RET</code></span>
+<span class="codeline" id="line-1483"><code></code></span>
+<span class="codeline" id="line-1484"><code>// gcWriteBarrierDX is gcWriteBarrier, but with args in DI and DX.</code></span>
+<span class="codeline" id="line-1485"><code>// Defined as ABIInternal since it does not use the stable Go ABI.</code></span>
+<span class="codeline" id="line-1486"><code>TEXT runtime·gcWriteBarrierDX&lt;ABIInternal&gt;(SB),NOSPLIT,$0</code></span>
+<span class="codeline" id="line-1487"><code>	XCHGQ DX, AX</code></span>
+<span class="codeline" id="line-1488"><code>	CALL runtime·gcWriteBarrier&lt;ABIInternal&gt;(SB)</code></span>
+<span class="codeline" id="line-1489"><code>	XCHGQ DX, AX</code></span>
+<span class="codeline" id="line-1490"><code>	RET</code></span>
+<span class="codeline" id="line-1491"><code></code></span>
+<span class="codeline" id="line-1492"><code>// gcWriteBarrierBX is gcWriteBarrier, but with args in DI and BX.</code></span>
+<span class="codeline" id="line-1493"><code>// Defined as ABIInternal since it does not use the stable Go ABI.</code></span>
+<span class="codeline" id="line-1494"><code>TEXT runtime·gcWriteBarrierBX&lt;ABIInternal&gt;(SB),NOSPLIT,$0</code></span>
+<span class="codeline" id="line-1495"><code>	XCHGQ BX, AX</code></span>
+<span class="codeline" id="line-1496"><code>	CALL runtime·gcWriteBarrier&lt;ABIInternal&gt;(SB)</code></span>
+<span class="codeline" id="line-1497"><code>	XCHGQ BX, AX</code></span>
+<span class="codeline" id="line-1498"><code>	RET</code></span>
+<span class="codeline" id="line-1499"><code></code></span>
+<span class="codeline" id="line-1500"><code>// gcWriteBarrierBP is gcWriteBarrier, but with args in DI and BP.</code></span>
+<span class="codeline" id="line-1501"><code>// Defined as ABIInternal since it does not use the stable Go ABI.</code></span>
+<span class="codeline" id="line-1502"><code>TEXT runtime·gcWriteBarrierBP&lt;ABIInternal&gt;(SB),NOSPLIT,$0</code></span>
+<span class="codeline" id="line-1503"><code>	XCHGQ BP, AX</code></span>
+<span class="codeline" id="line-1504"><code>	CALL runtime·gcWriteBarrier&lt;ABIInternal&gt;(SB)</code></span>
+<span class="codeline" id="line-1505"><code>	XCHGQ BP, AX</code></span>
+<span class="codeline" id="line-1506"><code>	RET</code></span>
+<span class="codeline" id="line-1507"><code></code></span>
+<span class="codeline" id="line-1508"><code>// gcWriteBarrierSI is gcWriteBarrier, but with args in DI and SI.</code></span>
+<span class="codeline" id="line-1509"><code>// Defined as ABIInternal since it does not use the stable Go ABI.</code></span>
+<span class="codeline" id="line-1510"><code>TEXT runtime·gcWriteBarrierSI&lt;ABIInternal&gt;(SB),NOSPLIT,$0</code></span>
+<span class="codeline" id="line-1511"><code>	XCHGQ SI, AX</code></span>
+<span class="codeline" id="line-1512"><code>	CALL runtime·gcWriteBarrier&lt;ABIInternal&gt;(SB)</code></span>
+<span class="codeline" id="line-1513"><code>	XCHGQ SI, AX</code></span>
+<span class="codeline" id="line-1514"><code>	RET</code></span>
+<span class="codeline" id="line-1515"><code></code></span>
+<span class="codeline" id="line-1516"><code>// gcWriteBarrierR8 is gcWriteBarrier, but with args in DI and R8.</code></span>
+<span class="codeline" id="line-1517"><code>// Defined as ABIInternal since it does not use the stable Go ABI.</code></span>
+<span class="codeline" id="line-1518"><code>TEXT runtime·gcWriteBarrierR8&lt;ABIInternal&gt;(SB),NOSPLIT,$0</code></span>
+<span class="codeline" id="line-1519"><code>	XCHGQ R8, AX</code></span>
+<span class="codeline" id="line-1520"><code>	CALL runtime·gcWriteBarrier&lt;ABIInternal&gt;(SB)</code></span>
+<span class="codeline" id="line-1521"><code>	XCHGQ R8, AX</code></span>
+<span class="codeline" id="line-1522"><code>	RET</code></span>
+<span class="codeline" id="line-1523"><code></code></span>
+<span class="codeline" id="line-1524"><code>// gcWriteBarrierR9 is gcWriteBarrier, but with args in DI and R9.</code></span>
+<span class="codeline" id="line-1525"><code>// Defined as ABIInternal since it does not use the stable Go ABI.</code></span>
+<span class="codeline" id="line-1526"><code>TEXT runtime·gcWriteBarrierR9&lt;ABIInternal&gt;(SB),NOSPLIT,$0</code></span>
+<span class="codeline" id="line-1527"><code>	XCHGQ R9, AX</code></span>
+<span class="codeline" id="line-1528"><code>	CALL runtime·gcWriteBarrier&lt;ABIInternal&gt;(SB)</code></span>
+<span class="codeline" id="line-1529"><code>	XCHGQ R9, AX</code></span>
+<span class="codeline" id="line-1530"><code>	RET</code></span>
+<span class="codeline" id="line-1531"><code></code></span>
+<span class="codeline" id="line-1532"><code>DATA	debugCallFrameTooLarge&lt;&gt;+0x00(SB)/20, $"call frame too large"</code></span>
+<span class="codeline" id="line-1533"><code>GLOBL	debugCallFrameTooLarge&lt;&gt;(SB), RODATA, $20	// Size duplicated below</code></span>
+<span class="codeline" id="line-1534"><code></code></span>
+<span class="codeline" id="line-1535"><code>// debugCallV1 is the entry point for debugger-injected function</code></span>
+<span class="codeline" id="line-1536"><code>// calls on running goroutines. It informs the runtime that a</code></span>
+<span class="codeline" id="line-1537"><code>// debug call has been injected and creates a call frame for the</code></span>
+<span class="codeline" id="line-1538"><code>// debugger to fill in.</code></span>
+<span class="codeline" id="line-1539"><code>//</code></span>
+<span class="codeline" id="line-1540"><code>// To inject a function call, a debugger should:</code></span>
+<span class="codeline" id="line-1541"><code>// 1. Check that the goroutine is in state _Grunning and that</code></span>
+<span class="codeline" id="line-1542"><code>//    there are at least 256 bytes free on the stack.</code></span>
+<span class="codeline" id="line-1543"><code>// 2. Push the current PC on the stack (updating SP).</code></span>
+<span class="codeline" id="line-1544"><code>// 3. Write the desired argument frame size at SP-16 (using the SP</code></span>
+<span class="codeline" id="line-1545"><code>//    after step 2).</code></span>
+<span class="codeline" id="line-1546"><code>// 4. Save all machine registers (including flags and XMM reigsters)</code></span>
+<span class="codeline" id="line-1547"><code>//    so they can be restored later by the debugger.</code></span>
+<span class="codeline" id="line-1548"><code>// 5. Set the PC to debugCallV1 and resume execution.</code></span>
+<span class="codeline" id="line-1549"><code>//</code></span>
+<span class="codeline" id="line-1550"><code>// If the goroutine is in state _Grunnable, then it's not generally</code></span>
+<span class="codeline" id="line-1551"><code>// safe to inject a call because it may return out via other runtime</code></span>
+<span class="codeline" id="line-1552"><code>// operations. Instead, the debugger should unwind the stack to find</code></span>
+<span class="codeline" id="line-1553"><code>// the return to non-runtime code, add a temporary breakpoint there,</code></span>
+<span class="codeline" id="line-1554"><code>// and inject the call once that breakpoint is hit.</code></span>
+<span class="codeline" id="line-1555"><code>//</code></span>
+<span class="codeline" id="line-1556"><code>// If the goroutine is in any other state, it's not safe to inject a call.</code></span>
+<span class="codeline" id="line-1557"><code>//</code></span>
+<span class="codeline" id="line-1558"><code>// This function communicates back to the debugger by setting RAX and</code></span>
+<span class="codeline" id="line-1559"><code>// invoking INT3 to raise a breakpoint signal. See the comments in the</code></span>
+<span class="codeline" id="line-1560"><code>// implementation for the protocol the debugger is expected to</code></span>
+<span class="codeline" id="line-1561"><code>// follow. InjectDebugCall in the runtime tests demonstrates this protocol.</code></span>
+<span class="codeline" id="line-1562"><code>//</code></span>
+<span class="codeline" id="line-1563"><code>// The debugger must ensure that any pointers passed to the function</code></span>
+<span class="codeline" id="line-1564"><code>// obey escape analysis requirements. Specifically, it must not pass</code></span>
+<span class="codeline" id="line-1565"><code>// a stack pointer to an escaping argument. debugCallV1 cannot check</code></span>
+<span class="codeline" id="line-1566"><code>// this invariant.</code></span>
+<span class="codeline" id="line-1567"><code>//</code></span>
+<span class="codeline" id="line-1568"><code>// This is ABIInternal because Go code injects its PC directly into new</code></span>
+<span class="codeline" id="line-1569"><code>// goroutine stacks.</code></span>
+<span class="codeline" id="line-1570"><code>TEXT runtime·debugCallV1&lt;ABIInternal&gt;(SB),NOSPLIT,$152-0</code></span>
+<span class="codeline" id="line-1571"><code>	// Save all registers that may contain pointers so they can be</code></span>
+<span class="codeline" id="line-1572"><code>	// conservatively scanned.</code></span>
+<span class="codeline" id="line-1573"><code>	//</code></span>
+<span class="codeline" id="line-1574"><code>	// We can't do anything that might clobber any of these</code></span>
+<span class="codeline" id="line-1575"><code>	// registers before this.</code></span>
+<span class="codeline" id="line-1576"><code>	MOVQ	R15, r15-(14*8+8)(SP)</code></span>
+<span class="codeline" id="line-1577"><code>	MOVQ	R14, r14-(13*8+8)(SP)</code></span>
+<span class="codeline" id="line-1578"><code>	MOVQ	R13, r13-(12*8+8)(SP)</code></span>
+<span class="codeline" id="line-1579"><code>	MOVQ	R12, r12-(11*8+8)(SP)</code></span>
+<span class="codeline" id="line-1580"><code>	MOVQ	R11, r11-(10*8+8)(SP)</code></span>
+<span class="codeline" id="line-1581"><code>	MOVQ	R10, r10-(9*8+8)(SP)</code></span>
+<span class="codeline" id="line-1582"><code>	MOVQ	R9, r9-(8*8+8)(SP)</code></span>
+<span class="codeline" id="line-1583"><code>	MOVQ	R8, r8-(7*8+8)(SP)</code></span>
+<span class="codeline" id="line-1584"><code>	MOVQ	DI, di-(6*8+8)(SP)</code></span>
+<span class="codeline" id="line-1585"><code>	MOVQ	SI, si-(5*8+8)(SP)</code></span>
+<span class="codeline" id="line-1586"><code>	MOVQ	BP, bp-(4*8+8)(SP)</code></span>
+<span class="codeline" id="line-1587"><code>	MOVQ	BX, bx-(3*8+8)(SP)</code></span>
+<span class="codeline" id="line-1588"><code>	MOVQ	DX, dx-(2*8+8)(SP)</code></span>
+<span class="codeline" id="line-1589"><code>	// Save the frame size before we clobber it. Either of the last</code></span>
+<span class="codeline" id="line-1590"><code>	// saves could clobber this depending on whether there's a saved BP.</code></span>
+<span class="codeline" id="line-1591"><code>	MOVQ	frameSize-24(FP), DX	// aka -16(RSP) before prologue</code></span>
+<span class="codeline" id="line-1592"><code>	MOVQ	CX, cx-(1*8+8)(SP)</code></span>
+<span class="codeline" id="line-1593"><code>	MOVQ	AX, ax-(0*8+8)(SP)</code></span>
+<span class="codeline" id="line-1594"><code></code></span>
+<span class="codeline" id="line-1595"><code>	// Save the argument frame size.</code></span>
+<span class="codeline" id="line-1596"><code>	MOVQ	DX, frameSize-128(SP)</code></span>
+<span class="codeline" id="line-1597"><code></code></span>
+<span class="codeline" id="line-1598"><code>	// Perform a safe-point check.</code></span>
+<span class="codeline" id="line-1599"><code>	MOVQ	retpc-8(FP), AX	// Caller's PC</code></span>
+<span class="codeline" id="line-1600"><code>	MOVQ	AX, 0(SP)</code></span>
+<span class="codeline" id="line-1601"><code>	CALL	runtime·debugCallCheck(SB)</code></span>
+<span class="codeline" id="line-1602"><code>	MOVQ	8(SP), AX</code></span>
+<span class="codeline" id="line-1603"><code>	TESTQ	AX, AX</code></span>
+<span class="codeline" id="line-1604"><code>	JZ	good</code></span>
+<span class="codeline" id="line-1605"><code>	// The safety check failed. Put the reason string at the top</code></span>
+<span class="codeline" id="line-1606"><code>	// of the stack.</code></span>
+<span class="codeline" id="line-1607"><code>	MOVQ	AX, 0(SP)</code></span>
+<span class="codeline" id="line-1608"><code>	MOVQ	16(SP), AX</code></span>
+<span class="codeline" id="line-1609"><code>	MOVQ	AX, 8(SP)</code></span>
+<span class="codeline" id="line-1610"><code>	// Set AX to 8 and invoke INT3. The debugger should get the</code></span>
+<span class="codeline" id="line-1611"><code>	// reason a call can't be injected from the top of the stack</code></span>
+<span class="codeline" id="line-1612"><code>	// and resume execution.</code></span>
+<span class="codeline" id="line-1613"><code>	MOVQ	$8, AX</code></span>
+<span class="codeline" id="line-1614"><code>	BYTE	$0xcc</code></span>
+<span class="codeline" id="line-1615"><code>	JMP	restore</code></span>
+<span class="codeline" id="line-1616"><code></code></span>
+<span class="codeline" id="line-1617"><code>good:</code></span>
+<span class="codeline" id="line-1618"><code>	// Registers are saved and it's safe to make a call.</code></span>
+<span class="codeline" id="line-1619"><code>	// Open up a call frame, moving the stack if necessary.</code></span>
+<span class="codeline" id="line-1620"><code>	//</code></span>
+<span class="codeline" id="line-1621"><code>	// Once the frame is allocated, this will set AX to 0 and</code></span>
+<span class="codeline" id="line-1622"><code>	// invoke INT3. The debugger should write the argument</code></span>
+<span class="codeline" id="line-1623"><code>	// frame for the call at SP, push the trapping PC on the</code></span>
+<span class="codeline" id="line-1624"><code>	// stack, set the PC to the function to call, set RCX to point</code></span>
+<span class="codeline" id="line-1625"><code>	// to the closure (if a closure call), and resume execution.</code></span>
+<span class="codeline" id="line-1626"><code>	//</code></span>
+<span class="codeline" id="line-1627"><code>	// If the function returns, this will set AX to 1 and invoke</code></span>
+<span class="codeline" id="line-1628"><code>	// INT3. The debugger can then inspect any return value saved</code></span>
+<span class="codeline" id="line-1629"><code>	// on the stack at SP and resume execution again.</code></span>
+<span class="codeline" id="line-1630"><code>	//</code></span>
+<span class="codeline" id="line-1631"><code>	// If the function panics, this will set AX to 2 and invoke INT3.</code></span>
+<span class="codeline" id="line-1632"><code>	// The interface{} value of the panic will be at SP. The debugger</code></span>
+<span class="codeline" id="line-1633"><code>	// can inspect the panic value and resume execution again.</code></span>
+<span class="codeline" id="line-1634"><code>#define DEBUG_CALL_DISPATCH(NAME,MAXSIZE)	\</code></span>
+<span class="codeline" id="line-1635"><code>	CMPQ	AX, $MAXSIZE;			\</code></span>
+<span class="codeline" id="line-1636"><code>	JA	5(PC);				\</code></span>
+<span class="codeline" id="line-1637"><code>	MOVQ	$NAME(SB), AX;			\</code></span>
+<span class="codeline" id="line-1638"><code>	MOVQ	AX, 0(SP);			\</code></span>
+<span class="codeline" id="line-1639"><code>	CALL	runtime·debugCallWrap(SB);	\</code></span>
+<span class="codeline" id="line-1640"><code>	JMP	restore</code></span>
+<span class="codeline" id="line-1641"><code></code></span>
+<span class="codeline" id="line-1642"><code>	MOVQ	frameSize-128(SP), AX</code></span>
+<span class="codeline" id="line-1643"><code>	DEBUG_CALL_DISPATCH(debugCall32&lt;&gt;, 32)</code></span>
+<span class="codeline" id="line-1644"><code>	DEBUG_CALL_DISPATCH(debugCall64&lt;&gt;, 64)</code></span>
+<span class="codeline" id="line-1645"><code>	DEBUG_CALL_DISPATCH(debugCall128&lt;&gt;, 128)</code></span>
+<span class="codeline" id="line-1646"><code>	DEBUG_CALL_DISPATCH(debugCall256&lt;&gt;, 256)</code></span>
+<span class="codeline" id="line-1647"><code>	DEBUG_CALL_DISPATCH(debugCall512&lt;&gt;, 512)</code></span>
+<span class="codeline" id="line-1648"><code>	DEBUG_CALL_DISPATCH(debugCall1024&lt;&gt;, 1024)</code></span>
+<span class="codeline" id="line-1649"><code>	DEBUG_CALL_DISPATCH(debugCall2048&lt;&gt;, 2048)</code></span>
+<span class="codeline" id="line-1650"><code>	DEBUG_CALL_DISPATCH(debugCall4096&lt;&gt;, 4096)</code></span>
+<span class="codeline" id="line-1651"><code>	DEBUG_CALL_DISPATCH(debugCall8192&lt;&gt;, 8192)</code></span>
+<span class="codeline" id="line-1652"><code>	DEBUG_CALL_DISPATCH(debugCall16384&lt;&gt;, 16384)</code></span>
+<span class="codeline" id="line-1653"><code>	DEBUG_CALL_DISPATCH(debugCall32768&lt;&gt;, 32768)</code></span>
+<span class="codeline" id="line-1654"><code>	DEBUG_CALL_DISPATCH(debugCall65536&lt;&gt;, 65536)</code></span>
+<span class="codeline" id="line-1655"><code>	// The frame size is too large. Report the error.</code></span>
+<span class="codeline" id="line-1656"><code>	MOVQ	$debugCallFrameTooLarge&lt;&gt;(SB), AX</code></span>
+<span class="codeline" id="line-1657"><code>	MOVQ	AX, 0(SP)</code></span>
+<span class="codeline" id="line-1658"><code>	MOVQ	$20, 8(SP) // length of debugCallFrameTooLarge string</code></span>
+<span class="codeline" id="line-1659"><code>	MOVQ	$8, AX</code></span>
+<span class="codeline" id="line-1660"><code>	BYTE	$0xcc</code></span>
+<span class="codeline" id="line-1661"><code>	JMP	restore</code></span>
+<span class="codeline" id="line-1662"><code></code></span>
+<span class="codeline" id="line-1663"><code>restore:</code></span>
+<span class="codeline" id="line-1664"><code>	// Calls and failures resume here.</code></span>
+<span class="codeline" id="line-1665"><code>	//</code></span>
+<span class="codeline" id="line-1666"><code>	// Set AX to 16 and invoke INT3. The debugger should restore</code></span>
+<span class="codeline" id="line-1667"><code>	// all registers except RIP and RSP and resume execution.</code></span>
+<span class="codeline" id="line-1668"><code>	MOVQ	$16, AX</code></span>
+<span class="codeline" id="line-1669"><code>	BYTE	$0xcc</code></span>
+<span class="codeline" id="line-1670"><code>	// We must not modify flags after this point.</code></span>
+<span class="codeline" id="line-1671"><code></code></span>
+<span class="codeline" id="line-1672"><code>	// Restore pointer-containing registers, which may have been</code></span>
+<span class="codeline" id="line-1673"><code>	// modified from the debugger's copy by stack copying.</code></span>
+<span class="codeline" id="line-1674"><code>	MOVQ	ax-(0*8+8)(SP), AX</code></span>
+<span class="codeline" id="line-1675"><code>	MOVQ	cx-(1*8+8)(SP), CX</code></span>
+<span class="codeline" id="line-1676"><code>	MOVQ	dx-(2*8+8)(SP), DX</code></span>
+<span class="codeline" id="line-1677"><code>	MOVQ	bx-(3*8+8)(SP), BX</code></span>
+<span class="codeline" id="line-1678"><code>	MOVQ	bp-(4*8+8)(SP), BP</code></span>
+<span class="codeline" id="line-1679"><code>	MOVQ	si-(5*8+8)(SP), SI</code></span>
+<span class="codeline" id="line-1680"><code>	MOVQ	di-(6*8+8)(SP), DI</code></span>
+<span class="codeline" id="line-1681"><code>	MOVQ	r8-(7*8+8)(SP), R8</code></span>
+<span class="codeline" id="line-1682"><code>	MOVQ	r9-(8*8+8)(SP), R9</code></span>
+<span class="codeline" id="line-1683"><code>	MOVQ	r10-(9*8+8)(SP), R10</code></span>
+<span class="codeline" id="line-1684"><code>	MOVQ	r11-(10*8+8)(SP), R11</code></span>
+<span class="codeline" id="line-1685"><code>	MOVQ	r12-(11*8+8)(SP), R12</code></span>
+<span class="codeline" id="line-1686"><code>	MOVQ	r13-(12*8+8)(SP), R13</code></span>
+<span class="codeline" id="line-1687"><code>	MOVQ	r14-(13*8+8)(SP), R14</code></span>
+<span class="codeline" id="line-1688"><code>	MOVQ	r15-(14*8+8)(SP), R15</code></span>
+<span class="codeline" id="line-1689"><code></code></span>
+<span class="codeline" id="line-1690"><code>	RET</code></span>
+<span class="codeline" id="line-1691"><code></code></span>
+<span class="codeline" id="line-1692"><code>// runtime.debugCallCheck assumes that functions defined with the</code></span>
+<span class="codeline" id="line-1693"><code>// DEBUG_CALL_FN macro are safe points to inject calls.</code></span>
+<span class="codeline" id="line-1694"><code>#define DEBUG_CALL_FN(NAME,MAXSIZE)		\</code></span>
+<span class="codeline" id="line-1695"><code>TEXT NAME(SB),WRAPPER,$MAXSIZE-0;		\</code></span>
+<span class="codeline" id="line-1696"><code>	NO_LOCAL_POINTERS;			\</code></span>
+<span class="codeline" id="line-1697"><code>	MOVQ	$0, AX;				\</code></span>
+<span class="codeline" id="line-1698"><code>	BYTE	$0xcc;				\</code></span>
+<span class="codeline" id="line-1699"><code>	MOVQ	$1, AX;				\</code></span>
+<span class="codeline" id="line-1700"><code>	BYTE	$0xcc;				\</code></span>
+<span class="codeline" id="line-1701"><code>	RET</code></span>
+<span class="codeline" id="line-1702"><code>DEBUG_CALL_FN(debugCall32&lt;&gt;, 32)</code></span>
+<span class="codeline" id="line-1703"><code>DEBUG_CALL_FN(debugCall64&lt;&gt;, 64)</code></span>
+<span class="codeline" id="line-1704"><code>DEBUG_CALL_FN(debugCall128&lt;&gt;, 128)</code></span>
+<span class="codeline" id="line-1705"><code>DEBUG_CALL_FN(debugCall256&lt;&gt;, 256)</code></span>
+<span class="codeline" id="line-1706"><code>DEBUG_CALL_FN(debugCall512&lt;&gt;, 512)</code></span>
+<span class="codeline" id="line-1707"><code>DEBUG_CALL_FN(debugCall1024&lt;&gt;, 1024)</code></span>
+<span class="codeline" id="line-1708"><code>DEBUG_CALL_FN(debugCall2048&lt;&gt;, 2048)</code></span>
+<span class="codeline" id="line-1709"><code>DEBUG_CALL_FN(debugCall4096&lt;&gt;, 4096)</code></span>
+<span class="codeline" id="line-1710"><code>DEBUG_CALL_FN(debugCall8192&lt;&gt;, 8192)</code></span>
+<span class="codeline" id="line-1711"><code>DEBUG_CALL_FN(debugCall16384&lt;&gt;, 16384)</code></span>
+<span class="codeline" id="line-1712"><code>DEBUG_CALL_FN(debugCall32768&lt;&gt;, 32768)</code></span>
+<span class="codeline" id="line-1713"><code>DEBUG_CALL_FN(debugCall65536&lt;&gt;, 65536)</code></span>
+<span class="codeline" id="line-1714"><code></code></span>
+<span class="codeline" id="line-1715"><code>// func debugCallPanicked(val interface{})</code></span>
+<span class="codeline" id="line-1716"><code>TEXT runtime·debugCallPanicked(SB),NOSPLIT,$16-16</code></span>
+<span class="codeline" id="line-1717"><code>	// Copy the panic value to the top of stack.</code></span>
+<span class="codeline" id="line-1718"><code>	MOVQ	val_type+0(FP), AX</code></span>
+<span class="codeline" id="line-1719"><code>	MOVQ	AX, 0(SP)</code></span>
+<span class="codeline" id="line-1720"><code>	MOVQ	val_data+8(FP), AX</code></span>
+<span class="codeline" id="line-1721"><code>	MOVQ	AX, 8(SP)</code></span>
+<span class="codeline" id="line-1722"><code>	MOVQ	$2, AX</code></span>
+<span class="codeline" id="line-1723"><code>	BYTE	$0xcc</code></span>
+<span class="codeline" id="line-1724"><code>	RET</code></span>
+<span class="codeline" id="line-1725"><code></code></span>
+<span class="codeline" id="line-1726"><code>// Note: these functions use a special calling convention to save generated code space.</code></span>
+<span class="codeline" id="line-1727"><code>// Arguments are passed in registers, but the space for those arguments are allocated</code></span>
+<span class="codeline" id="line-1728"><code>// in the caller's stack frame. These stubs write the args into that stack space and</code></span>
+<span class="codeline" id="line-1729"><code>// then tail call to the corresponding runtime handler.</code></span>
+<span class="codeline" id="line-1730"><code>// The tail call makes these stubs disappear in backtraces.</code></span>
+<span class="codeline" id="line-1731"><code>// Defined as ABIInternal since they do not use the stack-based Go ABI.</code></span>
+<span class="codeline" id="line-1732"><code>TEXT runtime·panicIndex&lt;ABIInternal&gt;(SB),NOSPLIT,$0-16</code></span>
+<span class="codeline" id="line-1733"><code>	MOVQ	AX, x+0(FP)</code></span>
+<span class="codeline" id="line-1734"><code>	MOVQ	CX, y+8(FP)</code></span>
+<span class="codeline" id="line-1735"><code>	JMP	runtime·goPanicIndex(SB)</code></span>
+<span class="codeline" id="line-1736"><code>TEXT runtime·panicIndexU&lt;ABIInternal&gt;(SB),NOSPLIT,$0-16</code></span>
+<span class="codeline" id="line-1737"><code>	MOVQ	AX, x+0(FP)</code></span>
+<span class="codeline" id="line-1738"><code>	MOVQ	CX, y+8(FP)</code></span>
+<span class="codeline" id="line-1739"><code>	JMP	runtime·goPanicIndexU(SB)</code></span>
+<span class="codeline" id="line-1740"><code>TEXT runtime·panicSliceAlen&lt;ABIInternal&gt;(SB),NOSPLIT,$0-16</code></span>
+<span class="codeline" id="line-1741"><code>	MOVQ	CX, x+0(FP)</code></span>
+<span class="codeline" id="line-1742"><code>	MOVQ	DX, y+8(FP)</code></span>
+<span class="codeline" id="line-1743"><code>	JMP	runtime·goPanicSliceAlen(SB)</code></span>
+<span class="codeline" id="line-1744"><code>TEXT runtime·panicSliceAlenU&lt;ABIInternal&gt;(SB),NOSPLIT,$0-16</code></span>
+<span class="codeline" id="line-1745"><code>	MOVQ	CX, x+0(FP)</code></span>
+<span class="codeline" id="line-1746"><code>	MOVQ	DX, y+8(FP)</code></span>
+<span class="codeline" id="line-1747"><code>	JMP	runtime·goPanicSliceAlenU(SB)</code></span>
+<span class="codeline" id="line-1748"><code>TEXT runtime·panicSliceAcap&lt;ABIInternal&gt;(SB),NOSPLIT,$0-16</code></span>
+<span class="codeline" id="line-1749"><code>	MOVQ	CX, x+0(FP)</code></span>
+<span class="codeline" id="line-1750"><code>	MOVQ	DX, y+8(FP)</code></span>
+<span class="codeline" id="line-1751"><code>	JMP	runtime·goPanicSliceAcap(SB)</code></span>
+<span class="codeline" id="line-1752"><code>TEXT runtime·panicSliceAcapU&lt;ABIInternal&gt;(SB),NOSPLIT,$0-16</code></span>
+<span class="codeline" id="line-1753"><code>	MOVQ	CX, x+0(FP)</code></span>
+<span class="codeline" id="line-1754"><code>	MOVQ	DX, y+8(FP)</code></span>
+<span class="codeline" id="line-1755"><code>	JMP	runtime·goPanicSliceAcapU(SB)</code></span>
+<span class="codeline" id="line-1756"><code>TEXT runtime·panicSliceB&lt;ABIInternal&gt;(SB),NOSPLIT,$0-16</code></span>
+<span class="codeline" id="line-1757"><code>	MOVQ	AX, x+0(FP)</code></span>
+<span class="codeline" id="line-1758"><code>	MOVQ	CX, y+8(FP)</code></span>
+<span class="codeline" id="line-1759"><code>	JMP	runtime·goPanicSliceB(SB)</code></span>
+<span class="codeline" id="line-1760"><code>TEXT runtime·panicSliceBU&lt;ABIInternal&gt;(SB),NOSPLIT,$0-16</code></span>
+<span class="codeline" id="line-1761"><code>	MOVQ	AX, x+0(FP)</code></span>
+<span class="codeline" id="line-1762"><code>	MOVQ	CX, y+8(FP)</code></span>
+<span class="codeline" id="line-1763"><code>	JMP	runtime·goPanicSliceBU(SB)</code></span>
+<span class="codeline" id="line-1764"><code>TEXT runtime·panicSlice3Alen&lt;ABIInternal&gt;(SB),NOSPLIT,$0-16</code></span>
+<span class="codeline" id="line-1765"><code>	MOVQ	DX, x+0(FP)</code></span>
+<span class="codeline" id="line-1766"><code>	MOVQ	BX, y+8(FP)</code></span>
+<span class="codeline" id="line-1767"><code>	JMP	runtime·goPanicSlice3Alen(SB)</code></span>
+<span class="codeline" id="line-1768"><code>TEXT runtime·panicSlice3AlenU&lt;ABIInternal&gt;(SB),NOSPLIT,$0-16</code></span>
+<span class="codeline" id="line-1769"><code>	MOVQ	DX, x+0(FP)</code></span>
+<span class="codeline" id="line-1770"><code>	MOVQ	BX, y+8(FP)</code></span>
+<span class="codeline" id="line-1771"><code>	JMP	runtime·goPanicSlice3AlenU(SB)</code></span>
+<span class="codeline" id="line-1772"><code>TEXT runtime·panicSlice3Acap&lt;ABIInternal&gt;(SB),NOSPLIT,$0-16</code></span>
+<span class="codeline" id="line-1773"><code>	MOVQ	DX, x+0(FP)</code></span>
+<span class="codeline" id="line-1774"><code>	MOVQ	BX, y+8(FP)</code></span>
+<span class="codeline" id="line-1775"><code>	JMP	runtime·goPanicSlice3Acap(SB)</code></span>
+<span class="codeline" id="line-1776"><code>TEXT runtime·panicSlice3AcapU&lt;ABIInternal&gt;(SB),NOSPLIT,$0-16</code></span>
+<span class="codeline" id="line-1777"><code>	MOVQ	DX, x+0(FP)</code></span>
+<span class="codeline" id="line-1778"><code>	MOVQ	BX, y+8(FP)</code></span>
+<span class="codeline" id="line-1779"><code>	JMP	runtime·goPanicSlice3AcapU(SB)</code></span>
+<span class="codeline" id="line-1780"><code>TEXT runtime·panicSlice3B&lt;ABIInternal&gt;(SB),NOSPLIT,$0-16</code></span>
+<span class="codeline" id="line-1781"><code>	MOVQ	CX, x+0(FP)</code></span>
+<span class="codeline" id="line-1782"><code>	MOVQ	DX, y+8(FP)</code></span>
+<span class="codeline" id="line-1783"><code>	JMP	runtime·goPanicSlice3B(SB)</code></span>
+<span class="codeline" id="line-1784"><code>TEXT runtime·panicSlice3BU&lt;ABIInternal&gt;(SB),NOSPLIT,$0-16</code></span>
+<span class="codeline" id="line-1785"><code>	MOVQ	CX, x+0(FP)</code></span>
+<span class="codeline" id="line-1786"><code>	MOVQ	DX, y+8(FP)</code></span>
+<span class="codeline" id="line-1787"><code>	JMP	runtime·goPanicSlice3BU(SB)</code></span>
+<span class="codeline" id="line-1788"><code>TEXT runtime·panicSlice3C&lt;ABIInternal&gt;(SB),NOSPLIT,$0-16</code></span>
+<span class="codeline" id="line-1789"><code>	MOVQ	AX, x+0(FP)</code></span>
+<span class="codeline" id="line-1790"><code>	MOVQ	CX, y+8(FP)</code></span>
+<span class="codeline" id="line-1791"><code>	JMP	runtime·goPanicSlice3C(SB)</code></span>
+<span class="codeline" id="line-1792"><code>TEXT runtime·panicSlice3CU&lt;ABIInternal&gt;(SB),NOSPLIT,$0-16</code></span>
+<span class="codeline" id="line-1793"><code>	MOVQ	AX, x+0(FP)</code></span>
+<span class="codeline" id="line-1794"><code>	MOVQ	CX, y+8(FP)</code></span>
+<span class="codeline" id="line-1795"><code>	JMP	runtime·goPanicSlice3CU(SB)</code></span>
+<span class="codeline" id="line-1796"><code></code></span>
+<span class="codeline" id="line-1797"><code>#ifdef GOOS_android</code></span>
+<span class="codeline" id="line-1798"><code>// Use the free TLS_SLOT_APP slot #2 on Android Q.</code></span>
+<span class="codeline" id="line-1799"><code>// Earlier androids are set up in gcc_android.c.</code></span>
+<span class="codeline" id="line-1800"><code>DATA runtime·tls_g+0(SB)/8, $16</code></span>
+<span class="codeline" id="line-1801"><code>GLOBL runtime·tls_g+0(SB), NOPTR, $8</code></span>
+<span class="codeline" id="line-1802"><code>#endif</code></span>
+<span class="codeline" id="line-1803"><code></code></span>
+<span class="codeline" id="line-1804"><code>// The compiler and assembler's -spectre=ret mode rewrites</code></span>
+<span class="codeline" id="line-1805"><code>// all indirect CALL AX / JMP AX instructions to be</code></span>
+<span class="codeline" id="line-1806"><code>// CALL retpolineAX / JMP retpolineAX.</code></span>
+<span class="codeline" id="line-1807"><code>// See https://support.google.com/faqs/answer/7625886.</code></span>
+<span class="codeline" id="line-1808"><code>#define RETPOLINE(reg) \</code></span>
+<span class="codeline" id="line-1809"><code>	/*   CALL setup */     BYTE $0xE8; BYTE $(2+2); BYTE $0; BYTE $0; BYTE $0;	\</code></span>
+<span class="codeline" id="line-1810"><code>	/* nospec: */									\</code></span>
+<span class="codeline" id="line-1811"><code>	/*   PAUSE */           BYTE $0xF3; BYTE $0x90;					\</code></span>
+<span class="codeline" id="line-1812"><code>	/*   JMP nospec */      BYTE $0xEB; BYTE $-(2+2);				\</code></span>
+<span class="codeline" id="line-1813"><code>	/* setup: */									\</code></span>
+<span class="codeline" id="line-1814"><code>	/*   MOVQ AX, 0(SP) */  BYTE $0x48|((reg&amp;8)&gt;&gt;1); BYTE $0x89;			\</code></span>
+<span class="codeline" id="line-1815"><code>	                        BYTE $0x04|((reg&amp;7)&lt;&lt;3); BYTE $0x24;			\</code></span>
+<span class="codeline" id="line-1816"><code>	/*   RET */             BYTE $0xC3</code></span>
+<span class="codeline" id="line-1817"><code></code></span>
+<span class="codeline" id="line-1818"><code>TEXT runtime·retpolineAX(SB),NOSPLIT,$0; RETPOLINE(0)</code></span>
+<span class="codeline" id="line-1819"><code>TEXT runtime·retpolineCX(SB),NOSPLIT,$0; RETPOLINE(1)</code></span>
+<span class="codeline" id="line-1820"><code>TEXT runtime·retpolineDX(SB),NOSPLIT,$0; RETPOLINE(2)</code></span>
+<span class="codeline" id="line-1821"><code>TEXT runtime·retpolineBX(SB),NOSPLIT,$0; RETPOLINE(3)</code></span>
+<span class="codeline" id="line-1822"><code>/* SP is 4, can't happen / magic encodings */</code></span>
+<span class="codeline" id="line-1823"><code>TEXT runtime·retpolineBP(SB),NOSPLIT,$0; RETPOLINE(5)</code></span>
+<span class="codeline" id="line-1824"><code>TEXT runtime·retpolineSI(SB),NOSPLIT,$0; RETPOLINE(6)</code></span>
+<span class="codeline" id="line-1825"><code>TEXT runtime·retpolineDI(SB),NOSPLIT,$0; RETPOLINE(7)</code></span>
+<span class="codeline" id="line-1826"><code>TEXT runtime·retpolineR8(SB),NOSPLIT,$0; RETPOLINE(8)</code></span>
+<span class="codeline" id="line-1827"><code>TEXT runtime·retpolineR9(SB),NOSPLIT,$0; RETPOLINE(9)</code></span>
+<span class="codeline" id="line-1828"><code>TEXT runtime·retpolineR10(SB),NOSPLIT,$0; RETPOLINE(10)</code></span>
+<span class="codeline" id="line-1829"><code>TEXT runtime·retpolineR11(SB),NOSPLIT,$0; RETPOLINE(11)</code></span>
+<span class="codeline" id="line-1830"><code>TEXT runtime·retpolineR12(SB),NOSPLIT,$0; RETPOLINE(12)</code></span>
+<span class="codeline" id="line-1831"><code>TEXT runtime·retpolineR13(SB),NOSPLIT,$0; RETPOLINE(13)</code></span>
+<span class="codeline" id="line-1832"><code>TEXT runtime·retpolineR14(SB),NOSPLIT,$0; RETPOLINE(14)</code></span>
+<span class="codeline" id="line-1833"><code>TEXT runtime·retpolineR15(SB),NOSPLIT,$0; RETPOLINE(15)</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: text/tabwriter</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>tabwriter</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../index.html#pkg-text/tabwriter">text/tabwriter</a><i> (on <a href="https://pkg.go.dev/text/tabwriter" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../dep/text/tabwriter.html">2 packages</a>, and imported by <a href="../../dep/text/tabwriter.html#imported-by">one package</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<input type='checkbox' checked class="fold" id="file-0-fold-content"><label for="file-0-fold-content">   <a href="../../src/text/tabwriter/tabwriter.go.html#doc">d➜</a> <a href="../../src/text/tabwriter/tabwriter.go.html">tabwriter.go</a></label><span id='file-0-fold-content-items' class="fold-items">
+		Package tabwriter implements a write filter (tabwriter.Writer) that
+		translates tabbed columns in input into properly aligned text.
+
+		The package is using the Elastic Tabstops algorithm described at
+		http://nickgravgaard.com/elastictabstops/index.html.
+
+		The text/tabwriter package is frozen and is not accepting new features.</span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content">Writer_Init</label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"os"
+			"text/tabwriter"
+		)
+		
+		func main() {
+			w := new(tabwriter.Writer)
+		
+			// Format in tab-separated columns with a tab stop of 8.
+			w.Init(os.Stdout, 0, 8, 0, '\t', 0)
+			fmt.Fprintln(w, "a\tb\tc\td\t.")
+			fmt.Fprintln(w, "123\t12345\t1234567\t123456789\t.")
+			fmt.Fprintln(w)
+			w.Flush()
+		
+			// Format right-aligned in space-separated columns of minimal width 5
+			// and at least one blank of padding (so wider column entries do not
+			// touch each other).
+			w.Init(os.Stdout, 5, 0, 1, ' ', tabwriter.AlignRight)
+			fmt.Fprintln(w, "a\tb\tc\td\t.")
+			fmt.Fprintln(w, "123\t12345\t1234567\t123456789\t.")
+			fmt.Fprintln(w)
+			w.Flush()
+		
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-1-fold-content"><label for="example-1-fold-content">_elastic</label><span id='example-1-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"os"
+			"text/tabwriter"
+		)
+		
+		func main() {
+			// Observe how the b's and the d's, despite appearing in the
+			// second cell of each line, belong to different columns.
+			w := tabwriter.NewWriter(os.Stdout, 0, 0, 1, '.', tabwriter.AlignRight|tabwriter.Debug)
+			fmt.Fprintln(w, "a\tb\tc")
+			fmt.Fprintln(w, "aa\tbb\tcc")
+			fmt.Fprintln(w, "aaa\t") // trailing tab
+			fmt.Fprintln(w, "aaaa\tdddd\teeee")
+			w.Flush()
+		
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-2-fold-content"><label for="example-2-fold-content">_trailingTab</label><span id='example-2-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"os"
+			"text/tabwriter"
+		)
+		
+		func main() {
+			// Observe that the third line has no trailing tab,
+			// so its final cell is not part of an aligned column.
+			const padding = 3
+			w := tabwriter.NewWriter(os.Stdout, 0, 0, padding, '-', tabwriter.AlignRight|tabwriter.Debug)
+			fmt.Fprintln(w, "a\tb\taligned\t")
+			fmt.Fprintln(w, "aa\tbb\taligned\t")
+			fmt.Fprintln(w, "aaa\tbbb\tunaligned") // no trailing tab
+			fmt.Fprintln(w, "aaaa\tbbbb\taligned\t")
+			w.Flush()
+		
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 3, in which 1 are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-Writer" data-popularity="1150">	<input type='checkbox' class="fold" id="Writer-fold-content"><label for="Writer-fold-content"> type <a href="../../src/text/tabwriter/tabwriter.go.html#line-91">Writer</a> <i>(struct)</i></label><span id='Writer-fold-content-docs' class="fold-docs">
+		A Writer is a filter that inserts padding around tab-delimited
+		columns in its input to align them in the output.
+
+		The Writer treats incoming bytes as UTF-8-encoded text consisting
+		of cells terminated by horizontal ('\t') or vertical ('\v') tabs,
+		and newline ('\n') or formfeed ('\f') characters; both newline and
+		formfeed act as line breaks.
+
+		Tab-terminated cells in contiguous lines constitute a column. The
+		Writer inserts padding as needed to make all cells in a column have
+		the same width, effectively aligning the columns. It assumes that
+		all characters have the same width, except for tabs for which a
+		tabwidth must be specified. Column cells must be tab-terminated, not
+		tab-separated: non-tab terminated trailing text at the end of a line
+		forms a cell but that cell is not part of an aligned column.
+		For instance, in this example (where | stands for a horizontal tab):
+
+			aaaa|bbb|d
+			aa  |b  |dd
+			a   |
+			aa  |cccc|eee
+
+		the b and c are in distinct columns (the b column is not contiguous
+		all the way). The d and e are not in a column at all (there's no
+		terminating tab, nor would the column be contiguous).
+
+		The Writer assumes that all Unicode code points have the same width;
+		this may not be true in some fonts or if the string contains combining
+		characters.
+
+		If DiscardEmptyColumns is set, empty columns that are terminated
+		entirely by vertical (or "soft") tabs are discarded. Columns
+		terminated by horizontal (or "hard") tabs are not affected by
+		this flag.
+
+		If a Writer is configured to filter HTML, HTML tags and entities
+		are passed through. The widths of tags and entities are
+		assumed to be zero (tags) and one (entities) for formatting purposes.
+
+		A segment of text may be escaped by bracketing it with Escape
+		characters. The tabwriter passes escaped text segments through
+		unchanged. In particular, it does not interpret any tabs or line
+		breaks within the segment. If the StripEscape flag is set, the
+		Escape characters are stripped from the output; otherwise they
+		are passed through as well. For the purpose of formatting, the
+		width of the escaped text is always computed excluding the Escape
+		characters.
+
+		The formfeed character acts like a newline but it also terminates
+		all columns in the current line (effectively calling Flush). Tab-
+		terminated cells in the next line start new columns. Unless found
+		inside an HTML tag or inside an escaped text segment, formfeed
+		characters appear as newlines in the output.
+
+		The Writer must buffer input internally, because proper spacing
+		of one line may depend on the cells in future lines. Clients must
+		call Flush when done calling Write.
+
+		<input type='checkbox' class="fold" id="Writer-fold-fields"><label for="Writer-fold-fields">Fields (<i>total 12, none are exported</i>)</label><span id='Writer-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Writer-showhide-fields"><i><label for="Writer-showhide-fields" class="show-inline">/* 12 unexporteds ... */</label><label for="Writer-showhide-fields" class="hide-inline">/* 12 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-field-buf"><label for="Writer-fold-field-buf"><a href="../../src/text/tabwriter/tabwriter.go.html#line-101">buf</a> <i>[]<a href="../builtin.html#name-byte">byte</a></i></label><span id='Writer-fold-field-buf-docs' class="fold-docs">
+				current state
+				// collected text excluding tabs or line breaks
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-field-cell"><label for="Writer-fold-field-cell"><a href="../../src/text/tabwriter/tabwriter.go.html#line-103">cell</a> <i><a href="#name-cell">cell</a></i></label><span id='Writer-fold-field-cell-docs' class="fold-docs">
+				// current incomplete cell; cell.width is up to buf[pos] excluding ignored sections
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-field-endChar"><label for="Writer-fold-field-endChar"><a href="../../src/text/tabwriter/tabwriter.go.html#line-104">endChar</a> <i><a href="../builtin.html#name-byte">byte</a></i></label><span id='Writer-fold-field-endChar-docs' class="fold-docs">
+				// terminating char of escaped sequence (Escape for escapes, '&gt;', ';' for HTML tags/entities, or 0)
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/tabwriter/tabwriter.go.html#line-98">flags</a> <i><a href="../builtin.html#name-uint">uint</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-field-lines"><label for="Writer-fold-field-lines"><a href="../../src/text/tabwriter/tabwriter.go.html#line-105">lines</a> <i>[][]<a href="#name-cell">cell</a></i></label><span id='Writer-fold-field-lines-docs' class="fold-docs">
+				// list of lines; each line is a list of cells
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/tabwriter/tabwriter.go.html#line-94">minwidth</a> <i><a href="../builtin.html#name-int">int</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-field-output"><label for="Writer-fold-field-output"><a href="../../src/text/tabwriter/tabwriter.go.html#line-93">output</a> <i><a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a></i></label><span id='Writer-fold-field-output-docs' class="fold-docs">
+				configuration
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/tabwriter/tabwriter.go.html#line-97">padbytes</a> <i>[8]<a href="../builtin.html#name-byte">byte</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/tabwriter/tabwriter.go.html#line-96">padding</a> <i><a href="../builtin.html#name-int">int</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-field-pos"><label for="Writer-fold-field-pos"><a href="../../src/text/tabwriter/tabwriter.go.html#line-102">pos</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='Writer-fold-field-pos-docs' class="fold-docs">
+				// buffer position up to which cell.width of incomplete cell has been computed
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/tabwriter/tabwriter.go.html#line-95">tabwidth</a> <i><a href="../builtin.html#name-int">int</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-field-widths"><label for="Writer-fold-field-widths"><a href="../../src/text/tabwriter/tabwriter.go.html#line-106">widths</a> <i>[]<a href="../builtin.html#name-int">int</a></i></label><span id='Writer-fold-field-widths-docs' class="fold-docs">
+				// list of column widths in runes - re-used during formatting
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Writer-fold-methods"><label for="Writer-fold-methods">Methods (<i>total 19, in which 3 are exported</i>)</label><span id='Writer-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Writer-fold-method-Flush"><label for="Writer-fold-method-Flush">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-494">Flush</a>() <a href="../builtin.html#name-error">error</a></label><span id='Writer-fold-method-Flush-docs' class="fold-docs">
+				Flush should be called after the last call to Write to ensure
+				that any data buffered in the Writer is written to output. Any
+				incomplete escape sequence at the end is considered
+				complete for formatting purposes.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Writer-fold-method-Init"><label for="Writer-fold-method-Init">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-211">Init</a>(output <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, minwidth, tabwidth, padding <a href="../builtin.html#name-int">int</a>, padchar <a href="../builtin.html#name-byte">byte</a>, flags <a href="../builtin.html#name-uint">uint</a>) *<b>Writer</b></label><span id='Writer-fold-method-Init-docs' class="fold-docs">
+				A Writer must be initialized with a call to Init. The first parameter (output)
+				specifies the filter output. The remaining parameters control the formatting:
+
+					minwidth	minimal cell width including any padding
+					tabwidth	width of tab characters (equivalent number of spaces)
+					padding		padding added to a cell before computing its width
+					padchar		ASCII char used for padding
+							if padchar == '\t', the Writer will assume that the
+							width of a '\t' in the formatted output is tabwidth,
+							and cells are left-aligned independent of align_left
+							(for correct-looking results, tabwidth must correspond
+							to the tab width in the viewer displaying the result)
+					flags		formatting control
+</span></span><span>
+			<input type='checkbox' class="fold" id="Writer-fold-method-Write"><label for="Writer-fold-method-Write">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-530">Write</a>(buf []<a href="../builtin.html#name-byte">byte</a>) (n <a href="../builtin.html#name-int">int</a>, err <a href="../builtin.html#name-error">error</a>)</label><span id='Writer-fold-method-Write-docs' class="fold-docs">
+				Write writes buf to the writer b.
+				The only errors returned are ones encountered
+				while writing to the underlying output stream.
+</span></span>
+			<input type='checkbox' class="showhide" id="Writer-showhide-methods"><i><label for="Writer-showhide-methods" class="show-inline">/* 16 unexporteds ... */</label><label for="Writer-showhide-methods" class="hide-inline">/* 16 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-method-addLine"><label for="Writer-fold-method-addLine">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-112">addLine</a>(flushed <a href="../builtin.html#name-bool">bool</a>)</label><span id='Writer-fold-method-addLine-docs' class="fold-docs">
+				addLine adds a new line.
+				flushed is a hint indicating whether the underlying writer was just flushed.
+				If so, the previous line is not likely to be a good indicator of the new line's cells.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-method-append"><label for="Writer-fold-method-append">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-413">append</a>(text []<a href="../builtin.html#name-byte">byte</a>)</label><span id='Writer-fold-method-append-docs' class="fold-docs">
+				Append text to current cell.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-method-dump"><label for="Writer-fold-method-dump">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-234">dump</a>()</label><span id='Writer-fold-method-dump-docs' class="fold-docs">
+				debugging support (keep code around)
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-method-endEscape"><label for="Writer-fold-method-endEscape">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-450">endEscape</a>()</label><span id='Writer-fold-method-endEscape-docs' class="fold-docs">
+				Terminate escaped mode. If the escaped text was an HTML tag, its width
+				is assumed to be zero for formatting purposes; if it was an HTML entity,
+				its width is assumed to be one. In all other cases, the width is the
+				unicode width of the text.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-method-flush"><label for="Writer-fold-method-flush">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-500">flush</a>() (err <a href="../builtin.html#name-error">error</a>)</label><span id='Writer-fold-method-flush-docs' class="fold-docs">
+				flush is the internal version of Flush, with a named return value which we
+				don't want to expose.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-method-flushNoDefers"><label for="Writer-fold-method-flushNoDefers">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-509">flushNoDefers</a>()</label><span id='Writer-fold-method-flushNoDefers-docs' class="fold-docs">
+				flushNoDefers is like flush, but without a deferred handlePanic call. This
+				can be called from other methods which already have their own deferred
+				handlePanic calls, such as Write, and avoid the extra defer work.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-method-format"><label for="Writer-fold-method-format">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-354">format</a>(pos0 <a href="../builtin.html#name-int">int</a>, line0, line1 <a href="../builtin.html#name-int">int</a>) (pos <a href="../builtin.html#name-int">int</a>)</label><span id='Writer-fold-method-format-docs' class="fold-docs">
+				Format the text between line0 and line1 (excluding line1); pos
+				is the buffer position corresponding to the beginning of line0.
+				Returns the buffer position corresponding to the beginning of
+				line1 and an error, if any.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-476">handlePanic</a>(err *<a href="../builtin.html#name-error">error</a>, op <a href="../builtin.html#name-string">string</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-method-reset"><label for="Writer-fold-method-reset">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-137">reset</a>()</label><span id='Writer-fold-method-reset-docs' class="fold-docs">
+				Reset the current state.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-method-startEscape"><label for="Writer-fold-method-startEscape">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-434">startEscape</a>(ch <a href="../builtin.html#name-byte">byte</a>)</label><span id='Writer-fold-method-startEscape-docs' class="fold-docs">
+				Start escaped mode.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-method-terminateCell"><label for="Writer-fold-method-terminateCell">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-468">terminateCell</a>(htab <a href="../builtin.html#name-bool">bool</a>) <a href="../builtin.html#name-int">int</a></label><span id='Writer-fold-method-terminateCell-docs' class="fold-docs">
+				Terminate the current cell by adding it to the list of cells of the
+				current line. Returns the number of cells in that line.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-method-updateWidth"><label for="Writer-fold-method-updateWidth">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-419">updateWidth</a>()</label><span id='Writer-fold-method-updateWidth-docs' class="fold-docs">
+				Update the cell width.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-253">write0</a>(buf []<a href="../builtin.html#name-byte">byte</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-298">writeLines</a>(pos0 <a href="../builtin.html#name-int">int</a>, line0, line1 <a href="../builtin.html#name-int">int</a>) (pos <a href="../builtin.html#name-int">int</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-263">writeN</a>(src []<a href="../builtin.html#name-byte">byte</a>, n <a href="../builtin.html#name-int">int</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/tabwriter/tabwriter.go.html#line-276">writePadding</a>(textw, cellw <a href="../builtin.html#name-int">int</a>, useTabs <a href="../builtin.html#name-bool">bool</a>)</span></i></span></span>
+		<input type='checkbox' class="fold" id="Writer-fold-impls"><label for="Writer-fold-impls">Implements (<i>at least one exported</i>)</label><span id='Writer-fold-impls-items' class="fold-items"><span>
+			*T : io.<a href="../io.html#name-Writer">Writer</a></span></span>
+		<input type='checkbox' class="fold" id="Writer-fold-results"><label for="Writer-fold-results">As Outputs Of (<i>at least 2, both are exported</i>)</label><span id='Writer-fold-results-items' class="fold-items"><span>
+			func <a href="#name-NewWriter">NewWriter</a>(output <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, minwidth, tabwidth, padding <a href="../builtin.html#name-int">int</a>, padchar <a href="../builtin.html#name-byte">byte</a>, flags <a href="../builtin.html#name-uint">uint</a>) *<b>Writer</b></span><span>
+			func (*Writer).<a href="../../src/text/tabwriter/tabwriter.go.html#line-211">Init</a>(output <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, minwidth, tabwidth, padding <a href="../builtin.html#name-int">int</a>, padchar <a href="../builtin.html#name-byte">byte</a>, flags <a href="../builtin.html#name-uint">uint</a>) *<b>Writer</b></span></span>
+
+</span></div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* 2 unexporteds ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* 2 unexporteds: */</label></i><div class="anchor type-res hidden" id="name-cell" data-popularity="0">	<input type='checkbox' class="fold" id="cell-fold-content"><label for="cell-fold-content"> type <a href="../../src/text/tabwriter/tabwriter.go.html#line-27">cell</a> <i>(struct)</i></label><span id='cell-fold-content-docs' class="fold-docs">
+		A cell represents a segment of text terminated by tabs or line breaks.
+		The text itself is stored in a separate buffer; cell only describes the
+		segment's size in bytes, its width in runes, and whether it's an htab
+		('\t') terminated cell.
+
+		<input type='checkbox' class="fold" id="cell-fold-fields"><label for="cell-fold-fields">Fields (<i>total 3, none are exported</i>)</label><span id='cell-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="cell-showhide-fields"><i><label for="cell-showhide-fields" class="show-inline">/* 3 unexporteds ... */</label><label for="cell-showhide-fields" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="cell-fold-field-htab"><label for="cell-fold-field-htab"><a href="../../src/text/tabwriter/tabwriter.go.html#line-30">htab</a> <i><a href="../builtin.html#name-bool">bool</a></i></label><span id='cell-fold-field-htab-docs' class="fold-docs">
+				// true if the cell is terminated by an htab ('\t')
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="cell-fold-field-size"><label for="cell-fold-field-size"><a href="../../src/text/tabwriter/tabwriter.go.html#line-28">size</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='cell-fold-field-size-docs' class="fold-docs">
+				// cell size in bytes
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="cell-fold-field-width"><label for="cell-fold-field-width"><a href="../../src/text/tabwriter/tabwriter.go.html#line-29">width</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='cell-fold-field-width-docs' class="fold-docs">
+				// cell width in runes
+</span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-osError" data-popularity="0">	<input type='checkbox' class="fold" id="osError-fold-content"><label for="osError-fold-content"> type <a href="../../src/text/tabwriter/tabwriter.go.html#line-249">osError</a> <i>(struct)</i></label><span id='osError-fold-content-docs' class="fold-docs">
+		local error wrapper so we can distinguish errors we want to return
+		as errors from genuine panics (which we don't want to return as errors)
+
+		<input type='checkbox' class="fold" id="osError-fold-fields"><label for="osError-fold-fields">Fields (<i>only one, which is unexported</i>)</label><span id='osError-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="osError-showhide-fields"><i><label for="osError-showhide-fields" class="show-inline">/* one unexported ... */</label><label for="osError-showhide-fields" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/tabwriter/tabwriter.go.html#line-250">err</a> <i><a href="../builtin.html#name-error">error</a></i></span></i></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (only one, which is exported)</i></span></span>
+
+<div class="anchor value-res" id="name-NewWriter">	<input type='checkbox' class="fold" id="NewWriter-fold-content"><label for="NewWriter-fold-content"> func <a href="../../src/text/tabwriter/tabwriter.go.html#line-607">NewWriter</a>(output <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, minwidth, tabwidth, padding <a href="../builtin.html#name-int">int</a>, padchar <a href="../builtin.html#name-byte">byte</a>, flags <a href="../builtin.html#name-uint">uint</a>) *<a href="#name-Writer">Writer</a></label><span id='NewWriter-fold-content-docs' class="fold-docs">
+		NewWriter allocates and initializes a new tabwriter.Writer.
+		The parameters are the same as for the Init function.
+
+</span></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (total 4, none are exported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* 4 unexporteds ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* 4 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-hbar"><i>	<span class="nodocs">  var <a href="../../src/text/tabwriter/tabwriter.go.html#line-524">hbar</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-newline"><i>	<span class="nodocs">  var <a href="../../src/text/tabwriter/tabwriter.go.html#line-272">newline</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-tabs"><i>	<span class="nodocs">  var <a href="../../src/text/tabwriter/tabwriter.go.html#line-273">tabs</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-vbar"><i>	<span class="nodocs">  var <a href="../../src/text/tabwriter/tabwriter.go.html#line-296">vbar</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div></div>
+<div id="exported-constants"><span class="title">Package-Level Constants<span class="title-stat"><i> (total 7, all are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-AlignRight">	<input type='checkbox' class="fold" id="AlignRight-fold-content"><label for="AlignRight-fold-content">const <a href="../../src/text/tabwriter/tabwriter.go.html#line-182">AlignRight</a> <a href="../builtin.html#name-uint">uint</a> = 4</label><span id='AlignRight-fold-content-docs' class="fold-docs">
+		Force right-alignment of cell content.
+		Default is left-alignment.
+
+</span></div><div class="anchor value-res" id="name-Debug">	<input type='checkbox' class="fold" id="Debug-fold-content"><label for="Debug-fold-content">const <a href="../../src/text/tabwriter/tabwriter.go.html#line-194">Debug</a> <a href="../builtin.html#name-uint">uint</a> = 32</label><span id='Debug-fold-content-docs' class="fold-docs">
+		Print a vertical bar ('|') between columns (after formatting).
+		Discarded columns appear as zero-width columns ("||").
+
+</span></div><div class="anchor value-res" id="name-DiscardEmptyColumns">	<input type='checkbox' class="fold" id="DiscardEmptyColumns-fold-content"><label for="DiscardEmptyColumns-fold-content">const <a href="../../src/text/tabwriter/tabwriter.go.html#line-186">DiscardEmptyColumns</a> <a href="../builtin.html#name-uint">uint</a> = 8</label><span id='DiscardEmptyColumns-fold-content-docs' class="fold-docs">
+		Handle empty columns as if they were not present in
+		the input in the first place.
+
+</span></div><div class="anchor value-res" id="name-Escape">	<input type='checkbox' class="fold" id="Escape-fold-content"><label for="Escape-fold-content">const <a href="../../src/text/tabwriter/tabwriter.go.html#line-431">Escape</a> = 255</label><span id='Escape-fold-content-docs' class="fold-docs">
+		To escape a text segment, bracket it with Escape characters.
+		For instance, the tab in this string "Ignore this tab: \xff\t\xff"
+		does not terminate a cell and constitutes a single character of
+		width one for formatting purposes.
+
+		The value 0xff was chosen because it cannot appear in a valid UTF-8 sequence.
+
+</span></div><div class="anchor value-res" id="name-FilterHTML">	<input type='checkbox' class="fold" id="FilterHTML-fold-content"><label for="FilterHTML-fold-content">const <a href="../../src/text/tabwriter/tabwriter.go.html#line-174">FilterHTML</a> <a href="../builtin.html#name-uint">uint</a> = 1</label><span id='FilterHTML-fold-content-docs' class="fold-docs">
+		Ignore html tags and treat entities (starting with '&amp;'
+		and ending in ';') as single characters (width = 1).
+
+</span></div><div class="anchor value-res" id="name-StripEscape">	<input type='checkbox' class="fold" id="StripEscape-fold-content"><label for="StripEscape-fold-content">const <a href="../../src/text/tabwriter/tabwriter.go.html#line-178">StripEscape</a> <a href="../builtin.html#name-uint">uint</a> = 2</label><span id='StripEscape-fold-content-docs' class="fold-docs">
+		Strip Escape characters bracketing escaped text segments
+		instead of passing them through unchanged with the text.
+
+</span></div><div class="anchor value-res" id="name-TabIndent">	<input type='checkbox' class="fold" id="TabIndent-fold-content"><label for="TabIndent-fold-content">const <a href="../../src/text/tabwriter/tabwriter.go.html#line-190">TabIndent</a> <a href="../builtin.html#name-uint">uint</a> = 16</label><span id='TabIndent-fold-content-docs' class="fold-docs">
+		Always use tabs for indentation columns (i.e., padding of
+		leading empty cells on the left) independent of padchar.
+
+</span></div></div></code></pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

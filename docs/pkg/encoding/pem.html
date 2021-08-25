@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: encoding/pem</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>pem</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../index.html#pkg-encoding/pem">encoding/pem</a><i> (on <a href="https://pkg.go.dev/encoding/pem" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../dep/encoding/pem.html">6 packages</a>, and imported by <a href="../../dep/encoding/pem.html#imported-by">2 packages</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<input type='checkbox' checked class="fold" id="file-0-fold-content"><label for="file-0-fold-content">   <a href="../../src/encoding/pem/pem.go.html#doc">d➜</a> <a href="../../src/encoding/pem/pem.go.html">pem.go</a></label><span id='file-0-fold-content-items' class="fold-items">
+		Package pem implements the PEM data encoding, which originated in Privacy
+		Enhanced Mail. The most common use of PEM encoding today is in TLS keys and
+		certificates. See RFC 1421.</span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content">Decode</label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"crypto/x509"
+			"encoding/pem"
+			"fmt"
+			"log"
+		)
+		
+		func main() {
+			var pubPEMData = []byte(`
+		-----BEGIN PUBLIC KEY-----
+		MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAlRuRnThUjU8/prwYxbty
+		WPT9pURI3lbsKMiB6Fn/VHOKE13p4D8xgOCADpdRagdT6n4etr9atzDKUSvpMtR3
+		CP5noNc97WiNCggBjVWhs7szEe8ugyqF23XwpHQ6uV1LKH50m92MbOWfCtjU9p/x
+		qhNpQQ1AZhqNy5Gevap5k8XzRmjSldNAFZMY7Yv3Gi+nyCwGwpVtBUwhuLzgNFK/
+		yDtw2WcWmUU7NuC8Q6MWvPebxVtCfVp/iQU6q60yyt6aGOBkhAX0LpKAEhKidixY
+		nP9PNVBvxgu3XZ4P36gZV6+ummKdBVnc3NqwBLu5+CcdRdusmHPHd5pHf4/38Z3/
+		6qU2a/fPvWzceVTEgZ47QjFMTCTmCwNt29cvi7zZeQzjtwQgn4ipN9NibRH/Ax/q
+		TbIzHfrJ1xa2RteWSdFjwtxi9C20HUkjXSeI4YlzQMH0fPX6KCE7aVePTOnB69I/
+		a9/q96DiXZajwlpq3wFctrs1oXqBp5DVrCIj8hU2wNgB7LtQ1mCtsYz//heai0K9
+		PhE4X6hiE0YmeAZjR0uHl8M/5aW9xCoJ72+12kKpWAa0SFRWLy6FejNYCYpkupVJ
+		yecLk/4L1W0l6jQQZnWErXZYe0PNFcmwGXy1Rep83kfBRNKRy5tvocalLlwXLdUk
+		AIU+2GKjyT3iMuzZxxFxPFMCAwEAAQ==
+		-----END PUBLIC KEY-----
+		and some more`)
+		
+			block, rest := pem.Decode(pubPEMData)
+			if block == nil || block.Type != "PUBLIC KEY" {
+				log.Fatal("failed to decode PEM block containing public key")
+			}
+		
+			pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+			if err != nil {
+				log.Fatal(err)
+			}
+		
+			fmt.Printf("Got a %T, with remaining data: %q", pub, rest)
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-1-fold-content"><label for="example-1-fold-content">Encode</label><span id='example-1-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"encoding/pem"
+			"log"
+			"os"
+		)
+		
+		func main() {
+			block := &pem.Block{
+				Type: "MESSAGE",
+				Headers: map[string]string{
+					"Animal": "Gopher",
+				},
+				Bytes: []byte("test"),
+			}
+		
+			if err := pem.Encode(os.Stdout, block); err != nil {
+				log.Fatal(err)
+			}
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 2, in which 1 are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-Block" data-popularity="365">	<input type='checkbox' class="fold" id="Block-fold-content"><label for="Block-fold-content"> type <a href="../../src/encoding/pem/pem.go.html#line-27">Block</a> <i>(struct)</i></label><span id='Block-fold-content-docs' class="fold-docs">
+		A Block represents a PEM encoded structure.
+
+		The encoded form is:
+		   -----BEGIN Type-----
+		   Headers
+		   base64-encoded Bytes
+		   -----END Type-----
+		where Headers is a possibly empty sequence of Key: Value lines.
+
+		<input type='checkbox' class="fold" id="Block-fold-fields"><label for="Block-fold-fields">Fields (<i>total 3, all are exported</i>)</label><span id='Block-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Block-fold-field-Bytes"><label for="Block-fold-field-Bytes"><a href="../../src/encoding/pem/pem.go.html#line-30">Bytes</a> <i>[]<a href="../builtin.html#name-byte">byte</a></i></label><span id='Block-fold-field-Bytes-docs' class="fold-docs">
+				// The decoded bytes of the contents. Typically a DER encoded ASN.1 structure.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Block-fold-field-Headers"><label for="Block-fold-field-Headers"><a href="../../src/encoding/pem/pem.go.html#line-29">Headers</a> <i>map[<a href="../builtin.html#name-string">string</a>]<a href="../builtin.html#name-string">string</a></i></label><span id='Block-fold-field-Headers-docs' class="fold-docs">
+				// Optional headers.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Block-fold-field-Type"><label for="Block-fold-field-Type"><a href="../../src/encoding/pem/pem.go.html#line-28">Type</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='Block-fold-field-Type-docs' class="fold-docs">
+				// The type, taken from the preamble (i.e. "RSA PRIVATE KEY").
+</span></span></span>
+		<input type='checkbox' class="fold" id="Block-fold-results"><label for="Block-fold-results">As Outputs Of (<i>at least 3, in which 2 are exported</i>)</label><span id='Block-fold-results-items' class="fold-items"><span>
+			func <a href="#name-Decode">Decode</a>(data []<a href="../builtin.html#name-byte">byte</a>) (p *<b>Block</b>, rest []<a href="../builtin.html#name-byte">byte</a>)</span><span>
+			func crypto/x509.<a href="../crypto/x509.html#name-EncryptPEMBlock">EncryptPEMBlock</a>(rand <a href="../io.html">io</a>.<a href="../io.html#name-Reader">Reader</a>, blockType <a href="../builtin.html#name-string">string</a>, data, password []<a href="../builtin.html#name-byte">byte</a>, alg <a href="../crypto/x509.html">x509</a>.<a href="../crypto/x509.html#name-PEMCipher">PEMCipher</a>) (*<b>Block</b>, <a href="../builtin.html#name-error">error</a>)</span>
+			<input type='checkbox' class="showhide" id="Block-showhide-inputofs"><i><label for="Block-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="Block-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-decodeError">decodeError</a>(data, rest []<a href="../builtin.html#name-byte">byte</a>) (*<b>Block</b>, []<a href="../builtin.html#name-byte">byte</a>)</i></span></span>
+		<input type='checkbox' class="fold" id="Block-fold-params"><label for="Block-fold-params">As Inputs Of (<i>at least 4, all are exported</i>)</label><span id='Block-fold-params-items' class="fold-items"><span>
+			func <a href="#name-Encode">Encode</a>(out <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, b *<b>Block</b>) <a href="../builtin.html#name-error">error</a></span><span>
+			func <a href="#name-EncodeToMemory">EncodeToMemory</a>(b *<b>Block</b>) []<a href="../builtin.html#name-byte">byte</a></span><span>
+			func crypto/x509.<a href="../crypto/x509.html#name-DecryptPEMBlock">DecryptPEMBlock</a>(b *<b>Block</b>, password []<a href="../builtin.html#name-byte">byte</a>) ([]<a href="../builtin.html#name-byte">byte</a>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func crypto/x509.<a href="../crypto/x509.html#name-IsEncryptedPEMBlock">IsEncryptedPEMBlock</a>(b *<b>Block</b>) <a href="../builtin.html#name-bool">bool</a></span></span>
+
+</span></div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* one unexported ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* one unexported: */</label></i><div class="anchor type-res hidden" id="name-lineBreaker" data-popularity="250">	<input type='checkbox' class="fold" id="lineBreaker-fold-content"><label for="lineBreaker-fold-content"> type <a href="../../src/encoding/pem/pem.go.html#line-211">lineBreaker</a> <i>(struct)</i></label><span id='lineBreaker-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="lineBreaker-fold-fields"><label for="lineBreaker-fold-fields">Fields (<i>total 3, none are exported</i>)</label><span id='lineBreaker-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="lineBreaker-showhide-fields"><i><label for="lineBreaker-showhide-fields" class="show-inline">/* 3 unexporteds ... */</label><label for="lineBreaker-showhide-fields" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/encoding/pem/pem.go.html#line-212">line</a> <i>[64]<a href="../builtin.html#name-byte">byte</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/encoding/pem/pem.go.html#line-214">out</a> <i><a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/encoding/pem/pem.go.html#line-213">used</a> <i><a href="../builtin.html#name-int">int</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="lineBreaker-fold-methods"><label for="lineBreaker-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='lineBreaker-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*T) <a href="../../src/encoding/pem/pem.go.html#line-246">Close</a>() (err <a href="../builtin.html#name-error">error</a>)</span></span><span>
+			<span class="nodocs">(*T) <a href="../../src/encoding/pem/pem.go.html#line-219">Write</a>(b []<a href="../builtin.html#name-byte">byte</a>) (n <a href="../builtin.html#name-int">int</a>, err <a href="../builtin.html#name-error">error</a>)</span></span></span>
+		<input type='checkbox' class="fold" id="lineBreaker-fold-impls"><label for="lineBreaker-fold-impls">Implements (<i>at least 3, all are exported</i>)</label><span id='lineBreaker-fold-impls-items' class="fold-items"><span>
+			*T : io.<a href="../io.html#name-Closer">Closer</a></span><span>
+			*T : io.<a href="../io.html#name-WriteCloser">WriteCloser</a></span><span>
+			*T : io.<a href="../io.html#name-Writer">Writer</a></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 7, in which 3 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-Decode">	<input type='checkbox' class="fold" id="Decode-fold-content"><label for="Decode-fold-content"> func <a href="../../src/encoding/pem/pem.go.html#line-86">Decode</a>(data []<a href="../builtin.html#name-byte">byte</a>) (p *<a href="#name-Block">Block</a>, rest []<a href="../builtin.html#name-byte">byte</a>)</label><span id='Decode-fold-content-docs' class="fold-docs">
+		Decode will find the next PEM formatted block (certificate, private key
+		etc) in the input. It returns that block and the remainder of the input. If
+		no PEM data is found, p is nil and the whole of the input is returned in
+		rest.
+
+</span></div><div class="anchor value-res" id="name-Encode">	<input type='checkbox' class="fold" id="Encode-fold-content"><label for="Encode-fold-content"> func <a href="../../src/encoding/pem/pem.go.html#line-264">Encode</a>(out <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, b *<a href="#name-Block">Block</a>) <a href="../builtin.html#name-error">error</a></label><span id='Encode-fold-content-docs' class="fold-docs">
+		Encode writes the PEM encoding of b to out.
+
+</span></div><div class="anchor value-res" id="name-EncodeToMemory">	<input type='checkbox' class="fold" id="EncodeToMemory-fold-content"><label for="EncodeToMemory-fold-content"> func <a href="../../src/encoding/pem/pem.go.html#line-334">EncodeToMemory</a>(b *<a href="#name-Block">Block</a>) []<a href="../builtin.html#name-byte">byte</a></label><span id='EncodeToMemory-fold-content-docs' class="fold-docs">
+		EncodeToMemory returns the PEM encoding of b.
+
+		If b has invalid headers and cannot be encoded,
+		EncodeToMemory returns nil. If it is important to
+		report details about this error case, use Encode instead.
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 4 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 4 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-decodeError"><i>	<span class="nodocs"> func <a href="../../src/encoding/pem/pem.go.html#line-181">decodeError</a>(data, rest []<a href="../builtin.html#name-byte">byte</a>) (*<a href="#name-Block">Block</a>, []<a href="../builtin.html#name-byte">byte</a>)</span></i></div><div class="anchor value-res hidden" id="name-getLine"><i>	<input type='checkbox' class="fold" id="getLine-fold-content"><label for="getLine-fold-content"> func <a href="../../src/encoding/pem/pem.go.html#line-38">getLine</a>(data []<a href="../builtin.html#name-byte">byte</a>) (line, rest []<a href="../builtin.html#name-byte">byte</a>)</label><span id='getLine-fold-content-docs' class="fold-docs">
+		getLine results the first \r\n or \n delineated line from the given byte
+		array. The line does not include trailing whitespace or the trailing new
+		line bytes. The remainder of the byte array (also not including the new line
+		bytes) is also returned and this will always be smaller than the original
+		argument.
+
+</span></i></div><div class="anchor value-res hidden" id="name-removeSpacesAndTabs"><i>	<input type='checkbox' class="fold" id="removeSpacesAndTabs-fold-content"><label for="removeSpacesAndTabs-fold-content"> func <a href="../../src/encoding/pem/pem.go.html#line-58">removeSpacesAndTabs</a>(data []<a href="../builtin.html#name-byte">byte</a>) []<a href="../builtin.html#name-byte">byte</a></label><span id='removeSpacesAndTabs-fold-content-docs' class="fold-docs">
+		removeSpacesAndTabs returns a copy of its input with all spaces and tabs
+		removed, if there were any. Otherwise, the input is returned unchanged.
+
+		The base64 decoder already skips newline characters, so we don't need to
+		filter them out here.
+
+</span></i></div><div class="anchor value-res hidden" id="name-writeHeader"><i>	<span class="nodocs"> func <a href="../../src/encoding/pem/pem.go.html#line-258">writeHeader</a>(out <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, k, v <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-error">error</a></span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (total 4, none are exported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* 4 unexporteds ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* 4 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-nl"><i>	<span class="nodocs">  var <a href="../../src/encoding/pem/pem.go.html#line-217">nl</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-pemEnd"><i>	<span class="nodocs">  var <a href="../../src/encoding/pem/pem.go.html#line-79">pemEnd</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-pemEndOfLine"><i>	<span class="nodocs">  var <a href="../../src/encoding/pem/pem.go.html#line-80">pemEndOfLine</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-pemStart"><i>	<span class="nodocs">  var <a href="../../src/encoding/pem/pem.go.html#line-78">pemStart</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div></div>
+<div id="exported-constants"><span class="title">Package-Level Constants<span class="title-stat"><i> (only one, which is unexported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-constants-showhide"><i><label for="unexported-constants-showhide" class="show-inline">/* one unexported ... */</label><label for="unexported-constants-showhide" class="hide-inline">/* one unexported: */</label></i><div class="anchor value-res hidden" id="name-pemLineLength"><i>	<span class="nodocs">const <a href="../../src/encoding/pem/pem.go.html#line-209">pemLineLength</a> = 64</span></i></div></div></code></pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

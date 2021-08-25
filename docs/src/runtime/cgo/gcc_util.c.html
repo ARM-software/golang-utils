@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: gcc_util.c in package runtime/cgo</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	gcc_util.c
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/runtime/cgo.html">runtime/cgo</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code>// Copyright 2009 The Go Authors. All rights reserved.</code></span>
+<span class="codeline" id="line-2"><code>// Use of this source code is governed by a BSD-style</code></span>
+<span class="codeline" id="line-3"><code>// license that can be found in the LICENSE file.</code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code>#include "libcgo.h"</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code>/* Stub for creating a new thread */</code></span>
+<span class="codeline" id="line-8"><code>void</code></span>
+<span class="codeline" id="line-9"><code>x_cgo_thread_start(ThreadStart *arg)</code></span>
+<span class="codeline" id="line-10"><code>{</code></span>
+<span class="codeline" id="line-11"><code>	ThreadStart *ts;</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code>	/* Make our own copy that can persist after we return. */</code></span>
+<span class="codeline" id="line-14"><code>	_cgo_tsan_acquire();</code></span>
+<span class="codeline" id="line-15"><code>	ts = malloc(sizeof *ts);</code></span>
+<span class="codeline" id="line-16"><code>	_cgo_tsan_release();</code></span>
+<span class="codeline" id="line-17"><code>	if(ts == nil) {</code></span>
+<span class="codeline" id="line-18"><code>		fprintf(stderr, "runtime/cgo: out of memory in thread_start\n");</code></span>
+<span class="codeline" id="line-19"><code>		abort();</code></span>
+<span class="codeline" id="line-20"><code>	}</code></span>
+<span class="codeline" id="line-21"><code>	*ts = *arg;</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code>	_cgo_sys_thread_start(ts);	/* OS-dependent half */</code></span>
+<span class="codeline" id="line-24"><code>}</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code>#ifndef CGO_TSAN</code></span>
+<span class="codeline" id="line-27"><code>void(* const _cgo_yield)() = NULL;</code></span>
+<span class="codeline" id="line-28"><code>#else</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code>#include &lt;string.h&gt;</code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code>char x_cgo_yield_strncpy_src = 0;</code></span>
+<span class="codeline" id="line-33"><code>char x_cgo_yield_strncpy_dst = 0;</code></span>
+<span class="codeline" id="line-34"><code>size_t x_cgo_yield_strncpy_n = 0;</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code>/*</code></span>
+<span class="codeline" id="line-37"><code>Stub for allowing libc interceptors to execute.</code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code>_cgo_yield is set to NULL if we do not expect libc interceptors to exist.</code></span>
+<span class="codeline" id="line-40"><code>*/</code></span>
+<span class="codeline" id="line-41"><code>static void</code></span>
+<span class="codeline" id="line-42"><code>x_cgo_yield()</code></span>
+<span class="codeline" id="line-43"><code>{</code></span>
+<span class="codeline" id="line-44"><code>	/*</code></span>
+<span class="codeline" id="line-45"><code>	The libc function(s) we call here must form a no-op and include at least one</code></span>
+<span class="codeline" id="line-46"><code>	call that triggers TSAN to process pending asynchronous signals.</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code>	sleep(0) would be fine, but it's not portable C (so it would need more header</code></span>
+<span class="codeline" id="line-49"><code>	guards).</code></span>
+<span class="codeline" id="line-50"><code>	free(NULL) has a fast-path special case in TSAN, so it doesn't</code></span>
+<span class="codeline" id="line-51"><code>	trigger signal delivery.</code></span>
+<span class="codeline" id="line-52"><code>	free(malloc(0)) would work (triggering the interceptors in malloc), but</code></span>
+<span class="codeline" id="line-53"><code>	it also runs a bunch of user-supplied malloc hooks.</code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code>	So we choose strncpy(_, _, 0): it requires an extra header,</code></span>
+<span class="codeline" id="line-56"><code>	but it's standard and should be very efficient.</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code>	GCC 7 has an unfortunate habit of optimizing out strncpy calls (see</code></span>
+<span class="codeline" id="line-59"><code>	https://golang.org/issue/21196), so the arguments here need to be global</code></span>
+<span class="codeline" id="line-60"><code>	variables with external linkage in order to ensure that the call traps all the</code></span>
+<span class="codeline" id="line-61"><code>	way down into libc.</code></span>
+<span class="codeline" id="line-62"><code>	*/</code></span>
+<span class="codeline" id="line-63"><code>	strncpy(&amp;x_cgo_yield_strncpy_dst, &amp;x_cgo_yield_strncpy_src,</code></span>
+<span class="codeline" id="line-64"><code>	        x_cgo_yield_strncpy_n);</code></span>
+<span class="codeline" id="line-65"><code>}</code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code>void(* const _cgo_yield)() = &amp;x_cgo_yield;</code></span>
+<span class="codeline" id="line-68"><code></code></span>
+<span class="codeline" id="line-69"><code>#endif  /* GO_TSAN */</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

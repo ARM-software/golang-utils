@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: port.go in package net</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	port.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/net.html">net</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2016 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> net</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// parsePort parses service as a decimal integer and returns the</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// corresponding value as port. It is the caller's responsibility to</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// parse service as a non-decimal integer when needsLookup is true.</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// Some system resolvers will return a valid port number when given a number</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// over 65536 (see https://golang.org/issues/11715). Alas, the parser</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// can't bail early on numbers &gt; 65536. Therefore reasonably large/small</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// numbers are parsed in full and rejected if invalid.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/net.html#name-parsePort" class="ident">parsePort</a></label>(<label for="r1" class="ident">service</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r2" class="ident">port</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r3" class="ident">needsLookup</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-16"><code>	<span class="keyword">if</span> <label for="r1" class="ident">service</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-17"><code>		<span class="comment">// Lock in the legacy behavior that an empty string</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">		// means port 0. See golang.org/issue/13610.</span></code></span>
+<span class="codeline" id="line-19"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-20"><code>	}</code></span>
+<span class="codeline" id="line-21"><code>	<span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-22"><code>		<label for="r4" class="ident">max</label>    = <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<span class="lit-number">1</span>&lt;&lt;<span class="lit-number">32</span> - <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-23"><code>		<label for="r5" class="ident">cutoff</label> = <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<span class="lit-number">1</span> &lt;&lt; <span class="lit-number">30</span>)</code></span>
+<span class="codeline" id="line-24"><code>	)</code></span>
+<span class="codeline" id="line-25"><code>	<label for="r6" class="ident">neg</label> := <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-26"><code>	<span class="keyword">if</span> <label for="r1" class="ident">service</label>[<span class="lit-number">0</span>] == <span class="lit-number">'+'</span> {</code></span>
+<span class="codeline" id="line-27"><code>		<label for="r1" class="ident">service</label> = <label for="r1" class="ident">service</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-28"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r1" class="ident">service</label>[<span class="lit-number">0</span>] == <span class="lit-number">'-'</span> {</code></span>
+<span class="codeline" id="line-29"><code>		<label for="r6" class="ident">neg</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-30"><code>		<label for="r1" class="ident">service</label> = <label for="r1" class="ident">service</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-31"><code>	}</code></span>
+<span class="codeline" id="line-32"><code>	<span class="keyword">var</span> <label for="r7" class="ident">n</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-33"><code>	<span class="keyword">for</span> <label for="r8" class="ident">_</label>, <label for="r9" class="ident">d</label> := <span class="keyword">range</span> <label for="r1" class="ident">service</label> {</code></span>
+<span class="codeline" id="line-34"><code>		<span class="keyword">if</span> <span class="lit-number">'0'</span> &lt;= <label for="r9" class="ident">d</label> &amp;&amp; <label for="r9" class="ident">d</label> &lt;= <span class="lit-number">'9'</span> {</code></span>
+<span class="codeline" id="line-35"><code>			<label for="r9" class="ident">d</label> -= <span class="lit-number">'0'</span></code></span>
+<span class="codeline" id="line-36"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-37"><code>			<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-38"><code>		}</code></span>
+<span class="codeline" id="line-39"><code>		<span class="keyword">if</span> <label for="r7" class="ident">n</label> &gt;= <label for="r5" class="ident">cutoff</label> {</code></span>
+<span class="codeline" id="line-40"><code>			<label for="r7" class="ident">n</label> = <label for="r4" class="ident">max</label></code></span>
+<span class="codeline" id="line-41"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-42"><code>		}</code></span>
+<span class="codeline" id="line-43"><code>		<label for="r7" class="ident">n</label> *= <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-44"><code>		<label for="r10" class="ident">nn</label> := <label for="r7" class="ident">n</label> + <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r9" class="ident">d</label>)</code></span>
+<span class="codeline" id="line-45"><code>		<span class="keyword">if</span> <label for="r10" class="ident">nn</label> &lt; <label for="r7" class="ident">n</label> || <label for="r10" class="ident">nn</label> &gt; <label for="r4" class="ident">max</label> {</code></span>
+<span class="codeline" id="line-46"><code>			<label for="r7" class="ident">n</label> = <label for="r4" class="ident">max</label></code></span>
+<span class="codeline" id="line-47"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-48"><code>		}</code></span>
+<span class="codeline" id="line-49"><code>		<label for="r7" class="ident">n</label> = <label for="r10" class="ident">nn</label></code></span>
+<span class="codeline" id="line-50"><code>	}</code></span>
+<span class="codeline" id="line-51"><code>	<span class="keyword">if</span> !<label for="r6" class="ident">neg</label> &amp;&amp; <label for="r7" class="ident">n</label> &gt;= <label for="r5" class="ident">cutoff</label> {</code></span>
+<span class="codeline" id="line-52"><code>		<label for="r2" class="ident">port</label> = <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r5" class="ident">cutoff</label> - <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-53"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r6" class="ident">neg</label> &amp;&amp; <label for="r7" class="ident">n</label> &gt; <label for="r5" class="ident">cutoff</label> {</code></span>
+<span class="codeline" id="line-54"><code>		<label for="r2" class="ident">port</label> = <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r5" class="ident">cutoff</label>)</code></span>
+<span class="codeline" id="line-55"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-56"><code>		<label for="r2" class="ident">port</label> = <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r7" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-57"><code>	}</code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">if</span> <label for="r6" class="ident">neg</label> {</code></span>
+<span class="codeline" id="line-59"><code>		<label for="r2" class="ident">port</label> = -<label for="r2" class="ident">port</label></code></span>
+<span class="codeline" id="line-60"><code>	}</code></span>
+<span class="codeline" id="line-61"><code>	<span class="keyword">return</span> <label for="r2" class="ident">port</label>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-62"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

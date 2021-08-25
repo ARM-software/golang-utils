@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: unsafe</title>
+<link href="../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>unsafe</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../index.html#pkg-unsafe">unsafe</a><i> (on <a href="https://pkg.go.dev/unsafe" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports 0 packages, and imported by <a href="../dep/unsafe.html#imported-by">31 packages</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<input type='checkbox' checked class="fold" id="file-0-fold-content"><label for="file-0-fold-content">   <a href="../src/unsafe/unsafe.go.html#doc">d➜</a> <a href="../src/unsafe/unsafe.go.html">unsafe.go</a></label><span id='file-0-fold-content-items' class="fold-items">
+			Package unsafe contains operations that step around the type safety of Go programs.
+
+			Packages that import unsafe may be non-portable and are not protected by the
+			Go 1 compatibility guidelines.</span></div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 2, both are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-ArbitraryType" data-popularity="0">	<input type='checkbox' class="fold" id="ArbitraryType-fold-content"><label for="ArbitraryType-fold-content"> type <a href="../src/unsafe/unsafe.go.html#line-15">ArbitraryType</a> <a href="builtin.html#name-int">int</a> <i>(basic type)</i></label><span id='ArbitraryType-fold-content-docs' class="fold-docs">
+		ArbitraryType is here for the purposes of documentation only and is not actually
+		part of the unsafe package. It represents the type of an arbitrary Go expression.
+
+</span></div><div class="anchor type-res" id="name-Pointer" data-popularity="20965">	<input type='checkbox' class="fold" id="Pointer-fold-content"><label for="Pointer-fold-content"> type <a href="../src/unsafe/unsafe.go.html#line-180">Pointer</a> <i>(basic type)</i></label><span id='Pointer-fold-content-docs' class="fold-docs">
+		Pointer represents a pointer to an arbitrary type. There are four special operations
+		available for type Pointer that are not available for other types:
+			- A pointer value of any type can be converted to a Pointer.
+			- A Pointer can be converted to a pointer value of any type.
+			- A uintptr can be converted to a Pointer.
+			- A Pointer can be converted to a uintptr.
+		Pointer therefore allows a program to defeat the type system and read and write
+		arbitrary memory. It should be used with extreme care.
+
+		The following patterns involving Pointer are valid.
+		Code not using these patterns is likely to be invalid today
+		or to become invalid in the future.
+		Even the valid patterns below come with important caveats.
+
+		Running "go vet" can help find uses of Pointer that do not conform to these patterns,
+		but silence from "go vet" is not a guarantee that the code is valid.
+
+		(1) Conversion of a *T1 to Pointer to *T2.
+
+		Provided that T2 is no larger than T1 and that the two share an equivalent
+		memory layout, this conversion allows reinterpreting data of one type as
+		data of another type. An example is the implementation of
+		math.Float64bits:
+
+			func Float64bits(f float64) uint64 {
+				return *(*uint64)(unsafe.Pointer(&amp;f))
+			}
+
+		(2) Conversion of a Pointer to a uintptr (but not back to Pointer).
+
+		Converting a Pointer to a uintptr produces the memory address of the value
+		pointed at, as an integer. The usual use for such a uintptr is to print it.
+
+		Conversion of a uintptr back to Pointer is not valid in general.
+
+		A uintptr is an integer, not a reference.
+		Converting a Pointer to a uintptr creates an integer value
+		with no pointer semantics.
+		Even if a uintptr holds the address of some object,
+		the garbage collector will not update that uintptr's value
+		if the object moves, nor will that uintptr keep the object
+		from being reclaimed.
+
+		The remaining patterns enumerate the only valid conversions
+		from uintptr to Pointer.
+
+		(3) Conversion of a Pointer to a uintptr and back, with arithmetic.
+
+		If p points into an allocated object, it can be advanced through the object
+		by conversion to uintptr, addition of an offset, and conversion back to Pointer.
+
+			p = unsafe.Pointer(uintptr(p) + offset)
+
+		The most common use of this pattern is to access fields in a struct
+		or elements of an array:
+
+			// equivalent to f := unsafe.Pointer(&amp;s.f)
+			f := unsafe.Pointer(uintptr(unsafe.Pointer(&amp;s)) + unsafe.Offsetof(s.f))
+
+			// equivalent to e := unsafe.Pointer(&amp;x[i])
+			e := unsafe.Pointer(uintptr(unsafe.Pointer(&amp;x[0])) + i*unsafe.Sizeof(x[0]))
+
+		It is valid both to add and to subtract offsets from a pointer in this way.
+		It is also valid to use &amp;^ to round pointers, usually for alignment.
+		In all cases, the result must continue to point into the original allocated object.
+
+		Unlike in C, it is not valid to advance a pointer just beyond the end of
+		its original allocation:
+
+			// INVALID: end points outside allocated space.
+			var s thing
+			end = unsafe.Pointer(uintptr(unsafe.Pointer(&amp;s)) + unsafe.Sizeof(s))
+
+			// INVALID: end points outside allocated space.
+			b := make([]byte, n)
+			end = unsafe.Pointer(uintptr(unsafe.Pointer(&amp;b[0])) + uintptr(n))
+
+		Note that both conversions must appear in the same expression, with only
+		the intervening arithmetic between them:
+
+			// INVALID: uintptr cannot be stored in variable
+			// before conversion back to Pointer.
+			u := uintptr(p)
+			p = unsafe.Pointer(u + offset)
+
+		Note that the pointer must point into an allocated object, so it may not be nil.
+
+			// INVALID: conversion of nil pointer
+			u := unsafe.Pointer(nil)
+			p := unsafe.Pointer(uintptr(u) + offset)
+
+		(4) Conversion of a Pointer to a uintptr when calling syscall.Syscall.
+
+		The Syscall functions in package syscall pass their uintptr arguments directly
+		to the operating system, which then may, depending on the details of the call,
+		reinterpret some of them as pointers.
+		That is, the system call implementation is implicitly converting certain arguments
+		back from uintptr to pointer.
+
+		If a pointer argument must be converted to uintptr for use as an argument,
+		that conversion must appear in the call expression itself:
+
+			syscall.Syscall(SYS_READ, uintptr(fd), uintptr(unsafe.Pointer(p)), uintptr(n))
+
+		The compiler handles a Pointer converted to a uintptr in the argument list of
+		a call to a function implemented in assembly by arranging that the referenced
+		allocated object, if any, is retained and not moved until the call completes,
+		even though from the types alone it would appear that the object is no longer
+		needed during the call.
+
+		For the compiler to recognize this pattern,
+		the conversion must appear in the argument list:
+
+			// INVALID: uintptr cannot be stored in variable
+			// before implicit conversion back to Pointer during system call.
+			u := uintptr(unsafe.Pointer(p))
+			syscall.Syscall(SYS_READ, uintptr(fd), u, uintptr(n))
+
+		(5) Conversion of the result of reflect.Value.Pointer or reflect.Value.UnsafeAddr
+		from uintptr to Pointer.
+
+		Package reflect's Value methods named Pointer and UnsafeAddr return type uintptr
+		instead of unsafe.Pointer to keep callers from changing the result to an arbitrary
+		type without first importing "unsafe". However, this means that the result is
+		fragile and must be converted to Pointer immediately after making the call,
+		in the same expression:
+
+			p := (*int)(unsafe.Pointer(reflect.ValueOf(new(int)).Pointer()))
+
+		As in the cases above, it is invalid to store the result before the conversion:
+
+			// INVALID: uintptr cannot be stored in variable
+			// before conversion back to Pointer.
+			u := reflect.ValueOf(new(int)).Pointer()
+			p := (*int)(unsafe.Pointer(u))
+
+		(6) Conversion of a reflect.SliceHeader or reflect.StringHeader Data field to or from Pointer.
+
+		As in the previous case, the reflect data structures SliceHeader and StringHeader
+		declare the field Data as a uintptr to keep callers from changing the result to
+		an arbitrary type without first importing "unsafe". However, this means that
+		SliceHeader and StringHeader are only valid when interpreting the content
+		of an actual slice or string value.
+
+			var s string
+			hdr := (*reflect.StringHeader)(unsafe.Pointer(&amp;s)) // case 1
+			hdr.Data = uintptr(unsafe.Pointer(p))              // case 6 (this case)
+			hdr.Len = n
+
+		In this usage hdr.Data is really an alternate way to refer to the underlying
+		pointer in the string header, not a uintptr variable itself.
+
+		In general, reflect.SliceHeader and reflect.StringHeader should be used
+		only as *reflect.SliceHeader and *reflect.StringHeader pointing at actual
+		slices or strings, never as plain structs.
+		A program should not declare or allocate variables of these struct types.
+
+			// INVALID: a directly-declared header will not hold Data as a reference.
+			var hdr reflect.StringHeader
+			hdr.Data = uintptr(unsafe.Pointer(p))
+			hdr.Len = n
+			s := *(*string)(unsafe.Pointer(&amp;hdr)) // p possibly already lost
+
+		<input type='checkbox' class="fold" id="Pointer-fold-results"><label for="Pointer-fold-results">As Outputs Of (<i>at least 116, in which 5 are exported</i>)</label><span id='Pointer-fold-results-items' class="fold-items"><span>
+			func go.uber.org/atomic.(*<a href="go.uber.org/atomic.html#name-UnsafePointer">UnsafePointer</a>).<a href="../src/go.uber.org/atomic/unsafe_pointer.go.html#line-41">Load</a>() <b>Pointer</b></span><span>
+			func go.uber.org/atomic.(*<a href="go.uber.org/atomic.html#name-UnsafePointer">UnsafePointer</a>).<a href="../src/go.uber.org/atomic/unsafe_pointer.go.html#line-51">Swap</a>(val <b>Pointer</b>) (old <b>Pointer</b>)</span><span>
+			func runtime/internal/atomic.<a href="runtime/internal/atomic.html#name-Loadp">Loadp</a>(ptr <b>Pointer</b>) <b>Pointer</b></span><span>
+			func sync/atomic.<a href="sync/atomic.html#name-LoadPointer">LoadPointer</a>(addr *<b>Pointer</b>) (val <b>Pointer</b>)</span><span>
+			func sync/atomic.<a href="sync/atomic.html#name-SwapPointer">SwapPointer</a>(addr *<b>Pointer</b>, new <b>Pointer</b>) (old <b>Pointer</b>)</span>
+			<input type='checkbox' class="showhide" id="Pointer-showhide-inputofs"><i><label for="Pointer-showhide-inputofs" class="show-inline">/* 111+ unexporteds ... */</label><label for="Pointer-showhide-inputofs" class="hide-inline">/* 111+ unexporteds: */</label></i><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-Cmsghdr">Cmsghdr</a>).<a href="../src/golang.org/x/sys/unix/sockcmsg_unix.go.html#line-28">data</a>(offset <a href="builtin.html#name-uintptr">uintptr</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrALG">SockaddrALG</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-664">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrCAN">SockaddrCAN</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-546">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrCANJ1939">SockaddrCANJ1939</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-575">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrHCI">SockaddrHCI</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-449">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrInet4">SockaddrInet4</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-344">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrInet6">SockaddrInet6</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-358">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrIUCV">SockaddrIUCV</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-885">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrL2">SockaddrL2</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-466">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrL2TPIP">SockaddrL2TPIP</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-851">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrL2TPIP6">SockaddrL2TPIP6</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-868">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrLinklayer">SockaddrLinklayer</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-408">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrNetlink">SockaddrNetlink</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-433">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrNFC">SockaddrNFC</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-914">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrNFCLLCP">SockaddrNFCLLCP</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-932">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrPPPoE">SockaddrPPPoE</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-751">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrRFCOMM">SockaddrRFCOMM</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-515">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrTIPC">SockaddrTIPC</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-831">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrUnix">SockaddrUnix</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-373">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrVM">SockaddrVM</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-708">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.(*<a href="golang.org/x/sys/unix.html#name-SockaddrXDP">SockaddrXDP</a>).<a href="../src/golang.org/x/sys/unix/syscall_linux.go.html#line-725">sockaddr</a>() (<b>Pointer</b>, <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func internal/reflectlite.<a href="internal/reflectlite.html#name-add">add</a>(p <b>Pointer</b>, x <a href="builtin.html#name-uintptr">uintptr</a>, whySafe <a href="builtin.html#name-string">string</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func internal/reflectlite.<a href="internal/reflectlite.html#name-arrayAt">arrayAt</a>(p <b>Pointer</b>, i <a href="builtin.html#name-int">int</a>, eltSize <a href="builtin.html#name-uintptr">uintptr</a>, whySafe <a href="builtin.html#name-string">string</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func internal/reflectlite.<a href="internal/reflectlite.html#name-resolveNameOff">resolveNameOff</a>(ptrInModule <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func internal/reflectlite.<a href="internal/reflectlite.html#name-resolveTypeOff">resolveTypeOff</a>(rtype <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func internal/reflectlite.<a href="internal/reflectlite.html#name-unsafe_New">unsafe_New</a>(*<a href="internal/reflectlite.html">reflectlite</a>.<a href="internal/reflectlite.html#name-rtype">rtype</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func internal/reflectlite.<a href="internal/reflectlite.html#name-Value">Value</a>.<a href="../src/internal/reflectlite/value.go.html#line-92">pointer</a>() <b>Pointer</b></i></span><span class="hidden"><i>
+			func net.<a href="net.html#name-_Cgo_ptr">_Cgo_ptr</a>(ptr <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-add">add</a>(p <b>Pointer</b>, x <a href="builtin.html#name-uintptr">uintptr</a>, whySafe <a href="builtin.html#name-string">string</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-arrayAt">arrayAt</a>(p <b>Pointer</b>, i <a href="builtin.html#name-int">int</a>, eltSize <a href="builtin.html#name-uintptr">uintptr</a>, whySafe <a href="builtin.html#name-string">string</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-makechan">makechan</a>(typ *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, size <a href="builtin.html#name-int">int</a>) (ch <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-makemap">makemap</a>(t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, cap <a href="builtin.html#name-int">int</a>) (m <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-mapaccess">mapaccess</a>(t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, m <b>Pointer</b>, key <b>Pointer</b>) (val <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-mapiterelem">mapiterelem</a>(it <b>Pointer</b>) (elem <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-mapiterinit">mapiterinit</a>(t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, m <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-mapiterkey">mapiterkey</a>(it <b>Pointer</b>) (key <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-methodReceiver">methodReceiver</a>(op <a href="builtin.html#name-string">string</a>, v <a href="reflect.html">reflect</a>.<a href="reflect.html#name-Value">Value</a>, methodIndex <a href="builtin.html#name-int">int</a>) (rcvrtype *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-funcType">funcType</a>, fn <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-resolveNameOff">resolveNameOff</a>(ptrInModule <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-resolveTextOff">resolveTextOff</a>(rtype <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-resolveTypeOff">resolveTypeOff</a>(rtype <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-typelinks">typelinks</a>() (sections []<b>Pointer</b>, offset [][]<a href="builtin.html#name-int32">int32</a>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-unsafe_New">unsafe_New</a>(*<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-unsafe_NewArray">unsafe_NewArray</a>(*<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, <a href="builtin.html#name-int">int</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-Value">Value</a>.<a href="../src/reflect/value.go.html#line-94">pointer</a>() <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-add">add</a>(p <b>Pointer</b>, x <a href="builtin.html#name-uintptr">uintptr</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-chanbuf">chanbuf</a>(c *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hchan">hchan</a>, i <a href="builtin.html#name-uint">uint</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-convT16">convT16</a>(val <a href="builtin.html#name-uint16">uint16</a>) (x <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-convT32">convT32</a>(val <a href="builtin.html#name-uint32">uint32</a>) (x <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-convT64">convT64</a>(val <a href="builtin.html#name-uint64">uint64</a>) (x <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-convTslice">convTslice</a>(val []<a href="builtin.html#name-byte">byte</a>) (x <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-convTstring">convTstring</a>(val <a href="builtin.html#name-string">string</a>) (x <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-cstring">cstring</a>(s <a href="builtin.html#name-string">string</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-deferArgs">deferArgs</a>(d *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_defer">_defer</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-funcdata">funcdata</a>(f <a href="runtime.html">runtime</a>.<a href="runtime.html#name-funcInfo">funcInfo</a>, i <a href="builtin.html#name-uint8">uint8</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-makeBucketArray">makeBucketArray</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, b <a href="builtin.html#name-uint8">uint8</a>, dirtyalloc <b>Pointer</b>) (buckets <b>Pointer</b>, nextOverflow *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-bmap">bmap</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-makeslice">makeslice</a>(et *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, len, cap <a href="builtin.html#name-int">int</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-makeslice64">makeslice64</a>(et *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, len64, cap64 <a href="builtin.html#name-int64">int64</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-makeslicecopy">makeslicecopy</a>(et *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, tolen <a href="builtin.html#name-int">int</a>, fromlen <a href="builtin.html#name-int">int</a>, from <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mallocgc">mallocgc</a>(size <a href="builtin.html#name-uintptr">uintptr</a>, typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, needzero <a href="builtin.html#name-bool">bool</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapaccess1">mapaccess1</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapaccess1_fast32">mapaccess1_fast32</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <a href="builtin.html#name-uint32">uint32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapaccess1_fast64">mapaccess1_fast64</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <a href="builtin.html#name-uint64">uint64</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapaccess1_faststr">mapaccess1_faststr</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, ky <a href="builtin.html#name-string">string</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapaccess1_fat">mapaccess1_fat</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key, zero <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapaccess2">mapaccess2</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>) (<b>Pointer</b>, <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapaccess2_fast32">mapaccess2_fast32</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <a href="builtin.html#name-uint32">uint32</a>) (<b>Pointer</b>, <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapaccess2_fast64">mapaccess2_fast64</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <a href="builtin.html#name-uint64">uint64</a>) (<b>Pointer</b>, <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapaccess2_faststr">mapaccess2_faststr</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, ky <a href="builtin.html#name-string">string</a>) (<b>Pointer</b>, <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapaccess2_fat">mapaccess2_fat</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key, zero <b>Pointer</b>) (<b>Pointer</b>, <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapaccessK">mapaccessK</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>) (<b>Pointer</b>, <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapaccessK">mapaccessK</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>) (<b>Pointer</b>, <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapassign">mapassign</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapassign_fast32">mapassign_fast32</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <a href="builtin.html#name-uint32">uint32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapassign_fast32ptr">mapassign_fast32ptr</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapassign_fast64">mapassign_fast64</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <a href="builtin.html#name-uint64">uint64</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapassign_fast64ptr">mapassign_fast64ptr</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapassign_faststr">mapassign_faststr</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, s <a href="builtin.html#name-string">string</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mmap">mmap</a>(addr <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>, prot, flags, fd <a href="builtin.html#name-int32">int32</a>, off <a href="builtin.html#name-uint32">uint32</a>) (<b>Pointer</b>, <a href="builtin.html#name-int">int</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-newarray">newarray</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, n <a href="builtin.html#name-int">int</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-newobject">newobject</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-noescape">noescape</a>(p <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-persistentalloc">persistentalloc</a>(size, align <a href="builtin.html#name-uintptr">uintptr</a>, sysStat *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-sysMemStat">sysMemStat</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-readvarintUnsafe">readvarintUnsafe</a>(fd <b>Pointer</b>) (<a href="builtin.html#name-uint32">uint32</a>, <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_mapaccess">reflect_mapaccess</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_mapiterelem">reflect_mapiterelem</a>(it *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hiter">hiter</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_mapiterkey">reflect_mapiterkey</a>(it *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hiter">hiter</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_resolveNameOff">reflect_resolveNameOff</a>(ptrInModule <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_resolveTextOff">reflect_resolveTextOff</a>(rtype <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_resolveTypeOff">reflect_resolveTypeOff</a>(rtype <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_typelinks">reflect_typelinks</a>() ([]<b>Pointer</b>, [][]<a href="builtin.html#name-int32">int32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_unsafe_New">reflect_unsafe_New</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_unsafe_NewArray">reflect_unsafe_NewArray</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, n <a href="builtin.html#name-int">int</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflectlite_resolveNameOff">reflectlite_resolveNameOff</a>(ptrInModule <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflectlite_resolveTypeOff">reflectlite_resolveTypeOff</a>(rtype <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflectlite_unsafe_New">reflectlite_unsafe_New</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-runtime_getProfLabel">runtime_getProfLabel</a>() <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-runtime_pprof_readProfile">runtime_pprof_readProfile</a>() ([]<a href="builtin.html#name-uint64">uint64</a>, []<b>Pointer</b>, <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sync_atomic_SwapPointer">sync_atomic_SwapPointer</a>(ptr *<b>Pointer</b>, new <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sysAlloc">sysAlloc</a>(n <a href="builtin.html#name-uintptr">uintptr</a>, sysStat *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-sysMemStat">sysMemStat</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sysMmap">sysMmap</a>(addr <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>, prot, flags, fd <a href="builtin.html#name-int32">int32</a>, off <a href="builtin.html#name-uint32">uint32</a>) (p <b>Pointer</b>, err <a href="builtin.html#name-int">int</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sysReserve">sysReserve</a>(v <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sysReserveAligned">sysReserveAligned</a>(v <b>Pointer</b>, size, align <a href="builtin.html#name-uintptr">uintptr</a>) (<b>Pointer</b>, <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime/cgo.<a href="runtime/cgo.html#name-_Cgo_ptr">_Cgo_ptr</a>(ptr <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func strings.<a href="strings.html#name-noescape">noescape</a>(p <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func sync.<a href="sync.html#name-poolRaceAddr">poolRaceAddr</a>(x interface{}) <b>Pointer</b></i></span><span class="hidden"><i>
+			func syscall.(*<a href="syscall.html#name-Cmsghdr">Cmsghdr</a>).<a href="../src/syscall/sockcmsg_unix.go.html#line-27">data</a>(offset <a href="builtin.html#name-uintptr">uintptr</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func syscall.(*<a href="syscall.html#name-SockaddrInet4">SockaddrInet4</a>).<a href="../src/syscall/syscall_linux.go.html#line-379">sockaddr</a>() (<b>Pointer</b>, <a href="syscall.html">syscall</a>.<a href="syscall.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func syscall.(*<a href="syscall.html#name-SockaddrInet6">SockaddrInet6</a>).<a href="../src/syscall/syscall_linux.go.html#line-393">sockaddr</a>() (<b>Pointer</b>, <a href="syscall.html">syscall</a>.<a href="syscall.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func syscall.(*<a href="syscall.html#name-SockaddrLinklayer">SockaddrLinklayer</a>).<a href="../src/syscall/syscall_linux.go.html#line-445">sockaddr</a>() (<b>Pointer</b>, <a href="syscall.html">syscall</a>.<a href="syscall.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func syscall.(*<a href="syscall.html#name-SockaddrNetlink">SockaddrNetlink</a>).<a href="../src/syscall/syscall_linux.go.html#line-469">sockaddr</a>() (<b>Pointer</b>, <a href="syscall.html">syscall</a>.<a href="syscall.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func syscall.(*<a href="syscall.html#name-SockaddrUnix">SockaddrUnix</a>).<a href="../src/syscall/syscall_linux.go.html#line-408">sockaddr</a>() (<b>Pointer</b>, <a href="syscall.html">syscall</a>.<a href="syscall.html#name-_Socklen">_Socklen</a>, <a href="builtin.html#name-error">error</a>)</i></span></span>
+		<input type='checkbox' class="fold" id="Pointer-fold-params"><label for="Pointer-fold-params">As Inputs Of (<i>at least 350, in which 26 are exported</i>)</label><span id='Pointer-fold-params-items' class="fold-items"><span>
+			func go.uber.org/atomic.<a href="go.uber.org/atomic.html#name-NewUnsafePointer">NewUnsafePointer</a>(val <b>Pointer</b>) *<a href="go.uber.org/atomic.html">atomic</a>.<a href="go.uber.org/atomic.html#name-UnsafePointer">UnsafePointer</a></span><span>
+			func go.uber.org/atomic.(*<a href="go.uber.org/atomic.html#name-UnsafePointer">UnsafePointer</a>).<a href="../src/go.uber.org/atomic/unsafe_pointer.go.html#line-56">CAS</a>(old, new <b>Pointer</b>) (swapped <a href="builtin.html#name-bool">bool</a>)</span><span>
+			func go.uber.org/atomic.(*<a href="go.uber.org/atomic.html#name-UnsafePointer">UnsafePointer</a>).<a href="../src/go.uber.org/atomic/unsafe_pointer.go.html#line-46">Store</a>(val <b>Pointer</b>)</span><span>
+			func go.uber.org/atomic.(*<a href="go.uber.org/atomic.html#name-UnsafePointer">UnsafePointer</a>).<a href="../src/go.uber.org/atomic/unsafe_pointer.go.html#line-51">Swap</a>(val <b>Pointer</b>) (old <b>Pointer</b>)</span><span>
+			func internal/race.<a href="internal/race.html#name-Acquire">Acquire</a>(addr <b>Pointer</b>)</span><span>
+			func internal/race.<a href="internal/race.html#name-Read">Read</a>(addr <b>Pointer</b>)</span><span>
+			func internal/race.<a href="internal/race.html#name-ReadRange">ReadRange</a>(addr <b>Pointer</b>, len <a href="builtin.html#name-int">int</a>)</span><span>
+			func internal/race.<a href="internal/race.html#name-Release">Release</a>(addr <b>Pointer</b>)</span><span>
+			func internal/race.<a href="internal/race.html#name-ReleaseMerge">ReleaseMerge</a>(addr <b>Pointer</b>)</span><span>
+			func internal/race.<a href="internal/race.html#name-Write">Write</a>(addr <b>Pointer</b>)</span><span>
+			func internal/race.<a href="internal/race.html#name-WriteRange">WriteRange</a>(addr <b>Pointer</b>, len <a href="builtin.html#name-int">int</a>)</span><span>
+			func reflect.<a href="reflect.html#name-NewAt">NewAt</a>(typ <a href="reflect.html">reflect</a>.<a href="reflect.html#name-Type">Type</a>, p <b>Pointer</b>) <a href="reflect.html">reflect</a>.<a href="reflect.html#name-Value">Value</a></span><span>
+			func reflect.<a href="reflect.html#name-Value">Value</a>.<a href="../src/reflect/value.go.html#line-1737">SetPointer</a>(x <b>Pointer</b>)</span><span>
+			func runtime.<a href="runtime.html#name-SetCgoTraceback">SetCgoTraceback</a>(version <a href="builtin.html#name-int">int</a>, traceback, context, symbolizer <b>Pointer</b>)</span><span>
+			func runtime/internal/atomic.<a href="runtime/internal/atomic.html#name-Casp1">Casp1</a>(ptr *<b>Pointer</b>, old, new <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></span><span>
+			func runtime/internal/atomic.<a href="runtime/internal/atomic.html#name-Casp1">Casp1</a>(ptr *<b>Pointer</b>, old, new <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></span><span>
+			func runtime/internal/atomic.<a href="runtime/internal/atomic.html#name-Loadp">Loadp</a>(ptr <b>Pointer</b>) <b>Pointer</b></span><span>
+			func runtime/internal/atomic.<a href="runtime/internal/atomic.html#name-StorepNoWB">StorepNoWB</a>(ptr <b>Pointer</b>, val <b>Pointer</b>)</span><span>
+			func runtime/internal/atomic.<a href="runtime/internal/atomic.html#name-StorepNoWB">StorepNoWB</a>(ptr <b>Pointer</b>, val <b>Pointer</b>)</span><span>
+			func sync/atomic.<a href="sync/atomic.html#name-CompareAndSwapPointer">CompareAndSwapPointer</a>(addr *<b>Pointer</b>, old, new <b>Pointer</b>) (swapped <a href="builtin.html#name-bool">bool</a>)</span><span>
+			func sync/atomic.<a href="sync/atomic.html#name-CompareAndSwapPointer">CompareAndSwapPointer</a>(addr *<b>Pointer</b>, old, new <b>Pointer</b>) (swapped <a href="builtin.html#name-bool">bool</a>)</span><span>
+			func sync/atomic.<a href="sync/atomic.html#name-LoadPointer">LoadPointer</a>(addr *<b>Pointer</b>) (val <b>Pointer</b>)</span><span>
+			func sync/atomic.<a href="sync/atomic.html#name-StorePointer">StorePointer</a>(addr *<b>Pointer</b>, val <b>Pointer</b>)</span><span>
+			func sync/atomic.<a href="sync/atomic.html#name-StorePointer">StorePointer</a>(addr *<b>Pointer</b>, val <b>Pointer</b>)</span><span>
+			func sync/atomic.<a href="sync/atomic.html#name-SwapPointer">SwapPointer</a>(addr *<b>Pointer</b>, new <b>Pointer</b>) (old <b>Pointer</b>)</span><span>
+			func sync/atomic.<a href="sync/atomic.html#name-SwapPointer">SwapPointer</a>(addr *<b>Pointer</b>, new <b>Pointer</b>) (old <b>Pointer</b>)</span>
+			<input type='checkbox' class="showhide" id="Pointer-showhide-outputofs"><i><label for="Pointer-showhide-outputofs" class="show-inline">/* 324+ unexporteds ... */</label><label for="Pointer-showhide-outputofs" class="hide-inline">/* 324+ unexporteds: */</label></i><span class="hidden"><i>
+			func golang.org/x/sys/unix.<a href="golang.org/x/sys/unix.html#name-bind">bind</a>(s <a href="builtin.html#name-int">int</a>, addr <b>Pointer</b>, addrlen <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>) (err <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.<a href="golang.org/x/sys/unix.html#name-connect">connect</a>(s <a href="builtin.html#name-int">int</a>, addr <b>Pointer</b>, addrlen <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>) (err <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.<a href="golang.org/x/sys/unix.html#name-getsockopt">getsockopt</a>(s <a href="builtin.html#name-int">int</a>, level <a href="builtin.html#name-int">int</a>, name <a href="builtin.html#name-int">int</a>, val <b>Pointer</b>, vallen *<a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>) (err <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.<a href="golang.org/x/sys/unix.html#name-raceAcquire">raceAcquire</a>(addr <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.<a href="golang.org/x/sys/unix.html#name-raceReadRange">raceReadRange</a>(addr <b>Pointer</b>, len <a href="builtin.html#name-int">int</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.<a href="golang.org/x/sys/unix.html#name-raceReleaseMerge">raceReleaseMerge</a>(addr <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.<a href="golang.org/x/sys/unix.html#name-raceWriteRange">raceWriteRange</a>(addr <b>Pointer</b>, len <a href="builtin.html#name-int">int</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.<a href="golang.org/x/sys/unix.html#name-sendto">sendto</a>(s <a href="builtin.html#name-int">int</a>, buf []<a href="builtin.html#name-byte">byte</a>, flags <a href="builtin.html#name-int">int</a>, to <b>Pointer</b>, addrlen <a href="golang.org/x/sys/unix.html">unix</a>.<a href="golang.org/x/sys/unix.html#name-_Socklen">_Socklen</a>) (err <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func golang.org/x/sys/unix.<a href="golang.org/x/sys/unix.html#name-setsockopt">setsockopt</a>(s <a href="builtin.html#name-int">int</a>, level <a href="builtin.html#name-int">int</a>, name <a href="builtin.html#name-int">int</a>, val <b>Pointer</b>, vallen <a href="builtin.html#name-uintptr">uintptr</a>) (err <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func internal/bytealg.<a href="internal/bytealg.html#name-abigen_runtime_memequal">abigen_runtime_memequal</a>(a, b <b>Pointer</b>, size <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func internal/bytealg.<a href="internal/bytealg.html#name-abigen_runtime_memequal_varlen">abigen_runtime_memequal_varlen</a>(a, b <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func internal/reflectlite.<a href="internal/reflectlite.html#name-add">add</a>(p <b>Pointer</b>, x <a href="builtin.html#name-uintptr">uintptr</a>, whySafe <a href="builtin.html#name-string">string</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func internal/reflectlite.<a href="internal/reflectlite.html#name-arrayAt">arrayAt</a>(p <b>Pointer</b>, i <a href="builtin.html#name-int">int</a>, eltSize <a href="builtin.html#name-uintptr">uintptr</a>, whySafe <a href="builtin.html#name-string">string</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func internal/reflectlite.<a href="internal/reflectlite.html#name-chanlen">chanlen</a>(<b>Pointer</b>) <a href="builtin.html#name-int">int</a></i></span><span class="hidden"><i>
+			func internal/reflectlite.<a href="internal/reflectlite.html#name-ifaceE2I">ifaceE2I</a>(t *<a href="internal/reflectlite.html">reflectlite</a>.<a href="internal/reflectlite.html#name-rtype">rtype</a>, src interface{}, dst <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func internal/reflectlite.<a href="internal/reflectlite.html#name-maplen">maplen</a>(<b>Pointer</b>) <a href="builtin.html#name-int">int</a></i></span><span class="hidden"><i>
+			func internal/reflectlite.<a href="internal/reflectlite.html#name-resolveNameOff">resolveNameOff</a>(ptrInModule <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func internal/reflectlite.<a href="internal/reflectlite.html#name-resolveTypeOff">resolveTypeOff</a>(rtype <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func internal/reflectlite.<a href="internal/reflectlite.html#name-typedmemmove">typedmemmove</a>(t *<a href="internal/reflectlite.html">reflectlite</a>.<a href="internal/reflectlite.html#name-rtype">rtype</a>, dst, src <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func internal/reflectlite.<a href="internal/reflectlite.html#name-Value">Value</a>.<a href="../src/internal/reflectlite/value.go.html#line-412">assignTo</a>(context <a href="builtin.html#name-string">string</a>, dst *<a href="internal/reflectlite.html">reflectlite</a>.<a href="internal/reflectlite.html#name-rtype">rtype</a>, target <b>Pointer</b>) <a href="internal/reflectlite.html">reflectlite</a>.<a href="internal/reflectlite.html#name-Value">Value</a></i></span><span class="hidden"><i>
+			func net.<a href="net.html#name-_Cgo_ptr">_Cgo_ptr</a>(ptr <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func net.<a href="net.html#name-_cgo_runtime_cgocall">_cgo_runtime_cgocall</a>(<b>Pointer</b>, <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-int32">int32</a></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-add">add</a>(p <b>Pointer</b>, x <a href="builtin.html#name-uintptr">uintptr</a>, whySafe <a href="builtin.html#name-string">string</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-addReflectOff">addReflectOff</a>(ptr <b>Pointer</b>) <a href="builtin.html#name-int32">int32</a></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-arrayAt">arrayAt</a>(p <b>Pointer</b>, i <a href="builtin.html#name-int">int</a>, eltSize <a href="builtin.html#name-uintptr">uintptr</a>, whySafe <a href="builtin.html#name-string">string</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-call">call</a>(argtype *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, fn, arg <b>Pointer</b>, n <a href="builtin.html#name-uint32">uint32</a>, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-callMethod">callMethod</a>(ctxt *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-methodValue">methodValue</a>, frame <b>Pointer</b>, retValid *<a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-callReflect">callReflect</a>(ctxt *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-makeFuncImpl">makeFuncImpl</a>, frame <b>Pointer</b>, retValid *<a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-chancap">chancap</a>(ch <b>Pointer</b>) <a href="builtin.html#name-int">int</a></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-chanclose">chanclose</a>(ch <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-chanlen">chanlen</a>(ch <b>Pointer</b>) <a href="builtin.html#name-int">int</a></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-chanrecv">chanrecv</a>(ch <b>Pointer</b>, nb <a href="builtin.html#name-bool">bool</a>, val <b>Pointer</b>) (selected, received <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-chanrecv">chanrecv</a>(ch <b>Pointer</b>, nb <a href="builtin.html#name-bool">bool</a>, val <b>Pointer</b>) (selected, received <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-chansend">chansend</a>(ch <b>Pointer</b>, val <b>Pointer</b>, nb <a href="builtin.html#name-bool">bool</a>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-chansend">chansend</a>(ch <b>Pointer</b>, val <b>Pointer</b>, nb <a href="builtin.html#name-bool">bool</a>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-copyVal">copyVal</a>(typ *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, fl <a href="reflect.html">reflect</a>.<a href="reflect.html#name-flag">flag</a>, ptr <b>Pointer</b>) <a href="reflect.html">reflect</a>.<a href="reflect.html#name-Value">Value</a></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-ifaceE2I">ifaceE2I</a>(t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, src interface{}, dst <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-mapaccess">mapaccess</a>(t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, m <b>Pointer</b>, key <b>Pointer</b>) (val <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-mapaccess">mapaccess</a>(t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, m <b>Pointer</b>, key <b>Pointer</b>) (val <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-mapassign">mapassign</a>(t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, m <b>Pointer</b>, key, val <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-mapassign">mapassign</a>(t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, m <b>Pointer</b>, key, val <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-mapdelete">mapdelete</a>(t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, m <b>Pointer</b>, key <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-mapdelete">mapdelete</a>(t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, m <b>Pointer</b>, key <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-mapiterelem">mapiterelem</a>(it <b>Pointer</b>) (elem <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-mapiterinit">mapiterinit</a>(t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, m <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-mapiterkey">mapiterkey</a>(it <b>Pointer</b>) (key <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-mapiternext">mapiternext</a>(it <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-maplen">maplen</a>(m <b>Pointer</b>) <a href="builtin.html#name-int">int</a></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-memmove">memmove</a>(dst, src <b>Pointer</b>, size <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-resolveNameOff">resolveNameOff</a>(ptrInModule <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-resolveReflectText">resolveReflectText</a>(ptr <b>Pointer</b>) <a href="reflect.html">reflect</a>.<a href="reflect.html#name-textOff">textOff</a></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-resolveTextOff">resolveTextOff</a>(rtype <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-resolveTypeOff">resolveTypeOff</a>(rtype <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-rtypeOff">rtypeOff</a>(section <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-storeRcvr">storeRcvr</a>(v <a href="reflect.html">reflect</a>.<a href="reflect.html#name-Value">Value</a>, p <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-typedmemclr">typedmemclr</a>(t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, ptr <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-typedmemclrpartial">typedmemclrpartial</a>(t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, ptr <b>Pointer</b>, off, size <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-typedmemmove">typedmemmove</a>(t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, dst, src <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-typedmemmovepartial">typedmemmovepartial</a>(t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, dst, src <b>Pointer</b>, off, size <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-typehash">typehash</a>(t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, p <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-Value">Value</a>.<a href="../src/reflect/value.go.html#line-2418">assignTo</a>(context <a href="builtin.html#name-string">string</a>, dst *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, target <b>Pointer</b>) <a href="reflect.html">reflect</a>.<a href="reflect.html#name-Value">Value</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-add">add</a>(p <b>Pointer</b>, x <a href="builtin.html#name-uintptr">uintptr</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-addfinalizer">addfinalizer</a>(p <b>Pointer</b>, f *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-funcval">funcval</a>, nret <a href="builtin.html#name-uintptr">uintptr</a>, fint *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, ot *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-ptrtype">ptrtype</a>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-addOneOpenDeferFrame">addOneOpenDeferFrame</a>(gp *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-g">g</a>, pc <a href="builtin.html#name-uintptr">uintptr</a>, sp <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-addspecial">addspecial</a>(p <b>Pointer</b>, s *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-special">special</a>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-adjustframe">adjustframe</a>(frame *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-stkframe">stkframe</a>, arg <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-adjustpointer">adjustpointer</a>(adjinfo *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-adjustinfo">adjustinfo</a>, vpp <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-adjustpointers">adjustpointers</a>(scanp <b>Pointer</b>, bv *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-bitvector">bitvector</a>, adjinfo *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-adjustinfo">adjustinfo</a>, f <a href="runtime.html">runtime</a>.<a href="runtime.html#name-funcInfo">funcInfo</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-asmcgocall">asmcgocall</a>(fn, arg <b>Pointer</b>) <a href="builtin.html#name-int32">int32</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-atomicstorep">atomicstorep</a>(ptr <b>Pointer</b>, new <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-atomicstorep">atomicstorep</a>(ptr <b>Pointer</b>, new <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-atomicwb">atomicwb</a>(ptr *<b>Pointer</b>, new <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-atomicwb">atomicwb</a>(ptr *<b>Pointer</b>, new <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-c128equal">c128equal</a>(p, q <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-c128hash">c128hash</a>(p <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-c64equal">c64equal</a>(p, q <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-c64hash">c64hash</a>(p <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call1024">call1024</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call1048576">call1048576</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call1073741824">call1073741824</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call128">call128</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call131072">call131072</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call134217728">call134217728</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call16">call16</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call16384">call16384</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call16777216">call16777216</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call2048">call2048</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call2097152">call2097152</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call256">call256</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call262144">call262144</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call268435456">call268435456</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call32">call32</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call32768">call32768</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call33554432">call33554432</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call4096">call4096</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call4194304">call4194304</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call512">call512</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call524288">call524288</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call536870912">call536870912</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call64">call64</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call65536">call65536</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call67108864">call67108864</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call8192">call8192</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-call8388608">call8388608</a>(typ, fn, arg <b>Pointer</b>, n, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-callCgoMmap">callCgoMmap</a>(addr <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>, prot, flags, fd <a href="builtin.html#name-int32">int32</a>, off <a href="builtin.html#name-uint32">uint32</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-callCgoMunmap">callCgoMunmap</a>(addr <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-cgocall">cgocall</a>(fn, arg <b>Pointer</b>) <a href="builtin.html#name-int32">int32</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-cgocallbackg">cgocallbackg</a>(fn, frame <b>Pointer</b>, ctxt <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-cgocallbackg1">cgocallbackg1</a>(fn, frame <b>Pointer</b>, ctxt <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-cgoCheckArg">cgoCheckArg</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, p <b>Pointer</b>, indir, top <a href="builtin.html#name-bool">bool</a>, msg <a href="builtin.html#name-string">string</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-cgoCheckBits">cgoCheckBits</a>(src <b>Pointer</b>, gcbits *<a href="builtin.html#name-byte">byte</a>, off, size <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-cgoCheckMemmove">cgoCheckMemmove</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, dst, src <b>Pointer</b>, off, size <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-cgoCheckSliceCopy">cgoCheckSliceCopy</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, dst, src <b>Pointer</b>, n <a href="builtin.html#name-int">int</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-cgoCheckTypedBlock">cgoCheckTypedBlock</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, src <b>Pointer</b>, off, size <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-cgoCheckUnknownPointer">cgoCheckUnknownPointer</a>(p <b>Pointer</b>, msg <a href="builtin.html#name-string">string</a>) (base, i <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-cgoCheckUsingType">cgoCheckUsingType</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, src <b>Pointer</b>, off, size <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-cgoInRange">cgoInRange</a>(p <b>Pointer</b>, start, end <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-cgoIsGoPointer">cgoIsGoPointer</a>(p <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-chanparkcommit">chanparkcommit</a>(gp *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-g">g</a>, chanLock <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-chanrecv">chanrecv</a>(c *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hchan">hchan</a>, ep <b>Pointer</b>, block <a href="builtin.html#name-bool">bool</a>) (selected, received <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-chanrecv1">chanrecv1</a>(c *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hchan">hchan</a>, elem <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-chanrecv2">chanrecv2</a>(c *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hchan">hchan</a>, elem <b>Pointer</b>) (received <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-chansend">chansend</a>(c *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hchan">hchan</a>, ep <b>Pointer</b>, block <a href="builtin.html#name-bool">bool</a>, callerpc <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-chansend1">chansend1</a>(c *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hchan">hchan</a>, elem <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-checkptrAlignment">checkptrAlignment</a>(p <b>Pointer</b>, elem *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, n <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-checkptrArithmetic">checkptrArithmetic</a>(p <b>Pointer</b>, originals []<b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-checkptrArithmetic">checkptrArithmetic</a>(p <b>Pointer</b>, originals []<b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-checkptrBase">checkptrBase</a>(p <b>Pointer</b>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-clobberfree">clobberfree</a>(x <b>Pointer</b>, size <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-clone">clone</a>(flags <a href="builtin.html#name-int32">int32</a>, stk, mp, gp, fn <b>Pointer</b>) <a href="builtin.html#name-int32">int32</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-connect">connect</a>(fd <a href="builtin.html#name-int32">int32</a>, addr <b>Pointer</b>, len <a href="builtin.html#name-int32">int32</a>) <a href="builtin.html#name-int32">int32</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-convT2E">convT2E</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, elem <b>Pointer</b>) (e <a href="runtime.html">runtime</a>.<a href="runtime.html#name-eface">eface</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-convT2Enoptr">convT2Enoptr</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, elem <b>Pointer</b>) (e <a href="runtime.html">runtime</a>.<a href="runtime.html#name-eface">eface</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-convT2I">convT2I</a>(tab *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-itab">itab</a>, elem <b>Pointer</b>) (i <a href="runtime.html">runtime</a>.<a href="runtime.html#name-iface">iface</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-convT2Inoptr">convT2Inoptr</a>(tab *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-itab">itab</a>, elem <b>Pointer</b>) (i <a href="runtime.html">runtime</a>.<a href="runtime.html#name-iface">iface</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-dumpfinalizer">dumpfinalizer</a>(obj <b>Pointer</b>, fn *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-funcval">funcval</a>, fint *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, ot *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-ptrtype">ptrtype</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-dumpframe">dumpframe</a>(s *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-stkframe">stkframe</a>, arg <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-dumpmemrange">dumpmemrange</a>(data <b>Pointer</b>, len <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-dumpobj">dumpobj</a>(obj <b>Pointer</b>, size <a href="builtin.html#name-uintptr">uintptr</a>, bv <a href="runtime.html">runtime</a>.<a href="runtime.html#name-bitvector">bitvector</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-dumpotherroot">dumpotherroot</a>(description <a href="builtin.html#name-string">string</a>, to <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-dwrite">dwrite</a>(data <b>Pointer</b>, len <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-efaceeq">efaceeq</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, x, y <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-f32equal">f32equal</a>(p, q <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-f32hash">f32hash</a>(p <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-f64equal">f64equal</a>(p, q <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-f64hash">f64hash</a>(p <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-finq_callback">finq_callback</a>(fn *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-funcval">funcval</a>, obj <b>Pointer</b>, nret <a href="builtin.html#name-uintptr">uintptr</a>, fint *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, ot *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-ptrtype">ptrtype</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-freespecial">freespecial</a>(s *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-special">special</a>, p <b>Pointer</b>, size <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-futex">futex</a>(addr <b>Pointer</b>, op <a href="builtin.html#name-int32">int32</a>, val <a href="builtin.html#name-uint32">uint32</a>, ts, addr2 <b>Pointer</b>, val3 <a href="builtin.html#name-uint32">uint32</a>) <a href="builtin.html#name-int32">int32</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-futex">futex</a>(addr <b>Pointer</b>, op <a href="builtin.html#name-int32">int32</a>, val <a href="builtin.html#name-uint32">uint32</a>, ts, addr2 <b>Pointer</b>, val3 <a href="builtin.html#name-uint32">uint32</a>) <a href="builtin.html#name-int32">int32</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-gentraceback">gentraceback</a>(pc0, sp0, lr0 <a href="builtin.html#name-uintptr">uintptr</a>, gp *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-g">g</a>, skip <a href="builtin.html#name-int">int</a>, pcbuf *<a href="builtin.html#name-uintptr">uintptr</a>, max <a href="builtin.html#name-int">int</a>, callback func(*<a href="runtime.html">runtime</a>.<a href="runtime.html#name-stkframe">stkframe</a>, <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a>, v <b>Pointer</b>, flags <a href="builtin.html#name-uint">uint</a>) <a href="builtin.html#name-int">int</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-getgcmaskcb">getgcmaskcb</a>(frame *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-stkframe">stkframe</a>, ctxt <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-gopark">gopark</a>(unlockf func(*<a href="runtime.html">runtime</a>.<a href="runtime.html#name-g">g</a>, <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a>, lock <b>Pointer</b>, reason <a href="runtime.html">runtime</a>.<a href="runtime.html#name-waitReason">waitReason</a>, traceEv <a href="builtin.html#name-byte">byte</a>, traceskip <a href="builtin.html#name-int">int</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-goroutineProfileWithLabels">goroutineProfileWithLabels</a>(p []<a href="runtime.html">runtime</a>.<a href="runtime.html#name-StackRecord">StackRecord</a>, labels []<b>Pointer</b>) (n <a href="builtin.html#name-int">int</a>, ok <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-gostartcall">gostartcall</a>(buf *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-gobuf">gobuf</a>, fn, ctxt <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-ifaceeq">ifaceeq</a>(tab *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-itab">itab</a>, x, y <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-interequal">interequal</a>(p, q <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-interhash">interhash</a>(p <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-madvise">madvise</a>(addr <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>, flags <a href="builtin.html#name-int32">int32</a>) <a href="builtin.html#name-int32">int32</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-makeBucketArray">makeBucketArray</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, b <a href="builtin.html#name-uint8">uint8</a>, dirtyalloc <b>Pointer</b>) (buckets <b>Pointer</b>, nextOverflow *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-bmap">bmap</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-makeslicecopy">makeslicecopy</a>(et *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, tolen <a href="builtin.html#name-int">int</a>, fromlen <a href="builtin.html#name-int">int</a>, from <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapaccess1">mapaccess1</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapaccess1_fat">mapaccess1_fat</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key, zero <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapaccess2">mapaccess2</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>) (<b>Pointer</b>, <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapaccess2_fat">mapaccess2_fat</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key, zero <b>Pointer</b>) (<b>Pointer</b>, <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapaccessK">mapaccessK</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>) (<b>Pointer</b>, <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapassign">mapassign</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapassign_fast32ptr">mapassign_fast32ptr</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapassign_fast64ptr">mapassign_fast64ptr</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mapdelete">mapdelete</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memclrHasPointers">memclrHasPointers</a>(ptr <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memclrNoHeapPointers">memclrNoHeapPointers</a>(ptr <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memequal">memequal</a>(a, b <b>Pointer</b>, size <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memequal0">memequal0</a>(p, q <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memequal128">memequal128</a>(p, q <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memequal16">memequal16</a>(p, q <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memequal32">memequal32</a>(p, q <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memequal64">memequal64</a>(p, q <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memequal8">memequal8</a>(p, q <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memequal_varlen">memequal_varlen</a>(a, b <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memhash">memhash</a>(p <b>Pointer</b>, h, s <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memhash0">memhash0</a>(p <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memhash128">memhash128</a>(p <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memhash16">memhash16</a>(p <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memhash32">memhash32</a>(p <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memhash32Fallback">memhash32Fallback</a>(p <b>Pointer</b>, seed <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memhash64">memhash64</a>(p <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memhash64Fallback">memhash64Fallback</a>(p <b>Pointer</b>, seed <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memhash8">memhash8</a>(p <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memhash_varlen">memhash_varlen</a>(p <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memhashFallback">memhashFallback</a>(p <b>Pointer</b>, seed, s <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-memmove">memmove</a>(to, from <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mincore">mincore</a>(addr <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>, dst *<a href="builtin.html#name-byte">byte</a>) <a href="builtin.html#name-int32">int32</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mmap">mmap</a>(addr <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>, prot, flags, fd <a href="builtin.html#name-int32">int32</a>, off <a href="builtin.html#name-uint32">uint32</a>) (<b>Pointer</b>, <a href="builtin.html#name-int">int</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-mProf_Malloc">mProf_Malloc</a>(p <b>Pointer</b>, size <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-msanfree">msanfree</a>(addr <b>Pointer</b>, sz <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-msanmalloc">msanmalloc</a>(addr <b>Pointer</b>, sz <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-msanmove">msanmove</a>(dst, src <b>Pointer</b>, sz <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-msanread">msanread</a>(addr <b>Pointer</b>, sz <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-msanwrite">msanwrite</a>(addr <b>Pointer</b>, sz <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-munmap">munmap</a>(addr <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-netpollblockcommit">netpollblockcommit</a>(gp *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-g">g</a>, gpp <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-newosproc0">newosproc0</a>(stacksize <a href="builtin.html#name-uintptr">uintptr</a>, fn <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-newproc1">newproc1</a>(fn *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-funcval">funcval</a>, argp <b>Pointer</b>, narg <a href="builtin.html#name-int32">int32</a>, callergp *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-g">g</a>, callerpc <a href="builtin.html#name-uintptr">uintptr</a>) *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-g">g</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-nilinterequal">nilinterequal</a>(p, q <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-nilinterhash">nilinterhash</a>(p <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-noescape">noescape</a>(p <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-parkunlock_c">parkunlock_c</a>(gp *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-g">g</a>, lock <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-printpointer">printpointer</a>(p <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-profilealloc">profilealloc</a>(mp *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-m">m</a>, x <b>Pointer</b>, size <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-queuefinalizer">queuefinalizer</a>(p <b>Pointer</b>, fn *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-funcval">funcval</a>, nret <a href="builtin.html#name-uintptr">uintptr</a>, fint *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, ot *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-ptrtype">ptrtype</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-raceacquire">raceacquire</a>(addr <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-raceacquirectx">raceacquirectx</a>(racectx <a href="builtin.html#name-uintptr">uintptr</a>, addr <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-raceacquireg">raceacquireg</a>(gp *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-g">g</a>, addr <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-racefree">racefree</a>(p <b>Pointer</b>, sz <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-racemalloc">racemalloc</a>(p <b>Pointer</b>, sz <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-racemapshadow">racemapshadow</a>(addr <b>Pointer</b>, size <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-raceReadObjectPC">raceReadObjectPC</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, addr <b>Pointer</b>, callerpc, pc <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-racereadpc">racereadpc</a>(addr <b>Pointer</b>, callerpc, pc <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-racereadrangepc">racereadrangepc</a>(addr <b>Pointer</b>, sz, callerpc, pc <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-racerelease">racerelease</a>(addr <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-racereleaseacquire">racereleaseacquire</a>(addr <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-racereleaseacquireg">racereleaseacquireg</a>(gp *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-g">g</a>, addr <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-racereleaseg">racereleaseg</a>(gp *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-g">g</a>, addr <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-racereleasemerge">racereleasemerge</a>(addr <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-racereleasemergeg">racereleasemergeg</a>(gp *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-g">g</a>, addr <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-raceWriteObjectPC">raceWriteObjectPC</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, addr <b>Pointer</b>, callerpc, pc <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-racewritepc">racewritepc</a>(addr <b>Pointer</b>, callerpc, pc <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-racewriterangepc">racewriterangepc</a>(addr <b>Pointer</b>, sz, callerpc, pc <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-read">read</a>(fd <a href="builtin.html#name-int32">int32</a>, p <b>Pointer</b>, n <a href="builtin.html#name-int32">int32</a>) <a href="builtin.html#name-int32">int32</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-readMetrics">readMetrics</a>(samplesp <b>Pointer</b>, len <a href="builtin.html#name-int">int</a>, cap <a href="builtin.html#name-int">int</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-readUnaligned32">readUnaligned32</a>(p <b>Pointer</b>) <a href="builtin.html#name-uint32">uint32</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-readUnaligned64">readUnaligned64</a>(p <b>Pointer</b>) <a href="builtin.html#name-uint64">uint64</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-readvarintUnsafe">readvarintUnsafe</a>(fd <b>Pointer</b>) (<a href="builtin.html#name-uint32">uint32</a>, <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-recordspan">recordspan</a>(vh <b>Pointer</b>, p <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-recordspan">recordspan</a>(vh <b>Pointer</b>, p <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-recv">recv</a>(c *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hchan">hchan</a>, sg *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-sudog">sudog</a>, ep <b>Pointer</b>, unlockf func(), skip <a href="builtin.html#name-int">int</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-recvDirect">recvDirect</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, sg *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-sudog">sudog</a>, dst <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_addReflectOff">reflect_addReflectOff</a>(ptr <b>Pointer</b>) <a href="builtin.html#name-int32">int32</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_chanrecv">reflect_chanrecv</a>(c *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hchan">hchan</a>, nb <a href="builtin.html#name-bool">bool</a>, elem <b>Pointer</b>) (selected <a href="builtin.html#name-bool">bool</a>, received <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_chansend">reflect_chansend</a>(c *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hchan">hchan</a>, elem <b>Pointer</b>, nb <a href="builtin.html#name-bool">bool</a>) (selected <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_mapaccess">reflect_mapaccess</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_mapassign">reflect_mapassign</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>, elem <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_mapassign">reflect_mapassign</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>, elem <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_mapdelete">reflect_mapdelete</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-maptype">maptype</a>, h *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hmap">hmap</a>, key <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_memclrNoHeapPointers">reflect_memclrNoHeapPointers</a>(ptr <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_memmove">reflect_memmove</a>(to, from <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_resolveNameOff">reflect_resolveNameOff</a>(ptrInModule <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_resolveTextOff">reflect_resolveTextOff</a>(rtype <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_resolveTypeOff">reflect_resolveTypeOff</a>(rtype <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_typedmemclr">reflect_typedmemclr</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, ptr <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_typedmemclrpartial">reflect_typedmemclrpartial</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, ptr <b>Pointer</b>, off, size <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_typedmemmove">reflect_typedmemmove</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, dst, src <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_typedmemmovepartial">reflect_typedmemmovepartial</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, dst, src <b>Pointer</b>, off, size <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflect_typehash">reflect_typehash</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, p <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflectcall">reflectcall</a>(argtype *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, fn, arg <b>Pointer</b>, argsize <a href="builtin.html#name-uint32">uint32</a>, retoffset <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflectcallmove">reflectcallmove</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, dst, src <b>Pointer</b>, size <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflectcallSave">reflectcallSave</a>(p *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_panic">_panic</a>, fn, arg <b>Pointer</b>, argsize <a href="builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflectlite_resolveNameOff">reflectlite_resolveNameOff</a>(ptrInModule <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflectlite_resolveTypeOff">reflectlite_resolveTypeOff</a>(rtype <b>Pointer</b>, off <a href="builtin.html#name-int32">int32</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-reflectlite_typedmemmove">reflectlite_typedmemmove</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, dst, src <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-removefinalizer">removefinalizer</a>(p <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-removespecial">removespecial</a>(p <b>Pointer</b>, kind <a href="builtin.html#name-uint8">uint8</a>) *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-special">special</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-resetForSleep">resetForSleep</a>(gp *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-g">g</a>, ut <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-resolveNameOff">resolveNameOff</a>(ptrInModule <b>Pointer</b>, off <a href="runtime.html">runtime</a>.<a href="runtime.html#name-nameOff">nameOff</a>) <a href="runtime.html">runtime</a>.<a href="runtime.html#name-name">name</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-resolveTypeOff">resolveTypeOff</a>(ptrInModule <b>Pointer</b>, off <a href="runtime.html">runtime</a>.<a href="runtime.html#name-typeOff">typeOff</a>) *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-runtime_goroutineProfileWithLabels">runtime_goroutineProfileWithLabels</a>(p []<a href="runtime.html">runtime</a>.<a href="runtime.html#name-StackRecord">StackRecord</a>, labels []<b>Pointer</b>) (n <a href="builtin.html#name-int">int</a>, ok <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-runtime_setProfLabel">runtime_setProfLabel</a>(labels <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-selectnbrecv">selectnbrecv</a>(elem <b>Pointer</b>, c *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hchan">hchan</a>) (selected <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-selectnbrecv2">selectnbrecv2</a>(elem <b>Pointer</b>, received *<a href="builtin.html#name-bool">bool</a>, c *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hchan">hchan</a>) (selected <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-selectnbsend">selectnbsend</a>(c *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hchan">hchan</a>, elem <b>Pointer</b>) (selected <a href="builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-selparkcommit">selparkcommit</a>(gp *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-g">g</a>, _ <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-send">send</a>(c *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-hchan">hchan</a>, sg *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-sudog">sudog</a>, ep <b>Pointer</b>, unlockf func(), skip <a href="builtin.html#name-int">int</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sendDirect">sendDirect</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, sg *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-sudog">sudog</a>, src <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-setprofilebucket">setprofilebucket</a>(p <b>Pointer</b>, b *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-bucket">bucket</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sigfwd">sigfwd</a>(fn <a href="builtin.html#name-uintptr">uintptr</a>, sig <a href="builtin.html#name-uint32">uint32</a>, info *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-siginfo">siginfo</a>, ctx <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sigfwdgo">sigfwdgo</a>(sig <a href="builtin.html#name-uint32">uint32</a>, info *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-siginfo">siginfo</a>, ctx <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sighandler">sighandler</a>(sig <a href="builtin.html#name-uint32">uint32</a>, info *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-siginfo">siginfo</a>, ctxt <b>Pointer</b>, gp *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-g">g</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sigtramp">sigtramp</a>(sig <a href="builtin.html#name-uint32">uint32</a>, info *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-siginfo">siginfo</a>, ctx <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sigtrampgo">sigtrampgo</a>(sig <a href="builtin.html#name-uint32">uint32</a>, info *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-siginfo">siginfo</a>, ctx <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-slicecopy">slicecopy</a>(toPtr <b>Pointer</b>, toLen <a href="builtin.html#name-int">int</a>, fromPtr <b>Pointer</b>, fromLen <a href="builtin.html#name-int">int</a>, width <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-int">int</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-slicecopy">slicecopy</a>(toPtr <b>Pointer</b>, toLen <a href="builtin.html#name-int">int</a>, fromPtr <b>Pointer</b>, fromLen <a href="builtin.html#name-int">int</a>, width <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-int">int</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-strequal">strequal</a>(p, q <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-strhash">strhash</a>(p <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-strhashFallback">strhashFallback</a>(a <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sync_atomic_CompareAndSwapPointer">sync_atomic_CompareAndSwapPointer</a>(ptr *<b>Pointer</b>, old, new <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sync_atomic_CompareAndSwapPointer">sync_atomic_CompareAndSwapPointer</a>(ptr *<b>Pointer</b>, old, new <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sync_atomic_StorePointer">sync_atomic_StorePointer</a>(ptr *<b>Pointer</b>, new <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sync_atomic_StorePointer">sync_atomic_StorePointer</a>(ptr *<b>Pointer</b>, new <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sync_atomic_SwapPointer">sync_atomic_SwapPointer</a>(ptr *<b>Pointer</b>, new <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sync_atomic_SwapPointer">sync_atomic_SwapPointer</a>(ptr *<b>Pointer</b>, new <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-syscall_cgocaller">syscall_cgocaller</a>(fn <b>Pointer</b>, args ...<a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sysFault">sysFault</a>(v <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sysFree">sysFree</a>(v <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>, sysStat *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-sysMemStat">sysMemStat</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sysHugePage">sysHugePage</a>(v <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sysMap">sysMap</a>(v <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>, sysStat *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-sysMemStat">sysMemStat</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sysMmap">sysMmap</a>(addr <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>, prot, flags, fd <a href="builtin.html#name-int32">int32</a>, off <a href="builtin.html#name-uint32">uint32</a>) (p <b>Pointer</b>, err <a href="builtin.html#name-int">int</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sysMunmap">sysMunmap</a>(addr <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sysReserve">sysReserve</a>(v <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sysReserveAligned">sysReserveAligned</a>(v <b>Pointer</b>, size, align <a href="builtin.html#name-uintptr">uintptr</a>) (<b>Pointer</b>, <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sysUnused">sysUnused</a>(v <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-sysUsed">sysUsed</a>(v <b>Pointer</b>, n <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-tracealloc">tracealloc</a>(p <b>Pointer</b>, size <a href="builtin.html#name-uintptr">uintptr</a>, typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-tracebackdefers">tracebackdefers</a>(gp *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-g">g</a>, callback func(*<a href="runtime.html">runtime</a>.<a href="runtime.html#name-stkframe">stkframe</a>, <b>Pointer</b>) <a href="builtin.html#name-bool">bool</a>, v <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-tracefree">tracefree</a>(p <b>Pointer</b>, size <a href="builtin.html#name-uintptr">uintptr</a>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-typedmemclr">typedmemclr</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, ptr <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-typedmemmove">typedmemmove</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, dst, src <b>Pointer</b>)</i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-typedslicecopy">typedslicecopy</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, dstPtr <b>Pointer</b>, dstLen <a href="builtin.html#name-int">int</a>, srcPtr <b>Pointer</b>, srcLen <a href="builtin.html#name-int">int</a>) <a href="builtin.html#name-int">int</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-typedslicecopy">typedslicecopy</a>(typ *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, dstPtr <b>Pointer</b>, dstLen <a href="builtin.html#name-int">int</a>, srcPtr <b>Pointer</b>, srcLen <a href="builtin.html#name-int">int</a>) <a href="builtin.html#name-int">int</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-typehash">typehash</a>(t *<a href="runtime.html">runtime</a>.<a href="runtime.html#name-_type">_type</a>, p <b>Pointer</b>, h <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-write">write</a>(fd <a href="builtin.html#name-uintptr">uintptr</a>, p <b>Pointer</b>, n <a href="builtin.html#name-int32">int32</a>) <a href="builtin.html#name-int32">int32</a></i></span><span class="hidden"><i>
+			func runtime.<a href="runtime.html#name-write1">write1</a>(fd <a href="builtin.html#name-uintptr">uintptr</a>, p <b>Pointer</b>, n <a href="builtin.html#name-int32">int32</a>) <a href="builtin.html#name-int32">int32</a></i></span><span class="hidden"><i>
+			func runtime/cgo.<a href="runtime/cgo.html#name-_Cgo_ptr">_Cgo_ptr</a>(ptr <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func runtime/cgo.<a href="runtime/cgo.html#name-_cgo_runtime_cgocall">_cgo_runtime_cgocall</a>(<b>Pointer</b>, <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-int32">int32</a></i></span><span class="hidden"><i>
+			func strings.<a href="strings.html#name-noescape">noescape</a>(p <b>Pointer</b>) <b>Pointer</b></i></span><span class="hidden"><i>
+			func sync.<a href="sync.html#name-indexLocal">indexLocal</a>(l <b>Pointer</b>, i <a href="builtin.html#name-int">int</a>) *<a href="sync.html">sync</a>.<a href="sync.html#name-poolLocal">poolLocal</a></i></span><span class="hidden"><i>
+			func syscall.<a href="syscall.html#name-bind">bind</a>(s <a href="builtin.html#name-int">int</a>, addr <b>Pointer</b>, addrlen <a href="syscall.html">syscall</a>.<a href="syscall.html#name-_Socklen">_Socklen</a>) (err <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func syscall.<a href="syscall.html#name-cgocaller">cgocaller</a>(<b>Pointer</b>, ...<a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></i></span><span class="hidden"><i>
+			func syscall.<a href="syscall.html#name-connect">connect</a>(s <a href="builtin.html#name-int">int</a>, addr <b>Pointer</b>, addrlen <a href="syscall.html">syscall</a>.<a href="syscall.html#name-_Socklen">_Socklen</a>) (err <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func syscall.<a href="syscall.html#name-getsockopt">getsockopt</a>(s <a href="builtin.html#name-int">int</a>, level <a href="builtin.html#name-int">int</a>, name <a href="builtin.html#name-int">int</a>, val <b>Pointer</b>, vallen *<a href="syscall.html">syscall</a>.<a href="syscall.html#name-_Socklen">_Socklen</a>) (err <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func syscall.<a href="syscall.html#name-msanRead">msanRead</a>(addr <b>Pointer</b>, len <a href="builtin.html#name-int">int</a>)</i></span><span class="hidden"><i>
+			func syscall.<a href="syscall.html#name-msanWrite">msanWrite</a>(addr <b>Pointer</b>, len <a href="builtin.html#name-int">int</a>)</i></span><span class="hidden"><i>
+			func syscall.<a href="syscall.html#name-sendto">sendto</a>(s <a href="builtin.html#name-int">int</a>, buf []<a href="builtin.html#name-byte">byte</a>, flags <a href="builtin.html#name-int">int</a>, to <b>Pointer</b>, addrlen <a href="syscall.html">syscall</a>.<a href="syscall.html#name-_Socklen">_Socklen</a>) (err <a href="builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func syscall.<a href="syscall.html#name-setsockopt">setsockopt</a>(s <a href="builtin.html#name-int">int</a>, level <a href="builtin.html#name-int">int</a>, name <a href="builtin.html#name-int">int</a>, val <b>Pointer</b>, vallen <a href="builtin.html#name-uintptr">uintptr</a>) (err <a href="builtin.html#name-error">error</a>)</i></span></span>
+		<input type='checkbox' class="fold" id="Pointer-fold-values"><label for="Pointer-fold-values">As Types Of (<i>total 44, none are exported</i>)</label><span id='Pointer-fold-values-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Pointer-showhide-values"><i><label for="Pointer-showhide-values" class="show-inline">/* 44 unexporteds ... */</label><label for="Pointer-showhide-values" class="hide-inline">/* 44 unexporteds: */</label></i><span class="hidden"><i>
+			  var internal/poll.<a href="internal/poll.html#name-disableSplice">disableSplice</a></i></span><span class="hidden"><i>
+			  var net.<a href="net.html#name-_cgo_26061493d47f_C2func_getaddrinfo">_cgo_26061493d47f_C2func_getaddrinfo</a></i></span><span class="hidden"><i>
+			  var net.<a href="net.html#name-_cgo_26061493d47f_C2func_getnameinfo">_cgo_26061493d47f_C2func_getnameinfo</a></i></span><span class="hidden"><i>
+			  var net.<a href="net.html#name-_cgo_26061493d47f_Cfunc_freeaddrinfo">_cgo_26061493d47f_Cfunc_freeaddrinfo</a></i></span><span class="hidden"><i>
+			  var net.<a href="net.html#name-_cgo_26061493d47f_Cfunc_gai_strerror">_cgo_26061493d47f_Cfunc_gai_strerror</a></i></span><span class="hidden"><i>
+			  var net.<a href="net.html#name-_cgo_26061493d47f_Cfunc_getaddrinfo">_cgo_26061493d47f_Cfunc_getaddrinfo</a></i></span><span class="hidden"><i>
+			  var net.<a href="net.html#name-_cgo_26061493d47f_Cfunc_getnameinfo">_cgo_26061493d47f_Cfunc_getnameinfo</a></i></span><span class="hidden"><i>
+			  var runtime.<a href="runtime.html#name-_cgo_callers">_cgo_callers</a></i></span><span class="hidden"><i>
+			  var runtime.<a href="runtime.html#name-_cgo_init">_cgo_init</a></i></span><span class="hidden"><i>
+			  var runtime.<a href="runtime.html#name-_cgo_mmap">_cgo_mmap</a></i></span><span class="hidden"><i>
+			  var runtime.<a href="runtime.html#name-_cgo_munmap">_cgo_munmap</a></i></span><span class="hidden"><i>
+			  var runtime.<a href="runtime.html#name-_cgo_notify_runtime_init_done">_cgo_notify_runtime_init_done</a></i></span><span class="hidden"><i>
+			  var runtime.<a href="runtime.html#name-_cgo_set_context_function">_cgo_set_context_function</a></i></span><span class="hidden"><i>
+			  var runtime.<a href="runtime.html#name-_cgo_setenv">_cgo_setenv</a></i></span><span class="hidden"><i>
+			  var runtime.<a href="runtime.html#name-_cgo_sigaction">_cgo_sigaction</a></i></span><span class="hidden"><i>
+			  var runtime.<a href="runtime.html#name-_cgo_sys_thread_create">_cgo_sys_thread_create</a></i></span><span class="hidden"><i>
+			  var runtime.<a href="runtime.html#name-_cgo_thread_start">_cgo_thread_start</a></i></span><span class="hidden"><i>
+			  var runtime.<a href="runtime.html#name-_cgo_unsetenv">_cgo_unsetenv</a></i></span><span class="hidden"><i>
+			  var runtime.<a href="runtime.html#name-_cgo_yield">_cgo_yield</a></i></span><span class="hidden"><i>
+			  var runtime.<a href="runtime.html#name-cgo_yield">cgo_yield</a> *Pointer</i></span><span class="hidden"><i>
+			  var runtime.<a href="runtime.html#name-cgoContext">cgoContext</a></i></span><span class="hidden"><i>
+			  var runtime.<a href="runtime.html#name-cgoSymbolizer">cgoSymbolizer</a></i></span><span class="hidden"><i>
+			  var runtime.<a href="runtime.html#name-cgoThreadStart">cgoThreadStart</a></i></span><span class="hidden"><i>
+			  var runtime.<a href="runtime.html#name-cgoTraceback">cgoTraceback</a></i></span><span class="hidden"><i>
+			  var runtime/cgo.<a href="runtime/cgo.html#name-_cgo_yield">_cgo_yield</a></i></span><span class="hidden"><i>
+			  var runtime/cgo.<a href="runtime/cgo.html#name-cgo_libc_setegid">cgo_libc_setegid</a></i></span><span class="hidden"><i>
+			  var runtime/cgo.<a href="runtime/cgo.html#name-cgo_libc_seteuid">cgo_libc_seteuid</a></i></span><span class="hidden"><i>
+			  var runtime/cgo.<a href="runtime/cgo.html#name-cgo_libc_setgid">cgo_libc_setgid</a></i></span><span class="hidden"><i>
+			  var runtime/cgo.<a href="runtime/cgo.html#name-cgo_libc_setgroups">cgo_libc_setgroups</a></i></span><span class="hidden"><i>
+			  var runtime/cgo.<a href="runtime/cgo.html#name-cgo_libc_setregid">cgo_libc_setregid</a></i></span><span class="hidden"><i>
+			  var runtime/cgo.<a href="runtime/cgo.html#name-cgo_libc_setresgid">cgo_libc_setresgid</a></i></span><span class="hidden"><i>
+			  var runtime/cgo.<a href="runtime/cgo.html#name-cgo_libc_setresuid">cgo_libc_setresuid</a></i></span><span class="hidden"><i>
+			  var runtime/cgo.<a href="runtime/cgo.html#name-cgo_libc_setreuid">cgo_libc_setreuid</a></i></span><span class="hidden"><i>
+			  var runtime/cgo.<a href="runtime/cgo.html#name-cgo_libc_setuid">cgo_libc_setuid</a></i></span><span class="hidden"><i>
+			  var sync.<a href="sync.html#name-expunged">expunged</a></i></span><span class="hidden"><i>
+			  var syscall.<a href="syscall.html#name-cgo_libc_setegid">cgo_libc_setegid</a></i></span><span class="hidden"><i>
+			  var syscall.<a href="syscall.html#name-cgo_libc_seteuid">cgo_libc_seteuid</a></i></span><span class="hidden"><i>
+			  var syscall.<a href="syscall.html#name-cgo_libc_setgid">cgo_libc_setgid</a></i></span><span class="hidden"><i>
+			  var syscall.<a href="syscall.html#name-cgo_libc_setgroups">cgo_libc_setgroups</a></i></span><span class="hidden"><i>
+			  var syscall.<a href="syscall.html#name-cgo_libc_setregid">cgo_libc_setregid</a></i></span><span class="hidden"><i>
+			  var syscall.<a href="syscall.html#name-cgo_libc_setresgid">cgo_libc_setresgid</a></i></span><span class="hidden"><i>
+			  var syscall.<a href="syscall.html#name-cgo_libc_setresuid">cgo_libc_setresuid</a></i></span><span class="hidden"><i>
+			  var syscall.<a href="syscall.html#name-cgo_libc_setreuid">cgo_libc_setreuid</a></i></span><span class="hidden"><i>
+			  var syscall.<a href="syscall.html#name-cgo_libc_setuid">cgo_libc_setuid</a></i></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 3, all are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-Alignof">	<input type='checkbox' class="fold" id="Alignof-fold-content"><label for="Alignof-fold-content"> func <a href="../src/unsafe/unsafe.go.html#line-205">Alignof</a>(x <a href="#name-ArbitraryType">ArbitraryType</a>) <a href="builtin.html#name-uintptr">uintptr</a></label><span id='Alignof-fold-content-docs' class="fold-docs">
+		Alignof takes an expression x of any type and returns the required alignment
+		of a hypothetical variable v as if v was declared via var v = x.
+		It is the largest value m such that the address of v is always zero mod m.
+		It is the same as the value returned by reflect.TypeOf(x).Align().
+		As a special case, if a variable s is of struct type and f is a field
+		within that struct, then Alignof(s.f) will return the required alignment
+		of a field of that type within a struct. This case is the same as the
+		value returned by reflect.TypeOf(s.f).FieldAlign().
+		The return value of Alignof is a Go constant.
+
+</span></div><div class="anchor value-res" id="name-Offsetof">	<input type='checkbox' class="fold" id="Offsetof-fold-content"><label for="Offsetof-fold-content"> func <a href="../src/unsafe/unsafe.go.html#line-194">Offsetof</a>(x <a href="#name-ArbitraryType">ArbitraryType</a>) <a href="builtin.html#name-uintptr">uintptr</a></label><span id='Offsetof-fold-content-docs' class="fold-docs">
+		Offsetof returns the offset within the struct of the field represented by x,
+		which must be of the form structValue.field. In other words, it returns the
+		number of bytes between the start of the struct and the start of the field.
+		The return value of Offsetof is a Go constant.
+
+</span></div><div class="anchor value-res" id="name-Sizeof">	<input type='checkbox' class="fold" id="Sizeof-fold-content"><label for="Sizeof-fold-content"> func <a href="../src/unsafe/unsafe.go.html#line-188">Sizeof</a>(x <a href="#name-ArbitraryType">ArbitraryType</a>) <a href="builtin.html#name-uintptr">uintptr</a></label><span id='Sizeof-fold-content-docs' class="fold-docs">
+		Sizeof takes an expression x of any type and returns the size in bytes
+		of a hypothetical variable v as if v was declared via var v = x.
+		The size does not include any memory possibly referenced by x.
+		For instance, if x is a slice, Sizeof returns the size of the slice
+		descriptor, not the size of the memory referenced by the slice.
+		The return value of Sizeof is a Go constant.
+
+</span></div></div></code></pre><pre id="footer">
+<table><tr><td><img src="../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

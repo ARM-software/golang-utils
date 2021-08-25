@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: host_linux.go in package github.com/shirou/gopsutil/v3/host</title>
+<link href="../../../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	host_linux.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html">github.com/shirou/gopsutil/v3/host</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104],
+input[id=r105]:checked ~pre label[for=r105],
+input[id=r106]:checked ~pre label[for=r106],
+input[id=r107]:checked ~pre label[for=r107],
+input[id=r108]:checked ~pre label[for=r108],
+input[id=r109]:checked ~pre label[for=r109],
+input[id=r110]:checked ~pre label[for=r110],
+input[id=r111]:checked ~pre label[for=r111],
+input[id=r112]:checked ~pre label[for=r112],
+input[id=r113]:checked ~pre label[for=r113],
+input[id=r114]:checked ~pre label[for=r114],
+input[id=r115]:checked ~pre label[for=r115],
+input[id=r116]:checked ~pre label[for=r116],
+input[id=r117]:checked ~pre label[for=r117],
+input[id=r118]:checked ~pre label[for=r118],
+input[id=r119]:checked ~pre label[for=r119],
+input[id=r120]:checked ~pre label[for=r120],
+input[id=r121]:checked ~pre label[for=r121],
+input[id=r122]:checked ~pre label[for=r122],
+input[id=r123]:checked ~pre label[for=r123],
+input[id=r124]:checked ~pre label[for=r124],
+input[id=r125]:checked ~pre label[for=r125],
+input[id=r126]:checked ~pre label[for=r126],
+input[id=r127]:checked ~pre label[for=r127],
+input[id=r128]:checked ~pre label[for=r128],
+input[id=r129]:checked ~pre label[for=r129],
+input[id=r130]:checked ~pre label[for=r130]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7,
+input[id=i8]:checked ~pre .i8,
+input[id=i9]:checked ~pre .i9,
+input[id=i10]:checked ~pre .i10,
+input[id=i11]:checked ~pre .i11,
+input[id=i12]:checked ~pre .i12
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="r105" type="radio" name="g"/>
+<input id="r106" type="radio" name="g"/>
+<input id="r107" type="radio" name="g"/>
+<input id="r108" type="radio" name="g"/>
+<input id="r109" type="radio" name="g"/>
+<input id="r110" type="radio" name="g"/>
+<input id="r111" type="radio" name="g"/>
+<input id="r112" type="radio" name="g"/>
+<input id="r113" type="radio" name="g"/>
+<input id="r114" type="radio" name="g"/>
+<input id="r115" type="radio" name="g"/>
+<input id="r116" type="radio" name="g"/>
+<input id="r117" type="radio" name="g"/>
+<input id="r118" type="radio" name="g"/>
+<input id="r119" type="radio" name="g"/>
+<input id="r120" type="radio" name="g"/>
+<input id="r121" type="radio" name="g"/>
+<input id="r122" type="radio" name="g"/>
+<input id="r123" type="radio" name="g"/>
+<input id="r124" type="radio" name="g"/>
+<input id="r125" type="radio" name="g"/>
+<input id="r126" type="radio" name="g"/>
+<input id="r127" type="radio" name="g"/>
+<input id="r128" type="radio" name="g"/>
+<input id="r129" type="radio" name="g"/>
+<input id="r130" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+<input id="i8" type="radio" name="i"/>
+<input id="i9" type="radio" name="i"/>
+<input id="i10" type="radio" name="i"/>
+<input id="i11" type="radio" name="i"/>
+<input id="i12" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// +build linux</span></code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">package</span> host</code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-6"><code>	<label for="i0"><span class="lit-string i0">"bytes"</span></label></code></span>
+<span class="codeline" id="line-7"><code>	<label for="i1"><span class="lit-string i1">"context"</span></label></code></span>
+<span class="codeline" id="line-8"><code>	<label for="i2"><span class="lit-string i2">"encoding/binary"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i3"><span class="lit-string i3">"fmt"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i4"><span class="lit-string i4">"io/ioutil"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i5"><span class="lit-string i5">"os"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i6"><span class="lit-string i6">"os/exec"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i7"><span class="lit-string i7">"path/filepath"</span></label></code></span>
+<span class="codeline" id="line-14"><code>	<label for="i8"><span class="lit-string i8">"regexp"</span></label></code></span>
+<span class="codeline" id="line-15"><code>	<label for="i9"><span class="lit-string i9">"strconv"</span></label></code></span>
+<span class="codeline" id="line-16"><code>	<label for="i10"><span class="lit-string i10">"strings"</span></label></code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code>	<label for="i11"><span class="lit-string i11">"github.com/shirou/gopsutil/v3/internal/common"</span></label></code></span>
+<span class="codeline" id="line-19"><code>	<label for="i12"><span class="lit-string i12">"golang.org/x/sys/unix"</span></label></code></span>
+<span class="codeline" id="line-20"><code>)</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-lsbStruct" class="ident">lsbStruct</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-23"><code>	ID          <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-24"><code>	Release     <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-25"><code>	Codename    <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-26"><code>	Description <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-27"><code>}</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// from utmp.h</span></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-31"><code>	<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-user_PROCESS" class="ident">user_PROCESS</a> = <span class="lit-number">7</span></code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code>	<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-hostTemperatureScale" class="ident">hostTemperatureScale</a> = <span class="lit-number">1000.0</span></code></span>
+<span class="codeline" id="line-34"><code>)</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-HostIDWithContext" class="ident">HostIDWithContext</a></label>(<label for="r1" class="ident">ctx</label> <a href="../../../../../../pkg/context.html" class="ident i1">context</a>.<a href="../../../../../context/context.go.html#line-62" class="ident">Context</a>) (<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-37"><code>	<label for="r2" class="ident">sysProductUUID</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-335" class="ident">HostSys</a>(<span class="lit-string">"class/dmi/id/product_uuid"</span>)</code></span>
+<span class="codeline" id="line-38"><code>	<label for="r3" class="ident">machineID</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"machine-id"</span>)</code></span>
+<span class="codeline" id="line-39"><code>	<label for="r4" class="ident">procSysKernelRandomBootID</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-331" class="ident">HostProc</a>(<span class="lit-string">"sys/kernel/random/boot_id"</span>)</code></span>
+<span class="codeline" id="line-40"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-41"><code>	<span class="comment">// In order to read this file, needs to be supported by kernel/arch and run as root</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	// so having fallback is important</span></code></span>
+<span class="codeline" id="line-43"><code>	<span class="keyword">case</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-304" class="ident">PathExists</a>(<label for="r2" class="ident">sysProductUUID</label>):</code></span>
+<span class="codeline" id="line-44"><code>		<label for="r5" class="ident">lines</label>, <label for="r6" class="ident">err</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-110" class="ident">ReadLines</a>(<label for="r2" class="ident">sysProductUUID</label>)</code></span>
+<span class="codeline" id="line-45"><code>		<span class="keyword">if</span> <label for="r6" class="ident">err</label> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r5" class="ident">lines</label>) &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r5" class="ident">lines</label>[<span class="lit-number">0</span>] != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-46"><code>			<span class="keyword">return</span> <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-580" class="ident">ToLower</a>(<label for="r5" class="ident">lines</label>[<span class="lit-number">0</span>]), <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-47"><code>		}</code></span>
+<span class="codeline" id="line-48"><code>		<span class="keyword">fallthrough</span></code></span>
+<span class="codeline" id="line-49"><code>	<span class="comment">// Fallback on GNU Linux systems with systemd, readable by everyone</span></code></span>
+<span class="codeline" id="line-50"><code>	<span class="keyword">case</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-304" class="ident">PathExists</a>(<label for="r3" class="ident">machineID</label>):</code></span>
+<span class="codeline" id="line-51"><code>		<label for="r7" class="ident">lines</label>, <label for="r8" class="ident">err</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-110" class="ident">ReadLines</a>(<label for="r3" class="ident">machineID</label>)</code></span>
+<span class="codeline" id="line-52"><code>		<span class="keyword">if</span> <label for="r8" class="ident">err</label> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r7" class="ident">lines</label>) &gt; <span class="lit-number">0</span> &amp;&amp; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r7" class="ident">lines</label>[<span class="lit-number">0</span>]) == <span class="lit-number">32</span> {</code></span>
+<span class="codeline" id="line-53"><code>			<label for="r9" class="ident">st</label> := <label for="r7" class="ident">lines</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-54"><code>			<span class="keyword">return</span> <a href="../../../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(<span class="lit-string">"%s-%s-%s-%s-%s"</span>, <label for="r9" class="ident">st</label>[<span class="lit-number">0</span>:<span class="lit-number">8</span>], <label for="r9" class="ident">st</label>[<span class="lit-number">8</span>:<span class="lit-number">12</span>], <label for="r9" class="ident">st</label>[<span class="lit-number">12</span>:<span class="lit-number">16</span>], <label for="r9" class="ident">st</label>[<span class="lit-number">16</span>:<span class="lit-number">20</span>], <label for="r9" class="ident">st</label>[<span class="lit-number">20</span>:<span class="lit-number">32</span>]), <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-55"><code>		}</code></span>
+<span class="codeline" id="line-56"><code>		<span class="keyword">fallthrough</span></code></span>
+<span class="codeline" id="line-57"><code>	<span class="comment">// Not stable between reboot, but better than nothing</span></code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-59"><code>		<label for="r10" class="ident">lines</label>, <label for="r11" class="ident">err</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-110" class="ident">ReadLines</a>(<label for="r4" class="ident">procSysKernelRandomBootID</label>)</code></span>
+<span class="codeline" id="line-60"><code>		<span class="keyword">if</span> <label for="r11" class="ident">err</label> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r10" class="ident">lines</label>) &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r10" class="ident">lines</label>[<span class="lit-number">0</span>] != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-61"><code>			<span class="keyword">return</span> <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-580" class="ident">ToLower</a>(<label for="r10" class="ident">lines</label>[<span class="lit-number">0</span>]), <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-62"><code>		}</code></span>
+<span class="codeline" id="line-63"><code>	}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code>	<span class="keyword">return</span> <span class="lit-string">""</span>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-66"><code>}</code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-numProcs" class="ident">numProcs</a></label>(<label for="r13" class="ident">ctx</label> <a href="../../../../../../pkg/context.html" class="ident i1">context</a>.<a href="../../../../../context/context.go.html#line-62" class="ident">Context</a>) (<a href="../../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-69"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common_linux.go.html#line-35" class="ident">NumProcs</a>()</code></span>
+<span class="codeline" id="line-70"><code>}</code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code><span class="keyword">func</span> <label for="r14" class="ident"><a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-BootTimeWithContext" class="ident">BootTimeWithContext</a></label>(<label for="r15" class="ident">ctx</label> <a href="../../../../../../pkg/context.html" class="ident i1">context</a>.<a href="../../../../../context/context.go.html#line-62" class="ident">Context</a>) (<a href="../../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-73"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common_linux.go.html#line-57" class="ident">BootTimeWithContext</a>(<label for="r15" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-74"><code>}</code></span>
+<span class="codeline" id="line-75"><code></code></span>
+<span class="codeline" id="line-76"><code><span class="keyword">func</span> <label for="r16" class="ident"><a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-UptimeWithContext" class="ident">UptimeWithContext</a></label>(<label for="r17" class="ident">ctx</label> <a href="../../../../../../pkg/context.html" class="ident i1">context</a>.<a href="../../../../../context/context.go.html#line-62" class="ident">Context</a>) (<a href="../../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-77"><code>	<label for="r18" class="ident">sysinfo</label> := &amp;<a href="../../../../../../pkg/golang.org/x/sys/unix.html" class="ident i12">unix</a>.<a href="../../../../../golang.org/x/sys/unix/ztypes_linux_amd64.go.html#line-221" class="ident">Sysinfo_t</a>{}</code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">if</span> <label for="r19" class="ident">err</label> := <a href="../../../../../../pkg/golang.org/x/sys/unix.html" class="ident i12">unix</a>.<a href="../../../../../golang.org/x/sys/unix/zsyscall_linux.go.html#line-1470" class="ident">Sysinfo</a>(<label for="r18" class="ident">sysinfo</label>); <label for="r19" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-79"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <label for="r19" class="ident">err</label></code></span>
+<span class="codeline" id="line-80"><code>	}</code></span>
+<span class="codeline" id="line-81"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r18" class="ident">sysinfo</label>.<a href="../../../../../golang.org/x/sys/unix/ztypes_linux_amd64.go.html#line-222" class="ident">Uptime</a>), <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-82"><code>}</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code><span class="keyword">func</span> <label for="r20" class="ident"><a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-UsersWithContext" class="ident">UsersWithContext</a></label>(<label for="r21" class="ident">ctx</label> <a href="../../../../../../pkg/context.html" class="ident i1">context</a>.<a href="../../../../../context/context.go.html#line-62" class="ident">Context</a>) ([]<a href="host.go.html#line-33" class="ident">UserStat</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-85"><code>	<label for="r22" class="ident">utmpfile</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-343" class="ident">HostVar</a>(<span class="lit-string">"run/utmp"</span>)</code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code>	<label for="r23" class="ident">file</label>, <label for="r24" class="ident">err</label> := <a href="../../../../../../pkg/os.html" class="ident i5">os</a>.<a href="../../../../../os/file.go.html#line-310" class="ident">Open</a>(<label for="r22" class="ident">utmpfile</label>)</code></span>
+<span class="codeline" id="line-88"><code>	<span class="keyword">if</span> <label for="r24" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-89"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r24" class="ident">err</label></code></span>
+<span class="codeline" id="line-90"><code>	}</code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">defer</span> <label for="r23" class="ident">file</label>.<a href="../../../../../os/file_posix.go.html#line-21" class="ident">Close</a>()</code></span>
+<span class="codeline" id="line-92"><code></code></span>
+<span class="codeline" id="line-93"><code>	<label for="r25" class="ident">buf</label>, <label for="r24" class="ident">err</label> := <a href="../../../../../../pkg/io/ioutil.html" class="ident i4">ioutil</a>.<a href="../../../../../io/ioutil/ioutil.go.html#line-26" class="ident">ReadAll</a>(<label for="r23" class="ident">file</label>)</code></span>
+<span class="codeline" id="line-94"><code>	<span class="keyword">if</span> <label for="r24" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-95"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r24" class="ident">err</label></code></span>
+<span class="codeline" id="line-96"><code>	}</code></span>
+<span class="codeline" id="line-97"><code></code></span>
+<span class="codeline" id="line-98"><code>	<label for="r26" class="ident">count</label> := <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r25" class="ident">buf</label>) / <a href="host_linux_amd64.go.html#line-12" class="ident">sizeOfUtmp</a></code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code>	<label for="r27" class="ident">ret</label> := <a href="../../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="host.go.html#line-33" class="ident">UserStat</a>, <span class="lit-number">0</span>, <label for="r26" class="ident">count</label>)</code></span>
+<span class="codeline" id="line-101"><code></code></span>
+<span class="codeline" id="line-102"><code>	<span class="keyword">for</span> <label for="r28" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r28" class="ident">i</label> &lt; <label for="r26" class="ident">count</label>; <label for="r28" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-103"><code>		<label for="r29" class="ident">b</label> := <label for="r25" class="ident">buf</label>[<label for="r28" class="ident">i</label>*<a href="host_linux_amd64.go.html#line-12" class="ident">sizeOfUtmp</a> : (<label for="r28" class="ident">i</label>+<span class="lit-number">1</span>)*<a href="host_linux_amd64.go.html#line-12" class="ident">sizeOfUtmp</a>]</code></span>
+<span class="codeline" id="line-104"><code></code></span>
+<span class="codeline" id="line-105"><code>		<span class="keyword">var</span> <label for="r30" class="ident">u</label> <a href="host_linux_amd64.go.html#line-22" class="ident">utmp</a></code></span>
+<span class="codeline" id="line-106"><code>		<label for="r31" class="ident">br</label> := <a href="../../../../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../../../../bytes/reader.go.html#line-160" class="ident">NewReader</a>(<label for="r29" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-107"><code>		<label for="r32" class="ident">err</label> := <a href="../../../../../../pkg/encoding/binary.html" class="ident i2">binary</a>.<a href="../../../../../encoding/binary/binary.go.html#line-162" class="ident">Read</a>(<label for="r31" class="ident">br</label>, <a href="../../../../../../pkg/encoding/binary.html" class="ident i2">binary</a>.<a href="../../../../../encoding/binary/binary.go.html#line-45" class="ident">LittleEndian</a>, &amp;<label for="r30" class="ident">u</label>)</code></span>
+<span class="codeline" id="line-108"><code>		<span class="keyword">if</span> <label for="r32" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-109"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-110"><code>		}</code></span>
+<span class="codeline" id="line-111"><code>		<span class="keyword">if</span> <label for="r30" class="ident">u</label>.<a href="host_linux_amd64.go.html#line-23" class="ident">Type</a> != <a href="#line-31" class="ident">user_PROCESS</a> {</code></span>
+<span class="codeline" id="line-112"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-113"><code>		}</code></span>
+<span class="codeline" id="line-114"><code>		<label for="r33" class="ident">user</label> := <a href="host.go.html#line-33" class="ident">UserStat</a>{</code></span>
+<span class="codeline" id="line-115"><code>			<a href="host.go.html#line-34" class="ident">User</a>:     <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-143" class="ident">IntToString</a>(<label for="r30" class="ident">u</label>.<a href="host_linux_amd64.go.html#line-28" class="ident">User</a>[:]),</code></span>
+<span class="codeline" id="line-116"><code>			<a href="host.go.html#line-35" class="ident">Terminal</a>: <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-143" class="ident">IntToString</a>(<label for="r30" class="ident">u</label>.<a href="host_linux_amd64.go.html#line-26" class="ident">Line</a>[:]),</code></span>
+<span class="codeline" id="line-117"><code>			<a href="host.go.html#line-36" class="ident">Host</a>:     <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-143" class="ident">IntToString</a>(<label for="r30" class="ident">u</label>.<a href="host_linux_amd64.go.html#line-29" class="ident">Host</a>[:]),</code></span>
+<span class="codeline" id="line-118"><code>			<a href="host.go.html#line-37" class="ident">Started</a>:  <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r30" class="ident">u</label>.<a href="host_linux_amd64.go.html#line-32" class="ident">Tv</a>.<a href="host_linux_amd64.go.html#line-46" class="ident">Sec</a>),</code></span>
+<span class="codeline" id="line-119"><code>		}</code></span>
+<span class="codeline" id="line-120"><code>		<label for="r27" class="ident">ret</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r27" class="ident">ret</label>, <label for="r33" class="ident">user</label>)</code></span>
+<span class="codeline" id="line-121"><code>	}</code></span>
+<span class="codeline" id="line-122"><code></code></span>
+<span class="codeline" id="line-123"><code>	<span class="keyword">return</span> <label for="r27" class="ident">ret</label>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-124"><code></code></span>
+<span class="codeline" id="line-125"><code>}</code></span>
+<span class="codeline" id="line-126"><code></code></span>
+<span class="codeline" id="line-127"><code><span class="keyword">func</span> <label for="r34" class="ident"><a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-getlsbStruct" class="ident">getlsbStruct</a></label>() (*<a href="#line-22" class="ident">lsbStruct</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-128"><code>	<label for="r35" class="ident">ret</label> := &amp;<a href="#line-22" class="ident">lsbStruct</a>{}</code></span>
+<span class="codeline" id="line-129"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-304" class="ident">PathExists</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"lsb-release"</span>)) {</code></span>
+<span class="codeline" id="line-130"><code>		<label for="r36" class="ident">contents</label>, <label for="r37" class="ident">err</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-110" class="ident">ReadLines</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"lsb-release"</span>))</code></span>
+<span class="codeline" id="line-131"><code>		<span class="keyword">if</span> <label for="r37" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-132"><code>			<span class="keyword">return</span> <label for="r35" class="ident">ret</label>, <label for="r37" class="ident">err</label> <span class="comment">// return empty</span></code></span>
+<span class="codeline" id="line-133"><code>		}</code></span>
+<span class="codeline" id="line-134"><code>		<span class="keyword">for</span> <label for="r38" class="ident">_</label>, <label for="r39" class="ident">line</label> := <span class="keyword">range</span> <label for="r36" class="ident">contents</label> {</code></span>
+<span class="codeline" id="line-135"><code>			<label for="r40" class="ident">field</label> := <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-299" class="ident">Split</a>(<label for="r39" class="ident">line</label>, <span class="lit-string">"="</span>)</code></span>
+<span class="codeline" id="line-136"><code>			<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r40" class="ident">field</label>) &lt; <span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-137"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-138"><code>			}</code></span>
+<span class="codeline" id="line-139"><code>			<span class="keyword">switch</span> <label for="r40" class="ident">field</label>[<span class="lit-number">0</span>] {</code></span>
+<span class="codeline" id="line-140"><code>			<span class="keyword">case</span> <span class="lit-string">"DISTRIB_ID"</span>:</code></span>
+<span class="codeline" id="line-141"><code>				<label for="r35" class="ident">ret</label>.<a href="#line-23" class="ident">ID</a> = <label for="r40" class="ident">field</label>[<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-142"><code>			<span class="keyword">case</span> <span class="lit-string">"DISTRIB_RELEASE"</span>:</code></span>
+<span class="codeline" id="line-143"><code>				<label for="r35" class="ident">ret</label>.<a href="#line-24" class="ident">Release</a> = <label for="r40" class="ident">field</label>[<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-144"><code>			<span class="keyword">case</span> <span class="lit-string">"DISTRIB_CODENAME"</span>:</code></span>
+<span class="codeline" id="line-145"><code>				<label for="r35" class="ident">ret</label>.<a href="#line-25" class="ident">Codename</a> = <label for="r40" class="ident">field</label>[<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-146"><code>			<span class="keyword">case</span> <span class="lit-string">"DISTRIB_DESCRIPTION"</span>:</code></span>
+<span class="codeline" id="line-147"><code>				<label for="r35" class="ident">ret</label>.<a href="#line-26" class="ident">Description</a> = <label for="r40" class="ident">field</label>[<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-148"><code>			}</code></span>
+<span class="codeline" id="line-149"><code>		}</code></span>
+<span class="codeline" id="line-150"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-304" class="ident">PathExists</a>(<span class="lit-string">"/usr/bin/lsb_release"</span>) {</code></span>
+<span class="codeline" id="line-151"><code>		<label for="r41" class="ident">lsb_release</label>, <label for="r42" class="ident">err</label> := <a href="../../../../../../pkg/os/exec.html" class="ident i6">exec</a>.<a href="../../../../../os/exec/lp_unix.go.html#line-35" class="ident">LookPath</a>(<span class="lit-string">"lsb_release"</span>)</code></span>
+<span class="codeline" id="line-152"><code>		<span class="keyword">if</span> <label for="r42" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-153"><code>			<span class="keyword">return</span> <label for="r35" class="ident">ret</label>, <label for="r42" class="ident">err</label></code></span>
+<span class="codeline" id="line-154"><code>		}</code></span>
+<span class="codeline" id="line-155"><code>		<label for="r43" class="ident">out</label>, <label for="r42" class="ident">err</label> := <a href="host.go.html#line-13" class="ident">invoke</a>.<a href="../internal/common/common.go.html#line-34" class="ident">Command</a>(<label for="r41" class="ident">lsb_release</label>)</code></span>
+<span class="codeline" id="line-156"><code>		<span class="keyword">if</span> <label for="r42" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-157"><code>			<span class="keyword">return</span> <label for="r35" class="ident">ret</label>, <label for="r42" class="ident">err</label></code></span>
+<span class="codeline" id="line-158"><code>		}</code></span>
+<span class="codeline" id="line-159"><code>		<span class="keyword">for</span> <label for="r44" class="ident">_</label>, <label for="r45" class="ident">line</label> := <span class="keyword">range</span> <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-299" class="ident">Split</a>(<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r43" class="ident">out</label>), <span class="lit-string">"\n"</span>) {</code></span>
+<span class="codeline" id="line-160"><code>			<label for="r46" class="ident">field</label> := <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-299" class="ident">Split</a>(<label for="r45" class="ident">line</label>, <span class="lit-string">":"</span>)</code></span>
+<span class="codeline" id="line-161"><code>			<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r46" class="ident">field</label>) &lt; <span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-162"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-163"><code>			}</code></span>
+<span class="codeline" id="line-164"><code>			<span class="keyword">switch</span> <label for="r46" class="ident">field</label>[<span class="lit-number">0</span>] {</code></span>
+<span class="codeline" id="line-165"><code>			<span class="keyword">case</span> <span class="lit-string">"Distributor ID"</span>:</code></span>
+<span class="codeline" id="line-166"><code>				<label for="r35" class="ident">ret</label>.<a href="#line-23" class="ident">ID</a> = <label for="r46" class="ident">field</label>[<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-167"><code>			<span class="keyword">case</span> <span class="lit-string">"Release"</span>:</code></span>
+<span class="codeline" id="line-168"><code>				<label for="r35" class="ident">ret</label>.<a href="#line-24" class="ident">Release</a> = <label for="r46" class="ident">field</label>[<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-169"><code>			<span class="keyword">case</span> <span class="lit-string">"Codename"</span>:</code></span>
+<span class="codeline" id="line-170"><code>				<label for="r35" class="ident">ret</label>.<a href="#line-25" class="ident">Codename</a> = <label for="r46" class="ident">field</label>[<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-171"><code>			<span class="keyword">case</span> <span class="lit-string">"Description"</span>:</code></span>
+<span class="codeline" id="line-172"><code>				<label for="r35" class="ident">ret</label>.<a href="#line-26" class="ident">Description</a> = <label for="r46" class="ident">field</label>[<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-173"><code>			}</code></span>
+<span class="codeline" id="line-174"><code>		}</code></span>
+<span class="codeline" id="line-175"><code></code></span>
+<span class="codeline" id="line-176"><code>	}</code></span>
+<span class="codeline" id="line-177"><code></code></span>
+<span class="codeline" id="line-178"><code>	<span class="keyword">return</span> <label for="r35" class="ident">ret</label>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-179"><code>}</code></span>
+<span class="codeline" id="line-180"><code></code></span>
+<span class="codeline" id="line-181"><code><span class="keyword">func</span> <label for="r47" class="ident"><a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-PlatformInformationWithContext" class="ident">PlatformInformationWithContext</a></label>(<label for="r48" class="ident">ctx</label> <a href="../../../../../../pkg/context.html" class="ident i1">context</a>.<a href="../../../../../context/context.go.html#line-62" class="ident">Context</a>) (<label for="r49" class="ident">platform</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r50" class="ident">family</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r51" class="ident">version</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r52" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-182"><code>	<label for="r53" class="ident">lsb</label>, <label for="r52" class="ident">err</label> := <a href="#line-127" class="ident">getlsbStruct</a>()</code></span>
+<span class="codeline" id="line-183"><code>	<span class="keyword">if</span> <label for="r52" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-184"><code>		<label for="r53" class="ident">lsb</label> = &amp;<a href="#line-22" class="ident">lsbStruct</a>{}</code></span>
+<span class="codeline" id="line-185"><code>	}</code></span>
+<span class="codeline" id="line-186"><code></code></span>
+<span class="codeline" id="line-187"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-304" class="ident">PathExists</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"oracle-release"</span>)) {</code></span>
+<span class="codeline" id="line-188"><code>		<label for="r49" class="ident">platform</label> = <span class="lit-string">"oracle"</span></code></span>
+<span class="codeline" id="line-189"><code>		<label for="r54" class="ident">contents</label>, <label for="r55" class="ident">err</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-110" class="ident">ReadLines</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"oracle-release"</span>))</code></span>
+<span class="codeline" id="line-190"><code>		<span class="keyword">if</span> <label for="r55" class="ident">err</label> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-191"><code>			<label for="r51" class="ident">version</label> = <a href="#line-325" class="ident">getRedhatishVersion</a>(<label for="r54" class="ident">contents</label>)</code></span>
+<span class="codeline" id="line-192"><code>		}</code></span>
+<span class="codeline" id="line-193"><code></code></span>
+<span class="codeline" id="line-194"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-304" class="ident">PathExists</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"enterprise-release"</span>)) {</code></span>
+<span class="codeline" id="line-195"><code>		<label for="r49" class="ident">platform</label> = <span class="lit-string">"oracle"</span></code></span>
+<span class="codeline" id="line-196"><code>		<label for="r56" class="ident">contents</label>, <label for="r57" class="ident">err</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-110" class="ident">ReadLines</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"enterprise-release"</span>))</code></span>
+<span class="codeline" id="line-197"><code>		<span class="keyword">if</span> <label for="r57" class="ident">err</label> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-198"><code>			<label for="r51" class="ident">version</label> = <a href="#line-325" class="ident">getRedhatishVersion</a>(<label for="r56" class="ident">contents</label>)</code></span>
+<span class="codeline" id="line-199"><code>		}</code></span>
+<span class="codeline" id="line-200"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-304" class="ident">PathExists</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"slackware-version"</span>)) {</code></span>
+<span class="codeline" id="line-201"><code>		<label for="r49" class="ident">platform</label> = <span class="lit-string">"slackware"</span></code></span>
+<span class="codeline" id="line-202"><code>		<label for="r58" class="ident">contents</label>, <label for="r59" class="ident">err</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-110" class="ident">ReadLines</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"slackware-version"</span>))</code></span>
+<span class="codeline" id="line-203"><code>		<span class="keyword">if</span> <label for="r59" class="ident">err</label> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-204"><code>			<label for="r51" class="ident">version</label> = <a href="#line-319" class="ident">getSlackwareVersion</a>(<label for="r58" class="ident">contents</label>)</code></span>
+<span class="codeline" id="line-205"><code>		}</code></span>
+<span class="codeline" id="line-206"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-304" class="ident">PathExists</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"debian_version"</span>)) {</code></span>
+<span class="codeline" id="line-207"><code>		<span class="keyword">if</span> <label for="r53" class="ident">lsb</label>.<a href="#line-23" class="ident">ID</a> == <span class="lit-string">"Ubuntu"</span> {</code></span>
+<span class="codeline" id="line-208"><code>			<label for="r49" class="ident">platform</label> = <span class="lit-string">"ubuntu"</span></code></span>
+<span class="codeline" id="line-209"><code>			<label for="r51" class="ident">version</label> = <label for="r53" class="ident">lsb</label>.<a href="#line-24" class="ident">Release</a></code></span>
+<span class="codeline" id="line-210"><code>		} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r53" class="ident">lsb</label>.<a href="#line-23" class="ident">ID</a> == <span class="lit-string">"LinuxMint"</span> {</code></span>
+<span class="codeline" id="line-211"><code>			<label for="r49" class="ident">platform</label> = <span class="lit-string">"linuxmint"</span></code></span>
+<span class="codeline" id="line-212"><code>			<label for="r51" class="ident">version</label> = <label for="r53" class="ident">lsb</label>.<a href="#line-24" class="ident">Release</a></code></span>
+<span class="codeline" id="line-213"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-214"><code>			<span class="keyword">if</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-304" class="ident">PathExists</a>(<span class="lit-string">"/usr/bin/raspi-config"</span>) {</code></span>
+<span class="codeline" id="line-215"><code>				<label for="r49" class="ident">platform</label> = <span class="lit-string">"raspbian"</span></code></span>
+<span class="codeline" id="line-216"><code>			} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-217"><code>				<label for="r49" class="ident">platform</label> = <span class="lit-string">"debian"</span></code></span>
+<span class="codeline" id="line-218"><code>			}</code></span>
+<span class="codeline" id="line-219"><code>			<label for="r60" class="ident">contents</label>, <label for="r61" class="ident">err</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-110" class="ident">ReadLines</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"debian_version"</span>))</code></span>
+<span class="codeline" id="line-220"><code>			<span class="keyword">if</span> <label for="r61" class="ident">err</label> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r60" class="ident">contents</label>) &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r60" class="ident">contents</label>[<span class="lit-number">0</span>] != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-221"><code>				<label for="r51" class="ident">version</label> = <label for="r60" class="ident">contents</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-222"><code>			}</code></span>
+<span class="codeline" id="line-223"><code>		}</code></span>
+<span class="codeline" id="line-224"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-304" class="ident">PathExists</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"redhat-release"</span>)) {</code></span>
+<span class="codeline" id="line-225"><code>		<label for="r62" class="ident">contents</label>, <label for="r63" class="ident">err</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-110" class="ident">ReadLines</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"redhat-release"</span>))</code></span>
+<span class="codeline" id="line-226"><code>		<span class="keyword">if</span> <label for="r63" class="ident">err</label> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-227"><code>			<label for="r51" class="ident">version</label> = <a href="#line-325" class="ident">getRedhatishVersion</a>(<label for="r62" class="ident">contents</label>)</code></span>
+<span class="codeline" id="line-228"><code>			<label for="r49" class="ident">platform</label> = <a href="#line-337" class="ident">getRedhatishPlatform</a>(<label for="r62" class="ident">contents</label>)</code></span>
+<span class="codeline" id="line-229"><code>		}</code></span>
+<span class="codeline" id="line-230"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-304" class="ident">PathExists</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"system-release"</span>)) {</code></span>
+<span class="codeline" id="line-231"><code>		<label for="r64" class="ident">contents</label>, <label for="r65" class="ident">err</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-110" class="ident">ReadLines</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"system-release"</span>))</code></span>
+<span class="codeline" id="line-232"><code>		<span class="keyword">if</span> <label for="r65" class="ident">err</label> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-233"><code>			<label for="r51" class="ident">version</label> = <a href="#line-325" class="ident">getRedhatishVersion</a>(<label for="r64" class="ident">contents</label>)</code></span>
+<span class="codeline" id="line-234"><code>			<label for="r49" class="ident">platform</label> = <a href="#line-337" class="ident">getRedhatishPlatform</a>(<label for="r64" class="ident">contents</label>)</code></span>
+<span class="codeline" id="line-235"><code>		}</code></span>
+<span class="codeline" id="line-236"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-304" class="ident">PathExists</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"gentoo-release"</span>)) {</code></span>
+<span class="codeline" id="line-237"><code>		<label for="r49" class="ident">platform</label> = <span class="lit-string">"gentoo"</span></code></span>
+<span class="codeline" id="line-238"><code>		<label for="r66" class="ident">contents</label>, <label for="r67" class="ident">err</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-110" class="ident">ReadLines</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"gentoo-release"</span>))</code></span>
+<span class="codeline" id="line-239"><code>		<span class="keyword">if</span> <label for="r67" class="ident">err</label> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-240"><code>			<label for="r51" class="ident">version</label> = <a href="#line-325" class="ident">getRedhatishVersion</a>(<label for="r66" class="ident">contents</label>)</code></span>
+<span class="codeline" id="line-241"><code>		}</code></span>
+<span class="codeline" id="line-242"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-304" class="ident">PathExists</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"SuSE-release"</span>)) {</code></span>
+<span class="codeline" id="line-243"><code>		<label for="r68" class="ident">contents</label>, <label for="r69" class="ident">err</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-110" class="ident">ReadLines</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"SuSE-release"</span>))</code></span>
+<span class="codeline" id="line-244"><code>		<span class="keyword">if</span> <label for="r69" class="ident">err</label> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-245"><code>			<label for="r51" class="ident">version</label> = <a href="#line-348" class="ident">getSuseVersion</a>(<label for="r68" class="ident">contents</label>)</code></span>
+<span class="codeline" id="line-246"><code>			<label for="r49" class="ident">platform</label> = <a href="#line-360" class="ident">getSusePlatform</a>(<label for="r68" class="ident">contents</label>)</code></span>
+<span class="codeline" id="line-247"><code>		}</code></span>
+<span class="codeline" id="line-248"><code>		<span class="comment">// TODO: slackware detecion</span></code></span>
+<span class="codeline" id="line-249"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-304" class="ident">PathExists</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"arch-release"</span>)) {</code></span>
+<span class="codeline" id="line-250"><code>		<label for="r49" class="ident">platform</label> = <span class="lit-string">"arch"</span></code></span>
+<span class="codeline" id="line-251"><code>		<label for="r51" class="ident">version</label> = <label for="r53" class="ident">lsb</label>.<a href="#line-24" class="ident">Release</a></code></span>
+<span class="codeline" id="line-252"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-304" class="ident">PathExists</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"alpine-release"</span>)) {</code></span>
+<span class="codeline" id="line-253"><code>		<label for="r49" class="ident">platform</label> = <span class="lit-string">"alpine"</span></code></span>
+<span class="codeline" id="line-254"><code>		<label for="r70" class="ident">contents</label>, <label for="r71" class="ident">err</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-110" class="ident">ReadLines</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"alpine-release"</span>))</code></span>
+<span class="codeline" id="line-255"><code>		<span class="keyword">if</span> <label for="r71" class="ident">err</label> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r70" class="ident">contents</label>) &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r70" class="ident">contents</label>[<span class="lit-number">0</span>] != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-256"><code>			<label for="r51" class="ident">version</label> = <label for="r70" class="ident">contents</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-257"><code>		}</code></span>
+<span class="codeline" id="line-258"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-304" class="ident">PathExists</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-339" class="ident">HostEtc</a>(<span class="lit-string">"os-release"</span>)) {</code></span>
+<span class="codeline" id="line-259"><code>		<label for="r72" class="ident">p</label>, <label for="r73" class="ident">v</label>, <label for="r74" class="ident">err</label> := <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common_linux.go.html#line-264" class="ident">GetOSRelease</a>()</code></span>
+<span class="codeline" id="line-260"><code>		<span class="keyword">if</span> <label for="r74" class="ident">err</label> == <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-261"><code>			<label for="r49" class="ident">platform</label> = <label for="r72" class="ident">p</label></code></span>
+<span class="codeline" id="line-262"><code>			<label for="r51" class="ident">version</label> = <label for="r73" class="ident">v</label></code></span>
+<span class="codeline" id="line-263"><code>		}</code></span>
+<span class="codeline" id="line-264"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r53" class="ident">lsb</label>.<a href="#line-23" class="ident">ID</a> == <span class="lit-string">"RedHat"</span> {</code></span>
+<span class="codeline" id="line-265"><code>		<label for="r49" class="ident">platform</label> = <span class="lit-string">"redhat"</span></code></span>
+<span class="codeline" id="line-266"><code>		<label for="r51" class="ident">version</label> = <label for="r53" class="ident">lsb</label>.<a href="#line-24" class="ident">Release</a></code></span>
+<span class="codeline" id="line-267"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r53" class="ident">lsb</label>.<a href="#line-23" class="ident">ID</a> == <span class="lit-string">"Amazon"</span> {</code></span>
+<span class="codeline" id="line-268"><code>		<label for="r49" class="ident">platform</label> = <span class="lit-string">"amazon"</span></code></span>
+<span class="codeline" id="line-269"><code>		<label for="r51" class="ident">version</label> = <label for="r53" class="ident">lsb</label>.<a href="#line-24" class="ident">Release</a></code></span>
+<span class="codeline" id="line-270"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r53" class="ident">lsb</label>.<a href="#line-23" class="ident">ID</a> == <span class="lit-string">"ScientificSL"</span> {</code></span>
+<span class="codeline" id="line-271"><code>		<label for="r49" class="ident">platform</label> = <span class="lit-string">"scientific"</span></code></span>
+<span class="codeline" id="line-272"><code>		<label for="r51" class="ident">version</label> = <label for="r53" class="ident">lsb</label>.<a href="#line-24" class="ident">Release</a></code></span>
+<span class="codeline" id="line-273"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r53" class="ident">lsb</label>.<a href="#line-23" class="ident">ID</a> == <span class="lit-string">"XenServer"</span> {</code></span>
+<span class="codeline" id="line-274"><code>		<label for="r49" class="ident">platform</label> = <span class="lit-string">"xenserver"</span></code></span>
+<span class="codeline" id="line-275"><code>		<label for="r51" class="ident">version</label> = <label for="r53" class="ident">lsb</label>.<a href="#line-24" class="ident">Release</a></code></span>
+<span class="codeline" id="line-276"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r53" class="ident">lsb</label>.<a href="#line-23" class="ident">ID</a> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-277"><code>		<label for="r49" class="ident">platform</label> = <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-580" class="ident">ToLower</a>(<label for="r53" class="ident">lsb</label>.<a href="#line-23" class="ident">ID</a>)</code></span>
+<span class="codeline" id="line-278"><code>		<label for="r51" class="ident">version</label> = <label for="r53" class="ident">lsb</label>.<a href="#line-24" class="ident">Release</a></code></span>
+<span class="codeline" id="line-279"><code>	}</code></span>
+<span class="codeline" id="line-280"><code></code></span>
+<span class="codeline" id="line-281"><code>	<span class="keyword">switch</span> <label for="r49" class="ident">platform</label> {</code></span>
+<span class="codeline" id="line-282"><code>	<span class="keyword">case</span> <span class="lit-string">"debian"</span>, <span class="lit-string">"ubuntu"</span>, <span class="lit-string">"linuxmint"</span>, <span class="lit-string">"raspbian"</span>:</code></span>
+<span class="codeline" id="line-283"><code>		<label for="r50" class="ident">family</label> = <span class="lit-string">"debian"</span></code></span>
+<span class="codeline" id="line-284"><code>	<span class="keyword">case</span> <span class="lit-string">"fedora"</span>:</code></span>
+<span class="codeline" id="line-285"><code>		<label for="r50" class="ident">family</label> = <span class="lit-string">"fedora"</span></code></span>
+<span class="codeline" id="line-286"><code>	<span class="keyword">case</span> <span class="lit-string">"oracle"</span>, <span class="lit-string">"centos"</span>, <span class="lit-string">"redhat"</span>, <span class="lit-string">"scientific"</span>, <span class="lit-string">"enterpriseenterprise"</span>, <span class="lit-string">"amazon"</span>, <span class="lit-string">"xenserver"</span>, <span class="lit-string">"cloudlinux"</span>, <span class="lit-string">"ibm_powerkvm"</span>, <span class="lit-string">"rocky"</span>:</code></span>
+<span class="codeline" id="line-287"><code>		<label for="r50" class="ident">family</label> = <span class="lit-string">"rhel"</span></code></span>
+<span class="codeline" id="line-288"><code>	<span class="keyword">case</span> <span class="lit-string">"suse"</span>, <span class="lit-string">"opensuse"</span>, <span class="lit-string">"opensuse-leap"</span>, <span class="lit-string">"opensuse-tumbleweed"</span>, <span class="lit-string">"opensuse-tumbleweed-kubic"</span>, <span class="lit-string">"sles"</span>, <span class="lit-string">"sled"</span>, <span class="lit-string">"caasp"</span>:</code></span>
+<span class="codeline" id="line-289"><code>		<label for="r50" class="ident">family</label> = <span class="lit-string">"suse"</span></code></span>
+<span class="codeline" id="line-290"><code>	<span class="keyword">case</span> <span class="lit-string">"gentoo"</span>:</code></span>
+<span class="codeline" id="line-291"><code>		<label for="r50" class="ident">family</label> = <span class="lit-string">"gentoo"</span></code></span>
+<span class="codeline" id="line-292"><code>	<span class="keyword">case</span> <span class="lit-string">"slackware"</span>:</code></span>
+<span class="codeline" id="line-293"><code>		<label for="r50" class="ident">family</label> = <span class="lit-string">"slackware"</span></code></span>
+<span class="codeline" id="line-294"><code>	<span class="keyword">case</span> <span class="lit-string">"arch"</span>:</code></span>
+<span class="codeline" id="line-295"><code>		<label for="r50" class="ident">family</label> = <span class="lit-string">"arch"</span></code></span>
+<span class="codeline" id="line-296"><code>	<span class="keyword">case</span> <span class="lit-string">"exherbo"</span>:</code></span>
+<span class="codeline" id="line-297"><code>		<label for="r50" class="ident">family</label> = <span class="lit-string">"exherbo"</span></code></span>
+<span class="codeline" id="line-298"><code>	<span class="keyword">case</span> <span class="lit-string">"alpine"</span>:</code></span>
+<span class="codeline" id="line-299"><code>		<label for="r50" class="ident">family</label> = <span class="lit-string">"alpine"</span></code></span>
+<span class="codeline" id="line-300"><code>	<span class="keyword">case</span> <span class="lit-string">"coreos"</span>:</code></span>
+<span class="codeline" id="line-301"><code>		<label for="r50" class="ident">family</label> = <span class="lit-string">"coreos"</span></code></span>
+<span class="codeline" id="line-302"><code>	<span class="keyword">case</span> <span class="lit-string">"solus"</span>:</code></span>
+<span class="codeline" id="line-303"><code>		<label for="r50" class="ident">family</label> = <span class="lit-string">"solus"</span></code></span>
+<span class="codeline" id="line-304"><code>	}</code></span>
+<span class="codeline" id="line-305"><code></code></span>
+<span class="codeline" id="line-306"><code>	<span class="keyword">return</span> <label for="r49" class="ident">platform</label>, <label for="r50" class="ident">family</label>, <label for="r51" class="ident">version</label>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-307"><code></code></span>
+<span class="codeline" id="line-308"><code>}</code></span>
+<span class="codeline" id="line-309"><code></code></span>
+<span class="codeline" id="line-310"><code><span class="keyword">func</span> <label for="r75" class="ident"><a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-KernelVersionWithContext" class="ident">KernelVersionWithContext</a></label>(<label for="r76" class="ident">ctx</label> <a href="../../../../../../pkg/context.html" class="ident i1">context</a>.<a href="../../../../../context/context.go.html#line-62" class="ident">Context</a>) (<label for="r77" class="ident">version</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r78" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-311"><code>	<span class="keyword">var</span> <label for="r79" class="ident">utsname</label> <a href="../../../../../../pkg/golang.org/x/sys/unix.html" class="ident i12">unix</a>.<a href="../../../../../golang.org/x/sys/unix/ztypes_linux.go.html#line-711" class="ident">Utsname</a></code></span>
+<span class="codeline" id="line-312"><code>	<label for="r78" class="ident">err</label> = <a href="../../../../../../pkg/golang.org/x/sys/unix.html" class="ident i12">unix</a>.<a href="../../../../../golang.org/x/sys/unix/zsyscall_linux.go.html#line-1540" class="ident">Uname</a>(&amp;<label for="r79" class="ident">utsname</label>)</code></span>
+<span class="codeline" id="line-313"><code>	<span class="keyword">if</span> <label for="r78" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-314"><code>		<span class="keyword">return</span> <span class="lit-string">""</span>, <label for="r78" class="ident">err</label></code></span>
+<span class="codeline" id="line-315"><code>	}</code></span>
+<span class="codeline" id="line-316"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r79" class="ident">utsname</label>.<a href="../../../../../golang.org/x/sys/unix/ztypes_linux.go.html#line-714" class="ident">Release</a>[:<a href="../../../../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../../../../bytes/bytes.go.html#line-90" class="ident">IndexByte</a>(<label for="r79" class="ident">utsname</label>.<a href="../../../../../golang.org/x/sys/unix/ztypes_linux.go.html#line-714" class="ident">Release</a>[:], <span class="lit-number">0</span>)]), <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-317"><code>}</code></span>
+<span class="codeline" id="line-318"><code></code></span>
+<span class="codeline" id="line-319"><code><span class="keyword">func</span> <label for="r80" class="ident"><a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-getSlackwareVersion" class="ident">getSlackwareVersion</a></label>(<label for="r81" class="ident">contents</label> []<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-320"><code>	<label for="r82" class="ident">c</label> := <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-580" class="ident">ToLower</a>(<a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-421" class="ident">Join</a>(<label for="r81" class="ident">contents</label>, <span class="lit-string">""</span>))</code></span>
+<span class="codeline" id="line-321"><code>	<label for="r82" class="ident">c</label> = <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-924" class="ident">Replace</a>(<label for="r82" class="ident">c</label>, <span class="lit-string">"slackware "</span>, <span class="lit-string">""</span>, <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-322"><code>	<span class="keyword">return</span> <label for="r82" class="ident">c</label></code></span>
+<span class="codeline" id="line-323"><code>}</code></span>
+<span class="codeline" id="line-324"><code></code></span>
+<span class="codeline" id="line-325"><code><span class="keyword">func</span> <label for="r83" class="ident"><a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-getRedhatishVersion" class="ident">getRedhatishVersion</a></label>(<label for="r84" class="ident">contents</label> []<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-326"><code>	<label for="r85" class="ident">c</label> := <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-580" class="ident">ToLower</a>(<a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-421" class="ident">Join</a>(<label for="r84" class="ident">contents</label>, <span class="lit-string">""</span>))</code></span>
+<span class="codeline" id="line-327"><code></code></span>
+<span class="codeline" id="line-328"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-61" class="ident">Contains</a>(<label for="r85" class="ident">c</label>, <span class="lit-string">"rawhide"</span>) {</code></span>
+<span class="codeline" id="line-329"><code>		<span class="keyword">return</span> <span class="lit-string">"rawhide"</span></code></span>
+<span class="codeline" id="line-330"><code>	}</code></span>
+<span class="codeline" id="line-331"><code>	<span class="keyword">if</span> <label for="r86" class="ident">matches</label> := <a href="../../../../../../pkg/regexp.html" class="ident i8">regexp</a>.<a href="../../../../../regexp/regexp.go.html#line-308" class="ident">MustCompile</a>(<span class="lit-string">`release (\d[\d.]*)`</span>).<a href="../../../../../regexp/regexp.go.html#line-1037" class="ident">FindStringSubmatch</a>(<label for="r85" class="ident">c</label>); <label for="r86" class="ident">matches</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-332"><code>		<span class="keyword">return</span> <label for="r86" class="ident">matches</label>[<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-333"><code>	}</code></span>
+<span class="codeline" id="line-334"><code>	<span class="keyword">return</span> <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-335"><code>}</code></span>
+<span class="codeline" id="line-336"><code></code></span>
+<span class="codeline" id="line-337"><code><span class="keyword">func</span> <label for="r87" class="ident"><a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-getRedhatishPlatform" class="ident">getRedhatishPlatform</a></label>(<label for="r88" class="ident">contents</label> []<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-338"><code>	<label for="r89" class="ident">c</label> := <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-580" class="ident">ToLower</a>(<a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-421" class="ident">Join</a>(<label for="r88" class="ident">contents</label>, <span class="lit-string">""</span>))</code></span>
+<span class="codeline" id="line-339"><code></code></span>
+<span class="codeline" id="line-340"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-61" class="ident">Contains</a>(<label for="r89" class="ident">c</label>, <span class="lit-string">"red hat"</span>) {</code></span>
+<span class="codeline" id="line-341"><code>		<span class="keyword">return</span> <span class="lit-string">"redhat"</span></code></span>
+<span class="codeline" id="line-342"><code>	}</code></span>
+<span class="codeline" id="line-343"><code>	<label for="r90" class="ident">f</label> := <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-299" class="ident">Split</a>(<label for="r89" class="ident">c</label>, <span class="lit-string">" "</span>)</code></span>
+<span class="codeline" id="line-344"><code></code></span>
+<span class="codeline" id="line-345"><code>	<span class="keyword">return</span> <label for="r90" class="ident">f</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-346"><code>}</code></span>
+<span class="codeline" id="line-347"><code></code></span>
+<span class="codeline" id="line-348"><code><span class="keyword">func</span> <label for="r91" class="ident"><a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-getSuseVersion" class="ident">getSuseVersion</a></label>(<label for="r92" class="ident">contents</label> []<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-349"><code>	<label for="r93" class="ident">version</label> := <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-350"><code>	<span class="keyword">for</span> <label for="r94" class="ident">_</label>, <label for="r95" class="ident">line</label> := <span class="keyword">range</span> <label for="r92" class="ident">contents</label> {</code></span>
+<span class="codeline" id="line-351"><code>		<span class="keyword">if</span> <label for="r96" class="ident">matches</label> := <a href="../../../../../../pkg/regexp.html" class="ident i8">regexp</a>.<a href="../../../../../regexp/regexp.go.html#line-308" class="ident">MustCompile</a>(<span class="lit-string">`VERSION = ([\d.]+)`</span>).<a href="../../../../../regexp/regexp.go.html#line-1037" class="ident">FindStringSubmatch</a>(<label for="r95" class="ident">line</label>); <label for="r96" class="ident">matches</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-352"><code>			<label for="r93" class="ident">version</label> = <label for="r96" class="ident">matches</label>[<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-353"><code>		} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r97" class="ident">matches</label> := <a href="../../../../../../pkg/regexp.html" class="ident i8">regexp</a>.<a href="../../../../../regexp/regexp.go.html#line-308" class="ident">MustCompile</a>(<span class="lit-string">`PATCHLEVEL = ([\d]+)`</span>).<a href="../../../../../regexp/regexp.go.html#line-1037" class="ident">FindStringSubmatch</a>(<label for="r95" class="ident">line</label>); <label for="r97" class="ident">matches</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-354"><code>			<label for="r93" class="ident">version</label> = <label for="r93" class="ident">version</label> + <span class="lit-string">"."</span> + <label for="r97" class="ident">matches</label>[<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-355"><code>		}</code></span>
+<span class="codeline" id="line-356"><code>	}</code></span>
+<span class="codeline" id="line-357"><code>	<span class="keyword">return</span> <label for="r93" class="ident">version</label></code></span>
+<span class="codeline" id="line-358"><code>}</code></span>
+<span class="codeline" id="line-359"><code></code></span>
+<span class="codeline" id="line-360"><code><span class="keyword">func</span> <label for="r98" class="ident"><a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-getSusePlatform" class="ident">getSusePlatform</a></label>(<label for="r99" class="ident">contents</label> []<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-361"><code>	<label for="r100" class="ident">c</label> := <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-580" class="ident">ToLower</a>(<a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-421" class="ident">Join</a>(<label for="r99" class="ident">contents</label>, <span class="lit-string">""</span>))</code></span>
+<span class="codeline" id="line-362"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-61" class="ident">Contains</a>(<label for="r100" class="ident">c</label>, <span class="lit-string">"opensuse"</span>) {</code></span>
+<span class="codeline" id="line-363"><code>		<span class="keyword">return</span> <span class="lit-string">"opensuse"</span></code></span>
+<span class="codeline" id="line-364"><code>	}</code></span>
+<span class="codeline" id="line-365"><code>	<span class="keyword">return</span> <span class="lit-string">"suse"</span></code></span>
+<span class="codeline" id="line-366"><code>}</code></span>
+<span class="codeline" id="line-367"><code></code></span>
+<span class="codeline" id="line-368"><code><span class="keyword">func</span> <label for="r101" class="ident"><a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-VirtualizationWithContext" class="ident">VirtualizationWithContext</a></label>(<label for="r102" class="ident">ctx</label> <a href="../../../../../../pkg/context.html" class="ident i1">context</a>.<a href="../../../../../context/context.go.html#line-62" class="ident">Context</a>) (<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-369"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common_linux.go.html#line-121" class="ident">VirtualizationWithContext</a>(<label for="r102" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-370"><code>}</code></span>
+<span class="codeline" id="line-371"><code></code></span>
+<span class="codeline" id="line-372"><code><span class="keyword">func</span> <label for="r103" class="ident"><a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-SensorsTemperaturesWithContext" class="ident">SensorsTemperaturesWithContext</a></label>(<label for="r104" class="ident">ctx</label> <a href="../../../../../../pkg/context.html" class="ident i1">context</a>.<a href="../../../../../context/context.go.html#line-62" class="ident">Context</a>) ([]<a href="host.go.html#line-40" class="ident">TemperatureStat</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-373"><code>	<span class="keyword">var</span> <label for="r105" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-374"><code></code></span>
+<span class="codeline" id="line-375"><code>	<span class="keyword">var</span> <label for="r106" class="ident">files</label> []<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-376"><code></code></span>
+<span class="codeline" id="line-377"><code>	<label for="r107" class="ident">temperatures</label> := <a href="../../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="host.go.html#line-40" class="ident">TemperatureStat</a>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-378"><code></code></span>
+<span class="codeline" id="line-379"><code>	<span class="comment">// Only the temp*_input file provides current temperature</span></code></span>
+<span class="codeline" id="line-380"><code><span class="comment">	// value in millidegree Celsius as reported by the temperature to the device:</span></code></span>
+<span class="codeline" id="line-381"><code><span class="comment">	// https://www.kernel.org/doc/Documentation/hwmon/sysfs-interface</span></code></span>
+<span class="codeline" id="line-382"><code>	<span class="keyword">if</span> <label for="r106" class="ident">files</label>, <label for="r105" class="ident">err</label> = <a href="../../../../../../pkg/path/filepath.html" class="ident i7">filepath</a>.<a href="../../../../../path/filepath/match.go.html#line-243" class="ident">Glob</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-335" class="ident">HostSys</a>(<span class="lit-string">"/class/hwmon/hwmon*/temp*_input"</span>)); <label for="r105" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-383"><code>		<span class="keyword">return</span> <label for="r107" class="ident">temperatures</label>, <label for="r105" class="ident">err</label></code></span>
+<span class="codeline" id="line-384"><code>	}</code></span>
+<span class="codeline" id="line-385"><code></code></span>
+<span class="codeline" id="line-386"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r106" class="ident">files</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-387"><code>		<span class="comment">// CentOS has an intermediate /device directory:</span></code></span>
+<span class="codeline" id="line-388"><code><span class="comment">		// https://github.com/giampaolo/psutil/issues/971</span></code></span>
+<span class="codeline" id="line-389"><code>		<span class="keyword">if</span> <label for="r106" class="ident">files</label>, <label for="r105" class="ident">err</label> = <a href="../../../../../../pkg/path/filepath.html" class="ident i7">filepath</a>.<a href="../../../../../path/filepath/match.go.html#line-243" class="ident">Glob</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-335" class="ident">HostSys</a>(<span class="lit-string">"/class/hwmon/hwmon*/device/temp*_input"</span>)); <label for="r105" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-390"><code>			<span class="keyword">return</span> <label for="r107" class="ident">temperatures</label>, <label for="r105" class="ident">err</label></code></span>
+<span class="codeline" id="line-391"><code>		}</code></span>
+<span class="codeline" id="line-392"><code>	}</code></span>
+<span class="codeline" id="line-393"><code></code></span>
+<span class="codeline" id="line-394"><code>	<span class="keyword">var</span> <label for="r108" class="ident">warns</label> <a href="types.go.html#line-7" class="ident">Warnings</a></code></span>
+<span class="codeline" id="line-395"><code></code></span>
+<span class="codeline" id="line-396"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r106" class="ident">files</label>) == <span class="lit-number">0</span> { <span class="comment">// handle distributions without hwmon, like raspbian #391, parse legacy thermal_zone files</span></code></span>
+<span class="codeline" id="line-397"><code>		<label for="r106" class="ident">files</label>, <label for="r105" class="ident">err</label> = <a href="../../../../../../pkg/path/filepath.html" class="ident i7">filepath</a>.<a href="../../../../../path/filepath/match.go.html#line-243" class="ident">Glob</a>(<a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/internal/common.html" class="ident i11">common</a>.<a href="../internal/common/common.go.html#line-335" class="ident">HostSys</a>(<span class="lit-string">"/class/thermal/thermal_zone*/"</span>))</code></span>
+<span class="codeline" id="line-398"><code>		<span class="keyword">if</span> <label for="r105" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-399"><code>			<span class="keyword">return</span> <label for="r107" class="ident">temperatures</label>, <label for="r105" class="ident">err</label></code></span>
+<span class="codeline" id="line-400"><code>		}</code></span>
+<span class="codeline" id="line-401"><code>		<span class="keyword">for</span> <label for="r109" class="ident">_</label>, <label for="r110" class="ident">file</label> := <span class="keyword">range</span> <label for="r106" class="ident">files</label> {</code></span>
+<span class="codeline" id="line-402"><code>			<span class="comment">// Get the name of the temperature you are reading</span></code></span>
+<span class="codeline" id="line-403"><code>			<label for="r111" class="ident">name</label>, <label for="r112" class="ident">err</label> := <a href="../../../../../../pkg/io/ioutil.html" class="ident i4">ioutil</a>.<a href="../../../../../io/ioutil/ioutil.go.html#line-36" class="ident">ReadFile</a>(<a href="../../../../../../pkg/path/filepath.html" class="ident i7">filepath</a>.<a href="../../../../../path/filepath/path.go.html#line-212" class="ident">Join</a>(<label for="r110" class="ident">file</label>, <span class="lit-string">"type"</span>))</code></span>
+<span class="codeline" id="line-404"><code>			<span class="keyword">if</span> <label for="r112" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-405"><code>				<label for="r108" class="ident">warns</label>.<a href="types.go.html#line-11" class="ident">Add</a>(<label for="r112" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-406"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-407"><code>			}</code></span>
+<span class="codeline" id="line-408"><code>			<span class="comment">// Get the temperature reading</span></code></span>
+<span class="codeline" id="line-409"><code>			<label for="r113" class="ident">current</label>, <label for="r112" class="ident">err</label> := <a href="../../../../../../pkg/io/ioutil.html" class="ident i4">ioutil</a>.<a href="../../../../../io/ioutil/ioutil.go.html#line-36" class="ident">ReadFile</a>(<a href="../../../../../../pkg/path/filepath.html" class="ident i7">filepath</a>.<a href="../../../../../path/filepath/path.go.html#line-212" class="ident">Join</a>(<label for="r110" class="ident">file</label>, <span class="lit-string">"temp"</span>))</code></span>
+<span class="codeline" id="line-410"><code>			<span class="keyword">if</span> <label for="r112" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-411"><code>				<label for="r108" class="ident">warns</label>.<a href="types.go.html#line-11" class="ident">Add</a>(<label for="r112" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-412"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-413"><code>			}</code></span>
+<span class="codeline" id="line-414"><code>			<label for="r114" class="ident">temperature</label>, <label for="r112" class="ident">err</label> := <a href="../../../../../../pkg/strconv.html" class="ident i9">strconv</a>.<a href="../../../../../strconv/atoi.go.html#line-179" class="ident">ParseInt</a>(<a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r113" class="ident">current</label>)), <span class="lit-number">10</span>, <span class="lit-number">64</span>)</code></span>
+<span class="codeline" id="line-415"><code>			<span class="keyword">if</span> <label for="r112" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-416"><code>				<label for="r108" class="ident">warns</label>.<a href="types.go.html#line-11" class="ident">Add</a>(<label for="r112" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-417"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-418"><code>			}</code></span>
+<span class="codeline" id="line-419"><code></code></span>
+<span class="codeline" id="line-420"><code>			<label for="r107" class="ident">temperatures</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r107" class="ident">temperatures</label>, <a href="host.go.html#line-40" class="ident">TemperatureStat</a>{</code></span>
+<span class="codeline" id="line-421"><code>				<a href="host.go.html#line-41" class="ident">SensorKey</a>:   <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r111" class="ident">name</label>)),</code></span>
+<span class="codeline" id="line-422"><code>				<a href="host.go.html#line-42" class="ident">Temperature</a>: <a href="../../../../../../pkg/builtin.html#name-float64" class="ident">float64</a>(<label for="r114" class="ident">temperature</label>) / <span class="lit-number">1000.0</span>,</code></span>
+<span class="codeline" id="line-423"><code>			})</code></span>
+<span class="codeline" id="line-424"><code>		}</code></span>
+<span class="codeline" id="line-425"><code>		<span class="keyword">return</span> <label for="r107" class="ident">temperatures</label>, <label for="r108" class="ident">warns</label>.<a href="types.go.html#line-15" class="ident">Reference</a>()</code></span>
+<span class="codeline" id="line-426"><code>	}</code></span>
+<span class="codeline" id="line-427"><code></code></span>
+<span class="codeline" id="line-428"><code>	<label for="r107" class="ident">temperatures</label> = <a href="../../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="host.go.html#line-40" class="ident">TemperatureStat</a>, <span class="lit-number">0</span>, <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r106" class="ident">files</label>))</code></span>
+<span class="codeline" id="line-429"><code></code></span>
+<span class="codeline" id="line-430"><code>	<span class="comment">// example directory</span></code></span>
+<span class="codeline" id="line-431"><code><span class="comment">	// device/           temp1_crit_alarm  temp2_crit_alarm  temp3_crit_alarm  temp4_crit_alarm  temp5_crit_alarm  temp6_crit_alarm  temp7_crit_alarm</span></code></span>
+<span class="codeline" id="line-432"><code><span class="comment">	// name              temp1_input       temp2_input       temp3_input       temp4_input       temp5_input       temp6_input       temp7_input</span></code></span>
+<span class="codeline" id="line-433"><code><span class="comment">	// power/            temp1_label       temp2_label       temp3_label       temp4_label       temp5_label       temp6_label       temp7_label</span></code></span>
+<span class="codeline" id="line-434"><code><span class="comment">	// subsystem/        temp1_max         temp2_max         temp3_max         temp4_max         temp5_max         temp6_max         temp7_max</span></code></span>
+<span class="codeline" id="line-435"><code><span class="comment">	// temp1_crit        temp2_crit        temp3_crit        temp4_crit        temp5_crit        temp6_crit        temp7_crit        uevent</span></code></span>
+<span class="codeline" id="line-436"><code>	<span class="keyword">for</span> <label for="r115" class="ident">_</label>, <label for="r116" class="ident">file</label> := <span class="keyword">range</span> <label for="r106" class="ident">files</label> {</code></span>
+<span class="codeline" id="line-437"><code>		<span class="keyword">var</span> <label for="r117" class="ident">raw</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-438"><code></code></span>
+<span class="codeline" id="line-439"><code>		<span class="keyword">var</span> <label for="r118" class="ident">temperature</label> <a href="../../../../../../pkg/builtin.html#name-float64" class="ident">float64</a></code></span>
+<span class="codeline" id="line-440"><code></code></span>
+<span class="codeline" id="line-441"><code>		<span class="comment">// Get the base directory location</span></code></span>
+<span class="codeline" id="line-442"><code>		<label for="r119" class="ident">directory</label> := <a href="../../../../../../pkg/path/filepath.html" class="ident i7">filepath</a>.<a href="../../../../../path/filepath/path.go.html#line-576" class="ident">Dir</a>(<label for="r116" class="ident">file</label>)</code></span>
+<span class="codeline" id="line-443"><code></code></span>
+<span class="codeline" id="line-444"><code>		<span class="comment">// Get the base filename prefix like temp1</span></code></span>
+<span class="codeline" id="line-445"><code>		<label for="r120" class="ident">basename</label> := <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-299" class="ident">Split</a>(<a href="../../../../../../pkg/path/filepath.html" class="ident i7">filepath</a>.<a href="../../../../../path/filepath/path.go.html#line-545" class="ident">Base</a>(<label for="r116" class="ident">file</label>), <span class="lit-string">"_"</span>)[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-446"><code></code></span>
+<span class="codeline" id="line-447"><code>		<span class="comment">// Get the base path like &lt;dir&gt;/temp1</span></code></span>
+<span class="codeline" id="line-448"><code>		<label for="r121" class="ident">basepath</label> := <a href="../../../../../../pkg/path/filepath.html" class="ident i7">filepath</a>.<a href="../../../../../path/filepath/path.go.html#line-212" class="ident">Join</a>(<label for="r119" class="ident">directory</label>, <label for="r120" class="ident">basename</label>)</code></span>
+<span class="codeline" id="line-449"><code></code></span>
+<span class="codeline" id="line-450"><code>		<span class="comment">// Get the label of the temperature you are reading</span></code></span>
+<span class="codeline" id="line-451"><code>		<label for="r122" class="ident">label</label> := <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-452"><code></code></span>
+<span class="codeline" id="line-453"><code>		<span class="keyword">if</span> <label for="r117" class="ident">raw</label>, _ = <a href="../../../../../../pkg/io/ioutil.html" class="ident i4">ioutil</a>.<a href="../../../../../io/ioutil/ioutil.go.html#line-36" class="ident">ReadFile</a>(<label for="r121" class="ident">basepath</label> + <span class="lit-string">"_label"</span>); <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r117" class="ident">raw</label>) != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-454"><code>			<span class="comment">// Format the label from "Core 0" to "core_0"</span></code></span>
+<span class="codeline" id="line-455"><code>			<label for="r122" class="ident">label</label> = <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-421" class="ident">Join</a>(<a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-299" class="ident">Split</a>(<a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-580" class="ident">ToLower</a>(<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r117" class="ident">raw</label>))), <span class="lit-string">" "</span>), <span class="lit-string">"_"</span>)</code></span>
+<span class="codeline" id="line-456"><code>		}</code></span>
+<span class="codeline" id="line-457"><code></code></span>
+<span class="codeline" id="line-458"><code>		<span class="comment">// Get the name of the temperature you are reading</span></code></span>
+<span class="codeline" id="line-459"><code>		<span class="keyword">if</span> <label for="r117" class="ident">raw</label>, <label for="r105" class="ident">err</label> = <a href="../../../../../../pkg/io/ioutil.html" class="ident i4">ioutil</a>.<a href="../../../../../io/ioutil/ioutil.go.html#line-36" class="ident">ReadFile</a>(<a href="../../../../../../pkg/path/filepath.html" class="ident i7">filepath</a>.<a href="../../../../../path/filepath/path.go.html#line-212" class="ident">Join</a>(<label for="r119" class="ident">directory</label>, <span class="lit-string">"name"</span>)); <label for="r105" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-460"><code>			<label for="r108" class="ident">warns</label>.<a href="types.go.html#line-11" class="ident">Add</a>(<label for="r105" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-461"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-462"><code>		}</code></span>
+<span class="codeline" id="line-463"><code></code></span>
+<span class="codeline" id="line-464"><code>		<label for="r123" class="ident">name</label> := <a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r117" class="ident">raw</label>))</code></span>
+<span class="codeline" id="line-465"><code></code></span>
+<span class="codeline" id="line-466"><code>		<span class="keyword">if</span> <label for="r122" class="ident">label</label> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-467"><code>			<label for="r123" class="ident">name</label> = <label for="r123" class="ident">name</label> + <span class="lit-string">"_"</span> + <label for="r122" class="ident">label</label></code></span>
+<span class="codeline" id="line-468"><code>		}</code></span>
+<span class="codeline" id="line-469"><code></code></span>
+<span class="codeline" id="line-470"><code>		<span class="comment">// Get the temperature reading</span></code></span>
+<span class="codeline" id="line-471"><code>		<span class="keyword">if</span> <label for="r117" class="ident">raw</label>, <label for="r105" class="ident">err</label> = <a href="../../../../../../pkg/io/ioutil.html" class="ident i4">ioutil</a>.<a href="../../../../../io/ioutil/ioutil.go.html#line-36" class="ident">ReadFile</a>(<label for="r116" class="ident">file</label>); <label for="r105" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-472"><code>			<label for="r108" class="ident">warns</label>.<a href="types.go.html#line-11" class="ident">Add</a>(<label for="r105" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-473"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-474"><code>		}</code></span>
+<span class="codeline" id="line-475"><code></code></span>
+<span class="codeline" id="line-476"><code>		<span class="keyword">if</span> <label for="r118" class="ident">temperature</label>, <label for="r105" class="ident">err</label> = <a href="../../../../../../pkg/strconv.html" class="ident i9">strconv</a>.<a href="../../../../../strconv/atof.go.html#line-690" class="ident">ParseFloat</a>(<a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r117" class="ident">raw</label>)), <span class="lit-number">64</span>); <label for="r105" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-477"><code>			<label for="r108" class="ident">warns</label>.<a href="types.go.html#line-11" class="ident">Add</a>(<label for="r105" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-478"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-479"><code>		}</code></span>
+<span class="codeline" id="line-480"><code></code></span>
+<span class="codeline" id="line-481"><code>		<span class="comment">// Add discovered temperature sensor to the list</span></code></span>
+<span class="codeline" id="line-482"><code>		<label for="r107" class="ident">temperatures</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r107" class="ident">temperatures</label>, <a href="host.go.html#line-40" class="ident">TemperatureStat</a>{</code></span>
+<span class="codeline" id="line-483"><code>			<a href="host.go.html#line-41" class="ident">SensorKey</a>:   <label for="r123" class="ident">name</label>,</code></span>
+<span class="codeline" id="line-484"><code>			<a href="host.go.html#line-42" class="ident">Temperature</a>: <label for="r118" class="ident">temperature</label> / <a href="#line-33" class="ident">hostTemperatureScale</a>,</code></span>
+<span class="codeline" id="line-485"><code>			<a href="host.go.html#line-43" class="ident">High</a>:        <a href="#line-493" class="ident">optionalValueReadFromFile</a>(<label for="r121" class="ident">basepath</label>+<span class="lit-string">"_max"</span>) / <a href="#line-33" class="ident">hostTemperatureScale</a>,</code></span>
+<span class="codeline" id="line-486"><code>			<a href="host.go.html#line-44" class="ident">Critical</a>:    <a href="#line-493" class="ident">optionalValueReadFromFile</a>(<label for="r121" class="ident">basepath</label>+<span class="lit-string">"_crit"</span>) / <a href="#line-33" class="ident">hostTemperatureScale</a>,</code></span>
+<span class="codeline" id="line-487"><code>		})</code></span>
+<span class="codeline" id="line-488"><code>	}</code></span>
+<span class="codeline" id="line-489"><code></code></span>
+<span class="codeline" id="line-490"><code>	<span class="keyword">return</span> <label for="r107" class="ident">temperatures</label>, <label for="r108" class="ident">warns</label>.<a href="types.go.html#line-15" class="ident">Reference</a>()</code></span>
+<span class="codeline" id="line-491"><code>}</code></span>
+<span class="codeline" id="line-492"><code></code></span>
+<span class="codeline" id="line-493"><code><span class="keyword">func</span> <label for="r124" class="ident"><a href="../../../../../../pkg/github.com/shirou/gopsutil/v3/host.html#name-optionalValueReadFromFile" class="ident">optionalValueReadFromFile</a></label>(<label for="r125" class="ident">filename</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../pkg/builtin.html#name-float64" class="ident">float64</a> {</code></span>
+<span class="codeline" id="line-494"><code>	<span class="keyword">var</span> <label for="r126" class="ident">raw</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-495"><code></code></span>
+<span class="codeline" id="line-496"><code>	<span class="keyword">var</span> <label for="r127" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-497"><code></code></span>
+<span class="codeline" id="line-498"><code>	<span class="keyword">var</span> <label for="r128" class="ident">value</label> <a href="../../../../../../pkg/builtin.html#name-float64" class="ident">float64</a></code></span>
+<span class="codeline" id="line-499"><code></code></span>
+<span class="codeline" id="line-500"><code>	<span class="comment">// Check if file exists</span></code></span>
+<span class="codeline" id="line-501"><code>	<span class="keyword">if</span> <label for="r129" class="ident">_</label>, <label for="r130" class="ident">err</label> := <a href="../../../../../../pkg/os.html" class="ident i5">os</a>.<a href="../../../../../os/stat.go.html#line-11" class="ident">Stat</a>(<label for="r125" class="ident">filename</label>); <a href="../../../../../../pkg/os.html" class="ident i5">os</a>.<a href="../../../../../os/error.go.html#line-92" class="ident">IsNotExist</a>(<label for="r130" class="ident">err</label>) {</code></span>
+<span class="codeline" id="line-502"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-503"><code>	}</code></span>
+<span class="codeline" id="line-504"><code></code></span>
+<span class="codeline" id="line-505"><code>	<span class="keyword">if</span> <label for="r126" class="ident">raw</label>, <label for="r127" class="ident">err</label> = <a href="../../../../../../pkg/io/ioutil.html" class="ident i4">ioutil</a>.<a href="../../../../../io/ioutil/ioutil.go.html#line-36" class="ident">ReadFile</a>(<label for="r125" class="ident">filename</label>); <label for="r127" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-506"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-507"><code>	}</code></span>
+<span class="codeline" id="line-508"><code></code></span>
+<span class="codeline" id="line-509"><code>	<span class="keyword">if</span> <label for="r128" class="ident">value</label>, <label for="r127" class="ident">err</label> = <a href="../../../../../../pkg/strconv.html" class="ident i9">strconv</a>.<a href="../../../../../strconv/atof.go.html#line-690" class="ident">ParseFloat</a>(<a href="../../../../../../pkg/strings.html" class="ident i10">strings</a>.<a href="../../../../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r126" class="ident">raw</label>)), <span class="lit-number">64</span>); <label for="r127" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-510"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-511"><code>	}</code></span>
+<span class="codeline" id="line-512"><code></code></span>
+<span class="codeline" id="line-513"><code>	<span class="keyword">return</span> <label for="r128" class="ident">value</label></code></span>
+<span class="codeline" id="line-514"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: sigtab_linux_generic.go in package runtime</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	sigtab_linux_generic.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// +build !mips</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// +build !mipsle</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// +build !mips64</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// +build !mips64le</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// +build linux</span></code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-sigtable" class="ident">sigtable</a> = [...]<a href="signal_unix.go.html#line-19" class="ident">sigTabT</a>{</code></span>
+<span class="codeline" id="line-14"><code>	<span class="comment">/* 0 */</span> {<span class="lit-number">0</span>, <span class="lit-string">"SIGNONE: no trap"</span>},</code></span>
+<span class="codeline" id="line-15"><code>	<span class="comment">/* 1 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a> + <a href="runtime2.go.html#line-808" class="ident">_SigKill</a>, <span class="lit-string">"SIGHUP: terminal line hangup"</span>},</code></span>
+<span class="codeline" id="line-16"><code>	<span class="comment">/* 2 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a> + <a href="runtime2.go.html#line-808" class="ident">_SigKill</a>, <span class="lit-string">"SIGINT: interrupt"</span>},</code></span>
+<span class="codeline" id="line-17"><code>	<span class="comment">/* 3 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a> + <a href="runtime2.go.html#line-809" class="ident">_SigThrow</a>, <span class="lit-string">"SIGQUIT: quit"</span>},</code></span>
+<span class="codeline" id="line-18"><code>	<span class="comment">/* 4 */</span> {<a href="runtime2.go.html#line-809" class="ident">_SigThrow</a> + <a href="runtime2.go.html#line-814" class="ident">_SigUnblock</a>, <span class="lit-string">"SIGILL: illegal instruction"</span>},</code></span>
+<span class="codeline" id="line-19"><code>	<span class="comment">/* 5 */</span> {<a href="runtime2.go.html#line-809" class="ident">_SigThrow</a> + <a href="runtime2.go.html#line-814" class="ident">_SigUnblock</a>, <span class="lit-string">"SIGTRAP: trace trap"</span>},</code></span>
+<span class="codeline" id="line-20"><code>	<span class="comment">/* 6 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a> + <a href="runtime2.go.html#line-809" class="ident">_SigThrow</a>, <span class="lit-string">"SIGABRT: abort"</span>},</code></span>
+<span class="codeline" id="line-21"><code>	<span class="comment">/* 7 */</span> {<a href="runtime2.go.html#line-810" class="ident">_SigPanic</a> + <a href="runtime2.go.html#line-814" class="ident">_SigUnblock</a>, <span class="lit-string">"SIGBUS: bus error"</span>},</code></span>
+<span class="codeline" id="line-22"><code>	<span class="comment">/* 8 */</span> {<a href="runtime2.go.html#line-810" class="ident">_SigPanic</a> + <a href="runtime2.go.html#line-814" class="ident">_SigUnblock</a>, <span class="lit-string">"SIGFPE: floating-point exception"</span>},</code></span>
+<span class="codeline" id="line-23"><code>	<span class="comment">/* 9 */</span> {<span class="lit-number">0</span>, <span class="lit-string">"SIGKILL: kill"</span>},</code></span>
+<span class="codeline" id="line-24"><code>	<span class="comment">/* 10 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"SIGUSR1: user-defined signal 1"</span>},</code></span>
+<span class="codeline" id="line-25"><code>	<span class="comment">/* 11 */</span> {<a href="runtime2.go.html#line-810" class="ident">_SigPanic</a> + <a href="runtime2.go.html#line-814" class="ident">_SigUnblock</a>, <span class="lit-string">"SIGSEGV: segmentation violation"</span>},</code></span>
+<span class="codeline" id="line-26"><code>	<span class="comment">/* 12 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"SIGUSR2: user-defined signal 2"</span>},</code></span>
+<span class="codeline" id="line-27"><code>	<span class="comment">/* 13 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"SIGPIPE: write to broken pipe"</span>},</code></span>
+<span class="codeline" id="line-28"><code>	<span class="comment">/* 14 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"SIGALRM: alarm clock"</span>},</code></span>
+<span class="codeline" id="line-29"><code>	<span class="comment">/* 15 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a> + <a href="runtime2.go.html#line-808" class="ident">_SigKill</a>, <span class="lit-string">"SIGTERM: termination"</span>},</code></span>
+<span class="codeline" id="line-30"><code>	<span class="comment">/* 16 */</span> {<a href="runtime2.go.html#line-809" class="ident">_SigThrow</a> + <a href="runtime2.go.html#line-814" class="ident">_SigUnblock</a>, <span class="lit-string">"SIGSTKFLT: stack fault"</span>},</code></span>
+<span class="codeline" id="line-31"><code>	<span class="comment">/* 17 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a> + <a href="runtime2.go.html#line-814" class="ident">_SigUnblock</a> + <a href="runtime2.go.html#line-815" class="ident">_SigIgn</a>, <span class="lit-string">"SIGCHLD: child status has changed"</span>},</code></span>
+<span class="codeline" id="line-32"><code>	<span class="comment">/* 18 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a> + <a href="runtime2.go.html#line-811" class="ident">_SigDefault</a> + <a href="runtime2.go.html#line-815" class="ident">_SigIgn</a>, <span class="lit-string">"SIGCONT: continue"</span>},</code></span>
+<span class="codeline" id="line-33"><code>	<span class="comment">/* 19 */</span> {<span class="lit-number">0</span>, <span class="lit-string">"SIGSTOP: stop, unblockable"</span>},</code></span>
+<span class="codeline" id="line-34"><code>	<span class="comment">/* 20 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a> + <a href="runtime2.go.html#line-811" class="ident">_SigDefault</a> + <a href="runtime2.go.html#line-815" class="ident">_SigIgn</a>, <span class="lit-string">"SIGTSTP: keyboard stop"</span>},</code></span>
+<span class="codeline" id="line-35"><code>	<span class="comment">/* 21 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a> + <a href="runtime2.go.html#line-811" class="ident">_SigDefault</a> + <a href="runtime2.go.html#line-815" class="ident">_SigIgn</a>, <span class="lit-string">"SIGTTIN: background read from tty"</span>},</code></span>
+<span class="codeline" id="line-36"><code>	<span class="comment">/* 22 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a> + <a href="runtime2.go.html#line-811" class="ident">_SigDefault</a> + <a href="runtime2.go.html#line-815" class="ident">_SigIgn</a>, <span class="lit-string">"SIGTTOU: background write to tty"</span>},</code></span>
+<span class="codeline" id="line-37"><code>	<span class="comment">/* 23 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a> + <a href="runtime2.go.html#line-815" class="ident">_SigIgn</a>, <span class="lit-string">"SIGURG: urgent condition on socket"</span>},</code></span>
+<span class="codeline" id="line-38"><code>	<span class="comment">/* 24 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"SIGXCPU: cpu limit exceeded"</span>},</code></span>
+<span class="codeline" id="line-39"><code>	<span class="comment">/* 25 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"SIGXFSZ: file size limit exceeded"</span>},</code></span>
+<span class="codeline" id="line-40"><code>	<span class="comment">/* 26 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"SIGVTALRM: virtual alarm clock"</span>},</code></span>
+<span class="codeline" id="line-41"><code>	<span class="comment">/* 27 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a> + <a href="runtime2.go.html#line-814" class="ident">_SigUnblock</a>, <span class="lit-string">"SIGPROF: profiling alarm clock"</span>},</code></span>
+<span class="codeline" id="line-42"><code>	<span class="comment">/* 28 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a> + <a href="runtime2.go.html#line-815" class="ident">_SigIgn</a>, <span class="lit-string">"SIGWINCH: window size change"</span>},</code></span>
+<span class="codeline" id="line-43"><code>	<span class="comment">/* 29 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"SIGIO: i/o now possible"</span>},</code></span>
+<span class="codeline" id="line-44"><code>	<span class="comment">/* 30 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"SIGPWR: power failure restart"</span>},</code></span>
+<span class="codeline" id="line-45"><code>	<span class="comment">/* 31 */</span> {<a href="runtime2.go.html#line-809" class="ident">_SigThrow</a>, <span class="lit-string">"SIGSYS: bad system call"</span>},</code></span>
+<span class="codeline" id="line-46"><code>	<span class="comment">/* 32 */</span> {<a href="runtime2.go.html#line-813" class="ident">_SigSetStack</a> + <a href="runtime2.go.html#line-814" class="ident">_SigUnblock</a>, <span class="lit-string">"signal 32"</span>}, <span class="comment">/* SIGCANCEL; see issue 6997 */</span></code></span>
+<span class="codeline" id="line-47"><code>	<span class="comment">/* 33 */</span> {<a href="runtime2.go.html#line-813" class="ident">_SigSetStack</a> + <a href="runtime2.go.html#line-814" class="ident">_SigUnblock</a>, <span class="lit-string">"signal 33"</span>}, <span class="comment">/* SIGSETXID; see issues 3871, 9400, 12498 */</span></code></span>
+<span class="codeline" id="line-48"><code>	<span class="comment">/* 34 */</span> {<a href="runtime2.go.html#line-813" class="ident">_SigSetStack</a> + <a href="runtime2.go.html#line-814" class="ident">_SigUnblock</a>, <span class="lit-string">"signal 34"</span>}, <span class="comment">/* musl SIGSYNCCALL; see issue 39343 */</span></code></span>
+<span class="codeline" id="line-49"><code>	<span class="comment">/* 35 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 35"</span>},</code></span>
+<span class="codeline" id="line-50"><code>	<span class="comment">/* 36 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 36"</span>},</code></span>
+<span class="codeline" id="line-51"><code>	<span class="comment">/* 37 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 37"</span>},</code></span>
+<span class="codeline" id="line-52"><code>	<span class="comment">/* 38 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 38"</span>},</code></span>
+<span class="codeline" id="line-53"><code>	<span class="comment">/* 39 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 39"</span>},</code></span>
+<span class="codeline" id="line-54"><code>	<span class="comment">/* 40 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 40"</span>},</code></span>
+<span class="codeline" id="line-55"><code>	<span class="comment">/* 41 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 41"</span>},</code></span>
+<span class="codeline" id="line-56"><code>	<span class="comment">/* 42 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 42"</span>},</code></span>
+<span class="codeline" id="line-57"><code>	<span class="comment">/* 43 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 43"</span>},</code></span>
+<span class="codeline" id="line-58"><code>	<span class="comment">/* 44 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 44"</span>},</code></span>
+<span class="codeline" id="line-59"><code>	<span class="comment">/* 45 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 45"</span>},</code></span>
+<span class="codeline" id="line-60"><code>	<span class="comment">/* 46 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 46"</span>},</code></span>
+<span class="codeline" id="line-61"><code>	<span class="comment">/* 47 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 47"</span>},</code></span>
+<span class="codeline" id="line-62"><code>	<span class="comment">/* 48 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 48"</span>},</code></span>
+<span class="codeline" id="line-63"><code>	<span class="comment">/* 49 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 49"</span>},</code></span>
+<span class="codeline" id="line-64"><code>	<span class="comment">/* 50 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 50"</span>},</code></span>
+<span class="codeline" id="line-65"><code>	<span class="comment">/* 51 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 51"</span>},</code></span>
+<span class="codeline" id="line-66"><code>	<span class="comment">/* 52 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 52"</span>},</code></span>
+<span class="codeline" id="line-67"><code>	<span class="comment">/* 53 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 53"</span>},</code></span>
+<span class="codeline" id="line-68"><code>	<span class="comment">/* 54 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 54"</span>},</code></span>
+<span class="codeline" id="line-69"><code>	<span class="comment">/* 55 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 55"</span>},</code></span>
+<span class="codeline" id="line-70"><code>	<span class="comment">/* 56 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 56"</span>},</code></span>
+<span class="codeline" id="line-71"><code>	<span class="comment">/* 57 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 57"</span>},</code></span>
+<span class="codeline" id="line-72"><code>	<span class="comment">/* 58 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 58"</span>},</code></span>
+<span class="codeline" id="line-73"><code>	<span class="comment">/* 59 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 59"</span>},</code></span>
+<span class="codeline" id="line-74"><code>	<span class="comment">/* 60 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 60"</span>},</code></span>
+<span class="codeline" id="line-75"><code>	<span class="comment">/* 61 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 61"</span>},</code></span>
+<span class="codeline" id="line-76"><code>	<span class="comment">/* 62 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 62"</span>},</code></span>
+<span class="codeline" id="line-77"><code>	<span class="comment">/* 63 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 63"</span>},</code></span>
+<span class="codeline" id="line-78"><code>	<span class="comment">/* 64 */</span> {<a href="runtime2.go.html#line-807" class="ident">_SigNotify</a>, <span class="lit-string">"signal 64"</span>},</code></span>
+<span class="codeline" id="line-79"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

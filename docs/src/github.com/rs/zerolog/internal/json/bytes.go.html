@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: bytes.go in package github.com/rs/zerolog/internal/json</title>
+<link href="../../../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	bytes.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/github.com/rs/zerolog/internal/json.html">github.com/rs/zerolog/internal/json</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> json</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"unicode/utf8"</span></label></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// AppendBytes is a mirror of appendString with []byte arg</span></code></span>
+<span class="codeline" id="line-6"><code><span class="keyword">func</span> (<a href="base.go.html#line-11" class="ident">Encoder</a>) <label for="r0" class="ident"><a href="../../../../../../imp/github.com/rs/zerolog/internal/json.Encoder.html#name-.AppendBytes" class="ident">AppendBytes</a></label>(<label for="r1" class="ident">dst</label>, <label for="r2" class="ident">s</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-7"><code>	<label for="r1" class="ident">dst</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r1" class="ident">dst</label>, <span class="lit-number">'"'</span>)</code></span>
+<span class="codeline" id="line-8"><code>	<span class="keyword">for</span> <label for="r3" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r3" class="ident">i</label> &lt; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">s</label>); <label for="r3" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-9"><code>		<span class="keyword">if</span> !<a href="string.go.html#line-7" class="ident">noEscapeTable</a>[<label for="r2" class="ident">s</label>[<label for="r3" class="ident">i</label>]] {</code></span>
+<span class="codeline" id="line-10"><code>			<label for="r1" class="ident">dst</label> = <a href="#line-33" class="ident">appendBytesComplex</a>(<label for="r1" class="ident">dst</label>, <label for="r2" class="ident">s</label>, <label for="r3" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-11"><code>			<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r1" class="ident">dst</label>, <span class="lit-number">'"'</span>)</code></span>
+<span class="codeline" id="line-12"><code>		}</code></span>
+<span class="codeline" id="line-13"><code>	}</code></span>
+<span class="codeline" id="line-14"><code>	<label for="r1" class="ident">dst</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r1" class="ident">dst</label>, <label for="r2" class="ident">s</label>...)</code></span>
+<span class="codeline" id="line-15"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r1" class="ident">dst</label>, <span class="lit-number">'"'</span>)</code></span>
+<span class="codeline" id="line-16"><code>}</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// AppendHex encodes the input bytes to a hex string and appends</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// the encoded string to the input byte slice.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// The operation loops though each byte and encodes it as hex using</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// the hex lookup table.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">func</span> (<a href="base.go.html#line-11" class="ident">Encoder</a>) <label for="r4" class="ident"><a href="../../../../../../imp/github.com/rs/zerolog/internal/json.Encoder.html#name-.AppendHex" class="ident">AppendHex</a></label>(<label for="r5" class="ident">dst</label>, <label for="r6" class="ident">s</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-24"><code>	<label for="r5" class="ident">dst</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r5" class="ident">dst</label>, <span class="lit-number">'"'</span>)</code></span>
+<span class="codeline" id="line-25"><code>	<span class="keyword">for</span> <label for="r7" class="ident">_</label>, <label for="r8" class="ident">v</label> := <span class="keyword">range</span> <label for="r6" class="ident">s</label> {</code></span>
+<span class="codeline" id="line-26"><code>		<label for="r5" class="ident">dst</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r5" class="ident">dst</label>, <a href="string.go.html#line-5" class="ident">hex</a>[<label for="r8" class="ident">v</label>&gt;&gt;<span class="lit-number">4</span>], <a href="string.go.html#line-5" class="ident">hex</a>[<label for="r8" class="ident">v</label>&amp;<span class="lit-number">0x0f</span>])</code></span>
+<span class="codeline" id="line-27"><code>	}</code></span>
+<span class="codeline" id="line-28"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r5" class="ident">dst</label>, <span class="lit-number">'"'</span>)</code></span>
+<span class="codeline" id="line-29"><code>}</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// appendBytesComplex is a mirror of the appendStringComplex</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// with []byte arg</span></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">func</span> <label for="r9" class="ident"><a href="../../../../../../pkg/github.com/rs/zerolog/internal/json.html#name-appendBytesComplex" class="ident">appendBytesComplex</a></label>(<label for="r10" class="ident">dst</label>, <label for="r11" class="ident">s</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r12" class="ident">i</label> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a>) []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-34"><code>	<label for="r13" class="ident">start</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-35"><code>	<span class="keyword">for</span> <label for="r12" class="ident">i</label> &lt; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r11" class="ident">s</label>) {</code></span>
+<span class="codeline" id="line-36"><code>		<label for="r14" class="ident">b</label> := <label for="r11" class="ident">s</label>[<label for="r12" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-37"><code>		<span class="keyword">if</span> <label for="r14" class="ident">b</label> &gt;= <a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-17" class="ident">RuneSelf</a> {</code></span>
+<span class="codeline" id="line-38"><code>			<label for="r15" class="ident">r</label>, <label for="r16" class="ident">size</label> := <a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-151" class="ident">DecodeRune</a>(<label for="r11" class="ident">s</label>[<label for="r12" class="ident">i</label>:])</code></span>
+<span class="codeline" id="line-39"><code>			<span class="keyword">if</span> <label for="r15" class="ident">r</label> == <a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-16" class="ident">RuneError</a> &amp;&amp; <label for="r16" class="ident">size</label> == <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-40"><code>				<span class="keyword">if</span> <label for="r13" class="ident">start</label> &lt; <label for="r12" class="ident">i</label> {</code></span>
+<span class="codeline" id="line-41"><code>					<label for="r10" class="ident">dst</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">dst</label>, <label for="r11" class="ident">s</label>[<label for="r13" class="ident">start</label>:<label for="r12" class="ident">i</label>]...)</code></span>
+<span class="codeline" id="line-42"><code>				}</code></span>
+<span class="codeline" id="line-43"><code>				<label for="r10" class="ident">dst</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">dst</label>, <span class="lit-string">`\ufffd`</span>...)</code></span>
+<span class="codeline" id="line-44"><code>				<label for="r12" class="ident">i</label> += <label for="r16" class="ident">size</label></code></span>
+<span class="codeline" id="line-45"><code>				<label for="r13" class="ident">start</label> = <label for="r12" class="ident">i</label></code></span>
+<span class="codeline" id="line-46"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-47"><code>			}</code></span>
+<span class="codeline" id="line-48"><code>			<label for="r12" class="ident">i</label> += <label for="r16" class="ident">size</label></code></span>
+<span class="codeline" id="line-49"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-50"><code>		}</code></span>
+<span class="codeline" id="line-51"><code>		<span class="keyword">if</span> <a href="string.go.html#line-7" class="ident">noEscapeTable</a>[<label for="r14" class="ident">b</label>] {</code></span>
+<span class="codeline" id="line-52"><code>			<label for="r12" class="ident">i</label>++</code></span>
+<span class="codeline" id="line-53"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-54"><code>		}</code></span>
+<span class="codeline" id="line-55"><code>		<span class="comment">// We encountered a character that needs to be encoded.</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">		// Let's append the previous simple characters to the byte slice</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">		// and switch our operation to read and encode the remainder</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">		// characters byte-by-byte.</span></code></span>
+<span class="codeline" id="line-59"><code>		<span class="keyword">if</span> <label for="r13" class="ident">start</label> &lt; <label for="r12" class="ident">i</label> {</code></span>
+<span class="codeline" id="line-60"><code>			<label for="r10" class="ident">dst</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">dst</label>, <label for="r11" class="ident">s</label>[<label for="r13" class="ident">start</label>:<label for="r12" class="ident">i</label>]...)</code></span>
+<span class="codeline" id="line-61"><code>		}</code></span>
+<span class="codeline" id="line-62"><code>		<span class="keyword">switch</span> <label for="r14" class="ident">b</label> {</code></span>
+<span class="codeline" id="line-63"><code>		<span class="keyword">case</span> <span class="lit-number">'"'</span>, <span class="lit-number">'\\'</span>:</code></span>
+<span class="codeline" id="line-64"><code>			<label for="r10" class="ident">dst</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">dst</label>, <span class="lit-number">'\\'</span>, <label for="r14" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-65"><code>		<span class="keyword">case</span> <span class="lit-number">'\b'</span>:</code></span>
+<span class="codeline" id="line-66"><code>			<label for="r10" class="ident">dst</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">dst</label>, <span class="lit-number">'\\'</span>, <span class="lit-number">'b'</span>)</code></span>
+<span class="codeline" id="line-67"><code>		<span class="keyword">case</span> <span class="lit-number">'\f'</span>:</code></span>
+<span class="codeline" id="line-68"><code>			<label for="r10" class="ident">dst</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">dst</label>, <span class="lit-number">'\\'</span>, <span class="lit-number">'f'</span>)</code></span>
+<span class="codeline" id="line-69"><code>		<span class="keyword">case</span> <span class="lit-number">'\n'</span>:</code></span>
+<span class="codeline" id="line-70"><code>			<label for="r10" class="ident">dst</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">dst</label>, <span class="lit-number">'\\'</span>, <span class="lit-number">'n'</span>)</code></span>
+<span class="codeline" id="line-71"><code>		<span class="keyword">case</span> <span class="lit-number">'\r'</span>:</code></span>
+<span class="codeline" id="line-72"><code>			<label for="r10" class="ident">dst</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">dst</label>, <span class="lit-number">'\\'</span>, <span class="lit-number">'r'</span>)</code></span>
+<span class="codeline" id="line-73"><code>		<span class="keyword">case</span> <span class="lit-number">'\t'</span>:</code></span>
+<span class="codeline" id="line-74"><code>			<label for="r10" class="ident">dst</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">dst</label>, <span class="lit-number">'\\'</span>, <span class="lit-number">'t'</span>)</code></span>
+<span class="codeline" id="line-75"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-76"><code>			<label for="r10" class="ident">dst</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">dst</label>, <span class="lit-number">'\\'</span>, <span class="lit-number">'u'</span>, <span class="lit-number">'0'</span>, <span class="lit-number">'0'</span>, <a href="string.go.html#line-5" class="ident">hex</a>[<label for="r14" class="ident">b</label>&gt;&gt;<span class="lit-number">4</span>], <a href="string.go.html#line-5" class="ident">hex</a>[<label for="r14" class="ident">b</label>&amp;<span class="lit-number">0xF</span>])</code></span>
+<span class="codeline" id="line-77"><code>		}</code></span>
+<span class="codeline" id="line-78"><code>		<label for="r12" class="ident">i</label>++</code></span>
+<span class="codeline" id="line-79"><code>		<label for="r13" class="ident">start</label> = <label for="r12" class="ident">i</label></code></span>
+<span class="codeline" id="line-80"><code>	}</code></span>
+<span class="codeline" id="line-81"><code>	<span class="keyword">if</span> <label for="r13" class="ident">start</label> &lt; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r11" class="ident">s</label>) {</code></span>
+<span class="codeline" id="line-82"><code>		<label for="r10" class="ident">dst</label> = <a href="../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r10" class="ident">dst</label>, <label for="r11" class="ident">s</label>[<label for="r13" class="ident">start</label>:]...)</code></span>
+<span class="codeline" id="line-83"><code>	}</code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">return</span> <label for="r10" class="ident">dst</label></code></span>
+<span class="codeline" id="line-85"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

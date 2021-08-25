@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: compress/gzip</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>gzip</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../index.html#pkg-compress/gzip">compress/gzip</a><i> (on <a href="https://pkg.go.dev/compress/gzip" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../dep/compress/gzip.html">8 packages</a>, and imported by <a href="../../dep/compress/gzip.html#imported-by">one package</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<input type='checkbox' checked class="fold" id="file-0-fold-content"><label for="file-0-fold-content">   <a href="../../src/compress/gzip/gunzip.go.html#doc">d➜</a> <a href="../../src/compress/gzip/gunzip.go.html">gunzip.go</a></label><span id='file-0-fold-content-items' class="fold-items">
+		Package gzip implements reading and writing of gzip format compressed files,
+		as specified in RFC 1952.
+</span>
+	<span class="nodocs">      <a href="../../src/compress/gzip/gzip.go.html">gzip.go</a></span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content">Reader_Multistream</label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"bytes"
+			"compress/gzip"
+			"fmt"
+			"io"
+			"log"
+			"os"
+			"time"
+		)
+		
+		func main() {
+			var buf bytes.Buffer
+			zw := gzip.NewWriter(&buf)
+		
+			var files = []struct {
+				name    string
+				comment string
+				modTime time.Time
+				data    string
+			}{
+				{"file-1.txt", "file-header-1", time.Date(2006, time.February, 1, 3, 4, 5, 0, time.UTC), "Hello Gophers - 1"},
+				{"file-2.txt", "file-header-2", time.Date(2007, time.March, 2, 4, 5, 6, 1, time.UTC), "Hello Gophers - 2"},
+			}
+		
+			for _, file := range files {
+				zw.Name = file.name
+				zw.Comment = file.comment
+				zw.ModTime = file.modTime
+		
+				if _, err := zw.Write([]byte(file.data)); err != nil {
+					log.Fatal(err)
+				}
+		
+				if err := zw.Close(); err != nil {
+					log.Fatal(err)
+				}
+		
+				zw.Reset(&buf)
+			}
+		
+			zr, err := gzip.NewReader(&buf)
+			if err != nil {
+				log.Fatal(err)
+			}
+		
+			for {
+				zr.Multistream(false)
+				fmt.Printf("Name: %s\nComment: %s\nModTime: %s\n\n", zr.Name, zr.Comment, zr.ModTime.UTC())
+		
+				if _, err := io.Copy(os.Stdout, zr); err != nil {
+					log.Fatal(err)
+				}
+		
+				fmt.Print("\n\n")
+		
+				err = zr.Reset(&buf)
+				if err == io.EOF {
+					break
+				}
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
+		
+			if err := zr.Close(); err != nil {
+				log.Fatal(err)
+			}
+		
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-1-fold-content"><label for="example-1-fold-content">_writerReader</label><span id='example-1-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"bytes"
+			"compress/gzip"
+			"fmt"
+			"io"
+			"log"
+			"os"
+			"time"
+		)
+		
+		func main() {
+			var buf bytes.Buffer
+			zw := gzip.NewWriter(&buf)
+		
+			// Setting the Header fields is optional.
+			zw.Name = "a-new-hope.txt"
+			zw.Comment = "an epic space opera by George Lucas"
+			zw.ModTime = time.Date(1977, time.May, 25, 0, 0, 0, 0, time.UTC)
+		
+			_, err := zw.Write([]byte("A long time ago in a galaxy far, far away..."))
+			if err != nil {
+				log.Fatal(err)
+			}
+		
+			if err := zw.Close(); err != nil {
+				log.Fatal(err)
+			}
+		
+			zr, err := gzip.NewReader(&buf)
+			if err != nil {
+				log.Fatal(err)
+			}
+		
+			fmt.Printf("Name: %s\nComment: %s\nModTime: %s\n\n", zr.Name, zr.Comment, zr.ModTime.UTC())
+		
+			if _, err := io.Copy(os.Stdout, zr); err != nil {
+				log.Fatal(err)
+			}
+		
+			if err := zr.Close(); err != nil {
+				log.Fatal(err)
+			}
+		
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 3, all are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-Header" data-popularity="75">	<input type='checkbox' class="fold" id="Header-fold-content"><label for="Header-fold-content"> type <a href="../../src/compress/gzip/gunzip.go.html#line-52">Header</a> <i>(struct)</i></label><span id='Header-fold-content-docs' class="fold-docs">
+		The gzip file stores a header giving metadata about the compressed file.
+		That header is exposed as the fields of the Writer and Reader structs.
+
+		Strings must be UTF-8 encoded and may only contain Unicode code points
+		U+0001 through U+00FF, due to limitations of the GZIP file format.
+
+		<input type='checkbox' class="fold" id="Header-fold-fields"><label for="Header-fold-fields">Fields (<i>total 5, all are exported</i>)</label><span id='Header-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Header-fold-field-Comment"><label for="Header-fold-field-Comment"><a href="../../src/compress/gzip/gunzip.go.html#line-53">Comment</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='Header-fold-field-Comment-docs' class="fold-docs">
+				// comment
+</span></span><span>
+			<input type='checkbox' class="fold" id="Header-fold-field-Extra"><label for="Header-fold-field-Extra"><a href="../../src/compress/gzip/gunzip.go.html#line-54">Extra</a> <i>[]<a href="../builtin.html#name-byte">byte</a></i></label><span id='Header-fold-field-Extra-docs' class="fold-docs">
+				// "extra data"
+</span></span><span>
+			<input type='checkbox' class="fold" id="Header-fold-field-ModTime"><label for="Header-fold-field-ModTime"><a href="../../src/compress/gzip/gunzip.go.html#line-55">ModTime</a> <i><a href="../time.html">time</a>.<a href="../time.html#name-Time">Time</a></i></label><span id='Header-fold-field-ModTime-docs' class="fold-docs">
+				// modification time
+</span></span><span>
+			<input type='checkbox' class="fold" id="Header-fold-field-Name"><label for="Header-fold-field-Name"><a href="../../src/compress/gzip/gunzip.go.html#line-56">Name</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='Header-fold-field-Name-docs' class="fold-docs">
+				// file name
+</span></span><span>
+			<input type='checkbox' class="fold" id="Header-fold-field-OS"><label for="Header-fold-field-OS"><a href="../../src/compress/gzip/gunzip.go.html#line-57">OS</a> <i><a href="../builtin.html#name-byte">byte</a></i></label><span id='Header-fold-field-OS-docs' class="fold-docs">
+				// operating system type
+</span></span></span>
+		<input type='checkbox' class="fold" id="Header-fold-results"><label for="Header-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='Header-fold-results-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Header-showhide-inputofs"><i><label for="Header-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="Header-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func (*<a href="#name-Reader">Reader</a>).<a href="../../src/compress/gzip/gunzip.go.html#line-174">readHeader</a>() (hdr <b>Header</b>, err <a href="../builtin.html#name-error">error</a>)</i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Reader" data-popularity="525">	<input type='checkbox' class="fold" id="Reader-fold-content"><label for="Reader-fold-content"> type <a href="../../src/compress/gzip/gunzip.go.html#line-74">Reader</a> <i>(struct)</i></label><span id='Reader-fold-content-docs' class="fold-docs">
+		A Reader is an io.Reader that can be read to retrieve
+		uncompressed data from a gzip-format compressed file.
+
+		In general, a gzip file can be a concatenation of gzip files,
+		each with its own header. Reads from the Reader
+		return the concatenation of the uncompressed data of each.
+		Only the first header is recorded in the Reader fields.
+
+		Gzip files store a length and checksum of the uncompressed data.
+		The Reader will return an ErrChecksum when Read
+		reaches the end of the uncompressed data if it does not
+		have the expected length or checksum. Clients should treat data
+		returned by Read as tentative until they receive the io.EOF
+		marking the end of the data.
+
+		<input type='checkbox' class="fold" id="Reader-fold-fields"><label for="Reader-fold-fields">Fields (<i>total 13, in which 6 are exported</i>)</label><span id='Reader-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Reader-fold-field-Header"><label for="Reader-fold-field-Header"><a href="../../src/compress/gzip/gunzip.go.html#line-75">Header</a> <i><a href="#name-Header">Header</a></i></label><span id='Reader-fold-field-Header-docs' class="fold-docs">
+				// valid after NewReader or Reader.Reset
+</span></span><span>
+			<input type='checkbox' class="fold" id="Reader-fold-field-Comment"><label for="Reader-fold-field-Comment"><a href="../../src/compress/gzip/gunzip.go.html#line-75" class="path-duplicate">Header</a>.<a href="../../src/compress/gzip/gunzip.go.html#line-53">Comment</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='Reader-fold-field-Comment-docs' class="fold-docs">
+				// comment
+</span></span><span>
+			<input type='checkbox' class="fold" id="Reader-fold-field-Extra"><label for="Reader-fold-field-Extra"><a href="../../src/compress/gzip/gunzip.go.html#line-75" class="path-duplicate">Header</a>.<a href="../../src/compress/gzip/gunzip.go.html#line-54">Extra</a> <i>[]<a href="../builtin.html#name-byte">byte</a></i></label><span id='Reader-fold-field-Extra-docs' class="fold-docs">
+				// "extra data"
+</span></span><span>
+			<input type='checkbox' class="fold" id="Reader-fold-field-ModTime"><label for="Reader-fold-field-ModTime"><a href="../../src/compress/gzip/gunzip.go.html#line-75" class="path-duplicate">Header</a>.<a href="../../src/compress/gzip/gunzip.go.html#line-55">ModTime</a> <i><a href="../time.html">time</a>.<a href="../time.html#name-Time">Time</a></i></label><span id='Reader-fold-field-ModTime-docs' class="fold-docs">
+				// modification time
+</span></span><span>
+			<input type='checkbox' class="fold" id="Reader-fold-field-Name"><label for="Reader-fold-field-Name"><a href="../../src/compress/gzip/gunzip.go.html#line-75" class="path-duplicate">Header</a>.<a href="../../src/compress/gzip/gunzip.go.html#line-56">Name</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='Reader-fold-field-Name-docs' class="fold-docs">
+				// file name
+</span></span><span>
+			<input type='checkbox' class="fold" id="Reader-fold-field-OS"><label for="Reader-fold-field-OS"><a href="../../src/compress/gzip/gunzip.go.html#line-75" class="path-duplicate">Header</a>.<a href="../../src/compress/gzip/gunzip.go.html#line-57">OS</a> <i><a href="../builtin.html#name-byte">byte</a></i></label><span id='Reader-fold-field-OS-docs' class="fold-docs">
+				// operating system type
+</span></span>
+			<input type='checkbox' class="showhide" id="Reader-showhide-fields"><i><label for="Reader-showhide-fields" class="show-inline">/* 7 unexporteds ... */</label><label for="Reader-showhide-fields" class="hide-inline">/* 7 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/compress/gzip/gunzip.go.html#line-80">buf</a> <i>[512]<a href="../builtin.html#name-byte">byte</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/compress/gzip/gunzip.go.html#line-77">decompressor</a> <i><a href="../io.html">io</a>.<a href="../io.html#name-ReadCloser">ReadCloser</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Reader-fold-field-digest"><label for="Reader-fold-field-digest"><a href="../../src/compress/gzip/gunzip.go.html#line-78">digest</a> <i><a href="../builtin.html#name-uint32">uint32</a></i></label><span id='Reader-fold-field-digest-docs' class="fold-docs">
+				// CRC-32, IEEE polynomial (section 8)
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/compress/gzip/gunzip.go.html#line-81">err</a> <i><a href="../builtin.html#name-error">error</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/compress/gzip/gunzip.go.html#line-82">multistream</a> <i><a href="../builtin.html#name-bool">bool</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/compress/gzip/gunzip.go.html#line-76">r</a> <i><a href="flate.html">flate</a>.<a href="flate.html#name-Reader">Reader</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Reader-fold-field-size"><label for="Reader-fold-field-size"><a href="../../src/compress/gzip/gunzip.go.html#line-79">size</a> <i><a href="../builtin.html#name-uint32">uint32</a></i></label><span id='Reader-fold-field-size-docs' class="fold-docs">
+				// Uncompressed size (section 2.3.1)
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Reader-fold-methods"><label for="Reader-fold-methods">Methods (<i>total 6, in which 4 are exported</i>)</label><span id='Reader-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Reader-fold-method-Close"><label for="Reader-fold-method-Close">(*T) <a href="../../src/compress/gzip/gunzip.go.html#line-292">Close</a>() <a href="../builtin.html#name-error">error</a></label><span id='Reader-fold-method-Close-docs' class="fold-docs">
+				Close closes the Reader. It does not close the underlying io.Reader.
+				In order for the GZIP checksum to be verified, the reader must be
+				fully consumed until the io.EOF.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Reader-fold-method-Multistream"><label for="Reader-fold-method-Multistream">(*T) <a href="../../src/compress/gzip/gunzip.go.html#line-133">Multistream</a>(ok <a href="../builtin.html#name-bool">bool</a>)</label><span id='Reader-fold-method-Multistream-docs' class="fold-docs">
+				Multistream controls whether the reader supports multistream files.
+
+				If enabled (the default), the Reader expects the input to be a sequence
+				of individually gzipped data streams, each with its own header and
+				trailer, ending at EOF. The effect is that the concatenation of a sequence
+				of gzipped files is treated as equivalent to the gzip of the concatenation
+				of the sequence. This is standard behavior for gzip readers.
+
+				Calling Multistream(false) disables this behavior; disabling the behavior
+				can be useful when reading file formats that distinguish individual gzip
+				data streams or mix gzip data streams with other data streams.
+				In this mode, when the Reader reaches the end of the data stream,
+				Read returns io.EOF. The underlying reader must implement io.ByteReader
+				in order to be left positioned just after the gzip stream.
+				To start the next stream, call z.Reset(r) followed by z.Multistream(false).
+				If there is no next stream, z.Reset(r) will return io.EOF.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Reader-fold-method-Read"><label for="Reader-fold-method-Read">(*T) <a href="../../src/compress/gzip/gunzip.go.html#line-246">Read</a>(p []<a href="../builtin.html#name-byte">byte</a>) (n <a href="../builtin.html#name-int">int</a>, err <a href="../builtin.html#name-error">error</a>)</label><span id='Reader-fold-method-Read-docs' class="fold-docs">
+				Read implements io.Reader, reading uncompressed bytes from its underlying Reader.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Reader-fold-method-Reset"><label for="Reader-fold-method-Reset">(*T) <a href="../../src/compress/gzip/gunzip.go.html#line-103">Reset</a>(r <a href="../io.html">io</a>.<a href="../io.html#name-Reader">Reader</a>) <a href="../builtin.html#name-error">error</a></label><span id='Reader-fold-method-Reset-docs' class="fold-docs">
+				Reset discards the Reader z's state and makes it equivalent to the
+				result of its original state from NewReader, but reading from r instead.
+				This permits reusing a Reader rather than allocating a new one.
+</span></span>
+			<input type='checkbox' class="showhide" id="Reader-showhide-methods"><i><label for="Reader-showhide-methods" class="show-inline">/* 2 unexporteds ... */</label><label for="Reader-showhide-methods" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Reader-fold-method-readHeader"><label for="Reader-fold-method-readHeader">(*T) <a href="../../src/compress/gzip/gunzip.go.html#line-174">readHeader</a>() (hdr <a href="#name-Header">Header</a>, err <a href="../builtin.html#name-error">error</a>)</label><span id='Reader-fold-method-readHeader-docs' class="fold-docs">
+				readHeader reads the GZIP header according to section 2.3.1.
+				This method does not set z.err.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Reader-fold-method-readString"><label for="Reader-fold-method-readString">(*T) <a href="../../src/compress/gzip/gunzip.go.html#line-141">readString</a>() (<a href="../builtin.html#name-string">string</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='Reader-fold-method-readString-docs' class="fold-docs">
+				readString reads a NUL-terminated string from z.r.
+				It treats the bytes read as being encoded as ISO 8859-1 (Latin-1) and
+				will output a string encoded using UTF-8.
+				This method always updates z.digest with the data read.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Reader-fold-impls"><label for="Reader-fold-impls">Implements (<i>at least 3, all are exported</i>)</label><span id='Reader-fold-impls-items' class="fold-items"><span>
+			*T : io.<a href="../io.html#name-Closer">Closer</a></span><span>
+			*T : io.<a href="../io.html#name-ReadCloser">ReadCloser</a></span><span>
+			*T : io.<a href="../io.html#name-Reader">Reader</a></span></span>
+		<input type='checkbox' class="fold" id="Reader-fold-results"><label for="Reader-fold-results">As Outputs Of (<i>at least one exported</i>)</label><span id='Reader-fold-results-items' class="fold-items"><span>
+			func <a href="#name-NewReader">NewReader</a>(r <a href="../io.html">io</a>.<a href="../io.html#name-Reader">Reader</a>) (*<b>Reader</b>, <a href="../builtin.html#name-error">error</a>)</span></span>
+
+</span></div><div class="anchor type-res" id="name-Writer" data-popularity="650">	<input type='checkbox' class="fold" id="Writer-fold-content"><label for="Writer-fold-content"> type <a href="../../src/compress/gzip/gzip.go.html#line-28">Writer</a> <i>(struct)</i></label><span id='Writer-fold-content-docs' class="fold-docs">
+		A Writer is an io.WriteCloser.
+		Writes to a Writer are compressed and written to w.
+
+		<input type='checkbox' class="fold" id="Writer-fold-fields"><label for="Writer-fold-fields">Fields (<i>total 15, in which 6 are exported</i>)</label><span id='Writer-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Writer-fold-field-Header"><label for="Writer-fold-field-Header"><a href="../../src/compress/gzip/gzip.go.html#line-29">Header</a> <i><a href="#name-Header">Header</a></i></label><span id='Writer-fold-field-Header-docs' class="fold-docs">
+				// written at first call to Write, Flush, or Close
+</span></span><span>
+			<input type='checkbox' class="fold" id="Writer-fold-field-Comment"><label for="Writer-fold-field-Comment"><a href="../../src/compress/gzip/gzip.go.html#line-29" class="path-duplicate">Header</a>.<a href="../../src/compress/gzip/gunzip.go.html#line-53">Comment</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='Writer-fold-field-Comment-docs' class="fold-docs">
+				// comment
+</span></span><span>
+			<input type='checkbox' class="fold" id="Writer-fold-field-Extra"><label for="Writer-fold-field-Extra"><a href="../../src/compress/gzip/gzip.go.html#line-29" class="path-duplicate">Header</a>.<a href="../../src/compress/gzip/gunzip.go.html#line-54">Extra</a> <i>[]<a href="../builtin.html#name-byte">byte</a></i></label><span id='Writer-fold-field-Extra-docs' class="fold-docs">
+				// "extra data"
+</span></span><span>
+			<input type='checkbox' class="fold" id="Writer-fold-field-ModTime"><label for="Writer-fold-field-ModTime"><a href="../../src/compress/gzip/gzip.go.html#line-29" class="path-duplicate">Header</a>.<a href="../../src/compress/gzip/gunzip.go.html#line-55">ModTime</a> <i><a href="../time.html">time</a>.<a href="../time.html#name-Time">Time</a></i></label><span id='Writer-fold-field-ModTime-docs' class="fold-docs">
+				// modification time
+</span></span><span>
+			<input type='checkbox' class="fold" id="Writer-fold-field-Name"><label for="Writer-fold-field-Name"><a href="../../src/compress/gzip/gzip.go.html#line-29" class="path-duplicate">Header</a>.<a href="../../src/compress/gzip/gunzip.go.html#line-56">Name</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='Writer-fold-field-Name-docs' class="fold-docs">
+				// file name
+</span></span><span>
+			<input type='checkbox' class="fold" id="Writer-fold-field-OS"><label for="Writer-fold-field-OS"><a href="../../src/compress/gzip/gzip.go.html#line-29" class="path-duplicate">Header</a>.<a href="../../src/compress/gzip/gunzip.go.html#line-57">OS</a> <i><a href="../builtin.html#name-byte">byte</a></i></label><span id='Writer-fold-field-OS-docs' class="fold-docs">
+				// operating system type
+</span></span>
+			<input type='checkbox' class="showhide" id="Writer-showhide-fields"><i><label for="Writer-showhide-fields" class="show-inline">/* 9 unexporteds ... */</label><label for="Writer-showhide-fields" class="hide-inline">/* 9 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/compress/gzip/gzip.go.html#line-37">buf</a> <i>[10]<a href="../builtin.html#name-byte">byte</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/compress/gzip/gzip.go.html#line-36">closed</a> <i><a href="../builtin.html#name-bool">bool</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/compress/gzip/gzip.go.html#line-33">compressor</a> <i>*<a href="flate.html">flate</a>.<a href="flate.html#name-Writer">Writer</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-field-digest"><label for="Writer-fold-field-digest"><a href="../../src/compress/gzip/gzip.go.html#line-34">digest</a> <i><a href="../builtin.html#name-uint32">uint32</a></i></label><span id='Writer-fold-field-digest-docs' class="fold-docs">
+				// CRC-32, IEEE polynomial (section 8)
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/compress/gzip/gzip.go.html#line-38">err</a> <i><a href="../builtin.html#name-error">error</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/compress/gzip/gzip.go.html#line-31">level</a> <i><a href="../builtin.html#name-int">int</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-field-size"><label for="Writer-fold-field-size"><a href="../../src/compress/gzip/gzip.go.html#line-35">size</a> <i><a href="../builtin.html#name-uint32">uint32</a></i></label><span id='Writer-fold-field-size-docs' class="fold-docs">
+				// Uncompressed size (section 2.3.1)
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/compress/gzip/gzip.go.html#line-30">w</a> <i><a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/compress/gzip/gzip.go.html#line-32">wroteHeader</a> <i><a href="../builtin.html#name-bool">bool</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="Writer-fold-methods"><label for="Writer-fold-methods">Methods (<i>total 7, in which 4 are exported</i>)</label><span id='Writer-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Writer-fold-method-Close"><label for="Writer-fold-method-Close">(*T) <a href="../../src/compress/gzip/gzip.go.html#line-228">Close</a>() <a href="../builtin.html#name-error">error</a></label><span id='Writer-fold-method-Close-docs' class="fold-docs">
+				Close closes the Writer by flushing any unwritten data to the underlying
+				io.Writer and writing the GZIP footer.
+				It does not close the underlying io.Writer.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Writer-fold-method-Flush"><label for="Writer-fold-method-Flush">(*T) <a href="../../src/compress/gzip/gzip.go.html#line-208">Flush</a>() <a href="../builtin.html#name-error">error</a></label><span id='Writer-fold-method-Flush-docs' class="fold-docs">
+				Flush flushes any pending compressed data to the underlying writer.
+
+				It is useful mainly in compressed network protocols, to ensure that
+				a remote reader has enough data to reconstruct a packet. Flush does
+				not return until the data has been written. If the underlying
+				writer returns an error, Flush returns that error.
+
+				In the terminology of the zlib library, Flush is equivalent to Z_SYNC_FLUSH.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Writer-fold-method-Reset"><label for="Writer-fold-method-Reset">(*T) <a href="../../src/compress/gzip/gzip.go.html#line-88">Reset</a>(w <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>)</label><span id='Writer-fold-method-Reset-docs' class="fold-docs">
+				Reset discards the Writer z's state and makes it equivalent to the
+				result of its original state from NewWriter or NewWriterLevel, but
+				writing to w instead. This permits reusing a Writer rather than
+				allocating a new one.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Writer-fold-method-Write"><label for="Writer-fold-method-Write">(*T) <a href="../../src/compress/gzip/gzip.go.html#line-139">Write</a>(p []<a href="../builtin.html#name-byte">byte</a>) (<a href="../builtin.html#name-int">int</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='Writer-fold-method-Write-docs' class="fold-docs">
+				Write writes a compressed form of p to the underlying io.Writer. The
+				compressed bytes are not necessarily flushed until the Writer is closed.
+</span></span>
+			<input type='checkbox' class="showhide" id="Writer-showhide-methods"><i><label for="Writer-showhide-methods" class="show-inline">/* 3 unexporteds ... */</label><label for="Writer-showhide-methods" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/compress/gzip/gzip.go.html#line-69">init</a>(w <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, level <a href="../builtin.html#name-int">int</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-method-writeBytes"><label for="Writer-fold-method-writeBytes">(*T) <a href="../../src/compress/gzip/gzip.go.html#line-93">writeBytes</a>(b []<a href="../builtin.html#name-byte">byte</a>) <a href="../builtin.html#name-error">error</a></label><span id='Writer-fold-method-writeBytes-docs' class="fold-docs">
+				writeBytes writes a length-prefixed byte slice to z.w.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Writer-fold-method-writeString"><label for="Writer-fold-method-writeString">(*T) <a href="../../src/compress/gzip/gzip.go.html#line-108">writeString</a>(s <a href="../builtin.html#name-string">string</a>) (err <a href="../builtin.html#name-error">error</a>)</label><span id='Writer-fold-method-writeString-docs' class="fold-docs">
+				writeString writes a UTF-8 string s in GZIP's format to z.w.
+				GZIP (RFC 1952) specifies that strings are NUL-terminated ISO 8859-1 (Latin-1).
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Writer-fold-impls"><label for="Writer-fold-impls">Implements (<i>at least 3, all are exported</i>)</label><span id='Writer-fold-impls-items' class="fold-items"><span>
+			*T : io.<a href="../io.html#name-Closer">Closer</a></span><span>
+			*T : io.<a href="../io.html#name-WriteCloser">WriteCloser</a></span><span>
+			*T : io.<a href="../io.html#name-Writer">Writer</a></span></span>
+		<input type='checkbox' class="fold" id="Writer-fold-results"><label for="Writer-fold-results">As Outputs Of (<i>at least 2, both are exported</i>)</label><span id='Writer-fold-results-items' class="fold-items"><span>
+			func <a href="#name-NewWriter">NewWriter</a>(w <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>) *<b>Writer</b></span><span>
+			func <a href="#name-NewWriterLevel">NewWriterLevel</a>(w <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, level <a href="../builtin.html#name-int">int</a>) (*<b>Writer</b>, <a href="../builtin.html#name-error">error</a>)</span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 4, in which 3 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-NewReader">	<input type='checkbox' class="fold" id="NewReader-fold-content"><label for="NewReader-fold-content"> func <a href="../../src/compress/gzip/gunzip.go.html#line-92">NewReader</a>(r <a href="../io.html">io</a>.<a href="../io.html#name-Reader">Reader</a>) (*<a href="#name-Reader">Reader</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='NewReader-fold-content-docs' class="fold-docs">
+		NewReader creates a new Reader reading the given reader.
+		If r does not also implement io.ByteReader,
+		the decompressor may read more data than necessary from r.
+
+		It is the caller's responsibility to call Close on the Reader when done.
+
+		The Reader.Header fields will be valid in the Reader returned.
+
+</span></div><div class="anchor value-res" id="name-NewWriter">	<input type='checkbox' class="fold" id="NewWriter-fold-content"><label for="NewWriter-fold-content"> func <a href="../../src/compress/gzip/gzip.go.html#line-49">NewWriter</a>(w <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>) *<a href="#name-Writer">Writer</a></label><span id='NewWriter-fold-content-docs' class="fold-docs">
+		NewWriter returns a new Writer.
+		Writes to the returned writer are compressed and written to w.
+
+		It is the caller's responsibility to call Close on the Writer when done.
+		Writes may be buffered and not flushed until Close.
+
+		Callers that wish to set the fields in Writer.Header must do so before
+		the first call to Write, Flush, or Close.
+
+</span></div><div class="anchor value-res" id="name-NewWriterLevel">	<input type='checkbox' class="fold" id="NewWriterLevel-fold-content"><label for="NewWriterLevel-fold-content"> func <a href="../../src/compress/gzip/gzip.go.html#line-60">NewWriterLevel</a>(w <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, level <a href="../builtin.html#name-int">int</a>) (*<a href="#name-Writer">Writer</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='NewWriterLevel-fold-content-docs' class="fold-docs">
+		NewWriterLevel is like NewWriter but specifies the compression level instead
+		of assuming DefaultCompression.
+
+		The compression level can be DefaultCompression, NoCompression, HuffmanOnly
+		or any integer value between BestSpeed and BestCompression inclusive.
+		The error returned will be nil if the level is valid.
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* one unexported ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* one unexported: */</label></i><div class="anchor value-res hidden" id="name-noEOF"><i>	<input type='checkbox' class="fold" id="noEOF-fold-content"><label for="noEOF-fold-content"> func <a href="../../src/compress/gzip/gunzip.go.html#line-40">noEOF</a>(err <a href="../builtin.html#name-error">error</a>) <a href="../builtin.html#name-error">error</a></label><span id='noEOF-fold-content-docs' class="fold-docs">
+		noEOF converts io.EOF to io.ErrUnexpectedEOF.
+
+</span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (total 3, in which 2 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-ErrChecksum">	<input type='checkbox' class="fold" id="ErrChecksum-fold-content"><label for="ErrChecksum-fold-content">  var <a href="../../src/compress/gzip/gunzip.go.html#line-32">ErrChecksum</a> <a href="../builtin.html#name-error">error</a></label><span id='ErrChecksum-fold-content-docs' class="fold-docs">
+		ErrChecksum is returned when reading GZIP data that has an invalid checksum.
+
+</span></div><div class="anchor value-res" id="name-ErrHeader">	<input type='checkbox' class="fold" id="ErrHeader-fold-content"><label for="ErrHeader-fold-content">  var <a href="../../src/compress/gzip/gunzip.go.html#line-34">ErrHeader</a> <a href="../builtin.html#name-error">error</a></label><span id='ErrHeader-fold-content-docs' class="fold-docs">
+		ErrHeader is returned when reading GZIP data that has an invalid header.
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* one unexported ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* one unexported: */</label></i><div class="anchor value-res hidden" id="name-le"><i>	<span class="nodocs">  var <a href="../../src/compress/gzip/gunzip.go.html#line-37">le</a> <a href="../encoding/binary.html">binary</a>.<a href="../encoding/binary.html#name-littleEndian">littleEndian</a></span></i></div></div>
+<div id="exported-constants"><span class="title">Package-Level Constants<span class="title-stat"><i> (total 13, in which 5 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-BestCompression">	<input type='checkbox' class="fold" id="BestCompression-fold-content"><label for="BestCompression-fold-content">const <a href="../../src/compress/gzip/gzip.go.html#line-21">BestCompression</a> = 9</label><span id='BestCompression-fold-content-docs' class="fold-docs">
+		These constants are copied from the flate package, so that code that imports
+		"compress/gzip" does not also have to import "compress/flate".
+
+</span></div><div class="anchor value-res" id="name-BestSpeed">	<input type='checkbox' class="fold" id="BestSpeed-fold-content"><label for="BestSpeed-fold-content">const <a href="../../src/compress/gzip/gzip.go.html#line-20">BestSpeed</a> = 1</label><span id='BestSpeed-fold-content-docs' class="fold-docs">
+		These constants are copied from the flate package, so that code that imports
+		"compress/gzip" does not also have to import "compress/flate".
+
+</span></div><div class="anchor value-res" id="name-DefaultCompression">	<input type='checkbox' class="fold" id="DefaultCompression-fold-content"><label for="DefaultCompression-fold-content">const <a href="../../src/compress/gzip/gzip.go.html#line-22">DefaultCompression</a> = -1</label><span id='DefaultCompression-fold-content-docs' class="fold-docs">
+		These constants are copied from the flate package, so that code that imports
+		"compress/gzip" does not also have to import "compress/flate".
+
+</span></div><div class="anchor value-res" id="name-HuffmanOnly">	<input type='checkbox' class="fold" id="HuffmanOnly-fold-content"><label for="HuffmanOnly-fold-content">const <a href="../../src/compress/gzip/gzip.go.html#line-23">HuffmanOnly</a> = -2</label><span id='HuffmanOnly-fold-content-docs' class="fold-docs">
+		These constants are copied from the flate package, so that code that imports
+		"compress/gzip" does not also have to import "compress/flate".
+
+</span></div><div class="anchor value-res" id="name-NoCompression">	<input type='checkbox' class="fold" id="NoCompression-fold-content"><label for="NoCompression-fold-content">const <a href="../../src/compress/gzip/gzip.go.html#line-19">NoCompression</a> = 0</label><span id='NoCompression-fold-content-docs' class="fold-docs">
+		These constants are copied from the flate package, so that code that imports
+		"compress/gzip" does not also have to import "compress/flate".
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-constants-showhide"><i><label for="unexported-constants-showhide" class="show-inline">/* 8 unexporteds ... */</label><label for="unexported-constants-showhide" class="hide-inline">/* 8 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-flagComment"><i>	<span class="nodocs">const <a href="../../src/compress/gzip/gunzip.go.html#line-27">flagComment</a> = 16</span></i></div><div class="anchor value-res hidden" id="name-flagExtra"><i>	<span class="nodocs">const <a href="../../src/compress/gzip/gunzip.go.html#line-25">flagExtra</a> = 4</span></i></div><div class="anchor value-res hidden" id="name-flagHdrCrc"><i>	<span class="nodocs">const <a href="../../src/compress/gzip/gunzip.go.html#line-24">flagHdrCrc</a> = 2</span></i></div><div class="anchor value-res hidden" id="name-flagName"><i>	<span class="nodocs">const <a href="../../src/compress/gzip/gunzip.go.html#line-26">flagName</a> = 8</span></i></div><div class="anchor value-res hidden" id="name-flagText"><i>	<span class="nodocs">const <a href="../../src/compress/gzip/gunzip.go.html#line-23">flagText</a> = 1</span></i></div><div class="anchor value-res hidden" id="name-gzipDeflate"><i>	<span class="nodocs">const <a href="../../src/compress/gzip/gunzip.go.html#line-22">gzipDeflate</a> = 8</span></i></div><div class="anchor value-res hidden" id="name-gzipID1"><i>	<span class="nodocs">const <a href="../../src/compress/gzip/gunzip.go.html#line-20">gzipID1</a> = 31</span></i></div><div class="anchor value-res hidden" id="name-gzipID2"><i>	<span class="nodocs">const <a href="../../src/compress/gzip/gunzip.go.html#line-21">gzipID2</a> = 139</span></i></div></div></code></pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

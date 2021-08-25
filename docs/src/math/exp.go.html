@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: exp.go in package math</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	exp.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/math.html">math</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> math</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// Exp returns e**x, the base-e exponential of x.</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// Special cases are:</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">//	Exp(+Inf) = +Inf</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">//	Exp(NaN) = NaN</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// Very large values overflow to 0 or +Inf.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// Very small values underflow to 1.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/math.html#name-Exp" class="ident">Exp</a></label>(<label for="r1" class="ident">x</label> <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>) <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a></code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// The original C code, the long comment, and the constants</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// below are from FreeBSD's /usr/src/lib/msun/src/e_exp.c</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// and came with this notice. The go code is a simplified</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// version of the original C.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// ====================================================</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// Copyright (C) 2004 by Sun Microsystems, Inc. All rights reserved.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// Permission to use, copy, modify, and distribute this</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// software is freely granted, provided that this notice</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// is preserved.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// ====================================================</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// exp(x)</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// Returns the exponential of x.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// Method</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">//   1. Argument reduction:</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">//      Reduce x to an r so that |r| &lt;= 0.5*ln2 ~ 0.34658.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">//      Given x, find r and integer k such that</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">//               x = k*ln2 + r,  |r| &lt;= 0.5*ln2.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">//      Here r will be represented as r = hi-lo for better</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">//      accuracy.</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">//   2. Approximation of exp(r) by a special rational function on</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">//      the interval [0,0.34658]:</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">//      Write</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">//          R(r**2) = r*(exp(r)+1)/(exp(r)-1) = 2 + r*r/6 - r**4/360 + ...</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">//      We use a special Remez algorithm on [0,0.34658] to generate</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">//      a polynomial of degree 5 to approximate R. The maximum error</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">//      of this polynomial approximation is bounded by 2**-59. In</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">//      other words,</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">//          R(z) ~ 2.0 + P1*z + P2*z**2 + P3*z**3 + P4*z**4 + P5*z**5</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">//      (where z=r*r, and the values of P1 to P5 are listed below)</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">//      and</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">//          |                  5          |     -59</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">//          | 2.0+P1*z+...+P5*z   -  R(z) | &lt;= 2</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">//          |                             |</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">//      The computation of exp(r) thus becomes</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">//                             2*r</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">//              exp(r) = 1 + -------</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">//                            R - r</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">//                                 r*R1(r)</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">//                     = 1 + r + ----------- (for better accuracy)</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">//                                2 - R1(r)</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">//      where</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">//                               2       4             10</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">//              R1(r) = r - (P1*r  + P2*r  + ... + P5*r   ).</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">//   3. Scale back to obtain exp(x):</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">//      From step 1, we have</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">//         exp(x) = 2**k * exp(r)</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">// Special cases:</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">//      exp(INF) is INF, exp(NaN) is NaN;</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">//      exp(-INF) is 0, and</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">//      for finite argument, only exp(0)=1 is exact.</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">// Accuracy:</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">//      according to an error analysis, the error is always less than</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">//      1 ulp (unit in the last place).</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// Misc. info.</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">//      For IEEE double</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">//          if x &gt;  7.09782712893383973096e+02 then exp(x) overflow</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">//          if x &lt; -7.45133219101941108420e+02 then exp(x) underflow</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">// Constants:</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// The hexadecimal values are the intended ones for the following</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">// constants. The decimal values may be used, provided that the</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">// compiler will convert from decimal to binary accurately enough</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// to produce the hexadecimal values shown.</span></code></span>
+<span class="codeline" id="line-91"><code></code></span>
+<span class="codeline" id="line-92"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../pkg/math.html#name-exp" class="ident">exp</a></label>(<label for="r3" class="ident">x</label> <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>) <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a> {</code></span>
+<span class="codeline" id="line-93"><code>	<span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-94"><code>		<label for="r4" class="ident">Ln2Hi</label> = <span class="lit-number">6.93147180369123816490e-01</span></code></span>
+<span class="codeline" id="line-95"><code>		<label for="r5" class="ident">Ln2Lo</label> = <span class="lit-number">1.90821492927058770002e-10</span></code></span>
+<span class="codeline" id="line-96"><code>		<label for="r6" class="ident">Log2e</label> = <span class="lit-number">1.44269504088896338700e+00</span></code></span>
+<span class="codeline" id="line-97"><code></code></span>
+<span class="codeline" id="line-98"><code>		<label for="r7" class="ident">Overflow</label>  = <span class="lit-number">7.09782712893383973096e+02</span></code></span>
+<span class="codeline" id="line-99"><code>		<label for="r8" class="ident">Underflow</label> = -<span class="lit-number">7.45133219101941108420e+02</span></code></span>
+<span class="codeline" id="line-100"><code>		<label for="r9" class="ident">NearZero</label>  = <span class="lit-number">1.0</span> / (<span class="lit-number">1</span> &lt;&lt; <span class="lit-number">28</span>) <span class="comment">// 2**-28</span></code></span>
+<span class="codeline" id="line-101"><code>	)</code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code>	<span class="comment">// special cases</span></code></span>
+<span class="codeline" id="line-104"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-105"><code>	<span class="keyword">case</span> <a href="bits.go.html#line-34" class="ident">IsNaN</a>(<label for="r3" class="ident">x</label>) || <a href="bits.go.html#line-46" class="ident">IsInf</a>(<label for="r3" class="ident">x</label>, <span class="lit-number">1</span>):</code></span>
+<span class="codeline" id="line-106"><code>		<span class="keyword">return</span> <label for="r3" class="ident">x</label></code></span>
+<span class="codeline" id="line-107"><code>	<span class="keyword">case</span> <a href="bits.go.html#line-46" class="ident">IsInf</a>(<label for="r3" class="ident">x</label>, -<span class="lit-number">1</span>):</code></span>
+<span class="codeline" id="line-108"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-109"><code>	<span class="keyword">case</span> <label for="r3" class="ident">x</label> &gt; <label for="r7" class="ident">Overflow</label>:</code></span>
+<span class="codeline" id="line-110"><code>		<span class="keyword">return</span> <a href="bits.go.html#line-20" class="ident">Inf</a>(<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-111"><code>	<span class="keyword">case</span> <label for="r3" class="ident">x</label> &lt; <label for="r8" class="ident">Underflow</label>:</code></span>
+<span class="codeline" id="line-112"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-113"><code>	<span class="keyword">case</span> -<label for="r9" class="ident">NearZero</label> &lt; <label for="r3" class="ident">x</label> &amp;&amp; <label for="r3" class="ident">x</label> &lt; <label for="r9" class="ident">NearZero</label>:</code></span>
+<span class="codeline" id="line-114"><code>		<span class="keyword">return</span> <span class="lit-number">1</span> + <label for="r3" class="ident">x</label></code></span>
+<span class="codeline" id="line-115"><code>	}</code></span>
+<span class="codeline" id="line-116"><code></code></span>
+<span class="codeline" id="line-117"><code>	<span class="comment">// reduce; computed as r = hi - lo for extra precision.</span></code></span>
+<span class="codeline" id="line-118"><code>	<span class="keyword">var</span> <label for="r10" class="ident">k</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-119"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-120"><code>	<span class="keyword">case</span> <label for="r3" class="ident">x</label> &lt; <span class="lit-number">0</span>:</code></span>
+<span class="codeline" id="line-121"><code>		<label for="r10" class="ident">k</label> = <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r6" class="ident">Log2e</label>*<label for="r3" class="ident">x</label> - <span class="lit-number">0.5</span>)</code></span>
+<span class="codeline" id="line-122"><code>	<span class="keyword">case</span> <label for="r3" class="ident">x</label> &gt; <span class="lit-number">0</span>:</code></span>
+<span class="codeline" id="line-123"><code>		<label for="r10" class="ident">k</label> = <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r6" class="ident">Log2e</label>*<label for="r3" class="ident">x</label> + <span class="lit-number">0.5</span>)</code></span>
+<span class="codeline" id="line-124"><code>	}</code></span>
+<span class="codeline" id="line-125"><code>	<label for="r11" class="ident">hi</label> := <label for="r3" class="ident">x</label> - <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>(<label for="r10" class="ident">k</label>)*<label for="r4" class="ident">Ln2Hi</label></code></span>
+<span class="codeline" id="line-126"><code>	<label for="r12" class="ident">lo</label> := <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>(<label for="r10" class="ident">k</label>) * <label for="r5" class="ident">Ln2Lo</label></code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code>	<span class="comment">// compute</span></code></span>
+<span class="codeline" id="line-129"><code>	<span class="keyword">return</span> <a href="#line-176" class="ident">expmulti</a>(<label for="r11" class="ident">hi</label>, <label for="r12" class="ident">lo</label>, <label for="r10" class="ident">k</label>)</code></span>
+<span class="codeline" id="line-130"><code>}</code></span>
+<span class="codeline" id="line-131"><code></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">// Exp2 returns 2**x, the base-2 exponential of x.</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">// Special cases are the same as Exp.</span></code></span>
+<span class="codeline" id="line-135"><code><span class="keyword">func</span> <label for="r13" class="ident"><a href="../../pkg/math.html#name-Exp2" class="ident">Exp2</a></label>(<label for="r14" class="ident">x</label> <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>) <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a></code></span>
+<span class="codeline" id="line-136"><code></code></span>
+<span class="codeline" id="line-137"><code><span class="keyword">func</span> <label for="r15" class="ident"><a href="../../pkg/math.html#name-exp2" class="ident">exp2</a></label>(<label for="r16" class="ident">x</label> <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>) <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a> {</code></span>
+<span class="codeline" id="line-138"><code>	<span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-139"><code>		<label for="r17" class="ident">Ln2Hi</label> = <span class="lit-number">6.93147180369123816490e-01</span></code></span>
+<span class="codeline" id="line-140"><code>		<label for="r18" class="ident">Ln2Lo</label> = <span class="lit-number">1.90821492927058770002e-10</span></code></span>
+<span class="codeline" id="line-141"><code></code></span>
+<span class="codeline" id="line-142"><code>		<label for="r19" class="ident">Overflow</label>  = <span class="lit-number">1.0239999999999999e+03</span></code></span>
+<span class="codeline" id="line-143"><code>		<label for="r20" class="ident">Underflow</label> = -<span class="lit-number">1.0740e+03</span></code></span>
+<span class="codeline" id="line-144"><code>	)</code></span>
+<span class="codeline" id="line-145"><code></code></span>
+<span class="codeline" id="line-146"><code>	<span class="comment">// special cases</span></code></span>
+<span class="codeline" id="line-147"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-148"><code>	<span class="keyword">case</span> <a href="bits.go.html#line-34" class="ident">IsNaN</a>(<label for="r16" class="ident">x</label>) || <a href="bits.go.html#line-46" class="ident">IsInf</a>(<label for="r16" class="ident">x</label>, <span class="lit-number">1</span>):</code></span>
+<span class="codeline" id="line-149"><code>		<span class="keyword">return</span> <label for="r16" class="ident">x</label></code></span>
+<span class="codeline" id="line-150"><code>	<span class="keyword">case</span> <a href="bits.go.html#line-46" class="ident">IsInf</a>(<label for="r16" class="ident">x</label>, -<span class="lit-number">1</span>):</code></span>
+<span class="codeline" id="line-151"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-152"><code>	<span class="keyword">case</span> <label for="r16" class="ident">x</label> &gt; <label for="r19" class="ident">Overflow</label>:</code></span>
+<span class="codeline" id="line-153"><code>		<span class="keyword">return</span> <a href="bits.go.html#line-20" class="ident">Inf</a>(<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-154"><code>	<span class="keyword">case</span> <label for="r16" class="ident">x</label> &lt; <label for="r20" class="ident">Underflow</label>:</code></span>
+<span class="codeline" id="line-155"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-156"><code>	}</code></span>
+<span class="codeline" id="line-157"><code></code></span>
+<span class="codeline" id="line-158"><code>	<span class="comment">// argument reduction; x = r×lg(e) + k with |r| ≤ ln(2)/2.</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">	// computed as r = hi - lo for extra precision.</span></code></span>
+<span class="codeline" id="line-160"><code>	<span class="keyword">var</span> <label for="r21" class="ident">k</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-161"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-162"><code>	<span class="keyword">case</span> <label for="r16" class="ident">x</label> &gt; <span class="lit-number">0</span>:</code></span>
+<span class="codeline" id="line-163"><code>		<label for="r21" class="ident">k</label> = <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r16" class="ident">x</label> + <span class="lit-number">0.5</span>)</code></span>
+<span class="codeline" id="line-164"><code>	<span class="keyword">case</span> <label for="r16" class="ident">x</label> &lt; <span class="lit-number">0</span>:</code></span>
+<span class="codeline" id="line-165"><code>		<label for="r21" class="ident">k</label> = <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r16" class="ident">x</label> - <span class="lit-number">0.5</span>)</code></span>
+<span class="codeline" id="line-166"><code>	}</code></span>
+<span class="codeline" id="line-167"><code>	<label for="r22" class="ident">t</label> := <label for="r16" class="ident">x</label> - <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>(<label for="r21" class="ident">k</label>)</code></span>
+<span class="codeline" id="line-168"><code>	<label for="r23" class="ident">hi</label> := <label for="r22" class="ident">t</label> * <label for="r17" class="ident">Ln2Hi</label></code></span>
+<span class="codeline" id="line-169"><code>	<label for="r24" class="ident">lo</label> := -<label for="r22" class="ident">t</label> * <label for="r18" class="ident">Ln2Lo</label></code></span>
+<span class="codeline" id="line-170"><code></code></span>
+<span class="codeline" id="line-171"><code>	<span class="comment">// compute</span></code></span>
+<span class="codeline" id="line-172"><code>	<span class="keyword">return</span> <a href="#line-176" class="ident">expmulti</a>(<label for="r23" class="ident">hi</label>, <label for="r24" class="ident">lo</label>, <label for="r21" class="ident">k</label>)</code></span>
+<span class="codeline" id="line-173"><code>}</code></span>
+<span class="codeline" id="line-174"><code></code></span>
+<span class="codeline" id="line-175"><code><span class="comment">// exp1 returns e**r × 2**k where r = hi - lo and |r| ≤ ln(2)/2.</span></code></span>
+<span class="codeline" id="line-176"><code><span class="keyword">func</span> <label for="r25" class="ident"><a href="../../pkg/math.html#name-expmulti" class="ident">expmulti</a></label>(<label for="r26" class="ident">hi</label>, <label for="r27" class="ident">lo</label> <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>, <label for="r28" class="ident">k</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a> {</code></span>
+<span class="codeline" id="line-177"><code>	<span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-178"><code>		<label for="r29" class="ident">P1</label> = <span class="lit-number">1.66666666666666657415e-01</span>  <span class="comment">/* 0x3FC55555; 0x55555555 */</span></code></span>
+<span class="codeline" id="line-179"><code>		<label for="r30" class="ident">P2</label> = -<span class="lit-number">2.77777777770155933842e-03</span> <span class="comment">/* 0xBF66C16C; 0x16BEBD93 */</span></code></span>
+<span class="codeline" id="line-180"><code>		<label for="r31" class="ident">P3</label> = <span class="lit-number">6.61375632143793436117e-05</span>  <span class="comment">/* 0x3F11566A; 0xAF25DE2C */</span></code></span>
+<span class="codeline" id="line-181"><code>		<label for="r32" class="ident">P4</label> = -<span class="lit-number">1.65339022054652515390e-06</span> <span class="comment">/* 0xBEBBBD41; 0xC5D26BF1 */</span></code></span>
+<span class="codeline" id="line-182"><code>		<label for="r33" class="ident">P5</label> = <span class="lit-number">4.13813679705723846039e-08</span>  <span class="comment">/* 0x3E663769; 0x72BEA4D0 */</span></code></span>
+<span class="codeline" id="line-183"><code>	)</code></span>
+<span class="codeline" id="line-184"><code></code></span>
+<span class="codeline" id="line-185"><code>	<label for="r34" class="ident">r</label> := <label for="r26" class="ident">hi</label> - <label for="r27" class="ident">lo</label></code></span>
+<span class="codeline" id="line-186"><code>	<label for="r35" class="ident">t</label> := <label for="r34" class="ident">r</label> * <label for="r34" class="ident">r</label></code></span>
+<span class="codeline" id="line-187"><code>	<label for="r36" class="ident">c</label> := <label for="r34" class="ident">r</label> - <label for="r35" class="ident">t</label>*(<label for="r29" class="ident">P1</label>+<label for="r35" class="ident">t</label>*(<label for="r30" class="ident">P2</label>+<label for="r35" class="ident">t</label>*(<label for="r31" class="ident">P3</label>+<label for="r35" class="ident">t</label>*(<label for="r32" class="ident">P4</label>+<label for="r35" class="ident">t</label>*<label for="r33" class="ident">P5</label>))))</code></span>
+<span class="codeline" id="line-188"><code>	<label for="r37" class="ident">y</label> := <span class="lit-number">1</span> - ((<label for="r27" class="ident">lo</label> - (<label for="r34" class="ident">r</label>*<label for="r36" class="ident">c</label>)/(<span class="lit-number">2</span>-<label for="r36" class="ident">c</label>)) - <label for="r26" class="ident">hi</label>)</code></span>
+<span class="codeline" id="line-189"><code>	<span class="comment">// TODO(rsc): make sure Ldexp can handle boundary k</span></code></span>
+<span class="codeline" id="line-190"><code>	<span class="keyword">return</span> <a href="ldexp.go.html#line-14" class="ident">Ldexp</a>(<label for="r37" class="ident">y</label>, <label for="r28" class="ident">k</label>)</code></span>
+<span class="codeline" id="line-191"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

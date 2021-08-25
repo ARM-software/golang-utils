@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: io/ioutil</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>ioutil</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../index.html#pkg-io/ioutil">io/ioutil</a><i> (on <a href="https://pkg.go.dev/io/ioutil" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../dep/io/ioutil.html">10 packages</a>, and imported by <a href="../../dep/io/ioutil.html#imported-by">12 packages</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<input type='checkbox' checked class="fold" id="file-0-fold-content"><label for="file-0-fold-content">   <a href="../../src/io/ioutil/ioutil.go.html#doc">d➜</a> <a href="../../src/io/ioutil/ioutil.go.html">ioutil.go</a></label><span id='file-0-fold-content-items' class="fold-items">
+		Package ioutil implements some I/O utility functions.
+
+		As of Go 1.16, the same functionality is now provided
+		by package io or package os, and those implementations
+		should be preferred in new code.
+		See the specific function documentation for details.
+</span>
+	<span class="nodocs">      <a href="../../src/io/ioutil/tempfile.go.html">tempfile.go</a></span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content">ReadAll</label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"io/ioutil"
+			"log"
+			"strings"
+		)
+		
+		func main() {
+			r := strings.NewReader("Go is a general-purpose language designed with systems programming in mind.")
+		
+			b, err := ioutil.ReadAll(r)
+			if err != nil {
+				log.Fatal(err)
+			}
+		
+			fmt.Printf("%s", b)
+		
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-1-fold-content"><label for="example-1-fold-content">ReadDir</label><span id='example-1-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"io/ioutil"
+			"log"
+		)
+		
+		func main() {
+			files, err := ioutil.ReadDir(".")
+			if err != nil {
+				log.Fatal(err)
+			}
+		
+			for _, file := range files {
+				fmt.Println(file.Name())
+			}
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-2-fold-content"><label for="example-2-fold-content">ReadFile</label><span id='example-2-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"io/ioutil"
+			"log"
+		)
+		
+		func main() {
+			content, err := ioutil.ReadFile("testdata/hello")
+			if err != nil {
+				log.Fatal(err)
+			}
+		
+			fmt.Printf("File contents: %s", content)
+		
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-3-fold-content"><label for="example-3-fold-content">TempDir</label><span id='example-3-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"io/ioutil"
+			"log"
+			"os"
+			"path/filepath"
+		)
+		
+		func main() {
+			content := []byte("temporary file's content")
+			dir, err := ioutil.TempDir("", "example")
+			if err != nil {
+				log.Fatal(err)
+			}
+		
+			defer os.RemoveAll(dir) // clean up
+		
+			tmpfn := filepath.Join(dir, "tmpfile")
+			if err := ioutil.WriteFile(tmpfn, content, 0666); err != nil {
+				log.Fatal(err)
+			}
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-4-fold-content"><label for="example-4-fold-content">TempDir_suffix</label><span id='example-4-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"io/ioutil"
+			"log"
+			"os"
+			"path/filepath"
+		)
+		
+		func main() {
+			parentDir := os.TempDir()
+			logsDir, err := ioutil.TempDir(parentDir, "*-logs")
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer os.RemoveAll(logsDir) // clean up
+		
+			// Logs can be cleaned out earlier if needed by searching
+			// for all directories whose suffix ends in *-logs.
+			globPattern := filepath.Join(parentDir, "*-logs")
+			matches, err := filepath.Glob(globPattern)
+			if err != nil {
+				log.Fatalf("Failed to match %q: %v", globPattern, err)
+			}
+		
+			for _, match := range matches {
+				if err := os.RemoveAll(match); err != nil {
+					log.Printf("Failed to remove %q: %v", match, err)
+				}
+			}
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-5-fold-content"><label for="example-5-fold-content">TempFile</label><span id='example-5-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"io/ioutil"
+			"log"
+			"os"
+		)
+		
+		func main() {
+			content := []byte("temporary file's content")
+			tmpfile, err := ioutil.TempFile("", "example")
+			if err != nil {
+				log.Fatal(err)
+			}
+		
+			defer os.Remove(tmpfile.Name()) // clean up
+		
+			if _, err := tmpfile.Write(content); err != nil {
+				log.Fatal(err)
+			}
+			if err := tmpfile.Close(); err != nil {
+				log.Fatal(err)
+			}
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-6-fold-content"><label for="example-6-fold-content">TempFile_suffix</label><span id='example-6-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"io/ioutil"
+			"log"
+			"os"
+		)
+		
+		func main() {
+			content := []byte("temporary file's content")
+			tmpfile, err := ioutil.TempFile("", "example.*.txt")
+			if err != nil {
+				log.Fatal(err)
+			}
+		
+			defer os.Remove(tmpfile.Name()) // clean up
+		
+			if _, err := tmpfile.Write(content); err != nil {
+				tmpfile.Close()
+				log.Fatal(err)
+			}
+			if err := tmpfile.Close(); err != nil {
+				log.Fatal(err)
+			}
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-7-fold-content"><label for="example-7-fold-content">WriteFile</label><span id='example-7-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"io/ioutil"
+			"log"
+		)
+		
+		func main() {
+			message := []byte("Hello, Gophers!")
+			err := ioutil.WriteFile("hello", message, 0644)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+</span>
+</div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 10, in which 7 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-NopCloser">	<input type='checkbox' class="fold" id="NopCloser-fold-content"><label for="NopCloser-fold-content"> func <a href="../../src/io/ioutil/ioutil.go.html#line-76">NopCloser</a>(r <a href="../io.html">io</a>.<a href="../io.html#name-Reader">Reader</a>) <a href="../io.html">io</a>.<a href="../io.html#name-ReadCloser">ReadCloser</a></label><span id='NopCloser-fold-content-docs' class="fold-docs">
+		NopCloser returns a ReadCloser with a no-op Close method wrapping
+		the provided Reader r.
+
+		As of Go 1.16, this function simply calls io.NopCloser.
+
+</span></div><div class="anchor value-res" id="name-ReadAll">	<input type='checkbox' class="fold" id="ReadAll-fold-content"><label for="ReadAll-fold-content"> func <a href="../../src/io/ioutil/ioutil.go.html#line-26">ReadAll</a>(r <a href="../io.html">io</a>.<a href="../io.html#name-Reader">Reader</a>) ([]<a href="../builtin.html#name-byte">byte</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='ReadAll-fold-content-docs' class="fold-docs">
+		ReadAll reads from r until an error or EOF and returns the data it read.
+		A successful call returns err == nil, not err == EOF. Because ReadAll is
+		defined to read from src until EOF, it does not treat an EOF from Read
+		as an error to be reported.
+
+		As of Go 1.16, this function simply calls io.ReadAll.
+
+</span></div><div class="anchor value-res" id="name-ReadDir">	<input type='checkbox' class="fold" id="ReadDir-fold-content"><label for="ReadDir-fold-content"> func <a href="../../src/io/ioutil/ioutil.go.html#line-58">ReadDir</a>(dirname <a href="../builtin.html#name-string">string</a>) ([]<a href="fs.html">fs</a>.<a href="fs.html#name-FileInfo">FileInfo</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='ReadDir-fold-content-docs' class="fold-docs">
+		ReadDir reads the directory named by dirname and returns
+		a list of fs.FileInfo for the directory's contents,
+		sorted by filename. If an error occurs reading the directory,
+		ReadDir returns no directory entries along with the error.
+
+		As of Go 1.16, os.ReadDir is a more efficient and correct choice:
+		it returns a list of fs.DirEntry instead of fs.FileInfo,
+		and it returns partial results in the case of an error
+		midway through reading a directory.
+
+</span></div><div class="anchor value-res" id="name-ReadFile">	<input type='checkbox' class="fold" id="ReadFile-fold-content"><label for="ReadFile-fold-content"> func <a href="../../src/io/ioutil/ioutil.go.html#line-36">ReadFile</a>(filename <a href="../builtin.html#name-string">string</a>) ([]<a href="../builtin.html#name-byte">byte</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='ReadFile-fold-content-docs' class="fold-docs">
+		ReadFile reads the file named by filename and returns the contents.
+		A successful call returns err == nil, not err == EOF. Because ReadFile
+		reads the whole file, it does not treat an EOF from Read as an error
+		to be reported.
+
+		As of Go 1.16, this function simply calls os.ReadFile.
+
+</span></div><div class="anchor value-res" id="name-TempDir">	<input type='checkbox' class="fold" id="TempDir-fold-content"><label for="TempDir-fold-content"> func <a href="../../src/io/ioutil/tempfile.go.html#line-104">TempDir</a>(dir, pattern <a href="../builtin.html#name-string">string</a>) (name <a href="../builtin.html#name-string">string</a>, err <a href="../builtin.html#name-error">error</a>)</label><span id='TempDir-fold-content-docs' class="fold-docs">
+		TempDir creates a new temporary directory in the directory dir.
+		The directory name is generated by taking pattern and applying a
+		random string to the end. If pattern includes a "*", the random string
+		replaces the last "*". TempDir returns the name of the new directory.
+		If dir is the empty string, TempDir uses the
+		default directory for temporary files (see os.TempDir).
+		Multiple programs calling TempDir simultaneously
+		will not choose the same directory. It is the caller's responsibility
+		to remove the directory when no longer needed.
+
+</span></div><div class="anchor value-res" id="name-TempFile">	<input type='checkbox' class="fold" id="TempFile-fold-content"><label for="TempFile-fold-content"> func <a href="../../src/io/ioutil/tempfile.go.html#line-51">TempFile</a>(dir, pattern <a href="../builtin.html#name-string">string</a>) (f *<a href="../os.html">os</a>.<a href="../os.html#name-File">File</a>, err <a href="../builtin.html#name-error">error</a>)</label><span id='TempFile-fold-content-docs' class="fold-docs">
+		TempFile creates a new temporary file in the directory dir,
+		opens the file for reading and writing, and returns the resulting *os.File.
+		The filename is generated by taking pattern and adding a random
+		string to the end. If pattern includes a "*", the random string
+		replaces the last "*".
+		If dir is the empty string, TempFile uses the default directory
+		for temporary files (see os.TempDir).
+		Multiple programs calling TempFile simultaneously
+		will not choose the same file. The caller can use f.Name()
+		to find the pathname of the file. It is the caller's responsibility
+		to remove the file when no longer needed.
+
+</span></div><div class="anchor value-res" id="name-WriteFile">	<input type='checkbox' class="fold" id="WriteFile-fold-content"><label for="WriteFile-fold-content"> func <a href="../../src/io/ioutil/ioutil.go.html#line-45">WriteFile</a>(filename <a href="../builtin.html#name-string">string</a>, data []<a href="../builtin.html#name-byte">byte</a>, perm <a href="fs.html">fs</a>.<a href="fs.html#name-FileMode">FileMode</a>) <a href="../builtin.html#name-error">error</a></label><span id='WriteFile-fold-content-docs' class="fold-docs">
+		WriteFile writes data to a file named by filename.
+		If the file does not exist, WriteFile creates it with permissions perm
+		(before umask); otherwise WriteFile truncates it before writing, without changing permissions.
+
+		As of Go 1.16, this function simply calls os.WriteFile.
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 3 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 3 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-nextRandom"><i>	<span class="nodocs"> func <a href="../../src/io/ioutil/tempfile.go.html#line-28">nextRandom</a>() <a href="../builtin.html#name-string">string</a></span></i></div><div class="anchor value-res hidden" id="name-prefixAndSuffix"><i>	<input type='checkbox' class="fold" id="prefixAndSuffix-fold-content"><label for="prefixAndSuffix-fold-content"> func <a href="../../src/io/ioutil/tempfile.go.html#line-82">prefixAndSuffix</a>(pattern <a href="../builtin.html#name-string">string</a>) (prefix, suffix <a href="../builtin.html#name-string">string</a>, err <a href="../builtin.html#name-error">error</a>)</label><span id='prefixAndSuffix-fold-content-docs' class="fold-docs">
+		prefixAndSuffix splits pattern by the last wildcard "*", if applicable,
+		returning prefix as the part before "*" and suffix as the part after "*".
+
+</span></i></div><div class="anchor value-res hidden" id="name-reseed"><i>	<span class="nodocs"> func <a href="../../src/io/ioutil/tempfile.go.html#line-24">reseed</a>() <a href="../builtin.html#name-uint32">uint32</a></span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (total 4, in which 1 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-Discard">	<input type='checkbox' class="fold" id="Discard-fold-content"><label for="Discard-fold-content">  var <a href="../../src/io/ioutil/ioutil.go.html#line-84">Discard</a> <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a></label><span id='Discard-fold-content-docs' class="fold-docs">
+		Discard is an io.Writer on which all Write calls succeed
+		without doing anything.
+
+		As of Go 1.16, this value is simply io.Discard.
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* 3 unexporteds ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* 3 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-errPatternHasSeparator"><i>	<span class="nodocs">  var <a href="../../src/io/ioutil/tempfile.go.html#line-78">errPatternHasSeparator</a> <a href="../builtin.html#name-error">error</a></span></i></div><div class="anchor value-res hidden" id="name-rand"><i>	<input type='checkbox' class="fold" id="rand-fold-content"><label for="rand-fold-content">  var <a href="../../src/io/ioutil/tempfile.go.html#line-21">rand</a> <a href="../builtin.html#name-uint32">uint32</a></label><span id='rand-fold-content-docs' class="fold-docs">
+		Random number state.
+		We generate random temporary file names so that there's a good
+		chance the file doesn't exist yet - keeps the number of tries in
+		TempFile to a minimum.
+
+</span></i></div><div class="anchor value-res hidden" id="name-randmu"><i>	<span class="nodocs">  var <a href="../../src/io/ioutil/tempfile.go.html#line-22">randmu</a> <a href="../sync.html">sync</a>.<a href="../sync.html#name-Mutex">Mutex</a></span></i></div></div></code></pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

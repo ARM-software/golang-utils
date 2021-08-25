@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: mutex.go in package sync</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	mutex.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/sync.html">sync</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package sync provides basic synchronization primitives such as mutual</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// exclusion locks. Other than the Once and WaitGroup types, most are intended</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// for use by low-level library routines. Higher-level synchronization is</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// better done via channels and communication.</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// Values containing the types defined in this package should not be copied.</span></code></span></div><span class="codeline" id="line-11"><code><span class="keyword">package</span> sync</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-14"><code>	<label for="i0"><span class="lit-string i0">"internal/race"</span></label></code></span>
+<span class="codeline" id="line-15"><code>	<label for="i1"><span class="lit-string i1">"sync/atomic"</span></label></code></span>
+<span class="codeline" id="line-16"><code>	<label for="i2"><span class="lit-string i2">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-17"><code>)</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/sync.html#name-throw" class="ident">throw</a></label>(<a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <span class="comment">// provided by runtime</span></code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// A Mutex is a mutual exclusion lock.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// The zero value for a Mutex is an unlocked mutex.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// A Mutex must not be copied after first use.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">type</span> <a href="../../pkg/sync.html#name-Mutex" class="ident">Mutex</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-26"><code>	state <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-27"><code>	sema  <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-28"><code>}</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// A Locker represents an object that can be locked and unlocked.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">type</span> <a href="../../pkg/sync.html#name-Locker" class="ident">Locker</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../imp/sync.Locker.html#name-Lock" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-33"><code>	<a href="../../imp/sync.Locker.html#name-Unlock" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-34"><code>}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../pkg/sync.html#name-mutexLocked" class="ident">mutexLocked</a> = <span class="lit-number">1</span> &lt;&lt; <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a> <span class="comment">// mutex is locked</span></code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../pkg/sync.html#name-mutexWoken" class="ident">mutexWoken</a></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../pkg/sync.html#name-mutexStarving" class="ident">mutexStarving</a></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../pkg/sync.html#name-mutexWaiterShift" class="ident">mutexWaiterShift</a> = <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code>	<span class="comment">// Mutex fairness.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	// Mutex can be in 2 modes of operations: normal and starvation.</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	// In normal mode waiters are queued in FIFO order, but a woken up waiter</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	// does not own the mutex and competes with new arriving goroutines over</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	// the ownership. New arriving goroutines have an advantage -- they are</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	// already running on CPU and there can be lots of them, so a woken up</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	// waiter has good chances of losing. In such case it is queued at front</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// of the wait queue. If a waiter fails to acquire the mutex for more than 1ms,</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// it switches mutex to the starvation mode.</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">	// In starvation mode ownership of the mutex is directly handed off from</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">	// the unlocking goroutine to the waiter at the front of the queue.</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	// New arriving goroutines don't try to acquire the mutex even if it appears</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">	// to be unlocked, and don't try to spin. Instead they queue themselves at</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">	// the tail of the wait queue.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">	// If a waiter receives ownership of the mutex and sees that either</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">	// (1) it is the last waiter in the queue, or (2) it waited for less than 1 ms,</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">	// it switches mutex back to normal operation mode.</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">	// Normal mode has considerably better performance as a goroutine can acquire</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">	// a mutex several times in a row even if there are blocked waiters.</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">	// Starvation mode is important to prevent pathological cases of tail latency.</span></code></span>
+<span class="codeline" id="line-66"><code>	<a href="../../pkg/sync.html#name-starvationThresholdNs" class="ident">starvationThresholdNs</a> = <span class="lit-number">1e6</span></code></span>
+<span class="codeline" id="line-67"><code>)</code></span>
+<span class="codeline" id="line-68"><code></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// Lock locks m.</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// If the lock is already in use, the calling goroutine</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// blocks until the mutex is available.</span></code></span>
+<span class="codeline" id="line-72"><code><span class="keyword">func</span> (<label for="r1" class="ident">m</label> *<a href="#line-25" class="ident">Mutex</a>) <label for="r2" class="ident"><a href="../../imp/sync.Mutex.html#name-.Lock" class="ident">Lock</a></label>() {</code></span>
+<span class="codeline" id="line-73"><code>	<span class="comment">// Fast path: grab unlocked mutex.</span></code></span>
+<span class="codeline" id="line-74"><code>	<span class="keyword">if</span> <a href="../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="atomic/doc.go.html#line-74" class="ident">CompareAndSwapInt32</a>(&amp;<label for="r1" class="ident">m</label>.<a href="#line-26" class="ident">state</a>, <span class="lit-number">0</span>, <a href="#line-37" class="ident">mutexLocked</a>) {</code></span>
+<span class="codeline" id="line-75"><code>		<span class="keyword">if</span> <a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-13" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-76"><code>			<a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-15" class="ident">Acquire</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r1" class="ident">m</label>))</code></span>
+<span class="codeline" id="line-77"><code>		}</code></span>
+<span class="codeline" id="line-78"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-79"><code>	}</code></span>
+<span class="codeline" id="line-80"><code>	<span class="comment">// Slow path (outlined so that the fast path can be inlined)</span></code></span>
+<span class="codeline" id="line-81"><code>	<label for="r1" class="ident">m</label>.<a href="#line-84" class="ident">lockSlow</a>()</code></span>
+<span class="codeline" id="line-82"><code>}</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code><span class="keyword">func</span> (<label for="r3" class="ident">m</label> *<a href="#line-25" class="ident">Mutex</a>) <label for="r4" class="ident">lockSlow</label>() {</code></span>
+<span class="codeline" id="line-85"><code>	<span class="keyword">var</span> <label for="r5" class="ident">waitStartTime</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a></code></span>
+<span class="codeline" id="line-86"><code>	<label for="r6" class="ident">starving</label> := <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-87"><code>	<label for="r7" class="ident">awoke</label> := <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-88"><code>	<label for="r8" class="ident">iter</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-89"><code>	<label for="r9" class="ident">old</label> := <label for="r3" class="ident">m</label>.<a href="#line-26" class="ident">state</a></code></span>
+<span class="codeline" id="line-90"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-91"><code>		<span class="comment">// Don't spin in starvation mode, ownership is handed off to waiters</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">		// so we won't be able to acquire the mutex anyway.</span></code></span>
+<span class="codeline" id="line-93"><code>		<span class="keyword">if</span> <label for="r9" class="ident">old</label>&amp;(<a href="#line-37" class="ident">mutexLocked</a>|<a href="#line-39" class="ident">mutexStarving</a>) == <a href="#line-37" class="ident">mutexLocked</a> &amp;&amp; <a href="runtime.go.html#line-52" class="ident">runtime_canSpin</a>(<label for="r8" class="ident">iter</label>) {</code></span>
+<span class="codeline" id="line-94"><code>			<span class="comment">// Active spinning makes sense.</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">			// Try to set mutexWoken flag to inform Unlock</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">			// to not wake other blocked goroutines.</span></code></span>
+<span class="codeline" id="line-97"><code>			<span class="keyword">if</span> !<label for="r7" class="ident">awoke</label> &amp;&amp; <label for="r9" class="ident">old</label>&amp;<a href="#line-38" class="ident">mutexWoken</a> == <span class="lit-number">0</span> &amp;&amp; <label for="r9" class="ident">old</label>&gt;&gt;<a href="#line-40" class="ident">mutexWaiterShift</a> != <span class="lit-number">0</span> &amp;&amp;</code></span>
+<span class="codeline" id="line-98"><code>				<a href="../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="atomic/doc.go.html#line-74" class="ident">CompareAndSwapInt32</a>(&amp;<label for="r3" class="ident">m</label>.<a href="#line-26" class="ident">state</a>, <label for="r9" class="ident">old</label>, <label for="r9" class="ident">old</label>|<a href="#line-38" class="ident">mutexWoken</a>) {</code></span>
+<span class="codeline" id="line-99"><code>				<label for="r7" class="ident">awoke</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-100"><code>			}</code></span>
+<span class="codeline" id="line-101"><code>			<a href="runtime.go.html#line-55" class="ident">runtime_doSpin</a>()</code></span>
+<span class="codeline" id="line-102"><code>			<label for="r8" class="ident">iter</label>++</code></span>
+<span class="codeline" id="line-103"><code>			<label for="r9" class="ident">old</label> = <label for="r3" class="ident">m</label>.<a href="#line-26" class="ident">state</a></code></span>
+<span class="codeline" id="line-104"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-105"><code>		}</code></span>
+<span class="codeline" id="line-106"><code>		<label for="r10" class="ident">new</label> := <label for="r9" class="ident">old</label></code></span>
+<span class="codeline" id="line-107"><code>		<span class="comment">// Don't try to acquire starving mutex, new arriving goroutines must queue.</span></code></span>
+<span class="codeline" id="line-108"><code>		<span class="keyword">if</span> <label for="r9" class="ident">old</label>&amp;<a href="#line-39" class="ident">mutexStarving</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-109"><code>			<label for="r10" class="ident">new</label> |= <a href="#line-37" class="ident">mutexLocked</a></code></span>
+<span class="codeline" id="line-110"><code>		}</code></span>
+<span class="codeline" id="line-111"><code>		<span class="keyword">if</span> <label for="r9" class="ident">old</label>&amp;(<a href="#line-37" class="ident">mutexLocked</a>|<a href="#line-39" class="ident">mutexStarving</a>) != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-112"><code>			<label for="r10" class="ident">new</label> += <span class="lit-number">1</span> &lt;&lt; <a href="#line-40" class="ident">mutexWaiterShift</a></code></span>
+<span class="codeline" id="line-113"><code>		}</code></span>
+<span class="codeline" id="line-114"><code>		<span class="comment">// The current goroutine switches mutex to starvation mode.</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">		// But if the mutex is currently unlocked, don't do the switch.</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">		// Unlock expects that starving mutex has waiters, which will not</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">		// be true in this case.</span></code></span>
+<span class="codeline" id="line-118"><code>		<span class="keyword">if</span> <label for="r6" class="ident">starving</label> &amp;&amp; <label for="r9" class="ident">old</label>&amp;<a href="#line-37" class="ident">mutexLocked</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-119"><code>			<label for="r10" class="ident">new</label> |= <a href="#line-39" class="ident">mutexStarving</a></code></span>
+<span class="codeline" id="line-120"><code>		}</code></span>
+<span class="codeline" id="line-121"><code>		<span class="keyword">if</span> <label for="r7" class="ident">awoke</label> {</code></span>
+<span class="codeline" id="line-122"><code>			<span class="comment">// The goroutine has been woken from sleep,</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">			// so we need to reset the flag in either case.</span></code></span>
+<span class="codeline" id="line-124"><code>			<span class="keyword">if</span> <label for="r10" class="ident">new</label>&amp;<a href="#line-38" class="ident">mutexWoken</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-125"><code>				<a href="#line-19" class="ident">throw</a>(<span class="lit-string">"sync: inconsistent mutex state"</span>)</code></span>
+<span class="codeline" id="line-126"><code>			}</code></span>
+<span class="codeline" id="line-127"><code>			<label for="r10" class="ident">new</label> &amp;^= <a href="#line-38" class="ident">mutexWoken</a></code></span>
+<span class="codeline" id="line-128"><code>		}</code></span>
+<span class="codeline" id="line-129"><code>		<span class="keyword">if</span> <a href="../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="atomic/doc.go.html#line-74" class="ident">CompareAndSwapInt32</a>(&amp;<label for="r3" class="ident">m</label>.<a href="#line-26" class="ident">state</a>, <label for="r9" class="ident">old</label>, <label for="r10" class="ident">new</label>) {</code></span>
+<span class="codeline" id="line-130"><code>			<span class="keyword">if</span> <label for="r9" class="ident">old</label>&amp;(<a href="#line-37" class="ident">mutexLocked</a>|<a href="#line-39" class="ident">mutexStarving</a>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-131"><code>				<span class="keyword">break</span> <span class="comment">// locked the mutex with CAS</span></code></span>
+<span class="codeline" id="line-132"><code>			}</code></span>
+<span class="codeline" id="line-133"><code>			<span class="comment">// If we were already waiting before, queue at the front of the queue.</span></code></span>
+<span class="codeline" id="line-134"><code>			<label for="r11" class="ident">queueLifo</label> := <label for="r5" class="ident">waitStartTime</label> != <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-135"><code>			<span class="keyword">if</span> <label for="r5" class="ident">waitStartTime</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-136"><code>				<label for="r5" class="ident">waitStartTime</label> = <a href="runtime.go.html#line-57" class="ident">runtime_nanotime</a>()</code></span>
+<span class="codeline" id="line-137"><code>			}</code></span>
+<span class="codeline" id="line-138"><code>			<a href="runtime.go.html#line-20" class="ident">runtime_SemacquireMutex</a>(&amp;<label for="r3" class="ident">m</label>.<a href="#line-27" class="ident">sema</a>, <label for="r11" class="ident">queueLifo</label>, <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-139"><code>			<label for="r6" class="ident">starving</label> = <label for="r6" class="ident">starving</label> || <a href="runtime.go.html#line-57" class="ident">runtime_nanotime</a>()-<label for="r5" class="ident">waitStartTime</label> &gt; <a href="#line-66" class="ident">starvationThresholdNs</a></code></span>
+<span class="codeline" id="line-140"><code>			<label for="r9" class="ident">old</label> = <label for="r3" class="ident">m</label>.<a href="#line-26" class="ident">state</a></code></span>
+<span class="codeline" id="line-141"><code>			<span class="keyword">if</span> <label for="r9" class="ident">old</label>&amp;<a href="#line-39" class="ident">mutexStarving</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-142"><code>				<span class="comment">// If this goroutine was woken and mutex is in starvation mode,</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">				// ownership was handed off to us but mutex is in somewhat</span></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">				// inconsistent state: mutexLocked is not set and we are still</span></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">				// accounted as waiter. Fix that.</span></code></span>
+<span class="codeline" id="line-146"><code>				<span class="keyword">if</span> <label for="r9" class="ident">old</label>&amp;(<a href="#line-37" class="ident">mutexLocked</a>|<a href="#line-38" class="ident">mutexWoken</a>) != <span class="lit-number">0</span> || <label for="r9" class="ident">old</label>&gt;&gt;<a href="#line-40" class="ident">mutexWaiterShift</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-147"><code>					<a href="#line-19" class="ident">throw</a>(<span class="lit-string">"sync: inconsistent mutex state"</span>)</code></span>
+<span class="codeline" id="line-148"><code>				}</code></span>
+<span class="codeline" id="line-149"><code>				<label for="r12" class="ident">delta</label> := <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="#line-37" class="ident">mutexLocked</a> - <span class="lit-number">1</span>&lt;&lt;<a href="#line-40" class="ident">mutexWaiterShift</a>)</code></span>
+<span class="codeline" id="line-150"><code>				<span class="keyword">if</span> !<label for="r6" class="ident">starving</label> || <label for="r9" class="ident">old</label>&gt;&gt;<a href="#line-40" class="ident">mutexWaiterShift</a> == <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-151"><code>					<span class="comment">// Exit starvation mode.</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">					// Critical to do it here and consider wait time.</span></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">					// Starvation mode is so inefficient, that two goroutines</span></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">					// can go lock-step infinitely once they switch mutex</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">					// to starvation mode.</span></code></span>
+<span class="codeline" id="line-156"><code>					<label for="r12" class="ident">delta</label> -= <a href="#line-39" class="ident">mutexStarving</a></code></span>
+<span class="codeline" id="line-157"><code>				}</code></span>
+<span class="codeline" id="line-158"><code>				<a href="../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="atomic/doc.go.html#line-92" class="ident">AddInt32</a>(&amp;<label for="r3" class="ident">m</label>.<a href="#line-26" class="ident">state</a>, <label for="r12" class="ident">delta</label>)</code></span>
+<span class="codeline" id="line-159"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-160"><code>			}</code></span>
+<span class="codeline" id="line-161"><code>			<label for="r7" class="ident">awoke</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-162"><code>			<label for="r8" class="ident">iter</label> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-163"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-164"><code>			<label for="r9" class="ident">old</label> = <label for="r3" class="ident">m</label>.<a href="#line-26" class="ident">state</a></code></span>
+<span class="codeline" id="line-165"><code>		}</code></span>
+<span class="codeline" id="line-166"><code>	}</code></span>
+<span class="codeline" id="line-167"><code></code></span>
+<span class="codeline" id="line-168"><code>	<span class="keyword">if</span> <a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-13" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-169"><code>		<a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-15" class="ident">Acquire</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r3" class="ident">m</label>))</code></span>
+<span class="codeline" id="line-170"><code>	}</code></span>
+<span class="codeline" id="line-171"><code>}</code></span>
+<span class="codeline" id="line-172"><code></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">// Unlock unlocks m.</span></code></span>
+<span class="codeline" id="line-174"><code><span class="comment">// It is a run-time error if m is not locked on entry to Unlock.</span></code></span>
+<span class="codeline" id="line-175"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-176"><code><span class="comment">// A locked Mutex is not associated with a particular goroutine.</span></code></span>
+<span class="codeline" id="line-177"><code><span class="comment">// It is allowed for one goroutine to lock a Mutex and then</span></code></span>
+<span class="codeline" id="line-178"><code><span class="comment">// arrange for another goroutine to unlock it.</span></code></span>
+<span class="codeline" id="line-179"><code><span class="keyword">func</span> (<label for="r13" class="ident">m</label> *<a href="#line-25" class="ident">Mutex</a>) <label for="r14" class="ident"><a href="../../imp/sync.Mutex.html#name-.Unlock" class="ident">Unlock</a></label>() {</code></span>
+<span class="codeline" id="line-180"><code>	<span class="keyword">if</span> <a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-13" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-181"><code>		_ = <label for="r13" class="ident">m</label>.<a href="#line-26" class="ident">state</a></code></span>
+<span class="codeline" id="line-182"><code>		<a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-18" class="ident">Release</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r13" class="ident">m</label>))</code></span>
+<span class="codeline" id="line-183"><code>	}</code></span>
+<span class="codeline" id="line-184"><code></code></span>
+<span class="codeline" id="line-185"><code>	<span class="comment">// Fast path: drop lock bit.</span></code></span>
+<span class="codeline" id="line-186"><code>	<label for="r15" class="ident">new</label> := <a href="../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="atomic/doc.go.html#line-92" class="ident">AddInt32</a>(&amp;<label for="r13" class="ident">m</label>.<a href="#line-26" class="ident">state</a>, -<a href="#line-37" class="ident">mutexLocked</a>)</code></span>
+<span class="codeline" id="line-187"><code>	<span class="keyword">if</span> <label for="r15" class="ident">new</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-188"><code>		<span class="comment">// Outlined slow path to allow inlining the fast path.</span></code></span>
+<span class="codeline" id="line-189"><code><span class="comment">		// To hide unlockSlow during tracing we skip one extra frame when tracing GoUnblock.</span></code></span>
+<span class="codeline" id="line-190"><code>		<label for="r13" class="ident">m</label>.<a href="#line-194" class="ident">unlockSlow</a>(<label for="r15" class="ident">new</label>)</code></span>
+<span class="codeline" id="line-191"><code>	}</code></span>
+<span class="codeline" id="line-192"><code>}</code></span>
+<span class="codeline" id="line-193"><code></code></span>
+<span class="codeline" id="line-194"><code><span class="keyword">func</span> (<label for="r16" class="ident">m</label> *<a href="#line-25" class="ident">Mutex</a>) <label for="r17" class="ident">unlockSlow</label>(<label for="r18" class="ident">new</label> <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>) {</code></span>
+<span class="codeline" id="line-195"><code>	<span class="keyword">if</span> (<label for="r18" class="ident">new</label>+<a href="#line-37" class="ident">mutexLocked</a>)&amp;<a href="#line-37" class="ident">mutexLocked</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-196"><code>		<a href="#line-19" class="ident">throw</a>(<span class="lit-string">"sync: unlock of unlocked mutex"</span>)</code></span>
+<span class="codeline" id="line-197"><code>	}</code></span>
+<span class="codeline" id="line-198"><code>	<span class="keyword">if</span> <label for="r18" class="ident">new</label>&amp;<a href="#line-39" class="ident">mutexStarving</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-199"><code>		<label for="r19" class="ident">old</label> := <label for="r18" class="ident">new</label></code></span>
+<span class="codeline" id="line-200"><code>		<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-201"><code>			<span class="comment">// If there are no waiters or a goroutine has already</span></code></span>
+<span class="codeline" id="line-202"><code><span class="comment">			// been woken or grabbed the lock, no need to wake anyone.</span></code></span>
+<span class="codeline" id="line-203"><code><span class="comment">			// In starvation mode ownership is directly handed off from unlocking</span></code></span>
+<span class="codeline" id="line-204"><code><span class="comment">			// goroutine to the next waiter. We are not part of this chain,</span></code></span>
+<span class="codeline" id="line-205"><code><span class="comment">			// since we did not observe mutexStarving when we unlocked the mutex above.</span></code></span>
+<span class="codeline" id="line-206"><code><span class="comment">			// So get off the way.</span></code></span>
+<span class="codeline" id="line-207"><code>			<span class="keyword">if</span> <label for="r19" class="ident">old</label>&gt;&gt;<a href="#line-40" class="ident">mutexWaiterShift</a> == <span class="lit-number">0</span> || <label for="r19" class="ident">old</label>&amp;(<a href="#line-37" class="ident">mutexLocked</a>|<a href="#line-38" class="ident">mutexWoken</a>|<a href="#line-39" class="ident">mutexStarving</a>) != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-208"><code>				<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-209"><code>			}</code></span>
+<span class="codeline" id="line-210"><code>			<span class="comment">// Grab the right to wake someone.</span></code></span>
+<span class="codeline" id="line-211"><code>			<label for="r18" class="ident">new</label> = (<label for="r19" class="ident">old</label> - <span class="lit-number">1</span>&lt;&lt;<a href="#line-40" class="ident">mutexWaiterShift</a>) | <a href="#line-38" class="ident">mutexWoken</a></code></span>
+<span class="codeline" id="line-212"><code>			<span class="keyword">if</span> <a href="../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="atomic/doc.go.html#line-74" class="ident">CompareAndSwapInt32</a>(&amp;<label for="r16" class="ident">m</label>.<a href="#line-26" class="ident">state</a>, <label for="r19" class="ident">old</label>, <label for="r18" class="ident">new</label>) {</code></span>
+<span class="codeline" id="line-213"><code>				<a href="runtime.go.html#line-29" class="ident">runtime_Semrelease</a>(&amp;<label for="r16" class="ident">m</label>.<a href="#line-27" class="ident">sema</a>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a>, <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-214"><code>				<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-215"><code>			}</code></span>
+<span class="codeline" id="line-216"><code>			<label for="r19" class="ident">old</label> = <label for="r16" class="ident">m</label>.<a href="#line-26" class="ident">state</a></code></span>
+<span class="codeline" id="line-217"><code>		}</code></span>
+<span class="codeline" id="line-218"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-219"><code>		<span class="comment">// Starving mode: handoff mutex ownership to the next waiter, and yield</span></code></span>
+<span class="codeline" id="line-220"><code><span class="comment">		// our time slice so that the next waiter can start to run immediately.</span></code></span>
+<span class="codeline" id="line-221"><code><span class="comment">		// Note: mutexLocked is not set, the waiter will set it after wakeup.</span></code></span>
+<span class="codeline" id="line-222"><code><span class="comment">		// But mutex is still considered locked if mutexStarving is set,</span></code></span>
+<span class="codeline" id="line-223"><code><span class="comment">		// so new coming goroutines won't acquire it.</span></code></span>
+<span class="codeline" id="line-224"><code>		<a href="runtime.go.html#line-29" class="ident">runtime_Semrelease</a>(&amp;<label for="r16" class="ident">m</label>.<a href="#line-27" class="ident">sema</a>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a>, <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-225"><code>	}</code></span>
+<span class="codeline" id="line-226"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

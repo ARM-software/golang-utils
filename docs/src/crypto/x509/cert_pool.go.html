@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: cert_pool.go in package crypto/x509</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	cert_pool.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/crypto/x509.html">crypto/x509</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> x509</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"bytes"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"crypto/sha256"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"encoding/pem"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i3"><span class="lit-string i3">"errors"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i4"><span class="lit-string i4">"runtime"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i5"><span class="lit-string i5">"sync"</span></label></code></span>
+<span class="codeline" id="line-14"><code>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">type</span> <a href="../../../pkg/crypto/x509.html#name-sum224" class="ident">sum224</a> [<a href="../../../pkg/crypto/sha256.html" class="ident i1">sha256</a>.<a href="../sha256/sha256.go.html#line-25" class="ident">Size224</a>]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// CertPool is a set of certificates.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">type</span> <a href="../../../pkg/crypto/x509.html#name-CertPool" class="ident">CertPool</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-20"><code>	byName <span class="keyword">map</span>[<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>][]<a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// cert.RawSubject =&gt; index into lazyCerts</span></code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code>	<span class="comment">// lazyCerts contains funcs that return a certificate,</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	// lazily parsing/decompressing it as needed.</span></code></span>
+<span class="codeline" id="line-24"><code>	lazyCerts []<a href="#line-36" class="ident">lazyCert</a></code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code>	<span class="comment">// haveSum maps from sum224(cert.Raw) to true. It's used only</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">	// for AddCert duplicate detection, to avoid CertPool.contains</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">	// calls in the AddCert path (because the contains method can</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">	// call getCert and otherwise negate savings from lazy getCert</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	// funcs).</span></code></span>
+<span class="codeline" id="line-31"><code>	haveSum <span class="keyword">map</span>[<a href="#line-16" class="ident">sum224</a>]<a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-32"><code>}</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// lazyCert is minimal metadata about a Cert and a func to retrieve it</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// in its normal expanded *Certificate form.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">type</span> <a href="../../../pkg/crypto/x509.html#name-lazyCert" class="ident">lazyCert</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-37"><code>	<span class="comment">// rawSubject is the Certificate.RawSubject value.</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">	// It's the same as the CertPool.byName key, but in []byte</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	// form to make CertPool.Subjects (as used by crypto/tls) do</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">	// fewer allocations.</span></code></span>
+<span class="codeline" id="line-41"><code>	rawSubject []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code>	<span class="comment">// getCert returns the certificate.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	// It is not meant to do network operations or anything else</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	// where a failure is likely; the func is meant to lazily</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	// parse/decompress data that is already known to be good. The</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	// error in the signature primarily is meant for use in the</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	// case where a cert file existed on local disk when the program</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// started up is deleted later before it's read.</span></code></span>
+<span class="codeline" id="line-51"><code>	getCert <span class="keyword">func</span>() (*<a href="x509.go.html#line-629" class="ident">Certificate</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-52"><code>}</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// NewCertPool returns a new, empty CertPool.</span></code></span>
+<span class="codeline" id="line-55"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/crypto/x509.html#name-NewCertPool" class="ident">NewCertPool</a></label>() *<a href="#line-19" class="ident">CertPool</a> {</code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">return</span> &amp;<a href="#line-19" class="ident">CertPool</a>{</code></span>
+<span class="codeline" id="line-57"><code>		<a href="#line-20" class="ident">byName</a>:  <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>][]<a href="../../../pkg/builtin.html#name-int" class="ident">int</a>),</code></span>
+<span class="codeline" id="line-58"><code>		<a href="#line-31" class="ident">haveSum</a>: <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[<a href="#line-16" class="ident">sum224</a>]<a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>),</code></span>
+<span class="codeline" id="line-59"><code>	}</code></span>
+<span class="codeline" id="line-60"><code>}</code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">// len returns the number of certs in the set.</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// A nil set is a valid empty set.</span></code></span>
+<span class="codeline" id="line-64"><code><span class="keyword">func</span> (<label for="r1" class="ident">s</label> *<a href="#line-19" class="ident">CertPool</a>) <label for="r2" class="ident">len</label>() <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-65"><code>	<span class="keyword">if</span> <label for="r1" class="ident">s</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-66"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-67"><code>	}</code></span>
+<span class="codeline" id="line-68"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">s</label>.<a href="#line-24" class="ident">lazyCerts</a>)</code></span>
+<span class="codeline" id="line-69"><code>}</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// cert returns cert index n in s.</span></code></span>
+<span class="codeline" id="line-72"><code><span class="keyword">func</span> (<label for="r3" class="ident">s</label> *<a href="#line-19" class="ident">CertPool</a>) <label for="r4" class="ident">cert</label>(<label for="r5" class="ident">n</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) (*<a href="x509.go.html#line-629" class="ident">Certificate</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-73"><code>	<span class="keyword">return</span> <label for="r3" class="ident">s</label>.<a href="#line-24" class="ident">lazyCerts</a>[<label for="r5" class="ident">n</label>].<a href="#line-51" class="ident">getCert</a>()</code></span>
+<span class="codeline" id="line-74"><code>}</code></span>
+<span class="codeline" id="line-75"><code></code></span>
+<span class="codeline" id="line-76"><code><span class="keyword">func</span> (<label for="r6" class="ident">s</label> *<a href="#line-19" class="ident">CertPool</a>) <label for="r7" class="ident">copy</label>() *<a href="#line-19" class="ident">CertPool</a> {</code></span>
+<span class="codeline" id="line-77"><code>	<label for="r8" class="ident">p</label> := &amp;<a href="#line-19" class="ident">CertPool</a>{</code></span>
+<span class="codeline" id="line-78"><code>		<a href="#line-20" class="ident">byName</a>:    <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>][]<a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">s</label>.<a href="#line-20" class="ident">byName</a>)),</code></span>
+<span class="codeline" id="line-79"><code>		<a href="#line-24" class="ident">lazyCerts</a>: <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="#line-36" class="ident">lazyCert</a>, <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">s</label>.<a href="#line-24" class="ident">lazyCerts</a>)),</code></span>
+<span class="codeline" id="line-80"><code>		<a href="#line-31" class="ident">haveSum</a>:   <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[<a href="#line-16" class="ident">sum224</a>]<a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">s</label>.<a href="#line-31" class="ident">haveSum</a>)),</code></span>
+<span class="codeline" id="line-81"><code>	}</code></span>
+<span class="codeline" id="line-82"><code>	<span class="keyword">for</span> <label for="r9" class="ident">k</label>, <label for="r10" class="ident">v</label> := <span class="keyword">range</span> <label for="r6" class="ident">s</label>.<a href="#line-20" class="ident">byName</a> {</code></span>
+<span class="codeline" id="line-83"><code>		<label for="r11" class="ident">indexes</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r10" class="ident">v</label>))</code></span>
+<span class="codeline" id="line-84"><code>		<a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r11" class="ident">indexes</label>, <label for="r10" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-85"><code>		<label for="r8" class="ident">p</label>.<a href="#line-20" class="ident">byName</a>[<label for="r9" class="ident">k</label>] = <label for="r11" class="ident">indexes</label></code></span>
+<span class="codeline" id="line-86"><code>	}</code></span>
+<span class="codeline" id="line-87"><code>	<span class="keyword">for</span> <label for="r12" class="ident">k</label> := <span class="keyword">range</span> <label for="r6" class="ident">s</label>.<a href="#line-31" class="ident">haveSum</a> {</code></span>
+<span class="codeline" id="line-88"><code>		<label for="r8" class="ident">p</label>.<a href="#line-31" class="ident">haveSum</a>[<label for="r12" class="ident">k</label>] = <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-89"><code>	}</code></span>
+<span class="codeline" id="line-90"><code>	<a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r8" class="ident">p</label>.<a href="#line-24" class="ident">lazyCerts</a>, <label for="r6" class="ident">s</label>.<a href="#line-24" class="ident">lazyCerts</a>)</code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">return</span> <label for="r8" class="ident">p</label></code></span>
+<span class="codeline" id="line-92"><code>}</code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// SystemCertPool returns a copy of the system cert pool.</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// On Unix systems other than macOS the environment variables SSL_CERT_FILE and</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">// SSL_CERT_DIR can be used to override the system default locations for the SSL</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">// certificate file and SSL certificate files directory, respectively. The</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">// latter can be a colon-separated list.</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// Any mutations to the returned pool are not written to disk and do not affect</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// any other pool returned by SystemCertPool.</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">// New changes in the system cert pool might not be reflected in subsequent calls.</span></code></span>
+<span class="codeline" id="line-105"><code><span class="keyword">func</span> <label for="r13" class="ident"><a href="../../../pkg/crypto/x509.html#name-SystemCertPool" class="ident">SystemCertPool</a></label>() (*<a href="#line-19" class="ident">CertPool</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-106"><code>	<span class="keyword">if</span> <a href="../../../pkg/runtime.html" class="ident i4">runtime</a>.<a href="../../runtime/extern.go.html#line-253" class="ident">GOOS</a> == <span class="lit-string">"windows"</span> {</code></span>
+<span class="codeline" id="line-107"><code>		<span class="comment">// Issue 16736, 18609:</span></code></span>
+<span class="codeline" id="line-108"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i3">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"crypto/x509: system root pool is not available on Windows"</span>)</code></span>
+<span class="codeline" id="line-109"><code>	}</code></span>
+<span class="codeline" id="line-110"><code></code></span>
+<span class="codeline" id="line-111"><code>	<span class="keyword">if</span> <label for="r14" class="ident">sysRoots</label> := <a href="root.go.html#line-21" class="ident">systemRootsPool</a>(); <label for="r14" class="ident">sysRoots</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-112"><code>		<span class="keyword">return</span> <label for="r14" class="ident">sysRoots</label>.<a href="#line-76" class="ident">copy</a>(), <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-113"><code>	}</code></span>
+<span class="codeline" id="line-114"><code></code></span>
+<span class="codeline" id="line-115"><code>	<span class="keyword">return</span> <a href="root_unix.go.html#line-32" class="ident">loadSystemRoots</a>()</code></span>
+<span class="codeline" id="line-116"><code>}</code></span>
+<span class="codeline" id="line-117"><code></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">// findPotentialParents returns the indexes of certificates in s which might</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">// have signed cert.</span></code></span>
+<span class="codeline" id="line-120"><code><span class="keyword">func</span> (<label for="r15" class="ident">s</label> *<a href="#line-19" class="ident">CertPool</a>) <label for="r16" class="ident">findPotentialParents</label>(<label for="r17" class="ident">cert</label> *<a href="x509.go.html#line-629" class="ident">Certificate</a>) []*<a href="x509.go.html#line-629" class="ident">Certificate</a> {</code></span>
+<span class="codeline" id="line-121"><code>	<span class="keyword">if</span> <label for="r15" class="ident">s</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-122"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-123"><code>	}</code></span>
+<span class="codeline" id="line-124"><code></code></span>
+<span class="codeline" id="line-125"><code>	<span class="comment">// consider all candidates where cert.Issuer matches cert.Subject.</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">	// when picking possible candidates the list is built in the order</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">	// of match plausibility as to save cycles in buildChains:</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">	//   AKID and SKID match</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">	//   AKID present, SKID missing / AKID missing, SKID present</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">	//   AKID and SKID don't match</span></code></span>
+<span class="codeline" id="line-131"><code>	<span class="keyword">var</span> <label for="r18" class="ident">matchingKeyID</label>, <label for="r19" class="ident">oneKeyID</label>, <label for="r20" class="ident">mismatchKeyID</label> []*<a href="x509.go.html#line-629" class="ident">Certificate</a></code></span>
+<span class="codeline" id="line-132"><code>	<span class="keyword">for</span> <label for="r21" class="ident">_</label>, <label for="r22" class="ident">c</label> := <span class="keyword">range</span> <label for="r15" class="ident">s</label>.<a href="#line-20" class="ident">byName</a>[<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r17" class="ident">cert</label>.<a href="x509.go.html#line-634" class="ident">RawIssuer</a>)] {</code></span>
+<span class="codeline" id="line-133"><code>		<label for="r23" class="ident">candidate</label>, <label for="r24" class="ident">err</label> := <label for="r15" class="ident">s</label>.<a href="#line-72" class="ident">cert</a>(<label for="r22" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-134"><code>		<span class="keyword">if</span> <label for="r24" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-135"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-136"><code>		}</code></span>
+<span class="codeline" id="line-137"><code>		<label for="r25" class="ident">kidMatch</label> := <a href="../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../bytes/bytes.go.html#line-18" class="ident">Equal</a>(<label for="r23" class="ident">candidate</label>.<a href="x509.go.html#line-698" class="ident">SubjectKeyId</a>, <label for="r17" class="ident">cert</label>.<a href="x509.go.html#line-699" class="ident">AuthorityKeyId</a>)</code></span>
+<span class="codeline" id="line-138"><code>		<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-139"><code>		<span class="keyword">case</span> <label for="r25" class="ident">kidMatch</label>:</code></span>
+<span class="codeline" id="line-140"><code>			<label for="r18" class="ident">matchingKeyID</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r18" class="ident">matchingKeyID</label>, <label for="r23" class="ident">candidate</label>)</code></span>
+<span class="codeline" id="line-141"><code>		<span class="keyword">case</span> (<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r23" class="ident">candidate</label>.<a href="x509.go.html#line-698" class="ident">SubjectKeyId</a>) == <span class="lit-number">0</span> &amp;&amp; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r17" class="ident">cert</label>.<a href="x509.go.html#line-699" class="ident">AuthorityKeyId</a>) &gt; <span class="lit-number">0</span>) ||</code></span>
+<span class="codeline" id="line-142"><code>			(<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r23" class="ident">candidate</label>.<a href="x509.go.html#line-698" class="ident">SubjectKeyId</a>) &gt; <span class="lit-number">0</span> &amp;&amp; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r17" class="ident">cert</label>.<a href="x509.go.html#line-699" class="ident">AuthorityKeyId</a>) == <span class="lit-number">0</span>):</code></span>
+<span class="codeline" id="line-143"><code>			<label for="r19" class="ident">oneKeyID</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r19" class="ident">oneKeyID</label>, <label for="r23" class="ident">candidate</label>)</code></span>
+<span class="codeline" id="line-144"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-145"><code>			<label for="r20" class="ident">mismatchKeyID</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r20" class="ident">mismatchKeyID</label>, <label for="r23" class="ident">candidate</label>)</code></span>
+<span class="codeline" id="line-146"><code>		}</code></span>
+<span class="codeline" id="line-147"><code>	}</code></span>
+<span class="codeline" id="line-148"><code></code></span>
+<span class="codeline" id="line-149"><code>	<label for="r26" class="ident">found</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r18" class="ident">matchingKeyID</label>) + <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r19" class="ident">oneKeyID</label>) + <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r20" class="ident">mismatchKeyID</label>)</code></span>
+<span class="codeline" id="line-150"><code>	<span class="keyword">if</span> <label for="r26" class="ident">found</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-151"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-152"><code>	}</code></span>
+<span class="codeline" id="line-153"><code>	<label for="r27" class="ident">candidates</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]*<a href="x509.go.html#line-629" class="ident">Certificate</a>, <span class="lit-number">0</span>, <label for="r26" class="ident">found</label>)</code></span>
+<span class="codeline" id="line-154"><code>	<label for="r27" class="ident">candidates</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r27" class="ident">candidates</label>, <label for="r18" class="ident">matchingKeyID</label>...)</code></span>
+<span class="codeline" id="line-155"><code>	<label for="r27" class="ident">candidates</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r27" class="ident">candidates</label>, <label for="r19" class="ident">oneKeyID</label>...)</code></span>
+<span class="codeline" id="line-156"><code>	<label for="r27" class="ident">candidates</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r27" class="ident">candidates</label>, <label for="r20" class="ident">mismatchKeyID</label>...)</code></span>
+<span class="codeline" id="line-157"><code>	<span class="keyword">return</span> <label for="r27" class="ident">candidates</label></code></span>
+<span class="codeline" id="line-158"><code>}</code></span>
+<span class="codeline" id="line-159"><code></code></span>
+<span class="codeline" id="line-160"><code><span class="keyword">func</span> (<label for="r28" class="ident">s</label> *<a href="#line-19" class="ident">CertPool</a>) <label for="r29" class="ident">contains</label>(<label for="r30" class="ident">cert</label> *<a href="x509.go.html#line-629" class="ident">Certificate</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-161"><code>	<span class="keyword">if</span> <label for="r28" class="ident">s</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-162"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-163"><code>	}</code></span>
+<span class="codeline" id="line-164"><code>	<span class="keyword">return</span> <label for="r28" class="ident">s</label>.<a href="#line-31" class="ident">haveSum</a>[<a href="../../../pkg/crypto/sha256.html" class="ident i1">sha256</a>.<a href="../sha256/sha256.go.html#line-262" class="ident">Sum224</a>(<label for="r30" class="ident">cert</label>.<a href="x509.go.html#line-630" class="ident">Raw</a>)]</code></span>
+<span class="codeline" id="line-165"><code>}</code></span>
+<span class="codeline" id="line-166"><code></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">// AddCert adds a certificate to a pool.</span></code></span>
+<span class="codeline" id="line-168"><code><span class="keyword">func</span> (<label for="r31" class="ident">s</label> *<a href="#line-19" class="ident">CertPool</a>) <label for="r32" class="ident">AddCert</label>(<label for="r33" class="ident">cert</label> *<a href="x509.go.html#line-629" class="ident">Certificate</a>) {</code></span>
+<span class="codeline" id="line-169"><code>	<span class="keyword">if</span> <label for="r33" class="ident">cert</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-170"><code>		<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"adding nil Certificate to CertPool"</span>)</code></span>
+<span class="codeline" id="line-171"><code>	}</code></span>
+<span class="codeline" id="line-172"><code>	<label for="r31" class="ident">s</label>.<a href="#line-182" class="ident">addCertFunc</a>(<a href="../../../pkg/crypto/sha256.html" class="ident i1">sha256</a>.<a href="../sha256/sha256.go.html#line-262" class="ident">Sum224</a>(<label for="r33" class="ident">cert</label>.<a href="x509.go.html#line-630" class="ident">Raw</a>), <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r33" class="ident">cert</label>.<a href="x509.go.html#line-633" class="ident">RawSubject</a>), <span class="keyword">func</span>() (*<a href="x509.go.html#line-629" class="ident">Certificate</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-173"><code>		<span class="keyword">return</span> <label for="r33" class="ident">cert</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-174"><code>	})</code></span>
+<span class="codeline" id="line-175"><code>}</code></span>
+<span class="codeline" id="line-176"><code></code></span>
+<span class="codeline" id="line-177"><code><span class="comment">// addCertFunc adds metadata about a certificate to a pool, along with</span></code></span>
+<span class="codeline" id="line-178"><code><span class="comment">// a func to fetch that certificate later when needed.</span></code></span>
+<span class="codeline" id="line-179"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-180"><code><span class="comment">// The rawSubject is Certificate.RawSubject and must be non-empty.</span></code></span>
+<span class="codeline" id="line-181"><code><span class="comment">// The getCert func may be called 0 or more times.</span></code></span>
+<span class="codeline" id="line-182"><code><span class="keyword">func</span> (<label for="r34" class="ident">s</label> *<a href="#line-19" class="ident">CertPool</a>) <label for="r35" class="ident">addCertFunc</label>(<label for="r36" class="ident">rawSum224</label> <a href="#line-16" class="ident">sum224</a>, <label for="r37" class="ident">rawSubject</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r38" class="ident">getCert</label> <span class="keyword">func</span>() (*<a href="x509.go.html#line-629" class="ident">Certificate</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>)) {</code></span>
+<span class="codeline" id="line-183"><code>	<span class="keyword">if</span> <label for="r38" class="ident">getCert</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-184"><code>		<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"getCert can't be nil"</span>)</code></span>
+<span class="codeline" id="line-185"><code>	}</code></span>
+<span class="codeline" id="line-186"><code></code></span>
+<span class="codeline" id="line-187"><code>	<span class="comment">// Check that the certificate isn't being added twice.</span></code></span>
+<span class="codeline" id="line-188"><code>	<span class="keyword">if</span> <label for="r34" class="ident">s</label>.<a href="#line-31" class="ident">haveSum</a>[<label for="r36" class="ident">rawSum224</label>] {</code></span>
+<span class="codeline" id="line-189"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-190"><code>	}</code></span>
+<span class="codeline" id="line-191"><code></code></span>
+<span class="codeline" id="line-192"><code>	<label for="r34" class="ident">s</label>.<a href="#line-31" class="ident">haveSum</a>[<label for="r36" class="ident">rawSum224</label>] = <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-193"><code>	<label for="r34" class="ident">s</label>.<a href="#line-24" class="ident">lazyCerts</a> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r34" class="ident">s</label>.<a href="#line-24" class="ident">lazyCerts</a>, <a href="#line-36" class="ident">lazyCert</a>{</code></span>
+<span class="codeline" id="line-194"><code>		<a href="#line-41" class="ident">rawSubject</a>: []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r37" class="ident">rawSubject</label>),</code></span>
+<span class="codeline" id="line-195"><code>		<a href="#line-51" class="ident">getCert</a>:    <label for="r38" class="ident">getCert</label>,</code></span>
+<span class="codeline" id="line-196"><code>	})</code></span>
+<span class="codeline" id="line-197"><code>	<label for="r34" class="ident">s</label>.<a href="#line-20" class="ident">byName</a>[<label for="r37" class="ident">rawSubject</label>] = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r34" class="ident">s</label>.<a href="#line-20" class="ident">byName</a>[<label for="r37" class="ident">rawSubject</label>], <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r34" class="ident">s</label>.<a href="#line-24" class="ident">lazyCerts</a>)-<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-198"><code>}</code></span>
+<span class="codeline" id="line-199"><code></code></span>
+<span class="codeline" id="line-200"><code><span class="comment">// AppendCertsFromPEM attempts to parse a series of PEM encoded certificates.</span></code></span>
+<span class="codeline" id="line-201"><code><span class="comment">// It appends any certificates found to s and reports whether any certificates</span></code></span>
+<span class="codeline" id="line-202"><code><span class="comment">// were successfully parsed.</span></code></span>
+<span class="codeline" id="line-203"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-204"><code><span class="comment">// On many Linux systems, /etc/ssl/cert.pem will contain the system wide set</span></code></span>
+<span class="codeline" id="line-205"><code><span class="comment">// of root CAs in a format suitable for this function.</span></code></span>
+<span class="codeline" id="line-206"><code><span class="keyword">func</span> (<label for="r39" class="ident">s</label> *<a href="#line-19" class="ident">CertPool</a>) <label for="r40" class="ident">AppendCertsFromPEM</label>(<label for="r41" class="ident">pemCerts</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r42" class="ident">ok</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-207"><code>	<span class="keyword">for</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r41" class="ident">pemCerts</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-208"><code>		<span class="keyword">var</span> <label for="r43" class="ident">block</label> *<a href="../../../pkg/encoding/pem.html" class="ident i2">pem</a>.<a href="../../encoding/pem/pem.go.html#line-27" class="ident">Block</a></code></span>
+<span class="codeline" id="line-209"><code>		<label for="r43" class="ident">block</label>, <label for="r41" class="ident">pemCerts</label> = <a href="../../../pkg/encoding/pem.html" class="ident i2">pem</a>.<a href="../../encoding/pem/pem.go.html#line-86" class="ident">Decode</a>(<label for="r41" class="ident">pemCerts</label>)</code></span>
+<span class="codeline" id="line-210"><code>		<span class="keyword">if</span> <label for="r43" class="ident">block</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-211"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-212"><code>		}</code></span>
+<span class="codeline" id="line-213"><code>		<span class="keyword">if</span> <label for="r43" class="ident">block</label>.<a href="../../encoding/pem/pem.go.html#line-28" class="ident">Type</a> != <span class="lit-string">"CERTIFICATE"</span> || <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r43" class="ident">block</label>.<a href="../../encoding/pem/pem.go.html#line-29" class="ident">Headers</a>) != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-214"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-215"><code>		}</code></span>
+<span class="codeline" id="line-216"><code></code></span>
+<span class="codeline" id="line-217"><code>		<label for="r44" class="ident">certBytes</label> := <label for="r43" class="ident">block</label>.<a href="../../encoding/pem/pem.go.html#line-30" class="ident">Bytes</a></code></span>
+<span class="codeline" id="line-218"><code>		<label for="r45" class="ident">cert</label>, <label for="r46" class="ident">err</label> := <a href="x509.go.html#line-1547" class="ident">ParseCertificate</a>(<label for="r44" class="ident">certBytes</label>)</code></span>
+<span class="codeline" id="line-219"><code>		<span class="keyword">if</span> <label for="r46" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-220"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-221"><code>		}</code></span>
+<span class="codeline" id="line-222"><code>		<span class="keyword">var</span> <label for="r47" class="ident">lazyCert</label> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-223"><code>			<a href="../../../pkg/sync.html" class="ident i5">sync</a>.<a href="../../sync/once.go.html#line-14" class="ident">Once</a></code></span>
+<span class="codeline" id="line-224"><code>			<label for="r48" class="ident">v</label> *<a href="x509.go.html#line-629" class="ident">Certificate</a></code></span>
+<span class="codeline" id="line-225"><code>		}</code></span>
+<span class="codeline" id="line-226"><code>		<label for="r39" class="ident">s</label>.<a href="#line-182" class="ident">addCertFunc</a>(<a href="../../../pkg/crypto/sha256.html" class="ident i1">sha256</a>.<a href="../sha256/sha256.go.html#line-262" class="ident">Sum224</a>(<label for="r45" class="ident">cert</label>.<a href="x509.go.html#line-630" class="ident">Raw</a>), <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r45" class="ident">cert</label>.<a href="x509.go.html#line-633" class="ident">RawSubject</a>), <span class="keyword">func</span>() (*<a href="x509.go.html#line-629" class="ident">Certificate</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-227"><code>			<label for="r47" class="ident">lazyCert</label>.<a href="../../sync/once.go.html#line-42" class="ident">Do</a>(<span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-228"><code>				<span class="comment">// This can't fail, as the same bytes already parsed above.</span></code></span>
+<span class="codeline" id="line-229"><code>				<label for="r47" class="ident">lazyCert</label>.<label for="r48" class="ident">v</label>, _ = <a href="x509.go.html#line-1547" class="ident">ParseCertificate</a>(<label for="r44" class="ident">certBytes</label>)</code></span>
+<span class="codeline" id="line-230"><code>				<label for="r44" class="ident">certBytes</label> = <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-231"><code>			})</code></span>
+<span class="codeline" id="line-232"><code>			<span class="keyword">return</span> <label for="r47" class="ident">lazyCert</label>.<label for="r48" class="ident">v</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-233"><code>		})</code></span>
+<span class="codeline" id="line-234"><code>		<label for="r42" class="ident">ok</label> = <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-235"><code>	}</code></span>
+<span class="codeline" id="line-236"><code></code></span>
+<span class="codeline" id="line-237"><code>	<span class="keyword">return</span> <label for="r42" class="ident">ok</label></code></span>
+<span class="codeline" id="line-238"><code>}</code></span>
+<span class="codeline" id="line-239"><code></code></span>
+<span class="codeline" id="line-240"><code><span class="comment">// Subjects returns a list of the DER-encoded subjects of</span></code></span>
+<span class="codeline" id="line-241"><code><span class="comment">// all of the certificates in the pool.</span></code></span>
+<span class="codeline" id="line-242"><code><span class="keyword">func</span> (<label for="r49" class="ident">s</label> *<a href="#line-19" class="ident">CertPool</a>) <label for="r50" class="ident">Subjects</label>() [][]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-243"><code>	<label for="r51" class="ident">res</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([][]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r49" class="ident">s</label>.<a href="#line-64" class="ident">len</a>())</code></span>
+<span class="codeline" id="line-244"><code>	<span class="keyword">for</span> <label for="r52" class="ident">i</label>, <label for="r53" class="ident">lc</label> := <span class="keyword">range</span> <label for="r49" class="ident">s</label>.<a href="#line-24" class="ident">lazyCerts</a> {</code></span>
+<span class="codeline" id="line-245"><code>		<label for="r51" class="ident">res</label>[<label for="r52" class="ident">i</label>] = <label for="r53" class="ident">lc</label>.<a href="#line-41" class="ident">rawSubject</a></code></span>
+<span class="codeline" id="line-246"><code>	}</code></span>
+<span class="codeline" id="line-247"><code>	<span class="keyword">return</span> <label for="r51" class="ident">res</label></code></span>
+<span class="codeline" id="line-248"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

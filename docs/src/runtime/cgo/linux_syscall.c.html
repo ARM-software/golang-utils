@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: linux_syscall.c in package runtime/cgo</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	linux_syscall.c
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/runtime/cgo.html">runtime/cgo</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code>// Copyright 2019 The Go Authors. All rights reserved.</code></span>
+<span class="codeline" id="line-2"><code>// Use of this source code is governed by a BSD-style</code></span>
+<span class="codeline" id="line-3"><code>// license that can be found in the LICENSE file.</code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code>// +build linux</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code>#ifndef _GNU_SOURCE // setres[ug]id() API.</code></span>
+<span class="codeline" id="line-8"><code>#define _GNU_SOURCE</code></span>
+<span class="codeline" id="line-9"><code>#endif</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code>#include &lt;grp.h&gt;</code></span>
+<span class="codeline" id="line-12"><code>#include &lt;sys/types.h&gt;</code></span>
+<span class="codeline" id="line-13"><code>#include &lt;unistd.h&gt;</code></span>
+<span class="codeline" id="line-14"><code>#include &lt;errno.h&gt;</code></span>
+<span class="codeline" id="line-15"><code>#include "libcgo.h"</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code>/*</code></span>
+<span class="codeline" id="line-18"><code> * Assumed POSIX compliant libc system call wrappers. For linux, the</code></span>
+<span class="codeline" id="line-19"><code> * glibc/nptl/setxid mechanism ensures that POSIX semantics are</code></span>
+<span class="codeline" id="line-20"><code> * honored for all pthreads (by default), and this in turn with cgo</code></span>
+<span class="codeline" id="line-21"><code> * ensures that all Go threads launched with cgo are kept in sync for</code></span>
+<span class="codeline" id="line-22"><code> * these function calls.</code></span>
+<span class="codeline" id="line-23"><code> */</code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code>// argset_t matches runtime/cgocall.go:argset.</code></span>
+<span class="codeline" id="line-26"><code>typedef struct {</code></span>
+<span class="codeline" id="line-27"><code>	uintptr_t* args;</code></span>
+<span class="codeline" id="line-28"><code>	uintptr_t retval;</code></span>
+<span class="codeline" id="line-29"><code>} argset_t;</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code>// libc backed posix-compliant syscalls.</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code>#define SET_RETVAL(fn) \</code></span>
+<span class="codeline" id="line-34"><code>  uintptr_t ret = (uintptr_t) fn ; \</code></span>
+<span class="codeline" id="line-35"><code>  if (ret == (uintptr_t) -1) {	   \</code></span>
+<span class="codeline" id="line-36"><code>    x-&gt;retval = (uintptr_t) errno; \</code></span>
+<span class="codeline" id="line-37"><code>  } else                           \</code></span>
+<span class="codeline" id="line-38"><code>    x-&gt;retval = ret</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code>void</code></span>
+<span class="codeline" id="line-41"><code>_cgo_libc_setegid(argset_t* x) {</code></span>
+<span class="codeline" id="line-42"><code>	SET_RETVAL(setegid((gid_t) x-&gt;args[0]));</code></span>
+<span class="codeline" id="line-43"><code>}</code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code>void</code></span>
+<span class="codeline" id="line-46"><code>_cgo_libc_seteuid(argset_t* x) {</code></span>
+<span class="codeline" id="line-47"><code>	SET_RETVAL(seteuid((uid_t) x-&gt;args[0]));</code></span>
+<span class="codeline" id="line-48"><code>}</code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code>void</code></span>
+<span class="codeline" id="line-51"><code>_cgo_libc_setgid(argset_t* x) {</code></span>
+<span class="codeline" id="line-52"><code>	SET_RETVAL(setgid((gid_t) x-&gt;args[0]));</code></span>
+<span class="codeline" id="line-53"><code>}</code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code>void</code></span>
+<span class="codeline" id="line-56"><code>_cgo_libc_setgroups(argset_t* x) {</code></span>
+<span class="codeline" id="line-57"><code>	SET_RETVAL(setgroups((size_t) x-&gt;args[0], (const gid_t *) x-&gt;args[1]));</code></span>
+<span class="codeline" id="line-58"><code>}</code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code>void</code></span>
+<span class="codeline" id="line-61"><code>_cgo_libc_setregid(argset_t* x) {</code></span>
+<span class="codeline" id="line-62"><code>	SET_RETVAL(setregid((gid_t) x-&gt;args[0], (gid_t) x-&gt;args[1]));</code></span>
+<span class="codeline" id="line-63"><code>}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code>void</code></span>
+<span class="codeline" id="line-66"><code>_cgo_libc_setresgid(argset_t* x) {</code></span>
+<span class="codeline" id="line-67"><code>	SET_RETVAL(setresgid((gid_t) x-&gt;args[0], (gid_t) x-&gt;args[1],</code></span>
+<span class="codeline" id="line-68"><code>			     (gid_t) x-&gt;args[2]));</code></span>
+<span class="codeline" id="line-69"><code>}</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code>void</code></span>
+<span class="codeline" id="line-72"><code>_cgo_libc_setresuid(argset_t* x) {</code></span>
+<span class="codeline" id="line-73"><code>	SET_RETVAL(setresuid((uid_t) x-&gt;args[0], (uid_t) x-&gt;args[1],</code></span>
+<span class="codeline" id="line-74"><code>			     (uid_t) x-&gt;args[2]));</code></span>
+<span class="codeline" id="line-75"><code>}</code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code>void</code></span>
+<span class="codeline" id="line-78"><code>_cgo_libc_setreuid(argset_t* x) {</code></span>
+<span class="codeline" id="line-79"><code>	SET_RETVAL(setreuid((uid_t) x-&gt;args[0], (uid_t) x-&gt;args[1]));</code></span>
+<span class="codeline" id="line-80"><code>}</code></span>
+<span class="codeline" id="line-81"><code></code></span>
+<span class="codeline" id="line-82"><code>void</code></span>
+<span class="codeline" id="line-83"><code>_cgo_libc_setuid(argset_t* x) {</code></span>
+<span class="codeline" id="line-84"><code>	SET_RETVAL(setuid((uid_t) x-&gt;args[0]));</code></span>
+<span class="codeline" id="line-85"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

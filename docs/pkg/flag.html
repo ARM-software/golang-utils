@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: flag</title>
+<link href="../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>flag</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../index.html#pkg-flag">flag</a><i> (on <a href="https://pkg.go.dev/flag" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../dep/flag.html">9 packages</a>, and imported by <a href="../dep/flag.html#imported-by">2 packages</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<input type='checkbox' checked class="fold" id="file-0-fold-content"><label for="file-0-fold-content">   <a href="../src/flag/flag.go.html#doc">d➜</a> <a href="../src/flag/flag.go.html">flag.go</a></label><span id='file-0-fold-content-items' class="fold-items">
+			Package flag implements command-line flag parsing.
+
+			Usage
+
+			Define flags using flag.String(), Bool(), Int(), etc.
+
+			This declares an integer flag, -n, stored in the pointer nFlag, with type *int:
+				import "flag"
+				var nFlag = flag.Int("n", 1234, "help message for flag n")
+			If you like, you can bind the flag to a variable using the Var() functions.
+				var flagvar int
+				func init() {
+					flag.IntVar(&amp;flagvar, "flagname", 1234, "help message for flagname")
+				}
+			Or you can create custom flags that satisfy the Value interface (with
+			pointer receivers) and couple them to flag parsing by
+				flag.Var(&amp;flagVal, "name", "help message for flagname")
+			For such flags, the default value is just the initial value of the variable.
+
+			After all flags are defined, call
+				flag.Parse()
+			to parse the command line into the defined flags.
+
+			Flags may then be used directly. If you're using the flags themselves,
+			they are all pointers; if you bind to variables, they're values.
+				fmt.Println("ip has value ", *ip)
+				fmt.Println("flagvar has value ", flagvar)
+
+			After parsing, the arguments following the flags are available as the
+			slice flag.Args() or individually as flag.Arg(i).
+			The arguments are indexed from 0 through flag.NArg()-1.
+
+			Command line flag syntax
+
+			The following forms are permitted:
+
+				-flag
+				-flag=x
+				-flag x  // non-boolean flags only
+			One or two minus signs may be used; they are equivalent.
+			The last form is not permitted for boolean flags because the
+			meaning of the command
+				cmd -x *
+			where * is a Unix shell wildcard, will change if there is a file
+			called 0, false, etc. You must use the -flag=false form to turn
+			off a boolean flag.
+
+			Flag parsing stops just before the first non-flag argument
+			("-" is a non-flag argument) or after the terminator "--".
+
+			Integer flags accept 1234, 0664, 0x1234 and may be negative.
+			Boolean flags may be:
+				1, 0, t, f, T, F, true, false, TRUE, FALSE, True, False
+			Duration flags accept any input valid for time.ParseDuration.
+
+			The default set of command-line flags is controlled by
+			top-level functions.  The FlagSet type allows one to define
+			independent sets of flags, such as to implement subcommands
+			in a command-line interface. The methods of FlagSet are
+			analogous to the top-level functions for the command-line
+			flag set.</span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content"></label><span id='example-0-fold-content-items' class="fold-items">
+		// These examples demonstrate more intricate uses of the flag package.
+		package main
+		
+		import (
+			"errors"
+			"flag"
+			"fmt"
+			"strings"
+			"time"
+		)
+		
+		// Example 1: A single string flag called "species" with default value "gopher".
+		var species = flag.String("species", "gopher", "the species we are studying")
+		
+		// Example 2: Two flags sharing a variable, so we can have a shorthand.
+		// The order of initialization is undefined, so make sure both use the
+		// same default value. They must be set up with an init function.
+		var gopherType string
+		
+		func init() {
+			const (
+				defaultGopher = "pocket"
+				usage         = "the variety of gopher"
+			)
+			flag.StringVar(&gopherType, "gopher_type", defaultGopher, usage)
+			flag.StringVar(&gopherType, "g", defaultGopher, usage+" (shorthand)")
+		}
+		
+		// Example 3: A user-defined flag type, a slice of durations.
+		type interval []time.Duration
+		
+		// String is the method to format the flag's value, part of the flag.Value interface.
+		// The String method's output will be used in diagnostics.
+		func (i *interval) String() string {
+			return fmt.Sprint(*i)
+		}
+		
+		// Set is the method to set the flag value, part of the flag.Value interface.
+		// Set's argument is a string to be parsed to set the flag.
+		// It's a comma-separated list, so we split it.
+		func (i *interval) Set(value string) error {
+			// If we wanted to allow the flag to be set multiple times,
+			// accumulating values, we would delete this if statement.
+			// That would permit usages such as
+			//	-deltaT 10s -deltaT 15s
+			// and other combinations.
+			if len(*i) > 0 {
+				return errors.New("interval flag already set")
+			}
+			for _, dt := range strings.Split(value, ",") {
+				duration, err := time.ParseDuration(dt)
+				if err != nil {
+					return err
+				}
+				*i = append(*i, duration)
+			}
+			return nil
+		}
+		
+		// Define a flag to accumulate durations. Because it has a special type,
+		// we need to use the Var function and therefore create the flag during
+		// init.
+		
+		var intervalFlag interval
+		
+		func init() {
+			// Tie the command-line flag to the intervalFlag variable and
+			// set a usage message.
+			flag.Var(&intervalFlag, "deltaT", "comma-separated list of intervals to use between events")
+		}
+		
+		func main() {
+			// All the interesting pieces are with the variables declared above, but
+			// to enable the flag package to see the flags defined there, one must
+			// execute, typically at the start of main (not init!):
+			//	flag.Parse()
+			// We don't run it here because this is not a main function and
+			// the testing suite has already parsed the flags.
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-1-fold-content"><label for="example-1-fold-content">Func</label><span id='example-1-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"errors"
+			"flag"
+			"fmt"
+			"net"
+			"os"
+		)
+		
+		func main() {
+			fs := flag.NewFlagSet("ExampleFunc", flag.ContinueOnError)
+			fs.SetOutput(os.Stdout)
+			var ip net.IP
+			fs.Func("ip", "`IP address` to parse", func(s string) error {
+				ip = net.ParseIP(s)
+				if ip == nil {
+					return errors.New("could not parse IP")
+				}
+				return nil
+			})
+			fs.Parse([]string{"-ip", "127.0.0.1"})
+			fmt.Printf("{ip: %v, loopback: %t}\n\n", ip, ip.IsLoopback())
+		
+			// 256 is not a valid IPv4 component
+			fs.Parse([]string{"-ip", "256.0.0.1"})
+			fmt.Printf("{ip: %v, loopback: %t}\n\n", ip, ip.IsLoopback())
+		
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-2-fold-content"><label for="example-2-fold-content">Value</label><span id='example-2-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"flag"
+			"fmt"
+			"net/url"
+		)
+		
+		type URLValue struct {
+			URL *url.URL
+		}
+		
+		func (v URLValue) String() string {
+			if v.URL != nil {
+				return v.URL.String()
+			}
+			return ""
+		}
+		
+		func (v URLValue) Set(s string) error {
+			if u, err := url.Parse(s); err != nil {
+				return err
+			} else {
+				*v.URL = *u
+			}
+			return nil
+		}
+		
+		var u = &url.URL{}
+		
+		func main() {
+			fs := flag.NewFlagSet("ExampleValue", flag.ExitOnError)
+			fs.Var(&URLValue{u}, "url", "URL to parse")
+		
+			fs.Parse([]string{"-url", "https://golang.org/pkg/flag/"})
+			fmt.Printf(`{scheme: %q, host: %q, path: %q}`, u.Scheme, u.Host, u.Path)
+		
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 15, in which 5 are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-ErrorHandling" data-popularity="160">	<input type='checkbox' class="fold" id="ErrorHandling-fold-content"><label for="ErrorHandling-fold-content"> type <a href="../src/flag/flag.go.html#line-312">ErrorHandling</a> <a href="builtin.html#name-int">int</a> <i>(basic type)</i></label><span id='ErrorHandling-fold-content-docs' class="fold-docs">
+		ErrorHandling defines how FlagSet.Parse behaves if the parse fails.
+
+		<input type='checkbox' class="fold" id="ErrorHandling-fold-results"><label for="ErrorHandling-fold-results">As Outputs Of (<i>at least one exported</i>)</label><span id='ErrorHandling-fold-results-items' class="fold-items"><span>
+			func (*<a href="#name-FlagSet">FlagSet</a>).<a href="../src/flag/flag.go.html#line-380">ErrorHandling</a>() <b>ErrorHandling</b></span></span>
+		<input type='checkbox' class="fold" id="ErrorHandling-fold-params"><label for="ErrorHandling-fold-params">As Inputs Of (<i>at least 2, both are exported</i>)</label><span id='ErrorHandling-fold-params-items' class="fold-items"><span>
+			func <a href="#name-NewFlagSet">NewFlagSet</a>(name <a href="builtin.html#name-string">string</a>, errorHandling <b>ErrorHandling</b>) *<a href="#name-FlagSet">FlagSet</a></span><span>
+			func (*<a href="#name-FlagSet">FlagSet</a>).<a href="../src/flag/flag.go.html#line-1062">Init</a>(name <a href="builtin.html#name-string">string</a>, errorHandling <b>ErrorHandling</b>)</span></span>
+		<input type='checkbox' class="fold" id="ErrorHandling-fold-values"><label for="ErrorHandling-fold-values">As Types Of (<i>total 3, all are exported</i>)</label><span id='ErrorHandling-fold-values-items' class="fold-items"><span>
+			const <a href="#name-ContinueOnError">ContinueOnError</a></span><span>
+			const <a href="#name-ExitOnError">ExitOnError</a></span><span>
+			const <a href="#name-PanicOnError">PanicOnError</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-Flag" data-popularity="400">	<input type='checkbox' class="fold" id="Flag-fold-content"><label for="Flag-fold-content"> type <a href="../src/flag/flag.go.html#line-344">Flag</a> <i>(struct)</i></label><span id='Flag-fold-content-docs' class="fold-docs">
+		A Flag represents the state of a flag.
+
+		<input type='checkbox' class="fold" id="Flag-fold-fields"><label for="Flag-fold-fields">Fields (<i>total 4, all are exported</i>)</label><span id='Flag-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Flag-fold-field-DefValue"><label for="Flag-fold-field-DefValue"><a href="../src/flag/flag.go.html#line-348">DefValue</a> <i><a href="builtin.html#name-string">string</a></i></label><span id='Flag-fold-field-DefValue-docs' class="fold-docs">
+				// default value (as text); for usage message
+</span></span><span>
+			<input type='checkbox' class="fold" id="Flag-fold-field-Name"><label for="Flag-fold-field-Name"><a href="../src/flag/flag.go.html#line-345">Name</a> <i><a href="builtin.html#name-string">string</a></i></label><span id='Flag-fold-field-Name-docs' class="fold-docs">
+				// name as it appears on command line
+</span></span><span>
+			<input type='checkbox' class="fold" id="Flag-fold-field-Usage"><label for="Flag-fold-field-Usage"><a href="../src/flag/flag.go.html#line-346">Usage</a> <i><a href="builtin.html#name-string">string</a></i></label><span id='Flag-fold-field-Usage-docs' class="fold-docs">
+				// help message
+</span></span><span>
+			<input type='checkbox' class="fold" id="Flag-fold-field-Value"><label for="Flag-fold-field-Value"><a href="../src/flag/flag.go.html#line-347">Value</a> <i><a href="#name-Value">Value</a></i></label><span id='Flag-fold-field-Value-docs' class="fold-docs">
+				// value as set
+</span></span></span>
+		<input type='checkbox' class="fold" id="Flag-fold-results"><label for="Flag-fold-results">As Outputs Of (<i>at least 3, in which 2 are exported</i>)</label><span id='Flag-fold-results-items' class="fold-items"><span>
+			func <a href="#name-Lookup">Lookup</a>(name <a href="builtin.html#name-string">string</a>) *<b>Flag</b></span><span>
+			func (*<a href="#name-FlagSet">FlagSet</a>).<a href="../src/flag/flag.go.html#line-419">Lookup</a>(name <a href="builtin.html#name-string">string</a>) *<b>Flag</b></span>
+			<input type='checkbox' class="showhide" id="Flag-showhide-inputofs"><i><label for="Flag-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="Flag-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-sortFlags">sortFlags</a>(flags map[<a href="builtin.html#name-string">string</a>]*<b>Flag</b>) []*<b>Flag</b></i></span></span>
+		<input type='checkbox' class="fold" id="Flag-fold-params"><label for="Flag-fold-params">As Inputs Of (<i>at least 5, in which 3 are exported</i>)</label><span id='Flag-fold-params-items' class="fold-items"><span>
+			func <a href="#name-UnquoteUsage">UnquoteUsage</a>(flag *<b>Flag</b>) (name <a href="builtin.html#name-string">string</a>, usage <a href="builtin.html#name-string">string</a>)</span><span>
+			func github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-PFlagFromGoFlag">PFlagFromGoFlag</a>(goflag *<b>Flag</b>) *<a href="github.com/spf13/pflag.html">pflag</a>.<a href="github.com/spf13/pflag.html#name-Flag">Flag</a></span><span>
+			func github.com/spf13/pflag.(*<a href="github.com/spf13/pflag.html#name-FlagSet">FlagSet</a>).<a href="../src/github.com/spf13/pflag/golangflag.go.html#line-85">AddGoFlag</a>(goflag *<b>Flag</b>)</span>
+			<input type='checkbox' class="showhide" id="Flag-showhide-outputofs"><i><label for="Flag-showhide-outputofs" class="show-inline">/* 2+ unexporteds ... */</label><label for="Flag-showhide-outputofs" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-isZeroValue">isZeroValue</a>(flag *<b>Flag</b>, value <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func <a href="#name-sortFlags">sortFlags</a>(flags map[<a href="builtin.html#name-string">string</a>]*<b>Flag</b>) []*<b>Flag</b></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-FlagSet" data-popularity="2050">	<input type='checkbox' class="fold" id="FlagSet-fold-content"><label for="FlagSet-fold-content"> type <a href="../src/flag/flag.go.html#line-326">FlagSet</a> <i>(struct)</i></label><span id='FlagSet-fold-content-docs' class="fold-docs">
+		A FlagSet represents a set of defined flags. The zero value of a FlagSet
+		has no name and has ContinueOnError error handling.
+
+		Flag names must be unique within a FlagSet. An attempt to define a flag whose
+		name is already in use will cause a panic.
+
+		<input type='checkbox' class="fold" id="FlagSet-fold-fields"><label for="FlagSet-fold-fields">Fields (<i>total 8, in which 1 are exported</i>)</label><span id='FlagSet-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-field-Usage"><label for="FlagSet-fold-field-Usage"><a href="../src/flag/flag.go.html#line-332">Usage</a> <i>func()</i></label><span id='FlagSet-fold-field-Usage-docs' class="fold-docs">
+				Usage is the function called when an error occurs while parsing flags.
+				The field is a function (not a method) that may be changed to point to
+				a custom error handler. What happens after Usage is called depends
+				on the ErrorHandling setting; for the command line, this defaults
+				to ExitOnError, which exits the program after calling Usage.
+</span></span>
+			<input type='checkbox' class="showhide" id="FlagSet-showhide-fields"><i><label for="FlagSet-showhide-fields" class="show-inline">/* 7 unexporteds ... */</label><label for="FlagSet-showhide-fields" class="hide-inline">/* 7 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/flag/flag.go.html#line-336">actual</a> <i>map[<a href="builtin.html#name-string">string</a>]*<a href="#name-Flag">Flag</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="FlagSet-fold-field-args"><label for="FlagSet-fold-field-args"><a href="../src/flag/flag.go.html#line-338">args</a> <i>[]<a href="builtin.html#name-string">string</a></i></label><span id='FlagSet-fold-field-args-docs' class="fold-docs">
+				// arguments after flags
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/flag/flag.go.html#line-339">errorHandling</a> <i><a href="#name-ErrorHandling">ErrorHandling</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/flag/flag.go.html#line-337">formal</a> <i>map[<a href="builtin.html#name-string">string</a>]*<a href="#name-Flag">Flag</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/flag/flag.go.html#line-334">name</a> <i><a href="builtin.html#name-string">string</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="FlagSet-fold-field-output"><label for="FlagSet-fold-field-output"><a href="../src/flag/flag.go.html#line-340">output</a> <i><a href="io.html">io</a>.<a href="io.html#name-Writer">Writer</a></i></label><span id='FlagSet-fold-field-output-docs' class="fold-docs">
+				// nil means stderr; use Output() accessor
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/flag/flag.go.html#line-335">parsed</a> <i><a href="builtin.html#name-bool">bool</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="FlagSet-fold-methods"><label for="FlagSet-fold-methods">Methods (<i>total 38, in which 34 are exported</i>)</label><span id='FlagSet-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Arg"><label for="FlagSet-fold-method-Arg">(*T) <a href="../src/flag/flag.go.html#line-601">Arg</a>(i <a href="builtin.html#name-int">int</a>) <a href="builtin.html#name-string">string</a></label><span id='FlagSet-fold-method-Arg-docs' class="fold-docs">
+				Arg returns the i'th argument. Arg(0) is the first remaining argument
+				after flags have been processed. Arg returns an empty string if the
+				requested element does not exist.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Args"><label for="FlagSet-fold-method-Args">(*T) <a href="../src/flag/flag.go.html#line-622">Args</a>() []<a href="builtin.html#name-string">string</a></label><span id='FlagSet-fold-method-Args-docs' class="fold-docs">
+				Args returns the non-flag arguments.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Bool"><label for="FlagSet-fold-method-Bool">(*T) <a href="../src/flag/flag.go.html#line-641">Bool</a>(name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-bool">bool</a>, usage <a href="builtin.html#name-string">string</a>) *<a href="builtin.html#name-bool">bool</a></label><span id='FlagSet-fold-method-Bool-docs' class="fold-docs">
+				Bool defines a bool flag with specified name, default value, and usage string.
+				The return value is the address of a bool variable that stores the value of the flag.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-BoolVar"><label for="FlagSet-fold-method-BoolVar">(*T) <a href="../src/flag/flag.go.html#line-629">BoolVar</a>(p *<a href="builtin.html#name-bool">bool</a>, name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-bool">bool</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='FlagSet-fold-method-BoolVar-docs' class="fold-docs">
+				BoolVar defines a bool flag with specified name, default value, and usage string.
+				The argument p points to a bool variable in which to store the value of the flag.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Duration"><label for="FlagSet-fold-method-Duration">(*T) <a href="../src/flag/flag.go.html#line-826">Duration</a>(name <a href="builtin.html#name-string">string</a>, value <a href="time.html">time</a>.<a href="time.html#name-Duration">Duration</a>, usage <a href="builtin.html#name-string">string</a>) *<a href="time.html">time</a>.<a href="time.html#name-Duration">Duration</a></label><span id='FlagSet-fold-method-Duration-docs' class="fold-docs">
+				Duration defines a time.Duration flag with specified name, default value, and usage string.
+				The return value is the address of a time.Duration variable that stores the value of the flag.
+				The flag accepts a value acceptable to time.ParseDuration.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-DurationVar"><label for="FlagSet-fold-method-DurationVar">(*T) <a href="../src/flag/flag.go.html#line-812">DurationVar</a>(p *<a href="time.html">time</a>.<a href="time.html#name-Duration">Duration</a>, name <a href="builtin.html#name-string">string</a>, value <a href="time.html">time</a>.<a href="time.html#name-Duration">Duration</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='FlagSet-fold-method-DurationVar-docs' class="fold-docs">
+				DurationVar defines a time.Duration flag with specified name, default value, and usage string.
+				The argument p points to a time.Duration variable in which to store the value of the flag.
+				The flag accepts a value acceptable to time.ParseDuration.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-ErrorHandling"><label for="FlagSet-fold-method-ErrorHandling">(*T) <a href="../src/flag/flag.go.html#line-380">ErrorHandling</a>() <a href="#name-ErrorHandling">ErrorHandling</a></label><span id='FlagSet-fold-method-ErrorHandling-docs' class="fold-docs">
+				ErrorHandling returns the error handling behavior of the flag set.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Float64"><label for="FlagSet-fold-method-Float64">(*T) <a href="../src/flag/flag.go.html#line-797">Float64</a>(name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-float64">float64</a>, usage <a href="builtin.html#name-string">string</a>) *<a href="builtin.html#name-float64">float64</a></label><span id='FlagSet-fold-method-Float64-docs' class="fold-docs">
+				Float64 defines a float64 flag with specified name, default value, and usage string.
+				The return value is the address of a float64 variable that stores the value of the flag.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Float64Var"><label for="FlagSet-fold-method-Float64Var">(*T) <a href="../src/flag/flag.go.html#line-785">Float64Var</a>(p *<a href="builtin.html#name-float64">float64</a>, name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-float64">float64</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='FlagSet-fold-method-Float64Var-docs' class="fold-docs">
+				Float64Var defines a float64 flag with specified name, default value, and usage string.
+				The argument p points to a float64 variable in which to store the value of the flag.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Func"><label for="FlagSet-fold-method-Func">(*T) <a href="../src/flag/flag.go.html#line-842">Func</a>(name, usage <a href="builtin.html#name-string">string</a>, fn func(<a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-error">error</a>)</label><span id='FlagSet-fold-method-Func-docs' class="fold-docs">
+				Func defines a flag with the specified name and usage string.
+				Each time the flag is seen, fn is called with the value of the flag.
+				If fn returns a non-nil error, it will be treated as a flag value parsing error.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Init"><label for="FlagSet-fold-method-Init">(*T) <a href="../src/flag/flag.go.html#line-1062">Init</a>(name <a href="builtin.html#name-string">string</a>, errorHandling <a href="#name-ErrorHandling">ErrorHandling</a>)</label><span id='FlagSet-fold-method-Init-docs' class="fold-docs">
+				Init sets the name and error handling property for a flag set.
+				By default, the zero FlagSet uses an empty name and the
+				ContinueOnError error handling policy.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Int"><label for="FlagSet-fold-method-Int">(*T) <a href="../src/flag/flag.go.html#line-667">Int</a>(name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-int">int</a>, usage <a href="builtin.html#name-string">string</a>) *<a href="builtin.html#name-int">int</a></label><span id='FlagSet-fold-method-Int-docs' class="fold-docs">
+				Int defines an int flag with specified name, default value, and usage string.
+				The return value is the address of an int variable that stores the value of the flag.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Int64"><label for="FlagSet-fold-method-Int64">(*T) <a href="../src/flag/flag.go.html#line-693">Int64</a>(name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-int64">int64</a>, usage <a href="builtin.html#name-string">string</a>) *<a href="builtin.html#name-int64">int64</a></label><span id='FlagSet-fold-method-Int64-docs' class="fold-docs">
+				Int64 defines an int64 flag with specified name, default value, and usage string.
+				The return value is the address of an int64 variable that stores the value of the flag.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Int64Var"><label for="FlagSet-fold-method-Int64Var">(*T) <a href="../src/flag/flag.go.html#line-681">Int64Var</a>(p *<a href="builtin.html#name-int64">int64</a>, name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-int64">int64</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='FlagSet-fold-method-Int64Var-docs' class="fold-docs">
+				Int64Var defines an int64 flag with specified name, default value, and usage string.
+				The argument p points to an int64 variable in which to store the value of the flag.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-IntVar"><label for="FlagSet-fold-method-IntVar">(*T) <a href="../src/flag/flag.go.html#line-655">IntVar</a>(p *<a href="builtin.html#name-int">int</a>, name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-int">int</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='FlagSet-fold-method-IntVar-docs' class="fold-docs">
+				IntVar defines an int flag with specified name, default value, and usage string.
+				The argument p points to an int variable in which to store the value of the flag.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Lookup"><label for="FlagSet-fold-method-Lookup">(*T) <a href="../src/flag/flag.go.html#line-419">Lookup</a>(name <a href="builtin.html#name-string">string</a>) *<a href="#name-Flag">Flag</a></label><span id='FlagSet-fold-method-Lookup-docs' class="fold-docs">
+				Lookup returns the Flag structure of the named flag, returning nil if none exists.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-NArg"><label for="FlagSet-fold-method-NArg">(*T) <a href="../src/flag/flag.go.html#line-616">NArg</a>() <a href="builtin.html#name-int">int</a></label><span id='FlagSet-fold-method-NArg-docs' class="fold-docs">
+				NArg is the number of arguments remaining after flags have been processed.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-NFlag"><label for="FlagSet-fold-method-NFlag">(*T) <a href="../src/flag/flag.go.html#line-593">NFlag</a>() <a href="builtin.html#name-int">int</a></label><span id='FlagSet-fold-method-NFlag-docs' class="fold-docs">
+				NFlag returns the number of flags that have been set.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Name"><label for="FlagSet-fold-method-Name">(*T) <a href="../src/flag/flag.go.html#line-375">Name</a>() <a href="builtin.html#name-string">string</a></label><span id='FlagSet-fold-method-Name-docs' class="fold-docs">
+				Name returns the name of the flag set.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Output"><label for="FlagSet-fold-method-Output">(*T) <a href="../src/flag/flag.go.html#line-367">Output</a>() <a href="io.html">io</a>.<a href="io.html#name-Writer">Writer</a></label><span id='FlagSet-fold-method-Output-docs' class="fold-docs">
+				Output returns the destination for usage and error messages. os.Stderr is returned if
+				output was not set or was set to nil.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Parse"><label for="FlagSet-fold-method-Parse">(*T) <a href="../src/flag/flag.go.html#line-987">Parse</a>(arguments []<a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-error">error</a></label><span id='FlagSet-fold-method-Parse-docs' class="fold-docs">
+				Parse parses flag definitions from the argument list, which should not
+				include the command name. Must be called after all flags in the FlagSet
+				are defined and before flags are accessed by the program.
+				The return value will be ErrHelp if -help or -h were set but not defined.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Parsed"><label for="FlagSet-fold-method-Parsed">(*T) <a href="../src/flag/flag.go.html#line-1014">Parsed</a>() <a href="builtin.html#name-bool">bool</a></label><span id='FlagSet-fold-method-Parsed-docs' class="fold-docs">
+				Parsed reports whether f.Parse has been called.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-PrintDefaults"><label for="FlagSet-fold-method-PrintDefaults">(*T) <a href="../src/flag/flag.go.html#line-509">PrintDefaults</a>()</label><span id='FlagSet-fold-method-PrintDefaults-docs' class="fold-docs">
+				PrintDefaults prints, to standard error unless configured otherwise, the
+				default values of all defined command-line flags in the set. See the
+				documentation for the global function PrintDefaults for more information.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Set"><label for="FlagSet-fold-method-Set">(*T) <a href="../src/flag/flag.go.html#line-430">Set</a>(name, value <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-error">error</a></label><span id='FlagSet-fold-method-Set-docs' class="fold-docs">
+				Set sets the value of the named flag.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-SetOutput"><label for="FlagSet-fold-method-SetOutput">(*T) <a href="../src/flag/flag.go.html#line-386">SetOutput</a>(output <a href="io.html">io</a>.<a href="io.html#name-Writer">Writer</a>)</label><span id='FlagSet-fold-method-SetOutput-docs' class="fold-docs">
+				SetOutput sets the destination for usage and error messages.
+				If output is nil, os.Stderr is used.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-String"><label for="FlagSet-fold-method-String">(*T) <a href="../src/flag/flag.go.html#line-771">String</a>(name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-string">string</a>, usage <a href="builtin.html#name-string">string</a>) *<a href="builtin.html#name-string">string</a></label><span id='FlagSet-fold-method-String-docs' class="fold-docs">
+				String defines a string flag with specified name, default value, and usage string.
+				The return value is the address of a string variable that stores the value of the flag.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-StringVar"><label for="FlagSet-fold-method-StringVar">(*T) <a href="../src/flag/flag.go.html#line-759">StringVar</a>(p *<a href="builtin.html#name-string">string</a>, name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-string">string</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='FlagSet-fold-method-StringVar-docs' class="fold-docs">
+				StringVar defines a string flag with specified name, default value, and usage string.
+				The argument p points to a string variable in which to store the value of the flag.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Uint"><label for="FlagSet-fold-method-Uint">(*T) <a href="../src/flag/flag.go.html#line-719">Uint</a>(name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-uint">uint</a>, usage <a href="builtin.html#name-string">string</a>) *<a href="builtin.html#name-uint">uint</a></label><span id='FlagSet-fold-method-Uint-docs' class="fold-docs">
+				Uint defines a uint flag with specified name, default value, and usage string.
+				The return value is the address of a uint variable that stores the value of the flag.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Uint64"><label for="FlagSet-fold-method-Uint64">(*T) <a href="../src/flag/flag.go.html#line-745">Uint64</a>(name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-uint64">uint64</a>, usage <a href="builtin.html#name-string">string</a>) *<a href="builtin.html#name-uint64">uint64</a></label><span id='FlagSet-fold-method-Uint64-docs' class="fold-docs">
+				Uint64 defines a uint64 flag with specified name, default value, and usage string.
+				The return value is the address of a uint64 variable that stores the value of the flag.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Uint64Var"><label for="FlagSet-fold-method-Uint64Var">(*T) <a href="../src/flag/flag.go.html#line-733">Uint64Var</a>(p *<a href="builtin.html#name-uint64">uint64</a>, name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-uint64">uint64</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='FlagSet-fold-method-Uint64Var-docs' class="fold-docs">
+				Uint64Var defines a uint64 flag with specified name, default value, and usage string.
+				The argument p points to a uint64 variable in which to store the value of the flag.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-UintVar"><label for="FlagSet-fold-method-UintVar">(*T) <a href="../src/flag/flag.go.html#line-707">UintVar</a>(p *<a href="builtin.html#name-uint">uint</a>, name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-uint">uint</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='FlagSet-fold-method-UintVar-docs' class="fold-docs">
+				UintVar defines a uint flag with specified name, default value, and usage string.
+				The argument p points to a uint variable in which to store the value of the flag.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Var"><label for="FlagSet-fold-method-Var">(*T) <a href="../src/flag/flag.go.html#line-859">Var</a>(value <a href="#name-Value">Value</a>, name <a href="builtin.html#name-string">string</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='FlagSet-fold-method-Var-docs' class="fold-docs">
+				Var defines a flag with the specified name and usage string. The type and
+				value of the flag are represented by the first argument, of type Value, which
+				typically holds a user-defined implementation of Value. For instance, the
+				caller could create a flag that turns a comma-separated string into a slice
+				of strings by giving the slice the methods of Value; in particular, Set would
+				decompose the comma-separated string into the slice.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-Visit"><label for="FlagSet-fold-method-Visit">(*T) <a href="../src/flag/flag.go.html#line-406">Visit</a>(fn func(*<a href="#name-Flag">Flag</a>))</label><span id='FlagSet-fold-method-Visit-docs' class="fold-docs">
+				Visit visits the flags in lexicographical order, calling fn for each.
+				It visits only those flags that have been set.
+</span></span><span>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-VisitAll"><label for="FlagSet-fold-method-VisitAll">(*T) <a href="../src/flag/flag.go.html#line-392">VisitAll</a>(fn func(*<a href="#name-Flag">Flag</a>))</label><span id='FlagSet-fold-method-VisitAll-docs' class="fold-docs">
+				VisitAll visits the flags in lexicographical order, calling fn for each.
+				It visits all flags, even those not set.
+</span></span>
+			<input type='checkbox' class="showhide" id="FlagSet-showhide-methods"><i><label for="FlagSet-showhide-methods" class="show-inline">/* 4 unexporteds ... */</label><label for="FlagSet-showhide-methods" class="hide-inline">/* 4 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-defaultUsage"><label for="FlagSet-fold-method-defaultUsage">(*T) <a href="../src/flag/flag.go.html#line-565">defaultUsage</a>()</label><span id='FlagSet-fold-method-defaultUsage-docs' class="fold-docs">
+				defaultUsage is the default function to print a usage message.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-failf"><label for="FlagSet-fold-method-failf">(*T) <a href="../src/flag/flag.go.html#line-891">failf</a>(format <a href="builtin.html#name-string">string</a>, a ...interface{}) <a href="builtin.html#name-error">error</a></label><span id='FlagSet-fold-method-failf-docs' class="fold-docs">
+				failf prints to standard error a formatted error and usage message and
+				returns the error.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-parseOne"><label for="FlagSet-fold-method-parseOne">(*T) <a href="../src/flag/flag.go.html#line-909">parseOne</a>() (<a href="builtin.html#name-bool">bool</a>, <a href="builtin.html#name-error">error</a>)</label><span id='FlagSet-fold-method-parseOne-docs' class="fold-docs">
+				parseOne parses one flag. It reports whether a flag was seen.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="FlagSet-fold-method-usage"><label for="FlagSet-fold-method-usage">(*T) <a href="../src/flag/flag.go.html#line-900">usage</a>()</label><span id='FlagSet-fold-method-usage-docs' class="fold-docs">
+				usage calls the Usage method for the flag set if one is specified,
+				or the appropriate default usage function otherwise.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="FlagSet-fold-results"><label for="FlagSet-fold-results">As Outputs Of (<i>at least one exported</i>)</label><span id='FlagSet-fold-results-items' class="fold-items"><span>
+			func <a href="#name-NewFlagSet">NewFlagSet</a>(name <a href="builtin.html#name-string">string</a>, errorHandling <a href="#name-ErrorHandling">ErrorHandling</a>) *<b>FlagSet</b></span></span>
+		<input type='checkbox' class="fold" id="FlagSet-fold-params"><label for="FlagSet-fold-params">As Inputs Of (<i>at least 2, both are exported</i>)</label><span id='FlagSet-fold-params-items' class="fold-items"><span>
+			func github.com/magiconair/properties.(*<a href="github.com/magiconair/properties.html#name-Properties">Properties</a>).<a href="../src/github.com/magiconair/properties/integrate.go.html#line-15">MustFlag</a>(dst *<b>FlagSet</b>)</span><span>
+			func github.com/spf13/pflag.(*<a href="github.com/spf13/pflag.html#name-FlagSet">FlagSet</a>).<a href="../src/github.com/spf13/pflag/golangflag.go.html#line-94">AddGoFlagSet</a>(newSet *<b>FlagSet</b>)</span></span>
+		<input type='checkbox' class="fold" id="FlagSet-fold-values"><label for="FlagSet-fold-values">As Types Of (<i>only one, which is exported</i>)</label><span id='FlagSet-fold-values-items' class="fold-items"><span>
+			  var <a href="#name-CommandLine">CommandLine</a> *FlagSet</span></span>
+
+</span></div><div class="anchor type-res" id="name-Getter" data-popularity="1550">	<input type='checkbox' class="fold" id="Getter-fold-content"><label for="Getter-fold-content"> type <a href="../src/flag/flag.go.html#line-306">Getter</a> <b><i>(interface)</i></b></label><span id='Getter-fold-content-docs' class="fold-docs">
+		Getter is an interface that allows the contents of a Value to be retrieved.
+		It wraps the Value interface, rather than being part of it, because it
+		appeared after Go 1 and its compatibility rules. All Value types provided
+		by this package satisfy the Getter interface, except the type used by Func.
+
+		<input type='checkbox' class="fold" id="Getter-fold-methods"><label for="Getter-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='Getter-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../src/flag/flag.go.html#line-308">Get</a>() interface{}</span></span><span>
+			<span class="nodocs">( T) <a href="../src/flag/flag.go.html#line-299">Set</a>(<a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-error">error</a></span></span><span>
+			<span class="nodocs">( T) <a href="../src/flag/flag.go.html#line-298">String</a>() <a href="builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="Getter-fold-impledby"><label for="Getter-fold-impledby">Implemented By (<i>at least 8, none are exported</i>)</label><span id='Getter-fold-impledby-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Getter-showhide-impedBys"><i><label for="Getter-showhide-impedBys" class="show-inline">/* 8+ unexporteds ... */</label><label for="Getter-showhide-impedBys" class="hide-inline">/* 8+ unexporteds: */</label></i><span class="hidden"><i>
+			*<a href="#name-boolValue">boolValue</a></i></span><span class="hidden"><i>
+			*<a href="#name-durationValue">durationValue</a></i></span><span class="hidden"><i>
+			*<a href="#name-float64Value">float64Value</a></i></span><span class="hidden"><i>
+			*<a href="#name-int64Value">int64Value</a></i></span><span class="hidden"><i>
+			*<a href="#name-intValue">intValue</a></i></span><span class="hidden"><i>
+			*<a href="#name-stringValue">stringValue</a></i></span><span class="hidden"><i>
+			*<a href="#name-uint64Value">uint64Value</a></i></span><span class="hidden"><i>
+			*<a href="#name-uintValue">uintValue</a></i></span></span>
+		<input type='checkbox' class="fold" id="Getter-fold-impls"><label for="Getter-fold-impls">Implements (<i>at least 4, in which 2 are exported</i>)</label><span id='Getter-fold-impls-items' class="fold-items"><span>
+			 T : <a href="#name-Value">Value</a></span><span>
+			 T : fmt.<a href="fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="Getter-showhide-impls"><i><label for="Getter-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="Getter-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			 T : context.<a href="context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			 T : runtime.<a href="runtime.html#name-stringer">stringer</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Value" data-popularity="7855">	<input type='checkbox' class="fold" id="Value-fold-content"><label for="Value-fold-content"> type <a href="../src/flag/flag.go.html#line-297">Value</a> <b><i>(interface)</i></b></label><span id='Value-fold-content-docs' class="fold-docs">
+		Value is the interface to the dynamic value stored in a flag.
+		(The default value is represented as a string.)
+
+		If a Value has an IsBoolFlag() bool method returning true,
+		the command-line parser makes -name equivalent to -name=true
+		rather than using the next command-line argument.
+
+		Set is called once, in command line order, for each flag present.
+		The flag package may call the String method with a zero-valued receiver,
+		such as a nil pointer.
+
+		<input type='checkbox' class="fold" id="Value-fold-methods"><label for="Value-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='Value-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../src/flag/flag.go.html#line-299">Set</a>(<a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-error">error</a></span></span><span>
+			<span class="nodocs">( T) <a href="../src/flag/flag.go.html#line-298">String</a>() <a href="builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="Value-fold-impledby"><label for="Value-fold-impledby">Implemented By (<i>at least 50, in which 2 are exported</i>)</label><span id='Value-fold-impledby-items' class="fold-items"><span>
+			 <a href="#name-Getter">Getter</a> <i>(interface)</i></span><span>
+			 github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-Value">Value</a> <i>(interface)</i></span>
+			<input type='checkbox' class="showhide" id="Value-showhide-impedBys"><i><label for="Value-showhide-impedBys" class="show-inline">/* 48+ unexporteds ... */</label><label for="Value-showhide-impedBys" class="hide-inline">/* 48+ unexporteds: */</label></i><span class="hidden"><i>
+			 <a href="#name-boolFlag">boolFlag</a> <i>(interface)</i></i></span><span class="hidden"><i>
+			*<a href="#name-boolValue">boolValue</a></i></span><span class="hidden"><i>
+			*<a href="#name-durationValue">durationValue</a></i></span><span class="hidden"><i>
+			*<a href="#name-float64Value">float64Value</a></i></span><span class="hidden"><i>
+			 <a href="#name-funcValue">funcValue</a></i></span><span class="hidden"><i>
+			*<a href="#name-int64Value">int64Value</a></i></span><span class="hidden"><i>
+			*<a href="#name-intValue">intValue</a></i></span><span class="hidden"><i>
+			*<a href="#name-stringValue">stringValue</a></i></span><span class="hidden"><i>
+			*<a href="#name-uint64Value">uint64Value</a></i></span><span class="hidden"><i>
+			*<a href="#name-uintValue">uintValue</a></i></span><span class="hidden"><i>
+			 github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-boolFlag">boolFlag</a> <i>(interface)</i></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-boolSliceValue">boolSliceValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-boolValue">boolValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-bytesBase64Value">bytesBase64Value</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-bytesHexValue">bytesHexValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-countValue">countValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-durationSliceValue">durationSliceValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-durationValue">durationValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-flagValueWrapper">flagValueWrapper</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-float32SliceValue">float32SliceValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-float32Value">float32Value</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-float64SliceValue">float64SliceValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-float64Value">float64Value</a></i></span><span class="hidden"><i>
+			 github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-goBoolFlag">goBoolFlag</a> <i>(interface)</i></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-int16Value">int16Value</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-int32SliceValue">int32SliceValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-int32Value">int32Value</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-int64SliceValue">int64SliceValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-int64Value">int64Value</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-int8Value">int8Value</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-intSliceValue">intSliceValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-intValue">intValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-ipMaskValue">ipMaskValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-ipNetValue">ipNetValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-ipSliceValue">ipSliceValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-ipValue">ipValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-stringArrayValue">stringArrayValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-stringSliceValue">stringSliceValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-stringToInt64Value">stringToInt64Value</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-stringToIntValue">stringToIntValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-stringToStringValue">stringToStringValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-stringValue">stringValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-uint16Value">uint16Value</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-uint32Value">uint32Value</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-uint64Value">uint64Value</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-uint8Value">uint8Value</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-uintSliceValue">uintSliceValue</a></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-uintValue">uintValue</a></i></span></span>
+		<input type='checkbox' class="fold" id="Value-fold-impls"><label for="Value-fold-impls">Implements (<i>at least 3, in which 1 are exported</i>)</label><span id='Value-fold-impls-items' class="fold-items"><span>
+			 T : fmt.<a href="fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="Value-showhide-impls"><i><label for="Value-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="Value-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			 T : context.<a href="context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			 T : runtime.<a href="runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="Value-fold-params"><label for="Value-fold-params">As Inputs Of (<i>at least 3, in which 2 are exported</i>)</label><span id='Value-fold-params-items' class="fold-items"><span>
+			func <a href="#name-Var">Var</a>(value <b>Value</b>, name <a href="builtin.html#name-string">string</a>, usage <a href="builtin.html#name-string">string</a>)</span><span>
+			func (*<a href="#name-FlagSet">FlagSet</a>).<a href="../src/flag/flag.go.html#line-859">Var</a>(value <b>Value</b>, name <a href="builtin.html#name-string">string</a>, usage <a href="builtin.html#name-string">string</a>)</span>
+			<input type='checkbox' class="showhide" id="Value-showhide-outputofs"><i><label for="Value-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="Value-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-wrapFlagValue">wrapFlagValue</a>(v <b>Value</b>) <a href="github.com/spf13/pflag.html">pflag</a>.<a href="github.com/spf13/pflag.html#name-Value">Value</a></i></span></span>
+
+</span></div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* 10 unexporteds ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* 10 unexporteds: */</label></i><div class="anchor type-res hidden" id="name-boolFlag" data-popularity="1000">	<input type='checkbox' class="fold" id="boolFlag-fold-content"><label for="boolFlag-fold-content"> type <a href="../src/flag/flag.go.html#line-133">boolFlag</a> <b><i>(interface)</i></b></label><span id='boolFlag-fold-content-docs' class="fold-docs">
+		optional interface to indicate boolean flags that can be
+		supplied without "=value" text
+
+		<input type='checkbox' class="fold" id="boolFlag-fold-methods"><label for="boolFlag-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='boolFlag-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../src/flag/flag.go.html#line-135">IsBoolFlag</a>() <a href="builtin.html#name-bool">bool</a></span></span><span>
+			<span class="nodocs">( T) <a href="../src/flag/flag.go.html#line-299">Set</a>(<a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-error">error</a></span></span><span>
+			<span class="nodocs">( T) <a href="../src/flag/flag.go.html#line-298">String</a>() <a href="builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="boolFlag-fold-impledby"><label for="boolFlag-fold-impledby">Implemented By (<i>at least 4, none are exported</i>)</label><span id='boolFlag-fold-impledby-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="boolFlag-showhide-impedBys"><i><label for="boolFlag-showhide-impedBys" class="show-inline">/* 4+ unexporteds ... */</label><label for="boolFlag-showhide-impedBys" class="hide-inline">/* 4+ unexporteds: */</label></i><span class="hidden"><i>
+			*<a href="#name-boolValue">boolValue</a></i></span><span class="hidden"><i>
+			 github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-boolFlag">boolFlag</a> <i>(interface)</i></i></span><span class="hidden"><i>
+			*github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-boolValue">boolValue</a></i></span><span class="hidden"><i>
+			 github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-goBoolFlag">goBoolFlag</a> <i>(interface)</i></i></span></span>
+		<input type='checkbox' class="fold" id="boolFlag-fold-impls"><label for="boolFlag-fold-impls">Implements (<i>at least 5, in which 2 are exported</i>)</label><span id='boolFlag-fold-impls-items' class="fold-items"><span>
+			 T : <a href="#name-Value">Value</a></span><span>
+			 T : fmt.<a href="fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' checked class="showhide" id="boolFlag-showhide-impls"><i><label for="boolFlag-showhide-impls" class="show-inline">/* 3+ unexporteds ... */</label><label for="boolFlag-showhide-impls" class="hide-inline">/* 3+ unexporteds: */</label></i><span class="hidden"><i>
+			 T : context.<a href="context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			 T : github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-goBoolFlag">goBoolFlag</a></i></span><span class="hidden"><i>
+			 T : runtime.<a href="runtime.html#name-stringer">stringer</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-boolValue" data-popularity="625">	<input type='checkbox' class="fold" id="boolValue-fold-content"><label for="boolValue-fold-content"> type <a href="../src/flag/flag.go.html#line-109">boolValue</a> <a href="builtin.html#name-bool">bool</a> <i>(basic type)</i></label><span id='boolValue-fold-content-docs' class="fold-docs">
+		-- bool Value
+
+		<input type='checkbox' class="fold" id="boolValue-fold-methods"><label for="boolValue-fold-methods">Methods (<i>total 4, all are exported</i>)</label><span id='boolValue-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-125">Get</a>() interface{}</span></span><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-129">IsBoolFlag</a>() <a href="builtin.html#name-bool">bool</a></span></span><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-116">Set</a>(s <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-error">error</a></span></span><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-127">String</a>() <a href="builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="boolValue-fold-impls"><label for="boolValue-fold-impls">Implements (<i>at least 7, in which 3 are exported</i>)</label><span id='boolValue-fold-impls-items' class="fold-items"><span>
+			*T : <a href="#name-Getter">Getter</a></span><span>
+			*T : <a href="#name-Value">Value</a></span><span>
+			*T : fmt.<a href="fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' checked class="showhide" id="boolValue-showhide-impls"><i><label for="boolValue-showhide-impls" class="show-inline">/* 4+ unexporteds ... */</label><label for="boolValue-showhide-impls" class="hide-inline">/* 4+ unexporteds: */</label></i><span class="hidden"><i>
+			*T : <a href="#name-boolFlag">boolFlag</a></i></span><span class="hidden"><i>
+			*T : context.<a href="context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*T : github.com/spf13/pflag.<a href="github.com/spf13/pflag.html#name-goBoolFlag">goBoolFlag</a></i></span><span class="hidden"><i>
+			*T : runtime.<a href="runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="boolValue-fold-results"><label for="boolValue-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='boolValue-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="boolValue-showhide-inputofs"><i><label for="boolValue-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="boolValue-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newBoolValue">newBoolValue</a>(val <a href="builtin.html#name-bool">bool</a>, p *<a href="builtin.html#name-bool">bool</a>) *<b>boolValue</b></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-durationValue" data-popularity="475">	<input type='checkbox' class="fold" id="durationValue-fold-content"><label for="durationValue-fold-content"> type <a href="../src/flag/flag.go.html#line-261">durationValue</a> <a href="time.html">time</a>.<a href="time.html#name-Duration">Duration</a> <i>(basic type)</i></label><span id='durationValue-fold-content-docs' class="fold-docs">
+		-- time.Duration Value
+
+		<input type='checkbox' class="fold" id="durationValue-fold-methods"><label for="durationValue-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='durationValue-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-277">Get</a>() interface{}</span></span><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-268">Set</a>(s <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-error">error</a></span></span><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-279">String</a>() <a href="builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="durationValue-fold-impls"><label for="durationValue-fold-impls">Implements (<i>at least 5, in which 3 are exported</i>)</label><span id='durationValue-fold-impls-items' class="fold-items"><span>
+			*T : <a href="#name-Getter">Getter</a></span><span>
+			*T : <a href="#name-Value">Value</a></span><span>
+			*T : fmt.<a href="fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' checked class="showhide" id="durationValue-showhide-impls"><i><label for="durationValue-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="durationValue-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			*T : context.<a href="context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*T : runtime.<a href="runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="durationValue-fold-results"><label for="durationValue-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='durationValue-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="durationValue-showhide-inputofs"><i><label for="durationValue-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="durationValue-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newDurationValue">newDurationValue</a>(val <a href="time.html">time</a>.<a href="time.html#name-Duration">Duration</a>, p *<a href="time.html">time</a>.<a href="time.html#name-Duration">Duration</a>) *<b>durationValue</b></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-float64Value" data-popularity="475">	<input type='checkbox' class="fold" id="float64Value-fold-content"><label for="float64Value-fold-content"> type <a href="../src/flag/flag.go.html#line-240">float64Value</a> <a href="builtin.html#name-float64">float64</a> <i>(basic type)</i></label><span id='float64Value-fold-content-docs' class="fold-docs">
+		-- float64 Value
+
+		<input type='checkbox' class="fold" id="float64Value-fold-methods"><label for="float64Value-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='float64Value-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-256">Get</a>() interface{}</span></span><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-247">Set</a>(s <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-error">error</a></span></span><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-258">String</a>() <a href="builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="float64Value-fold-impls"><label for="float64Value-fold-impls">Implements (<i>at least 5, in which 3 are exported</i>)</label><span id='float64Value-fold-impls-items' class="fold-items"><span>
+			*T : <a href="#name-Getter">Getter</a></span><span>
+			*T : <a href="#name-Value">Value</a></span><span>
+			*T : fmt.<a href="fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' checked class="showhide" id="float64Value-showhide-impls"><i><label for="float64Value-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="float64Value-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			*T : context.<a href="context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*T : runtime.<a href="runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="float64Value-fold-results"><label for="float64Value-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='float64Value-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="float64Value-showhide-inputofs"><i><label for="float64Value-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="float64Value-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newFloat64Value">newFloat64Value</a>(val <a href="builtin.html#name-float64">float64</a>, p *<a href="builtin.html#name-float64">float64</a>) *<b>float64Value</b></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-funcValue" data-popularity="300">	<input type='checkbox' class="fold" id="funcValue-fold-content"><label for="funcValue-fold-content"> type <a href="../src/flag/flag.go.html#line-281">funcValue</a> <i>(func)</i></label><span id='funcValue-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="funcValue-fold-methods"><label for="funcValue-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='funcValue-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../src/flag/flag.go.html#line-283">Set</a>(s <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-error">error</a></span></span><span>
+			<span class="nodocs">( T) <a href="../src/flag/flag.go.html#line-285">String</a>() <a href="builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="funcValue-fold-impls"><label for="funcValue-fold-impls">Implements (<i>at least 4, in which 2 are exported</i>)</label><span id='funcValue-fold-impls-items' class="fold-items"><span>
+			 T : <a href="#name-Value">Value</a></span><span>
+			 T : fmt.<a href="fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' checked class="showhide" id="funcValue-showhide-impls"><i><label for="funcValue-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="funcValue-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			 T : context.<a href="context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			 T : runtime.<a href="runtime.html#name-stringer">stringer</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-int64Value" data-popularity="475">	<input type='checkbox' class="fold" id="int64Value-fold-content"><label for="int64Value-fold-content"> type <a href="../src/flag/flag.go.html#line-160">int64Value</a> <a href="builtin.html#name-int64">int64</a> <i>(basic type)</i></label><span id='int64Value-fold-content-docs' class="fold-docs">
+		-- int64 Value
+
+		<input type='checkbox' class="fold" id="int64Value-fold-methods"><label for="int64Value-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='int64Value-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-176">Get</a>() interface{}</span></span><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-167">Set</a>(s <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-error">error</a></span></span><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-178">String</a>() <a href="builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="int64Value-fold-impls"><label for="int64Value-fold-impls">Implements (<i>at least 5, in which 3 are exported</i>)</label><span id='int64Value-fold-impls-items' class="fold-items"><span>
+			*T : <a href="#name-Getter">Getter</a></span><span>
+			*T : <a href="#name-Value">Value</a></span><span>
+			*T : fmt.<a href="fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' checked class="showhide" id="int64Value-showhide-impls"><i><label for="int64Value-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="int64Value-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			*T : context.<a href="context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*T : runtime.<a href="runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="int64Value-fold-results"><label for="int64Value-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='int64Value-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="int64Value-showhide-inputofs"><i><label for="int64Value-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="int64Value-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newInt64Value">newInt64Value</a>(val <a href="builtin.html#name-int64">int64</a>, p *<a href="builtin.html#name-int64">int64</a>) *<b>int64Value</b></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-intValue" data-popularity="475">	<input type='checkbox' class="fold" id="intValue-fold-content"><label for="intValue-fold-content"> type <a href="../src/flag/flag.go.html#line-139">intValue</a> <a href="builtin.html#name-int">int</a> <i>(basic type)</i></label><span id='intValue-fold-content-docs' class="fold-docs">
+		-- int Value
+
+		<input type='checkbox' class="fold" id="intValue-fold-methods"><label for="intValue-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='intValue-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-155">Get</a>() interface{}</span></span><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-146">Set</a>(s <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-error">error</a></span></span><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-157">String</a>() <a href="builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="intValue-fold-impls"><label for="intValue-fold-impls">Implements (<i>at least 5, in which 3 are exported</i>)</label><span id='intValue-fold-impls-items' class="fold-items"><span>
+			*T : <a href="#name-Getter">Getter</a></span><span>
+			*T : <a href="#name-Value">Value</a></span><span>
+			*T : fmt.<a href="fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' checked class="showhide" id="intValue-showhide-impls"><i><label for="intValue-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="intValue-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			*T : context.<a href="context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*T : runtime.<a href="runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="intValue-fold-results"><label for="intValue-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='intValue-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="intValue-showhide-inputofs"><i><label for="intValue-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="intValue-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newIntValue">newIntValue</a>(val <a href="builtin.html#name-int">int</a>, p *<a href="builtin.html#name-int">int</a>) *<b>intValue</b></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-stringValue" data-popularity="475">	<input type='checkbox' class="fold" id="stringValue-fold-content"><label for="stringValue-fold-content"> type <a href="../src/flag/flag.go.html#line-223">stringValue</a> <a href="builtin.html#name-string">string</a> <i>(basic type)</i></label><span id='stringValue-fold-content-docs' class="fold-docs">
+		-- string Value
+
+		<input type='checkbox' class="fold" id="stringValue-fold-methods"><label for="stringValue-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='stringValue-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-235">Get</a>() interface{}</span></span><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-230">Set</a>(val <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-error">error</a></span></span><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-237">String</a>() <a href="builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="stringValue-fold-impls"><label for="stringValue-fold-impls">Implements (<i>at least 5, in which 3 are exported</i>)</label><span id='stringValue-fold-impls-items' class="fold-items"><span>
+			*T : <a href="#name-Getter">Getter</a></span><span>
+			*T : <a href="#name-Value">Value</a></span><span>
+			*T : fmt.<a href="fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' checked class="showhide" id="stringValue-showhide-impls"><i><label for="stringValue-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="stringValue-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			*T : context.<a href="context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*T : runtime.<a href="runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="stringValue-fold-results"><label for="stringValue-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='stringValue-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="stringValue-showhide-inputofs"><i><label for="stringValue-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="stringValue-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newStringValue">newStringValue</a>(val <a href="builtin.html#name-string">string</a>, p *<a href="builtin.html#name-string">string</a>) *<b>stringValue</b></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-uint64Value" data-popularity="475">	<input type='checkbox' class="fold" id="uint64Value-fold-content"><label for="uint64Value-fold-content"> type <a href="../src/flag/flag.go.html#line-202">uint64Value</a> <a href="builtin.html#name-uint64">uint64</a> <i>(basic type)</i></label><span id='uint64Value-fold-content-docs' class="fold-docs">
+		-- uint64 Value
+
+		<input type='checkbox' class="fold" id="uint64Value-fold-methods"><label for="uint64Value-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='uint64Value-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-218">Get</a>() interface{}</span></span><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-209">Set</a>(s <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-error">error</a></span></span><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-220">String</a>() <a href="builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="uint64Value-fold-impls"><label for="uint64Value-fold-impls">Implements (<i>at least 5, in which 3 are exported</i>)</label><span id='uint64Value-fold-impls-items' class="fold-items"><span>
+			*T : <a href="#name-Getter">Getter</a></span><span>
+			*T : <a href="#name-Value">Value</a></span><span>
+			*T : fmt.<a href="fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' checked class="showhide" id="uint64Value-showhide-impls"><i><label for="uint64Value-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="uint64Value-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			*T : context.<a href="context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*T : runtime.<a href="runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="uint64Value-fold-results"><label for="uint64Value-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='uint64Value-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="uint64Value-showhide-inputofs"><i><label for="uint64Value-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="uint64Value-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newUint64Value">newUint64Value</a>(val <a href="builtin.html#name-uint64">uint64</a>, p *<a href="builtin.html#name-uint64">uint64</a>) *<b>uint64Value</b></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-uintValue" data-popularity="475">	<input type='checkbox' class="fold" id="uintValue-fold-content"><label for="uintValue-fold-content"> type <a href="../src/flag/flag.go.html#line-181">uintValue</a> <a href="builtin.html#name-uint">uint</a> <i>(basic type)</i></label><span id='uintValue-fold-content-docs' class="fold-docs">
+		-- uint Value
+
+		<input type='checkbox' class="fold" id="uintValue-fold-methods"><label for="uintValue-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='uintValue-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-197">Get</a>() interface{}</span></span><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-188">Set</a>(s <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-error">error</a></span></span><span>
+			<span class="nodocs">(*T) <a href="../src/flag/flag.go.html#line-199">String</a>() <a href="builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="uintValue-fold-impls"><label for="uintValue-fold-impls">Implements (<i>at least 5, in which 3 are exported</i>)</label><span id='uintValue-fold-impls-items' class="fold-items"><span>
+			*T : <a href="#name-Getter">Getter</a></span><span>
+			*T : <a href="#name-Value">Value</a></span><span>
+			*T : fmt.<a href="fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' checked class="showhide" id="uintValue-showhide-impls"><i><label for="uintValue-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="uintValue-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			*T : context.<a href="context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*T : runtime.<a href="runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="uintValue-fold-results"><label for="uintValue-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='uintValue-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="uintValue-showhide-inputofs"><i><label for="uintValue-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="uintValue-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newUintValue">newUintValue</a>(val <a href="builtin.html#name-uint">uint</a>, p *<a href="builtin.html#name-uint">uint</a>) *<b>uintValue</b></i></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 44, in which 31 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-Arg">	<input type='checkbox' class="fold" id="Arg-fold-content"><label for="Arg-fold-content"> func <a href="../src/flag/flag.go.html#line-611">Arg</a>(i <a href="builtin.html#name-int">int</a>) <a href="builtin.html#name-string">string</a></label><span id='Arg-fold-content-docs' class="fold-docs">
+		Arg returns the i'th command-line argument. Arg(0) is the first remaining argument
+		after flags have been processed. Arg returns an empty string if the
+		requested element does not exist.
+
+</span></div><div class="anchor value-res" id="name-Args">	<input type='checkbox' class="fold" id="Args-fold-content"><label for="Args-fold-content"> func <a href="../src/flag/flag.go.html#line-625">Args</a>() []<a href="builtin.html#name-string">string</a></label><span id='Args-fold-content-docs' class="fold-docs">
+		Args returns the non-flag command-line arguments.
+
+</span></div><div class="anchor value-res" id="name-Bool">	<input type='checkbox' class="fold" id="Bool-fold-content"><label for="Bool-fold-content"> func <a href="../src/flag/flag.go.html#line-649">Bool</a>(name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-bool">bool</a>, usage <a href="builtin.html#name-string">string</a>) *<a href="builtin.html#name-bool">bool</a></label><span id='Bool-fold-content-docs' class="fold-docs">
+		Bool defines a bool flag with specified name, default value, and usage string.
+		The return value is the address of a bool variable that stores the value of the flag.
+
+</span></div><div class="anchor value-res" id="name-BoolVar">	<input type='checkbox' class="fold" id="BoolVar-fold-content"><label for="BoolVar-fold-content"> func <a href="../src/flag/flag.go.html#line-635">BoolVar</a>(p *<a href="builtin.html#name-bool">bool</a>, name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-bool">bool</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='BoolVar-fold-content-docs' class="fold-docs">
+		BoolVar defines a bool flag with specified name, default value, and usage string.
+		The argument p points to a bool variable in which to store the value of the flag.
+
+</span></div><div class="anchor value-res" id="name-Duration">	<input type='checkbox' class="fold" id="Duration-fold-content"><label for="Duration-fold-content"> func <a href="../src/flag/flag.go.html#line-835">Duration</a>(name <a href="builtin.html#name-string">string</a>, value <a href="time.html">time</a>.<a href="time.html#name-Duration">Duration</a>, usage <a href="builtin.html#name-string">string</a>) *<a href="time.html">time</a>.<a href="time.html#name-Duration">Duration</a></label><span id='Duration-fold-content-docs' class="fold-docs">
+		Duration defines a time.Duration flag with specified name, default value, and usage string.
+		The return value is the address of a time.Duration variable that stores the value of the flag.
+		The flag accepts a value acceptable to time.ParseDuration.
+
+</span></div><div class="anchor value-res" id="name-DurationVar">	<input type='checkbox' class="fold" id="DurationVar-fold-content"><label for="DurationVar-fold-content"> func <a href="../src/flag/flag.go.html#line-819">DurationVar</a>(p *<a href="time.html">time</a>.<a href="time.html#name-Duration">Duration</a>, name <a href="builtin.html#name-string">string</a>, value <a href="time.html">time</a>.<a href="time.html#name-Duration">Duration</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='DurationVar-fold-content-docs' class="fold-docs">
+		DurationVar defines a time.Duration flag with specified name, default value, and usage string.
+		The argument p points to a time.Duration variable in which to store the value of the flag.
+		The flag accepts a value acceptable to time.ParseDuration.
+
+</span></div><div class="anchor value-res" id="name-Float64">	<input type='checkbox' class="fold" id="Float64-fold-content"><label for="Float64-fold-content"> func <a href="../src/flag/flag.go.html#line-805">Float64</a>(name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-float64">float64</a>, usage <a href="builtin.html#name-string">string</a>) *<a href="builtin.html#name-float64">float64</a></label><span id='Float64-fold-content-docs' class="fold-docs">
+		Float64 defines a float64 flag with specified name, default value, and usage string.
+		The return value is the address of a float64 variable that stores the value of the flag.
+
+</span></div><div class="anchor value-res" id="name-Float64Var">	<input type='checkbox' class="fold" id="Float64Var-fold-content"><label for="Float64Var-fold-content"> func <a href="../src/flag/flag.go.html#line-791">Float64Var</a>(p *<a href="builtin.html#name-float64">float64</a>, name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-float64">float64</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='Float64Var-fold-content-docs' class="fold-docs">
+		Float64Var defines a float64 flag with specified name, default value, and usage string.
+		The argument p points to a float64 variable in which to store the value of the flag.
+
+</span></div><div class="anchor value-res" id="name-Func">	<input type='checkbox' class="fold" id="Func-fold-content"><label for="Func-fold-content"> func <a href="../src/flag/flag.go.html#line-849">Func</a>(name, usage <a href="builtin.html#name-string">string</a>, fn func(<a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-error">error</a>)</label><span id='Func-fold-content-docs' class="fold-docs">
+		Func defines a flag with the specified name and usage string.
+		Each time the flag is seen, fn is called with the value of the flag.
+		If fn returns a non-nil error, it will be treated as a flag value parsing error.
+
+</span></div><div class="anchor value-res" id="name-Int">	<input type='checkbox' class="fold" id="Int-fold-content"><label for="Int-fold-content"> func <a href="../src/flag/flag.go.html#line-675">Int</a>(name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-int">int</a>, usage <a href="builtin.html#name-string">string</a>) *<a href="builtin.html#name-int">int</a></label><span id='Int-fold-content-docs' class="fold-docs">
+		Int defines an int flag with specified name, default value, and usage string.
+		The return value is the address of an int variable that stores the value of the flag.
+
+</span></div><div class="anchor value-res" id="name-Int64">	<input type='checkbox' class="fold" id="Int64-fold-content"><label for="Int64-fold-content"> func <a href="../src/flag/flag.go.html#line-701">Int64</a>(name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-int64">int64</a>, usage <a href="builtin.html#name-string">string</a>) *<a href="builtin.html#name-int64">int64</a></label><span id='Int64-fold-content-docs' class="fold-docs">
+		Int64 defines an int64 flag with specified name, default value, and usage string.
+		The return value is the address of an int64 variable that stores the value of the flag.
+
+</span></div><div class="anchor value-res" id="name-Int64Var">	<input type='checkbox' class="fold" id="Int64Var-fold-content"><label for="Int64Var-fold-content"> func <a href="../src/flag/flag.go.html#line-687">Int64Var</a>(p *<a href="builtin.html#name-int64">int64</a>, name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-int64">int64</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='Int64Var-fold-content-docs' class="fold-docs">
+		Int64Var defines an int64 flag with specified name, default value, and usage string.
+		The argument p points to an int64 variable in which to store the value of the flag.
+
+</span></div><div class="anchor value-res" id="name-IntVar">	<input type='checkbox' class="fold" id="IntVar-fold-content"><label for="IntVar-fold-content"> func <a href="../src/flag/flag.go.html#line-661">IntVar</a>(p *<a href="builtin.html#name-int">int</a>, name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-int">int</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='IntVar-fold-content-docs' class="fold-docs">
+		IntVar defines an int flag with specified name, default value, and usage string.
+		The argument p points to an int variable in which to store the value of the flag.
+
+</span></div><div class="anchor value-res" id="name-Lookup">	<input type='checkbox' class="fold" id="Lookup-fold-content"><label for="Lookup-fold-content"> func <a href="../src/flag/flag.go.html#line-425">Lookup</a>(name <a href="builtin.html#name-string">string</a>) *<a href="#name-Flag">Flag</a></label><span id='Lookup-fold-content-docs' class="fold-docs">
+		Lookup returns the Flag structure of the named command-line flag,
+		returning nil if none exists.
+
+</span></div><div class="anchor value-res" id="name-NArg">	<input type='checkbox' class="fold" id="NArg-fold-content"><label for="NArg-fold-content"> func <a href="../src/flag/flag.go.html#line-619">NArg</a>() <a href="builtin.html#name-int">int</a></label><span id='NArg-fold-content-docs' class="fold-docs">
+		NArg is the number of arguments remaining after flags have been processed.
+
+</span></div><div class="anchor value-res" id="name-NewFlagSet">	<input type='checkbox' class="fold" id="NewFlagSet-fold-content"><label for="NewFlagSet-fold-content"> func <a href="../src/flag/flag.go.html#line-1050">NewFlagSet</a>(name <a href="builtin.html#name-string">string</a>, errorHandling <a href="#name-ErrorHandling">ErrorHandling</a>) *<a href="#name-FlagSet">FlagSet</a></label><span id='NewFlagSet-fold-content-docs' class="fold-docs">
+		NewFlagSet returns a new, empty flag set with the specified name and
+		error handling property. If the name is not empty, it will be printed
+		in the default usage message and in error messages.
+
+</span></div><div class="anchor value-res" id="name-NFlag">	<input type='checkbox' class="fold" id="NFlag-fold-content"><label for="NFlag-fold-content"> func <a href="../src/flag/flag.go.html#line-596">NFlag</a>() <a href="builtin.html#name-int">int</a></label><span id='NFlag-fold-content-docs' class="fold-docs">
+		NFlag returns the number of command-line flags that have been set.
+
+</span></div><div class="anchor value-res" id="name-Parse">	<input type='checkbox' class="fold" id="Parse-fold-content"><label for="Parse-fold-content"> func <a href="../src/flag/flag.go.html#line-1020">Parse</a>()</label><span id='Parse-fold-content-docs' class="fold-docs">
+		Parse parses the command-line flags from os.Args[1:]. Must be called
+		after all flags are defined and before flags are accessed by the program.
+
+</span></div><div class="anchor value-res" id="name-Parsed">	<input type='checkbox' class="fold" id="Parsed-fold-content"><label for="Parsed-fold-content"> func <a href="../src/flag/flag.go.html#line-1026">Parsed</a>() <a href="builtin.html#name-bool">bool</a></label><span id='Parsed-fold-content-docs' class="fold-docs">
+		Parsed reports whether the command-line flags have been parsed.
+
+</span></div><div class="anchor value-res" id="name-PrintDefaults">	<input type='checkbox' class="fold" id="PrintDefaults-fold-content"><label for="PrintDefaults-fold-content"> func <a href="../src/flag/flag.go.html#line-560">PrintDefaults</a>()</label><span id='PrintDefaults-fold-content-docs' class="fold-docs">
+		PrintDefaults prints, to standard error unless configured otherwise,
+		a usage message showing the default settings of all defined
+		command-line flags.
+		For an integer valued flag x, the default output has the form
+			-x int
+				usage-message-for-x (default 7)
+		The usage message will appear on a separate line for anything but
+		a bool flag with a one-byte name. For bool flags, the type is
+		omitted and if the flag name is one byte the usage message appears
+		on the same line. The parenthetical default is omitted if the
+		default is the zero value for the type. The listed type, here int,
+		can be changed by placing a back-quoted name in the flag's usage
+		string; the first such item in the message is taken to be a parameter
+		name to show in the message and the back quotes are stripped from
+		the message when displayed. For instance, given
+			flag.String("I", "", "search `directory` for include files")
+		the output will be
+			-I directory
+				search directory for include files.
+
+		To change the destination for flag messages, call CommandLine.SetOutput.
+
+</span></div><div class="anchor value-res" id="name-Set">	<input type='checkbox' class="fold" id="Set-fold-content"><label for="Set-fold-content"> func <a href="../src/flag/flag.go.html#line-447">Set</a>(name, value <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-error">error</a></label><span id='Set-fold-content-docs' class="fold-docs">
+		Set sets the value of the named command-line flag.
+
+</span></div><div class="anchor value-res" id="name-String">	<input type='checkbox' class="fold" id="String-fold-content"><label for="String-fold-content"> func <a href="../src/flag/flag.go.html#line-779">String</a>(name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-string">string</a>, usage <a href="builtin.html#name-string">string</a>) *<a href="builtin.html#name-string">string</a></label><span id='String-fold-content-docs' class="fold-docs">
+		String defines a string flag with specified name, default value, and usage string.
+		The return value is the address of a string variable that stores the value of the flag.
+
+</span></div><div class="anchor value-res" id="name-StringVar">	<input type='checkbox' class="fold" id="StringVar-fold-content"><label for="StringVar-fold-content"> func <a href="../src/flag/flag.go.html#line-765">StringVar</a>(p *<a href="builtin.html#name-string">string</a>, name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-string">string</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='StringVar-fold-content-docs' class="fold-docs">
+		StringVar defines a string flag with specified name, default value, and usage string.
+		The argument p points to a string variable in which to store the value of the flag.
+
+</span></div><div class="anchor value-res" id="name-Uint">	<input type='checkbox' class="fold" id="Uint-fold-content"><label for="Uint-fold-content"> func <a href="../src/flag/flag.go.html#line-727">Uint</a>(name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-uint">uint</a>, usage <a href="builtin.html#name-string">string</a>) *<a href="builtin.html#name-uint">uint</a></label><span id='Uint-fold-content-docs' class="fold-docs">
+		Uint defines a uint flag with specified name, default value, and usage string.
+		The return value is the address of a uint variable that stores the value of the flag.
+
+</span></div><div class="anchor value-res" id="name-Uint64">	<input type='checkbox' class="fold" id="Uint64-fold-content"><label for="Uint64-fold-content"> func <a href="../src/flag/flag.go.html#line-753">Uint64</a>(name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-uint64">uint64</a>, usage <a href="builtin.html#name-string">string</a>) *<a href="builtin.html#name-uint64">uint64</a></label><span id='Uint64-fold-content-docs' class="fold-docs">
+		Uint64 defines a uint64 flag with specified name, default value, and usage string.
+		The return value is the address of a uint64 variable that stores the value of the flag.
+
+</span></div><div class="anchor value-res" id="name-Uint64Var">	<input type='checkbox' class="fold" id="Uint64Var-fold-content"><label for="Uint64Var-fold-content"> func <a href="../src/flag/flag.go.html#line-739">Uint64Var</a>(p *<a href="builtin.html#name-uint64">uint64</a>, name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-uint64">uint64</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='Uint64Var-fold-content-docs' class="fold-docs">
+		Uint64Var defines a uint64 flag with specified name, default value, and usage string.
+		The argument p points to a uint64 variable in which to store the value of the flag.
+
+</span></div><div class="anchor value-res" id="name-UintVar">	<input type='checkbox' class="fold" id="UintVar-fold-content"><label for="UintVar-fold-content"> func <a href="../src/flag/flag.go.html#line-713">UintVar</a>(p *<a href="builtin.html#name-uint">uint</a>, name <a href="builtin.html#name-string">string</a>, value <a href="builtin.html#name-uint">uint</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='UintVar-fold-content-docs' class="fold-docs">
+		UintVar defines a uint flag with specified name, default value, and usage string.
+		The argument p points to a uint variable in which to store the value of the flag.
+
+</span></div><div class="anchor value-res" id="name-UnquoteUsage">	<input type='checkbox' class="fold" id="UnquoteUsage-fold-content"><label for="UnquoteUsage-fold-content"> func <a href="../src/flag/flag.go.html#line-472">UnquoteUsage</a>(flag *<a href="#name-Flag">Flag</a>) (name <a href="builtin.html#name-string">string</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='UnquoteUsage-fold-content-docs' class="fold-docs">
+		UnquoteUsage extracts a back-quoted name from the usage
+		string for a flag and returns it and the un-quoted usage.
+		Given "a `name` to show" it returns ("name", "a name to show").
+		If there are no back quotes, the name is an educated guess of the
+		type of the flag's value, or the empty string if the flag is boolean.
+
+</span></div><div class="anchor value-res" id="name-Var">	<input type='checkbox' class="fold" id="Var-fold-content"><label for="Var-fold-content"> func <a href="../src/flag/flag.go.html#line-885">Var</a>(value <a href="#name-Value">Value</a>, name <a href="builtin.html#name-string">string</a>, usage <a href="builtin.html#name-string">string</a>)</label><span id='Var-fold-content-docs' class="fold-docs">
+		Var defines a flag with the specified name and usage string. The type and
+		value of the flag are represented by the first argument, of type Value, which
+		typically holds a user-defined implementation of Value. For instance, the
+		caller could create a flag that turns a comma-separated string into a slice
+		of strings by giving the slice the methods of Value; in particular, Set would
+		decompose the comma-separated string into the slice.
+
+</span></div><div class="anchor value-res" id="name-Visit">	<input type='checkbox' class="fold" id="Visit-fold-content"><label for="Visit-fold-content"> func <a href="../src/flag/flag.go.html#line-414">Visit</a>(fn func(*<a href="#name-Flag">Flag</a>))</label><span id='Visit-fold-content-docs' class="fold-docs">
+		Visit visits the command-line flags in lexicographical order, calling fn
+		for each. It visits only those flags that have been set.
+
+</span></div><div class="anchor value-res" id="name-VisitAll">	<input type='checkbox' class="fold" id="VisitAll-fold-content"><label for="VisitAll-fold-content"> func <a href="../src/flag/flag.go.html#line-400">VisitAll</a>(fn func(*<a href="#name-Flag">Flag</a>))</label><span id='VisitAll-fold-content-docs' class="fold-docs">
+		VisitAll visits the command-line flags in lexicographical order, calling
+		fn for each. It visits all flags, even those not set.
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 13 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 13 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-commandLineUsage"><i>	<span class="nodocs"> func <a href="../src/flag/flag.go.html#line-1043">commandLineUsage</a>()</span></i></div><div class="anchor value-res hidden" id="name-init"><i>	<span class="nodocs"> func <a href="../src/flag/flag.go.html#line-1035">init</a>()</span></i></div><div class="anchor value-res hidden" id="name-isZeroValue"><i>	<input type='checkbox' class="fold" id="isZeroValue-fold-content"><label for="isZeroValue-fold-content"> func <a href="../src/flag/flag.go.html#line-453">isZeroValue</a>(flag *<a href="#name-Flag">Flag</a>, value <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-bool">bool</a></label><span id='isZeroValue-fold-content-docs' class="fold-docs">
+		isZeroValue determines whether the string represents the zero
+		value for a flag.
+
+</span></i></div><div class="anchor value-res hidden" id="name-newBoolValue"><i>	<span class="nodocs"> func <a href="../src/flag/flag.go.html#line-111">newBoolValue</a>(val <a href="builtin.html#name-bool">bool</a>, p *<a href="builtin.html#name-bool">bool</a>) *<a href="#name-boolValue">boolValue</a></span></i></div><div class="anchor value-res hidden" id="name-newDurationValue"><i>	<span class="nodocs"> func <a href="../src/flag/flag.go.html#line-263">newDurationValue</a>(val <a href="time.html">time</a>.<a href="time.html#name-Duration">Duration</a>, p *<a href="time.html">time</a>.<a href="time.html#name-Duration">Duration</a>) *<a href="#name-durationValue">durationValue</a></span></i></div><div class="anchor value-res hidden" id="name-newFloat64Value"><i>	<span class="nodocs"> func <a href="../src/flag/flag.go.html#line-242">newFloat64Value</a>(val <a href="builtin.html#name-float64">float64</a>, p *<a href="builtin.html#name-float64">float64</a>) *<a href="#name-float64Value">float64Value</a></span></i></div><div class="anchor value-res hidden" id="name-newInt64Value"><i>	<span class="nodocs"> func <a href="../src/flag/flag.go.html#line-162">newInt64Value</a>(val <a href="builtin.html#name-int64">int64</a>, p *<a href="builtin.html#name-int64">int64</a>) *<a href="#name-int64Value">int64Value</a></span></i></div><div class="anchor value-res hidden" id="name-newIntValue"><i>	<span class="nodocs"> func <a href="../src/flag/flag.go.html#line-141">newIntValue</a>(val <a href="builtin.html#name-int">int</a>, p *<a href="builtin.html#name-int">int</a>) *<a href="#name-intValue">intValue</a></span></i></div><div class="anchor value-res hidden" id="name-newStringValue"><i>	<span class="nodocs"> func <a href="../src/flag/flag.go.html#line-225">newStringValue</a>(val <a href="builtin.html#name-string">string</a>, p *<a href="builtin.html#name-string">string</a>) *<a href="#name-stringValue">stringValue</a></span></i></div><div class="anchor value-res hidden" id="name-newUint64Value"><i>	<span class="nodocs"> func <a href="../src/flag/flag.go.html#line-204">newUint64Value</a>(val <a href="builtin.html#name-uint64">uint64</a>, p *<a href="builtin.html#name-uint64">uint64</a>) *<a href="#name-uint64Value">uint64Value</a></span></i></div><div class="anchor value-res hidden" id="name-newUintValue"><i>	<span class="nodocs"> func <a href="../src/flag/flag.go.html#line-183">newUintValue</a>(val <a href="builtin.html#name-uint">uint</a>, p *<a href="builtin.html#name-uint">uint</a>) *<a href="#name-uintValue">uintValue</a></span></i></div><div class="anchor value-res hidden" id="name-numError"><i>	<span class="nodocs"> func <a href="../src/flag/flag.go.html#line-94">numError</a>(err <a href="builtin.html#name-error">error</a>) <a href="builtin.html#name-error">error</a></span></i></div><div class="anchor value-res hidden" id="name-sortFlags"><i>	<input type='checkbox' class="fold" id="sortFlags-fold-content"><label for="sortFlags-fold-content"> func <a href="../src/flag/flag.go.html#line-352">sortFlags</a>(flags map[<a href="builtin.html#name-string">string</a>]*<a href="#name-Flag">Flag</a>) []*<a href="#name-Flag">Flag</a></label><span id='sortFlags-fold-content-docs' class="fold-docs">
+		sortFlags returns the flags as a slice in lexicographical sorted order.
+
+</span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (total 5, in which 3 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-CommandLine">	<input type='checkbox' class="fold" id="CommandLine-fold-content"><label for="CommandLine-fold-content">  var <a href="../src/flag/flag.go.html#line-1033">CommandLine</a> *<a href="#name-FlagSet">FlagSet</a></label><span id='CommandLine-fold-content-docs' class="fold-docs">
+		CommandLine is the default set of command-line flags, parsed from os.Args.
+		The top-level functions such as BoolVar, Arg, and so on are wrappers for the
+		methods of CommandLine.
+
+</span></div><div class="anchor value-res" id="name-ErrHelp">	<input type='checkbox' class="fold" id="ErrHelp-fold-content"><label for="ErrHelp-fold-content">  var <a href="../src/flag/flag.go.html#line-84">ErrHelp</a> <a href="builtin.html#name-error">error</a></label><span id='ErrHelp-fold-content-docs' class="fold-docs">
+		ErrHelp is the error returned if the -help or -h flag is invoked
+		but no such flag is defined.
+
+</span></div><div class="anchor value-res" id="name-Usage">	<input type='checkbox' class="fold" id="Usage-fold-content"><label for="Usage-fold-content">  var <a href="../src/flag/flag.go.html#line-587">Usage</a> func()</label><span id='Usage-fold-content-docs' class="fold-docs">
+		Usage prints a usage message documenting all defined command-line flags
+		to CommandLine's output, which by default is os.Stderr.
+		It is called when an error occurs while parsing flags.
+		The function is a variable that may be changed to point to a custom function.
+		By default it prints a simple header and calls PrintDefaults; for details about the
+		format of the output and how to control it, see the documentation for PrintDefaults.
+		Custom usage functions may choose to exit the program; by default exiting
+		happens anyway as the command line's error handling strategy is set to
+		ExitOnError.
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* 2 unexporteds ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* 2 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-errParse"><i>	<input type='checkbox' class="fold" id="errParse-fold-content"><label for="errParse-fold-content">  var <a href="../src/flag/flag.go.html#line-88">errParse</a> <a href="builtin.html#name-error">error</a></label><span id='errParse-fold-content-docs' class="fold-docs">
+		errParse is returned by Set if a flag's value fails to parse, such as with an invalid integer for Int.
+		It then gets wrapped through failf to provide more information.
+
+</span></i></div><div class="anchor value-res hidden" id="name-errRange"><i>	<input type='checkbox' class="fold" id="errRange-fold-content"><label for="errRange-fold-content">  var <a href="../src/flag/flag.go.html#line-92">errRange</a> <a href="builtin.html#name-error">error</a></label><span id='errRange-fold-content-docs' class="fold-docs">
+		errRange is returned by Set if a flag's value is out of range.
+		It then gets wrapped through failf to provide more information.
+
+</span></i></div></div>
+<div id="exported-constants"><span class="title">Package-Level Constants<span class="title-stat"><i> (total 3, all are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-ContinueOnError">	<input type='checkbox' class="fold" id="ContinueOnError-fold-content"><label for="ContinueOnError-fold-content">const <a href="../src/flag/flag.go.html#line-316">ContinueOnError</a> <a href="#name-ErrorHandling">ErrorHandling</a> = 0 // Return a descriptive error.</label><span id='ContinueOnError-fold-content-docs' class="fold-docs">
+		These constants cause FlagSet.Parse to behave as described if the parse fails.
+
+</span></div><div class="anchor value-res" id="name-ExitOnError">	<input type='checkbox' class="fold" id="ExitOnError-fold-content"><label for="ExitOnError-fold-content">const <a href="../src/flag/flag.go.html#line-317">ExitOnError</a> <a href="#name-ErrorHandling">ErrorHandling</a> = 1 // Call os.Exit(2) or for -h/-help Exit(0).</label><span id='ExitOnError-fold-content-docs' class="fold-docs">
+		These constants cause FlagSet.Parse to behave as described if the parse fails.
+
+</span></div><div class="anchor value-res" id="name-PanicOnError">	<input type='checkbox' class="fold" id="PanicOnError-fold-content"><label for="PanicOnError-fold-content">const <a href="../src/flag/flag.go.html#line-318">PanicOnError</a> <a href="#name-ErrorHandling">ErrorHandling</a> = 2 // Call panic with a descriptive error.</label><span id='PanicOnError-fold-content-docs' class="fold-docs">
+		These constants cause FlagSet.Parse to behave as described if the parse fails.
+
+</span></div></div></code></pre><pre id="footer">
+<table><tr><td><img src="../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: funcdata.h in package runtime</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	funcdata.h
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code>// Copyright 2013 The Go Authors. All rights reserved.</code></span>
+<span class="codeline" id="line-2"><code>// Use of this source code is governed by a BSD-style</code></span>
+<span class="codeline" id="line-3"><code>// license that can be found in the LICENSE file.</code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code>// This file defines the IDs for PCDATA and FUNCDATA instructions</code></span>
+<span class="codeline" id="line-6"><code>// in Go binaries. It is included by assembly sources, so it must</code></span>
+<span class="codeline" id="line-7"><code>// be written using #defines.</code></span>
+<span class="codeline" id="line-8"><code>//</code></span>
+<span class="codeline" id="line-9"><code>// These must agree with symtab.go and ../cmd/internal/objabi/funcdata.go.</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code>#define PCDATA_UnsafePoint 0</code></span>
+<span class="codeline" id="line-12"><code>#define PCDATA_StackMapIndex 1</code></span>
+<span class="codeline" id="line-13"><code>#define PCDATA_InlTreeIndex 2</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code>#define FUNCDATA_ArgsPointerMaps 0 /* garbage collector blocks */</code></span>
+<span class="codeline" id="line-16"><code>#define FUNCDATA_LocalsPointerMaps 1</code></span>
+<span class="codeline" id="line-17"><code>#define FUNCDATA_StackObjects 2</code></span>
+<span class="codeline" id="line-18"><code>#define FUNCDATA_InlTree 3</code></span>
+<span class="codeline" id="line-19"><code>#define FUNCDATA_OpenCodedDeferInfo 4 /* info for func with open-coded defers */</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code>// Pseudo-assembly statements.</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code>// GO_ARGS, GO_RESULTS_INITIALIZED, and NO_LOCAL_POINTERS are macros</code></span>
+<span class="codeline" id="line-24"><code>// that communicate to the runtime information about the location and liveness</code></span>
+<span class="codeline" id="line-25"><code>// of pointers in an assembly function's arguments, results, and stack frame.</code></span>
+<span class="codeline" id="line-26"><code>// This communication is only required in assembly functions that make calls</code></span>
+<span class="codeline" id="line-27"><code>// to other functions that might be preempted or grow the stack.</code></span>
+<span class="codeline" id="line-28"><code>// NOSPLIT functions that make no calls do not need to use these macros.</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code>// GO_ARGS indicates that the Go prototype for this assembly function</code></span>
+<span class="codeline" id="line-31"><code>// defines the pointer map for the function's arguments.</code></span>
+<span class="codeline" id="line-32"><code>// GO_ARGS should be the first instruction in a function that uses it.</code></span>
+<span class="codeline" id="line-33"><code>// It can be omitted if there are no arguments at all.</code></span>
+<span class="codeline" id="line-34"><code>// GO_ARGS is inserted implicitly by the linker for any function whose</code></span>
+<span class="codeline" id="line-35"><code>// name starts with a middle-dot and that also has a Go prototype; it</code></span>
+<span class="codeline" id="line-36"><code>// is therefore usually not necessary to write explicitly.</code></span>
+<span class="codeline" id="line-37"><code>#define GO_ARGS	FUNCDATA $FUNCDATA_ArgsPointerMaps, go_args_stackmap(SB)</code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code>// GO_RESULTS_INITIALIZED indicates that the assembly function</code></span>
+<span class="codeline" id="line-40"><code>// has initialized the stack space for its results and that those results</code></span>
+<span class="codeline" id="line-41"><code>// should be considered live for the remainder of the function.</code></span>
+<span class="codeline" id="line-42"><code>#define GO_RESULTS_INITIALIZED	PCDATA $PCDATA_StackMapIndex, $1</code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code>// NO_LOCAL_POINTERS indicates that the assembly function stores</code></span>
+<span class="codeline" id="line-45"><code>// no pointers to heap objects in its local stack variables.</code></span>
+<span class="codeline" id="line-46"><code>#define NO_LOCAL_POINTERS	FUNCDATA $FUNCDATA_LocalsPointerMaps, runtime·no_pointers_stackmap(SB)</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code>// ArgsSizeUnknown is set in Func.argsize to mark all functions</code></span>
+<span class="codeline" id="line-49"><code>// whose argument size is unknown (C vararg functions, and</code></span>
+<span class="codeline" id="line-50"><code>// assembly code without an explicit specification).</code></span>
+<span class="codeline" id="line-51"><code>// This value is generated by the compiler, assembler, or linker.</code></span>
+<span class="codeline" id="line-52"><code>#define ArgsSizeUnknown 0x80000000</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

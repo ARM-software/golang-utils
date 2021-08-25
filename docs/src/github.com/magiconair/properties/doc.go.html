@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: doc.go in package github.com/magiconair/properties</title>
+<link href="../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	doc.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/github.com/magiconair/properties.html">github.com/magiconair/properties</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2018 Frank Schroeder. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package properties provides functions for reading and writing</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// ISO-8859-1 and UTF-8 encoded .properties files and has</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// support for recursive property expansion.</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// Java properties files are ISO-8859-1 encoded and use Unicode</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// literals for characters outside the ISO character set. Unicode</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// literals can be used in UTF-8 encoded properties files but</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// aren't necessary.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// To load a single properties file use MustLoadFile():</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">//   p := properties.MustLoadFile(filename, properties.UTF8)</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// To load multiple properties files use MustLoadFiles()</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// which loads the files in the given order and merges the</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// result. Missing properties files can be ignored if the</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// 'ignoreMissing' flag is set to true.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// Filenames can contain environment variables which are expanded</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// before loading.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">//   f1 := "/etc/myapp/myapp.conf"</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">//   f2 := "/home/${USER}/myapp.conf"</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">//   p := MustLoadFiles([]string{f1, f2}, properties.UTF8, true)</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// All of the different key/value delimiters ' ', ':' and '=' are</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// supported as well as the comment characters '!' and '#' and</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// multi-line values.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">//   ! this is a comment</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">//   # and so is this</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">//   # the following expressions are equal</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">//   key value</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">//   key=value</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">//   key:value</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">//   key = value</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">//   key : value</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">//   key = val\</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">//         ue</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// Properties stores all comments preceding a key and provides</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// GetComments() and SetComments() methods to retrieve and</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// update them. The convenience functions GetComment() and</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// SetComment() allow access to the last comment. The</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// WriteComment() method writes properties files including</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// the comments and with the keys in the original order.</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// This can be used for sanitizing properties files.</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// Property expansion is recursive and circular references</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// and malformed expressions are not allowed and cause an</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// error. Expansion of environment variables is supported.</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">//   # standard property</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">//   key = value</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">//   # property expansion: key2 = value</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">//   key2 = ${key}</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">//   # recursive expansion: key3 = value</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">//   key3 = ${key2}</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">//   # circular reference (error)</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">//   key = ${key}</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">//   # malformed expression (error)</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">//   key = ${ke</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">//   # refers to the users' home dir</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">//   home = ${HOME}</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">//   # local key takes precedence over env var: u = foo</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">//   USER = foo</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">//   u = ${USER}</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// The default property expansion format is ${key} but can be</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// changed by setting different pre- and postfix values on the</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// Properties object.</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">//   p := properties.NewProperties()</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">//   p.Prefix = "#["</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">//   p.Postfix = "]#"</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">// Properties provides convenience functions for getting typed</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">// values with default values if the key does not exist or the</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// type conversion failed.</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">//   # Returns true if the value is either "1", "on", "yes" or "true"</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">//   # Returns false for every other value and the default value if</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">//   # the key does not exist.</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">//   v = p.GetBool("key", false)</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">//   # Returns the value if the key exists and the format conversion</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">//   # was successful. Otherwise, the default value is returned.</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">//   v = p.GetInt64("key", 999)</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">//   v = p.GetUint64("key", 999)</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">//   v = p.GetFloat64("key", 123.0)</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">//   v = p.GetString("key", "def")</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">//   v = p.GetDuration("key", 999)</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// As an alternative properties may be applied with the standard</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">// library's flag implementation at any time.</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">//   # Standard configuration</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">//   v = flag.Int("key", 999, "help message")</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">//   flag.Parse()</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">//   # Merge p into the flag set</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">//   p.MustFlag(flag.CommandLine)</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">// Properties provides several MustXXX() convenience functions</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">// which will terminate the app if an error occurs. The behavior</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">// of the failure is configurable and the default is to call</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">// log.Fatal(err). To have the MustXXX() functions panic instead</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">// of logging the error set a different ErrorHandler before</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">// you use the Properties package.</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">//   properties.ErrorHandler = properties.PanicHandler</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">//   # Will panic instead of logging an error</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">//   p := properties.MustLoadFile("config.properties")</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">// You can also provide your own ErrorHandler function. The only requirement</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">// is that the error handler function must exit after handling the error.</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">//   properties.ErrorHandler = func(err error) {</span></code></span>
+<span class="codeline" id="line-131"><code><span class="comment">//	     fmt.Println(err)</span></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">//       os.Exit(1)</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">//   }</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">//   # Will write to stdout and then exit</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">//   p := properties.MustLoadFile("config.properties")</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">// Properties can also be loaded into a struct via the `Decode`</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">// method, e.g.</span></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">//   type S struct {</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">//       A string        `properties:"a,default=foo"`</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">//       D time.Duration `properties:"timeout,default=5s"`</span></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">//       E time.Time     `properties:"expires,layout=2006-01-02,default=2015-01-01"`</span></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">//   }</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">// See `Decode()` method for the full documentation.</span></code></span>
+<span class="codeline" id="line-148"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">// The following documents provide a description of the properties</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">// file format.</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">// http://en.wikipedia.org/wiki/.properties</span></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">// http://docs.oracle.com/javase/7/docs/api/java/util/Properties.html#load%28java.io.Reader%29</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">//</span></code></span></div><span class="codeline" id="line-156"><code><span class="keyword">package</span> properties</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

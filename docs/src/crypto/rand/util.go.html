@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: util.go in package crypto/rand</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	util.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/crypto/rand.html">crypto/rand</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> rand</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"errors"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"io"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"math/big"</span></label></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// smallPrimes is a list of small, prime numbers that allows us to rapidly</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// exclude some fraction of composite candidates when searching for a random</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// prime. This list is truncated at the point where smallPrimesProduct exceeds</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// a uint64. It does not include two because we ensure that the candidates are</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// odd by construction.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">var</span> <a href="../../../pkg/crypto/rand.html#name-smallPrimes" class="ident">smallPrimes</a> = []<a href="../../../pkg/builtin.html#name-uint8" class="ident">uint8</a>{</code></span>
+<span class="codeline" id="line-19"><code>	<span class="lit-number">3</span>, <span class="lit-number">5</span>, <span class="lit-number">7</span>, <span class="lit-number">11</span>, <span class="lit-number">13</span>, <span class="lit-number">17</span>, <span class="lit-number">19</span>, <span class="lit-number">23</span>, <span class="lit-number">29</span>, <span class="lit-number">31</span>, <span class="lit-number">37</span>, <span class="lit-number">41</span>, <span class="lit-number">43</span>, <span class="lit-number">47</span>, <span class="lit-number">53</span>,</code></span>
+<span class="codeline" id="line-20"><code>}</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// smallPrimesProduct is the product of the values in smallPrimes and allows us</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// to reduce a candidate prime by this number and then determine whether it's</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// coprime to all the elements of smallPrimes without further big.Int</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// operations.</span></code></span>
+<span class="codeline" id="line-26"><code><span class="keyword">var</span> <a href="../../../pkg/crypto/rand.html#name-smallPrimesProduct" class="ident">smallPrimesProduct</a> = <a href="../../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="../../../pkg/math/big.html" class="ident i2">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a>).<a href="../../math/big/int.go.html#line-61" class="ident">SetUint64</a>(<span class="lit-number">16294579238595022365</span>)</code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// Prime returns a number, p, of the given size, such that p is prime</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// with high probability.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// Prime will return error for any error returned by rand.Read or if bits &lt; 2.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/crypto/rand.html#name-Prime" class="ident">Prime</a></label>(<label for="r1" class="ident">rand</label> <a href="../../../pkg/io.html" class="ident i1">io</a>.<a href="../../io/io.go.html#line-83" class="ident">Reader</a>, <label for="r2" class="ident">bits</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) (<label for="r3" class="ident">p</label> *<a href="../../../pkg/math/big.html" class="ident i2">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a>, <label for="r4" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-32"><code>	<span class="keyword">if</span> <label for="r2" class="ident">bits</label> &lt; <span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-33"><code>		<label for="r4" class="ident">err</label> = <a href="../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"crypto/rand: prime size must be at least 2-bit"</span>)</code></span>
+<span class="codeline" id="line-34"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-35"><code>	}</code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code>	<label for="r5" class="ident">b</label> := <a href="../../../pkg/builtin.html#name-uint" class="ident">uint</a>(<label for="r2" class="ident">bits</label> % <span class="lit-number">8</span>)</code></span>
+<span class="codeline" id="line-38"><code>	<span class="keyword">if</span> <label for="r5" class="ident">b</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-39"><code>		<label for="r5" class="ident">b</label> = <span class="lit-number">8</span></code></span>
+<span class="codeline" id="line-40"><code>	}</code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code>	<label for="r6" class="ident">bytes</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, (<label for="r2" class="ident">bits</label>+<span class="lit-number">7</span>)/<span class="lit-number">8</span>)</code></span>
+<span class="codeline" id="line-43"><code>	<label for="r3" class="ident">p</label> = <a href="../../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="../../../pkg/math/big.html" class="ident i2">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a>)</code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code>	<label for="r7" class="ident">bigMod</label> := <a href="../../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="../../../pkg/math/big.html" class="ident i2">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a>)</code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-48"><code>		_, <label for="r4" class="ident">err</label> = <a href="../../../pkg/io.html" class="ident i1">io</a>.<a href="../../io/io.go.html#line-346" class="ident">ReadFull</a>(<label for="r1" class="ident">rand</label>, <label for="r6" class="ident">bytes</label>)</code></span>
+<span class="codeline" id="line-49"><code>		<span class="keyword">if</span> <label for="r4" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-50"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r4" class="ident">err</label></code></span>
+<span class="codeline" id="line-51"><code>		}</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code>		<span class="comment">// Clear bits in the first byte to make sure the candidate has a size &lt;= bits.</span></code></span>
+<span class="codeline" id="line-54"><code>		<label for="r6" class="ident">bytes</label>[<span class="lit-number">0</span>] &amp;= <a href="../../../pkg/builtin.html#name-uint8" class="ident">uint8</a>(<a href="../../../pkg/builtin.html#name-int" class="ident">int</a>(<span class="lit-number">1</span>&lt;&lt;<label for="r5" class="ident">b</label>) - <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-55"><code>		<span class="comment">// Don't let the value be too small, i.e, set the most significant two bits.</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">		// Setting the top two bits, rather than just the top bit,</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">		// means that when two of these values are multiplied together,</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">		// the result isn't ever one bit short.</span></code></span>
+<span class="codeline" id="line-59"><code>		<span class="keyword">if</span> <label for="r5" class="ident">b</label> &gt;= <span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-60"><code>			<label for="r6" class="ident">bytes</label>[<span class="lit-number">0</span>] |= <span class="lit-number">3</span> &lt;&lt; (<label for="r5" class="ident">b</label> - <span class="lit-number">2</span>)</code></span>
+<span class="codeline" id="line-61"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-62"><code>			<span class="comment">// Here b==1, because b cannot be zero.</span></code></span>
+<span class="codeline" id="line-63"><code>			<label for="r6" class="ident">bytes</label>[<span class="lit-number">0</span>] |= <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-64"><code>			<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">bytes</label>) &gt; <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-65"><code>				<label for="r6" class="ident">bytes</label>[<span class="lit-number">1</span>] |= <span class="lit-number">0x80</span></code></span>
+<span class="codeline" id="line-66"><code>			}</code></span>
+<span class="codeline" id="line-67"><code>		}</code></span>
+<span class="codeline" id="line-68"><code>		<span class="comment">// Make the value odd since an even number this large certainly isn't prime.</span></code></span>
+<span class="codeline" id="line-69"><code>		<label for="r6" class="ident">bytes</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">bytes</label>)-<span class="lit-number">1</span>] |= <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code>		<label for="r3" class="ident">p</label>.<a href="../../math/big/int.go.html#line-443" class="ident">SetBytes</a>(<label for="r6" class="ident">bytes</label>)</code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code>		<span class="comment">// Calculate the value mod the product of smallPrimes. If it's</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">		// a multiple of any of these primes we add two until it isn't.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">		// The probability of overflowing is minimal and can be ignored</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">		// because we still perform Miller-Rabin tests on the result.</span></code></span>
+<span class="codeline" id="line-77"><code>		<label for="r7" class="ident">bigMod</label>.<a href="../../math/big/int.go.html#line-264" class="ident">Mod</a>(<label for="r3" class="ident">p</label>, <a href="#line-26" class="ident">smallPrimesProduct</a>)</code></span>
+<span class="codeline" id="line-78"><code>		<label for="r8" class="ident">mod</label> := <label for="r7" class="ident">bigMod</label>.<a href="../../math/big/int.go.html#line-383" class="ident">Uint64</a>()</code></span>
+<span class="codeline" id="line-79"><code></code></span>
+<span class="codeline" id="line-80"><code>	<label for="r9" class="ident">NextDelta</label>:</code></span>
+<span class="codeline" id="line-81"><code>		<span class="keyword">for</span> <label for="r10" class="ident">delta</label> := <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<span class="lit-number">0</span>); <label for="r10" class="ident">delta</label> &lt; <span class="lit-number">1</span>&lt;&lt;<span class="lit-number">20</span>; <label for="r10" class="ident">delta</label> += <span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-82"><code>			<label for="r11" class="ident">m</label> := <label for="r8" class="ident">mod</label> + <label for="r10" class="ident">delta</label></code></span>
+<span class="codeline" id="line-83"><code>			<span class="keyword">for</span> <label for="r12" class="ident">_</label>, <label for="r13" class="ident">prime</label> := <span class="keyword">range</span> <a href="#line-18" class="ident">smallPrimes</a> {</code></span>
+<span class="codeline" id="line-84"><code>				<span class="keyword">if</span> <label for="r11" class="ident">m</label>%<a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r13" class="ident">prime</label>) == <span class="lit-number">0</span> &amp;&amp; (<label for="r2" class="ident">bits</label> &gt; <span class="lit-number">6</span> || <label for="r11" class="ident">m</label> != <a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r13" class="ident">prime</label>)) {</code></span>
+<span class="codeline" id="line-85"><code>					<span class="keyword">continue</span> <label for="r9" class="ident">NextDelta</label></code></span>
+<span class="codeline" id="line-86"><code>				}</code></span>
+<span class="codeline" id="line-87"><code>			}</code></span>
+<span class="codeline" id="line-88"><code></code></span>
+<span class="codeline" id="line-89"><code>			<span class="keyword">if</span> <label for="r10" class="ident">delta</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-90"><code>				<label for="r7" class="ident">bigMod</label>.<a href="../../math/big/int.go.html#line-61" class="ident">SetUint64</a>(<label for="r10" class="ident">delta</label>)</code></span>
+<span class="codeline" id="line-91"><code>				<label for="r3" class="ident">p</label>.<a href="../../math/big/int.go.html#line-116" class="ident">Add</a>(<label for="r3" class="ident">p</label>, <label for="r7" class="ident">bigMod</label>)</code></span>
+<span class="codeline" id="line-92"><code>			}</code></span>
+<span class="codeline" id="line-93"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-94"><code>		}</code></span>
+<span class="codeline" id="line-95"><code></code></span>
+<span class="codeline" id="line-96"><code>		<span class="comment">// There is a tiny possibility that, by adding delta, we caused</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">		// the number to be one bit too long. Thus we check BitLen</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">		// here.</span></code></span>
+<span class="codeline" id="line-99"><code>		<span class="keyword">if</span> <label for="r3" class="ident">p</label>.<a href="../../math/big/prime.go.html#line-26" class="ident">ProbablyPrime</a>(<span class="lit-number">20</span>) &amp;&amp; <label for="r3" class="ident">p</label>.<a href="../../math/big/int.go.html#line-472" class="ident">BitLen</a>() == <label for="r2" class="ident">bits</label> {</code></span>
+<span class="codeline" id="line-100"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-101"><code>		}</code></span>
+<span class="codeline" id="line-102"><code>	}</code></span>
+<span class="codeline" id="line-103"><code>}</code></span>
+<span class="codeline" id="line-104"><code></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// Int returns a uniform random value in [0, max). It panics if max &lt;= 0.</span></code></span>
+<span class="codeline" id="line-106"><code><span class="keyword">func</span> <label for="r14" class="ident"><a href="../../../pkg/crypto/rand.html#name-Int" class="ident">Int</a></label>(<label for="r15" class="ident">rand</label> <a href="../../../pkg/io.html" class="ident i1">io</a>.<a href="../../io/io.go.html#line-83" class="ident">Reader</a>, <label for="r16" class="ident">max</label> *<a href="../../../pkg/math/big.html" class="ident i2">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a>) (<label for="r17" class="ident">n</label> *<a href="../../../pkg/math/big.html" class="ident i2">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a>, <label for="r18" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-107"><code>	<span class="keyword">if</span> <label for="r16" class="ident">max</label>.<a href="../../math/big/int.go.html#line-38" class="ident">Sign</a>() &lt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-108"><code>		<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"crypto/rand: argument to Int is &lt;= 0"</span>)</code></span>
+<span class="codeline" id="line-109"><code>	}</code></span>
+<span class="codeline" id="line-110"><code>	<label for="r17" class="ident">n</label> = <a href="../../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="../../../pkg/math/big.html" class="ident i2">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a>)</code></span>
+<span class="codeline" id="line-111"><code>	<label for="r17" class="ident">n</label>.<a href="../../math/big/int.go.html#line-137" class="ident">Sub</a>(<label for="r16" class="ident">max</label>, <label for="r17" class="ident">n</label>.<a href="../../math/big/int.go.html#line-61" class="ident">SetUint64</a>(<span class="lit-number">1</span>))</code></span>
+<span class="codeline" id="line-112"><code>	<span class="comment">// bitLen is the maximum bit length needed to encode a value &lt; max.</span></code></span>
+<span class="codeline" id="line-113"><code>	<label for="r19" class="ident">bitLen</label> := <label for="r17" class="ident">n</label>.<a href="../../math/big/int.go.html#line-472" class="ident">BitLen</a>()</code></span>
+<span class="codeline" id="line-114"><code>	<span class="keyword">if</span> <label for="r19" class="ident">bitLen</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-115"><code>		<span class="comment">// the only valid result is 0</span></code></span>
+<span class="codeline" id="line-116"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-117"><code>	}</code></span>
+<span class="codeline" id="line-118"><code>	<span class="comment">// k is the maximum byte length needed to encode a value &lt; max.</span></code></span>
+<span class="codeline" id="line-119"><code>	<label for="r20" class="ident">k</label> := (<label for="r19" class="ident">bitLen</label> + <span class="lit-number">7</span>) / <span class="lit-number">8</span></code></span>
+<span class="codeline" id="line-120"><code>	<span class="comment">// b is the number of bits in the most significant byte of max-1.</span></code></span>
+<span class="codeline" id="line-121"><code>	<label for="r21" class="ident">b</label> := <a href="../../../pkg/builtin.html#name-uint" class="ident">uint</a>(<label for="r19" class="ident">bitLen</label> % <span class="lit-number">8</span>)</code></span>
+<span class="codeline" id="line-122"><code>	<span class="keyword">if</span> <label for="r21" class="ident">b</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-123"><code>		<label for="r21" class="ident">b</label> = <span class="lit-number">8</span></code></span>
+<span class="codeline" id="line-124"><code>	}</code></span>
+<span class="codeline" id="line-125"><code></code></span>
+<span class="codeline" id="line-126"><code>	<label for="r22" class="ident">bytes</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r20" class="ident">k</label>)</code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-129"><code>		_, <label for="r18" class="ident">err</label> = <a href="../../../pkg/io.html" class="ident i1">io</a>.<a href="../../io/io.go.html#line-346" class="ident">ReadFull</a>(<label for="r15" class="ident">rand</label>, <label for="r22" class="ident">bytes</label>)</code></span>
+<span class="codeline" id="line-130"><code>		<span class="keyword">if</span> <label for="r18" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-131"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r18" class="ident">err</label></code></span>
+<span class="codeline" id="line-132"><code>		}</code></span>
+<span class="codeline" id="line-133"><code></code></span>
+<span class="codeline" id="line-134"><code>		<span class="comment">// Clear bits in the first byte to increase the probability</span></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">		// that the candidate is &lt; max.</span></code></span>
+<span class="codeline" id="line-136"><code>		<label for="r22" class="ident">bytes</label>[<span class="lit-number">0</span>] &amp;= <a href="../../../pkg/builtin.html#name-uint8" class="ident">uint8</a>(<a href="../../../pkg/builtin.html#name-int" class="ident">int</a>(<span class="lit-number">1</span>&lt;&lt;<label for="r21" class="ident">b</label>) - <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code>		<label for="r17" class="ident">n</label>.<a href="../../math/big/int.go.html#line-443" class="ident">SetBytes</a>(<label for="r22" class="ident">bytes</label>)</code></span>
+<span class="codeline" id="line-139"><code>		<span class="keyword">if</span> <label for="r17" class="ident">n</label>.<a href="../../math/big/int.go.html#line-320" class="ident">Cmp</a>(<label for="r16" class="ident">max</label>) &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-140"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-141"><code>		}</code></span>
+<span class="codeline" id="line-142"><code>	}</code></span>
+<span class="codeline" id="line-143"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

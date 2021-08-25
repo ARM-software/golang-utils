@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: ipsock.go in package net</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	ipsock.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/net.html">net</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> net</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"internal/bytealg"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"sync"</span></label></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// BUG(rsc,mikio): On DragonFly BSD and OpenBSD, listening on the</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// "tcp" and "udp" networks does not listen for both IPv4 and IPv6</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// connections. This is due to the fact that IPv4 traffic will not be</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// routed to an IPv6 socket - two separate sockets are required if</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// both address families are to be supported.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// See inet6(4) for details.</span></code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">type</span> <a href="../../pkg/net.html#name-ipStackCapabilities" class="ident">ipStackCapabilities</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-21"><code>	<a href="../../pkg/sync.html" class="ident i2">sync</a>.<a href="../sync/once.go.html#line-14" class="ident">Once</a>             <span class="comment">// guards following</span></code></span>
+<span class="codeline" id="line-22"><code>	ipv4Enabled           <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-23"><code>	ipv6Enabled           <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-24"><code>	ipv4MappedIPv6Enabled <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-25"><code>}</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="keyword">var</span> <a href="../../pkg/net.html#name-ipStackCaps" class="ident">ipStackCaps</a> <a href="#line-20" class="ident">ipStackCapabilities</a></code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// supportsIPv4 reports whether the platform supports IPv4 networking</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// functionality.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/net.html#name-supportsIPv4" class="ident">supportsIPv4</a></label>() <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-32"><code>	<a href="#line-27" class="ident">ipStackCaps</a>.<a href="#line-21" class="ident">Once</a>.<a href="../sync/once.go.html#line-42" class="ident">Do</a>(<a href="#line-27" class="ident">ipStackCaps</a>.<a href="ipsock_posix.go.html#line-26" class="ident">probe</a>)</code></span>
+<span class="codeline" id="line-33"><code>	<span class="keyword">return</span> <a href="#line-27" class="ident">ipStackCaps</a>.<a href="#line-22" class="ident">ipv4Enabled</a></code></span>
+<span class="codeline" id="line-34"><code>}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// supportsIPv6 reports whether the platform supports IPv6 networking</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// functionality.</span></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">func</span> <label for="r1" class="ident"><a href="../../pkg/net.html#name-supportsIPv6" class="ident">supportsIPv6</a></label>() <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-39"><code>	<a href="#line-27" class="ident">ipStackCaps</a>.<a href="#line-21" class="ident">Once</a>.<a href="../sync/once.go.html#line-42" class="ident">Do</a>(<a href="#line-27" class="ident">ipStackCaps</a>.<a href="ipsock_posix.go.html#line-26" class="ident">probe</a>)</code></span>
+<span class="codeline" id="line-40"><code>	<span class="keyword">return</span> <a href="#line-27" class="ident">ipStackCaps</a>.<a href="#line-23" class="ident">ipv6Enabled</a></code></span>
+<span class="codeline" id="line-41"><code>}</code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// supportsIPv4map reports whether the platform supports mapping an</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// IPv4 address inside an IPv6 address at transport layer</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// protocols. See RFC 4291, RFC 4038 and RFC 3493.</span></code></span>
+<span class="codeline" id="line-46"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../pkg/net.html#name-supportsIPv4map" class="ident">supportsIPv4map</a></label>() <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-47"><code>	<a href="#line-27" class="ident">ipStackCaps</a>.<a href="#line-21" class="ident">Once</a>.<a href="../sync/once.go.html#line-42" class="ident">Do</a>(<a href="#line-27" class="ident">ipStackCaps</a>.<a href="ipsock_posix.go.html#line-26" class="ident">probe</a>)</code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">return</span> <a href="#line-27" class="ident">ipStackCaps</a>.<a href="#line-24" class="ident">ipv4MappedIPv6Enabled</a></code></span>
+<span class="codeline" id="line-49"><code>}</code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// An addrList represents a list of network endpoint addresses.</span></code></span>
+<span class="codeline" id="line-52"><code><span class="keyword">type</span> <a href="../../pkg/net.html#name-addrList" class="ident">addrList</a> []<a href="net.go.html#line-105" class="ident">Addr</a></code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// isIPv4 reports whether addr contains an IPv4 address.</span></code></span>
+<span class="codeline" id="line-55"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../pkg/net.html#name-isIPv4" class="ident">isIPv4</a></label>(<label for="r4" class="ident">addr</label> <a href="net.go.html#line-105" class="ident">Addr</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">switch</span> addr := <label for="r4" class="ident">addr</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-57"><code>	<span class="keyword">case</span> *<a href="tcpsock.go.html#line-19" class="ident">TCPAddr</a>:</code></span>
+<span class="codeline" id="line-58"><code>		<span class="keyword">return</span> <label for="r5" class="ident">addr</label>.<a href="tcpsock.go.html#line-20" class="ident">IP</a>.<a href="ip.go.html#line-189" class="ident">To4</a>() != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-59"><code>	<span class="keyword">case</span> *<a href="udpsock.go.html#line-22" class="ident">UDPAddr</a>:</code></span>
+<span class="codeline" id="line-60"><code>		<span class="keyword">return</span> <label for="r6" class="ident">addr</label>.<a href="udpsock.go.html#line-23" class="ident">IP</a>.<a href="ip.go.html#line-189" class="ident">To4</a>() != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-61"><code>	<span class="keyword">case</span> *<a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>:</code></span>
+<span class="codeline" id="line-62"><code>		<span class="keyword">return</span> <label for="r7" class="ident">addr</label>.<a href="iprawsock.go.html#line-32" class="ident">IP</a>.<a href="ip.go.html#line-189" class="ident">To4</a>() != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-63"><code>	}</code></span>
+<span class="codeline" id="line-64"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-65"><code>}</code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// isNotIPv4 reports whether addr does not contain an IPv4 address.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../pkg/net.html#name-isNotIPv4" class="ident">isNotIPv4</a></label>(<label for="r9" class="ident">addr</label> <a href="net.go.html#line-105" class="ident">Addr</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> { <span class="keyword">return</span> !<a href="#line-55" class="ident">isIPv4</a>(<label for="r9" class="ident">addr</label>) }</code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// forResolve returns the most appropriate address in address for</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// a call to ResolveTCPAddr, ResolveUDPAddr, or ResolveIPAddr.</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">// IPv4 is preferred, unless addr contains an IPv6 literal.</span></code></span>
+<span class="codeline" id="line-73"><code><span class="keyword">func</span> (<label for="r10" class="ident">addrs</label> <a href="#line-52" class="ident">addrList</a>) <label for="r11" class="ident">forResolve</label>(<label for="r12" class="ident">network</label>, <label for="r13" class="ident">addr</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="net.go.html#line-105" class="ident">Addr</a> {</code></span>
+<span class="codeline" id="line-74"><code>	<span class="keyword">var</span> <label for="r14" class="ident">want6</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">switch</span> <label for="r12" class="ident">network</label> {</code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">case</span> <span class="lit-string">"ip"</span>:</code></span>
+<span class="codeline" id="line-77"><code>		<span class="comment">// IPv6 literal (addr does NOT contain a port)</span></code></span>
+<span class="codeline" id="line-78"><code>		<label for="r14" class="ident">want6</label> = <a href="parse.go.html#line-216" class="ident">count</a>(<label for="r13" class="ident">addr</label>, <span class="lit-number">':'</span>) &gt; <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-79"><code>	<span class="keyword">case</span> <span class="lit-string">"tcp"</span>, <span class="lit-string">"udp"</span>:</code></span>
+<span class="codeline" id="line-80"><code>		<span class="comment">// IPv6 literal. (addr contains a port, so look for '[')</span></code></span>
+<span class="codeline" id="line-81"><code>		<label for="r14" class="ident">want6</label> = <a href="parse.go.html#line-216" class="ident">count</a>(<label for="r13" class="ident">addr</label>, <span class="lit-number">'['</span>) &gt; <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-82"><code>	}</code></span>
+<span class="codeline" id="line-83"><code>	<span class="keyword">if</span> <label for="r14" class="ident">want6</label> {</code></span>
+<span class="codeline" id="line-84"><code>		<span class="keyword">return</span> <label for="r10" class="ident">addrs</label>.<a href="#line-91" class="ident">first</a>(<a href="#line-68" class="ident">isNotIPv4</a>)</code></span>
+<span class="codeline" id="line-85"><code>	}</code></span>
+<span class="codeline" id="line-86"><code>	<span class="keyword">return</span> <label for="r10" class="ident">addrs</label>.<a href="#line-91" class="ident">first</a>(<a href="#line-55" class="ident">isIPv4</a>)</code></span>
+<span class="codeline" id="line-87"><code>}</code></span>
+<span class="codeline" id="line-88"><code></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">// first returns the first address which satisfies strategy, or if</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// none do, then the first address of any kind.</span></code></span>
+<span class="codeline" id="line-91"><code><span class="keyword">func</span> (<label for="r15" class="ident">addrs</label> <a href="#line-52" class="ident">addrList</a>) <label for="r16" class="ident">first</label>(<label for="r17" class="ident">strategy</label> <span class="keyword">func</span>(<a href="net.go.html#line-105" class="ident">Addr</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) <a href="net.go.html#line-105" class="ident">Addr</a> {</code></span>
+<span class="codeline" id="line-92"><code>	<span class="keyword">for</span> <label for="r18" class="ident">_</label>, <label for="r19" class="ident">addr</label> := <span class="keyword">range</span> <label for="r15" class="ident">addrs</label> {</code></span>
+<span class="codeline" id="line-93"><code>		<span class="keyword">if</span> <label for="r17" class="ident">strategy</label>(<label for="r19" class="ident">addr</label>) {</code></span>
+<span class="codeline" id="line-94"><code>			<span class="keyword">return</span> <label for="r19" class="ident">addr</label></code></span>
+<span class="codeline" id="line-95"><code>		}</code></span>
+<span class="codeline" id="line-96"><code>	}</code></span>
+<span class="codeline" id="line-97"><code>	<span class="keyword">return</span> <label for="r15" class="ident">addrs</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-98"><code>}</code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">// partition divides an address list into two categories, using a</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// strategy function to assign a boolean label to each address.</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// The first address, and any with a matching label, are returned as</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">// primaries, while addresses with the opposite label are returned</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">// as fallbacks. For non-empty inputs, primaries is guaranteed to be</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// non-empty.</span></code></span>
+<span class="codeline" id="line-106"><code><span class="keyword">func</span> (<label for="r20" class="ident">addrs</label> <a href="#line-52" class="ident">addrList</a>) <label for="r21" class="ident">partition</label>(<label for="r22" class="ident">strategy</label> <span class="keyword">func</span>(<a href="net.go.html#line-105" class="ident">Addr</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) (<label for="r23" class="ident">primaries</label>, <label for="r24" class="ident">fallbacks</label> <a href="#line-52" class="ident">addrList</a>) {</code></span>
+<span class="codeline" id="line-107"><code>	<span class="keyword">var</span> <label for="r25" class="ident">primaryLabel</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-108"><code>	<span class="keyword">for</span> <label for="r26" class="ident">i</label>, <label for="r27" class="ident">addr</label> := <span class="keyword">range</span> <label for="r20" class="ident">addrs</label> {</code></span>
+<span class="codeline" id="line-109"><code>		<label for="r28" class="ident">label</label> := <label for="r22" class="ident">strategy</label>(<label for="r27" class="ident">addr</label>)</code></span>
+<span class="codeline" id="line-110"><code>		<span class="keyword">if</span> <label for="r26" class="ident">i</label> == <span class="lit-number">0</span> || <label for="r28" class="ident">label</label> == <label for="r25" class="ident">primaryLabel</label> {</code></span>
+<span class="codeline" id="line-111"><code>			<label for="r25" class="ident">primaryLabel</label> = <label for="r28" class="ident">label</label></code></span>
+<span class="codeline" id="line-112"><code>			<label for="r23" class="ident">primaries</label> = <a href="../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r23" class="ident">primaries</label>, <label for="r27" class="ident">addr</label>)</code></span>
+<span class="codeline" id="line-113"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-114"><code>			<label for="r24" class="ident">fallbacks</label> = <a href="../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r24" class="ident">fallbacks</label>, <label for="r27" class="ident">addr</label>)</code></span>
+<span class="codeline" id="line-115"><code>		}</code></span>
+<span class="codeline" id="line-116"><code>	}</code></span>
+<span class="codeline" id="line-117"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-118"><code>}</code></span>
+<span class="codeline" id="line-119"><code></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">// filterAddrList applies a filter to a list of IP addresses,</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">// yielding a list of Addr objects. Known filters are nil, ipv4only,</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">// and ipv6only. It returns every address when the filter is nil.</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">// The result contains at least one address when error is nil.</span></code></span>
+<span class="codeline" id="line-124"><code><span class="keyword">func</span> <label for="r29" class="ident"><a href="../../pkg/net.html#name-filterAddrList" class="ident">filterAddrList</a></label>(<label for="r30" class="ident">filter</label> <span class="keyword">func</span>(<a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r31" class="ident">ips</label> []<a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>, <label for="r32" class="ident">inetaddr</label> <span class="keyword">func</span>(<a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>) <a href="net.go.html#line-105" class="ident">Addr</a>, <label for="r33" class="ident">originalAddr</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="#line-52" class="ident">addrList</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-125"><code>	<span class="keyword">var</span> <label for="r34" class="ident">addrs</label> <a href="#line-52" class="ident">addrList</a></code></span>
+<span class="codeline" id="line-126"><code>	<span class="keyword">for</span> <label for="r35" class="ident">_</label>, <label for="r36" class="ident">ip</label> := <span class="keyword">range</span> <label for="r31" class="ident">ips</label> {</code></span>
+<span class="codeline" id="line-127"><code>		<span class="keyword">if</span> <label for="r30" class="ident">filter</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> || <label for="r30" class="ident">filter</label>(<label for="r36" class="ident">ip</label>) {</code></span>
+<span class="codeline" id="line-128"><code>			<label for="r34" class="ident">addrs</label> = <a href="../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r34" class="ident">addrs</label>, <label for="r32" class="ident">inetaddr</label>(<label for="r36" class="ident">ip</label>))</code></span>
+<span class="codeline" id="line-129"><code>		}</code></span>
+<span class="codeline" id="line-130"><code>	}</code></span>
+<span class="codeline" id="line-131"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r34" class="ident">addrs</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-132"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="net.go.html#line-542" class="ident">AddrError</a>{<a href="net.go.html#line-543" class="ident">Err</a>: <a href="net.go.html#line-406" class="ident">errNoSuitableAddress</a>.Error(), <a href="net.go.html#line-544" class="ident">Addr</a>: <label for="r33" class="ident">originalAddr</label>}</code></span>
+<span class="codeline" id="line-133"><code>	}</code></span>
+<span class="codeline" id="line-134"><code>	<span class="keyword">return</span> <label for="r34" class="ident">addrs</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-135"><code>}</code></span>
+<span class="codeline" id="line-136"><code></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">// ipv4only reports whether addr is an IPv4 address.</span></code></span>
+<span class="codeline" id="line-138"><code><span class="keyword">func</span> <label for="r37" class="ident"><a href="../../pkg/net.html#name-ipv4only" class="ident">ipv4only</a></label>(<label for="r38" class="ident">addr</label> <a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-139"><code>	<span class="keyword">return</span> <label for="r38" class="ident">addr</label>.<a href="iprawsock.go.html#line-32" class="ident">IP</a>.<a href="ip.go.html#line-189" class="ident">To4</a>() != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-140"><code>}</code></span>
+<span class="codeline" id="line-141"><code></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">// ipv6only reports whether addr is an IPv6 address except IPv4-mapped IPv6 address.</span></code></span>
+<span class="codeline" id="line-143"><code><span class="keyword">func</span> <label for="r39" class="ident"><a href="../../pkg/net.html#name-ipv6only" class="ident">ipv6only</a></label>(<label for="r40" class="ident">addr</label> <a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-144"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r40" class="ident">addr</label>.<a href="iprawsock.go.html#line-32" class="ident">IP</a>) == <a href="ip.go.html#line-20" class="ident">IPv6len</a> &amp;&amp; <label for="r40" class="ident">addr</label>.<a href="iprawsock.go.html#line-32" class="ident">IP</a>.<a href="ip.go.html#line-189" class="ident">To4</a>() == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-145"><code>}</code></span>
+<span class="codeline" id="line-146"><code></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">// SplitHostPort splits a network address of the form "host:port",</span></code></span>
+<span class="codeline" id="line-148"><code><span class="comment">// "host%zone:port", "[host]:port" or "[host%zone]:port" into host or</span></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">// host%zone and port.</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">// A literal IPv6 address in hostport must be enclosed in square</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">// brackets, as in "[::1]:80", "[::1%lo0]:80".</span></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">// See func Dial for a description of the hostport parameter, and host</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">// and port results.</span></code></span>
+<span class="codeline" id="line-156"><code><span class="keyword">func</span> <label for="r41" class="ident"><a href="../../pkg/net.html#name-SplitHostPort" class="ident">SplitHostPort</a></label>(<label for="r42" class="ident">hostport</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r43" class="ident">host</label>, <label for="r44" class="ident">port</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r45" class="ident">err</label> <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-157"><code>	<span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-158"><code>		<label for="r46" class="ident">missingPort</label>   = <span class="lit-string">"missing port in address"</span></code></span>
+<span class="codeline" id="line-159"><code>		<label for="r47" class="ident">tooManyColons</label> = <span class="lit-string">"too many colons in address"</span></code></span>
+<span class="codeline" id="line-160"><code>	)</code></span>
+<span class="codeline" id="line-161"><code>	<label for="r48" class="ident">addrErr</label> := <span class="keyword">func</span>(<label for="r49" class="ident">addr</label>, <label for="r50" class="ident">why</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r51" class="ident">host</label>, <label for="r52" class="ident">port</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r53" class="ident">err</label> <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-162"><code>		<span class="keyword">return</span> <span class="lit-string">""</span>, <span class="lit-string">""</span>, &amp;<a href="net.go.html#line-542" class="ident">AddrError</a>{<a href="net.go.html#line-543" class="ident">Err</a>: <label for="r50" class="ident">why</label>, <a href="net.go.html#line-544" class="ident">Addr</a>: <label for="r49" class="ident">addr</label>}</code></span>
+<span class="codeline" id="line-163"><code>	}</code></span>
+<span class="codeline" id="line-164"><code>	<label for="r54" class="ident">j</label>, <label for="r55" class="ident">k</label> := <span class="lit-number">0</span>, <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-165"><code></code></span>
+<span class="codeline" id="line-166"><code>	<span class="comment">// The port starts after the last colon.</span></code></span>
+<span class="codeline" id="line-167"><code>	<label for="r56" class="ident">i</label> := <a href="parse.go.html#line-227" class="ident">last</a>(<label for="r42" class="ident">hostport</label>, <span class="lit-number">':'</span>)</code></span>
+<span class="codeline" id="line-168"><code>	<span class="keyword">if</span> <label for="r56" class="ident">i</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-169"><code>		<span class="keyword">return</span> <label for="r48" class="ident">addrErr</label>(<label for="r42" class="ident">hostport</label>, <label for="r46" class="ident">missingPort</label>)</code></span>
+<span class="codeline" id="line-170"><code>	}</code></span>
+<span class="codeline" id="line-171"><code></code></span>
+<span class="codeline" id="line-172"><code>	<span class="keyword">if</span> <label for="r42" class="ident">hostport</label>[<span class="lit-number">0</span>] == <span class="lit-number">'['</span> {</code></span>
+<span class="codeline" id="line-173"><code>		<span class="comment">// Expect the first ']' just before the last ':'.</span></code></span>
+<span class="codeline" id="line-174"><code>		<label for="r57" class="ident">end</label> := <a href="../../pkg/internal/bytealg.html" class="ident i1">bytealg</a>.<a href="../internal/bytealg/indexbyte_native.go.html#line-13" class="ident">IndexByteString</a>(<label for="r42" class="ident">hostport</label>, <span class="lit-number">']'</span>)</code></span>
+<span class="codeline" id="line-175"><code>		<span class="keyword">if</span> <label for="r57" class="ident">end</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-176"><code>			<span class="keyword">return</span> <label for="r48" class="ident">addrErr</label>(<label for="r42" class="ident">hostport</label>, <span class="lit-string">"missing ']' in address"</span>)</code></span>
+<span class="codeline" id="line-177"><code>		}</code></span>
+<span class="codeline" id="line-178"><code>		<span class="keyword">switch</span> <label for="r57" class="ident">end</label> + <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-179"><code>		<span class="keyword">case</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r42" class="ident">hostport</label>):</code></span>
+<span class="codeline" id="line-180"><code>			<span class="comment">// There can't be a ':' behind the ']' now.</span></code></span>
+<span class="codeline" id="line-181"><code>			<span class="keyword">return</span> <label for="r48" class="ident">addrErr</label>(<label for="r42" class="ident">hostport</label>, <label for="r46" class="ident">missingPort</label>)</code></span>
+<span class="codeline" id="line-182"><code>		<span class="keyword">case</span> <label for="r56" class="ident">i</label>:</code></span>
+<span class="codeline" id="line-183"><code>			<span class="comment">// The expected result.</span></code></span>
+<span class="codeline" id="line-184"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-185"><code>			<span class="comment">// Either ']' isn't followed by a colon, or it is</span></code></span>
+<span class="codeline" id="line-186"><code><span class="comment">			// followed by a colon that is not the last one.</span></code></span>
+<span class="codeline" id="line-187"><code>			<span class="keyword">if</span> <label for="r42" class="ident">hostport</label>[<label for="r57" class="ident">end</label>+<span class="lit-number">1</span>] == <span class="lit-number">':'</span> {</code></span>
+<span class="codeline" id="line-188"><code>				<span class="keyword">return</span> <label for="r48" class="ident">addrErr</label>(<label for="r42" class="ident">hostport</label>, <label for="r47" class="ident">tooManyColons</label>)</code></span>
+<span class="codeline" id="line-189"><code>			}</code></span>
+<span class="codeline" id="line-190"><code>			<span class="keyword">return</span> <label for="r48" class="ident">addrErr</label>(<label for="r42" class="ident">hostport</label>, <label for="r46" class="ident">missingPort</label>)</code></span>
+<span class="codeline" id="line-191"><code>		}</code></span>
+<span class="codeline" id="line-192"><code>		<label for="r43" class="ident">host</label> = <label for="r42" class="ident">hostport</label>[<span class="lit-number">1</span>:<label for="r57" class="ident">end</label>]</code></span>
+<span class="codeline" id="line-193"><code>		<label for="r54" class="ident">j</label>, <label for="r55" class="ident">k</label> = <span class="lit-number">1</span>, <label for="r57" class="ident">end</label>+<span class="lit-number">1</span> <span class="comment">// there can't be a '[' resp. ']' before these positions</span></code></span>
+<span class="codeline" id="line-194"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-195"><code>		<label for="r43" class="ident">host</label> = <label for="r42" class="ident">hostport</label>[:<label for="r56" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-196"><code>		<span class="keyword">if</span> <a href="../../pkg/internal/bytealg.html" class="ident i1">bytealg</a>.<a href="../internal/bytealg/indexbyte_native.go.html#line-13" class="ident">IndexByteString</a>(<label for="r43" class="ident">host</label>, <span class="lit-number">':'</span>) &gt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-197"><code>			<span class="keyword">return</span> <label for="r48" class="ident">addrErr</label>(<label for="r42" class="ident">hostport</label>, <label for="r47" class="ident">tooManyColons</label>)</code></span>
+<span class="codeline" id="line-198"><code>		}</code></span>
+<span class="codeline" id="line-199"><code>	}</code></span>
+<span class="codeline" id="line-200"><code>	<span class="keyword">if</span> <a href="../../pkg/internal/bytealg.html" class="ident i1">bytealg</a>.<a href="../internal/bytealg/indexbyte_native.go.html#line-13" class="ident">IndexByteString</a>(<label for="r42" class="ident">hostport</label>[<label for="r54" class="ident">j</label>:], <span class="lit-number">'['</span>) &gt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-201"><code>		<span class="keyword">return</span> <label for="r48" class="ident">addrErr</label>(<label for="r42" class="ident">hostport</label>, <span class="lit-string">"unexpected '[' in address"</span>)</code></span>
+<span class="codeline" id="line-202"><code>	}</code></span>
+<span class="codeline" id="line-203"><code>	<span class="keyword">if</span> <a href="../../pkg/internal/bytealg.html" class="ident i1">bytealg</a>.<a href="../internal/bytealg/indexbyte_native.go.html#line-13" class="ident">IndexByteString</a>(<label for="r42" class="ident">hostport</label>[<label for="r55" class="ident">k</label>:], <span class="lit-number">']'</span>) &gt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-204"><code>		<span class="keyword">return</span> <label for="r48" class="ident">addrErr</label>(<label for="r42" class="ident">hostport</label>, <span class="lit-string">"unexpected ']' in address"</span>)</code></span>
+<span class="codeline" id="line-205"><code>	}</code></span>
+<span class="codeline" id="line-206"><code></code></span>
+<span class="codeline" id="line-207"><code>	<label for="r44" class="ident">port</label> = <label for="r42" class="ident">hostport</label>[<label for="r56" class="ident">i</label>+<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-208"><code>	<span class="keyword">return</span> <label for="r43" class="ident">host</label>, <label for="r44" class="ident">port</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-209"><code>}</code></span>
+<span class="codeline" id="line-210"><code></code></span>
+<span class="codeline" id="line-211"><code><span class="keyword">func</span> <label for="r58" class="ident"><a href="../../pkg/net.html#name-splitHostZone" class="ident">splitHostZone</a></label>(<label for="r59" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r60" class="ident">host</label>, <label for="r61" class="ident">zone</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-212"><code>	<span class="comment">// The IPv6 scoped addressing zone identifier starts after the</span></code></span>
+<span class="codeline" id="line-213"><code><span class="comment">	// last percent sign.</span></code></span>
+<span class="codeline" id="line-214"><code>	<span class="keyword">if</span> <label for="r62" class="ident">i</label> := <a href="parse.go.html#line-227" class="ident">last</a>(<label for="r59" class="ident">s</label>, <span class="lit-number">'%'</span>); <label for="r62" class="ident">i</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-215"><code>		<label for="r60" class="ident">host</label>, <label for="r61" class="ident">zone</label> = <label for="r59" class="ident">s</label>[:<label for="r62" class="ident">i</label>], <label for="r59" class="ident">s</label>[<label for="r62" class="ident">i</label>+<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-216"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-217"><code>		<label for="r60" class="ident">host</label> = <label for="r59" class="ident">s</label></code></span>
+<span class="codeline" id="line-218"><code>	}</code></span>
+<span class="codeline" id="line-219"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-220"><code>}</code></span>
+<span class="codeline" id="line-221"><code></code></span>
+<span class="codeline" id="line-222"><code><span class="comment">// JoinHostPort combines host and port into a network address of the</span></code></span>
+<span class="codeline" id="line-223"><code><span class="comment">// form "host:port". If host contains a colon, as found in literal</span></code></span>
+<span class="codeline" id="line-224"><code><span class="comment">// IPv6 addresses, then JoinHostPort returns "[host]:port".</span></code></span>
+<span class="codeline" id="line-225"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-226"><code><span class="comment">// See func Dial for a description of the host and port parameters.</span></code></span>
+<span class="codeline" id="line-227"><code><span class="keyword">func</span> <label for="r63" class="ident"><a href="../../pkg/net.html#name-JoinHostPort" class="ident">JoinHostPort</a></label>(<label for="r64" class="ident">host</label>, <label for="r65" class="ident">port</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-228"><code>	<span class="comment">// We assume that host is a literal IPv6 address if host has</span></code></span>
+<span class="codeline" id="line-229"><code><span class="comment">	// colons.</span></code></span>
+<span class="codeline" id="line-230"><code>	<span class="keyword">if</span> <a href="../../pkg/internal/bytealg.html" class="ident i1">bytealg</a>.<a href="../internal/bytealg/indexbyte_native.go.html#line-13" class="ident">IndexByteString</a>(<label for="r64" class="ident">host</label>, <span class="lit-number">':'</span>) &gt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-231"><code>		<span class="keyword">return</span> <span class="lit-string">"["</span> + <label for="r64" class="ident">host</label> + <span class="lit-string">"]:"</span> + <label for="r65" class="ident">port</label></code></span>
+<span class="codeline" id="line-232"><code>	}</code></span>
+<span class="codeline" id="line-233"><code>	<span class="keyword">return</span> <label for="r64" class="ident">host</label> + <span class="lit-string">":"</span> + <label for="r65" class="ident">port</label></code></span>
+<span class="codeline" id="line-234"><code>}</code></span>
+<span class="codeline" id="line-235"><code></code></span>
+<span class="codeline" id="line-236"><code><span class="comment">// internetAddrList resolves addr, which may be a literal IP</span></code></span>
+<span class="codeline" id="line-237"><code><span class="comment">// address or a DNS name, and returns a list of internet protocol</span></code></span>
+<span class="codeline" id="line-238"><code><span class="comment">// family addresses. The result contains at least one address when</span></code></span>
+<span class="codeline" id="line-239"><code><span class="comment">// error is nil.</span></code></span>
+<span class="codeline" id="line-240"><code><span class="keyword">func</span> (<label for="r66" class="ident">r</label> *<a href="lookup.go.html#line-119" class="ident">Resolver</a>) <label for="r67" class="ident">internetAddrList</label>(<label for="r68" class="ident">ctx</label> <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a>, <label for="r69" class="ident">net</label>, <label for="r70" class="ident">addr</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="#line-52" class="ident">addrList</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-241"><code>	<span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-242"><code>		<label for="r71" class="ident">err</label>        <a href="../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-243"><code>		<label for="r72" class="ident">host</label>, <label for="r73" class="ident">port</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-244"><code>		<label for="r74" class="ident">portnum</label>    <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-245"><code>	)</code></span>
+<span class="codeline" id="line-246"><code>	<span class="keyword">switch</span> <label for="r69" class="ident">net</label> {</code></span>
+<span class="codeline" id="line-247"><code>	<span class="keyword">case</span> <span class="lit-string">"tcp"</span>, <span class="lit-string">"tcp4"</span>, <span class="lit-string">"tcp6"</span>, <span class="lit-string">"udp"</span>, <span class="lit-string">"udp4"</span>, <span class="lit-string">"udp6"</span>:</code></span>
+<span class="codeline" id="line-248"><code>		<span class="keyword">if</span> <label for="r70" class="ident">addr</label> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-249"><code>			<span class="keyword">if</span> <label for="r72" class="ident">host</label>, <label for="r73" class="ident">port</label>, <label for="r71" class="ident">err</label> = <a href="#line-156" class="ident">SplitHostPort</a>(<label for="r70" class="ident">addr</label>); <label for="r71" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-250"><code>				<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r71" class="ident">err</label></code></span>
+<span class="codeline" id="line-251"><code>			}</code></span>
+<span class="codeline" id="line-252"><code>			<span class="keyword">if</span> <label for="r74" class="ident">portnum</label>, <label for="r71" class="ident">err</label> = <label for="r66" class="ident">r</label>.<a href="lookup.go.html#line-361" class="ident">LookupPort</a>(<label for="r68" class="ident">ctx</label>, <label for="r69" class="ident">net</label>, <label for="r73" class="ident">port</label>); <label for="r71" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-253"><code>				<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r71" class="ident">err</label></code></span>
+<span class="codeline" id="line-254"><code>			}</code></span>
+<span class="codeline" id="line-255"><code>		}</code></span>
+<span class="codeline" id="line-256"><code>	<span class="keyword">case</span> <span class="lit-string">"ip"</span>, <span class="lit-string">"ip4"</span>, <span class="lit-string">"ip6"</span>:</code></span>
+<span class="codeline" id="line-257"><code>		<span class="keyword">if</span> <label for="r70" class="ident">addr</label> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-258"><code>			<label for="r72" class="ident">host</label> = <label for="r70" class="ident">addr</label></code></span>
+<span class="codeline" id="line-259"><code>		}</code></span>
+<span class="codeline" id="line-260"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-261"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="net.go.html#line-561" class="ident">UnknownNetworkError</a>(<label for="r69" class="ident">net</label>)</code></span>
+<span class="codeline" id="line-262"><code>	}</code></span>
+<span class="codeline" id="line-263"><code>	<label for="r75" class="ident">inetaddr</label> := <span class="keyword">func</span>(<label for="r76" class="ident">ip</label> <a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>) <a href="net.go.html#line-105" class="ident">Addr</a> {</code></span>
+<span class="codeline" id="line-264"><code>		<span class="keyword">switch</span> <label for="r69" class="ident">net</label> {</code></span>
+<span class="codeline" id="line-265"><code>		<span class="keyword">case</span> <span class="lit-string">"tcp"</span>, <span class="lit-string">"tcp4"</span>, <span class="lit-string">"tcp6"</span>:</code></span>
+<span class="codeline" id="line-266"><code>			<span class="keyword">return</span> &amp;<a href="tcpsock.go.html#line-19" class="ident">TCPAddr</a>{<a href="tcpsock.go.html#line-20" class="ident">IP</a>: <label for="r76" class="ident">ip</label>.<a href="iprawsock.go.html#line-32" class="ident">IP</a>, <a href="tcpsock.go.html#line-21" class="ident">Port</a>: <label for="r74" class="ident">portnum</label>, <a href="tcpsock.go.html#line-22" class="ident">Zone</a>: <label for="r76" class="ident">ip</label>.<a href="iprawsock.go.html#line-33" class="ident">Zone</a>}</code></span>
+<span class="codeline" id="line-267"><code>		<span class="keyword">case</span> <span class="lit-string">"udp"</span>, <span class="lit-string">"udp4"</span>, <span class="lit-string">"udp6"</span>:</code></span>
+<span class="codeline" id="line-268"><code>			<span class="keyword">return</span> &amp;<a href="udpsock.go.html#line-22" class="ident">UDPAddr</a>{<a href="udpsock.go.html#line-23" class="ident">IP</a>: <label for="r76" class="ident">ip</label>.<a href="iprawsock.go.html#line-32" class="ident">IP</a>, <a href="udpsock.go.html#line-24" class="ident">Port</a>: <label for="r74" class="ident">portnum</label>, <a href="udpsock.go.html#line-25" class="ident">Zone</a>: <label for="r76" class="ident">ip</label>.<a href="iprawsock.go.html#line-33" class="ident">Zone</a>}</code></span>
+<span class="codeline" id="line-269"><code>		<span class="keyword">case</span> <span class="lit-string">"ip"</span>, <span class="lit-string">"ip4"</span>, <span class="lit-string">"ip6"</span>:</code></span>
+<span class="codeline" id="line-270"><code>			<span class="keyword">return</span> &amp;<a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>{<a href="iprawsock.go.html#line-32" class="ident">IP</a>: <label for="r76" class="ident">ip</label>.<a href="iprawsock.go.html#line-32" class="ident">IP</a>, <a href="iprawsock.go.html#line-33" class="ident">Zone</a>: <label for="r76" class="ident">ip</label>.<a href="iprawsock.go.html#line-33" class="ident">Zone</a>}</code></span>
+<span class="codeline" id="line-271"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-272"><code>			<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"unexpected network: "</span> + <label for="r69" class="ident">net</label>)</code></span>
+<span class="codeline" id="line-273"><code>		}</code></span>
+<span class="codeline" id="line-274"><code>	}</code></span>
+<span class="codeline" id="line-275"><code>	<span class="keyword">if</span> <label for="r72" class="ident">host</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-276"><code>		<span class="keyword">return</span> <a href="#line-52" class="ident">addrList</a>{<label for="r75" class="ident">inetaddr</label>(<a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>{})}, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-277"><code>	}</code></span>
+<span class="codeline" id="line-278"><code></code></span>
+<span class="codeline" id="line-279"><code>	<span class="comment">// Try as a literal IP address, then as a DNS name.</span></code></span>
+<span class="codeline" id="line-280"><code>	<label for="r77" class="ident">ips</label>, <label for="r71" class="ident">err</label> := <label for="r66" class="ident">r</label>.<a href="lookup.go.html#line-261" class="ident">lookupIPAddr</a>(<label for="r68" class="ident">ctx</label>, <label for="r69" class="ident">net</label>, <label for="r72" class="ident">host</label>)</code></span>
+<span class="codeline" id="line-281"><code>	<span class="keyword">if</span> <label for="r71" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-282"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r71" class="ident">err</label></code></span>
+<span class="codeline" id="line-283"><code>	}</code></span>
+<span class="codeline" id="line-284"><code>	<span class="comment">// Issue 18806: if the machine has halfway configured</span></code></span>
+<span class="codeline" id="line-285"><code><span class="comment">	// IPv6 such that it can bind on "::" (IPv6unspecified)</span></code></span>
+<span class="codeline" id="line-286"><code><span class="comment">	// but not connect back to that same address, fall</span></code></span>
+<span class="codeline" id="line-287"><code><span class="comment">	// back to dialing 0.0.0.0.</span></code></span>
+<span class="codeline" id="line-288"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r77" class="ident">ips</label>) == <span class="lit-number">1</span> &amp;&amp; <label for="r77" class="ident">ips</label>[<span class="lit-number">0</span>].<a href="iprawsock.go.html#line-32" class="ident">IP</a>.<a href="ip.go.html#line-410" class="ident">Equal</a>(<a href="ip.go.html#line-107" class="ident">IPv6unspecified</a>) {</code></span>
+<span class="codeline" id="line-289"><code>		<label for="r77" class="ident">ips</label> = <a href="../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r77" class="ident">ips</label>, <a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>{<a href="iprawsock.go.html#line-32" class="ident">IP</a>: <a href="ip.go.html#line-101" class="ident">IPv4zero</a>})</code></span>
+<span class="codeline" id="line-290"><code>	}</code></span>
+<span class="codeline" id="line-291"><code></code></span>
+<span class="codeline" id="line-292"><code>	<span class="keyword">var</span> <label for="r78" class="ident">filter</label> <span class="keyword">func</span>(<a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-293"><code>	<span class="keyword">if</span> <label for="r69" class="ident">net</label> != <span class="lit-string">""</span> &amp;&amp; <label for="r69" class="ident">net</label>[<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r69" class="ident">net</label>)-<span class="lit-number">1</span>] == <span class="lit-number">'4'</span> {</code></span>
+<span class="codeline" id="line-294"><code>		<label for="r78" class="ident">filter</label> = <a href="#line-138" class="ident">ipv4only</a></code></span>
+<span class="codeline" id="line-295"><code>	}</code></span>
+<span class="codeline" id="line-296"><code>	<span class="keyword">if</span> <label for="r69" class="ident">net</label> != <span class="lit-string">""</span> &amp;&amp; <label for="r69" class="ident">net</label>[<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r69" class="ident">net</label>)-<span class="lit-number">1</span>] == <span class="lit-number">'6'</span> {</code></span>
+<span class="codeline" id="line-297"><code>		<label for="r78" class="ident">filter</label> = <a href="#line-143" class="ident">ipv6only</a></code></span>
+<span class="codeline" id="line-298"><code>	}</code></span>
+<span class="codeline" id="line-299"><code>	<span class="keyword">return</span> <a href="#line-124" class="ident">filterAddrList</a>(<label for="r78" class="ident">filter</label>, <label for="r77" class="ident">ips</label>, <label for="r75" class="ident">inetaddr</label>, <label for="r72" class="ident">host</label>)</code></span>
+<span class="codeline" id="line-300"><code>}</code></span>
+<span class="codeline" id="line-301"><code></code></span>
+<span class="codeline" id="line-302"><code><span class="keyword">func</span> <label for="r79" class="ident"><a href="../../pkg/net.html#name-loopbackIP" class="ident">loopbackIP</a></label>(<label for="r80" class="ident">net</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="ip.go.html#line-32" class="ident">IP</a> {</code></span>
+<span class="codeline" id="line-303"><code>	<span class="keyword">if</span> <label for="r80" class="ident">net</label> != <span class="lit-string">""</span> &amp;&amp; <label for="r80" class="ident">net</label>[<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r80" class="ident">net</label>)-<span class="lit-number">1</span>] == <span class="lit-number">'6'</span> {</code></span>
+<span class="codeline" id="line-304"><code>		<span class="keyword">return</span> <a href="ip.go.html#line-108" class="ident">IPv6loopback</a></code></span>
+<span class="codeline" id="line-305"><code>	}</code></span>
+<span class="codeline" id="line-306"><code>	<span class="keyword">return</span> <a href="ip.go.html#line-32" class="ident">IP</a>{<span class="lit-number">127</span>, <span class="lit-number">0</span>, <span class="lit-number">0</span>, <span class="lit-number">1</span>}</code></span>
+<span class="codeline" id="line-307"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

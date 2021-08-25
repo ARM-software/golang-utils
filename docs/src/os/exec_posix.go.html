@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: exec_posix.go in package os</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	exec_posix.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/os.html">os</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// +build aix darwin dragonfly freebsd js,wasm linux netbsd openbsd solaris windows</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> os</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<label for="i0"><span class="lit-string i0">"internal/syscall/execenv"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i1"><span class="lit-string i1">"runtime"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i2"><span class="lit-string i2">"syscall"</span></label></code></span>
+<span class="codeline" id="line-13"><code>)</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// The only signal values guaranteed to be present in the os package on all</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// systems are os.Interrupt (send the process an interrupt) and os.Kill (force</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// the process to exit). On Windows, sending os.Interrupt to a process with</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// os.Process.Signal is not implemented; it will return an error instead of</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// sending a signal.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-21"><code>	<a href="../../pkg/os.html#name-Interrupt" class="ident">Interrupt</a> <a href="exec.go.html#line-69" class="ident">Signal</a> = <a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1352" class="ident">SIGINT</a></code></span>
+<span class="codeline" id="line-22"><code>	<a href="../../pkg/os.html#name-Kill" class="ident">Kill</a>      <a href="exec.go.html#line-69" class="ident">Signal</a> = <a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1355" class="ident">SIGKILL</a></code></span>
+<span class="codeline" id="line-23"><code>)</code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/os.html#name-startProcess" class="ident">startProcess</a></label>(<label for="r1" class="ident">name</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r2" class="ident">argv</label> []<a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r3" class="ident">attr</label> *<a href="exec.go.html#line-44" class="ident">ProcAttr</a>) (<label for="r4" class="ident">p</label> *<a href="exec.go.html#line-21" class="ident">Process</a>, <label for="r5" class="ident">err</label> <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-26"><code>	<span class="comment">// If there is no SysProcAttr (ie. no Chroot or changed</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">	// UID/GID), double-check existence of the directory we want</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">	// to chdir into. We can make the error clearer this way.</span></code></span>
+<span class="codeline" id="line-29"><code>	<span class="keyword">if</span> <label for="r3" class="ident">attr</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r3" class="ident">attr</label>.<a href="exec.go.html#line-63" class="ident">Sys</a> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r3" class="ident">attr</label>.<a href="exec.go.html#line-47" class="ident">Dir</a> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-30"><code>		<span class="keyword">if</span> <label for="r6" class="ident">_</label>, <label for="r7" class="ident">err</label> := <a href="stat.go.html#line-11" class="ident">Stat</a>(<label for="r3" class="ident">attr</label>.<a href="exec.go.html#line-47" class="ident">Dir</a>); <label for="r7" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-31"><code>			<label for="r8" class="ident">pe</label> := <label for="r7" class="ident">err</label>.(*<a href="error.go.html#line-48" class="ident">PathError</a>)</code></span>
+<span class="codeline" id="line-32"><code>			<label for="r8" class="ident">pe</label>.<a href="../io/fs/fs.go.html#line-244" class="ident">Op</a> = <span class="lit-string">"chdir"</span></code></span>
+<span class="codeline" id="line-33"><code>			<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r8" class="ident">pe</label></code></span>
+<span class="codeline" id="line-34"><code>		}</code></span>
+<span class="codeline" id="line-35"><code>	}</code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code>	<label for="r9" class="ident">sysattr</label> := &amp;<a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/exec_unix.go.html#line-131" class="ident">ProcAttr</a>{</code></span>
+<span class="codeline" id="line-38"><code>		<a href="../syscall/exec_unix.go.html#line-132" class="ident">Dir</a>: <label for="r3" class="ident">attr</label>.<a href="exec.go.html#line-47" class="ident">Dir</a>,</code></span>
+<span class="codeline" id="line-39"><code>		<a href="../syscall/exec_unix.go.html#line-133" class="ident">Env</a>: <label for="r3" class="ident">attr</label>.<a href="exec.go.html#line-51" class="ident">Env</a>,</code></span>
+<span class="codeline" id="line-40"><code>		<a href="../syscall/exec_unix.go.html#line-135" class="ident">Sys</a>: <label for="r3" class="ident">attr</label>.<a href="exec.go.html#line-63" class="ident">Sys</a>,</code></span>
+<span class="codeline" id="line-41"><code>	}</code></span>
+<span class="codeline" id="line-42"><code>	<span class="keyword">if</span> <label for="r9" class="ident">sysattr</label>.<a href="../syscall/exec_unix.go.html#line-133" class="ident">Env</a> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-43"><code>		<label for="r9" class="ident">sysattr</label>.<a href="../syscall/exec_unix.go.html#line-133" class="ident">Env</a>, <label for="r5" class="ident">err</label> = <a href="../../pkg/internal/syscall/execenv.html" class="ident i0">execenv</a>.<a href="../internal/syscall/execenv/execenv_default.go.html#line-17" class="ident">Default</a>(<label for="r9" class="ident">sysattr</label>.<a href="../syscall/exec_unix.go.html#line-135" class="ident">Sys</a>)</code></span>
+<span class="codeline" id="line-44"><code>		<span class="keyword">if</span> <label for="r5" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-45"><code>			<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r5" class="ident">err</label></code></span>
+<span class="codeline" id="line-46"><code>		}</code></span>
+<span class="codeline" id="line-47"><code>	}</code></span>
+<span class="codeline" id="line-48"><code>	<label for="r9" class="ident">sysattr</label>.<a href="../syscall/exec_unix.go.html#line-134" class="ident">Files</a> = <a href="../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <span class="lit-number">0</span>, <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r3" class="ident">attr</label>.<a href="exec.go.html#line-57" class="ident">Files</a>))</code></span>
+<span class="codeline" id="line-49"><code>	<span class="keyword">for</span> <label for="r10" class="ident">_</label>, <label for="r11" class="ident">f</label> := <span class="keyword">range</span> <label for="r3" class="ident">attr</label>.<a href="exec.go.html#line-57" class="ident">Files</a> {</code></span>
+<span class="codeline" id="line-50"><code>		<label for="r9" class="ident">sysattr</label>.<a href="../syscall/exec_unix.go.html#line-134" class="ident">Files</a> = <a href="../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r9" class="ident">sysattr</label>.<a href="../syscall/exec_unix.go.html#line-134" class="ident">Files</a>, <label for="r11" class="ident">f</label>.<a href="file_unix.go.html#line-75" class="ident">Fd</a>())</code></span>
+<span class="codeline" id="line-51"><code>	}</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code>	<label for="r12" class="ident">pid</label>, <label for="r13" class="ident">h</label>, <label for="r14" class="ident">e</label> := <a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/exec_unix.go.html#line-262" class="ident">StartProcess</a>(<label for="r1" class="ident">name</label>, <label for="r2" class="ident">argv</label>, <label for="r9" class="ident">sysattr</label>)</code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code>	<span class="comment">// Make sure we don't run the finalizers of attr.Files.</span></code></span>
+<span class="codeline" id="line-56"><code>	<a href="../../pkg/runtime.html" class="ident i1">runtime</a>.<a href="../runtime/mfinal.go.html#line-446" class="ident">KeepAlive</a>(<label for="r3" class="ident">attr</label>)</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">if</span> <label for="r14" class="ident">e</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-59"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="error.go.html#line-48" class="ident">PathError</a>{<a href="../io/fs/fs.go.html#line-244" class="ident">Op</a>: <span class="lit-string">"fork/exec"</span>, <a href="../io/fs/fs.go.html#line-245" class="ident">Path</a>: <label for="r1" class="ident">name</label>, <a href="../io/fs/fs.go.html#line-246" class="ident">Err</a>: <label for="r14" class="ident">e</label>}</code></span>
+<span class="codeline" id="line-60"><code>	}</code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code>	<span class="keyword">return</span> <a href="exec.go.html#line-28" class="ident">newProcess</a>(<label for="r12" class="ident">pid</label>, <label for="r13" class="ident">h</label>), <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-63"><code>}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="keyword">func</span> (<label for="r15" class="ident">p</label> *<a href="exec.go.html#line-21" class="ident">Process</a>) <label for="r16" class="ident">kill</label>() <a href="../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-66"><code>	<span class="keyword">return</span> <label for="r15" class="ident">p</label>.<a href="exec.go.html#line-134" class="ident">Signal</a>(<a href="#line-22" class="ident">Kill</a>)</code></span>
+<span class="codeline" id="line-67"><code>}</code></span>
+<span class="codeline" id="line-68"><code></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// ProcessState stores information about a process, as reported by Wait.</span></code></span>
+<span class="codeline" id="line-70"><code><span class="keyword">type</span> <a href="../../pkg/os.html#name-ProcessState" class="ident">ProcessState</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-71"><code>	pid    <a href="../../pkg/builtin.html#name-int" class="ident">int</a>                <span class="comment">// The process's id.</span></code></span>
+<span class="codeline" id="line-72"><code>	status <a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/syscall_linux.go.html#line-307" class="ident">WaitStatus</a> <span class="comment">// System-dependent status info.</span></code></span>
+<span class="codeline" id="line-73"><code>	rusage *<a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/ztypes_linux_amd64.go.html#line-75" class="ident">Rusage</a></code></span>
+<span class="codeline" id="line-74"><code>}</code></span>
+<span class="codeline" id="line-75"><code></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">// Pid returns the process id of the exited process.</span></code></span>
+<span class="codeline" id="line-77"><code><span class="keyword">func</span> (<label for="r17" class="ident">p</label> *<a href="#line-70" class="ident">ProcessState</a>) <label for="r18" class="ident">Pid</label>() <a href="../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">return</span> <label for="r17" class="ident">p</label>.<a href="#line-71" class="ident">pid</a></code></span>
+<span class="codeline" id="line-79"><code>}</code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code><span class="keyword">func</span> (<label for="r19" class="ident">p</label> *<a href="#line-70" class="ident">ProcessState</a>) <label for="r20" class="ident">exited</label>() <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-82"><code>	<span class="keyword">return</span> <label for="r19" class="ident">p</label>.<a href="#line-72" class="ident">status</a>.<a href="../syscall/syscall_linux.go.html#line-326" class="ident">Exited</a>()</code></span>
+<span class="codeline" id="line-83"><code>}</code></span>
+<span class="codeline" id="line-84"><code></code></span>
+<span class="codeline" id="line-85"><code><span class="keyword">func</span> (<label for="r21" class="ident">p</label> *<a href="#line-70" class="ident">ProcessState</a>) <label for="r22" class="ident">success</label>() <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-86"><code>	<span class="keyword">return</span> <label for="r21" class="ident">p</label>.<a href="#line-72" class="ident">status</a>.<a href="../syscall/syscall_linux.go.html#line-336" class="ident">ExitStatus</a>() == <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-87"><code>}</code></span>
+<span class="codeline" id="line-88"><code></code></span>
+<span class="codeline" id="line-89"><code><span class="keyword">func</span> (<label for="r23" class="ident">p</label> *<a href="#line-70" class="ident">ProcessState</a>) <label for="r24" class="ident">sys</label>() <span class="keyword">interface</span>{} {</code></span>
+<span class="codeline" id="line-90"><code>	<span class="keyword">return</span> <label for="r23" class="ident">p</label>.<a href="#line-72" class="ident">status</a></code></span>
+<span class="codeline" id="line-91"><code>}</code></span>
+<span class="codeline" id="line-92"><code></code></span>
+<span class="codeline" id="line-93"><code><span class="keyword">func</span> (<label for="r25" class="ident">p</label> *<a href="#line-70" class="ident">ProcessState</a>) <label for="r26" class="ident">sysUsage</label>() <span class="keyword">interface</span>{} {</code></span>
+<span class="codeline" id="line-94"><code>	<span class="keyword">return</span> <label for="r25" class="ident">p</label>.<a href="#line-73" class="ident">rusage</a></code></span>
+<span class="codeline" id="line-95"><code>}</code></span>
+<span class="codeline" id="line-96"><code></code></span>
+<span class="codeline" id="line-97"><code><span class="keyword">func</span> (<label for="r27" class="ident">p</label> *<a href="#line-70" class="ident">ProcessState</a>) <label for="r28" class="ident"><a href="../../imp/os.ProcessState.html#name-.String" class="ident">String</a></label>() <a href="../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-98"><code>	<span class="keyword">if</span> <label for="r27" class="ident">p</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-99"><code>		<span class="keyword">return</span> <span class="lit-string">"&lt;nil&gt;"</span></code></span>
+<span class="codeline" id="line-100"><code>	}</code></span>
+<span class="codeline" id="line-101"><code>	<label for="r29" class="ident">status</label> := <label for="r27" class="ident">p</label>.<a href="exec.go.html#line-162" class="ident">Sys</a>().(<a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/syscall_linux.go.html#line-307" class="ident">WaitStatus</a>)</code></span>
+<span class="codeline" id="line-102"><code>	<label for="r30" class="ident">res</label> := <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-103"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-104"><code>	<span class="keyword">case</span> <label for="r29" class="ident">status</label>.<a href="../syscall/syscall_linux.go.html#line-326" class="ident">Exited</a>():</code></span>
+<span class="codeline" id="line-105"><code>		<label for="r30" class="ident">res</label> = <span class="lit-string">"exit status "</span> + <a href="str.go.html#line-10" class="ident">itoa</a>(<label for="r29" class="ident">status</label>.<a href="../syscall/syscall_linux.go.html#line-336" class="ident">ExitStatus</a>())</code></span>
+<span class="codeline" id="line-106"><code>	<span class="keyword">case</span> <label for="r29" class="ident">status</label>.<a href="../syscall/syscall_linux.go.html#line-328" class="ident">Signaled</a>():</code></span>
+<span class="codeline" id="line-107"><code>		<label for="r30" class="ident">res</label> = <span class="lit-string">"signal: "</span> + <label for="r29" class="ident">status</label>.<a href="../syscall/syscall_linux.go.html#line-343" class="ident">Signal</a>().<a href="../syscall/syscall_unix.go.html#line-176" class="ident">String</a>()</code></span>
+<span class="codeline" id="line-108"><code>	<span class="keyword">case</span> <label for="r29" class="ident">status</label>.<a href="../syscall/syscall_linux.go.html#line-330" class="ident">Stopped</a>():</code></span>
+<span class="codeline" id="line-109"><code>		<label for="r30" class="ident">res</label> = <span class="lit-string">"stop signal: "</span> + <label for="r29" class="ident">status</label>.<a href="../syscall/syscall_linux.go.html#line-350" class="ident">StopSignal</a>().<a href="../syscall/syscall_unix.go.html#line-176" class="ident">String</a>()</code></span>
+<span class="codeline" id="line-110"><code>		<span class="keyword">if</span> <label for="r29" class="ident">status</label>.<a href="../syscall/syscall_linux.go.html#line-350" class="ident">StopSignal</a>() == <a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1366" class="ident">SIGTRAP</a> &amp;&amp; <label for="r29" class="ident">status</label>.<a href="../syscall/syscall_linux.go.html#line-357" class="ident">TrapCause</a>() != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-111"><code>			<label for="r30" class="ident">res</label> += <span class="lit-string">" (trap "</span> + <a href="str.go.html#line-10" class="ident">itoa</a>(<label for="r29" class="ident">status</label>.<a href="../syscall/syscall_linux.go.html#line-357" class="ident">TrapCause</a>()) + <span class="lit-string">")"</span></code></span>
+<span class="codeline" id="line-112"><code>		}</code></span>
+<span class="codeline" id="line-113"><code>	<span class="keyword">case</span> <label for="r29" class="ident">status</label>.<a href="../syscall/syscall_linux.go.html#line-332" class="ident">Continued</a>():</code></span>
+<span class="codeline" id="line-114"><code>		<label for="r30" class="ident">res</label> = <span class="lit-string">"continued"</span></code></span>
+<span class="codeline" id="line-115"><code>	}</code></span>
+<span class="codeline" id="line-116"><code>	<span class="keyword">if</span> <label for="r29" class="ident">status</label>.<a href="../syscall/syscall_linux.go.html#line-334" class="ident">CoreDump</a>() {</code></span>
+<span class="codeline" id="line-117"><code>		<label for="r30" class="ident">res</label> += <span class="lit-string">" (core dumped)"</span></code></span>
+<span class="codeline" id="line-118"><code>	}</code></span>
+<span class="codeline" id="line-119"><code>	<span class="keyword">return</span> <label for="r30" class="ident">res</label></code></span>
+<span class="codeline" id="line-120"><code>}</code></span>
+<span class="codeline" id="line-121"><code></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">// ExitCode returns the exit code of the exited process, or -1</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">// if the process hasn't exited or was terminated by a signal.</span></code></span>
+<span class="codeline" id="line-124"><code><span class="keyword">func</span> (<label for="r31" class="ident">p</label> *<a href="#line-70" class="ident">ProcessState</a>) <label for="r32" class="ident">ExitCode</label>() <a href="../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-125"><code>	<span class="comment">// return -1 if the process hasn't started.</span></code></span>
+<span class="codeline" id="line-126"><code>	<span class="keyword">if</span> <label for="r31" class="ident">p</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-127"><code>		<span class="keyword">return</span> -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-128"><code>	}</code></span>
+<span class="codeline" id="line-129"><code>	<span class="keyword">return</span> <label for="r31" class="ident">p</label>.<a href="#line-72" class="ident">status</a>.<a href="../syscall/syscall_linux.go.html#line-336" class="ident">ExitStatus</a>()</code></span>
+<span class="codeline" id="line-130"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

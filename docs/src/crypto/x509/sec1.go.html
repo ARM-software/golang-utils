@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: sec1.go in package crypto/x509</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	sec1.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/crypto/x509.html">crypto/x509</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2012 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> x509</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"crypto/ecdsa"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"crypto/elliptic"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"encoding/asn1"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i3"><span class="lit-string i3">"errors"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i4"><span class="lit-string i4">"fmt"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i5"><span class="lit-string i5">"math/big"</span></label></code></span>
+<span class="codeline" id="line-14"><code>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">const</span> <a href="../../../pkg/crypto/x509.html#name-ecPrivKeyVersion" class="ident">ecPrivKeyVersion</a> = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// ecPrivateKey reflects an ASN.1 Elliptic Curve Private Key Structure.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// References:</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">//   RFC 5915</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">//   SEC1 - http://www.secg.org/sec1-v2.pdf</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// Per RFC 5915 the NamedCurveOID is marked as ASN.1 OPTIONAL, however in</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// most cases it is not.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="keyword">type</span> <a href="../../../pkg/crypto/x509.html#name-ecPrivateKey" class="ident">ecPrivateKey</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-25"><code>	Version       <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-26"><code>	PrivateKey    []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-27"><code>	NamedCurveOID <a href="../../../pkg/encoding/asn1.html" class="ident i2">asn1</a>.<a href="../../encoding/asn1/asn1.go.html#line-222" class="ident">ObjectIdentifier</a> <span class="lit-string">`asn1:"optional,explicit,tag:0"`</span></code></span>
+<span class="codeline" id="line-28"><code>	PublicKey     <a href="../../../pkg/encoding/asn1.html" class="ident i2">asn1</a>.<a href="../../encoding/asn1/asn1.go.html#line-159" class="ident">BitString</a>        <span class="lit-string">`asn1:"optional,explicit,tag:1"`</span></code></span>
+<span class="codeline" id="line-29"><code>}</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// ParseECPrivateKey parses an EC private key in SEC 1, ASN.1 DER form.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// This kind of key is commonly encoded in PEM blocks of type "EC PRIVATE KEY".</span></code></span>
+<span class="codeline" id="line-34"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/crypto/x509.html#name-ParseECPrivateKey" class="ident">ParseECPrivateKey</a></label>(<label for="r1" class="ident">der</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (*<a href="../../../pkg/crypto/ecdsa.html" class="ident i0">ecdsa</a>.<a href="../ecdsa/ecdsa.go.html#line-87" class="ident">PrivateKey</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-35"><code>	<span class="keyword">return</span> <a href="#line-68" class="ident">parseECPrivateKey</a>(<a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r1" class="ident">der</label>)</code></span>
+<span class="codeline" id="line-36"><code>}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// MarshalECPrivateKey converts an EC private key to SEC 1, ASN.1 DER form.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// This kind of key is commonly encoded in PEM blocks of type "EC PRIVATE KEY".</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// For a more flexible key format which is not EC specific, use</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// MarshalPKCS8PrivateKey.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../../pkg/crypto/x509.html#name-MarshalECPrivateKey" class="ident">MarshalECPrivateKey</a></label>(<label for="r3" class="ident">key</label> *<a href="../../../pkg/crypto/ecdsa.html" class="ident i0">ecdsa</a>.<a href="../ecdsa/ecdsa.go.html#line-87" class="ident">PrivateKey</a>) ([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-44"><code>	<label for="r4" class="ident">oid</label>, <label for="r5" class="ident">ok</label> := <a href="x509.go.html#line-508" class="ident">oidFromNamedCurve</a>(<label for="r3" class="ident">key</label>.<a href="../ecdsa/ecdsa.go.html#line-61" class="ident">Curve</a>)</code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">if</span> !<label for="r5" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-46"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i3">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"x509: unknown elliptic curve"</span>)</code></span>
+<span class="codeline" id="line-47"><code>	}</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code>	<span class="keyword">return</span> <a href="#line-54" class="ident">marshalECPrivateKeyWithOID</a>(<label for="r3" class="ident">key</label>, <label for="r4" class="ident">oid</label>)</code></span>
+<span class="codeline" id="line-50"><code>}</code></span>
+<span class="codeline" id="line-51"><code></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// marshalECPrivateKey marshals an EC private key into ASN.1, DER format and</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// sets the curve ID to the given OID, or omits it if OID is nil.</span></code></span>
+<span class="codeline" id="line-54"><code><span class="keyword">func</span> <label for="r6" class="ident"><a href="../../../pkg/crypto/x509.html#name-marshalECPrivateKeyWithOID" class="ident">marshalECPrivateKeyWithOID</a></label>(<label for="r7" class="ident">key</label> *<a href="../../../pkg/crypto/ecdsa.html" class="ident i0">ecdsa</a>.<a href="../ecdsa/ecdsa.go.html#line-87" class="ident">PrivateKey</a>, <label for="r8" class="ident">oid</label> <a href="../../../pkg/encoding/asn1.html" class="ident i2">asn1</a>.<a href="../../encoding/asn1/asn1.go.html#line-222" class="ident">ObjectIdentifier</a>) ([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-55"><code>	<label for="r9" class="ident">privateKey</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, (<label for="r7" class="ident">key</label>.<a href="../ecdsa/ecdsa.go.html#line-61" class="ident">Curve</a>.<a href="../elliptic/elliptic.go.html#line-29" class="ident">Params</a>().<a href="../elliptic/elliptic.go.html#line-47" class="ident">N</a>.<a href="../../math/big/int.go.html#line-472" class="ident">BitLen</a>()+<span class="lit-number">7</span>)/<span class="lit-number">8</span>)</code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">return</span> <a href="../../../pkg/encoding/asn1.html" class="ident i2">asn1</a>.<a href="../../encoding/asn1/marshal.go.html#line-733" class="ident">Marshal</a>(<a href="#line-24" class="ident">ecPrivateKey</a>{</code></span>
+<span class="codeline" id="line-57"><code>		<a href="#line-25" class="ident">Version</a>:       <span class="lit-number">1</span>,</code></span>
+<span class="codeline" id="line-58"><code>		<a href="#line-26" class="ident">PrivateKey</a>:    <label for="r7" class="ident">key</label>.<a href="../ecdsa/ecdsa.go.html#line-89" class="ident">D</a>.<a href="../../math/big/int.go.html#line-461" class="ident">FillBytes</a>(<label for="r9" class="ident">privateKey</label>),</code></span>
+<span class="codeline" id="line-59"><code>		<a href="#line-27" class="ident">NamedCurveOID</a>: <label for="r8" class="ident">oid</label>,</code></span>
+<span class="codeline" id="line-60"><code>		<a href="#line-28" class="ident">PublicKey</a>:     <a href="../../../pkg/encoding/asn1.html" class="ident i2">asn1</a>.<a href="../../encoding/asn1/asn1.go.html#line-159" class="ident">BitString</a>{<a href="../../encoding/asn1/asn1.go.html#line-160" class="ident">Bytes</a>: <a href="../../../pkg/crypto/elliptic.html" class="ident i1">elliptic</a>.<a href="../elliptic/elliptic.go.html#line-315" class="ident">Marshal</a>(<label for="r7" class="ident">key</label>.<a href="../ecdsa/ecdsa.go.html#line-61" class="ident">Curve</a>, <label for="r7" class="ident">key</label>.<a href="../ecdsa/ecdsa.go.html#line-62" class="ident">X</a>, <label for="r7" class="ident">key</label>.<a href="../ecdsa/ecdsa.go.html#line-62" class="ident">Y</a>)},</code></span>
+<span class="codeline" id="line-61"><code>	})</code></span>
+<span class="codeline" id="line-62"><code>}</code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">// parseECPrivateKey parses an ASN.1 Elliptic Curve Private Key Structure.</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// The OID for the named curve may be provided from another source (such as</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// the PKCS8 container) - if it is provided then use this instead of the OID</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// that may exist in the EC private key structure.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="keyword">func</span> <label for="r10" class="ident"><a href="../../../pkg/crypto/x509.html#name-parseECPrivateKey" class="ident">parseECPrivateKey</a></label>(<label for="r11" class="ident">namedCurveOID</label> *<a href="../../../pkg/encoding/asn1.html" class="ident i2">asn1</a>.<a href="../../encoding/asn1/asn1.go.html#line-222" class="ident">ObjectIdentifier</a>, <label for="r12" class="ident">der</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r13" class="ident">key</label> *<a href="../../../pkg/crypto/ecdsa.html" class="ident i0">ecdsa</a>.<a href="../ecdsa/ecdsa.go.html#line-87" class="ident">PrivateKey</a>, <label for="r14" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-69"><code>	<span class="keyword">var</span> <label for="r15" class="ident">privKey</label> <a href="#line-24" class="ident">ecPrivateKey</a></code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">if</span> <label for="r16" class="ident">_</label>, <label for="r17" class="ident">err</label> := <a href="../../../pkg/encoding/asn1.html" class="ident i2">asn1</a>.<a href="../../encoding/asn1/asn1.go.html#line-1089" class="ident">Unmarshal</a>(<label for="r12" class="ident">der</label>, &amp;<label for="r15" class="ident">privKey</label>); <label for="r17" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-71"><code>		<span class="keyword">if</span> <label for="r18" class="ident">_</label>, <label for="r19" class="ident">err</label> := <a href="../../../pkg/encoding/asn1.html" class="ident i2">asn1</a>.<a href="../../encoding/asn1/asn1.go.html#line-1089" class="ident">Unmarshal</a>(<label for="r12" class="ident">der</label>, &amp;<a href="pkcs8.go.html#line-20" class="ident">pkcs8</a>{}); <label for="r19" class="ident">err</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-72"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i3">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"x509: failed to parse private key (use ParsePKCS8PrivateKey instead for this key format)"</span>)</code></span>
+<span class="codeline" id="line-73"><code>		}</code></span>
+<span class="codeline" id="line-74"><code>		<span class="keyword">if</span> <label for="r20" class="ident">_</label>, <label for="r21" class="ident">err</label> := <a href="../../../pkg/encoding/asn1.html" class="ident i2">asn1</a>.<a href="../../encoding/asn1/asn1.go.html#line-1089" class="ident">Unmarshal</a>(<label for="r12" class="ident">der</label>, &amp;<a href="pkcs1.go.html#line-15" class="ident">pkcs1PrivateKey</a>{}); <label for="r21" class="ident">err</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-75"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i3">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"x509: failed to parse private key (use ParsePKCS1PrivateKey instead for this key format)"</span>)</code></span>
+<span class="codeline" id="line-76"><code>		}</code></span>
+<span class="codeline" id="line-77"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i3">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"x509: failed to parse EC private key: "</span> + <label for="r17" class="ident">err</label>.Error())</code></span>
+<span class="codeline" id="line-78"><code>	}</code></span>
+<span class="codeline" id="line-79"><code>	<span class="keyword">if</span> <label for="r15" class="ident">privKey</label>.<a href="#line-25" class="ident">Version</a> != <a href="#line-16" class="ident">ecPrivKeyVersion</a> {</code></span>
+<span class="codeline" id="line-80"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/fmt.html" class="ident i4">fmt</a>.<a href="../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"x509: unknown EC private key version %d"</span>, <label for="r15" class="ident">privKey</label>.<a href="#line-25" class="ident">Version</a>)</code></span>
+<span class="codeline" id="line-81"><code>	}</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code>	<span class="keyword">var</span> <label for="r22" class="ident">curve</label> <a href="../../../pkg/crypto/elliptic.html" class="ident i1">elliptic</a>.<a href="../elliptic/elliptic.go.html#line-27" class="ident">Curve</a></code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">if</span> <label for="r11" class="ident">namedCurveOID</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-85"><code>		<label for="r22" class="ident">curve</label> = <a href="x509.go.html#line-494" class="ident">namedCurveFromOID</a>(*<label for="r11" class="ident">namedCurveOID</label>)</code></span>
+<span class="codeline" id="line-86"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-87"><code>		<label for="r22" class="ident">curve</label> = <a href="x509.go.html#line-494" class="ident">namedCurveFromOID</a>(<label for="r15" class="ident">privKey</label>.<a href="#line-27" class="ident">NamedCurveOID</a>)</code></span>
+<span class="codeline" id="line-88"><code>	}</code></span>
+<span class="codeline" id="line-89"><code>	<span class="keyword">if</span> <label for="r22" class="ident">curve</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-90"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i3">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"x509: unknown elliptic curve"</span>)</code></span>
+<span class="codeline" id="line-91"><code>	}</code></span>
+<span class="codeline" id="line-92"><code></code></span>
+<span class="codeline" id="line-93"><code>	<label for="r23" class="ident">k</label> := <a href="../../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="../../../pkg/math/big.html" class="ident i5">big</a>.<a href="../../math/big/int.go.html#line-25" class="ident">Int</a>).<a href="../../math/big/int.go.html#line-443" class="ident">SetBytes</a>(<label for="r15" class="ident">privKey</label>.<a href="#line-26" class="ident">PrivateKey</a>)</code></span>
+<span class="codeline" id="line-94"><code>	<label for="r24" class="ident">curveOrder</label> := <label for="r22" class="ident">curve</label>.<a href="../elliptic/elliptic.go.html#line-29" class="ident">Params</a>().<a href="../elliptic/elliptic.go.html#line-47" class="ident">N</a></code></span>
+<span class="codeline" id="line-95"><code>	<span class="keyword">if</span> <label for="r23" class="ident">k</label>.<a href="../../math/big/int.go.html#line-320" class="ident">Cmp</a>(<label for="r24" class="ident">curveOrder</label>) &gt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-96"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i3">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"x509: invalid elliptic curve private key value"</span>)</code></span>
+<span class="codeline" id="line-97"><code>	}</code></span>
+<span class="codeline" id="line-98"><code>	<label for="r25" class="ident">priv</label> := <a href="../../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="../../../pkg/crypto/ecdsa.html" class="ident i0">ecdsa</a>.<a href="../ecdsa/ecdsa.go.html#line-87" class="ident">PrivateKey</a>)</code></span>
+<span class="codeline" id="line-99"><code>	<label for="r25" class="ident">priv</label>.<a href="../ecdsa/ecdsa.go.html#line-61" class="ident">Curve</a> = <label for="r22" class="ident">curve</label></code></span>
+<span class="codeline" id="line-100"><code>	<label for="r25" class="ident">priv</label>.<a href="../ecdsa/ecdsa.go.html#line-89" class="ident">D</a> = <label for="r23" class="ident">k</label></code></span>
+<span class="codeline" id="line-101"><code></code></span>
+<span class="codeline" id="line-102"><code>	<label for="r26" class="ident">privateKey</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, (<label for="r24" class="ident">curveOrder</label>.<a href="../../math/big/int.go.html#line-472" class="ident">BitLen</a>()+<span class="lit-number">7</span>)/<span class="lit-number">8</span>)</code></span>
+<span class="codeline" id="line-103"><code></code></span>
+<span class="codeline" id="line-104"><code>	<span class="comment">// Some private keys have leading zero padding. This is invalid</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">	// according to [SEC1], but this code will ignore it.</span></code></span>
+<span class="codeline" id="line-106"><code>	<span class="keyword">for</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r15" class="ident">privKey</label>.<a href="#line-26" class="ident">PrivateKey</a>) &gt; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r26" class="ident">privateKey</label>) {</code></span>
+<span class="codeline" id="line-107"><code>		<span class="keyword">if</span> <label for="r15" class="ident">privKey</label>.<a href="#line-26" class="ident">PrivateKey</a>[<span class="lit-number">0</span>] != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-108"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/errors.html" class="ident i3">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"x509: invalid private key length"</span>)</code></span>
+<span class="codeline" id="line-109"><code>		}</code></span>
+<span class="codeline" id="line-110"><code>		<label for="r15" class="ident">privKey</label>.<a href="#line-26" class="ident">PrivateKey</a> = <label for="r15" class="ident">privKey</label>.<a href="#line-26" class="ident">PrivateKey</a>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-111"><code>	}</code></span>
+<span class="codeline" id="line-112"><code></code></span>
+<span class="codeline" id="line-113"><code>	<span class="comment">// Some private keys remove all leading zeros, this is also invalid</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">	// according to [SEC1] but since OpenSSL used to do this, we ignore</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">	// this too.</span></code></span>
+<span class="codeline" id="line-116"><code>	<a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r26" class="ident">privateKey</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r26" class="ident">privateKey</label>)-<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r15" class="ident">privKey</label>.<a href="#line-26" class="ident">PrivateKey</a>):], <label for="r15" class="ident">privKey</label>.<a href="#line-26" class="ident">PrivateKey</a>)</code></span>
+<span class="codeline" id="line-117"><code>	<label for="r25" class="ident">priv</label>.<a href="../ecdsa/ecdsa.go.html#line-62" class="ident">X</a>, <label for="r25" class="ident">priv</label>.<a href="../ecdsa/ecdsa.go.html#line-62" class="ident">Y</a> = <label for="r22" class="ident">curve</label>.<a href="../elliptic/elliptic.go.html#line-40" class="ident">ScalarBaseMult</a>(<label for="r26" class="ident">privateKey</label>)</code></span>
+<span class="codeline" id="line-118"><code></code></span>
+<span class="codeline" id="line-119"><code>	<span class="keyword">return</span> <label for="r25" class="ident">priv</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-120"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

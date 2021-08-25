@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: xor.go in package vendor/golang.org/x/crypto/chacha20</title>
+<link href="../../../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	xor.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/vendor/golang.org/x/crypto/chacha20.html">vendor/golang.org/x/crypto/chacha20</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2018 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found src the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> chacha20</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"runtime"</span></label></code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// Platforms that have fast unaligned 32-bit little endian accesses.</span></code></span>
+<span class="codeline" id="line-10"><code><span class="keyword">const</span> <a href="../../../../../../pkg/vendor/golang.org/x/crypto/chacha20.html#name-unaligned" class="ident">unaligned</a> = <a href="../../../../../../pkg/runtime.html" class="ident i0">runtime</a>.<a href="../../../../../runtime/extern.go.html#line-257" class="ident">GOARCH</a> == <span class="lit-string">"386"</span> ||</code></span>
+<span class="codeline" id="line-11"><code>	<a href="../../../../../../pkg/runtime.html" class="ident i0">runtime</a>.<a href="../../../../../runtime/extern.go.html#line-257" class="ident">GOARCH</a> == <span class="lit-string">"amd64"</span> ||</code></span>
+<span class="codeline" id="line-12"><code>	<a href="../../../../../../pkg/runtime.html" class="ident i0">runtime</a>.<a href="../../../../../runtime/extern.go.html#line-257" class="ident">GOARCH</a> == <span class="lit-string">"arm64"</span> ||</code></span>
+<span class="codeline" id="line-13"><code>	<a href="../../../../../../pkg/runtime.html" class="ident i0">runtime</a>.<a href="../../../../../runtime/extern.go.html#line-257" class="ident">GOARCH</a> == <span class="lit-string">"ppc64le"</span> ||</code></span>
+<span class="codeline" id="line-14"><code>	<a href="../../../../../../pkg/runtime.html" class="ident i0">runtime</a>.<a href="../../../../../runtime/extern.go.html#line-257" class="ident">GOARCH</a> == <span class="lit-string">"s390x"</span></code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// addXor reads a little endian uint32 from src, XORs it with (a + b) and</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// places the result in little endian byte order in dst.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/vendor/golang.org/x/crypto/chacha20.html#name-addXor" class="ident">addXor</a></label>(<label for="r1" class="ident">dst</label>, <label for="r2" class="ident">src</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r3" class="ident">a</label>, <label for="r4" class="ident">b</label> <a href="../../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
+<span class="codeline" id="line-19"><code>	_, _ = <label for="r2" class="ident">src</label>[<span class="lit-number">3</span>], <label for="r1" class="ident">dst</label>[<span class="lit-number">3</span>] <span class="comment">// bounds check elimination hint</span></code></span>
+<span class="codeline" id="line-20"><code>	<span class="keyword">if</span> <a href="#line-10" class="ident">unaligned</a> {</code></span>
+<span class="codeline" id="line-21"><code>		<span class="comment">// The compiler should optimize this code into</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">		// 32-bit unaligned little endian loads and stores.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">		// TODO: delete once the compiler does a reliably</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">		// good job with the generic code below.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">		// See issue #25111 for more details.</span></code></span>
+<span class="codeline" id="line-26"><code>		<label for="r5" class="ident">v</label> := <a href="../../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r2" class="ident">src</label>[<span class="lit-number">0</span>])</code></span>
+<span class="codeline" id="line-27"><code>		<label for="r5" class="ident">v</label> |= <a href="../../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r2" class="ident">src</label>[<span class="lit-number">1</span>]) &lt;&lt; <span class="lit-number">8</span></code></span>
+<span class="codeline" id="line-28"><code>		<label for="r5" class="ident">v</label> |= <a href="../../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r2" class="ident">src</label>[<span class="lit-number">2</span>]) &lt;&lt; <span class="lit-number">16</span></code></span>
+<span class="codeline" id="line-29"><code>		<label for="r5" class="ident">v</label> |= <a href="../../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r2" class="ident">src</label>[<span class="lit-number">3</span>]) &lt;&lt; <span class="lit-number">24</span></code></span>
+<span class="codeline" id="line-30"><code>		<label for="r5" class="ident">v</label> ^= <label for="r3" class="ident">a</label> + <label for="r4" class="ident">b</label></code></span>
+<span class="codeline" id="line-31"><code>		<label for="r1" class="ident">dst</label>[<span class="lit-number">0</span>] = <a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r5" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-32"><code>		<label for="r1" class="ident">dst</label>[<span class="lit-number">1</span>] = <a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r5" class="ident">v</label> &gt;&gt; <span class="lit-number">8</span>)</code></span>
+<span class="codeline" id="line-33"><code>		<label for="r1" class="ident">dst</label>[<span class="lit-number">2</span>] = <a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r5" class="ident">v</label> &gt;&gt; <span class="lit-number">16</span>)</code></span>
+<span class="codeline" id="line-34"><code>		<label for="r1" class="ident">dst</label>[<span class="lit-number">3</span>] = <a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r5" class="ident">v</label> &gt;&gt; <span class="lit-number">24</span>)</code></span>
+<span class="codeline" id="line-35"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-36"><code>		<label for="r3" class="ident">a</label> += <label for="r4" class="ident">b</label></code></span>
+<span class="codeline" id="line-37"><code>		<label for="r1" class="ident">dst</label>[<span class="lit-number">0</span>] = <label for="r2" class="ident">src</label>[<span class="lit-number">0</span>] ^ <a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r3" class="ident">a</label>)</code></span>
+<span class="codeline" id="line-38"><code>		<label for="r1" class="ident">dst</label>[<span class="lit-number">1</span>] = <label for="r2" class="ident">src</label>[<span class="lit-number">1</span>] ^ <a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r3" class="ident">a</label>&gt;&gt;<span class="lit-number">8</span>)</code></span>
+<span class="codeline" id="line-39"><code>		<label for="r1" class="ident">dst</label>[<span class="lit-number">2</span>] = <label for="r2" class="ident">src</label>[<span class="lit-number">2</span>] ^ <a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r3" class="ident">a</label>&gt;&gt;<span class="lit-number">16</span>)</code></span>
+<span class="codeline" id="line-40"><code>		<label for="r1" class="ident">dst</label>[<span class="lit-number">3</span>] = <label for="r2" class="ident">src</label>[<span class="lit-number">3</span>] ^ <a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r3" class="ident">a</label>&gt;&gt;<span class="lit-number">24</span>)</code></span>
+<span class="codeline" id="line-41"><code>	}</code></span>
+<span class="codeline" id="line-42"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

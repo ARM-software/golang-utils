@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: uuid.go in package github.com/gofrs/uuid</title>
+<link href="../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	uuid.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/github.com/gofrs/uuid.html">github.com/gofrs/uuid</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright (C) 2013-2018 by Maxim Bublis &lt;b@codemonkey.ru&gt;</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// Permission is hereby granted, free of charge, to any person obtaining</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment">// a copy of this software and associated documentation files (the</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// "Software"), to deal in the Software without restriction, including</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// without limitation the rights to use, copy, modify, merge, publish,</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// distribute, sublicense, and/or sell copies of the Software, and to</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// permit persons to whom the Software is furnished to do so, subject to</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// the following conditions:</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// The above copyright notice and this permission notice shall be</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// included in all copies or substantial portions of the Software.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</span></code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-22"><code><span class="comment">// Package uuid provides implementations of the Universally Unique Identifier (UUID), as specified in RFC-4122 and DCE 1.1.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// RFC-4122[1] provides the specification for versions 1, 3, 4, and 5.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// DCE 1.1[2] provides the specification for version 2.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// [1] https://tools.ietf.org/html/rfc4122</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// [2] http://pubs.opengroup.org/onlinepubs/9696989899/chap5.htm#tagcjh_08_02_01_01</span></code></span></div><span class="codeline" id="line-30"><code><span class="keyword">package</span> uuid</code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-33"><code>	<label for="i0"><span class="lit-string i0">"encoding/binary"</span></label></code></span>
+<span class="codeline" id="line-34"><code>	<label for="i1"><span class="lit-string i1">"encoding/hex"</span></label></code></span>
+<span class="codeline" id="line-35"><code>	<label for="i2"><span class="lit-string i2">"fmt"</span></label></code></span>
+<span class="codeline" id="line-36"><code>	<label for="i3"><span class="lit-string i3">"io"</span></label></code></span>
+<span class="codeline" id="line-37"><code>	<label for="i4"><span class="lit-string i4">"strings"</span></label></code></span>
+<span class="codeline" id="line-38"><code>	<label for="i5"><span class="lit-string i5">"time"</span></label></code></span>
+<span class="codeline" id="line-39"><code>)</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// Size of a UUID in bytes.</span></code></span>
+<span class="codeline" id="line-42"><code><span class="keyword">const</span> <a href="../../../../pkg/github.com/gofrs/uuid.html#name-Size" class="ident">Size</a> = <span class="lit-number">16</span></code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// UUID is an array type to represent the value of a UUID, as defined in RFC-4122.</span></code></span>
+<span class="codeline" id="line-45"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/gofrs/uuid.html#name-UUID" class="ident">UUID</a> [<a href="#line-42" class="ident">Size</a>]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// UUID versions.</span></code></span>
+<span class="codeline" id="line-48"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-49"><code>	_  <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a> = <a href="../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-50"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-V1" class="ident">V1</a>      <span class="comment">// Version 1 (date-time and MAC address)</span></code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-V2" class="ident">V2</a>      <span class="comment">// Version 2 (date-time and MAC address, DCE security version)</span></code></span>
+<span class="codeline" id="line-52"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-V3" class="ident">V3</a>      <span class="comment">// Version 3 (namespace name-based)</span></code></span>
+<span class="codeline" id="line-53"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-V4" class="ident">V4</a>      <span class="comment">// Version 4 (random)</span></code></span>
+<span class="codeline" id="line-54"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-V5" class="ident">V5</a>      <span class="comment">// Version 5 (namespace name-based)</span></code></span>
+<span class="codeline" id="line-55"><code>)</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// UUID layout variants.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-59"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-VariantNCS" class="ident">VariantNCS</a> <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a> = <a href="../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-60"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-VariantRFC4122" class="ident">VariantRFC4122</a></code></span>
+<span class="codeline" id="line-61"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-VariantMicrosoft" class="ident">VariantMicrosoft</a></code></span>
+<span class="codeline" id="line-62"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-VariantFuture" class="ident">VariantFuture</a></code></span>
+<span class="codeline" id="line-63"><code>)</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// UUID DCE domains.</span></code></span>
+<span class="codeline" id="line-66"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-67"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-DomainPerson" class="ident">DomainPerson</a> = <a href="../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-68"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-DomainGroup" class="ident">DomainGroup</a></code></span>
+<span class="codeline" id="line-69"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-DomainOrg" class="ident">DomainOrg</a></code></span>
+<span class="codeline" id="line-70"><code>)</code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">// Timestamp is the count of 100-nanosecond intervals since 00:00:00.00,</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// 15 October 1582 within a V1 UUID. This type has no meaning for V2-V5</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// UUIDs since they don't have an embedded timestamp.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/gofrs/uuid.html#name-Timestamp" class="ident">Timestamp</a> <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code><span class="keyword">const</span> <a href="../../../../pkg/github.com/gofrs/uuid.html#name-_100nsPerSecond" class="ident">_100nsPerSecond</a> = <span class="lit-number">10000000</span></code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// Time returns the UTC time.Time representation of a Timestamp</span></code></span>
+<span class="codeline" id="line-80"><code><span class="keyword">func</span> (<label for="r0" class="ident">t</label> <a href="#line-75" class="ident">Timestamp</a>) <label for="r1" class="ident">Time</label>() (<a href="../../../../pkg/time.html" class="ident i5">time</a>.<a href="../../../time/time.go.html#line-127" class="ident">Time</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-81"><code>	<label for="r2" class="ident">secs</label> := <a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r0" class="ident">t</label>) / <a href="#line-77" class="ident">_100nsPerSecond</a></code></span>
+<span class="codeline" id="line-82"><code>	<label for="r3" class="ident">nsecs</label> := <span class="lit-number">100</span> * (<a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r0" class="ident">t</label>) % <a href="#line-77" class="ident">_100nsPerSecond</a>)</code></span>
+<span class="codeline" id="line-83"><code>	<span class="keyword">return</span> <a href="../../../../pkg/time.html" class="ident i5">time</a>.<a href="../../../time/time.go.html#line-1292" class="ident">Unix</a>(<a href="../../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r2" class="ident">secs</label>)-(<a href="generator.go.html#line-40" class="ident">epochStart</a>/<a href="#line-77" class="ident">_100nsPerSecond</a>), <a href="../../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r3" class="ident">nsecs</label>)), <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-84"><code>}</code></span>
+<span class="codeline" id="line-85"><code></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">// TimestampFromV1 returns the Timestamp embedded within a V1 UUID.</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// Returns an error if the UUID is any version other than 1.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../../pkg/github.com/gofrs/uuid.html#name-TimestampFromV1" class="ident">TimestampFromV1</a></label>(<label for="r5" class="ident">u</label> <a href="#line-45" class="ident">UUID</a>) (<a href="#line-75" class="ident">Timestamp</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-89"><code>	<span class="keyword">if</span> <label for="r5" class="ident">u</label>.<a href="#line-118" class="ident">Version</a>() != <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-90"><code>		<label for="r6" class="ident">err</label> := <a href="../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"uuid: %s is version %d, not version 1"</span>, <label for="r5" class="ident">u</label>, <label for="r5" class="ident">u</label>.<a href="#line-118" class="ident">Version</a>())</code></span>
+<span class="codeline" id="line-91"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <label for="r6" class="ident">err</label></code></span>
+<span class="codeline" id="line-92"><code>	}</code></span>
+<span class="codeline" id="line-93"><code>	<label for="r7" class="ident">low</label> := <a href="../../../../pkg/encoding/binary.html" class="ident i0">binary</a>.<a href="../../../encoding/binary/binary.go.html#line-48" class="ident">BigEndian</a>.<a href="../../../encoding/binary/binary.go.html#line-111" class="ident">Uint32</a>(<label for="r5" class="ident">u</label>[<span class="lit-number">0</span>:<span class="lit-number">4</span>])</code></span>
+<span class="codeline" id="line-94"><code>	<label for="r8" class="ident">mid</label> := <a href="../../../../pkg/encoding/binary.html" class="ident i0">binary</a>.<a href="../../../encoding/binary/binary.go.html#line-48" class="ident">BigEndian</a>.<a href="../../../encoding/binary/binary.go.html#line-100" class="ident">Uint16</a>(<label for="r5" class="ident">u</label>[<span class="lit-number">4</span>:<span class="lit-number">6</span>])</code></span>
+<span class="codeline" id="line-95"><code>	<label for="r9" class="ident">hi</label> := <a href="../../../../pkg/encoding/binary.html" class="ident i0">binary</a>.<a href="../../../encoding/binary/binary.go.html#line-48" class="ident">BigEndian</a>.<a href="../../../encoding/binary/binary.go.html#line-100" class="ident">Uint16</a>(<label for="r5" class="ident">u</label>[<span class="lit-number">6</span>:<span class="lit-number">8</span>]) &amp; <span class="lit-number">0xfff</span></code></span>
+<span class="codeline" id="line-96"><code>	<span class="keyword">return</span> <a href="#line-75" class="ident">Timestamp</a>(<a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r7" class="ident">low</label>) + (<a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r8" class="ident">mid</label>) &lt;&lt; <span class="lit-number">32</span>) + (<a href="../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r9" class="ident">hi</label>) &lt;&lt; <span class="lit-number">48</span>)), <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-97"><code>}</code></span>
+<span class="codeline" id="line-98"><code></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">// String parse helpers.</span></code></span>
+<span class="codeline" id="line-100"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-101"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-urnPrefix" class="ident">urnPrefix</a>  = []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<span class="lit-string">"urn:uuid:"</span>)</code></span>
+<span class="codeline" id="line-102"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-byteGroups" class="ident">byteGroups</a> = []<a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">8</span>, <span class="lit-number">4</span>, <span class="lit-number">4</span>, <span class="lit-number">4</span>, <span class="lit-number">12</span>}</code></span>
+<span class="codeline" id="line-103"><code>)</code></span>
+<span class="codeline" id="line-104"><code></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// Nil is the nil UUID, as specified in RFC-4122, that has all 128 bits set to</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">// zero.</span></code></span>
+<span class="codeline" id="line-107"><code><span class="keyword">var</span> <a href="../../../../pkg/github.com/gofrs/uuid.html#name-Nil" class="ident">Nil</a> = <a href="#line-45" class="ident">UUID</a>{}</code></span>
+<span class="codeline" id="line-108"><code></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">// Predefined namespace UUIDs.</span></code></span>
+<span class="codeline" id="line-110"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-111"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-NamespaceDNS" class="ident">NamespaceDNS</a>  = <a href="#line-245" class="ident">Must</a>(<a href="codec.go.html#line-50" class="ident">FromString</a>(<span class="lit-string">"6ba7b810-9dad-11d1-80b4-00c04fd430c8"</span>))</code></span>
+<span class="codeline" id="line-112"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-NamespaceURL" class="ident">NamespaceURL</a>  = <a href="#line-245" class="ident">Must</a>(<a href="codec.go.html#line-50" class="ident">FromString</a>(<span class="lit-string">"6ba7b811-9dad-11d1-80b4-00c04fd430c8"</span>))</code></span>
+<span class="codeline" id="line-113"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-NamespaceOID" class="ident">NamespaceOID</a>  = <a href="#line-245" class="ident">Must</a>(<a href="codec.go.html#line-50" class="ident">FromString</a>(<span class="lit-string">"6ba7b812-9dad-11d1-80b4-00c04fd430c8"</span>))</code></span>
+<span class="codeline" id="line-114"><code>	<a href="../../../../pkg/github.com/gofrs/uuid.html#name-NamespaceX500" class="ident">NamespaceX500</a> = <a href="#line-245" class="ident">Must</a>(<a href="codec.go.html#line-50" class="ident">FromString</a>(<span class="lit-string">"6ba7b814-9dad-11d1-80b4-00c04fd430c8"</span>))</code></span>
+<span class="codeline" id="line-115"><code>)</code></span>
+<span class="codeline" id="line-116"><code></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">// Version returns the algorithm version used to generate the UUID.</span></code></span>
+<span class="codeline" id="line-118"><code><span class="keyword">func</span> (<label for="r10" class="ident">u</label> <a href="#line-45" class="ident">UUID</a>) <label for="r11" class="ident">Version</label>() <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-119"><code>	<span class="keyword">return</span> <label for="r10" class="ident">u</label>[<span class="lit-number">6</span>] &gt;&gt; <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-120"><code>}</code></span>
+<span class="codeline" id="line-121"><code></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">// Variant returns the UUID layout variant.</span></code></span>
+<span class="codeline" id="line-123"><code><span class="keyword">func</span> (<label for="r12" class="ident">u</label> <a href="#line-45" class="ident">UUID</a>) <label for="r13" class="ident">Variant</label>() <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-124"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-125"><code>	<span class="keyword">case</span> (<label for="r12" class="ident">u</label>[<span class="lit-number">8</span>] &gt;&gt; <span class="lit-number">7</span>) == <span class="lit-number">0x00</span>:</code></span>
+<span class="codeline" id="line-126"><code>		<span class="keyword">return</span> <a href="#line-59" class="ident">VariantNCS</a></code></span>
+<span class="codeline" id="line-127"><code>	<span class="keyword">case</span> (<label for="r12" class="ident">u</label>[<span class="lit-number">8</span>] &gt;&gt; <span class="lit-number">6</span>) == <span class="lit-number">0x02</span>:</code></span>
+<span class="codeline" id="line-128"><code>		<span class="keyword">return</span> <a href="#line-60" class="ident">VariantRFC4122</a></code></span>
+<span class="codeline" id="line-129"><code>	<span class="keyword">case</span> (<label for="r12" class="ident">u</label>[<span class="lit-number">8</span>] &gt;&gt; <span class="lit-number">5</span>) == <span class="lit-number">0x06</span>:</code></span>
+<span class="codeline" id="line-130"><code>		<span class="keyword">return</span> <a href="#line-61" class="ident">VariantMicrosoft</a></code></span>
+<span class="codeline" id="line-131"><code>	<span class="keyword">case</span> (<label for="r12" class="ident">u</label>[<span class="lit-number">8</span>] &gt;&gt; <span class="lit-number">5</span>) == <span class="lit-number">0x07</span>:</code></span>
+<span class="codeline" id="line-132"><code>		<span class="keyword">fallthrough</span></code></span>
+<span class="codeline" id="line-133"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-134"><code>		<span class="keyword">return</span> <a href="#line-62" class="ident">VariantFuture</a></code></span>
+<span class="codeline" id="line-135"><code>	}</code></span>
+<span class="codeline" id="line-136"><code>}</code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">// Bytes returns a byte slice representation of the UUID.</span></code></span>
+<span class="codeline" id="line-139"><code><span class="keyword">func</span> (<label for="r14" class="ident">u</label> <a href="#line-45" class="ident">UUID</a>) <label for="r15" class="ident">Bytes</label>() []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-140"><code>	<span class="keyword">return</span> <label for="r14" class="ident">u</label>[:]</code></span>
+<span class="codeline" id="line-141"><code>}</code></span>
+<span class="codeline" id="line-142"><code></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">// String returns a canonical RFC-4122 string representation of the UUID:</span></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">// xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.</span></code></span>
+<span class="codeline" id="line-145"><code><span class="keyword">func</span> (<label for="r16" class="ident">u</label> <a href="#line-45" class="ident">UUID</a>) <label for="r17" class="ident"><a href="../../../../imp/github.com/gofrs/uuid.UUID.html#name-.String" class="ident">String</a></label>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-146"><code>	<label for="r18" class="ident">buf</label> := <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">36</span>)</code></span>
+<span class="codeline" id="line-147"><code></code></span>
+<span class="codeline" id="line-148"><code>	<a href="../../../../pkg/encoding/hex.html" class="ident i1">hex</a>.<a href="../../../encoding/hex/hex.go.html#line-25" class="ident">Encode</a>(<label for="r18" class="ident">buf</label>[<span class="lit-number">0</span>:<span class="lit-number">8</span>], <label for="r16" class="ident">u</label>[<span class="lit-number">0</span>:<span class="lit-number">4</span>])</code></span>
+<span class="codeline" id="line-149"><code>	<label for="r18" class="ident">buf</label>[<span class="lit-number">8</span>] = <span class="lit-number">'-'</span></code></span>
+<span class="codeline" id="line-150"><code>	<a href="../../../../pkg/encoding/hex.html" class="ident i1">hex</a>.<a href="../../../encoding/hex/hex.go.html#line-25" class="ident">Encode</a>(<label for="r18" class="ident">buf</label>[<span class="lit-number">9</span>:<span class="lit-number">13</span>], <label for="r16" class="ident">u</label>[<span class="lit-number">4</span>:<span class="lit-number">6</span>])</code></span>
+<span class="codeline" id="line-151"><code>	<label for="r18" class="ident">buf</label>[<span class="lit-number">13</span>] = <span class="lit-number">'-'</span></code></span>
+<span class="codeline" id="line-152"><code>	<a href="../../../../pkg/encoding/hex.html" class="ident i1">hex</a>.<a href="../../../encoding/hex/hex.go.html#line-25" class="ident">Encode</a>(<label for="r18" class="ident">buf</label>[<span class="lit-number">14</span>:<span class="lit-number">18</span>], <label for="r16" class="ident">u</label>[<span class="lit-number">6</span>:<span class="lit-number">8</span>])</code></span>
+<span class="codeline" id="line-153"><code>	<label for="r18" class="ident">buf</label>[<span class="lit-number">18</span>] = <span class="lit-number">'-'</span></code></span>
+<span class="codeline" id="line-154"><code>	<a href="../../../../pkg/encoding/hex.html" class="ident i1">hex</a>.<a href="../../../encoding/hex/hex.go.html#line-25" class="ident">Encode</a>(<label for="r18" class="ident">buf</label>[<span class="lit-number">19</span>:<span class="lit-number">23</span>], <label for="r16" class="ident">u</label>[<span class="lit-number">8</span>:<span class="lit-number">10</span>])</code></span>
+<span class="codeline" id="line-155"><code>	<label for="r18" class="ident">buf</label>[<span class="lit-number">23</span>] = <span class="lit-number">'-'</span></code></span>
+<span class="codeline" id="line-156"><code>	<a href="../../../../pkg/encoding/hex.html" class="ident i1">hex</a>.<a href="../../../encoding/hex/hex.go.html#line-25" class="ident">Encode</a>(<label for="r18" class="ident">buf</label>[<span class="lit-number">24</span>:], <label for="r16" class="ident">u</label>[<span class="lit-number">10</span>:])</code></span>
+<span class="codeline" id="line-157"><code></code></span>
+<span class="codeline" id="line-158"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r18" class="ident">buf</label>)</code></span>
+<span class="codeline" id="line-159"><code>}</code></span>
+<span class="codeline" id="line-160"><code></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">// Format implements fmt.Formatter for UUID values.</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">// The behavior is as follows:</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">// The 'x' and 'X' verbs output only the hex digits of the UUID, using a-f for 'x' and A-F for 'X'.</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">// The 'v', '+v', 's' and 'q' verbs return the canonical RFC-4122 string representation.</span></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">// The 'S' verb returns the RFC-4122 format, but with capital hex digits.</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">// The '#v' verb returns the "Go syntax" representation, which is a 16 byte array initializer.</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">// All other verbs not handled directly by the fmt package (like '%p') are unsupported and will return</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">// "%!verb(uuid.UUID=value)" as recommended by the fmt package.</span></code></span>
+<span class="codeline" id="line-170"><code><span class="keyword">func</span> (<label for="r19" class="ident">u</label> <a href="#line-45" class="ident">UUID</a>) <label for="r20" class="ident"><a href="../../../../imp/github.com/gofrs/uuid.UUID.html#name-.Format" class="ident">Format</a></label>(<label for="r21" class="ident">f</label> <a href="../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../fmt/print.go.html#line-38" class="ident">State</a>, <label for="r22" class="ident">c</label> <a href="../../../../pkg/builtin.html#name-rune" class="ident">rune</a>) {</code></span>
+<span class="codeline" id="line-171"><code>	<span class="keyword">switch</span> <label for="r22" class="ident">c</label> {</code></span>
+<span class="codeline" id="line-172"><code>	<span class="keyword">case</span> <span class="lit-number">'x'</span>, <span class="lit-number">'X'</span>:</code></span>
+<span class="codeline" id="line-173"><code>		<label for="r23" class="ident">s</label> := <a href="../../../../pkg/encoding/hex.html" class="ident i1">hex</a>.<a href="../../../encoding/hex/hex.go.html#line-98" class="ident">EncodeToString</a>(<label for="r19" class="ident">u</label>.<a href="#line-139" class="ident">Bytes</a>())</code></span>
+<span class="codeline" id="line-174"><code>		<span class="keyword">if</span> <label for="r22" class="ident">c</label> == <span class="lit-number">'X'</span> {</code></span>
+<span class="codeline" id="line-175"><code>			<label for="r23" class="ident">s</label> = <a href="../../../../pkg/strings.html" class="ident i4">strings</a>.<a href="../../../strings/strings.go.html#line-456" class="ident">Map</a>(<a href="#line-200" class="ident">toCapitalHexDigits</a>, <label for="r23" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-176"><code>		}</code></span>
+<span class="codeline" id="line-177"><code>		_, _ = <a href="../../../../pkg/io.html" class="ident i3">io</a>.<a href="../../../io/io.go.html#line-307" class="ident">WriteString</a>(<label for="r21" class="ident">f</label>, <label for="r23" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-178"><code>	<span class="keyword">case</span> <span class="lit-number">'v'</span>:</code></span>
+<span class="codeline" id="line-179"><code>		<span class="keyword">var</span> <label for="r24" class="ident">s</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-180"><code>		<span class="keyword">if</span> <label for="r21" class="ident">f</label>.<a href="../../../fmt/print.go.html#line-47" class="ident">Flag</a>(<span class="lit-number">'#'</span>) {</code></span>
+<span class="codeline" id="line-181"><code>			<label for="r24" class="ident">s</label> = <a href="../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(<span class="lit-string">"%#v"</span>, [<a href="#line-42" class="ident">Size</a>]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r19" class="ident">u</label>))</code></span>
+<span class="codeline" id="line-182"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-183"><code>			<label for="r24" class="ident">s</label> = <label for="r19" class="ident">u</label>.<a href="#line-145" class="ident">String</a>()</code></span>
+<span class="codeline" id="line-184"><code>		}</code></span>
+<span class="codeline" id="line-185"><code>		_, _ = <a href="../../../../pkg/io.html" class="ident i3">io</a>.<a href="../../../io/io.go.html#line-307" class="ident">WriteString</a>(<label for="r21" class="ident">f</label>, <label for="r24" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-186"><code>	<span class="keyword">case</span> <span class="lit-number">'s'</span>, <span class="lit-number">'S'</span>:</code></span>
+<span class="codeline" id="line-187"><code>		<label for="r25" class="ident">s</label> := <label for="r19" class="ident">u</label>.<a href="#line-145" class="ident">String</a>()</code></span>
+<span class="codeline" id="line-188"><code>		<span class="keyword">if</span> <label for="r22" class="ident">c</label> == <span class="lit-number">'S'</span> {</code></span>
+<span class="codeline" id="line-189"><code>			<label for="r25" class="ident">s</label> = <a href="../../../../pkg/strings.html" class="ident i4">strings</a>.<a href="../../../strings/strings.go.html#line-456" class="ident">Map</a>(<a href="#line-200" class="ident">toCapitalHexDigits</a>, <label for="r25" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-190"><code>		}</code></span>
+<span class="codeline" id="line-191"><code>		_, _ = <a href="../../../../pkg/io.html" class="ident i3">io</a>.<a href="../../../io/io.go.html#line-307" class="ident">WriteString</a>(<label for="r21" class="ident">f</label>, <label for="r25" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-192"><code>	<span class="keyword">case</span> <span class="lit-number">'q'</span>:</code></span>
+<span class="codeline" id="line-193"><code>		_, _ = <a href="../../../../pkg/io.html" class="ident i3">io</a>.<a href="../../../io/io.go.html#line-307" class="ident">WriteString</a>(<label for="r21" class="ident">f</label>, <span class="lit-string">`"`</span>+<label for="r19" class="ident">u</label>.<a href="#line-145" class="ident">String</a>()+<span class="lit-string">`"`</span>)</code></span>
+<span class="codeline" id="line-194"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-195"><code>		<span class="comment">// invalid/unsupported format verb</span></code></span>
+<span class="codeline" id="line-196"><code>		<a href="../../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../../fmt/print.go.html#line-202" class="ident">Fprintf</a>(<label for="r21" class="ident">f</label>, <span class="lit-string">"%%!%c(uuid.UUID=%s)"</span>, <label for="r22" class="ident">c</label>, <label for="r19" class="ident">u</label>.<a href="#line-145" class="ident">String</a>())</code></span>
+<span class="codeline" id="line-197"><code>	}</code></span>
+<span class="codeline" id="line-198"><code>}</code></span>
+<span class="codeline" id="line-199"><code></code></span>
+<span class="codeline" id="line-200"><code><span class="keyword">func</span> <label for="r26" class="ident"><a href="../../../../pkg/github.com/gofrs/uuid.html#name-toCapitalHexDigits" class="ident">toCapitalHexDigits</a></label>(<label for="r27" class="ident">ch</label> <a href="../../../../pkg/builtin.html#name-rune" class="ident">rune</a>) <a href="../../../../pkg/builtin.html#name-rune" class="ident">rune</a> {</code></span>
+<span class="codeline" id="line-201"><code>	<span class="comment">// convert a-f hex digits to A-F</span></code></span>
+<span class="codeline" id="line-202"><code>	<span class="keyword">switch</span> <label for="r27" class="ident">ch</label> {</code></span>
+<span class="codeline" id="line-203"><code>	<span class="keyword">case</span> <span class="lit-number">'a'</span>:</code></span>
+<span class="codeline" id="line-204"><code>		<span class="keyword">return</span> <span class="lit-number">'A'</span></code></span>
+<span class="codeline" id="line-205"><code>	<span class="keyword">case</span> <span class="lit-number">'b'</span>:</code></span>
+<span class="codeline" id="line-206"><code>		<span class="keyword">return</span> <span class="lit-number">'B'</span></code></span>
+<span class="codeline" id="line-207"><code>	<span class="keyword">case</span> <span class="lit-number">'c'</span>:</code></span>
+<span class="codeline" id="line-208"><code>		<span class="keyword">return</span> <span class="lit-number">'C'</span></code></span>
+<span class="codeline" id="line-209"><code>	<span class="keyword">case</span> <span class="lit-number">'d'</span>:</code></span>
+<span class="codeline" id="line-210"><code>		<span class="keyword">return</span> <span class="lit-number">'D'</span></code></span>
+<span class="codeline" id="line-211"><code>	<span class="keyword">case</span> <span class="lit-number">'e'</span>:</code></span>
+<span class="codeline" id="line-212"><code>		<span class="keyword">return</span> <span class="lit-number">'E'</span></code></span>
+<span class="codeline" id="line-213"><code>	<span class="keyword">case</span> <span class="lit-number">'f'</span>:</code></span>
+<span class="codeline" id="line-214"><code>		<span class="keyword">return</span> <span class="lit-number">'F'</span></code></span>
+<span class="codeline" id="line-215"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-216"><code>		<span class="keyword">return</span> <label for="r27" class="ident">ch</label></code></span>
+<span class="codeline" id="line-217"><code>	}</code></span>
+<span class="codeline" id="line-218"><code>}</code></span>
+<span class="codeline" id="line-219"><code></code></span>
+<span class="codeline" id="line-220"><code><span class="comment">// SetVersion sets the version bits.</span></code></span>
+<span class="codeline" id="line-221"><code><span class="keyword">func</span> (<label for="r28" class="ident">u</label> *<a href="#line-45" class="ident">UUID</a>) <label for="r29" class="ident">SetVersion</label>(<label for="r30" class="ident">v</label> <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) {</code></span>
+<span class="codeline" id="line-222"><code>	<label for="r28" class="ident">u</label>[<span class="lit-number">6</span>] = (<label for="r28" class="ident">u</label>[<span class="lit-number">6</span>] &amp; <span class="lit-number">0x0f</span>) | (<label for="r30" class="ident">v</label> &lt;&lt; <span class="lit-number">4</span>)</code></span>
+<span class="codeline" id="line-223"><code>}</code></span>
+<span class="codeline" id="line-224"><code></code></span>
+<span class="codeline" id="line-225"><code><span class="comment">// SetVariant sets the variant bits.</span></code></span>
+<span class="codeline" id="line-226"><code><span class="keyword">func</span> (<label for="r31" class="ident">u</label> *<a href="#line-45" class="ident">UUID</a>) <label for="r32" class="ident">SetVariant</label>(<label for="r33" class="ident">v</label> <a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) {</code></span>
+<span class="codeline" id="line-227"><code>	<span class="keyword">switch</span> <label for="r33" class="ident">v</label> {</code></span>
+<span class="codeline" id="line-228"><code>	<span class="keyword">case</span> <a href="#line-59" class="ident">VariantNCS</a>:</code></span>
+<span class="codeline" id="line-229"><code>		<label for="r31" class="ident">u</label>[<span class="lit-number">8</span>] = (<label for="r31" class="ident">u</label>[<span class="lit-number">8</span>]&amp;(<span class="lit-number">0xff</span>&gt;&gt;<span class="lit-number">1</span>) | (<span class="lit-number">0x00</span> &lt;&lt; <span class="lit-number">7</span>))</code></span>
+<span class="codeline" id="line-230"><code>	<span class="keyword">case</span> <a href="#line-60" class="ident">VariantRFC4122</a>:</code></span>
+<span class="codeline" id="line-231"><code>		<label for="r31" class="ident">u</label>[<span class="lit-number">8</span>] = (<label for="r31" class="ident">u</label>[<span class="lit-number">8</span>]&amp;(<span class="lit-number">0xff</span>&gt;&gt;<span class="lit-number">2</span>) | (<span class="lit-number">0x02</span> &lt;&lt; <span class="lit-number">6</span>))</code></span>
+<span class="codeline" id="line-232"><code>	<span class="keyword">case</span> <a href="#line-61" class="ident">VariantMicrosoft</a>:</code></span>
+<span class="codeline" id="line-233"><code>		<label for="r31" class="ident">u</label>[<span class="lit-number">8</span>] = (<label for="r31" class="ident">u</label>[<span class="lit-number">8</span>]&amp;(<span class="lit-number">0xff</span>&gt;&gt;<span class="lit-number">3</span>) | (<span class="lit-number">0x06</span> &lt;&lt; <span class="lit-number">5</span>))</code></span>
+<span class="codeline" id="line-234"><code>	<span class="keyword">case</span> <a href="#line-62" class="ident">VariantFuture</a>:</code></span>
+<span class="codeline" id="line-235"><code>		<span class="keyword">fallthrough</span></code></span>
+<span class="codeline" id="line-236"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-237"><code>		<label for="r31" class="ident">u</label>[<span class="lit-number">8</span>] = (<label for="r31" class="ident">u</label>[<span class="lit-number">8</span>]&amp;(<span class="lit-number">0xff</span>&gt;&gt;<span class="lit-number">3</span>) | (<span class="lit-number">0x07</span> &lt;&lt; <span class="lit-number">5</span>))</code></span>
+<span class="codeline" id="line-238"><code>	}</code></span>
+<span class="codeline" id="line-239"><code>}</code></span>
+<span class="codeline" id="line-240"><code></code></span>
+<span class="codeline" id="line-241"><code><span class="comment">// Must is a helper that wraps a call to a function returning (UUID, error)</span></code></span>
+<span class="codeline" id="line-242"><code><span class="comment">// and panics if the error is non-nil. It is intended for use in variable</span></code></span>
+<span class="codeline" id="line-243"><code><span class="comment">// initializations such as</span></code></span>
+<span class="codeline" id="line-244"><code><span class="comment">//  var packageUUID = uuid.Must(uuid.FromString("123e4567-e89b-12d3-a456-426655440000"))</span></code></span>
+<span class="codeline" id="line-245"><code><span class="keyword">func</span> <label for="r34" class="ident"><a href="../../../../pkg/github.com/gofrs/uuid.html#name-Must" class="ident">Must</a></label>(<label for="r35" class="ident">u</label> <a href="#line-45" class="ident">UUID</a>, <label for="r36" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) <a href="#line-45" class="ident">UUID</a> {</code></span>
+<span class="codeline" id="line-246"><code>	<span class="keyword">if</span> <label for="r36" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-247"><code>		<a href="../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<label for="r36" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-248"><code>	}</code></span>
+<span class="codeline" id="line-249"><code>	<span class="keyword">return</span> <label for="r35" class="ident">u</label></code></span>
+<span class="codeline" id="line-250"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: sync</title>
+<link href="../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>sync</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../index.html#pkg-sync">sync</a><i> (on <a href="https://pkg.go.dev/sync" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../dep/sync.html">4 packages</a>, and imported by <a href="../dep/sync.html#imported-by">57 packages</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<span class="nodocs">      <a href="../src/sync/cond.go.html">cond.go</a></span>
+	<span class="nodocs">      <a href="../src/sync/map.go.html">map.go</a></span>
+	<input type='checkbox' checked class="fold" id="file-2-fold-content"><label for="file-2-fold-content">   <a href="../src/sync/mutex.go.html#doc">d➜</a> <a href="../src/sync/mutex.go.html">mutex.go</a></label><span id='file-2-fold-content-items' class="fold-items">
+		Package sync provides basic synchronization primitives such as mutual
+		exclusion locks. Other than the Once and WaitGroup types, most are intended
+		for use by low-level library routines. Higher-level synchronization is
+		better done via channels and communication.
+
+		Values containing the types defined in this package should not be copied.
+</span>
+	<span class="nodocs">      <a href="../src/sync/once.go.html">once.go</a></span>
+	<span class="nodocs">      <a href="../src/sync/pool.go.html">pool.go</a></span>
+	<span class="nodocs">      <a href="../src/sync/poolqueue.go.html">poolqueue.go</a></span>
+	<span class="nodocs">      <a href="../src/sync/runtime.go.html">runtime.go</a></span>
+	<span class="nodocs">      <a href="../src/sync/runtime2.go.html">runtime2.go</a></span>
+	<span class="nodocs">      <a href="../src/sync/rwmutex.go.html">rwmutex.go</a></span>
+	<span class="nodocs">      <a href="../src/sync/waitgroup.go.html">waitgroup.go</a></span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content">Once</label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"sync"
+		)
+		
+		func main() {
+			var once sync.Once
+			onceBody := func() {
+				fmt.Println("Only once")
+			}
+			done := make(chan bool)
+			for i := 0; i < 10; i++ {
+				go func() {
+					once.Do(onceBody)
+					done <- true
+				}()
+			}
+			for i := 0; i < 10; i++ {
+				<-done
+			}
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-1-fold-content"><label for="example-1-fold-content">Pool</label><span id='example-1-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"bytes"
+			"io"
+			"os"
+			"sync"
+			"time"
+		)
+		
+		var bufPool = sync.Pool{
+			New: func() interface{} {
+				// The Pool's New function should generally only return pointer
+				// types, since a pointer can be put into the return interface
+				// value without an allocation:
+				return new(bytes.Buffer)
+			},
+		}
+		
+		// timeNow is a fake version of time.Now for tests.
+		func timeNow() time.Time {
+			return time.Unix(1136214245, 0)
+		}
+		
+		func Log(w io.Writer, key, val string) {
+			b := bufPool.Get().(*bytes.Buffer)
+			b.Reset()
+			// Replace this with time.Now() in a real logger.
+			b.WriteString(timeNow().UTC().Format(time.RFC3339))
+			b.WriteByte(' ')
+			b.WriteString(key)
+			b.WriteByte('=')
+			b.WriteString(val)
+			w.Write(b.Bytes())
+			bufPool.Put(b)
+		}
+		
+		func main() {
+			Log(os.Stdout, "path", "/search?q=flowers")
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-2-fold-content"><label for="example-2-fold-content">WaitGroup</label><span id='example-2-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"sync"
+		)
+		
+		type httpPkg struct{}
+		
+		func (httpPkg) Get(url string) {}
+		
+		var http httpPkg
+		
+		func main() {
+			var wg sync.WaitGroup
+			var urls = []string{
+				"http://www.golang.org/",
+				"http://www.google.com/",
+				"http://www.somestupidname.com/",
+			}
+			for _, url := range urls {
+				// Increment the WaitGroup counter.
+				wg.Add(1)
+				// Launch a goroutine to fetch the URL.
+				go func(url string) {
+					// Decrement the counter when the goroutine completes.
+					defer wg.Done()
+					// Fetch the URL.
+					http.Get(url)
+				}(url)
+			}
+			// Wait for all HTTP fetches to complete.
+			wg.Wait()
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 21, in which 8 are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-Cond" data-popularity="225">	<input type='checkbox' class="fold" id="Cond-fold-content"><label for="Cond-fold-content"> type <a href="../src/sync/cond.go.html#line-21">Cond</a> <i>(struct)</i></label><span id='Cond-fold-content-docs' class="fold-docs">
+		Cond implements a condition variable, a rendezvous point
+		for goroutines waiting for or announcing the occurrence
+		of an event.
+
+		Each Cond has an associated Locker L (often a *Mutex or *RWMutex),
+		which must be held when changing the condition and
+		when calling the Wait method.
+
+		A Cond must not be copied after first use.
+
+		<input type='checkbox' class="fold" id="Cond-fold-fields"><label for="Cond-fold-fields">Fields (<i>total 4, in which 1 are exported</i>)</label><span id='Cond-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Cond-fold-field-L"><label for="Cond-fold-field-L"><a href="../src/sync/cond.go.html#line-25">L</a> <i><a href="#name-Locker">Locker</a></i></label><span id='Cond-fold-field-L-docs' class="fold-docs">
+				L is held while observing or changing the condition
+</span></span>
+			<input type='checkbox' class="showhide" id="Cond-showhide-fields"><i><label for="Cond-showhide-fields" class="show-inline">/* 3 unexporteds ... */</label><label for="Cond-showhide-fields" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/cond.go.html#line-28">checker</a> <i><a href="#name-copyChecker">copyChecker</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/cond.go.html#line-22">noCopy</a> <i><a href="#name-noCopy">noCopy</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/cond.go.html#line-27">notify</a> <i><a href="#name-notifyList">notifyList</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="Cond-fold-methods"><label for="Cond-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='Cond-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Cond-fold-method-Broadcast"><label for="Cond-fold-method-Broadcast">(*T) <a href="../src/sync/cond.go.html#line-73">Broadcast</a>()</label><span id='Cond-fold-method-Broadcast-docs' class="fold-docs">
+				Broadcast wakes all goroutines waiting on c.
+
+				It is allowed but not required for the caller to hold c.L
+				during the call.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Cond-fold-method-Signal"><label for="Cond-fold-method-Signal">(*T) <a href="../src/sync/cond.go.html#line-64">Signal</a>()</label><span id='Cond-fold-method-Signal-docs' class="fold-docs">
+				Signal wakes one goroutine waiting on c, if there is any.
+
+				It is allowed but not required for the caller to hold c.L
+				during the call.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Cond-fold-method-Wait"><label for="Cond-fold-method-Wait">(*T) <a href="../src/sync/cond.go.html#line-52">Wait</a>()</label><span id='Cond-fold-method-Wait-docs' class="fold-docs">
+				Wait atomically unlocks c.L and suspends execution
+				of the calling goroutine. After later resuming execution,
+				Wait locks c.L before returning. Unlike in other systems,
+				Wait cannot return unless awoken by Broadcast or Signal.
+
+				Because c.L is not locked when Wait first resumes, the caller
+				typically cannot assume that the condition is true when
+				Wait returns. Instead, the caller should Wait in a loop:
+
+				   c.L.Lock()
+				   for !condition() {
+				       c.Wait()
+				   }
+				   ... make use of condition ...
+				   c.L.Unlock()
+</span></span></span>
+		<input type='checkbox' class="fold" id="Cond-fold-results"><label for="Cond-fold-results">As Outputs Of (<i>at least one exported</i>)</label><span id='Cond-fold-results-items' class="fold-items"><span>
+			func <a href="#name-NewCond">NewCond</a>(l <a href="#name-Locker">Locker</a>) *<b>Cond</b></span></span>
+
+</span></div><div class="anchor type-res" id="name-Locker" data-popularity="2315">	<input type='checkbox' class="fold" id="Locker-fold-content"><label for="Locker-fold-content"> type <a href="../src/sync/mutex.go.html#line-31">Locker</a> <b><i>(interface)</i></b></label><span id='Locker-fold-content-docs' class="fold-docs">
+		A Locker represents an object that can be locked and unlocked.
+
+		<input type='checkbox' class="fold" id="Locker-fold-methods"><label for="Locker-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='Locker-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../src/sync/mutex.go.html#line-32">Lock</a>()</span></span><span>
+			<span class="nodocs">( T) <a href="../src/sync/mutex.go.html#line-33">Unlock</a>()</span></span></span>
+		<input type='checkbox' class="fold" id="Locker-fold-impledby"><label for="Locker-fold-impledby">Implemented By (<i>at least 14, in which 5 are exported</i>)</label><span id='Locker-fold-impledby-items' class="fold-items"><span>
+			*<a href="#name-Mutex">Mutex</a></span><span>
+			*<a href="#name-RWMutex">RWMutex</a></span><span>
+			*github.com/sirupsen/logrus.<a href="github.com/sirupsen/logrus.html#name-MutexWrap">MutexWrap</a></span><span>
+			*github.com/spf13/afero/mem.<a href="github.com/spf13/afero/mem.html#name-FileData">FileData</a></span><span>
+			 github.com/spf13/afero/mem.<a href="github.com/spf13/afero/mem.html#name-FileInfo">FileInfo</a></span>
+			<input type='checkbox' class="showhide" id="Locker-showhide-impedBys"><i><label for="Locker-showhide-impedBys" class="show-inline">/* 9+ unexporteds ... */</label><label for="Locker-showhide-impedBys" class="hide-inline">/* 9+ unexporteds: */</label></i><span class="hidden"><i>
+			*<a href="#name-noCopy">noCopy</a></i></span><span class="hidden"><i>
+			*<a href="#name-rlocker">rlocker</a></i></span><span class="hidden"><i>
+			*crypto/tls.<a href="crypto/tls.html#name-halfConn">halfConn</a></i></span><span class="hidden"><i>
+			*crypto/tls.<a href="crypto/tls.html#name-lruSessionCache">lruSessionCache</a></i></span><span class="hidden"><i>
+			*golang.org/x/sys/unix.<a href="golang.org/x/sys/unix.html#name-mmapper">mmapper</a></i></span><span class="hidden"><i>
+			*io.<a href="io.html#name-onceError">onceError</a></i></span><span class="hidden"><i>
+			*net.<a href="net.html#name-ipv6ZoneCache">ipv6ZoneCache</a></i></span><span class="hidden"><i>
+			 net/http.<a href="net/http.html#name-fakeLocker">fakeLocker</a></i></span><span class="hidden"><i>
+			*syscall.<a href="syscall.html#name-mmapper">mmapper</a></i></span></span>
+		<input type='checkbox' class="fold" id="Locker-fold-results"><label for="Locker-fold-results">As Outputs Of (<i>at least one exported</i>)</label><span id='Locker-fold-results-items' class="fold-items"><span>
+			func (*<a href="#name-RWMutex">RWMutex</a>).<a href="../src/sync/rwmutex.go.html#line-157">RLocker</a>() <b>Locker</b></span></span>
+		<input type='checkbox' class="fold" id="Locker-fold-params"><label for="Locker-fold-params">As Inputs Of (<i>at least one exported</i>)</label><span id='Locker-fold-params-items' class="fold-items"><span>
+			func <a href="#name-NewCond">NewCond</a>(l <b>Locker</b>) *<a href="#name-Cond">Cond</a></span></span>
+		<input type='checkbox' class="fold" id="Locker-fold-values"><label for="Locker-fold-values">As Types Of (<i>only one, which is unexported</i>)</label><span id='Locker-fold-values-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Locker-showhide-values"><i><label for="Locker-showhide-values" class="show-inline">/* one unexported ... */</label><label for="Locker-showhide-values" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-testHookMu">testHookMu</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Map" data-popularity="450">	<input type='checkbox' class="fold" id="Map-fold-content"><label for="Map-fold-content"> type <a href="../src/sync/map.go.html#line-27">Map</a> <i>(struct)</i></label><span id='Map-fold-content-docs' class="fold-docs">
+		Map is like a Go map[interface{}]interface{} but is safe for concurrent use
+		by multiple goroutines without additional locking or coordination.
+		Loads, stores, and deletes run in amortized constant time.
+
+		The Map type is specialized. Most code should use a plain Go map instead,
+		with separate locking or coordination, for better type safety and to make it
+		easier to maintain other invariants along with the map content.
+
+		The Map type is optimized for two common use cases: (1) when the entry for a given
+		key is only ever written once but read many times, as in caches that only grow,
+		or (2) when multiple goroutines read, write, and overwrite entries for disjoint
+		sets of keys. In these two cases, use of a Map may significantly reduce lock
+		contention compared to a Go map paired with a separate Mutex or RWMutex.
+
+		The zero Map is empty and ready for use. A Map must not be copied after first use.
+
+		<input type='checkbox' class="fold" id="Map-fold-fields"><label for="Map-fold-fields">Fields (<i>total 4, none are exported</i>)</label><span id='Map-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Map-showhide-fields"><i><label for="Map-showhide-fields" class="show-inline">/* 4 unexporteds ... */</label><label for="Map-showhide-fields" class="hide-inline">/* 4 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Map-fold-field-dirty"><label for="Map-fold-field-dirty"><a href="../src/sync/map.go.html#line-51">dirty</a> <i>map[interface{}]*<a href="#name-entry">entry</a></i></label><span id='Map-fold-field-dirty-docs' class="fold-docs">
+				dirty contains the portion of the map's contents that require mu to be
+				held. To ensure that the dirty map can be promoted to the read map quickly,
+				it also includes all of the non-expunged entries in the read map.
+
+				Expunged entries are not stored in the dirty map. An expunged entry in the
+				clean map must be unexpunged and added to the dirty map before a new value
+				can be stored to it.
+
+				If the dirty map is nil, the next write to the map will initialize it by
+				making a shallow copy of the clean map, omitting stale entries.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Map-fold-field-misses"><label for="Map-fold-field-misses"><a href="../src/sync/map.go.html#line-59">misses</a> <i><a href="builtin.html#name-int">int</a></i></label><span id='Map-fold-field-misses-docs' class="fold-docs">
+				misses counts the number of loads since the read map was last updated that
+				needed to lock mu to determine whether the key was present.
+
+				Once enough misses have occurred to cover the cost of copying the dirty
+				map, the dirty map will be promoted to the read map (in the unamended
+				state) and the next store to the map will make a new dirty copy.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/map.go.html#line-28">mu</a> <i><a href="#name-Mutex">Mutex</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Map-fold-field-read"><label for="Map-fold-field-read"><a href="../src/sync/map.go.html#line-39">read</a> <i><a href="sync/atomic.html">atomic</a>.<a href="sync/atomic.html#name-Value">Value</a></i></label><span id='Map-fold-field-read-docs' class="fold-docs">
+				read contains the portion of the map's contents that are safe for
+				concurrent access (with or without mu held).
+
+				The read field itself is always safe to load, but must only be stored with
+				mu held.
+
+				Entries stored in read may be updated concurrently without mu, but updating
+				a previously-expunged entry requires that the entry be copied to the dirty
+				map and unexpunged with mu held.
+				// readOnly
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Map-fold-methods"><label for="Map-fold-methods">Methods (<i>total 8, in which 6 are exported</i>)</label><span id='Map-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Map-fold-method-Delete"><label for="Map-fold-method-Delete">(*T) <a href="../src/sync/map.go.html#line-292">Delete</a>(key interface{})</label><span id='Map-fold-method-Delete-docs' class="fold-docs">
+				Delete deletes the value for a key.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Map-fold-method-Load"><label for="Map-fold-method-Load">(*T) <a href="../src/sync/map.go.html#line-102">Load</a>(key interface{}) (value interface{}, ok <a href="builtin.html#name-bool">bool</a>)</label><span id='Map-fold-method-Load-docs' class="fold-docs">
+				Load returns the value stored in the map for a key, or nil if no
+				value is present.
+				The ok result indicates whether value was found in the map.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Map-fold-method-LoadAndDelete"><label for="Map-fold-method-LoadAndDelete">(*T) <a href="../src/sync/map.go.html#line-268">LoadAndDelete</a>(key interface{}) (value interface{}, loaded <a href="builtin.html#name-bool">bool</a>)</label><span id='Map-fold-method-LoadAndDelete-docs' class="fold-docs">
+				LoadAndDelete deletes the value for a key, returning the previous value if any.
+				The loaded result reports whether the key was present.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Map-fold-method-LoadOrStore"><label for="Map-fold-method-LoadOrStore">(*T) <a href="../src/sync/map.go.html#line-199">LoadOrStore</a>(key, value interface{}) (actual interface{}, loaded <a href="builtin.html#name-bool">bool</a>)</label><span id='Map-fold-method-LoadOrStore-docs' class="fold-docs">
+				LoadOrStore returns the existing value for the key if present.
+				Otherwise, it stores and returns the given value.
+				The loaded result is true if the value was loaded, false if stored.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Map-fold-method-Range"><label for="Map-fold-method-Range">(*T) <a href="../src/sync/map.go.html#line-318">Range</a>(f func(key, value interface{}) <a href="builtin.html#name-bool">bool</a>)</label><span id='Map-fold-method-Range-docs' class="fold-docs">
+				Range calls f sequentially for each key and value present in the map.
+				If f returns false, range stops the iteration.
+
+				Range does not necessarily correspond to any consistent snapshot of the Map's
+				contents: no key will be visited more than once, but if the value for any key
+				is stored or deleted concurrently, Range may reflect any mapping for that key
+				from any point during the Range call.
+
+				Range may be O(N) with the number of elements in the map even if f returns
+				false after a constant number of calls.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Map-fold-method-Store"><label for="Map-fold-method-Store">(*T) <a href="../src/sync/map.go.html#line-136">Store</a>(key, value interface{})</label><span id='Map-fold-method-Store-docs' class="fold-docs">
+				Store sets the value for a key.
+</span></span>
+			<input type='checkbox' class="showhide" id="Map-showhide-methods"><i><label for="Map-showhide-methods" class="show-inline">/* 2 unexporteds ... */</label><label for="Map-showhide-methods" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/map.go.html#line-361">dirtyLocked</a>()</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/map.go.html#line-351">missLocked</a>()</span></i></span></span>
+		<input type='checkbox' class="fold" id="Map-fold-params"><label for="Map-fold-params">As Inputs Of (<i>at least one unexported</i>)</label><span id='Map-fold-params-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Map-showhide-outputofs"><i><label for="Map-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="Map-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func mime.<a href="mime.html#name-clearSyncMap">clearSyncMap</a>(m *<b>Map</b>)</i></span></span>
+		<input type='checkbox' class="fold" id="Map-fold-values"><label for="Map-fold-values">As Types Of (<i>total 12, none are exported</i>)</label><span id='Map-fold-values-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Map-showhide-values"><i><label for="Map-showhide-values" class="show-inline">/* 12 unexporteds ... */</label><label for="Map-showhide-values" class="hide-inline">/* 12 unexporteds: */</label></i><span class="hidden"><i>
+			  var archive/zip.<a href="archive/zip.html#name-compressors">compressors</a></i></span><span class="hidden"><i>
+			  var archive/zip.<a href="archive/zip.html#name-decompressors">decompressors</a></i></span><span class="hidden"><i>
+			  var encoding/binary.<a href="encoding/binary.html#name-structSize">structSize</a></i></span><span class="hidden"><i>
+			  var encoding/json.<a href="encoding/json.html#name-encoderCache">encoderCache</a></i></span><span class="hidden"><i>
+			  var encoding/json.<a href="encoding/json.html#name-fieldCache">fieldCache</a></i></span><span class="hidden"><i>
+			  var encoding/xml.<a href="encoding/xml.html#name-tinfoMap">tinfoMap</a></i></span><span class="hidden"><i>
+			  var mime.<a href="mime.html#name-extensions">extensions</a></i></span><span class="hidden"><i>
+			  var mime.<a href="mime.html#name-mimeTypes">mimeTypes</a></i></span><span class="hidden"><i>
+			  var mime.<a href="mime.html#name-mimeTypesLower">mimeTypesLower</a></i></span><span class="hidden"><i>
+			  var reflect.<a href="reflect.html#name-layoutCache">layoutCache</a></i></span><span class="hidden"><i>
+			  var reflect.<a href="reflect.html#name-lookupCache">lookupCache</a></i></span><span class="hidden"><i>
+			  var reflect.<a href="reflect.html#name-ptrMap">ptrMap</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Mutex" data-popularity="265">	<input type='checkbox' class="fold" id="Mutex-fold-content"><label for="Mutex-fold-content"> type <a href="../src/sync/mutex.go.html#line-25">Mutex</a> <i>(struct)</i></label><span id='Mutex-fold-content-docs' class="fold-docs">
+		A Mutex is a mutual exclusion lock.
+		The zero value for a Mutex is an unlocked mutex.
+
+		A Mutex must not be copied after first use.
+
+		<input type='checkbox' class="fold" id="Mutex-fold-fields"><label for="Mutex-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='Mutex-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Mutex-showhide-fields"><i><label for="Mutex-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="Mutex-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/mutex.go.html#line-27">sema</a> <i><a href="builtin.html#name-uint32">uint32</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/mutex.go.html#line-26">state</a> <i><a href="builtin.html#name-int32">int32</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="Mutex-fold-methods"><label for="Mutex-fold-methods">Methods (<i>total 4, in which 2 are exported</i>)</label><span id='Mutex-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Mutex-fold-method-Lock"><label for="Mutex-fold-method-Lock">(*T) <a href="../src/sync/mutex.go.html#line-72">Lock</a>()</label><span id='Mutex-fold-method-Lock-docs' class="fold-docs">
+				Lock locks m.
+				If the lock is already in use, the calling goroutine
+				blocks until the mutex is available.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Mutex-fold-method-Unlock"><label for="Mutex-fold-method-Unlock">(*T) <a href="../src/sync/mutex.go.html#line-179">Unlock</a>()</label><span id='Mutex-fold-method-Unlock-docs' class="fold-docs">
+				Unlock unlocks m.
+				It is a run-time error if m is not locked on entry to Unlock.
+
+				A locked Mutex is not associated with a particular goroutine.
+				It is allowed for one goroutine to lock a Mutex and then
+				arrange for another goroutine to unlock it.
+</span></span>
+			<input type='checkbox' class="showhide" id="Mutex-showhide-methods"><i><label for="Mutex-showhide-methods" class="show-inline">/* 2 unexporteds ... */</label><label for="Mutex-showhide-methods" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/mutex.go.html#line-84">lockSlow</a>()</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/mutex.go.html#line-194">unlockSlow</a>(new <a href="builtin.html#name-int32">int32</a>)</span></i></span></span>
+		<input type='checkbox' class="fold" id="Mutex-fold-impls"><label for="Mutex-fold-impls">Implements (<i>at least one exported</i>)</label><span id='Mutex-fold-impls-items' class="fold-items"><span>
+			*T : <a href="#name-Locker">Locker</a></span></span>
+		<input type='checkbox' class="fold" id="Mutex-fold-values"><label for="Mutex-fold-values">As Types Of (<i>total 7, none are exported</i>)</label><span id='Mutex-fold-values-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Mutex-showhide-values"><i><label for="Mutex-showhide-values" class="show-inline">/* 7 unexporteds ... */</label><label for="Mutex-showhide-values" class="hide-inline">/* 7 unexporteds: */</label></i><span class="hidden"><i>
+			  var <a href="#name-allPoolsMu">allPoolsMu</a></i></span><span class="hidden"><i>
+			  var crypto/tls.<a href="crypto/tls.html#name-writerMutex">writerMutex</a></i></span><span class="hidden"><i>
+			  var github.com/spf13/afero.<a href="github.com/spf13/afero.html#name-randmu">randmu</a></i></span><span class="hidden"><i>
+			  var io/ioutil.<a href="io/ioutil.html#name-randmu">randmu</a></i></span><span class="hidden"><i>
+			  var mime.<a href="mime.html#name-extensionsMu">extensionsMu</a></i></span><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-http2testHookOnPanicMu">http2testHookOnPanicMu</a> *<a href="">sync</a>.<b><a href="#name-Mutex">Mutex</a></b></i></span><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-uniqNameMu">uniqNameMu</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Once" data-popularity="115">	<input type='checkbox' class="fold" id="Once-fold-content"><label for="Once-fold-content"> type <a href="../src/sync/once.go.html#line-14">Once</a> <i>(struct)</i></label><span id='Once-fold-content-docs' class="fold-docs">
+		Once is an object that will perform exactly one action.
+
+		A Once must not be copied after first use.
+
+		<input type='checkbox' class="fold" id="Once-fold-fields"><label for="Once-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='Once-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Once-showhide-fields"><i><label for="Once-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="Once-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Once-fold-field-done"><label for="Once-fold-field-done"><a href="../src/sync/once.go.html#line-20">done</a> <i><a href="builtin.html#name-uint32">uint32</a></i></label><span id='Once-fold-field-done-docs' class="fold-docs">
+				done indicates whether the action has been performed.
+				It is first in the struct because it is used in the hot path.
+				The hot path is inlined at every call site.
+				Placing done first allows more compact instructions on some architectures (amd64/386),
+				and fewer instructions (to calculate offset) on other architectures.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/once.go.html#line-21">m</a> <i><a href="#name-Mutex">Mutex</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="Once-fold-methods"><label for="Once-fold-methods">Methods (<i>total 2, in which 1 are exported</i>)</label><span id='Once-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Once-fold-method-Do"><label for="Once-fold-method-Do">(*T) <a href="../src/sync/once.go.html#line-42">Do</a>(f func())</label><span id='Once-fold-method-Do-docs' class="fold-docs">
+				Do calls the function f if and only if Do is being called for the
+				first time for this instance of Once. In other words, given
+					var once Once
+				if once.Do(f) is called multiple times, only the first call will invoke f,
+				even if f has a different value in each invocation. A new instance of
+				Once is required for each function to execute.
+
+				Do is intended for initialization that must be run exactly once. Since f
+				is niladic, it may be necessary to use a function literal to capture the
+				arguments to a function to be invoked by Do:
+					config.once.Do(func() { config.init(filename) })
+
+				Because no call to Do returns until the one call to f returns, if f causes
+				Do to be called, it will deadlock.
+
+				If f panics, Do considers it to have returned; future calls of Do return
+				without calling f.
+</span></span>
+			<input type='checkbox' class="showhide" id="Once-showhide-methods"><i><label for="Once-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="Once-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/once.go.html#line-63">doSlow</a>(f func())</span></i></span></span>
+		<input type='checkbox' class="fold" id="Once-fold-values"><label for="Once-fold-values">As Types Of (<i>total 29, none are exported</i>)</label><span id='Once-fold-values-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Once-showhide-values"><i><label for="Once-showhide-values" class="show-inline">/* 29 unexporteds ... */</label><label for="Once-showhide-values" class="hide-inline">/* 29 unexporteds: */</label></i><span class="hidden"><i>
+			  var compress/flate.<a href="compress/flate.html#name-fixedOnce">fixedOnce</a></i></span><span class="hidden"><i>
+			  var crypto/des.<a href="crypto/des.html#name-feistelBoxOnce">feistelBoxOnce</a></i></span><span class="hidden"><i>
+			  var crypto/elliptic.<a href="crypto/elliptic.html#name-initonce">initonce</a></i></span><span class="hidden"><i>
+			  var crypto/elliptic.<a href="crypto/elliptic.html#name-precomputeOnce">precomputeOnce</a></i></span><span class="hidden"><i>
+			  var crypto/internal/randutil.<a href="crypto/internal/randutil.html#name-closedChanOnce">closedChanOnce</a></i></span><span class="hidden"><i>
+			  var crypto/tls.<a href="crypto/tls.html#name-once">once</a></i></span><span class="hidden"><i>
+			  var crypto/x509.<a href="crypto/x509.html#name-once">once</a></i></span><span class="hidden"><i>
+			  var github.com/shirou/gopsutil/v3/internal/common.<a href="github.com/shirou/gopsutil/v3/internal/common.html#name-cachedVirtOnce">cachedVirtOnce</a></i></span><span class="hidden"><i>
+			  var github.com/sirupsen/logrus.<a href="github.com/sirupsen/logrus.html#name-callerInitOnce">callerInitOnce</a></i></span><span class="hidden"><i>
+			  var golang.org/x/sys/unix.<a href="golang.org/x/sys/unix.html#name-signalNameMapOnce">signalNameMapOnce</a></i></span><span class="hidden"><i>
+			  var golang.org/x/text/encoding/htmlindex.<a href="golang.org/x/text/encoding/htmlindex.html#name-matcherOnce">matcherOnce</a></i></span><span class="hidden"><i>
+			  var golang.org/x/text/unicode/norm.<a href="golang.org/x/text/unicode/norm.html#name-recompMapOnce">recompMapOnce</a></i></span><span class="hidden"><i>
+			  var hash/crc32.<a href="hash/crc32.html#name-castagnoliOnce">castagnoliOnce</a></i></span><span class="hidden"><i>
+			  var hash/crc32.<a href="hash/crc32.html#name-ieeeOnce">ieeeOnce</a></i></span><span class="hidden"><i>
+			  var html.<a href="html.html#name-populateMapsOnce">populateMapsOnce</a></i></span><span class="hidden"><i>
+			  var internal/poll.<a href="internal/poll.html#name-serverInit">serverInit</a></i></span><span class="hidden"><i>
+			  var mime.<a href="mime.html#name-once">once</a></i></span><span class="hidden"><i>
+			  var net.<a href="net.html#name-confOnce">confOnce</a></i></span><span class="hidden"><i>
+			  var net.<a href="net.html#name-onceReadProtocols">onceReadProtocols</a></i></span><span class="hidden"><i>
+			  var net.<a href="net.html#name-onceReadServices">onceReadServices</a></i></span><span class="hidden"><i>
+			  var net.<a href="net.html#name-threadOnce">threadOnce</a></i></span><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-envProxyOnce">envProxyOnce</a></i></span><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-http2commonBuildOnce">http2commonBuildOnce</a></i></span><span class="hidden"><i>
+			  var net/textproto.<a href="net/textproto.html#name-commonHeaderOnce">commonHeaderOnce</a></i></span><span class="hidden"><i>
+			  var syscall.<a href="syscall.html#name-envOnce">envOnce</a></i></span><span class="hidden"><i>
+			  var time.<a href="time.html#name-localOnce">localOnce</a></i></span><span class="hidden"><i>
+			  var time.<a href="time.html#name-zoneinfoOnce">zoneinfoOnce</a></i></span><span class="hidden"><i>
+			  var vendor/golang.org/x/net/http2/hpack.<a href="vendor/golang.org/x/net/http2/hpack.html#name-buildRootOnce">buildRootOnce</a></i></span><span class="hidden"><i>
+			  var vendor/golang.org/x/text/unicode/norm.<a href="vendor/golang.org/x/text/unicode/norm.html#name-recompMapOnce">recompMapOnce</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Pool" data-popularity="415">	<input type='checkbox' class="fold" id="Pool-fold-content"><label for="Pool-fold-content"> type <a href="../src/sync/pool.go.html#line-44">Pool</a> <i>(struct)</i></label><span id='Pool-fold-content-docs' class="fold-docs">
+		A Pool is a set of temporary objects that may be individually saved and
+		retrieved.
+
+		Any item stored in the Pool may be removed automatically at any time without
+		notification. If the Pool holds the only reference when this happens, the
+		item might be deallocated.
+
+		A Pool is safe for use by multiple goroutines simultaneously.
+
+		Pool's purpose is to cache allocated but unused items for later reuse,
+		relieving pressure on the garbage collector. That is, it makes it easy to
+		build efficient, thread-safe free lists. However, it is not suitable for all
+		free lists.
+
+		An appropriate use of a Pool is to manage a group of temporary items
+		silently shared among and potentially reused by concurrent independent
+		clients of a package. Pool provides a way to amortize allocation overhead
+		across many clients.
+
+		An example of good use of a Pool is in the fmt package, which maintains a
+		dynamically-sized store of temporary output buffers. The store scales under
+		load (when many goroutines are actively printing) and shrinks when
+		quiescent.
+
+		On the other hand, a free list maintained as part of a short-lived object is
+		not a suitable use for a Pool, since the overhead does not amortize well in
+		that scenario. It is more efficient to have such objects implement their own
+		free list.
+
+		A Pool must not be copied after first use.
+
+		<input type='checkbox' class="fold" id="Pool-fold-fields"><label for="Pool-fold-fields">Fields (<i>total 6, in which 1 are exported</i>)</label><span id='Pool-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Pool-fold-field-New"><label for="Pool-fold-field-New"><a href="../src/sync/pool.go.html#line-56">New</a> <i>func() interface{}</i></label><span id='Pool-fold-field-New-docs' class="fold-docs">
+				New optionally specifies a function to generate
+				a value when Get would otherwise return nil.
+				It may not be changed concurrently with calls to Get.
+</span></span>
+			<input type='checkbox' class="showhide" id="Pool-showhide-fields"><i><label for="Pool-showhide-fields" class="show-inline">/* 5 unexporteds ... */</label><label for="Pool-showhide-fields" class="hide-inline">/* 5 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Pool-fold-field-local"><label for="Pool-fold-field-local"><a href="../src/sync/pool.go.html#line-47">local</a> <i><a href="unsafe.html">unsafe</a>.<a href="unsafe.html#name-Pointer">Pointer</a></i></label><span id='Pool-fold-field-local-docs' class="fold-docs">
+				// local fixed-size per-P pool, actual type is [P]poolLocal
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Pool-fold-field-localSize"><label for="Pool-fold-field-localSize"><a href="../src/sync/pool.go.html#line-48">localSize</a> <i><a href="builtin.html#name-uintptr">uintptr</a></i></label><span id='Pool-fold-field-localSize-docs' class="fold-docs">
+				// size of the local array
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/pool.go.html#line-45">noCopy</a> <i><a href="#name-noCopy">noCopy</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Pool-fold-field-victim"><label for="Pool-fold-field-victim"><a href="../src/sync/pool.go.html#line-50">victim</a> <i><a href="unsafe.html">unsafe</a>.<a href="unsafe.html#name-Pointer">Pointer</a></i></label><span id='Pool-fold-field-victim-docs' class="fold-docs">
+				// local from previous cycle
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Pool-fold-field-victimSize"><label for="Pool-fold-field-victimSize"><a href="../src/sync/pool.go.html#line-51">victimSize</a> <i><a href="builtin.html#name-uintptr">uintptr</a></i></label><span id='Pool-fold-field-victimSize-docs' class="fold-docs">
+				// size of victims array
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Pool-fold-methods"><label for="Pool-fold-methods">Methods (<i>total 5, in which 2 are exported</i>)</label><span id='Pool-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Pool-fold-method-Get"><label for="Pool-fold-method-Get">(*T) <a href="../src/sync/pool.go.html#line-124">Get</a>() interface{}</label><span id='Pool-fold-method-Get-docs' class="fold-docs">
+				Get selects an arbitrary item from the Pool, removes it from the
+				Pool, and returns it to the caller.
+				Get may choose to ignore the pool and treat it as empty.
+				Callers should not assume any relation between values passed to Put and
+				the values returned by Get.
+
+				If Get would otherwise return nil and p.New is non-nil, Get returns
+				the result of calling p.New.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Pool-fold-method-Put"><label for="Pool-fold-method-Put">(*T) <a href="../src/sync/pool.go.html#line-90">Put</a>(x interface{})</label><span id='Pool-fold-method-Put-docs' class="fold-docs">
+				Put adds x to the pool.
+</span></span>
+			<input type='checkbox' class="showhide" id="Pool-showhide-methods"><i><label for="Pool-showhide-methods" class="show-inline">/* 3 unexporteds ... */</label><label for="Pool-showhide-methods" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/pool.go.html#line-153">getSlow</a>(pid <a href="builtin.html#name-int">int</a>) interface{}</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Pool-fold-method-pin"><label for="Pool-fold-method-pin">(*T) <a href="../src/sync/pool.go.html#line-195">pin</a>() (*<a href="#name-poolLocal">poolLocal</a>, <a href="builtin.html#name-int">int</a>)</label><span id='Pool-fold-method-pin-docs' class="fold-docs">
+				pin pins the current goroutine to P, disables preemption and
+				returns poolLocal pool for the P and the P's id.
+				Caller must call runtime_procUnpin() when done with the pool.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/pool.go.html#line-209">pinSlow</a>() (*<a href="#name-poolLocal">poolLocal</a>, <a href="builtin.html#name-int">int</a>)</span></i></span></span>
+		<input type='checkbox' class="fold" id="Pool-fold-results"><label for="Pool-fold-results">As Outputs Of (<i>at least 2, neither is exported</i>)</label><span id='Pool-fold-results-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Pool-showhide-inputofs"><i><label for="Pool-showhide-inputofs" class="show-inline">/* 2+ unexporteds ... */</label><label for="Pool-showhide-inputofs" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			func net/http.<a href="net/http.html#name-bufioWriterPool">bufioWriterPool</a>(size <a href="builtin.html#name-int">int</a>) *<b>Pool</b></i></span><span class="hidden"><i>
+			func reflect.<a href="reflect.html#name-funcLayout">funcLayout</a>(t *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-funcType">funcType</a>, rcvr *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>) (frametype *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-rtype">rtype</a>, argSize, retOffset <a href="builtin.html#name-uintptr">uintptr</a>, stk *<a href="reflect.html">reflect</a>.<a href="reflect.html#name-bitVector">bitVector</a>, framePool *<b>Pool</b>)</i></span></span>
+		<input type='checkbox' class="fold" id="Pool-fold-values"><label for="Pool-fold-values">As Types Of (<i>total 29, none are exported</i>)</label><span id='Pool-fold-values-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Pool-showhide-values"><i><label for="Pool-showhide-values" class="show-inline">/* 29 unexporteds ... */</label><label for="Pool-showhide-values" class="hide-inline">/* 29 unexporteds: */</label></i><span class="hidden"><i>
+			  var archive/zip.<a href="archive/zip.html#name-flateReaderPool">flateReaderPool</a></i></span><span class="hidden"><i>
+			  var archive/zip.<a href="archive/zip.html#name-flateWriterPool">flateWriterPool</a></i></span><span class="hidden"><i>
+			  var crypto/tls.<a href="crypto/tls.html#name-outBufPool">outBufPool</a></i></span><span class="hidden"><i>
+			  var encoding/json.<a href="encoding/json.html#name-encodeStatePool">encodeStatePool</a></i></span><span class="hidden"><i>
+			  var encoding/json.<a href="encoding/json.html#name-scannerPool">scannerPool</a></i></span><span class="hidden"><i>
+			  var fmt.<a href="fmt.html#name-ppFree">ppFree</a></i></span><span class="hidden"><i>
+			  var fmt.<a href="fmt.html#name-ssFree">ssFree</a></i></span><span class="hidden"><i>
+			  var github.com/rs/zerolog.<a href="github.com/rs/zerolog.html#name-arrayPool">arrayPool</a> *Pool</i></span><span class="hidden"><i>
+			  var github.com/rs/zerolog.<a href="github.com/rs/zerolog.html#name-consoleBufPool">consoleBufPool</a></i></span><span class="hidden"><i>
+			  var github.com/rs/zerolog.<a href="github.com/rs/zerolog.html#name-eventPool">eventPool</a> *Pool</i></span><span class="hidden"><i>
+			  var github.com/rs/zerolog/diode.<a href="github.com/rs/zerolog/diode.html#name-bufPool">bufPool</a> *Pool</i></span><span class="hidden"><i>
+			  var io.<a href="io.html#name-blackHolePool">blackHolePool</a></i></span><span class="hidden"><i>
+			  var math/big.<a href="math/big.html#name-natPool">natPool</a></i></span><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-bufioReaderPool">bufioReaderPool</a></i></span><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-bufioWriter2kPool">bufioWriter2kPool</a></i></span><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-bufioWriter4kPool">bufioWriter4kPool</a></i></span><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-copyBufPool">copyBufPool</a></i></span><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-headerSorterPool">headerSorterPool</a></i></span><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-http2bufWriterPool">http2bufWriterPool</a></i></span><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-http2errChanPool">http2errChanPool</a></i></span><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-http2fhBytes">http2fhBytes</a></i></span><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-http2littleBuf">http2littleBuf</a></i></span><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-http2responseWriterStatePool">http2responseWriterStatePool</a></i></span><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-http2sorterPool">http2sorterPool</a></i></span><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-http2writeDataPool">http2writeDataPool</a></i></span><span class="hidden"><i>
+			  var net/http.<a href="net/http.html#name-textprotoReaderPool">textprotoReaderPool</a></i></span><span class="hidden"><i>
+			  var regexp.<a href="regexp.html#name-bitStatePool">bitStatePool</a></i></span><span class="hidden"><i>
+			  var regexp.<a href="regexp.html#name-onePassPool">onePassPool</a></i></span><span class="hidden"><i>
+			  var vendor/golang.org/x/net/http2/hpack.<a href="vendor/golang.org/x/net/http2/hpack.html#name-bufPool">bufPool</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-RWMutex" data-popularity="365">	<input type='checkbox' class="fold" id="RWMutex-fold-content"><label for="RWMutex-fold-content"> type <a href="../src/sync/rwmutex.go.html#line-28">RWMutex</a> <i>(struct)</i></label><span id='RWMutex-fold-content-docs' class="fold-docs">
+		A RWMutex is a reader/writer mutual exclusion lock.
+		The lock can be held by an arbitrary number of readers or a single writer.
+		The zero value for a RWMutex is an unlocked mutex.
+
+		A RWMutex must not be copied after first use.
+
+		If a goroutine holds a RWMutex for reading and another goroutine might
+		call Lock, no goroutine should expect to be able to acquire a read lock
+		until the initial read lock is released. In particular, this prohibits
+		recursive read locking. This is to ensure that the lock eventually becomes
+		available; a blocked Lock call excludes new readers from acquiring the
+		lock.
+
+		<input type='checkbox' class="fold" id="RWMutex-fold-fields"><label for="RWMutex-fold-fields">Fields (<i>total 5, none are exported</i>)</label><span id='RWMutex-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="RWMutex-showhide-fields"><i><label for="RWMutex-showhide-fields" class="show-inline">/* 5 unexporteds ... */</label><label for="RWMutex-showhide-fields" class="hide-inline">/* 5 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="RWMutex-fold-field-readerCount"><label for="RWMutex-fold-field-readerCount"><a href="../src/sync/rwmutex.go.html#line-32">readerCount</a> <i><a href="builtin.html#name-int32">int32</a></i></label><span id='RWMutex-fold-field-readerCount-docs' class="fold-docs">
+				// number of pending readers
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="RWMutex-fold-field-readerSem"><label for="RWMutex-fold-field-readerSem"><a href="../src/sync/rwmutex.go.html#line-31">readerSem</a> <i><a href="builtin.html#name-uint32">uint32</a></i></label><span id='RWMutex-fold-field-readerSem-docs' class="fold-docs">
+				// semaphore for readers to wait for completing writers
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="RWMutex-fold-field-readerWait"><label for="RWMutex-fold-field-readerWait"><a href="../src/sync/rwmutex.go.html#line-33">readerWait</a> <i><a href="builtin.html#name-int32">int32</a></i></label><span id='RWMutex-fold-field-readerWait-docs' class="fold-docs">
+				// number of departing readers
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="RWMutex-fold-field-w"><label for="RWMutex-fold-field-w"><a href="../src/sync/rwmutex.go.html#line-29">w</a> <i><a href="#name-Mutex">Mutex</a></i></label><span id='RWMutex-fold-field-w-docs' class="fold-docs">
+				// held if there are pending writers
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="RWMutex-fold-field-writerSem"><label for="RWMutex-fold-field-writerSem"><a href="../src/sync/rwmutex.go.html#line-30">writerSem</a> <i><a href="builtin.html#name-uint32">uint32</a></i></label><span id='RWMutex-fold-field-writerSem-docs' class="fold-docs">
+				// semaphore for writers to wait for completing readers
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="RWMutex-fold-methods"><label for="RWMutex-fold-methods">Methods (<i>total 6, in which 5 are exported</i>)</label><span id='RWMutex-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="RWMutex-fold-method-Lock"><label for="RWMutex-fold-method-Lock">(*T) <a href="../src/sync/rwmutex.go.html#line-105">Lock</a>()</label><span id='RWMutex-fold-method-Lock-docs' class="fold-docs">
+				Lock locks rw for writing.
+				If the lock is already locked for reading or writing,
+				Lock blocks until the lock is available.
+</span></span><span>
+			<input type='checkbox' class="fold" id="RWMutex-fold-method-RLock"><label for="RWMutex-fold-method-RLock">(*T) <a href="../src/sync/rwmutex.go.html#line-56">RLock</a>()</label><span id='RWMutex-fold-method-RLock-docs' class="fold-docs">
+				RLock locks rw for reading.
+
+				It should not be used for recursive read locking; a blocked Lock
+				call excludes new readers from acquiring the lock. See the
+				documentation on the RWMutex type.
+</span></span><span>
+			<input type='checkbox' class="fold" id="RWMutex-fold-method-RLocker"><label for="RWMutex-fold-method-RLocker">(*T) <a href="../src/sync/rwmutex.go.html#line-157">RLocker</a>() <a href="#name-Locker">Locker</a></label><span id='RWMutex-fold-method-RLocker-docs' class="fold-docs">
+				RLocker returns a Locker interface that implements
+				the Lock and Unlock methods by calling rw.RLock and rw.RUnlock.
+</span></span><span>
+			<input type='checkbox' class="fold" id="RWMutex-fold-method-RUnlock"><label for="RWMutex-fold-method-RUnlock">(*T) <a href="../src/sync/rwmutex.go.html#line-75">RUnlock</a>()</label><span id='RWMutex-fold-method-RUnlock-docs' class="fold-docs">
+				RUnlock undoes a single RLock call;
+				it does not affect other simultaneous readers.
+				It is a run-time error if rw is not locked for reading
+				on entry to RUnlock.
+</span></span><span>
+			<input type='checkbox' class="fold" id="RWMutex-fold-method-Unlock"><label for="RWMutex-fold-method-Unlock">(*T) <a href="../src/sync/rwmutex.go.html#line-131">Unlock</a>()</label><span id='RWMutex-fold-method-Unlock-docs' class="fold-docs">
+				Unlock unlocks rw for writing. It is a run-time error if rw is
+				not locked for writing on entry to Unlock.
+
+				As with Mutexes, a locked RWMutex is not associated with a particular
+				goroutine. One goroutine may RLock (Lock) a RWMutex and then
+				arrange for another goroutine to RUnlock (Unlock) it.
+</span></span>
+			<input type='checkbox' class="showhide" id="RWMutex-showhide-methods"><i><label for="RWMutex-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="RWMutex-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/rwmutex.go.html#line-90">rUnlockSlow</a>(r <a href="builtin.html#name-int32">int32</a>)</span></i></span></span>
+		<input type='checkbox' class="fold" id="RWMutex-fold-impls"><label for="RWMutex-fold-impls">Implements (<i>at least one exported</i>)</label><span id='RWMutex-fold-impls-items' class="fold-items"><span>
+			*T : <a href="#name-Locker">Locker</a></span></span>
+		<input type='checkbox' class="fold" id="RWMutex-fold-values"><label for="RWMutex-fold-values">As Types Of (<i>total 4, in which 1 are exported</i>)</label><span id='RWMutex-fold-values-items' class="fold-items"><span>
+			  var syscall.<a href="syscall.html#name-ForkLock">ForkLock</a></span>
+			<input type='checkbox' class="showhide" id="RWMutex-showhide-values"><i><label for="RWMutex-showhide-values" class="show-inline">/* 3 unexporteds ... */</label><label for="RWMutex-showhide-values" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			  var github.com/shirou/gopsutil/v3/internal/common.<a href="github.com/shirou/gopsutil/v3/internal/common.html#name-cachedVirtMutex">cachedVirtMutex</a></i></span><span class="hidden"><i>
+			  var gopkg.in/yaml.v2.<a href="gopkg.in/yaml.v2.html#name-fieldMapMutex">fieldMapMutex</a></i></span><span class="hidden"><i>
+			  var syscall.<a href="syscall.html#name-envLock">envLock</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-WaitGroup" data-popularity="205">	<input type='checkbox' class="fold" id="WaitGroup-fold-content"><label for="WaitGroup-fold-content"> type <a href="../src/sync/waitgroup.go.html#line-20">WaitGroup</a> <i>(struct)</i></label><span id='WaitGroup-fold-content-docs' class="fold-docs">
+		A WaitGroup waits for a collection of goroutines to finish.
+		The main goroutine calls Add to set the number of
+		goroutines to wait for. Then each of the goroutines
+		runs and calls Done when finished. At the same time,
+		Wait can be used to block until all goroutines have finished.
+
+		A WaitGroup must not be copied after first use.
+
+		<input type='checkbox' class="fold" id="WaitGroup-fold-fields"><label for="WaitGroup-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='WaitGroup-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="WaitGroup-showhide-fields"><i><label for="WaitGroup-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="WaitGroup-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/waitgroup.go.html#line-21">noCopy</a> <i><a href="#name-noCopy">noCopy</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="WaitGroup-fold-field-state1"><label for="WaitGroup-fold-field-state1"><a href="../src/sync/waitgroup.go.html#line-28">state1</a> <i>[3]<a href="builtin.html#name-uint32">uint32</a></i></label><span id='WaitGroup-fold-field-state1-docs' class="fold-docs">
+				64-bit value: high 32 bits are counter, low 32 bits are waiter count.
+				64-bit atomic operations require 64-bit alignment, but 32-bit
+				compilers do not ensure it. So we allocate 12 bytes and then use
+				the aligned 8 bytes in them as state, and the other 4 as storage
+				for the sema.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="WaitGroup-fold-methods"><label for="WaitGroup-fold-methods">Methods (<i>total 4, in which 3 are exported</i>)</label><span id='WaitGroup-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="WaitGroup-fold-method-Add"><label for="WaitGroup-fold-method-Add">(*T) <a href="../src/sync/waitgroup.go.html#line-53">Add</a>(delta <a href="builtin.html#name-int">int</a>)</label><span id='WaitGroup-fold-method-Add-docs' class="fold-docs">
+				Add adds delta, which may be negative, to the WaitGroup counter.
+				If the counter becomes zero, all goroutines blocked on Wait are released.
+				If the counter goes negative, Add panics.
+
+				Note that calls with a positive delta that occur when the counter is zero
+				must happen before a Wait. Calls with a negative delta, or calls with a
+				positive delta that start when the counter is greater than zero, may happen
+				at any time.
+				Typically this means the calls to Add should execute before the statement
+				creating the goroutine or other event to be waited for.
+				If a WaitGroup is reused to wait for several independent sets of events,
+				new Add calls must happen after all previous Wait calls have returned.
+				See the WaitGroup example.
+</span></span><span>
+			<input type='checkbox' class="fold" id="WaitGroup-fold-method-Done"><label for="WaitGroup-fold-method-Done">(*T) <a href="../src/sync/waitgroup.go.html#line-98">Done</a>()</label><span id='WaitGroup-fold-method-Done-docs' class="fold-docs">
+				Done decrements the WaitGroup counter by one.
+</span></span><span>
+			<input type='checkbox' class="fold" id="WaitGroup-fold-method-Wait"><label for="WaitGroup-fold-method-Wait">(*T) <a href="../src/sync/waitgroup.go.html#line-103">Wait</a>()</label><span id='WaitGroup-fold-method-Wait-docs' class="fold-docs">
+				Wait blocks until the WaitGroup counter is zero.
+</span></span>
+			<input type='checkbox' class="showhide" id="WaitGroup-showhide-methods"><i><label for="WaitGroup-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="WaitGroup-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="WaitGroup-fold-method-state"><label for="WaitGroup-fold-method-state">(*T) <a href="../src/sync/waitgroup.go.html#line-32">state</a>() (statep *<a href="builtin.html#name-uint64">uint64</a>, semap *<a href="builtin.html#name-uint32">uint32</a>)</label><span id='WaitGroup-fold-method-state-docs' class="fold-docs">
+				state returns pointers to the state and sema fields stored within wg.state1.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="WaitGroup-fold-values"><label for="WaitGroup-fold-values">As Types Of (<i>only one, which is unexported</i>)</label><span id='WaitGroup-fold-values-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="WaitGroup-showhide-values"><i><label for="WaitGroup-showhide-values" class="show-inline">/* one unexported ... */</label><label for="WaitGroup-showhide-values" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			  var net.<a href="net.html#name-dnsWaitGroup">dnsWaitGroup</a></i></span></span>
+
+</span></div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* 13 unexporteds ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* 13 unexporteds: */</label></i><div class="anchor type-res hidden" id="name-copyChecker" data-popularity="50">	<input type='checkbox' class="fold" id="copyChecker-fold-content"><label for="copyChecker-fold-content"> type <a href="../src/sync/cond.go.html#line-79">copyChecker</a> <a href="builtin.html#name-uintptr">uintptr</a> <i>(basic type)</i></label><span id='copyChecker-fold-content-docs' class="fold-docs">
+		copyChecker holds back pointer to itself to detect object copying.
+
+		<input type='checkbox' class="fold" id="copyChecker-fold-methods"><label for="copyChecker-fold-methods">Methods (<i>only one, which is unexported</i>)</label><span id='copyChecker-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="copyChecker-showhide-methods"><i><label for="copyChecker-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="copyChecker-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/cond.go.html#line-81">check</a>()</span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-dequeueNil" data-popularity="0">	<input type='checkbox' class="fold" id="dequeueNil-fold-content"><label for="dequeueNil-fold-content"> type <a href="../src/sync/poolqueue.go.html#line-63">dequeueNil</a> <i>(*T)</i></label><span id='dequeueNil-fold-content-docs' class="fold-docs">
+		dequeueNil is used in poolDequeue to represent interface{}(nil).
+		Since we use nil to represent empty slots, we need a sentinel value
+		to represent nil.
+
+</span></div><div class="anchor type-res hidden" id="name-eface" data-popularity="0">	<input type='checkbox' class="fold" id="eface-fold-content"><label for="eface-fold-content"> type <a href="../src/sync/poolqueue.go.html#line-47">eface</a> <i>(struct)</i></label><span id='eface-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="eface-fold-fields"><label for="eface-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='eface-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="eface-showhide-fields"><i><label for="eface-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="eface-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/poolqueue.go.html#line-48">typ</a> <i><a href="unsafe.html">unsafe</a>.<a href="unsafe.html#name-Pointer">Pointer</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/poolqueue.go.html#line-48">val</a> <i><a href="unsafe.html">unsafe</a>.<a href="unsafe.html#name-Pointer">Pointer</a></i></span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-entry" data-popularity="425">	<input type='checkbox' class="fold" id="entry-fold-content"><label for="entry-fold-content"> type <a href="../src/sync/map.go.html#line-73">entry</a> <i>(struct)</i></label><span id='entry-fold-content-docs' class="fold-docs">
+		An entry is a slot in the map corresponding to a particular key.
+
+		<input type='checkbox' class="fold" id="entry-fold-fields"><label for="entry-fold-fields">Fields (<i>only one, which is unexported</i>)</label><span id='entry-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="entry-showhide-fields"><i><label for="entry-showhide-fields" class="show-inline">/* one unexported ... */</label><label for="entry-showhide-fields" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="entry-fold-field-p"><label for="entry-fold-field-p"><a href="../src/sync/map.go.html#line-92">p</a> <i><a href="unsafe.html">unsafe</a>.<a href="unsafe.html#name-Pointer">Pointer</a></i></label><span id='entry-fold-field-p-docs' class="fold-docs">
+				p points to the interface{} value stored for the entry.
+
+				If p == nil, the entry has been deleted and m.dirty == nil.
+
+				If p == expunged, the entry has been deleted, m.dirty != nil, and the entry
+				is missing from m.dirty.
+
+				Otherwise, the entry is valid and recorded in m.read.m[key] and, if m.dirty
+				!= nil, in m.dirty[key].
+
+				An entry can be deleted by atomic replacement with nil: when m.dirty is
+				next created, it will atomically replace nil with expunged and leave
+				m.dirty[key] unset.
+
+				An entry's associated value can be updated by atomic replacement, provided
+				p != expunged. If p == expunged, an entry's associated value can be updated
+				only after first setting m.dirty[key] = e so that lookups using the dirty
+				map find the entry.
+				// *interface{}
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="entry-fold-methods"><label for="entry-fold-methods">Methods (<i>total 7, none are exported</i>)</label><span id='entry-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="entry-showhide-methods"><i><label for="entry-showhide-methods" class="show-inline">/* 7 unexporteds ... */</label><label for="entry-showhide-methods" class="hide-inline">/* 7 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/map.go.html#line-296">delete</a>() (value interface{}, ok <a href="builtin.html#name-bool">bool</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/map.go.html#line-127">load</a>() (value interface{}, ok <a href="builtin.html#name-bool">bool</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="entry-fold-method-storeLocked"><label for="entry-fold-method-storeLocked">(*T) <a href="../src/sync/map.go.html#line-192">storeLocked</a>(i *interface{})</label><span id='entry-fold-method-storeLocked-docs' class="fold-docs">
+				storeLocked unconditionally stores a value to the entry.
+
+				The entry must be known not to be expunged.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/map.go.html#line-375">tryExpungeLocked</a>() (isExpunged <a href="builtin.html#name-bool">bool</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="entry-fold-method-tryLoadOrStore"><label for="entry-fold-method-tryLoadOrStore">(*T) <a href="../src/sync/map.go.html#line-239">tryLoadOrStore</a>(i interface{}) (actual interface{}, loaded, ok <a href="builtin.html#name-bool">bool</a>)</label><span id='entry-fold-method-tryLoadOrStore-docs' class="fold-docs">
+				tryLoadOrStore atomically loads or stores a value if the entry is not
+				expunged.
+
+				If the entry is expunged, tryLoadOrStore leaves the entry unchanged and
+				returns with ok==false.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="entry-fold-method-tryStore"><label for="entry-fold-method-tryStore">(*T) <a href="../src/sync/map.go.html#line-169">tryStore</a>(i *interface{}) <a href="builtin.html#name-bool">bool</a></label><span id='entry-fold-method-tryStore-docs' class="fold-docs">
+				tryStore stores a value if the entry has not been expunged.
+
+				If the entry is expunged, tryStore returns false and leaves the entry
+				unchanged.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="entry-fold-method-unexpungeLocked"><label for="entry-fold-method-unexpungeLocked">(*T) <a href="../src/sync/map.go.html#line-185">unexpungeLocked</a>() (wasExpunged <a href="builtin.html#name-bool">bool</a>)</label><span id='entry-fold-method-unexpungeLocked-docs' class="fold-docs">
+				unexpungeLocked ensures that the entry is not marked as expunged.
+
+				If the entry was previously expunged, it must be added to the dirty map
+				before m.mu is unlocked.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="entry-fold-results"><label for="entry-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='entry-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="entry-showhide-inputofs"><i><label for="entry-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="entry-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newEntry">newEntry</a>(i interface{}) *<b>entry</b></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-noCopy" data-popularity="150">	<input type='checkbox' class="fold" id="noCopy-fold-content"><label for="noCopy-fold-content"> type <a href="../src/sync/cond.go.html#line-94">noCopy</a> <i>(struct)</i></label><span id='noCopy-fold-content-docs' class="fold-docs">
+		noCopy may be embedded into structs which must not be copied
+		after the first use.
+
+		See https://golang.org/issues/8005#issuecomment-190753527
+		for details.
+
+		<input type='checkbox' class="fold" id="noCopy-fold-methods"><label for="noCopy-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='noCopy-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="noCopy-fold-method-Lock"><label for="noCopy-fold-method-Lock">(*T) <a href="../src/sync/cond.go.html#line-97">Lock</a>()</label><span id='noCopy-fold-method-Lock-docs' class="fold-docs">
+				Lock is a no-op used by -copylocks checker from `go vet`.
+</span></span><span>
+			<span class="nodocs">(*T) <a href="../src/sync/cond.go.html#line-98">Unlock</a>()</span></span></span>
+		<input type='checkbox' class="fold" id="noCopy-fold-impls"><label for="noCopy-fold-impls">Implements (<i>at least one exported</i>)</label><span id='noCopy-fold-impls-items' class="fold-items"><span>
+			*T : <a href="#name-Locker">Locker</a></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-notifyList" data-popularity="140">	<input type='checkbox' class="fold" id="notifyList-fold-content"><label for="notifyList-fold-content"> type <a href="../src/sync/runtime2.go.html#line-13">notifyList</a> <i>(struct)</i></label><span id='notifyList-fold-content-docs' class="fold-docs">
+		Approximation of notifyList in runtime/sema.go. Size and alignment must
+		agree.
+
+		<input type='checkbox' class="fold" id="notifyList-fold-fields"><label for="notifyList-fold-fields">Fields (<i>total 5, none are exported</i>)</label><span id='notifyList-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="notifyList-showhide-fields"><i><label for="notifyList-showhide-fields" class="show-inline">/* 5 unexporteds ... */</label><label for="notifyList-showhide-fields" class="hide-inline">/* 5 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/runtime2.go.html#line-17">head</a> <i><a href="unsafe.html">unsafe</a>.<a href="unsafe.html#name-Pointer">Pointer</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="notifyList-fold-field-lock"><label for="notifyList-fold-field-lock"><a href="../src/sync/runtime2.go.html#line-16">lock</a> <i><a href="builtin.html#name-uintptr">uintptr</a></i></label><span id='notifyList-fold-field-lock-docs' class="fold-docs">
+				// key field of the mutex
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/runtime2.go.html#line-15">notify</a> <i><a href="builtin.html#name-uint32">uint32</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/runtime2.go.html#line-18">tail</a> <i><a href="unsafe.html">unsafe</a>.<a href="unsafe.html#name-Pointer">Pointer</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/runtime2.go.html#line-14">wait</a> <i><a href="builtin.html#name-uint32">uint32</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="notifyList-fold-params"><label for="notifyList-fold-params">As Inputs Of (<i>at least 4, none are exported</i>)</label><span id='notifyList-fold-params-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="notifyList-showhide-outputofs"><i><label for="notifyList-showhide-outputofs" class="show-inline">/* 4+ unexporteds ... */</label><label for="notifyList-showhide-outputofs" class="hide-inline">/* 4+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-runtime_notifyListAdd">runtime_notifyListAdd</a>(l *<b>notifyList</b>) <a href="builtin.html#name-uint32">uint32</a></i></span><span class="hidden"><i>
+			func <a href="#name-runtime_notifyListNotifyAll">runtime_notifyListNotifyAll</a>(l *<b>notifyList</b>)</i></span><span class="hidden"><i>
+			func <a href="#name-runtime_notifyListNotifyOne">runtime_notifyListNotifyOne</a>(l *<b>notifyList</b>)</i></span><span class="hidden"><i>
+			func <a href="#name-runtime_notifyListWait">runtime_notifyListWait</a>(l *<b>notifyList</b>, t <a href="builtin.html#name-uint32">uint32</a>)</i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-poolChain" data-popularity="150">	<input type='checkbox' class="fold" id="poolChain-fold-content"><label for="poolChain-fold-content"> type <a href="../src/sync/poolqueue.go.html#line-194">poolChain</a> <i>(struct)</i></label><span id='poolChain-fold-content-docs' class="fold-docs">
+		poolChain is a dynamically-sized version of poolDequeue.
+
+		This is implemented as a doubly-linked list queue of poolDequeues
+		where each dequeue is double the size of the previous one. Once a
+		dequeue fills up, this allocates a new one and only ever pushes to
+		the latest dequeue. Pops happen from the other end of the list and
+		once a dequeue is exhausted, it gets removed from the list.
+
+		<input type='checkbox' class="fold" id="poolChain-fold-fields"><label for="poolChain-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='poolChain-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="poolChain-showhide-fields"><i><label for="poolChain-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="poolChain-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolChain-fold-field-head"><label for="poolChain-fold-field-head"><a href="../src/sync/poolqueue.go.html#line-197">head</a> <i>*<a href="#name-poolChainElt">poolChainElt</a></i></label><span id='poolChain-fold-field-head-docs' class="fold-docs">
+				head is the poolDequeue to push to. This is only accessed
+				by the producer, so doesn't need to be synchronized.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolChain-fold-field-tail"><label for="poolChain-fold-field-tail"><a href="../src/sync/poolqueue.go.html#line-201">tail</a> <i>*<a href="#name-poolChainElt">poolChainElt</a></i></label><span id='poolChain-fold-field-tail-docs' class="fold-docs">
+				tail is the poolDequeue to popTail from. This is accessed
+				by consumers, so reads and writes must be atomic.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="poolChain-fold-methods"><label for="poolChain-fold-methods">Methods (<i>total 3, none are exported</i>)</label><span id='poolChain-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="poolChain-showhide-methods"><i><label for="poolChain-showhide-methods" class="show-inline">/* 3 unexporteds ... */</label><label for="poolChain-showhide-methods" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/poolqueue.go.html#line-258">popHead</a>() (interface{}, <a href="builtin.html#name-bool">bool</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/poolqueue.go.html#line-271">popTail</a>() (interface{}, <a href="builtin.html#name-bool">bool</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/poolqueue.go.html#line-228">pushHead</a>(val interface{})</span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-poolChainElt" data-popularity="430">	<input type='checkbox' class="fold" id="poolChainElt-fold-content"><label for="poolChainElt-fold-content"> type <a href="../src/sync/poolqueue.go.html#line-204">poolChainElt</a> <i>(struct)</i></label><span id='poolChainElt-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="poolChainElt-fold-fields"><label for="poolChainElt-fold-fields">Fields (<i>total 5, none are exported</i>)</label><span id='poolChainElt-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="poolChainElt-showhide-fields"><i><label for="poolChainElt-showhide-fields" class="show-inline">/* 5 unexporteds ... */</label><label for="poolChainElt-showhide-fields" class="hide-inline">/* 5 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolChainElt-fold-field-next"><label for="poolChainElt-fold-field-next"><a href="../src/sync/poolqueue.go.html#line-217">next</a> <i>*<b>poolChainElt</b></i></label><span id='poolChainElt-fold-field-next-docs' class="fold-docs">
+				next and prev link to the adjacent poolChainElts in this
+				poolChain.
+
+				next is written atomically by the producer and read
+				atomically by the consumer. It only transitions from nil to
+				non-nil.
+
+				prev is written atomically by the consumer and read
+				atomically by the producer. It only transitions from
+				non-nil to nil.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/poolqueue.go.html#line-205">poolDequeue</a> <i><a href="#name-poolDequeue">poolDequeue</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolChainElt-fold-field-headTail"><label for="poolChainElt-fold-field-headTail"><a href="../src/sync/poolqueue.go.html#line-205" class="path-duplicate">poolDequeue</a>.<a href="../src/sync/poolqueue.go.html#line-34">headTail</a> <i><a href="builtin.html#name-uint64">uint64</a></i></label><span id='poolChainElt-fold-field-headTail-docs' class="fold-docs">
+				headTail packs together a 32-bit head index and a 32-bit
+				tail index. Both are indexes into vals modulo len(vals)-1.
+
+				tail = index of oldest data in queue
+				head = index of next slot to fill
+
+				Slots in the range [tail, head) are owned by consumers.
+				A consumer continues to own a slot outside this range until
+				it nils the slot, at which point ownership passes to the
+				producer.
+
+				The head index is stored in the most-significant bits so
+				that we can atomically add to it and the overflow is
+				harmless.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolChainElt-fold-field-vals"><label for="poolChainElt-fold-field-vals"><a href="../src/sync/poolqueue.go.html#line-205" class="path-duplicate">poolDequeue</a>.<a href="../src/sync/poolqueue.go.html#line-44">vals</a> <i>[]<a href="#name-eface">eface</a></i></label><span id='poolChainElt-fold-field-vals-docs' class="fold-docs">
+				vals is a ring buffer of interface{} values stored in this
+				dequeue. The size of this must be a power of 2.
+
+				vals[i].typ is nil if the slot is empty and non-nil
+				otherwise. A slot is still in use until *both* the tail
+				index has moved beyond it and typ has been set to nil. This
+				is set to nil atomically by the consumer and read
+				atomically by the producer.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolChainElt-fold-field-prev"><label for="poolChainElt-fold-field-prev"><a href="../src/sync/poolqueue.go.html#line-217">prev</a> <i>*<b>poolChainElt</b></i></label><span id='poolChainElt-fold-field-prev-docs' class="fold-docs">
+				next and prev link to the adjacent poolChainElts in this
+				poolChain.
+
+				next is written atomically by the producer and read
+				atomically by the consumer. It only transitions from nil to
+				non-nil.
+
+				prev is written atomically by the consumer and read
+				atomically by the producer. It only transitions from
+				non-nil to nil.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="poolChainElt-fold-methods"><label for="poolChainElt-fold-methods">Methods (<i>total 5, none are exported</i>)</label><span id='poolChainElt-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="poolChainElt-showhide-methods"><i><label for="poolChainElt-showhide-methods" class="show-inline">/* 5 unexporteds ... */</label><label for="poolChainElt-showhide-methods" class="hide-inline">/* 5 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/poolqueue.go.html#line-72">pack</a>(head, tail <a href="builtin.html#name-uint32">uint32</a>) <a href="builtin.html#name-uint64">uint64</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolChainElt-fold-method-popHead"><label for="poolChainElt-fold-method-popHead">(*T) <a href="../src/sync/poolqueue.go.html#line-112">popHead</a>() (interface{}, <a href="builtin.html#name-bool">bool</a>)</label><span id='poolChainElt-fold-method-popHead-docs' class="fold-docs">
+				popHead removes and returns the element at the head of the queue.
+				It returns false if the queue is empty. It must only be called by a
+				single producer.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolChainElt-fold-method-popTail"><label for="poolChainElt-fold-method-popTail">(*T) <a href="../src/sync/poolqueue.go.html#line-147">popTail</a>() (interface{}, <a href="builtin.html#name-bool">bool</a>)</label><span id='poolChainElt-fold-method-popTail-docs' class="fold-docs">
+				popTail removes and returns the element at the tail of the queue.
+				It returns false if the queue is empty. It may be called by any
+				number of consumers.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolChainElt-fold-method-pushHead"><label for="poolChainElt-fold-method-pushHead">(*T) <a href="../src/sync/poolqueue.go.html#line-80">pushHead</a>(val interface{}) <a href="builtin.html#name-bool">bool</a></label><span id='poolChainElt-fold-method-pushHead-docs' class="fold-docs">
+				pushHead adds val at the head of the queue. It returns false if the
+				queue is full. It must only be called by a single producer.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/poolqueue.go.html#line-65">unpack</a>(ptrs <a href="builtin.html#name-uint64">uint64</a>) (head, tail <a href="builtin.html#name-uint32">uint32</a>)</span></i></span></span>
+		<input type='checkbox' class="fold" id="poolChainElt-fold-results"><label for="poolChainElt-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='poolChainElt-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="poolChainElt-showhide-inputofs"><i><label for="poolChainElt-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="poolChainElt-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-loadPoolChainElt">loadPoolChainElt</a>(pp **<b>poolChainElt</b>) *<b>poolChainElt</b></i></span></span>
+		<input type='checkbox' class="fold" id="poolChainElt-fold-params"><label for="poolChainElt-fold-params">As Inputs Of (<i>at least 3, none are exported</i>)</label><span id='poolChainElt-fold-params-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="poolChainElt-showhide-outputofs"><i><label for="poolChainElt-showhide-outputofs" class="show-inline">/* 3+ unexporteds ... */</label><label for="poolChainElt-showhide-outputofs" class="hide-inline">/* 3+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-loadPoolChainElt">loadPoolChainElt</a>(pp **<b>poolChainElt</b>) *<b>poolChainElt</b></i></span><span class="hidden"><i>
+			func <a href="#name-storePoolChainElt">storePoolChainElt</a>(pp **<b>poolChainElt</b>, v *<b>poolChainElt</b>)</i></span><span class="hidden"><i>
+			func <a href="#name-storePoolChainElt">storePoolChainElt</a>(pp **<b>poolChainElt</b>, v *<b>poolChainElt</b>)</i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-poolDequeue" data-popularity="250">	<input type='checkbox' class="fold" id="poolDequeue-fold-content"><label for="poolDequeue-fold-content"> type <a href="../src/sync/poolqueue.go.html#line-19">poolDequeue</a> <i>(struct)</i></label><span id='poolDequeue-fold-content-docs' class="fold-docs">
+		poolDequeue is a lock-free fixed-size single-producer,
+		multi-consumer queue. The single producer can both push and pop
+		from the head, and consumers can pop from the tail.
+
+		It has the added feature that it nils out unused slots to avoid
+		unnecessary retention of objects. This is important for sync.Pool,
+		but not typically a property considered in the literature.
+
+		<input type='checkbox' class="fold" id="poolDequeue-fold-fields"><label for="poolDequeue-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='poolDequeue-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="poolDequeue-showhide-fields"><i><label for="poolDequeue-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="poolDequeue-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolDequeue-fold-field-headTail"><label for="poolDequeue-fold-field-headTail"><a href="../src/sync/poolqueue.go.html#line-34">headTail</a> <i><a href="builtin.html#name-uint64">uint64</a></i></label><span id='poolDequeue-fold-field-headTail-docs' class="fold-docs">
+				headTail packs together a 32-bit head index and a 32-bit
+				tail index. Both are indexes into vals modulo len(vals)-1.
+
+				tail = index of oldest data in queue
+				head = index of next slot to fill
+
+				Slots in the range [tail, head) are owned by consumers.
+				A consumer continues to own a slot outside this range until
+				it nils the slot, at which point ownership passes to the
+				producer.
+
+				The head index is stored in the most-significant bits so
+				that we can atomically add to it and the overflow is
+				harmless.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolDequeue-fold-field-vals"><label for="poolDequeue-fold-field-vals"><a href="../src/sync/poolqueue.go.html#line-44">vals</a> <i>[]<a href="#name-eface">eface</a></i></label><span id='poolDequeue-fold-field-vals-docs' class="fold-docs">
+				vals is a ring buffer of interface{} values stored in this
+				dequeue. The size of this must be a power of 2.
+
+				vals[i].typ is nil if the slot is empty and non-nil
+				otherwise. A slot is still in use until *both* the tail
+				index has moved beyond it and typ has been set to nil. This
+				is set to nil atomically by the consumer and read
+				atomically by the producer.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="poolDequeue-fold-methods"><label for="poolDequeue-fold-methods">Methods (<i>total 5, none are exported</i>)</label><span id='poolDequeue-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="poolDequeue-showhide-methods"><i><label for="poolDequeue-showhide-methods" class="show-inline">/* 5 unexporteds ... */</label><label for="poolDequeue-showhide-methods" class="hide-inline">/* 5 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/poolqueue.go.html#line-72">pack</a>(head, tail <a href="builtin.html#name-uint32">uint32</a>) <a href="builtin.html#name-uint64">uint64</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolDequeue-fold-method-popHead"><label for="poolDequeue-fold-method-popHead">(*T) <a href="../src/sync/poolqueue.go.html#line-112">popHead</a>() (interface{}, <a href="builtin.html#name-bool">bool</a>)</label><span id='poolDequeue-fold-method-popHead-docs' class="fold-docs">
+				popHead removes and returns the element at the head of the queue.
+				It returns false if the queue is empty. It must only be called by a
+				single producer.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolDequeue-fold-method-popTail"><label for="poolDequeue-fold-method-popTail">(*T) <a href="../src/sync/poolqueue.go.html#line-147">popTail</a>() (interface{}, <a href="builtin.html#name-bool">bool</a>)</label><span id='poolDequeue-fold-method-popTail-docs' class="fold-docs">
+				popTail removes and returns the element at the tail of the queue.
+				It returns false if the queue is empty. It may be called by any
+				number of consumers.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolDequeue-fold-method-pushHead"><label for="poolDequeue-fold-method-pushHead">(*T) <a href="../src/sync/poolqueue.go.html#line-80">pushHead</a>(val interface{}) <a href="builtin.html#name-bool">bool</a></label><span id='poolDequeue-fold-method-pushHead-docs' class="fold-docs">
+				pushHead adds val at the head of the queue. It returns false if the
+				queue is full. It must only be called by a single producer.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/sync/poolqueue.go.html#line-65">unpack</a>(ptrs <a href="builtin.html#name-uint64">uint64</a>) (head, tail <a href="builtin.html#name-uint32">uint32</a>)</span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-poolLocal" data-popularity="225">	<input type='checkbox' class="fold" id="poolLocal-fold-content"><label for="poolLocal-fold-content"> type <a href="../src/sync/pool.go.html#line-65">poolLocal</a> <i>(struct)</i></label><span id='poolLocal-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="poolLocal-fold-fields"><label for="poolLocal-fold-fields">Fields (<i>total 4, none are exported</i>)</label><span id='poolLocal-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="poolLocal-showhide-fields"><i><label for="poolLocal-showhide-fields" class="show-inline">/* 4 unexporteds ... */</label><label for="poolLocal-showhide-fields" class="hide-inline">/* 4 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolLocal-fold-field-pad"><label for="poolLocal-fold-field-pad"><a href="../src/sync/pool.go.html#line-70">pad</a> <i>[96]<a href="builtin.html#name-byte">byte</a></i></label><span id='poolLocal-fold-field-pad-docs' class="fold-docs">
+				Prevents false sharing on widespread platforms with
+				128 mod (cache line size) = 0 .
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/pool.go.html#line-66">poolLocalInternal</a> <i><a href="#name-poolLocalInternal">poolLocalInternal</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolLocal-fold-field-private"><label for="poolLocal-fold-field-private"><a href="../src/sync/pool.go.html#line-66" class="path-duplicate">poolLocalInternal</a>.<a href="../src/sync/pool.go.html#line-61">private</a> <i>interface{}</i></label><span id='poolLocal-fold-field-private-docs' class="fold-docs">
+				// Can be used only by the respective P.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolLocal-fold-field-shared"><label for="poolLocal-fold-field-shared"><a href="../src/sync/pool.go.html#line-66" class="path-duplicate">poolLocalInternal</a>.<a href="../src/sync/pool.go.html#line-62">shared</a> <i><a href="#name-poolChain">poolChain</a></i></label><span id='poolLocal-fold-field-shared-docs' class="fold-docs">
+				// Local P can pushHead/popHead; any P can popTail.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="poolLocal-fold-results"><label for="poolLocal-fold-results">As Outputs Of (<i>at least 3, none are exported</i>)</label><span id='poolLocal-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="poolLocal-showhide-inputofs"><i><label for="poolLocal-showhide-inputofs" class="show-inline">/* 3+ unexporteds ... */</label><label for="poolLocal-showhide-inputofs" class="hide-inline">/* 3+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-indexLocal">indexLocal</a>(l <a href="unsafe.html">unsafe</a>.<a href="unsafe.html#name-Pointer">Pointer</a>, i <a href="builtin.html#name-int">int</a>) *<b>poolLocal</b></i></span><span class="hidden"><i>
+			func (*<a href="#name-Pool">Pool</a>).<a href="../src/sync/pool.go.html#line-195">pin</a>() (*<b>poolLocal</b>, <a href="builtin.html#name-int">int</a>)</i></span><span class="hidden"><i>
+			func (*<a href="#name-Pool">Pool</a>).<a href="../src/sync/pool.go.html#line-209">pinSlow</a>() (*<b>poolLocal</b>, <a href="builtin.html#name-int">int</a>)</i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-poolLocalInternal" data-popularity="0">	<input type='checkbox' class="fold" id="poolLocalInternal-fold-content"><label for="poolLocalInternal-fold-content"> type <a href="../src/sync/pool.go.html#line-60">poolLocalInternal</a> <i>(struct)</i></label><span id='poolLocalInternal-fold-content-docs' class="fold-docs">
+		Local per-P Pool appendix.
+
+		<input type='checkbox' class="fold" id="poolLocalInternal-fold-fields"><label for="poolLocalInternal-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='poolLocalInternal-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="poolLocalInternal-showhide-fields"><i><label for="poolLocalInternal-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="poolLocalInternal-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolLocalInternal-fold-field-private"><label for="poolLocalInternal-fold-field-private"><a href="../src/sync/pool.go.html#line-61">private</a> <i>interface{}</i></label><span id='poolLocalInternal-fold-field-private-docs' class="fold-docs">
+				// Can be used only by the respective P.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="poolLocalInternal-fold-field-shared"><label for="poolLocalInternal-fold-field-shared"><a href="../src/sync/pool.go.html#line-62">shared</a> <i><a href="#name-poolChain">poolChain</a></i></label><span id='poolLocalInternal-fold-field-shared-docs' class="fold-docs">
+				// Local P can pushHead/popHead; any P can popTail.
+</span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-readOnly" data-popularity="0">	<input type='checkbox' class="fold" id="readOnly-fold-content"><label for="readOnly-fold-content"> type <a href="../src/sync/map.go.html#line-63">readOnly</a> <i>(struct)</i></label><span id='readOnly-fold-content-docs' class="fold-docs">
+		readOnly is an immutable struct stored atomically in the Map.read field.
+
+		<input type='checkbox' class="fold" id="readOnly-fold-fields"><label for="readOnly-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='readOnly-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="readOnly-showhide-fields"><i><label for="readOnly-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="readOnly-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="readOnly-fold-field-amended"><label for="readOnly-fold-field-amended"><a href="../src/sync/map.go.html#line-65">amended</a> <i><a href="builtin.html#name-bool">bool</a></i></label><span id='readOnly-fold-field-amended-docs' class="fold-docs">
+				// true if the dirty map contains some key not in m.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/sync/map.go.html#line-64">m</a> <i>map[interface{}]*<a href="#name-entry">entry</a></i></span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-rlocker" data-popularity="150">	<input type='checkbox' class="fold" id="rlocker-fold-content"><label for="rlocker-fold-content"> type <a href="../src/sync/rwmutex.go.html#line-161">rlocker</a> <a href="#name-RWMutex">RWMutex</a> <i>(struct)</i></label><span id='rlocker-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="rlocker-fold-fields"><label for="rlocker-fold-fields">Fields (<i>total 5, none are exported</i>)</label><span id='rlocker-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="rlocker-showhide-fields"><i><label for="rlocker-showhide-fields" class="show-inline">/* 5 unexporteds ... */</label><label for="rlocker-showhide-fields" class="hide-inline">/* 5 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="rlocker-fold-field-readerCount"><label for="rlocker-fold-field-readerCount"><a href="../src/sync/rwmutex.go.html#line-32">readerCount</a> <i><a href="builtin.html#name-int32">int32</a></i></label><span id='rlocker-fold-field-readerCount-docs' class="fold-docs">
+				// number of pending readers
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="rlocker-fold-field-readerSem"><label for="rlocker-fold-field-readerSem"><a href="../src/sync/rwmutex.go.html#line-31">readerSem</a> <i><a href="builtin.html#name-uint32">uint32</a></i></label><span id='rlocker-fold-field-readerSem-docs' class="fold-docs">
+				// semaphore for readers to wait for completing writers
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="rlocker-fold-field-readerWait"><label for="rlocker-fold-field-readerWait"><a href="../src/sync/rwmutex.go.html#line-33">readerWait</a> <i><a href="builtin.html#name-int32">int32</a></i></label><span id='rlocker-fold-field-readerWait-docs' class="fold-docs">
+				// number of departing readers
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="rlocker-fold-field-w"><label for="rlocker-fold-field-w"><a href="../src/sync/rwmutex.go.html#line-29">w</a> <i><a href="#name-Mutex">Mutex</a></i></label><span id='rlocker-fold-field-w-docs' class="fold-docs">
+				// held if there are pending writers
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="rlocker-fold-field-writerSem"><label for="rlocker-fold-field-writerSem"><a href="../src/sync/rwmutex.go.html#line-30">writerSem</a> <i><a href="builtin.html#name-uint32">uint32</a></i></label><span id='rlocker-fold-field-writerSem-docs' class="fold-docs">
+				// semaphore for writers to wait for completing readers
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="rlocker-fold-methods"><label for="rlocker-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='rlocker-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*T) <a href="../src/sync/rwmutex.go.html#line-163">Lock</a>()</span></span><span>
+			<span class="nodocs">(*T) <a href="../src/sync/rwmutex.go.html#line-164">Unlock</a>()</span></span></span>
+		<input type='checkbox' class="fold" id="rlocker-fold-impls"><label for="rlocker-fold-impls">Implements (<i>at least one exported</i>)</label><span id='rlocker-fold-impls-items' class="fold-items"><span>
+			*T : <a href="#name-Locker">Locker</a></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 27, in which 1 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-NewCond">	<input type='checkbox' class="fold" id="NewCond-fold-content"><label for="NewCond-fold-content"> func <a href="../src/sync/cond.go.html#line-32">NewCond</a>(l <a href="#name-Locker">Locker</a>) *<a href="#name-Cond">Cond</a></label><span id='NewCond-fold-content-docs' class="fold-docs">
+		NewCond returns a new Cond with Locker l.
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 26 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 26 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-fastrand"><i>	<input type='checkbox' class="fold" id="fastrand-fold-content"><label for="fastrand-fold-content"> func <a href="../src/sync/pool.go.html#line-74">fastrand</a>() <a href="builtin.html#name-uint32">uint32</a></label><span id='fastrand-fold-content-docs' class="fold-docs">
+		from runtime
+
+</span></i></div><div class="anchor value-res hidden" id="name-indexLocal"><i>	<span class="nodocs"> func <a href="../src/sync/pool.go.html#line-276">indexLocal</a>(l <a href="unsafe.html">unsafe</a>.<a href="unsafe.html#name-Pointer">Pointer</a>, i <a href="builtin.html#name-int">int</a>) *<a href="#name-poolLocal">poolLocal</a></span></i></div><div class="anchor value-res hidden" id="name-init"><i>	<span class="nodocs"> func <a href="../src/sync/pool.go.html#line-272">init</a>()</span></i></div><div class="anchor value-res hidden" id="name-init"><i>	<span class="nodocs"> func <a href="../src/sync/runtime.go.html#line-45">init</a>()</span></i></div><div class="anchor value-res hidden" id="name-loadPoolChainElt"><i>	<span class="nodocs"> func <a href="../src/sync/poolqueue.go.html#line-224">loadPoolChainElt</a>(pp **<a href="#name-poolChainElt">poolChainElt</a>) *<a href="#name-poolChainElt">poolChainElt</a></span></i></div><div class="anchor value-res hidden" id="name-newEntry"><i>	<span class="nodocs"> func <a href="../src/sync/map.go.html#line-95">newEntry</a>(i interface{}) *<a href="#name-entry">entry</a></span></i></div><div class="anchor value-res hidden" id="name-poolCleanup"><i>	<span class="nodocs"> func <a href="../src/sync/pool.go.html#line-233">poolCleanup</a>()</span></i></div><div class="anchor value-res hidden" id="name-poolRaceAddr"><i>	<input type='checkbox' class="fold" id="poolRaceAddr-fold-content"><label for="poolRaceAddr-fold-content"> func <a href="../src/sync/pool.go.html#line-83">poolRaceAddr</a>(x interface{}) <a href="unsafe.html">unsafe</a>.<a href="unsafe.html#name-Pointer">Pointer</a></label><span id='poolRaceAddr-fold-content-docs' class="fold-docs">
+		poolRaceAddr returns an address to use as the synchronization point
+		for race detector logic. We don't use the actual pointer stored in x
+		directly, for fear of conflicting with other synchronization on that address.
+		Instead, we hash the pointer to get an index into poolRaceHash.
+		See discussion on golang.org/cl/31589.
+
+</span></i></div><div class="anchor value-res hidden" id="name-runtime_canSpin"><i>	<input type='checkbox' class="fold" id="runtime_canSpin-fold-content"><label for="runtime_canSpin-fold-content"> func <a href="../src/sync/runtime.go.html#line-52">runtime_canSpin</a>(i <a href="builtin.html#name-int">int</a>) <a href="builtin.html#name-bool">bool</a></label><span id='runtime_canSpin-fold-content-docs' class="fold-docs">
+		Active spinning runtime support.
+		runtime_canSpin reports whether spinning makes sense at the moment.
+
+</span></i></div><div class="anchor value-res hidden" id="name-runtime_doSpin"><i>	<input type='checkbox' class="fold" id="runtime_doSpin-fold-content"><label for="runtime_doSpin-fold-content"> func <a href="../src/sync/runtime.go.html#line-55">runtime_doSpin</a>()</label><span id='runtime_doSpin-fold-content-docs' class="fold-docs">
+		runtime_doSpin does active spinning.
+
+</span></i></div><div class="anchor value-res hidden" id="name-runtime_LoadAcquintptr"><i>	<span class="nodocs"> func <a href="../src/sync/pool.go.html#line-291">runtime_LoadAcquintptr</a>(ptr *<a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></span></i></div><div class="anchor value-res hidden" id="name-runtime_nanotime"><i>	<span class="nodocs"> func <a href="../src/sync/runtime.go.html#line-57">runtime_nanotime</a>() <a href="builtin.html#name-int64">int64</a></span></i></div><div class="anchor value-res hidden" id="name-runtime_notifyListAdd"><i>	<input type='checkbox' class="fold" id="runtime_notifyListAdd-fold-content"><label for="runtime_notifyListAdd-fold-content"> func <a href="../src/sync/runtime.go.html#line-32">runtime_notifyListAdd</a>(l *<a href="#name-notifyList">notifyList</a>) <a href="builtin.html#name-uint32">uint32</a></label><span id='runtime_notifyListAdd-fold-content-docs' class="fold-docs">
+		See runtime/sema.go for documentation.
+
+</span></i></div><div class="anchor value-res hidden" id="name-runtime_notifyListCheck"><i>	<input type='checkbox' class="fold" id="runtime_notifyListCheck-fold-content"><label for="runtime_notifyListCheck-fold-content"> func <a href="../src/sync/runtime.go.html#line-44">runtime_notifyListCheck</a>(size <a href="builtin.html#name-uintptr">uintptr</a>)</label><span id='runtime_notifyListCheck-fold-content-docs' class="fold-docs">
+		Ensure that sync and runtime agree on size of notifyList.
+
+</span></i></div><div class="anchor value-res hidden" id="name-runtime_notifyListNotifyAll"><i>	<input type='checkbox' class="fold" id="runtime_notifyListNotifyAll-fold-content"><label for="runtime_notifyListNotifyAll-fold-content"> func <a href="../src/sync/runtime.go.html#line-38">runtime_notifyListNotifyAll</a>(l *<a href="#name-notifyList">notifyList</a>)</label><span id='runtime_notifyListNotifyAll-fold-content-docs' class="fold-docs">
+		See runtime/sema.go for documentation.
+
+</span></i></div><div class="anchor value-res hidden" id="name-runtime_notifyListNotifyOne"><i>	<input type='checkbox' class="fold" id="runtime_notifyListNotifyOne-fold-content"><label for="runtime_notifyListNotifyOne-fold-content"> func <a href="../src/sync/runtime.go.html#line-41">runtime_notifyListNotifyOne</a>(l *<a href="#name-notifyList">notifyList</a>)</label><span id='runtime_notifyListNotifyOne-fold-content-docs' class="fold-docs">
+		See runtime/sema.go for documentation.
+
+</span></i></div><div class="anchor value-res hidden" id="name-runtime_notifyListWait"><i>	<input type='checkbox' class="fold" id="runtime_notifyListWait-fold-content"><label for="runtime_notifyListWait-fold-content"> func <a href="../src/sync/runtime.go.html#line-35">runtime_notifyListWait</a>(l *<a href="#name-notifyList">notifyList</a>, t <a href="builtin.html#name-uint32">uint32</a>)</label><span id='runtime_notifyListWait-fold-content-docs' class="fold-docs">
+		See runtime/sema.go for documentation.
+
+</span></i></div><div class="anchor value-res hidden" id="name-runtime_procPin"><i>	<span class="nodocs"> func <a href="../src/sync/pool.go.html#line-283">runtime_procPin</a>() <a href="builtin.html#name-int">int</a></span></i></div><div class="anchor value-res hidden" id="name-runtime_procUnpin"><i>	<span class="nodocs"> func <a href="../src/sync/pool.go.html#line-284">runtime_procUnpin</a>()</span></i></div><div class="anchor value-res hidden" id="name-runtime_registerPoolCleanup"><i>	<input type='checkbox' class="fold" id="runtime_registerPoolCleanup-fold-content"><label for="runtime_registerPoolCleanup-fold-content"> func <a href="../src/sync/pool.go.html#line-282">runtime_registerPoolCleanup</a>(cleanup func())</label><span id='runtime_registerPoolCleanup-fold-content-docs' class="fold-docs">
+		Implemented in runtime.
+
+</span></i></div><div class="anchor value-res hidden" id="name-runtime_Semacquire"><i>	<input type='checkbox' class="fold" id="runtime_Semacquire-fold-content"><label for="runtime_Semacquire-fold-content"> func <a href="../src/sync/runtime.go.html#line-14">runtime_Semacquire</a>(s *<a href="builtin.html#name-uint32">uint32</a>)</label><span id='runtime_Semacquire-fold-content-docs' class="fold-docs">
+		Semacquire waits until *s &gt; 0 and then atomically decrements it.
+		It is intended as a simple sleep primitive for use by the synchronization
+		library and should not be used directly.
+
+</span></i></div><div class="anchor value-res hidden" id="name-runtime_SemacquireMutex"><i>	<input type='checkbox' class="fold" id="runtime_SemacquireMutex-fold-content"><label for="runtime_SemacquireMutex-fold-content"> func <a href="../src/sync/runtime.go.html#line-20">runtime_SemacquireMutex</a>(s *<a href="builtin.html#name-uint32">uint32</a>, lifo <a href="builtin.html#name-bool">bool</a>, skipframes <a href="builtin.html#name-int">int</a>)</label><span id='runtime_SemacquireMutex-fold-content-docs' class="fold-docs">
+		SemacquireMutex is like Semacquire, but for profiling contended Mutexes.
+		If lifo is true, queue waiter at the head of wait queue.
+		skipframes is the number of frames to omit during tracing, counting from
+		runtime_SemacquireMutex's caller.
+
+</span></i></div><div class="anchor value-res hidden" id="name-runtime_Semrelease"><i>	<input type='checkbox' class="fold" id="runtime_Semrelease-fold-content"><label for="runtime_Semrelease-fold-content"> func <a href="../src/sync/runtime.go.html#line-29">runtime_Semrelease</a>(s *<a href="builtin.html#name-uint32">uint32</a>, handoff <a href="builtin.html#name-bool">bool</a>, skipframes <a href="builtin.html#name-int">int</a>)</label><span id='runtime_Semrelease-fold-content-docs' class="fold-docs">
+		Semrelease atomically increments *s and notifies a waiting goroutine
+		if one is blocked in Semacquire.
+		It is intended as a simple wakeup primitive for use by the synchronization
+		library and should not be used directly.
+		If handoff is true, pass count directly to the first waiter.
+		skipframes is the number of frames to omit during tracing, counting from
+		runtime_Semrelease's caller.
+
+</span></i></div><div class="anchor value-res hidden" id="name-runtime_StoreReluintptr"><i>	<span class="nodocs"> func <a href="../src/sync/pool.go.html#line-294">runtime_StoreReluintptr</a>(ptr *<a href="builtin.html#name-uintptr">uintptr</a>, val <a href="builtin.html#name-uintptr">uintptr</a>) <a href="builtin.html#name-uintptr">uintptr</a></span></i></div><div class="anchor value-res hidden" id="name-storePoolChainElt"><i>	<span class="nodocs"> func <a href="../src/sync/poolqueue.go.html#line-220">storePoolChainElt</a>(pp **<a href="#name-poolChainElt">poolChainElt</a>, v *<a href="#name-poolChainElt">poolChainElt</a>)</span></i></div><div class="anchor value-res hidden" id="name-throw"><i>	<span class="nodocs"> func <a href="../src/sync/mutex.go.html#line-19">throw</a>(<a href="builtin.html#name-string">string</a>)</span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (total 5, none are exported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* 5 unexporteds ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* 5 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-allPools"><i>	<input type='checkbox' class="fold" id="allPools-fold-content"><label for="allPools-fold-content">  var <a href="../src/sync/pool.go.html#line-265">allPools</a> []*<a href="#name-Pool">Pool</a></label><span id='allPools-fold-content-docs' class="fold-docs">
+		allPools is the set of pools that have non-empty primary
+		caches. Protected by either 1) allPoolsMu and pinning or 2)
+		STW.
+
+</span></i></div><div class="anchor value-res hidden" id="name-allPoolsMu"><i>	<span class="nodocs">  var <a href="../src/sync/pool.go.html#line-260">allPoolsMu</a> <a href="#name-Mutex">Mutex</a></span></i></div><div class="anchor value-res hidden" id="name-expunged"><i>	<input type='checkbox' class="fold" id="expunged-fold-content"><label for="expunged-fold-content">  var <a href="../src/sync/map.go.html#line-70">expunged</a> <a href="builtin.html#name-Pointer">Pointer</a></label><span id='expunged-fold-content-docs' class="fold-docs">
+		expunged is an arbitrary pointer that marks entries which have been deleted
+		from the dirty map.
+
+</span></i></div><div class="anchor value-res hidden" id="name-oldPools"><i>	<input type='checkbox' class="fold" id="oldPools-fold-content"><label for="oldPools-fold-content">  var <a href="../src/sync/pool.go.html#line-269">oldPools</a> []*<a href="#name-Pool">Pool</a></label><span id='oldPools-fold-content-docs' class="fold-docs">
+		oldPools is the set of pools that may have non-empty victim
+		caches. Protected by STW.
+
+</span></i></div><div class="anchor value-res hidden" id="name-poolRaceHash"><i>	<span class="nodocs">  var <a href="../src/sync/pool.go.html#line-76">poolRaceHash</a> [128]<a href="builtin.html#name-uint64">uint64</a></span></i></div></div>
+<div id="exported-constants"><span class="title">Package-Level Constants<span class="title-stat"><i> (total 8, none are exported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-constants-showhide"><i><label for="unexported-constants-showhide" class="show-inline">/* 8 unexporteds ... */</label><label for="unexported-constants-showhide" class="hide-inline">/* 8 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-dequeueBits"><i>	<span class="nodocs">const <a href="../src/sync/poolqueue.go.html#line-51">dequeueBits</a> = 32</span></i></div><div class="anchor value-res hidden" id="name-dequeueLimit"><i>	<input type='checkbox' class="fold" id="dequeueLimit-fold-content"><label for="dequeueLimit-fold-content">const <a href="../src/sync/poolqueue.go.html#line-58">dequeueLimit</a> = 1073741824</label><span id='dequeueLimit-fold-content-docs' class="fold-docs">
+		dequeueLimit is the maximum size of a poolDequeue.
+
+		This must be at most (1&lt;&lt;dequeueBits)/2 because detecting fullness
+		depends on wrapping around the ring buffer without wrapping around
+		the index. We divide by 4 so this fits in an int on 32-bit.
+
+</span></i></div><div class="anchor value-res hidden" id="name-mutexLocked"><i>	<span class="nodocs">const <a href="../src/sync/mutex.go.html#line-37">mutexLocked</a> = 1 // mutex is locked</span></i></div><div class="anchor value-res hidden" id="name-mutexStarving"><i>	<span class="nodocs">const <a href="../src/sync/mutex.go.html#line-39">mutexStarving</a> = 4</span></i></div><div class="anchor value-res hidden" id="name-mutexWaiterShift"><i>	<span class="nodocs">const <a href="../src/sync/mutex.go.html#line-40">mutexWaiterShift</a> = 3</span></i></div><div class="anchor value-res hidden" id="name-mutexWoken"><i>	<span class="nodocs">const <a href="../src/sync/mutex.go.html#line-38">mutexWoken</a> = 2</span></i></div><div class="anchor value-res hidden" id="name-rwmutexMaxReaders"><i>	<span class="nodocs">const <a href="../src/sync/rwmutex.go.html#line-36">rwmutexMaxReaders</a> = 1073741824</span></i></div><div class="anchor value-res hidden" id="name-starvationThresholdNs"><i>	<input type='checkbox' class="fold" id="starvationThresholdNs-fold-content"><label for="starvationThresholdNs-fold-content">const <a href="../src/sync/mutex.go.html#line-66">starvationThresholdNs</a> = 1e+06</label><span id='starvationThresholdNs-fold-content-docs' class="fold-docs">
+		Mutex fairness.
+
+		Mutex can be in 2 modes of operations: normal and starvation.
+		In normal mode waiters are queued in FIFO order, but a woken up waiter
+		does not own the mutex and competes with new arriving goroutines over
+		the ownership. New arriving goroutines have an advantage -- they are
+		already running on CPU and there can be lots of them, so a woken up
+		waiter has good chances of losing. In such case it is queued at front
+		of the wait queue. If a waiter fails to acquire the mutex for more than 1ms,
+		it switches mutex to the starvation mode.
+
+		In starvation mode ownership of the mutex is directly handed off from
+		the unlocking goroutine to the waiter at the front of the queue.
+		New arriving goroutines don't try to acquire the mutex even if it appears
+		to be unlocked, and don't try to spin. Instead they queue themselves at
+		the tail of the wait queue.
+
+		If a waiter receives ownership of the mutex and sees that either
+		(1) it is the last waiter in the queue, or (2) it waited for less than 1 ms,
+		it switches mutex back to normal operation mode.
+
+		Normal mode has considerably better performance as a goroutine can acquire
+		a mutex several times in a row even if there are blocked waiters.
+		Starvation mode is important to prevent pathological cases of tail latency.
+
+</span></i></div></div></code></pre><pre id="footer">
+<table><tr><td><img src="../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: mfixalloc.go in package runtime</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	mfixalloc.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// Fixed-size object allocator. Returned memory is not zeroed.</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// See malloc.go for overview.</span></code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// FixAlloc is a simple free-list allocator for fixed size objects.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// Malloc uses a FixAlloc wrapped around sysAlloc to manage its</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// mcache and mspan objects.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// Memory returned by fixalloc.alloc is zeroed by default, but the</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// caller may take responsibility for zeroing allocations by setting</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// the zero flag to false. This is only safe if the memory never</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// contains heap pointers.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// The caller is responsible for locking around FixAlloc calls.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// Callers can keep state in the object but the first word is</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// smashed by freeing and reallocating.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// Consider marking fixalloc'd types go:notinheap.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-fixalloc" class="ident">fixalloc</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-28"><code>	size   <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a></code></span>
+<span class="codeline" id="line-29"><code>	first  <span class="keyword">func</span>(arg, p <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) <span class="comment">// called first time p is returned</span></code></span>
+<span class="codeline" id="line-30"><code>	arg    <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a></code></span>
+<span class="codeline" id="line-31"><code>	list   *<a href="#line-46" class="ident">mlink</a></code></span>
+<span class="codeline" id="line-32"><code>	chunk  <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a> <span class="comment">// use uintptr instead of unsafe.Pointer to avoid write barriers</span></code></span>
+<span class="codeline" id="line-33"><code>	nchunk <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-34"><code>	inuse  <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a> <span class="comment">// in-use bytes now</span></code></span>
+<span class="codeline" id="line-35"><code>	stat   *<a href="mstats.go.html#line-738" class="ident">sysMemStat</a></code></span>
+<span class="codeline" id="line-36"><code>	zero   <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// zero allocations</span></code></span>
+<span class="codeline" id="line-37"><code>}</code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// A generic linked list of blocks.  (Typically the block is bigger than sizeof(MLink).)</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// Since assignments to mlink.next will result in a write barrier being performed</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// this cannot be used by some of the internal GC structures. For example when</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// the sweeper is placing an unmarked object on the free list it does not want the</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// write barrier to be called since that could result in the object being reachable.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">//go:notinheap</span></code></span>
+<span class="codeline" id="line-46"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-mlink" class="ident">mlink</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-47"><code>	next *<a href="#line-46" class="ident">mlink</a></code></span>
+<span class="codeline" id="line-48"><code>}</code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// Initialize f to allocate objects of the given size,</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// using the allocator to obtain chunks of memory.</span></code></span>
+<span class="codeline" id="line-52"><code><span class="keyword">func</span> (<label for="r0" class="ident">f</label> *<a href="#line-27" class="ident">fixalloc</a>) <label for="r1" class="ident">init</label>(<label for="r2" class="ident">size</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r3" class="ident">first</label> <span class="keyword">func</span>(<label for="r4" class="ident">arg</label>, <label for="r5" class="ident">p</label> <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>), <label for="r6" class="ident">arg</label> <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r7" class="ident">stat</label> *<a href="mstats.go.html#line-738" class="ident">sysMemStat</a>) {</code></span>
+<span class="codeline" id="line-53"><code>	<label for="r0" class="ident">f</label>.<a href="#line-28" class="ident">size</a> = <label for="r2" class="ident">size</label></code></span>
+<span class="codeline" id="line-54"><code>	<label for="r0" class="ident">f</label>.<a href="#line-29" class="ident">first</a> = <label for="r3" class="ident">first</label></code></span>
+<span class="codeline" id="line-55"><code>	<label for="r0" class="ident">f</label>.<a href="#line-30" class="ident">arg</a> = <label for="r6" class="ident">arg</label></code></span>
+<span class="codeline" id="line-56"><code>	<label for="r0" class="ident">f</label>.<a href="#line-31" class="ident">list</a> = <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-57"><code>	<label for="r0" class="ident">f</label>.<a href="#line-32" class="ident">chunk</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-58"><code>	<label for="r0" class="ident">f</label>.<a href="#line-33" class="ident">nchunk</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-59"><code>	<label for="r0" class="ident">f</label>.<a href="#line-34" class="ident">inuse</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-60"><code>	<label for="r0" class="ident">f</label>.<a href="#line-35" class="ident">stat</a> = <label for="r7" class="ident">stat</label></code></span>
+<span class="codeline" id="line-61"><code>	<label for="r0" class="ident">f</label>.<a href="#line-36" class="ident">zero</a> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-62"><code>}</code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code><span class="keyword">func</span> (<label for="r8" class="ident">f</label> *<a href="#line-27" class="ident">fixalloc</a>) <label for="r9" class="ident">alloc</label>() <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a> {</code></span>
+<span class="codeline" id="line-65"><code>	<span class="keyword">if</span> <label for="r8" class="ident">f</label>.<a href="#line-28" class="ident">size</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-66"><code>		<a href="../../pkg/builtin.html#name-print" class="ident">print</a>(<span class="lit-string">"runtime: use of FixAlloc_Alloc before FixAlloc_Init\n"</span>)</code></span>
+<span class="codeline" id="line-67"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"runtime: internal error"</span>)</code></span>
+<span class="codeline" id="line-68"><code>	}</code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">if</span> <label for="r8" class="ident">f</label>.<a href="#line-31" class="ident">list</a> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-71"><code>		<label for="r10" class="ident">v</label> := <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r8" class="ident">f</label>.<a href="#line-31" class="ident">list</a>)</code></span>
+<span class="codeline" id="line-72"><code>		<label for="r8" class="ident">f</label>.<a href="#line-31" class="ident">list</a> = <label for="r8" class="ident">f</label>.<a href="#line-31" class="ident">list</a>.<a href="#line-47" class="ident">next</a></code></span>
+<span class="codeline" id="line-73"><code>		<label for="r8" class="ident">f</label>.<a href="#line-34" class="ident">inuse</a> += <label for="r8" class="ident">f</label>.<a href="#line-28" class="ident">size</a></code></span>
+<span class="codeline" id="line-74"><code>		<span class="keyword">if</span> <label for="r8" class="ident">f</label>.<a href="#line-36" class="ident">zero</a> {</code></span>
+<span class="codeline" id="line-75"><code>			<a href="stubs.go.html#line-86" class="ident">memclrNoHeapPointers</a>(<label for="r10" class="ident">v</label>, <label for="r8" class="ident">f</label>.<a href="#line-28" class="ident">size</a>)</code></span>
+<span class="codeline" id="line-76"><code>		}</code></span>
+<span class="codeline" id="line-77"><code>		<span class="keyword">return</span> <label for="r10" class="ident">v</label></code></span>
+<span class="codeline" id="line-78"><code>	}</code></span>
+<span class="codeline" id="line-79"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r8" class="ident">f</label>.<a href="#line-33" class="ident">nchunk</a>) &lt; <label for="r8" class="ident">f</label>.<a href="#line-28" class="ident">size</a> {</code></span>
+<span class="codeline" id="line-80"><code>		<label for="r8" class="ident">f</label>.<a href="#line-32" class="ident">chunk</a> = <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="malloc.go.html#line-1311" class="ident">persistentalloc</a>(<a href="malloc.go.html#line-136" class="ident">_FixAllocChunk</a>, <span class="lit-number">0</span>, <label for="r8" class="ident">f</label>.<a href="#line-35" class="ident">stat</a>))</code></span>
+<span class="codeline" id="line-81"><code>		<label for="r8" class="ident">f</label>.<a href="#line-33" class="ident">nchunk</a> = <a href="malloc.go.html#line-136" class="ident">_FixAllocChunk</a></code></span>
+<span class="codeline" id="line-82"><code>	}</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code>	<label for="r11" class="ident">v</label> := <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r8" class="ident">f</label>.<a href="#line-32" class="ident">chunk</a>)</code></span>
+<span class="codeline" id="line-85"><code>	<span class="keyword">if</span> <label for="r8" class="ident">f</label>.<a href="#line-29" class="ident">first</a> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-86"><code>		<label for="r8" class="ident">f</label>.<a href="#line-29" class="ident">first</a>(<label for="r8" class="ident">f</label>.<a href="#line-30" class="ident">arg</a>, <label for="r11" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-87"><code>	}</code></span>
+<span class="codeline" id="line-88"><code>	<label for="r8" class="ident">f</label>.<a href="#line-32" class="ident">chunk</a> = <label for="r8" class="ident">f</label>.<a href="#line-32" class="ident">chunk</a> + <label for="r8" class="ident">f</label>.<a href="#line-28" class="ident">size</a></code></span>
+<span class="codeline" id="line-89"><code>	<label for="r8" class="ident">f</label>.<a href="#line-33" class="ident">nchunk</a> -= <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r8" class="ident">f</label>.<a href="#line-28" class="ident">size</a>)</code></span>
+<span class="codeline" id="line-90"><code>	<label for="r8" class="ident">f</label>.<a href="#line-34" class="ident">inuse</a> += <label for="r8" class="ident">f</label>.<a href="#line-28" class="ident">size</a></code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">return</span> <label for="r11" class="ident">v</label></code></span>
+<span class="codeline" id="line-92"><code>}</code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code><span class="keyword">func</span> (<label for="r12" class="ident">f</label> *<a href="#line-27" class="ident">fixalloc</a>) <label for="r13" class="ident">free</label>(<label for="r14" class="ident">p</label> <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) {</code></span>
+<span class="codeline" id="line-95"><code>	<label for="r12" class="ident">f</label>.<a href="#line-34" class="ident">inuse</a> -= <label for="r12" class="ident">f</label>.<a href="#line-28" class="ident">size</a></code></span>
+<span class="codeline" id="line-96"><code>	<label for="r15" class="ident">v</label> := (*<a href="#line-46" class="ident">mlink</a>)(<label for="r14" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-97"><code>	<label for="r15" class="ident">v</label>.<a href="#line-47" class="ident">next</a> = <label for="r12" class="ident">f</label>.<a href="#line-31" class="ident">list</a></code></span>
+<span class="codeline" id="line-98"><code>	<label for="r12" class="ident">f</label>.<a href="#line-31" class="ident">list</a> = <label for="r15" class="ident">v</label></code></span>
+<span class="codeline" id="line-99"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

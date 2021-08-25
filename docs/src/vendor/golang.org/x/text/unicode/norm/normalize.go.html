@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: normalize.go in package vendor/golang.org/x/text/unicode/norm</title>
+<link href="../../../../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	normalize.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../../pkg/vendor/golang.org/x/text/unicode/norm.html">vendor/golang.org/x/text/unicode/norm</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104],
+input[id=r105]:checked ~pre label[for=r105],
+input[id=r106]:checked ~pre label[for=r106],
+input[id=r107]:checked ~pre label[for=r107],
+input[id=r108]:checked ~pre label[for=r108],
+input[id=r109]:checked ~pre label[for=r109],
+input[id=r110]:checked ~pre label[for=r110],
+input[id=r111]:checked ~pre label[for=r111],
+input[id=r112]:checked ~pre label[for=r112],
+input[id=r113]:checked ~pre label[for=r113],
+input[id=r114]:checked ~pre label[for=r114],
+input[id=r115]:checked ~pre label[for=r115],
+input[id=r116]:checked ~pre label[for=r116],
+input[id=r117]:checked ~pre label[for=r117],
+input[id=r118]:checked ~pre label[for=r118],
+input[id=r119]:checked ~pre label[for=r119],
+input[id=r120]:checked ~pre label[for=r120],
+input[id=r121]:checked ~pre label[for=r121],
+input[id=r122]:checked ~pre label[for=r122],
+input[id=r123]:checked ~pre label[for=r123],
+input[id=r124]:checked ~pre label[for=r124],
+input[id=r125]:checked ~pre label[for=r125],
+input[id=r126]:checked ~pre label[for=r126],
+input[id=r127]:checked ~pre label[for=r127],
+input[id=r128]:checked ~pre label[for=r128],
+input[id=r129]:checked ~pre label[for=r129],
+input[id=r130]:checked ~pre label[for=r130],
+input[id=r131]:checked ~pre label[for=r131],
+input[id=r132]:checked ~pre label[for=r132],
+input[id=r133]:checked ~pre label[for=r133],
+input[id=r134]:checked ~pre label[for=r134],
+input[id=r135]:checked ~pre label[for=r135],
+input[id=r136]:checked ~pre label[for=r136],
+input[id=r137]:checked ~pre label[for=r137],
+input[id=r138]:checked ~pre label[for=r138],
+input[id=r139]:checked ~pre label[for=r139],
+input[id=r140]:checked ~pre label[for=r140],
+input[id=r141]:checked ~pre label[for=r141],
+input[id=r142]:checked ~pre label[for=r142],
+input[id=r143]:checked ~pre label[for=r143],
+input[id=r144]:checked ~pre label[for=r144],
+input[id=r145]:checked ~pre label[for=r145],
+input[id=r146]:checked ~pre label[for=r146],
+input[id=r147]:checked ~pre label[for=r147],
+input[id=r148]:checked ~pre label[for=r148],
+input[id=r149]:checked ~pre label[for=r149],
+input[id=r150]:checked ~pre label[for=r150],
+input[id=r151]:checked ~pre label[for=r151],
+input[id=r152]:checked ~pre label[for=r152],
+input[id=r153]:checked ~pre label[for=r153],
+input[id=r154]:checked ~pre label[for=r154],
+input[id=r155]:checked ~pre label[for=r155],
+input[id=r156]:checked ~pre label[for=r156],
+input[id=r157]:checked ~pre label[for=r157],
+input[id=r158]:checked ~pre label[for=r158],
+input[id=r159]:checked ~pre label[for=r159],
+input[id=r160]:checked ~pre label[for=r160],
+input[id=r161]:checked ~pre label[for=r161],
+input[id=r162]:checked ~pre label[for=r162],
+input[id=r163]:checked ~pre label[for=r163],
+input[id=r164]:checked ~pre label[for=r164],
+input[id=r165]:checked ~pre label[for=r165],
+input[id=r166]:checked ~pre label[for=r166],
+input[id=r167]:checked ~pre label[for=r167],
+input[id=r168]:checked ~pre label[for=r168],
+input[id=r169]:checked ~pre label[for=r169],
+input[id=r170]:checked ~pre label[for=r170],
+input[id=r171]:checked ~pre label[for=r171],
+input[id=r172]:checked ~pre label[for=r172],
+input[id=r173]:checked ~pre label[for=r173],
+input[id=r174]:checked ~pre label[for=r174],
+input[id=r175]:checked ~pre label[for=r175],
+input[id=r176]:checked ~pre label[for=r176],
+input[id=r177]:checked ~pre label[for=r177],
+input[id=r178]:checked ~pre label[for=r178],
+input[id=r179]:checked ~pre label[for=r179],
+input[id=r180]:checked ~pre label[for=r180],
+input[id=r181]:checked ~pre label[for=r181],
+input[id=r182]:checked ~pre label[for=r182],
+input[id=r183]:checked ~pre label[for=r183],
+input[id=r184]:checked ~pre label[for=r184],
+input[id=r185]:checked ~pre label[for=r185],
+input[id=r186]:checked ~pre label[for=r186],
+input[id=r187]:checked ~pre label[for=r187],
+input[id=r188]:checked ~pre label[for=r188],
+input[id=r189]:checked ~pre label[for=r189],
+input[id=r190]:checked ~pre label[for=r190],
+input[id=r191]:checked ~pre label[for=r191],
+input[id=r192]:checked ~pre label[for=r192],
+input[id=r193]:checked ~pre label[for=r193],
+input[id=r194]:checked ~pre label[for=r194],
+input[id=r195]:checked ~pre label[for=r195],
+input[id=r196]:checked ~pre label[for=r196],
+input[id=r197]:checked ~pre label[for=r197],
+input[id=r198]:checked ~pre label[for=r198]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="r105" type="radio" name="g"/>
+<input id="r106" type="radio" name="g"/>
+<input id="r107" type="radio" name="g"/>
+<input id="r108" type="radio" name="g"/>
+<input id="r109" type="radio" name="g"/>
+<input id="r110" type="radio" name="g"/>
+<input id="r111" type="radio" name="g"/>
+<input id="r112" type="radio" name="g"/>
+<input id="r113" type="radio" name="g"/>
+<input id="r114" type="radio" name="g"/>
+<input id="r115" type="radio" name="g"/>
+<input id="r116" type="radio" name="g"/>
+<input id="r117" type="radio" name="g"/>
+<input id="r118" type="radio" name="g"/>
+<input id="r119" type="radio" name="g"/>
+<input id="r120" type="radio" name="g"/>
+<input id="r121" type="radio" name="g"/>
+<input id="r122" type="radio" name="g"/>
+<input id="r123" type="radio" name="g"/>
+<input id="r124" type="radio" name="g"/>
+<input id="r125" type="radio" name="g"/>
+<input id="r126" type="radio" name="g"/>
+<input id="r127" type="radio" name="g"/>
+<input id="r128" type="radio" name="g"/>
+<input id="r129" type="radio" name="g"/>
+<input id="r130" type="radio" name="g"/>
+<input id="r131" type="radio" name="g"/>
+<input id="r132" type="radio" name="g"/>
+<input id="r133" type="radio" name="g"/>
+<input id="r134" type="radio" name="g"/>
+<input id="r135" type="radio" name="g"/>
+<input id="r136" type="radio" name="g"/>
+<input id="r137" type="radio" name="g"/>
+<input id="r138" type="radio" name="g"/>
+<input id="r139" type="radio" name="g"/>
+<input id="r140" type="radio" name="g"/>
+<input id="r141" type="radio" name="g"/>
+<input id="r142" type="radio" name="g"/>
+<input id="r143" type="radio" name="g"/>
+<input id="r144" type="radio" name="g"/>
+<input id="r145" type="radio" name="g"/>
+<input id="r146" type="radio" name="g"/>
+<input id="r147" type="radio" name="g"/>
+<input id="r148" type="radio" name="g"/>
+<input id="r149" type="radio" name="g"/>
+<input id="r150" type="radio" name="g"/>
+<input id="r151" type="radio" name="g"/>
+<input id="r152" type="radio" name="g"/>
+<input id="r153" type="radio" name="g"/>
+<input id="r154" type="radio" name="g"/>
+<input id="r155" type="radio" name="g"/>
+<input id="r156" type="radio" name="g"/>
+<input id="r157" type="radio" name="g"/>
+<input id="r158" type="radio" name="g"/>
+<input id="r159" type="radio" name="g"/>
+<input id="r160" type="radio" name="g"/>
+<input id="r161" type="radio" name="g"/>
+<input id="r162" type="radio" name="g"/>
+<input id="r163" type="radio" name="g"/>
+<input id="r164" type="radio" name="g"/>
+<input id="r165" type="radio" name="g"/>
+<input id="r166" type="radio" name="g"/>
+<input id="r167" type="radio" name="g"/>
+<input id="r168" type="radio" name="g"/>
+<input id="r169" type="radio" name="g"/>
+<input id="r170" type="radio" name="g"/>
+<input id="r171" type="radio" name="g"/>
+<input id="r172" type="radio" name="g"/>
+<input id="r173" type="radio" name="g"/>
+<input id="r174" type="radio" name="g"/>
+<input id="r175" type="radio" name="g"/>
+<input id="r176" type="radio" name="g"/>
+<input id="r177" type="radio" name="g"/>
+<input id="r178" type="radio" name="g"/>
+<input id="r179" type="radio" name="g"/>
+<input id="r180" type="radio" name="g"/>
+<input id="r181" type="radio" name="g"/>
+<input id="r182" type="radio" name="g"/>
+<input id="r183" type="radio" name="g"/>
+<input id="r184" type="radio" name="g"/>
+<input id="r185" type="radio" name="g"/>
+<input id="r186" type="radio" name="g"/>
+<input id="r187" type="radio" name="g"/>
+<input id="r188" type="radio" name="g"/>
+<input id="r189" type="radio" name="g"/>
+<input id="r190" type="radio" name="g"/>
+<input id="r191" type="radio" name="g"/>
+<input id="r192" type="radio" name="g"/>
+<input id="r193" type="radio" name="g"/>
+<input id="r194" type="radio" name="g"/>
+<input id="r195" type="radio" name="g"/>
+<input id="r196" type="radio" name="g"/>
+<input id="r197" type="radio" name="g"/>
+<input id="r198" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// Note: the file data_test.go that is generated should not be checked in.</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">//go:generate go run maketables.go triegen.go</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">//go:generate go test -tags test</span></code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-9"><code><span class="comment">// Package norm contains types and functions for normalizing Unicode strings.</span></code></span></div><span class="codeline" id="line-10"><code><span class="keyword">package</span> norm <span class="comment">// import "golang.org/x/text/unicode/norm"</span></code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-13"><code>	<label for="i0"><span class="lit-string i0">"unicode/utf8"</span></label></code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code>	<label for="i1"><span class="lit-string i1">"golang.org/x/text/transform"</span></label></code></span>
+<span class="codeline" id="line-16"><code>)</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// A Form denotes a canonical representation of Unicode code points.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// The Unicode-defined normalization and equivalence forms are:</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">//   NFC   Unicode Normalization Form C</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">//   NFD   Unicode Normalization Form D</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">//   NFKC  Unicode Normalization Form KC</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">//   NFKD  Unicode Normalization Form KD</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// For a Form f, this documentation uses the notation f(x) to mean</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// the bytes or string x converted to the given form.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// A position n in x is called a boundary if conversion to the form can</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// proceed independently on both sides:</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">//   f(x) == append(f(x[0:n]), f(x[n:])...)</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// References: https://unicode.org/reports/tr15/ and</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// https://unicode.org/notes/tn5/.</span></code></span>
+<span class="codeline" id="line-34"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/vendor/golang.org/x/text/unicode/norm.html#name-Form" class="ident">Form</a> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../../../../../pkg/vendor/golang.org/x/text/unicode/norm.html#name-NFC" class="ident">NFC</a> <a href="#line-34" class="ident">Form</a> = <a href="../../../../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../../../../../../pkg/vendor/golang.org/x/text/unicode/norm.html#name-NFD" class="ident">NFD</a></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../../../../../pkg/vendor/golang.org/x/text/unicode/norm.html#name-NFKC" class="ident">NFKC</a></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../../../../../pkg/vendor/golang.org/x/text/unicode/norm.html#name-NFKD" class="ident">NFKD</a></code></span>
+<span class="codeline" id="line-41"><code>)</code></span>
+<span class="codeline" id="line-42"><code></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// Bytes returns f(b). May return b if f(b) = b.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="keyword">func</span> (<label for="r0" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r1" class="ident">Bytes</label>(<label for="r2" class="ident">b</label> []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-45"><code>	<label for="r3" class="ident">src</label> := <a href="input.go.html#line-14" class="ident">inputBytes</a>(<label for="r2" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-46"><code>	<label for="r4" class="ident">ft</label> := <a href="forminfo.go.html#line-61" class="ident">formTable</a>[<label for="r0" class="ident">f</label>]</code></span>
+<span class="codeline" id="line-47"><code>	<label for="r5" class="ident">n</label>, <label for="r6" class="ident">ok</label> := <label for="r4" class="ident">ft</label>.<a href="#line-303" class="ident">quickSpan</a>(<label for="r3" class="ident">src</label>, <span class="lit-number">0</span>, <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">b</label>), <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">if</span> <label for="r6" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-49"><code>		<span class="keyword">return</span> <label for="r2" class="ident">b</label></code></span>
+<span class="codeline" id="line-50"><code>	}</code></span>
+<span class="codeline" id="line-51"><code>	<label for="r7" class="ident">out</label> := <a href="../../../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r5" class="ident">n</label>, <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">b</label>))</code></span>
+<span class="codeline" id="line-52"><code>	<a href="../../../../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r7" class="ident">out</label>, <label for="r2" class="ident">b</label>[<span class="lit-number">0</span>:<label for="r5" class="ident">n</label>])</code></span>
+<span class="codeline" id="line-53"><code>	<label for="r8" class="ident">rb</label> := <a href="composition.go.html#line-98" class="ident">reorderBuffer</a>{<a href="composition.go.html#line-104" class="ident">f</a>: *<label for="r4" class="ident">ft</label>, <a href="composition.go.html#line-106" class="ident">src</a>: <label for="r3" class="ident">src</label>, <a href="composition.go.html#line-107" class="ident">nsrc</a>: <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">b</label>), <a href="composition.go.html#line-110" class="ident">out</a>: <label for="r7" class="ident">out</label>, <a href="composition.go.html#line-111" class="ident">flushF</a>: <a href="composition.go.html#line-149" class="ident">appendFlush</a>}</code></span>
+<span class="codeline" id="line-54"><code>	<span class="keyword">return</span> <a href="#line-250" class="ident">doAppendInner</a>(&amp;<label for="r8" class="ident">rb</label>, <label for="r5" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-55"><code>}</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// String returns f(s).</span></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">func</span> (<label for="r9" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r10" class="ident">String</label>(<label for="r11" class="ident">s</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-59"><code>	<label for="r12" class="ident">src</label> := <a href="input.go.html#line-18" class="ident">inputString</a>(<label for="r11" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-60"><code>	<label for="r13" class="ident">ft</label> := <a href="forminfo.go.html#line-61" class="ident">formTable</a>[<label for="r9" class="ident">f</label>]</code></span>
+<span class="codeline" id="line-61"><code>	<label for="r14" class="ident">n</label>, <label for="r15" class="ident">ok</label> := <label for="r13" class="ident">ft</label>.<a href="#line-303" class="ident">quickSpan</a>(<label for="r12" class="ident">src</label>, <span class="lit-number">0</span>, <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r11" class="ident">s</label>), <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-62"><code>	<span class="keyword">if</span> <label for="r15" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-63"><code>		<span class="keyword">return</span> <label for="r11" class="ident">s</label></code></span>
+<span class="codeline" id="line-64"><code>	}</code></span>
+<span class="codeline" id="line-65"><code>	<label for="r16" class="ident">out</label> := <a href="../../../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r14" class="ident">n</label>, <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r11" class="ident">s</label>))</code></span>
+<span class="codeline" id="line-66"><code>	<a href="../../../../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r16" class="ident">out</label>, <label for="r11" class="ident">s</label>[<span class="lit-number">0</span>:<label for="r14" class="ident">n</label>])</code></span>
+<span class="codeline" id="line-67"><code>	<label for="r17" class="ident">rb</label> := <a href="composition.go.html#line-98" class="ident">reorderBuffer</a>{<a href="composition.go.html#line-104" class="ident">f</a>: *<label for="r13" class="ident">ft</label>, <a href="composition.go.html#line-106" class="ident">src</a>: <label for="r12" class="ident">src</label>, <a href="composition.go.html#line-107" class="ident">nsrc</a>: <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r11" class="ident">s</label>), <a href="composition.go.html#line-110" class="ident">out</a>: <label for="r16" class="ident">out</label>, <a href="composition.go.html#line-111" class="ident">flushF</a>: <a href="composition.go.html#line-149" class="ident">appendFlush</a>}</code></span>
+<span class="codeline" id="line-68"><code>	<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<a href="#line-250" class="ident">doAppendInner</a>(&amp;<label for="r17" class="ident">rb</label>, <label for="r14" class="ident">n</label>))</code></span>
+<span class="codeline" id="line-69"><code>}</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// IsNormal returns true if b == f(b).</span></code></span>
+<span class="codeline" id="line-72"><code><span class="keyword">func</span> (<label for="r18" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r19" class="ident">IsNormal</label>(<label for="r20" class="ident">b</label> []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-73"><code>	<label for="r21" class="ident">src</label> := <a href="input.go.html#line-14" class="ident">inputBytes</a>(<label for="r20" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-74"><code>	<label for="r22" class="ident">ft</label> := <a href="forminfo.go.html#line-61" class="ident">formTable</a>[<label for="r18" class="ident">f</label>]</code></span>
+<span class="codeline" id="line-75"><code>	<label for="r23" class="ident">bp</label>, <label for="r24" class="ident">ok</label> := <label for="r22" class="ident">ft</label>.<a href="#line-303" class="ident">quickSpan</a>(<label for="r21" class="ident">src</label>, <span class="lit-number">0</span>, <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r20" class="ident">b</label>), <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">if</span> <label for="r24" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-77"><code>		<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-78"><code>	}</code></span>
+<span class="codeline" id="line-79"><code>	<label for="r25" class="ident">rb</label> := <a href="composition.go.html#line-98" class="ident">reorderBuffer</a>{<a href="composition.go.html#line-104" class="ident">f</a>: *<label for="r22" class="ident">ft</label>, <a href="composition.go.html#line-106" class="ident">src</a>: <label for="r21" class="ident">src</label>, <a href="composition.go.html#line-107" class="ident">nsrc</a>: <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r20" class="ident">b</label>)}</code></span>
+<span class="codeline" id="line-80"><code>	<label for="r25" class="ident">rb</label>.<a href="composition.go.html#line-128" class="ident">setFlusher</a>(<a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-91" class="ident">cmpNormalBytes</a>)</code></span>
+<span class="codeline" id="line-81"><code>	<span class="keyword">for</span> <label for="r23" class="ident">bp</label> &lt; <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r20" class="ident">b</label>) {</code></span>
+<span class="codeline" id="line-82"><code>		<label for="r25" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a> = <label for="r20" class="ident">b</label>[<label for="r23" class="ident">bp</label>:]</code></span>
+<span class="codeline" id="line-83"><code>		<span class="keyword">if</span> <label for="r23" class="ident">bp</label> = <a href="#line-503" class="ident">decomposeSegment</a>(&amp;<label for="r25" class="ident">rb</label>, <label for="r23" class="ident">bp</label>, <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a>); <label for="r23" class="ident">bp</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-84"><code>			<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-85"><code>		}</code></span>
+<span class="codeline" id="line-86"><code>		<label for="r23" class="ident">bp</label>, _ = <label for="r25" class="ident">rb</label>.<a href="composition.go.html#line-104" class="ident">f</a>.<a href="#line-303" class="ident">quickSpan</a>(<label for="r25" class="ident">rb</label>.<a href="composition.go.html#line-106" class="ident">src</a>, <label for="r23" class="ident">bp</label>, <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r20" class="ident">b</label>), <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-87"><code>	}</code></span>
+<span class="codeline" id="line-88"><code>	<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-89"><code>}</code></span>
+<span class="codeline" id="line-90"><code></code></span>
+<span class="codeline" id="line-91"><code><span class="keyword">func</span> <label for="r26" class="ident"><a href="../../../../../../../pkg/vendor/golang.org/x/text/unicode/norm.html#name-cmpNormalBytes" class="ident">cmpNormalBytes</a></label>(<label for="r27" class="ident">rb</label> *<a href="composition.go.html#line-98" class="ident">reorderBuffer</a>) <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-92"><code>	<label for="r28" class="ident">b</label> := <label for="r27" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a></code></span>
+<span class="codeline" id="line-93"><code>	<span class="keyword">for</span> <label for="r29" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r29" class="ident">i</label> &lt; <label for="r27" class="ident">rb</label>.<a href="composition.go.html#line-103" class="ident">nrune</a>; <label for="r29" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-94"><code>		<label for="r30" class="ident">info</label> := <label for="r27" class="ident">rb</label>.<a href="composition.go.html#line-99" class="ident">rune</a>[<label for="r29" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-95"><code>		<span class="keyword">if</span> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r30" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a>) &gt; <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r28" class="ident">b</label>) {</code></span>
+<span class="codeline" id="line-96"><code>			<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-97"><code>		}</code></span>
+<span class="codeline" id="line-98"><code>		<label for="r31" class="ident">p</label> := <label for="r30" class="ident">info</label>.<a href="forminfo.go.html#line-41" class="ident">pos</a></code></span>
+<span class="codeline" id="line-99"><code>		<label for="r32" class="ident">pe</label> := <label for="r31" class="ident">p</label> + <label for="r30" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a></code></span>
+<span class="codeline" id="line-100"><code>		<span class="keyword">for</span> ; <label for="r31" class="ident">p</label> &lt; <label for="r32" class="ident">pe</label>; <label for="r31" class="ident">p</label>++ {</code></span>
+<span class="codeline" id="line-101"><code>			<span class="keyword">if</span> <label for="r28" class="ident">b</label>[<span class="lit-number">0</span>] != <label for="r27" class="ident">rb</label>.<a href="composition.go.html#line-100" class="ident">byte</a>[<label for="r31" class="ident">p</label>] {</code></span>
+<span class="codeline" id="line-102"><code>				<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-103"><code>			}</code></span>
+<span class="codeline" id="line-104"><code>			<label for="r28" class="ident">b</label> = <label for="r28" class="ident">b</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-105"><code>		}</code></span>
+<span class="codeline" id="line-106"><code>	}</code></span>
+<span class="codeline" id="line-107"><code>	<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-108"><code>}</code></span>
+<span class="codeline" id="line-109"><code></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">// IsNormalString returns true if s == f(s).</span></code></span>
+<span class="codeline" id="line-111"><code><span class="keyword">func</span> (<label for="r33" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r34" class="ident">IsNormalString</label>(<label for="r35" class="ident">s</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-112"><code>	<label for="r36" class="ident">src</label> := <a href="input.go.html#line-18" class="ident">inputString</a>(<label for="r35" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-113"><code>	<label for="r37" class="ident">ft</label> := <a href="forminfo.go.html#line-61" class="ident">formTable</a>[<label for="r33" class="ident">f</label>]</code></span>
+<span class="codeline" id="line-114"><code>	<label for="r38" class="ident">bp</label>, <label for="r39" class="ident">ok</label> := <label for="r37" class="ident">ft</label>.<a href="#line-303" class="ident">quickSpan</a>(<label for="r36" class="ident">src</label>, <span class="lit-number">0</span>, <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r35" class="ident">s</label>), <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-115"><code>	<span class="keyword">if</span> <label for="r39" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-116"><code>		<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-117"><code>	}</code></span>
+<span class="codeline" id="line-118"><code>	<label for="r40" class="ident">rb</label> := <a href="composition.go.html#line-98" class="ident">reorderBuffer</a>{<a href="composition.go.html#line-104" class="ident">f</a>: *<label for="r37" class="ident">ft</label>, <a href="composition.go.html#line-106" class="ident">src</a>: <label for="r36" class="ident">src</label>, <a href="composition.go.html#line-107" class="ident">nsrc</a>: <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r35" class="ident">s</label>)}</code></span>
+<span class="codeline" id="line-119"><code>	<label for="r40" class="ident">rb</label>.<a href="composition.go.html#line-128" class="ident">setFlusher</a>(<a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <span class="keyword">func</span>(<label for="r41" class="ident">rb</label> *<a href="composition.go.html#line-98" class="ident">reorderBuffer</a>) <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-120"><code>		<span class="keyword">for</span> <label for="r42" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r42" class="ident">i</label> &lt; <label for="r41" class="ident">rb</label>.<a href="composition.go.html#line-103" class="ident">nrune</a>; <label for="r42" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-121"><code>			<label for="r43" class="ident">info</label> := <label for="r41" class="ident">rb</label>.<a href="composition.go.html#line-99" class="ident">rune</a>[<label for="r42" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-122"><code>			<span class="keyword">if</span> <label for="r38" class="ident">bp</label>+<a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r43" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a>) &gt; <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r35" class="ident">s</label>) {</code></span>
+<span class="codeline" id="line-123"><code>				<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-124"><code>			}</code></span>
+<span class="codeline" id="line-125"><code>			<label for="r44" class="ident">p</label> := <label for="r43" class="ident">info</label>.<a href="forminfo.go.html#line-41" class="ident">pos</a></code></span>
+<span class="codeline" id="line-126"><code>			<label for="r45" class="ident">pe</label> := <label for="r44" class="ident">p</label> + <label for="r43" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a></code></span>
+<span class="codeline" id="line-127"><code>			<span class="keyword">for</span> ; <label for="r44" class="ident">p</label> &lt; <label for="r45" class="ident">pe</label>; <label for="r44" class="ident">p</label>++ {</code></span>
+<span class="codeline" id="line-128"><code>				<span class="keyword">if</span> <label for="r35" class="ident">s</label>[<label for="r38" class="ident">bp</label>] != <label for="r41" class="ident">rb</label>.<a href="composition.go.html#line-100" class="ident">byte</a>[<label for="r44" class="ident">p</label>] {</code></span>
+<span class="codeline" id="line-129"><code>					<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-130"><code>				}</code></span>
+<span class="codeline" id="line-131"><code>				<label for="r38" class="ident">bp</label>++</code></span>
+<span class="codeline" id="line-132"><code>			}</code></span>
+<span class="codeline" id="line-133"><code>		}</code></span>
+<span class="codeline" id="line-134"><code>		<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-135"><code>	})</code></span>
+<span class="codeline" id="line-136"><code>	<span class="keyword">for</span> <label for="r38" class="ident">bp</label> &lt; <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r35" class="ident">s</label>) {</code></span>
+<span class="codeline" id="line-137"><code>		<span class="keyword">if</span> <label for="r38" class="ident">bp</label> = <a href="#line-503" class="ident">decomposeSegment</a>(&amp;<label for="r40" class="ident">rb</label>, <label for="r38" class="ident">bp</label>, <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a>); <label for="r38" class="ident">bp</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-138"><code>			<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-139"><code>		}</code></span>
+<span class="codeline" id="line-140"><code>		<label for="r38" class="ident">bp</label>, _ = <label for="r40" class="ident">rb</label>.<a href="composition.go.html#line-104" class="ident">f</a>.<a href="#line-303" class="ident">quickSpan</a>(<label for="r40" class="ident">rb</label>.<a href="composition.go.html#line-106" class="ident">src</a>, <label for="r38" class="ident">bp</label>, <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r35" class="ident">s</label>), <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-141"><code>	}</code></span>
+<span class="codeline" id="line-142"><code>	<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-143"><code>}</code></span>
+<span class="codeline" id="line-144"><code></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">// patchTail fixes a case where a rune may be incorrectly normalized</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">// if it is followed by illegal continuation bytes. It returns the</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">// patched buffer and whether the decomposition is still in progress.</span></code></span>
+<span class="codeline" id="line-148"><code><span class="keyword">func</span> <label for="r46" class="ident"><a href="../../../../../../../pkg/vendor/golang.org/x/text/unicode/norm.html#name-patchTail" class="ident">patchTail</a></label>(<label for="r47" class="ident">rb</label> *<a href="composition.go.html#line-98" class="ident">reorderBuffer</a>) <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-149"><code>	<label for="r48" class="ident">info</label>, <label for="r49" class="ident">p</label> := <a href="#line-555" class="ident">lastRuneStart</a>(&amp;<label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-104" class="ident">f</a>, <label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a>)</code></span>
+<span class="codeline" id="line-150"><code>	<span class="keyword">if</span> <label for="r49" class="ident">p</label> == -<span class="lit-number">1</span> || <label for="r48" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-151"><code>		<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-152"><code>	}</code></span>
+<span class="codeline" id="line-153"><code>	<label for="r50" class="ident">end</label> := <label for="r49" class="ident">p</label> + <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r48" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a>)</code></span>
+<span class="codeline" id="line-154"><code>	<label for="r51" class="ident">extra</label> := <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a>) - <label for="r50" class="ident">end</label></code></span>
+<span class="codeline" id="line-155"><code>	<span class="keyword">if</span> <label for="r51" class="ident">extra</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-156"><code>		<span class="comment">// Potentially allocating memory. However, this only</span></code></span>
+<span class="codeline" id="line-157"><code><span class="comment">		// happens with ill-formed UTF-8.</span></code></span>
+<span class="codeline" id="line-158"><code>		<label for="r52" class="ident">x</label> := <a href="../../../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-159"><code>		<label for="r52" class="ident">x</label> = <a href="../../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r52" class="ident">x</label>, <label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a>[<a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a>)-<label for="r51" class="ident">extra</label>:]...)</code></span>
+<span class="codeline" id="line-160"><code>		<label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a> = <label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a>[:<label for="r50" class="ident">end</label>]</code></span>
+<span class="codeline" id="line-161"><code>		<a href="#line-567" class="ident">decomposeToLastBoundary</a>(<label for="r47" class="ident">rb</label>)</code></span>
+<span class="codeline" id="line-162"><code>		<label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-139" class="ident">doFlush</a>()</code></span>
+<span class="codeline" id="line-163"><code>		<label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a> = <a href="../../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a>, <label for="r52" class="ident">x</label>...)</code></span>
+<span class="codeline" id="line-164"><code>		<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-165"><code>	}</code></span>
+<span class="codeline" id="line-166"><code>	<label for="r53" class="ident">buf</label> := <label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a>[<label for="r49" class="ident">p</label>:]</code></span>
+<span class="codeline" id="line-167"><code>	<label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a> = <label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a>[:<label for="r49" class="ident">p</label>]</code></span>
+<span class="codeline" id="line-168"><code>	<a href="#line-567" class="ident">decomposeToLastBoundary</a>(<label for="r47" class="ident">rb</label>)</code></span>
+<span class="codeline" id="line-169"><code>	<span class="keyword">if</span> <label for="r54" class="ident">s</label> := <label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-102" class="ident">ss</a>.<a href="composition.go.html#line-44" class="ident">next</a>(<label for="r48" class="ident">info</label>); <label for="r54" class="ident">s</label> == <a href="composition.go.html#line-28" class="ident">ssStarter</a> {</code></span>
+<span class="codeline" id="line-170"><code>		<label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-139" class="ident">doFlush</a>()</code></span>
+<span class="codeline" id="line-171"><code>		<label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-102" class="ident">ss</a>.<a href="composition.go.html#line-38" class="ident">first</a>(<label for="r48" class="ident">info</label>)</code></span>
+<span class="codeline" id="line-172"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r54" class="ident">s</label> == <a href="composition.go.html#line-30" class="ident">ssOverflow</a> {</code></span>
+<span class="codeline" id="line-173"><code>		<label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-139" class="ident">doFlush</a>()</code></span>
+<span class="codeline" id="line-174"><code>		<label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-273" class="ident">insertCGJ</a>()</code></span>
+<span class="codeline" id="line-175"><code>		<label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-102" class="ident">ss</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-176"><code>	}</code></span>
+<span class="codeline" id="line-177"><code>	<label for="r47" class="ident">rb</label>.<a href="composition.go.html#line-234" class="ident">insertUnsafe</a>(<a href="input.go.html#line-14" class="ident">inputBytes</a>(<label for="r53" class="ident">buf</label>), <span class="lit-number">0</span>, <label for="r48" class="ident">info</label>)</code></span>
+<span class="codeline" id="line-178"><code>	<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-179"><code>}</code></span>
+<span class="codeline" id="line-180"><code></code></span>
+<span class="codeline" id="line-181"><code><span class="keyword">func</span> <label for="r55" class="ident"><a href="../../../../../../../pkg/vendor/golang.org/x/text/unicode/norm.html#name-appendQuick" class="ident">appendQuick</a></label>(<label for="r56" class="ident">rb</label> *<a href="composition.go.html#line-98" class="ident">reorderBuffer</a>, <label for="r57" class="ident">i</label> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-182"><code>	<span class="keyword">if</span> <label for="r56" class="ident">rb</label>.<a href="composition.go.html#line-107" class="ident">nsrc</a> == <label for="r57" class="ident">i</label> {</code></span>
+<span class="codeline" id="line-183"><code>		<span class="keyword">return</span> <label for="r57" class="ident">i</label></code></span>
+<span class="codeline" id="line-184"><code>	}</code></span>
+<span class="codeline" id="line-185"><code>	<label for="r58" class="ident">end</label>, <label for="r59" class="ident">_</label> := <label for="r56" class="ident">rb</label>.<a href="composition.go.html#line-104" class="ident">f</a>.<a href="#line-303" class="ident">quickSpan</a>(<label for="r56" class="ident">rb</label>.<a href="composition.go.html#line-106" class="ident">src</a>, <label for="r57" class="ident">i</label>, <label for="r56" class="ident">rb</label>.<a href="composition.go.html#line-107" class="ident">nsrc</a>, <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-186"><code>	<label for="r56" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a> = <label for="r56" class="ident">rb</label>.<a href="composition.go.html#line-106" class="ident">src</a>.<a href="input.go.html#line-61" class="ident">appendSlice</a>(<label for="r56" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a>, <label for="r57" class="ident">i</label>, <label for="r58" class="ident">end</label>)</code></span>
+<span class="codeline" id="line-187"><code>	<span class="keyword">return</span> <label for="r58" class="ident">end</label></code></span>
+<span class="codeline" id="line-188"><code>}</code></span>
+<span class="codeline" id="line-189"><code></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">// Append returns f(append(out, b...)).</span></code></span>
+<span class="codeline" id="line-191"><code><span class="comment">// The buffer out must be nil, empty, or equal to f(out).</span></code></span>
+<span class="codeline" id="line-192"><code><span class="keyword">func</span> (<label for="r60" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r61" class="ident">Append</label>(<label for="r62" class="ident">out</label> []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r63" class="ident">src</label> ...<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-193"><code>	<span class="keyword">return</span> <label for="r60" class="ident">f</label>.<a href="#line-196" class="ident">doAppend</a>(<label for="r62" class="ident">out</label>, <a href="input.go.html#line-14" class="ident">inputBytes</a>(<label for="r63" class="ident">src</label>), <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r63" class="ident">src</label>))</code></span>
+<span class="codeline" id="line-194"><code>}</code></span>
+<span class="codeline" id="line-195"><code></code></span>
+<span class="codeline" id="line-196"><code><span class="keyword">func</span> (<label for="r64" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r65" class="ident">doAppend</label>(<label for="r66" class="ident">out</label> []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r67" class="ident">src</label> <a href="input.go.html#line-9" class="ident">input</a>, <label for="r68" class="ident">n</label> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>) []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-197"><code>	<span class="keyword">if</span> <label for="r68" class="ident">n</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-198"><code>		<span class="keyword">return</span> <label for="r66" class="ident">out</label></code></span>
+<span class="codeline" id="line-199"><code>	}</code></span>
+<span class="codeline" id="line-200"><code>	<label for="r69" class="ident">ft</label> := <a href="forminfo.go.html#line-61" class="ident">formTable</a>[<label for="r64" class="ident">f</label>]</code></span>
+<span class="codeline" id="line-201"><code>	<span class="comment">// Attempt to do a quickSpan first so we can avoid initializing the reorderBuffer.</span></code></span>
+<span class="codeline" id="line-202"><code>	<span class="keyword">if</span> <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r66" class="ident">out</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-203"><code>		<label for="r70" class="ident">p</label>, <label for="r71" class="ident">_</label> := <label for="r69" class="ident">ft</label>.<a href="#line-303" class="ident">quickSpan</a>(<label for="r67" class="ident">src</label>, <span class="lit-number">0</span>, <label for="r68" class="ident">n</label>, <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-204"><code>		<label for="r66" class="ident">out</label> = <label for="r67" class="ident">src</label>.<a href="input.go.html#line-61" class="ident">appendSlice</a>(<label for="r66" class="ident">out</label>, <span class="lit-number">0</span>, <label for="r70" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-205"><code>		<span class="keyword">if</span> <label for="r70" class="ident">p</label> == <label for="r68" class="ident">n</label> {</code></span>
+<span class="codeline" id="line-206"><code>			<span class="keyword">return</span> <label for="r66" class="ident">out</label></code></span>
+<span class="codeline" id="line-207"><code>		}</code></span>
+<span class="codeline" id="line-208"><code>		<label for="r72" class="ident">rb</label> := <a href="composition.go.html#line-98" class="ident">reorderBuffer</a>{<a href="composition.go.html#line-104" class="ident">f</a>: *<label for="r69" class="ident">ft</label>, <a href="composition.go.html#line-106" class="ident">src</a>: <label for="r67" class="ident">src</label>, <a href="composition.go.html#line-107" class="ident">nsrc</a>: <label for="r68" class="ident">n</label>, <a href="composition.go.html#line-110" class="ident">out</a>: <label for="r66" class="ident">out</label>, <a href="composition.go.html#line-111" class="ident">flushF</a>: <a href="composition.go.html#line-149" class="ident">appendFlush</a>}</code></span>
+<span class="codeline" id="line-209"><code>		<span class="keyword">return</span> <a href="#line-250" class="ident">doAppendInner</a>(&amp;<label for="r72" class="ident">rb</label>, <label for="r70" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-210"><code>	}</code></span>
+<span class="codeline" id="line-211"><code>	<label for="r73" class="ident">rb</label> := <a href="composition.go.html#line-98" class="ident">reorderBuffer</a>{<a href="composition.go.html#line-104" class="ident">f</a>: *<label for="r69" class="ident">ft</label>, <a href="composition.go.html#line-106" class="ident">src</a>: <label for="r67" class="ident">src</label>, <a href="composition.go.html#line-107" class="ident">nsrc</a>: <label for="r68" class="ident">n</label>}</code></span>
+<span class="codeline" id="line-212"><code>	<span class="keyword">return</span> <a href="#line-215" class="ident">doAppend</a>(&amp;<label for="r73" class="ident">rb</label>, <label for="r66" class="ident">out</label>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-213"><code>}</code></span>
+<span class="codeline" id="line-214"><code></code></span>
+<span class="codeline" id="line-215"><code><span class="keyword">func</span> <label for="r74" class="ident"><a href="../../../../../../../pkg/vendor/golang.org/x/text/unicode/norm.html#name-doAppend" class="ident">doAppend</a></label>(<label for="r75" class="ident">rb</label> *<a href="composition.go.html#line-98" class="ident">reorderBuffer</a>, <label for="r76" class="ident">out</label> []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r77" class="ident">p</label> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>) []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-216"><code>	<label for="r75" class="ident">rb</label>.<a href="composition.go.html#line-128" class="ident">setFlusher</a>(<label for="r76" class="ident">out</label>, <a href="composition.go.html#line-149" class="ident">appendFlush</a>)</code></span>
+<span class="codeline" id="line-217"><code>	<label for="r78" class="ident">src</label>, <label for="r79" class="ident">n</label> := <label for="r75" class="ident">rb</label>.<a href="composition.go.html#line-106" class="ident">src</a>, <label for="r75" class="ident">rb</label>.<a href="composition.go.html#line-107" class="ident">nsrc</a></code></span>
+<span class="codeline" id="line-218"><code>	<label for="r80" class="ident">doMerge</label> := <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r76" class="ident">out</label>) &gt; <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-219"><code>	<span class="keyword">if</span> <label for="r81" class="ident">q</label> := <label for="r78" class="ident">src</label>.<a href="input.go.html#line-50" class="ident">skipContinuationBytes</a>(<label for="r77" class="ident">p</label>); <label for="r81" class="ident">q</label> &gt; <label for="r77" class="ident">p</label> {</code></span>
+<span class="codeline" id="line-220"><code>		<span class="comment">// Move leading non-starters to destination.</span></code></span>
+<span class="codeline" id="line-221"><code>		<label for="r75" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a> = <label for="r78" class="ident">src</label>.<a href="input.go.html#line-61" class="ident">appendSlice</a>(<label for="r75" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a>, <label for="r77" class="ident">p</label>, <label for="r81" class="ident">q</label>)</code></span>
+<span class="codeline" id="line-222"><code>		<label for="r77" class="ident">p</label> = <label for="r81" class="ident">q</label></code></span>
+<span class="codeline" id="line-223"><code>		<label for="r80" class="ident">doMerge</label> = <a href="#line-148" class="ident">patchTail</a>(<label for="r75" class="ident">rb</label>)</code></span>
+<span class="codeline" id="line-224"><code>	}</code></span>
+<span class="codeline" id="line-225"><code>	<label for="r82" class="ident">fd</label> := &amp;<label for="r75" class="ident">rb</label>.<a href="composition.go.html#line-104" class="ident">f</a></code></span>
+<span class="codeline" id="line-226"><code>	<span class="keyword">if</span> <label for="r80" class="ident">doMerge</label> {</code></span>
+<span class="codeline" id="line-227"><code>		<span class="keyword">var</span> <label for="r83" class="ident">info</label> <a href="forminfo.go.html#line-40" class="ident">Properties</a></code></span>
+<span class="codeline" id="line-228"><code>		<span class="keyword">if</span> <label for="r77" class="ident">p</label> &lt; <label for="r79" class="ident">n</label> {</code></span>
+<span class="codeline" id="line-229"><code>			<label for="r83" class="ident">info</label> = <label for="r82" class="ident">fd</label>.<a href="forminfo.go.html#line-57" class="ident">info</a>(<label for="r78" class="ident">src</label>, <label for="r77" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-230"><code>			<span class="keyword">if</span> !<label for="r83" class="ident">info</label>.<a href="forminfo.go.html#line-95" class="ident">BoundaryBefore</a>() || <label for="r83" class="ident">info</label>.<a href="forminfo.go.html#line-137" class="ident">nLeadingNonStarters</a>() &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-231"><code>				<span class="keyword">if</span> <label for="r77" class="ident">p</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-232"><code>					<a href="#line-567" class="ident">decomposeToLastBoundary</a>(<label for="r75" class="ident">rb</label>)</code></span>
+<span class="codeline" id="line-233"><code>				}</code></span>
+<span class="codeline" id="line-234"><code>				<label for="r77" class="ident">p</label> = <a href="#line-503" class="ident">decomposeSegment</a>(<label for="r75" class="ident">rb</label>, <label for="r77" class="ident">p</label>, <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-235"><code>			}</code></span>
+<span class="codeline" id="line-236"><code>		}</code></span>
+<span class="codeline" id="line-237"><code>		<span class="keyword">if</span> <label for="r83" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-238"><code>			<label for="r75" class="ident">rb</label>.<a href="composition.go.html#line-139" class="ident">doFlush</a>()</code></span>
+<span class="codeline" id="line-239"><code>			<span class="comment">// Append incomplete UTF-8 encoding.</span></code></span>
+<span class="codeline" id="line-240"><code>			<span class="keyword">return</span> <label for="r78" class="ident">src</label>.<a href="input.go.html#line-61" class="ident">appendSlice</a>(<label for="r75" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a>, <label for="r77" class="ident">p</label>, <label for="r79" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-241"><code>		}</code></span>
+<span class="codeline" id="line-242"><code>		<span class="keyword">if</span> <label for="r75" class="ident">rb</label>.<a href="composition.go.html#line-103" class="ident">nrune</a> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-243"><code>			<span class="keyword">return</span> <a href="#line-250" class="ident">doAppendInner</a>(<label for="r75" class="ident">rb</label>, <label for="r77" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-244"><code>		}</code></span>
+<span class="codeline" id="line-245"><code>	}</code></span>
+<span class="codeline" id="line-246"><code>	<label for="r77" class="ident">p</label> = <a href="#line-181" class="ident">appendQuick</a>(<label for="r75" class="ident">rb</label>, <label for="r77" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-247"><code>	<span class="keyword">return</span> <a href="#line-250" class="ident">doAppendInner</a>(<label for="r75" class="ident">rb</label>, <label for="r77" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-248"><code>}</code></span>
+<span class="codeline" id="line-249"><code></code></span>
+<span class="codeline" id="line-250"><code><span class="keyword">func</span> <label for="r84" class="ident"><a href="../../../../../../../pkg/vendor/golang.org/x/text/unicode/norm.html#name-doAppendInner" class="ident">doAppendInner</a></label>(<label for="r85" class="ident">rb</label> *<a href="composition.go.html#line-98" class="ident">reorderBuffer</a>, <label for="r86" class="ident">p</label> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>) []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-251"><code>	<span class="keyword">for</span> <label for="r87" class="ident">n</label> := <label for="r85" class="ident">rb</label>.<a href="composition.go.html#line-107" class="ident">nsrc</a>; <label for="r86" class="ident">p</label> &lt; <label for="r87" class="ident">n</label>; {</code></span>
+<span class="codeline" id="line-252"><code>		<label for="r86" class="ident">p</label> = <a href="#line-503" class="ident">decomposeSegment</a>(<label for="r85" class="ident">rb</label>, <label for="r86" class="ident">p</label>, <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-253"><code>		<label for="r86" class="ident">p</label> = <a href="#line-181" class="ident">appendQuick</a>(<label for="r85" class="ident">rb</label>, <label for="r86" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-254"><code>	}</code></span>
+<span class="codeline" id="line-255"><code>	<span class="keyword">return</span> <label for="r85" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a></code></span>
+<span class="codeline" id="line-256"><code>}</code></span>
+<span class="codeline" id="line-257"><code></code></span>
+<span class="codeline" id="line-258"><code><span class="comment">// AppendString returns f(append(out, []byte(s))).</span></code></span>
+<span class="codeline" id="line-259"><code><span class="comment">// The buffer out must be nil, empty, or equal to f(out).</span></code></span>
+<span class="codeline" id="line-260"><code><span class="keyword">func</span> (<label for="r88" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r89" class="ident">AppendString</label>(<label for="r90" class="ident">out</label> []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r91" class="ident">src</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-261"><code>	<span class="keyword">return</span> <label for="r88" class="ident">f</label>.<a href="#line-196" class="ident">doAppend</a>(<label for="r90" class="ident">out</label>, <a href="input.go.html#line-18" class="ident">inputString</a>(<label for="r91" class="ident">src</label>), <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r91" class="ident">src</label>))</code></span>
+<span class="codeline" id="line-262"><code>}</code></span>
+<span class="codeline" id="line-263"><code></code></span>
+<span class="codeline" id="line-264"><code><span class="comment">// QuickSpan returns a boundary n such that b[0:n] == f(b[0:n]).</span></code></span>
+<span class="codeline" id="line-265"><code><span class="comment">// It is not guaranteed to return the largest such n.</span></code></span>
+<span class="codeline" id="line-266"><code><span class="keyword">func</span> (<label for="r92" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r93" class="ident">QuickSpan</label>(<label for="r94" class="ident">b</label> []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-267"><code>	<label for="r95" class="ident">n</label>, <label for="r96" class="ident">_</label> := <a href="forminfo.go.html#line-61" class="ident">formTable</a>[<label for="r92" class="ident">f</label>].<a href="#line-303" class="ident">quickSpan</a>(<a href="input.go.html#line-14" class="ident">inputBytes</a>(<label for="r94" class="ident">b</label>), <span class="lit-number">0</span>, <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r94" class="ident">b</label>), <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-268"><code>	<span class="keyword">return</span> <label for="r95" class="ident">n</label></code></span>
+<span class="codeline" id="line-269"><code>}</code></span>
+<span class="codeline" id="line-270"><code></code></span>
+<span class="codeline" id="line-271"><code><span class="comment">// Span implements transform.SpanningTransformer. It returns a boundary n such</span></code></span>
+<span class="codeline" id="line-272"><code><span class="comment">// that b[0:n] == f(b[0:n]). It is not guaranteed to return the largest such n.</span></code></span>
+<span class="codeline" id="line-273"><code><span class="keyword">func</span> (<label for="r97" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r98" class="ident"><a href="../../../../../../../imp/vendor/golang.org/x/text/unicode/norm.Form.html#name-.Span" class="ident">Span</a></label>(<label for="r99" class="ident">b</label> []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r100" class="ident">atEOF</label> <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) (<label for="r101" class="ident">n</label> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r102" class="ident">err</label> <a href="../../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-274"><code>	<label for="r101" class="ident">n</label>, <label for="r103" class="ident">ok</label> := <a href="forminfo.go.html#line-61" class="ident">formTable</a>[<label for="r97" class="ident">f</label>].<a href="#line-303" class="ident">quickSpan</a>(<a href="input.go.html#line-14" class="ident">inputBytes</a>(<label for="r99" class="ident">b</label>), <span class="lit-number">0</span>, <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r99" class="ident">b</label>), <label for="r100" class="ident">atEOF</label>)</code></span>
+<span class="codeline" id="line-275"><code>	<span class="keyword">if</span> <label for="r101" class="ident">n</label> &lt; <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r99" class="ident">b</label>) {</code></span>
+<span class="codeline" id="line-276"><code>		<span class="keyword">if</span> !<label for="r103" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-277"><code>			<label for="r102" class="ident">err</label> = <a href="../../../../../../../pkg/vendor/golang.org/x/text/transform.html" class="ident i0">transform</a>.<a href="../../transform/transform.go.html#line-29" class="ident">ErrEndOfSpan</a></code></span>
+<span class="codeline" id="line-278"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-279"><code>			<label for="r102" class="ident">err</label> = <a href="../../../../../../../pkg/vendor/golang.org/x/text/transform.html" class="ident i0">transform</a>.<a href="../../transform/transform.go.html#line-25" class="ident">ErrShortSrc</a></code></span>
+<span class="codeline" id="line-280"><code>		}</code></span>
+<span class="codeline" id="line-281"><code>	}</code></span>
+<span class="codeline" id="line-282"><code>	<span class="keyword">return</span> <label for="r101" class="ident">n</label>, <label for="r102" class="ident">err</label></code></span>
+<span class="codeline" id="line-283"><code>}</code></span>
+<span class="codeline" id="line-284"><code></code></span>
+<span class="codeline" id="line-285"><code><span class="comment">// SpanString returns a boundary n such that s[0:n] == f(s[0:n]).</span></code></span>
+<span class="codeline" id="line-286"><code><span class="comment">// It is not guaranteed to return the largest such n.</span></code></span>
+<span class="codeline" id="line-287"><code><span class="keyword">func</span> (<label for="r104" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r105" class="ident">SpanString</label>(<label for="r106" class="ident">s</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r107" class="ident">atEOF</label> <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) (<label for="r108" class="ident">n</label> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r109" class="ident">err</label> <a href="../../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-288"><code>	<label for="r108" class="ident">n</label>, <label for="r110" class="ident">ok</label> := <a href="forminfo.go.html#line-61" class="ident">formTable</a>[<label for="r104" class="ident">f</label>].<a href="#line-303" class="ident">quickSpan</a>(<a href="input.go.html#line-18" class="ident">inputString</a>(<label for="r106" class="ident">s</label>), <span class="lit-number">0</span>, <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r106" class="ident">s</label>), <label for="r107" class="ident">atEOF</label>)</code></span>
+<span class="codeline" id="line-289"><code>	<span class="keyword">if</span> <label for="r108" class="ident">n</label> &lt; <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r106" class="ident">s</label>) {</code></span>
+<span class="codeline" id="line-290"><code>		<span class="keyword">if</span> !<label for="r110" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-291"><code>			<label for="r109" class="ident">err</label> = <a href="../../../../../../../pkg/vendor/golang.org/x/text/transform.html" class="ident i0">transform</a>.<a href="../../transform/transform.go.html#line-29" class="ident">ErrEndOfSpan</a></code></span>
+<span class="codeline" id="line-292"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-293"><code>			<label for="r109" class="ident">err</label> = <a href="../../../../../../../pkg/vendor/golang.org/x/text/transform.html" class="ident i0">transform</a>.<a href="../../transform/transform.go.html#line-25" class="ident">ErrShortSrc</a></code></span>
+<span class="codeline" id="line-294"><code>		}</code></span>
+<span class="codeline" id="line-295"><code>	}</code></span>
+<span class="codeline" id="line-296"><code>	<span class="keyword">return</span> <label for="r108" class="ident">n</label>, <label for="r109" class="ident">err</label></code></span>
+<span class="codeline" id="line-297"><code>}</code></span>
+<span class="codeline" id="line-298"><code></code></span>
+<span class="codeline" id="line-299"><code><span class="comment">// quickSpan returns a boundary n such that src[0:n] == f(src[0:n]) and</span></code></span>
+<span class="codeline" id="line-300"><code><span class="comment">// whether any non-normalized parts were found. If atEOF is false, n will</span></code></span>
+<span class="codeline" id="line-301"><code><span class="comment">// not point past the last segment if this segment might be become</span></code></span>
+<span class="codeline" id="line-302"><code><span class="comment">// non-normalized by appending other runes.</span></code></span>
+<span class="codeline" id="line-303"><code><span class="keyword">func</span> (<label for="r111" class="ident">f</label> *<a href="forminfo.go.html#line-54" class="ident">formInfo</a>) <label for="r112" class="ident">quickSpan</label>(<label for="r113" class="ident">src</label> <a href="input.go.html#line-9" class="ident">input</a>, <label for="r114" class="ident">i</label>, <label for="r115" class="ident">end</label> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r116" class="ident">atEOF</label> <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) (<label for="r117" class="ident">n</label> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r118" class="ident">ok</label> <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-304"><code>	<span class="keyword">var</span> <label for="r119" class="ident">lastCC</label> <a href="../../../../../../../pkg/builtin.html#name-uint8" class="ident">uint8</a></code></span>
+<span class="codeline" id="line-305"><code>	<label for="r120" class="ident">ss</label> := <a href="composition.go.html#line-34" class="ident">streamSafe</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-306"><code>	<label for="r121" class="ident">lastSegStart</label> := <label for="r114" class="ident">i</label></code></span>
+<span class="codeline" id="line-307"><code>	<span class="keyword">for</span> <label for="r117" class="ident">n</label> = <label for="r115" class="ident">end</label>; <label for="r114" class="ident">i</label> &lt; <label for="r117" class="ident">n</label>; {</code></span>
+<span class="codeline" id="line-308"><code>		<span class="keyword">if</span> <label for="r122" class="ident">j</label> := <label for="r113" class="ident">src</label>.<a href="input.go.html#line-39" class="ident">skipASCII</a>(<label for="r114" class="ident">i</label>, <label for="r117" class="ident">n</label>); <label for="r114" class="ident">i</label> != <label for="r122" class="ident">j</label> {</code></span>
+<span class="codeline" id="line-309"><code>			<label for="r114" class="ident">i</label> = <label for="r122" class="ident">j</label></code></span>
+<span class="codeline" id="line-310"><code>			<label for="r121" class="ident">lastSegStart</label> = <label for="r114" class="ident">i</label> - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-311"><code>			<label for="r119" class="ident">lastCC</label> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-312"><code>			<label for="r120" class="ident">ss</label> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-313"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-314"><code>		}</code></span>
+<span class="codeline" id="line-315"><code>		<label for="r123" class="ident">info</label> := <label for="r111" class="ident">f</label>.<a href="forminfo.go.html#line-57" class="ident">info</a>(<label for="r113" class="ident">src</label>, <label for="r114" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-316"><code>		<span class="keyword">if</span> <label for="r123" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-317"><code>			<span class="keyword">if</span> <label for="r116" class="ident">atEOF</label> {</code></span>
+<span class="codeline" id="line-318"><code>				<span class="comment">// include incomplete runes</span></code></span>
+<span class="codeline" id="line-319"><code>				<span class="keyword">return</span> <label for="r117" class="ident">n</label>, <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-320"><code>			}</code></span>
+<span class="codeline" id="line-321"><code>			<span class="keyword">return</span> <label for="r121" class="ident">lastSegStart</label>, <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-322"><code>		}</code></span>
+<span class="codeline" id="line-323"><code>		<span class="comment">// This block needs to be before the next, because it is possible to</span></code></span>
+<span class="codeline" id="line-324"><code><span class="comment">		// have an overflow for runes that are starters (e.g. with U+FF9E).</span></code></span>
+<span class="codeline" id="line-325"><code>		<span class="keyword">switch</span> <label for="r120" class="ident">ss</label>.<a href="composition.go.html#line-44" class="ident">next</a>(<label for="r123" class="ident">info</label>) {</code></span>
+<span class="codeline" id="line-326"><code>		<span class="keyword">case</span> <a href="composition.go.html#line-28" class="ident">ssStarter</a>:</code></span>
+<span class="codeline" id="line-327"><code>			<label for="r121" class="ident">lastSegStart</label> = <label for="r114" class="ident">i</label></code></span>
+<span class="codeline" id="line-328"><code>		<span class="keyword">case</span> <a href="composition.go.html#line-30" class="ident">ssOverflow</a>:</code></span>
+<span class="codeline" id="line-329"><code>			<span class="keyword">return</span> <label for="r121" class="ident">lastSegStart</label>, <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-330"><code>		<span class="keyword">case</span> <a href="composition.go.html#line-26" class="ident">ssSuccess</a>:</code></span>
+<span class="codeline" id="line-331"><code>			<span class="keyword">if</span> <label for="r119" class="ident">lastCC</label> &gt; <label for="r123" class="ident">info</label>.<a href="forminfo.go.html#line-43" class="ident">ccc</a> {</code></span>
+<span class="codeline" id="line-332"><code>				<span class="keyword">return</span> <label for="r121" class="ident">lastSegStart</label>, <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-333"><code>			}</code></span>
+<span class="codeline" id="line-334"><code>		}</code></span>
+<span class="codeline" id="line-335"><code>		<span class="keyword">if</span> <label for="r111" class="ident">f</label>.<a href="forminfo.go.html#line-56" class="ident">composing</a> {</code></span>
+<span class="codeline" id="line-336"><code>			<span class="keyword">if</span> !<label for="r123" class="ident">info</label>.<a href="forminfo.go.html#line-122" class="ident">isYesC</a>() {</code></span>
+<span class="codeline" id="line-337"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-338"><code>			}</code></span>
+<span class="codeline" id="line-339"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-340"><code>			<span class="keyword">if</span> !<label for="r123" class="ident">info</label>.<a href="forminfo.go.html#line-123" class="ident">isYesD</a>() {</code></span>
+<span class="codeline" id="line-341"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-342"><code>			}</code></span>
+<span class="codeline" id="line-343"><code>		}</code></span>
+<span class="codeline" id="line-344"><code>		<label for="r119" class="ident">lastCC</label> = <label for="r123" class="ident">info</label>.<a href="forminfo.go.html#line-43" class="ident">ccc</a></code></span>
+<span class="codeline" id="line-345"><code>		<label for="r114" class="ident">i</label> += <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r123" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a>)</code></span>
+<span class="codeline" id="line-346"><code>	}</code></span>
+<span class="codeline" id="line-347"><code>	<span class="keyword">if</span> <label for="r114" class="ident">i</label> == <label for="r117" class="ident">n</label> {</code></span>
+<span class="codeline" id="line-348"><code>		<span class="keyword">if</span> !<label for="r116" class="ident">atEOF</label> {</code></span>
+<span class="codeline" id="line-349"><code>			<label for="r117" class="ident">n</label> = <label for="r121" class="ident">lastSegStart</label></code></span>
+<span class="codeline" id="line-350"><code>		}</code></span>
+<span class="codeline" id="line-351"><code>		<span class="keyword">return</span> <label for="r117" class="ident">n</label>, <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-352"><code>	}</code></span>
+<span class="codeline" id="line-353"><code>	<span class="keyword">return</span> <label for="r121" class="ident">lastSegStart</label>, <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-354"><code>}</code></span>
+<span class="codeline" id="line-355"><code></code></span>
+<span class="codeline" id="line-356"><code><span class="comment">// QuickSpanString returns a boundary n such that s[0:n] == f(s[0:n]).</span></code></span>
+<span class="codeline" id="line-357"><code><span class="comment">// It is not guaranteed to return the largest such n.</span></code></span>
+<span class="codeline" id="line-358"><code><span class="keyword">func</span> (<label for="r124" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r125" class="ident">QuickSpanString</label>(<label for="r126" class="ident">s</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-359"><code>	<label for="r127" class="ident">n</label>, <label for="r128" class="ident">_</label> := <a href="forminfo.go.html#line-61" class="ident">formTable</a>[<label for="r124" class="ident">f</label>].<a href="#line-303" class="ident">quickSpan</a>(<a href="input.go.html#line-18" class="ident">inputString</a>(<label for="r126" class="ident">s</label>), <span class="lit-number">0</span>, <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r126" class="ident">s</label>), <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-360"><code>	<span class="keyword">return</span> <label for="r127" class="ident">n</label></code></span>
+<span class="codeline" id="line-361"><code>}</code></span>
+<span class="codeline" id="line-362"><code></code></span>
+<span class="codeline" id="line-363"><code><span class="comment">// FirstBoundary returns the position i of the first boundary in b</span></code></span>
+<span class="codeline" id="line-364"><code><span class="comment">// or -1 if b contains no boundary.</span></code></span>
+<span class="codeline" id="line-365"><code><span class="keyword">func</span> (<label for="r129" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r130" class="ident">FirstBoundary</label>(<label for="r131" class="ident">b</label> []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-366"><code>	<span class="keyword">return</span> <label for="r129" class="ident">f</label>.<a href="#line-369" class="ident">firstBoundary</a>(<a href="input.go.html#line-14" class="ident">inputBytes</a>(<label for="r131" class="ident">b</label>), <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r131" class="ident">b</label>))</code></span>
+<span class="codeline" id="line-367"><code>}</code></span>
+<span class="codeline" id="line-368"><code></code></span>
+<span class="codeline" id="line-369"><code><span class="keyword">func</span> (<label for="r132" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r133" class="ident">firstBoundary</label>(<label for="r134" class="ident">src</label> <a href="input.go.html#line-9" class="ident">input</a>, <label for="r135" class="ident">nsrc</label> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-370"><code>	<label for="r136" class="ident">i</label> := <label for="r134" class="ident">src</label>.<a href="input.go.html#line-50" class="ident">skipContinuationBytes</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-371"><code>	<span class="keyword">if</span> <label for="r136" class="ident">i</label> &gt;= <label for="r135" class="ident">nsrc</label> {</code></span>
+<span class="codeline" id="line-372"><code>		<span class="keyword">return</span> -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-373"><code>	}</code></span>
+<span class="codeline" id="line-374"><code>	<label for="r137" class="ident">fd</label> := <a href="forminfo.go.html#line-61" class="ident">formTable</a>[<label for="r132" class="ident">f</label>]</code></span>
+<span class="codeline" id="line-375"><code>	<label for="r138" class="ident">ss</label> := <a href="composition.go.html#line-34" class="ident">streamSafe</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-376"><code>	<span class="comment">// We should call ss.first here, but we can't as the first rune is</span></code></span>
+<span class="codeline" id="line-377"><code><span class="comment">	// skipped already. This means FirstBoundary can't really determine</span></code></span>
+<span class="codeline" id="line-378"><code><span class="comment">	// CGJ insertion points correctly. Luckily it doesn't have to.</span></code></span>
+<span class="codeline" id="line-379"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-380"><code>		<label for="r139" class="ident">info</label> := <label for="r137" class="ident">fd</label>.<a href="forminfo.go.html#line-57" class="ident">info</a>(<label for="r134" class="ident">src</label>, <label for="r136" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-381"><code>		<span class="keyword">if</span> <label for="r139" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-382"><code>			<span class="keyword">return</span> -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-383"><code>		}</code></span>
+<span class="codeline" id="line-384"><code>		<span class="keyword">if</span> <label for="r140" class="ident">s</label> := <label for="r138" class="ident">ss</label>.<a href="composition.go.html#line-44" class="ident">next</a>(<label for="r139" class="ident">info</label>); <label for="r140" class="ident">s</label> != <a href="composition.go.html#line-26" class="ident">ssSuccess</a> {</code></span>
+<span class="codeline" id="line-385"><code>			<span class="keyword">return</span> <label for="r136" class="ident">i</label></code></span>
+<span class="codeline" id="line-386"><code>		}</code></span>
+<span class="codeline" id="line-387"><code>		<label for="r136" class="ident">i</label> += <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r139" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a>)</code></span>
+<span class="codeline" id="line-388"><code>		<span class="keyword">if</span> <label for="r136" class="ident">i</label> &gt;= <label for="r135" class="ident">nsrc</label> {</code></span>
+<span class="codeline" id="line-389"><code>			<span class="keyword">if</span> !<label for="r139" class="ident">info</label>.<a href="forminfo.go.html#line-107" class="ident">BoundaryAfter</a>() &amp;&amp; !<label for="r138" class="ident">ss</label>.<a href="composition.go.html#line-86" class="ident">isMax</a>() {</code></span>
+<span class="codeline" id="line-390"><code>				<span class="keyword">return</span> -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-391"><code>			}</code></span>
+<span class="codeline" id="line-392"><code>			<span class="keyword">return</span> <label for="r135" class="ident">nsrc</label></code></span>
+<span class="codeline" id="line-393"><code>		}</code></span>
+<span class="codeline" id="line-394"><code>	}</code></span>
+<span class="codeline" id="line-395"><code>}</code></span>
+<span class="codeline" id="line-396"><code></code></span>
+<span class="codeline" id="line-397"><code><span class="comment">// FirstBoundaryInString returns the position i of the first boundary in s</span></code></span>
+<span class="codeline" id="line-398"><code><span class="comment">// or -1 if s contains no boundary.</span></code></span>
+<span class="codeline" id="line-399"><code><span class="keyword">func</span> (<label for="r141" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r142" class="ident">FirstBoundaryInString</label>(<label for="r143" class="ident">s</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-400"><code>	<span class="keyword">return</span> <label for="r141" class="ident">f</label>.<a href="#line-369" class="ident">firstBoundary</a>(<a href="input.go.html#line-18" class="ident">inputString</a>(<label for="r143" class="ident">s</label>), <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r143" class="ident">s</label>))</code></span>
+<span class="codeline" id="line-401"><code>}</code></span>
+<span class="codeline" id="line-402"><code></code></span>
+<span class="codeline" id="line-403"><code><span class="comment">// NextBoundary reports the index of the boundary between the first and next</span></code></span>
+<span class="codeline" id="line-404"><code><span class="comment">// segment in b or -1 if atEOF is false and there are not enough bytes to</span></code></span>
+<span class="codeline" id="line-405"><code><span class="comment">// determine this boundary.</span></code></span>
+<span class="codeline" id="line-406"><code><span class="keyword">func</span> (<label for="r144" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r145" class="ident">NextBoundary</label>(<label for="r146" class="ident">b</label> []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r147" class="ident">atEOF</label> <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-407"><code>	<span class="keyword">return</span> <label for="r144" class="ident">f</label>.<a href="#line-417" class="ident">nextBoundary</a>(<a href="input.go.html#line-14" class="ident">inputBytes</a>(<label for="r146" class="ident">b</label>), <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r146" class="ident">b</label>), <label for="r147" class="ident">atEOF</label>)</code></span>
+<span class="codeline" id="line-408"><code>}</code></span>
+<span class="codeline" id="line-409"><code></code></span>
+<span class="codeline" id="line-410"><code><span class="comment">// NextBoundaryInString reports the index of the boundary between the first and</span></code></span>
+<span class="codeline" id="line-411"><code><span class="comment">// next segment in b or -1 if atEOF is false and there are not enough bytes to</span></code></span>
+<span class="codeline" id="line-412"><code><span class="comment">// determine this boundary.</span></code></span>
+<span class="codeline" id="line-413"><code><span class="keyword">func</span> (<label for="r148" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r149" class="ident">NextBoundaryInString</label>(<label for="r150" class="ident">s</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r151" class="ident">atEOF</label> <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-414"><code>	<span class="keyword">return</span> <label for="r148" class="ident">f</label>.<a href="#line-417" class="ident">nextBoundary</a>(<a href="input.go.html#line-18" class="ident">inputString</a>(<label for="r150" class="ident">s</label>), <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r150" class="ident">s</label>), <label for="r151" class="ident">atEOF</label>)</code></span>
+<span class="codeline" id="line-415"><code>}</code></span>
+<span class="codeline" id="line-416"><code></code></span>
+<span class="codeline" id="line-417"><code><span class="keyword">func</span> (<label for="r152" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r153" class="ident">nextBoundary</label>(<label for="r154" class="ident">src</label> <a href="input.go.html#line-9" class="ident">input</a>, <label for="r155" class="ident">nsrc</label> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r156" class="ident">atEOF</label> <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-418"><code>	<span class="keyword">if</span> <label for="r155" class="ident">nsrc</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-419"><code>		<span class="keyword">if</span> <label for="r156" class="ident">atEOF</label> {</code></span>
+<span class="codeline" id="line-420"><code>			<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-421"><code>		}</code></span>
+<span class="codeline" id="line-422"><code>		<span class="keyword">return</span> -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-423"><code>	}</code></span>
+<span class="codeline" id="line-424"><code>	<label for="r157" class="ident">fd</label> := <a href="forminfo.go.html#line-61" class="ident">formTable</a>[<label for="r152" class="ident">f</label>]</code></span>
+<span class="codeline" id="line-425"><code>	<label for="r158" class="ident">info</label> := <label for="r157" class="ident">fd</label>.<a href="forminfo.go.html#line-57" class="ident">info</a>(<label for="r154" class="ident">src</label>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-426"><code>	<span class="keyword">if</span> <label for="r158" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-427"><code>		<span class="keyword">if</span> <label for="r156" class="ident">atEOF</label> {</code></span>
+<span class="codeline" id="line-428"><code>			<span class="keyword">return</span> <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-429"><code>		}</code></span>
+<span class="codeline" id="line-430"><code>		<span class="keyword">return</span> -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-431"><code>	}</code></span>
+<span class="codeline" id="line-432"><code>	<label for="r159" class="ident">ss</label> := <a href="composition.go.html#line-34" class="ident">streamSafe</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-433"><code>	<label for="r159" class="ident">ss</label>.<a href="composition.go.html#line-38" class="ident">first</a>(<label for="r158" class="ident">info</label>)</code></span>
+<span class="codeline" id="line-434"><code></code></span>
+<span class="codeline" id="line-435"><code>	<span class="keyword">for</span> <label for="r160" class="ident">i</label> := <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r158" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a>); <label for="r160" class="ident">i</label> &lt; <label for="r155" class="ident">nsrc</label>; <label for="r160" class="ident">i</label> += <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r158" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a>) {</code></span>
+<span class="codeline" id="line-436"><code>		<label for="r158" class="ident">info</label> = <label for="r157" class="ident">fd</label>.<a href="forminfo.go.html#line-57" class="ident">info</a>(<label for="r154" class="ident">src</label>, <label for="r160" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-437"><code>		<span class="keyword">if</span> <label for="r158" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-438"><code>			<span class="keyword">if</span> <label for="r156" class="ident">atEOF</label> {</code></span>
+<span class="codeline" id="line-439"><code>				<span class="keyword">return</span> <label for="r160" class="ident">i</label></code></span>
+<span class="codeline" id="line-440"><code>			}</code></span>
+<span class="codeline" id="line-441"><code>			<span class="keyword">return</span> -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-442"><code>		}</code></span>
+<span class="codeline" id="line-443"><code>		<span class="comment">// TODO: Using streamSafe to determine the boundary isn't the same as</span></code></span>
+<span class="codeline" id="line-444"><code><span class="comment">		// using BoundaryBefore. Determine which should be used.</span></code></span>
+<span class="codeline" id="line-445"><code>		<span class="keyword">if</span> <label for="r161" class="ident">s</label> := <label for="r159" class="ident">ss</label>.<a href="composition.go.html#line-44" class="ident">next</a>(<label for="r158" class="ident">info</label>); <label for="r161" class="ident">s</label> != <a href="composition.go.html#line-26" class="ident">ssSuccess</a> {</code></span>
+<span class="codeline" id="line-446"><code>			<span class="keyword">return</span> <label for="r160" class="ident">i</label></code></span>
+<span class="codeline" id="line-447"><code>		}</code></span>
+<span class="codeline" id="line-448"><code>	}</code></span>
+<span class="codeline" id="line-449"><code>	<span class="keyword">if</span> !<label for="r156" class="ident">atEOF</label> &amp;&amp; !<label for="r158" class="ident">info</label>.<a href="forminfo.go.html#line-107" class="ident">BoundaryAfter</a>() &amp;&amp; !<label for="r159" class="ident">ss</label>.<a href="composition.go.html#line-86" class="ident">isMax</a>() {</code></span>
+<span class="codeline" id="line-450"><code>		<span class="keyword">return</span> -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-451"><code>	}</code></span>
+<span class="codeline" id="line-452"><code>	<span class="keyword">return</span> <label for="r155" class="ident">nsrc</label></code></span>
+<span class="codeline" id="line-453"><code>}</code></span>
+<span class="codeline" id="line-454"><code></code></span>
+<span class="codeline" id="line-455"><code><span class="comment">// LastBoundary returns the position i of the last boundary in b</span></code></span>
+<span class="codeline" id="line-456"><code><span class="comment">// or -1 if b contains no boundary.</span></code></span>
+<span class="codeline" id="line-457"><code><span class="keyword">func</span> (<label for="r162" class="ident">f</label> <a href="#line-34" class="ident">Form</a>) <label for="r163" class="ident">LastBoundary</label>(<label for="r164" class="ident">b</label> []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-458"><code>	<span class="keyword">return</span> <a href="#line-461" class="ident">lastBoundary</a>(<a href="forminfo.go.html#line-61" class="ident">formTable</a>[<label for="r162" class="ident">f</label>], <label for="r164" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-459"><code>}</code></span>
+<span class="codeline" id="line-460"><code></code></span>
+<span class="codeline" id="line-461"><code><span class="keyword">func</span> <label for="r165" class="ident"><a href="../../../../../../../pkg/vendor/golang.org/x/text/unicode/norm.html#name-lastBoundary" class="ident">lastBoundary</a></label>(<label for="r166" class="ident">fd</label> *<a href="forminfo.go.html#line-54" class="ident">formInfo</a>, <label for="r167" class="ident">b</label> []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-462"><code>	<label for="r168" class="ident">i</label> := <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r167" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-463"><code>	<label for="r169" class="ident">info</label>, <label for="r170" class="ident">p</label> := <a href="#line-555" class="ident">lastRuneStart</a>(<label for="r166" class="ident">fd</label>, <label for="r167" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-464"><code>	<span class="keyword">if</span> <label for="r170" class="ident">p</label> == -<span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-465"><code>		<span class="keyword">return</span> -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-466"><code>	}</code></span>
+<span class="codeline" id="line-467"><code>	<span class="keyword">if</span> <label for="r169" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a> == <span class="lit-number">0</span> { <span class="comment">// ends with incomplete rune</span></code></span>
+<span class="codeline" id="line-468"><code>		<span class="keyword">if</span> <label for="r170" class="ident">p</label> == <span class="lit-number">0</span> { <span class="comment">// starts with incomplete rune</span></code></span>
+<span class="codeline" id="line-469"><code>			<span class="keyword">return</span> -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-470"><code>		}</code></span>
+<span class="codeline" id="line-471"><code>		<label for="r168" class="ident">i</label> = <label for="r170" class="ident">p</label></code></span>
+<span class="codeline" id="line-472"><code>		<label for="r169" class="ident">info</label>, <label for="r170" class="ident">p</label> = <a href="#line-555" class="ident">lastRuneStart</a>(<label for="r166" class="ident">fd</label>, <label for="r167" class="ident">b</label>[:<label for="r168" class="ident">i</label>])</code></span>
+<span class="codeline" id="line-473"><code>		<span class="keyword">if</span> <label for="r170" class="ident">p</label> == -<span class="lit-number">1</span> { <span class="comment">// incomplete UTF-8 encoding or non-starter bytes without a starter</span></code></span>
+<span class="codeline" id="line-474"><code>			<span class="keyword">return</span> <label for="r168" class="ident">i</label></code></span>
+<span class="codeline" id="line-475"><code>		}</code></span>
+<span class="codeline" id="line-476"><code>	}</code></span>
+<span class="codeline" id="line-477"><code>	<span class="keyword">if</span> <label for="r170" class="ident">p</label>+<a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r169" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a>) != <label for="r168" class="ident">i</label> { <span class="comment">// trailing non-starter bytes: illegal UTF-8</span></code></span>
+<span class="codeline" id="line-478"><code>		<span class="keyword">return</span> <label for="r168" class="ident">i</label></code></span>
+<span class="codeline" id="line-479"><code>	}</code></span>
+<span class="codeline" id="line-480"><code>	<span class="keyword">if</span> <label for="r169" class="ident">info</label>.<a href="forminfo.go.html#line-107" class="ident">BoundaryAfter</a>() {</code></span>
+<span class="codeline" id="line-481"><code>		<span class="keyword">return</span> <label for="r168" class="ident">i</label></code></span>
+<span class="codeline" id="line-482"><code>	}</code></span>
+<span class="codeline" id="line-483"><code>	<label for="r171" class="ident">ss</label> := <a href="composition.go.html#line-34" class="ident">streamSafe</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-484"><code>	<label for="r172" class="ident">v</label> := <label for="r171" class="ident">ss</label>.<a href="composition.go.html#line-71" class="ident">backwards</a>(<label for="r169" class="ident">info</label>)</code></span>
+<span class="codeline" id="line-485"><code>	<span class="keyword">for</span> <label for="r168" class="ident">i</label> = <label for="r170" class="ident">p</label>; <label for="r168" class="ident">i</label> &gt;= <span class="lit-number">0</span> &amp;&amp; <label for="r172" class="ident">v</label> != <a href="composition.go.html#line-28" class="ident">ssStarter</a>; <label for="r168" class="ident">i</label> = <label for="r170" class="ident">p</label> {</code></span>
+<span class="codeline" id="line-486"><code>		<label for="r169" class="ident">info</label>, <label for="r170" class="ident">p</label> = <a href="#line-555" class="ident">lastRuneStart</a>(<label for="r166" class="ident">fd</label>, <label for="r167" class="ident">b</label>[:<label for="r168" class="ident">i</label>])</code></span>
+<span class="codeline" id="line-487"><code>		<span class="keyword">if</span> <label for="r172" class="ident">v</label> = <label for="r171" class="ident">ss</label>.<a href="composition.go.html#line-71" class="ident">backwards</a>(<label for="r169" class="ident">info</label>); <label for="r172" class="ident">v</label> == <a href="composition.go.html#line-30" class="ident">ssOverflow</a> {</code></span>
+<span class="codeline" id="line-488"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-489"><code>		}</code></span>
+<span class="codeline" id="line-490"><code>		<span class="keyword">if</span> <label for="r170" class="ident">p</label>+<a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r169" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a>) != <label for="r168" class="ident">i</label> {</code></span>
+<span class="codeline" id="line-491"><code>			<span class="keyword">if</span> <label for="r170" class="ident">p</label> == -<span class="lit-number">1</span> { <span class="comment">// no boundary found</span></code></span>
+<span class="codeline" id="line-492"><code>				<span class="keyword">return</span> -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-493"><code>			}</code></span>
+<span class="codeline" id="line-494"><code>			<span class="keyword">return</span> <label for="r168" class="ident">i</label> <span class="comment">// boundary after an illegal UTF-8 encoding</span></code></span>
+<span class="codeline" id="line-495"><code>		}</code></span>
+<span class="codeline" id="line-496"><code>	}</code></span>
+<span class="codeline" id="line-497"><code>	<span class="keyword">return</span> <label for="r168" class="ident">i</label></code></span>
+<span class="codeline" id="line-498"><code>}</code></span>
+<span class="codeline" id="line-499"><code></code></span>
+<span class="codeline" id="line-500"><code><span class="comment">// decomposeSegment scans the first segment in src into rb. It inserts 0x034f</span></code></span>
+<span class="codeline" id="line-501"><code><span class="comment">// (Grapheme Joiner) when it encounters a sequence of more than 30 non-starters</span></code></span>
+<span class="codeline" id="line-502"><code><span class="comment">// and returns the number of bytes consumed from src or iShortDst or iShortSrc.</span></code></span>
+<span class="codeline" id="line-503"><code><span class="keyword">func</span> <label for="r173" class="ident"><a href="../../../../../../../pkg/vendor/golang.org/x/text/unicode/norm.html#name-decomposeSegment" class="ident">decomposeSegment</a></label>(<label for="r174" class="ident">rb</label> *<a href="composition.go.html#line-98" class="ident">reorderBuffer</a>, <label for="r175" class="ident">sp</label> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r176" class="ident">atEOF</label> <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-504"><code>	<span class="comment">// Force one character to be consumed.</span></code></span>
+<span class="codeline" id="line-505"><code>	<label for="r177" class="ident">info</label> := <label for="r174" class="ident">rb</label>.<a href="composition.go.html#line-104" class="ident">f</a>.<a href="forminfo.go.html#line-57" class="ident">info</a>(<label for="r174" class="ident">rb</label>.<a href="composition.go.html#line-106" class="ident">src</a>, <label for="r175" class="ident">sp</label>)</code></span>
+<span class="codeline" id="line-506"><code>	<span class="keyword">if</span> <label for="r177" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-507"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-508"><code>	}</code></span>
+<span class="codeline" id="line-509"><code>	<span class="keyword">if</span> <label for="r178" class="ident">s</label> := <label for="r174" class="ident">rb</label>.<a href="composition.go.html#line-102" class="ident">ss</a>.<a href="composition.go.html#line-44" class="ident">next</a>(<label for="r177" class="ident">info</label>); <label for="r178" class="ident">s</label> == <a href="composition.go.html#line-28" class="ident">ssStarter</a> {</code></span>
+<span class="codeline" id="line-510"><code>		<span class="comment">// TODO: this could be removed if we don't support merging.</span></code></span>
+<span class="codeline" id="line-511"><code>		<span class="keyword">if</span> <label for="r174" class="ident">rb</label>.<a href="composition.go.html#line-103" class="ident">nrune</a> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-512"><code>			<span class="keyword">goto</span> <label for="r179" class="ident">end</label></code></span>
+<span class="codeline" id="line-513"><code>		}</code></span>
+<span class="codeline" id="line-514"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r178" class="ident">s</label> == <a href="composition.go.html#line-30" class="ident">ssOverflow</a> {</code></span>
+<span class="codeline" id="line-515"><code>		<label for="r174" class="ident">rb</label>.<a href="composition.go.html#line-273" class="ident">insertCGJ</a>()</code></span>
+<span class="codeline" id="line-516"><code>		<span class="keyword">goto</span> <label for="r179" class="ident">end</label></code></span>
+<span class="codeline" id="line-517"><code>	}</code></span>
+<span class="codeline" id="line-518"><code>	<span class="keyword">if</span> <label for="r180" class="ident">err</label> := <label for="r174" class="ident">rb</label>.<a href="composition.go.html#line-218" class="ident">insertFlush</a>(<label for="r174" class="ident">rb</label>.<a href="composition.go.html#line-106" class="ident">src</a>, <label for="r175" class="ident">sp</label>, <label for="r177" class="ident">info</label>); <label for="r180" class="ident">err</label> != <a href="composition.go.html#line-209" class="ident">iSuccess</a> {</code></span>
+<span class="codeline" id="line-519"><code>		<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r180" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-520"><code>	}</code></span>
+<span class="codeline" id="line-521"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-522"><code>		<label for="r175" class="ident">sp</label> += <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r177" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a>)</code></span>
+<span class="codeline" id="line-523"><code>		<span class="keyword">if</span> <label for="r175" class="ident">sp</label> &gt;= <label for="r174" class="ident">rb</label>.<a href="composition.go.html#line-107" class="ident">nsrc</a> {</code></span>
+<span class="codeline" id="line-524"><code>			<span class="keyword">if</span> !<label for="r176" class="ident">atEOF</label> &amp;&amp; !<label for="r177" class="ident">info</label>.<a href="forminfo.go.html#line-107" class="ident">BoundaryAfter</a>() {</code></span>
+<span class="codeline" id="line-525"><code>				<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<a href="composition.go.html#line-211" class="ident">iShortSrc</a>)</code></span>
+<span class="codeline" id="line-526"><code>			}</code></span>
+<span class="codeline" id="line-527"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-528"><code>		}</code></span>
+<span class="codeline" id="line-529"><code>		<label for="r177" class="ident">info</label> = <label for="r174" class="ident">rb</label>.<a href="composition.go.html#line-104" class="ident">f</a>.<a href="forminfo.go.html#line-57" class="ident">info</a>(<label for="r174" class="ident">rb</label>.<a href="composition.go.html#line-106" class="ident">src</a>, <label for="r175" class="ident">sp</label>)</code></span>
+<span class="codeline" id="line-530"><code>		<span class="keyword">if</span> <label for="r177" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-531"><code>			<span class="keyword">if</span> !<label for="r176" class="ident">atEOF</label> {</code></span>
+<span class="codeline" id="line-532"><code>				<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<a href="composition.go.html#line-211" class="ident">iShortSrc</a>)</code></span>
+<span class="codeline" id="line-533"><code>			}</code></span>
+<span class="codeline" id="line-534"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-535"><code>		}</code></span>
+<span class="codeline" id="line-536"><code>		<span class="keyword">if</span> <label for="r181" class="ident">s</label> := <label for="r174" class="ident">rb</label>.<a href="composition.go.html#line-102" class="ident">ss</a>.<a href="composition.go.html#line-44" class="ident">next</a>(<label for="r177" class="ident">info</label>); <label for="r181" class="ident">s</label> == <a href="composition.go.html#line-28" class="ident">ssStarter</a> {</code></span>
+<span class="codeline" id="line-537"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-538"><code>		} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r181" class="ident">s</label> == <a href="composition.go.html#line-30" class="ident">ssOverflow</a> {</code></span>
+<span class="codeline" id="line-539"><code>			<label for="r174" class="ident">rb</label>.<a href="composition.go.html#line-273" class="ident">insertCGJ</a>()</code></span>
+<span class="codeline" id="line-540"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-541"><code>		}</code></span>
+<span class="codeline" id="line-542"><code>		<span class="keyword">if</span> <label for="r182" class="ident">err</label> := <label for="r174" class="ident">rb</label>.<a href="composition.go.html#line-218" class="ident">insertFlush</a>(<label for="r174" class="ident">rb</label>.<a href="composition.go.html#line-106" class="ident">src</a>, <label for="r175" class="ident">sp</label>, <label for="r177" class="ident">info</label>); <label for="r182" class="ident">err</label> != <a href="composition.go.html#line-209" class="ident">iSuccess</a> {</code></span>
+<span class="codeline" id="line-543"><code>			<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r182" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-544"><code>		}</code></span>
+<span class="codeline" id="line-545"><code>	}</code></span>
+<span class="codeline" id="line-546"><code><label for="r179" class="ident">end</label>:</code></span>
+<span class="codeline" id="line-547"><code>	<span class="keyword">if</span> !<label for="r174" class="ident">rb</label>.<a href="composition.go.html#line-139" class="ident">doFlush</a>() {</code></span>
+<span class="codeline" id="line-548"><code>		<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<a href="composition.go.html#line-210" class="ident">iShortDst</a>)</code></span>
+<span class="codeline" id="line-549"><code>	}</code></span>
+<span class="codeline" id="line-550"><code>	<span class="keyword">return</span> <label for="r175" class="ident">sp</label></code></span>
+<span class="codeline" id="line-551"><code>}</code></span>
+<span class="codeline" id="line-552"><code></code></span>
+<span class="codeline" id="line-553"><code><span class="comment">// lastRuneStart returns the runeInfo and position of the last</span></code></span>
+<span class="codeline" id="line-554"><code><span class="comment">// rune in buf or the zero runeInfo and -1 if no rune was found.</span></code></span>
+<span class="codeline" id="line-555"><code><span class="keyword">func</span> <label for="r183" class="ident"><a href="../../../../../../../pkg/vendor/golang.org/x/text/unicode/norm.html#name-lastRuneStart" class="ident">lastRuneStart</a></label>(<label for="r184" class="ident">fd</label> *<a href="forminfo.go.html#line-54" class="ident">formInfo</a>, <label for="r185" class="ident">buf</label> []<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="forminfo.go.html#line-40" class="ident">Properties</a>, <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-556"><code>	<label for="r186" class="ident">p</label> := <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r185" class="ident">buf</label>) - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-557"><code>	<span class="keyword">for</span> ; <label for="r186" class="ident">p</label> &gt;= <span class="lit-number">0</span> &amp;&amp; !<a href="../../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../../unicode/utf8/utf8.go.html#line-448" class="ident">RuneStart</a>(<label for="r185" class="ident">buf</label>[<label for="r186" class="ident">p</label>]); <label for="r186" class="ident">p</label>-- {</code></span>
+<span class="codeline" id="line-558"><code>	}</code></span>
+<span class="codeline" id="line-559"><code>	<span class="keyword">if</span> <label for="r186" class="ident">p</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-560"><code>		<span class="keyword">return</span> <a href="forminfo.go.html#line-40" class="ident">Properties</a>{}, -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-561"><code>	}</code></span>
+<span class="codeline" id="line-562"><code>	<span class="keyword">return</span> <label for="r184" class="ident">fd</label>.<a href="forminfo.go.html#line-57" class="ident">info</a>(<a href="input.go.html#line-14" class="ident">inputBytes</a>(<label for="r185" class="ident">buf</label>), <label for="r186" class="ident">p</label>), <label for="r186" class="ident">p</label></code></span>
+<span class="codeline" id="line-563"><code>}</code></span>
+<span class="codeline" id="line-564"><code></code></span>
+<span class="codeline" id="line-565"><code><span class="comment">// decomposeToLastBoundary finds an open segment at the end of the buffer</span></code></span>
+<span class="codeline" id="line-566"><code><span class="comment">// and scans it into rb. Returns the buffer minus the last segment.</span></code></span>
+<span class="codeline" id="line-567"><code><span class="keyword">func</span> <label for="r187" class="ident"><a href="../../../../../../../pkg/vendor/golang.org/x/text/unicode/norm.html#name-decomposeToLastBoundary" class="ident">decomposeToLastBoundary</a></label>(<label for="r188" class="ident">rb</label> *<a href="composition.go.html#line-98" class="ident">reorderBuffer</a>) {</code></span>
+<span class="codeline" id="line-568"><code>	<label for="r189" class="ident">fd</label> := &amp;<label for="r188" class="ident">rb</label>.<a href="composition.go.html#line-104" class="ident">f</a></code></span>
+<span class="codeline" id="line-569"><code>	<label for="r190" class="ident">info</label>, <label for="r191" class="ident">i</label> := <a href="#line-555" class="ident">lastRuneStart</a>(<label for="r189" class="ident">fd</label>, <label for="r188" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a>)</code></span>
+<span class="codeline" id="line-570"><code>	<span class="keyword">if</span> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r190" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a>) != <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r188" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a>)-<label for="r191" class="ident">i</label> {</code></span>
+<span class="codeline" id="line-571"><code>		<span class="comment">// illegal trailing continuation bytes</span></code></span>
+<span class="codeline" id="line-572"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-573"><code>	}</code></span>
+<span class="codeline" id="line-574"><code>	<span class="keyword">if</span> <label for="r190" class="ident">info</label>.<a href="forminfo.go.html#line-107" class="ident">BoundaryAfter</a>() {</code></span>
+<span class="codeline" id="line-575"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-576"><code>	}</code></span>
+<span class="codeline" id="line-577"><code>	<span class="keyword">var</span> <label for="r192" class="ident">add</label> [<a href="composition.go.html#line-10" class="ident">maxNonStarters</a> + <span class="lit-number">1</span>]<a href="forminfo.go.html#line-40" class="ident">Properties</a> <span class="comment">// stores runeInfo in reverse order</span></code></span>
+<span class="codeline" id="line-578"><code>	<label for="r193" class="ident">padd</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-579"><code>	<label for="r194" class="ident">ss</label> := <a href="composition.go.html#line-34" class="ident">streamSafe</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-580"><code>	<label for="r195" class="ident">p</label> := <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r188" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a>)</code></span>
+<span class="codeline" id="line-581"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-582"><code>		<label for="r192" class="ident">add</label>[<label for="r193" class="ident">padd</label>] = <label for="r190" class="ident">info</label></code></span>
+<span class="codeline" id="line-583"><code>		<label for="r196" class="ident">v</label> := <label for="r194" class="ident">ss</label>.<a href="composition.go.html#line-71" class="ident">backwards</a>(<label for="r190" class="ident">info</label>)</code></span>
+<span class="codeline" id="line-584"><code>		<span class="keyword">if</span> <label for="r196" class="ident">v</label> == <a href="composition.go.html#line-30" class="ident">ssOverflow</a> {</code></span>
+<span class="codeline" id="line-585"><code>			<span class="comment">// Note that if we have an overflow, it the string we are appending to</span></code></span>
+<span class="codeline" id="line-586"><code><span class="comment">			// is not correctly normalized. In this case the behavior is undefined.</span></code></span>
+<span class="codeline" id="line-587"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-588"><code>		}</code></span>
+<span class="codeline" id="line-589"><code>		<label for="r193" class="ident">padd</label>++</code></span>
+<span class="codeline" id="line-590"><code>		<label for="r195" class="ident">p</label> -= <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r190" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a>)</code></span>
+<span class="codeline" id="line-591"><code>		<span class="keyword">if</span> <label for="r196" class="ident">v</label> == <a href="composition.go.html#line-28" class="ident">ssStarter</a> || <label for="r195" class="ident">p</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-592"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-593"><code>		}</code></span>
+<span class="codeline" id="line-594"><code>		<label for="r190" class="ident">info</label>, <label for="r191" class="ident">i</label> = <a href="#line-555" class="ident">lastRuneStart</a>(<label for="r189" class="ident">fd</label>, <label for="r188" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a>[:<label for="r195" class="ident">p</label>])</code></span>
+<span class="codeline" id="line-595"><code>		<span class="keyword">if</span> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r190" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a>) != <label for="r195" class="ident">p</label>-<label for="r191" class="ident">i</label> {</code></span>
+<span class="codeline" id="line-596"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-597"><code>		}</code></span>
+<span class="codeline" id="line-598"><code>	}</code></span>
+<span class="codeline" id="line-599"><code>	<label for="r188" class="ident">rb</label>.<a href="composition.go.html#line-102" class="ident">ss</a> = <label for="r194" class="ident">ss</label></code></span>
+<span class="codeline" id="line-600"><code>	<span class="comment">// Copy bytes for insertion as we may need to overwrite rb.out.</span></code></span>
+<span class="codeline" id="line-601"><code>	<span class="keyword">var</span> <label for="r197" class="ident">buf</label> [<a href="composition.go.html#line-13" class="ident">maxBufferSize</a> * <a href="../../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../../unicode/utf8/utf8.go.html#line-19" class="ident">UTFMax</a>]<a href="../../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-602"><code>	<label for="r198" class="ident">cp</label> := <label for="r197" class="ident">buf</label>[:<a href="../../../../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r197" class="ident">buf</label>[:], <label for="r188" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a>[<label for="r195" class="ident">p</label>:])]</code></span>
+<span class="codeline" id="line-603"><code>	<label for="r188" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a> = <label for="r188" class="ident">rb</label>.<a href="composition.go.html#line-110" class="ident">out</a>[:<label for="r195" class="ident">p</label>]</code></span>
+<span class="codeline" id="line-604"><code>	<span class="keyword">for</span> <label for="r193" class="ident">padd</label>--; <label for="r193" class="ident">padd</label> &gt;= <span class="lit-number">0</span>; <label for="r193" class="ident">padd</label>-- {</code></span>
+<span class="codeline" id="line-605"><code>		<label for="r190" class="ident">info</label> = <label for="r192" class="ident">add</label>[<label for="r193" class="ident">padd</label>]</code></span>
+<span class="codeline" id="line-606"><code>		<label for="r188" class="ident">rb</label>.<a href="composition.go.html#line-234" class="ident">insertUnsafe</a>(<a href="input.go.html#line-14" class="ident">inputBytes</a>(<label for="r198" class="ident">cp</label>), <span class="lit-number">0</span>, <label for="r190" class="ident">info</label>)</code></span>
+<span class="codeline" id="line-607"><code>		<label for="r198" class="ident">cp</label> = <label for="r198" class="ident">cp</label>[<label for="r190" class="ident">info</label>.<a href="forminfo.go.html#line-42" class="ident">size</a>:]</code></span>
+<span class="codeline" id="line-608"><code>	}</code></span>
+<span class="codeline" id="line-609"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: xchacha20poly1305.go in package vendor/golang.org/x/crypto/chacha20poly1305</title>
+<link href="../../../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	xchacha20poly1305.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/vendor/golang.org/x/crypto/chacha20poly1305.html">vendor/golang.org/x/crypto/chacha20poly1305</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2018 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> chacha20poly1305</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"crypto/cipher"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"errors"</span></label></code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i2"><span class="lit-string i2">"golang.org/x/crypto/chacha20"</span></label></code></span>
+<span class="codeline" id="line-12"><code>)</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">type</span> <a href="../../../../../../pkg/vendor/golang.org/x/crypto/chacha20poly1305.html#name-xchacha20poly1305" class="ident">xchacha20poly1305</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-15"><code>	key [<a href="chacha20poly1305.go.html#line-17" class="ident">KeySize</a>]<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-16"><code>}</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// NewX returns a XChaCha20-Poly1305 AEAD that uses the given 256-bit key.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// XChaCha20-Poly1305 is a ChaCha20-Poly1305 variant that takes a longer nonce,</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// suitable to be generated randomly without risk of collisions. It should be</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// preferred when nonce uniqueness cannot be trivially ensured, or whenever</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// nonces are randomly generated.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/vendor/golang.org/x/crypto/chacha20poly1305.html#name-NewX" class="ident">NewX</a></label>(<label for="r1" class="ident">key</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="../../../../../../pkg/crypto/cipher.html" class="ident i0">cipher</a>.<a href="../../../../../crypto/cipher/gcm.go.html#line-17" class="ident">AEAD</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-25"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">key</label>) != <a href="chacha20poly1305.go.html#line-17" class="ident">KeySize</a> {</code></span>
+<span class="codeline" id="line-26"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../pkg/errors.html" class="ident i1">errors</a>.<a href="../../../../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"chacha20poly1305: bad key length"</span>)</code></span>
+<span class="codeline" id="line-27"><code>	}</code></span>
+<span class="codeline" id="line-28"><code>	<label for="r2" class="ident">ret</label> := <a href="../../../../../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="#line-14" class="ident">xchacha20poly1305</a>)</code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r2" class="ident">ret</label>.<a href="#line-15" class="ident">key</a>[:], <label for="r1" class="ident">key</label>)</code></span>
+<span class="codeline" id="line-30"><code>	<span class="keyword">return</span> <label for="r2" class="ident">ret</label>, <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-31"><code>}</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">func</span> (*<a href="#line-14" class="ident">xchacha20poly1305</a>) <label for="r3" class="ident"><a href="../../../../../../imp/vendor/golang.org/x/crypto/chacha20poly1305.xchacha20poly1305*f88ae.html#name-.NonceSize" class="ident">NonceSize</a></label>() <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">return</span> <a href="chacha20poly1305.go.html#line-28" class="ident">NonceSizeX</a></code></span>
+<span class="codeline" id="line-35"><code>}</code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code><span class="keyword">func</span> (*<a href="#line-14" class="ident">xchacha20poly1305</a>) <label for="r4" class="ident"><a href="../../../../../../imp/vendor/golang.org/x/crypto/chacha20poly1305.xchacha20poly1305*f88ae.html#name-.Overhead" class="ident">Overhead</a></label>() <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-38"><code>	<span class="keyword">return</span> <span class="lit-number">16</span></code></span>
+<span class="codeline" id="line-39"><code>}</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="keyword">func</span> (<label for="r5" class="ident">x</label> *<a href="#line-14" class="ident">xchacha20poly1305</a>) <label for="r6" class="ident"><a href="../../../../../../imp/vendor/golang.org/x/crypto/chacha20poly1305.xchacha20poly1305*f88ae.html#name-.Seal" class="ident">Seal</a></label>(<label for="r7" class="ident">dst</label>, <label for="r8" class="ident">nonce</label>, <label for="r9" class="ident">plaintext</label>, <label for="r10" class="ident">additionalData</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-42"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r8" class="ident">nonce</label>) != <a href="chacha20poly1305.go.html#line-28" class="ident">NonceSizeX</a> {</code></span>
+<span class="codeline" id="line-43"><code>		<a href="../../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"chacha20poly1305: bad nonce length passed to Seal"</span>)</code></span>
+<span class="codeline" id="line-44"><code>	}</code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code>	<span class="comment">// XChaCha20-Poly1305 technically supports a 64-bit counter, so there is no</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	// size limit. However, since we reuse the ChaCha20-Poly1305 implementation,</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	// the second half of the counter is not available. This is unlikely to be</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	// an issue because the cipher.AEAD API requires the entire message to be in</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// memory, and the counter overflows at 256 GB.</span></code></span>
+<span class="codeline" id="line-51"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r9" class="ident">plaintext</label>)) &gt; (<span class="lit-number">1</span>&lt;&lt;<span class="lit-number">38</span>)-<span class="lit-number">64</span> {</code></span>
+<span class="codeline" id="line-52"><code>		<a href="../../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"chacha20poly1305: plaintext too large"</span>)</code></span>
+<span class="codeline" id="line-53"><code>	}</code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code>	<label for="r11" class="ident">c</label> := <a href="../../../../../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="chacha20poly1305.go.html#line-31" class="ident">chacha20poly1305</a>)</code></span>
+<span class="codeline" id="line-56"><code>	<label for="r12" class="ident">hKey</label>, <label for="r13" class="ident">_</label> := <a href="../../../../../../pkg/vendor/golang.org/x/crypto/chacha20.html" class="ident i0">chacha20</a>.<a href="../chacha20/chacha_generic.go.html#line-344" class="ident">HChaCha20</a>(<label for="r5" class="ident">x</label>.<a href="#line-15" class="ident">key</a>[:], <label for="r8" class="ident">nonce</label>[<span class="lit-number">0</span>:<span class="lit-number">16</span>])</code></span>
+<span class="codeline" id="line-57"><code>	<a href="../../../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r11" class="ident">c</label>.<a href="chacha20poly1305.go.html#line-32" class="ident">key</a>[:], <label for="r12" class="ident">hKey</label>)</code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code>	<span class="comment">// The first 4 bytes of the final nonce are unused counter space.</span></code></span>
+<span class="codeline" id="line-60"><code>	<label for="r14" class="ident">cNonce</label> := <a href="../../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="chacha20poly1305.go.html#line-24" class="ident">NonceSize</a>)</code></span>
+<span class="codeline" id="line-61"><code>	<a href="../../../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r14" class="ident">cNonce</label>[<span class="lit-number">4</span>:<span class="lit-number">12</span>], <label for="r8" class="ident">nonce</label>[<span class="lit-number">16</span>:<span class="lit-number">24</span>])</code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code>	<span class="keyword">return</span> <label for="r11" class="ident">c</label>.<a href="chacha20poly1305_amd64.go.html#line-49" class="ident">seal</a>(<label for="r7" class="ident">dst</label>, <label for="r14" class="ident">cNonce</label>[:], <label for="r9" class="ident">plaintext</label>, <label for="r10" class="ident">additionalData</label>)</code></span>
+<span class="codeline" id="line-64"><code>}</code></span>
+<span class="codeline" id="line-65"><code></code></span>
+<span class="codeline" id="line-66"><code><span class="keyword">func</span> (<label for="r15" class="ident">x</label> *<a href="#line-14" class="ident">xchacha20poly1305</a>) <label for="r16" class="ident"><a href="../../../../../../imp/vendor/golang.org/x/crypto/chacha20poly1305.xchacha20poly1305*f88ae.html#name-.Open" class="ident">Open</a></label>(<label for="r17" class="ident">dst</label>, <label for="r18" class="ident">nonce</label>, <label for="r19" class="ident">ciphertext</label>, <label for="r20" class="ident">additionalData</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) ([]<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r18" class="ident">nonce</label>) != <a href="chacha20poly1305.go.html#line-28" class="ident">NonceSizeX</a> {</code></span>
+<span class="codeline" id="line-68"><code>		<a href="../../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"chacha20poly1305: bad nonce length passed to Open"</span>)</code></span>
+<span class="codeline" id="line-69"><code>	}</code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r19" class="ident">ciphertext</label>) &lt; <span class="lit-number">16</span> {</code></span>
+<span class="codeline" id="line-71"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="chacha20poly1305.go.html#line-65" class="ident">errOpen</a></code></span>
+<span class="codeline" id="line-72"><code>	}</code></span>
+<span class="codeline" id="line-73"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r19" class="ident">ciphertext</label>)) &gt; (<span class="lit-number">1</span>&lt;&lt;<span class="lit-number">38</span>)-<span class="lit-number">48</span> {</code></span>
+<span class="codeline" id="line-74"><code>		<a href="../../../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"chacha20poly1305: ciphertext too large"</span>)</code></span>
+<span class="codeline" id="line-75"><code>	}</code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code>	<label for="r21" class="ident">c</label> := <a href="../../../../../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="chacha20poly1305.go.html#line-31" class="ident">chacha20poly1305</a>)</code></span>
+<span class="codeline" id="line-78"><code>	<label for="r22" class="ident">hKey</label>, <label for="r23" class="ident">_</label> := <a href="../../../../../../pkg/vendor/golang.org/x/crypto/chacha20.html" class="ident i0">chacha20</a>.<a href="../chacha20/chacha_generic.go.html#line-344" class="ident">HChaCha20</a>(<label for="r15" class="ident">x</label>.<a href="#line-15" class="ident">key</a>[:], <label for="r18" class="ident">nonce</label>[<span class="lit-number">0</span>:<span class="lit-number">16</span>])</code></span>
+<span class="codeline" id="line-79"><code>	<a href="../../../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r21" class="ident">c</label>.<a href="chacha20poly1305.go.html#line-32" class="ident">key</a>[:], <label for="r22" class="ident">hKey</label>)</code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code>	<span class="comment">// The first 4 bytes of the final nonce are unused counter space.</span></code></span>
+<span class="codeline" id="line-82"><code>	<label for="r24" class="ident">cNonce</label> := <a href="../../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="chacha20poly1305.go.html#line-24" class="ident">NonceSize</a>)</code></span>
+<span class="codeline" id="line-83"><code>	<a href="../../../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r24" class="ident">cNonce</label>[<span class="lit-number">4</span>:<span class="lit-number">12</span>], <label for="r18" class="ident">nonce</label>[<span class="lit-number">16</span>:<span class="lit-number">24</span>])</code></span>
+<span class="codeline" id="line-84"><code></code></span>
+<span class="codeline" id="line-85"><code>	<span class="keyword">return</span> <label for="r21" class="ident">c</label>.<a href="chacha20poly1305_amd64.go.html#line-65" class="ident">open</a>(<label for="r17" class="ident">dst</label>, <label for="r24" class="ident">cNonce</label>[:], <label for="r19" class="ident">ciphertext</label>, <label for="r20" class="ident">additionalData</label>)</code></span>
+<span class="codeline" id="line-86"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

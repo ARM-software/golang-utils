@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: fs.go in package io/fs</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	fs.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/io/fs.html">io/fs</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2020 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package fs defines basic interfaces to a file system.</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// A file system can be provided by the host operating system</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// but also by other packages.</span></code></span></div><span class="codeline" id="line-8"><code><span class="keyword">package</span> fs</code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-11"><code>	<label for="i0"><span class="lit-string i0">"internal/oserror"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i1"><span class="lit-string i1">"time"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i2"><span class="lit-string i2">"unicode/utf8"</span></label></code></span>
+<span class="codeline" id="line-14"><code>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// An FS provides access to a hierarchical file system.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// The FS interface is the minimum implementation required of the file system.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// A file system may implement additional interfaces,</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// such as ReadFileFS, to provide additional or optimized functionality.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">type</span> <a href="../../../pkg/io/fs.html#name-FS" class="ident">FS</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-22"><code>	<span class="comment">// Open opens the named file.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">	// When Open returns an error, it should be of type *PathError</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">	// with the Op field set to "open", the Path field set to name,</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">	// and the Err field describing the problem.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">	// Open should reject attempts to open names that do not satisfy</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">	// ValidPath(name), returning a *PathError with Err set to</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	// ErrInvalid or ErrNotExist.</span></code></span>
+<span class="codeline" id="line-31"><code>	<a href="../../../imp/io/fs.FS.html#name-Open" class="ident">Open</a>(name <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="#line-78" class="ident">File</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-32"><code>}</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// ValidPath reports whether the given path name</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// is valid for use in a call to Open.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// Path names passed to open are UTF-8-encoded,</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// unrooted, slash-separated sequences of path elements, like “x/y/z”.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// Path names must not contain an element that is “.” or “..” or the empty string,</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// except for the special case that the root directory is named “.”.</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// Paths must not start or end with a slash: “/x” and “x/” are invalid.</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// Note that paths are slash-separated on all systems, even Windows.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// Paths containing other characters such as backslash and colon</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// are accepted as valid, but those characters must never be</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// interpreted by an FS implementation as path element separators.</span></code></span>
+<span class="codeline" id="line-47"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/io/fs.html#name-ValidPath" class="ident">ValidPath</a></label>(<label for="r1" class="ident">name</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">if</span> !<a href="../../../pkg/unicode/utf8.html" class="ident i2">utf8</a>.<a href="../../unicode/utf8/utf8.go.html#line-497" class="ident">ValidString</a>(<label for="r1" class="ident">name</label>) {</code></span>
+<span class="codeline" id="line-49"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-50"><code>	}</code></span>
+<span class="codeline" id="line-51"><code></code></span>
+<span class="codeline" id="line-52"><code>	<span class="keyword">if</span> <label for="r1" class="ident">name</label> == <span class="lit-string">"."</span> {</code></span>
+<span class="codeline" id="line-53"><code>		<span class="comment">// special case</span></code></span>
+<span class="codeline" id="line-54"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-55"><code>	}</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code>	<span class="comment">// Iterate over elements in name, checking each.</span></code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-59"><code>		<label for="r2" class="ident">i</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-60"><code>		<span class="keyword">for</span> <label for="r2" class="ident">i</label> &lt; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">name</label>) &amp;&amp; <label for="r1" class="ident">name</label>[<label for="r2" class="ident">i</label>] != <span class="lit-number">'/'</span> {</code></span>
+<span class="codeline" id="line-61"><code>			<label for="r2" class="ident">i</label>++</code></span>
+<span class="codeline" id="line-62"><code>		}</code></span>
+<span class="codeline" id="line-63"><code>		<label for="r3" class="ident">elem</label> := <label for="r1" class="ident">name</label>[:<label for="r2" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-64"><code>		<span class="keyword">if</span> <label for="r3" class="ident">elem</label> == <span class="lit-string">""</span> || <label for="r3" class="ident">elem</label> == <span class="lit-string">"."</span> || <label for="r3" class="ident">elem</label> == <span class="lit-string">".."</span> {</code></span>
+<span class="codeline" id="line-65"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-66"><code>		}</code></span>
+<span class="codeline" id="line-67"><code>		<span class="keyword">if</span> <label for="r2" class="ident">i</label> == <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">name</label>) {</code></span>
+<span class="codeline" id="line-68"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a> <span class="comment">// reached clean ending</span></code></span>
+<span class="codeline" id="line-69"><code>		}</code></span>
+<span class="codeline" id="line-70"><code>		<label for="r1" class="ident">name</label> = <label for="r1" class="ident">name</label>[<label for="r2" class="ident">i</label>+<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-71"><code>	}</code></span>
+<span class="codeline" id="line-72"><code>}</code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// A File provides access to a single file.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">// The File interface is the minimum implementation required of the file.</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">// A file may implement additional interfaces, such as</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">// ReadDirFile, ReaderAt, or Seeker, to provide additional or optimized functionality.</span></code></span>
+<span class="codeline" id="line-78"><code><span class="keyword">type</span> <a href="../../../pkg/io/fs.html#name-File" class="ident">File</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-79"><code>	<a href="../../../imp/io/fs.File.html#name-Stat" class="ident">Stat</a>() (<a href="#line-150" class="ident">FileInfo</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-80"><code>	<a href="../../../imp/io/fs.File.html#name-Read" class="ident">Read</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-81"><code>	<a href="../../../imp/io/fs.File.html#name-Close" class="ident">Close</a>() <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-82"><code>}</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// A DirEntry is an entry read from a directory</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// (using the ReadDir function or a ReadDirFile's ReadDir method).</span></code></span>
+<span class="codeline" id="line-86"><code><span class="keyword">type</span> <a href="../../../pkg/io/fs.html#name-DirEntry" class="ident">DirEntry</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-87"><code>	<span class="comment">// Name returns the name of the file (or subdirectory) described by the entry.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">	// This name is only the final element of the path (the base name), not the entire path.</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">	// For example, Name would return "hello.go" not "/home/gopher/hello.go".</span></code></span>
+<span class="codeline" id="line-90"><code>	<a href="../../../imp/io/fs.DirEntry.html#name-Name" class="ident">Name</a>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-91"><code></code></span>
+<span class="codeline" id="line-92"><code>	<span class="comment">// IsDir reports whether the entry describes a directory.</span></code></span>
+<span class="codeline" id="line-93"><code>	<a href="../../../imp/io/fs.DirEntry.html#name-IsDir" class="ident">IsDir</a>() <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code>	<span class="comment">// Type returns the type bits for the entry.</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">	// The type bits are a subset of the usual FileMode bits, those returned by the FileMode.Type method.</span></code></span>
+<span class="codeline" id="line-97"><code>	<a href="../../../imp/io/fs.DirEntry.html#name-Type" class="ident">Type</a>() <a href="#line-164" class="ident">FileMode</a></code></span>
+<span class="codeline" id="line-98"><code></code></span>
+<span class="codeline" id="line-99"><code>	<span class="comment">// Info returns the FileInfo for the file or subdirectory described by the entry.</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">	// The returned FileInfo may be from the time of the original directory read</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">	// or from the time of the call to Info. If the file has been removed or renamed</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">	// since the directory read, Info may return an error satisfying errors.Is(err, ErrNotExist).</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">	// If the entry denotes a symbolic link, Info reports the information about the link itself,</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">	// not the link's target.</span></code></span>
+<span class="codeline" id="line-105"><code>	<a href="../../../imp/io/fs.DirEntry.html#name-Info" class="ident">Info</a>() (<a href="#line-150" class="ident">FileInfo</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-106"><code>}</code></span>
+<span class="codeline" id="line-107"><code></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">// A ReadDirFile is a directory file whose entries can be read with the ReadDir method.</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">// Every directory file should implement this interface.</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">// (It is permissible for any file to implement this interface,</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">// but if so ReadDir should return an error for non-directories.)</span></code></span>
+<span class="codeline" id="line-112"><code><span class="keyword">type</span> <a href="../../../pkg/io/fs.html#name-ReadDirFile" class="ident">ReadDirFile</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-113"><code>	<a href="#line-78" class="ident">File</a></code></span>
+<span class="codeline" id="line-114"><code></code></span>
+<span class="codeline" id="line-115"><code>	<span class="comment">// ReadDir reads the contents of the directory and returns</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">	// a slice of up to n DirEntry values in directory order.</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">	// Subsequent calls on the same file will yield further DirEntry values.</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">	// If n &gt; 0, ReadDir returns at most n DirEntry structures.</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">	// In this case, if ReadDir returns an empty slice, it will return</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">	// a non-nil error explaining why.</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">	// At the end of a directory, the error is io.EOF.</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">	// If n &lt;= 0, ReadDir returns all the DirEntry values from the directory</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">	// in a single slice. In this case, if ReadDir succeeds (reads all the way</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">	// to the end of the directory), it returns the slice and a nil error.</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">	// If it encounters an error before the end of the directory,</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">	// ReadDir returns the DirEntry list read until that point and a non-nil error.</span></code></span>
+<span class="codeline" id="line-129"><code>	<a href="../../../imp/io/fs.ReadDirFile.html#name-ReadDir" class="ident">ReadDir</a>(n <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) ([]<a href="#line-86" class="ident">DirEntry</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-130"><code>}</code></span>
+<span class="codeline" id="line-131"><code></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">// Generic file system errors.</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">// Errors returned by file systems can be tested against these errors</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">// using errors.Is.</span></code></span>
+<span class="codeline" id="line-135"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-136"><code>	<a href="../../../pkg/io/fs.html#name-ErrInvalid" class="ident">ErrInvalid</a>    = <a href="#line-143" class="ident">errInvalid</a>()    <span class="comment">// "invalid argument"</span></code></span>
+<span class="codeline" id="line-137"><code>	<a href="../../../pkg/io/fs.html#name-ErrPermission" class="ident">ErrPermission</a> = <a href="#line-144" class="ident">errPermission</a>() <span class="comment">// "permission denied"</span></code></span>
+<span class="codeline" id="line-138"><code>	<a href="../../../pkg/io/fs.html#name-ErrExist" class="ident">ErrExist</a>      = <a href="#line-145" class="ident">errExist</a>()      <span class="comment">// "file already exists"</span></code></span>
+<span class="codeline" id="line-139"><code>	<a href="../../../pkg/io/fs.html#name-ErrNotExist" class="ident">ErrNotExist</a>   = <a href="#line-146" class="ident">errNotExist</a>()   <span class="comment">// "file does not exist"</span></code></span>
+<span class="codeline" id="line-140"><code>	<a href="../../../pkg/io/fs.html#name-ErrClosed" class="ident">ErrClosed</a>     = <a href="#line-147" class="ident">errClosed</a>()     <span class="comment">// "file already closed"</span></code></span>
+<span class="codeline" id="line-141"><code>)</code></span>
+<span class="codeline" id="line-142"><code></code></span>
+<span class="codeline" id="line-143"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../pkg/io/fs.html#name-errInvalid" class="ident">errInvalid</a></label>() <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>    { <span class="keyword">return</span> <a href="../../../pkg/internal/oserror.html" class="ident i0">oserror</a>.<a href="../../internal/oserror/errors.go.html#line-13" class="ident">ErrInvalid</a> }</code></span>
+<span class="codeline" id="line-144"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../../pkg/io/fs.html#name-errPermission" class="ident">errPermission</a></label>() <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> { <span class="keyword">return</span> <a href="../../../pkg/internal/oserror.html" class="ident i0">oserror</a>.<a href="../../internal/oserror/errors.go.html#line-14" class="ident">ErrPermission</a> }</code></span>
+<span class="codeline" id="line-145"><code><span class="keyword">func</span> <label for="r6" class="ident"><a href="../../../pkg/io/fs.html#name-errExist" class="ident">errExist</a></label>() <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>      { <span class="keyword">return</span> <a href="../../../pkg/internal/oserror.html" class="ident i0">oserror</a>.<a href="../../internal/oserror/errors.go.html#line-15" class="ident">ErrExist</a> }</code></span>
+<span class="codeline" id="line-146"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../../pkg/io/fs.html#name-errNotExist" class="ident">errNotExist</a></label>() <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>   { <span class="keyword">return</span> <a href="../../../pkg/internal/oserror.html" class="ident i0">oserror</a>.<a href="../../internal/oserror/errors.go.html#line-16" class="ident">ErrNotExist</a> }</code></span>
+<span class="codeline" id="line-147"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../../pkg/io/fs.html#name-errClosed" class="ident">errClosed</a></label>() <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>     { <span class="keyword">return</span> <a href="../../../pkg/internal/oserror.html" class="ident i0">oserror</a>.<a href="../../internal/oserror/errors.go.html#line-17" class="ident">ErrClosed</a> }</code></span>
+<span class="codeline" id="line-148"><code></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">// A FileInfo describes a file and is returned by Stat.</span></code></span>
+<span class="codeline" id="line-150"><code><span class="keyword">type</span> <a href="../../../pkg/io/fs.html#name-FileInfo" class="ident">FileInfo</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-151"><code>	<a href="../../../imp/io/fs.FileInfo.html#name-Name" class="ident">Name</a>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>       <span class="comment">// base name of the file</span></code></span>
+<span class="codeline" id="line-152"><code>	<a href="../../../imp/io/fs.FileInfo.html#name-Size" class="ident">Size</a>() <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>        <span class="comment">// length in bytes for regular files; system-dependent for others</span></code></span>
+<span class="codeline" id="line-153"><code>	<a href="../../../imp/io/fs.FileInfo.html#name-Mode" class="ident">Mode</a>() <a href="#line-164" class="ident">FileMode</a>     <span class="comment">// file mode bits</span></code></span>
+<span class="codeline" id="line-154"><code>	<a href="../../../imp/io/fs.FileInfo.html#name-ModTime" class="ident">ModTime</a>() <a href="../../../pkg/time.html" class="ident i1">time</a>.<a href="../../time/time.go.html#line-127" class="ident">Time</a> <span class="comment">// modification time</span></code></span>
+<span class="codeline" id="line-155"><code>	<a href="../../../imp/io/fs.FileInfo.html#name-IsDir" class="ident">IsDir</a>() <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>        <span class="comment">// abbreviation for Mode().IsDir()</span></code></span>
+<span class="codeline" id="line-156"><code>	<a href="../../../imp/io/fs.FileInfo.html#name-Sys" class="ident">Sys</a>() <span class="keyword">interface</span>{}   <span class="comment">// underlying data source (can return nil)</span></code></span>
+<span class="codeline" id="line-157"><code>}</code></span>
+<span class="codeline" id="line-158"><code></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">// A FileMode represents a file's mode and permission bits.</span></code></span>
+<span class="codeline" id="line-160"><code><span class="comment">// The bits have the same definition on all systems, so that</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">// information about files can be moved from one system</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">// to another portably. Not all bits apply to all systems.</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">// The only required bit is ModeDir for directories.</span></code></span>
+<span class="codeline" id="line-164"><code><span class="keyword">type</span> <a href="../../../pkg/io/fs.html#name-FileMode" class="ident">FileMode</a> <a href="../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-165"><code></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">// The defined file mode bits are the most significant bits of the FileMode.</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">// The nine least-significant bits are the standard Unix rwxrwxrwx permissions.</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">// The values of these bits should be considered part of the public API and</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">// may be used in wire protocols or disk representations: they must not be</span></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">// changed, although new bits might be added.</span></code></span>
+<span class="codeline" id="line-171"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-172"><code>	<span class="comment">// The single letters are the abbreviations</span></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">	// used by the String method's formatting.</span></code></span>
+<span class="codeline" id="line-174"><code>	<a href="../../../pkg/io/fs.html#name-ModeDir" class="ident">ModeDir</a>        <a href="#line-164" class="ident">FileMode</a> = <span class="lit-number">1</span> &lt;&lt; (<span class="lit-number">32</span> - <span class="lit-number">1</span> - <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a>) <span class="comment">// d: is a directory</span></code></span>
+<span class="codeline" id="line-175"><code>	<a href="../../../pkg/io/fs.html#name-ModeAppend" class="ident">ModeAppend</a>                                     <span class="comment">// a: append-only</span></code></span>
+<span class="codeline" id="line-176"><code>	<a href="../../../pkg/io/fs.html#name-ModeExclusive" class="ident">ModeExclusive</a>                                  <span class="comment">// l: exclusive use</span></code></span>
+<span class="codeline" id="line-177"><code>	<a href="../../../pkg/io/fs.html#name-ModeTemporary" class="ident">ModeTemporary</a>                                  <span class="comment">// T: temporary file; Plan 9 only</span></code></span>
+<span class="codeline" id="line-178"><code>	<a href="../../../pkg/io/fs.html#name-ModeSymlink" class="ident">ModeSymlink</a>                                    <span class="comment">// L: symbolic link</span></code></span>
+<span class="codeline" id="line-179"><code>	<a href="../../../pkg/io/fs.html#name-ModeDevice" class="ident">ModeDevice</a>                                     <span class="comment">// D: device file</span></code></span>
+<span class="codeline" id="line-180"><code>	<a href="../../../pkg/io/fs.html#name-ModeNamedPipe" class="ident">ModeNamedPipe</a>                                  <span class="comment">// p: named pipe (FIFO)</span></code></span>
+<span class="codeline" id="line-181"><code>	<a href="../../../pkg/io/fs.html#name-ModeSocket" class="ident">ModeSocket</a>                                     <span class="comment">// S: Unix domain socket</span></code></span>
+<span class="codeline" id="line-182"><code>	<a href="../../../pkg/io/fs.html#name-ModeSetuid" class="ident">ModeSetuid</a>                                     <span class="comment">// u: setuid</span></code></span>
+<span class="codeline" id="line-183"><code>	<a href="../../../pkg/io/fs.html#name-ModeSetgid" class="ident">ModeSetgid</a>                                     <span class="comment">// g: setgid</span></code></span>
+<span class="codeline" id="line-184"><code>	<a href="../../../pkg/io/fs.html#name-ModeCharDevice" class="ident">ModeCharDevice</a>                                 <span class="comment">// c: Unix character device, when ModeDevice is set</span></code></span>
+<span class="codeline" id="line-185"><code>	<a href="../../../pkg/io/fs.html#name-ModeSticky" class="ident">ModeSticky</a>                                     <span class="comment">// t: sticky</span></code></span>
+<span class="codeline" id="line-186"><code>	<a href="../../../pkg/io/fs.html#name-ModeIrregular" class="ident">ModeIrregular</a>                                  <span class="comment">// ?: non-regular file; nothing else is known about this file</span></code></span>
+<span class="codeline" id="line-187"><code></code></span>
+<span class="codeline" id="line-188"><code>	<span class="comment">// Mask for the type bits. For regular files, none will be set.</span></code></span>
+<span class="codeline" id="line-189"><code>	<a href="../../../pkg/io/fs.html#name-ModeType" class="ident">ModeType</a> = <a href="#line-174" class="ident">ModeDir</a> | <a href="#line-178" class="ident">ModeSymlink</a> | <a href="#line-180" class="ident">ModeNamedPipe</a> | <a href="#line-181" class="ident">ModeSocket</a> | <a href="#line-179" class="ident">ModeDevice</a> | <a href="#line-184" class="ident">ModeCharDevice</a> | <a href="#line-186" class="ident">ModeIrregular</a></code></span>
+<span class="codeline" id="line-190"><code></code></span>
+<span class="codeline" id="line-191"><code>	<a href="../../../pkg/io/fs.html#name-ModePerm" class="ident">ModePerm</a> <a href="#line-164" class="ident">FileMode</a> = <span class="lit-number">0777</span> <span class="comment">// Unix permission bits</span></code></span>
+<span class="codeline" id="line-192"><code>)</code></span>
+<span class="codeline" id="line-193"><code></code></span>
+<span class="codeline" id="line-194"><code><span class="keyword">func</span> (<label for="r9" class="ident">m</label> <a href="#line-164" class="ident">FileMode</a>) <label for="r10" class="ident"><a href="../../../imp/io/fs.FileMode.html#name-.String" class="ident">String</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-195"><code>	<span class="keyword">const</span> <label for="r11" class="ident">str</label> = <span class="lit-string">"dalTLDpSugct?"</span></code></span>
+<span class="codeline" id="line-196"><code>	<span class="keyword">var</span> <label for="r12" class="ident">buf</label> [<span class="lit-number">32</span>]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> <span class="comment">// Mode is uint32.</span></code></span>
+<span class="codeline" id="line-197"><code>	<label for="r13" class="ident">w</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-198"><code>	<span class="keyword">for</span> <label for="r14" class="ident">i</label>, <label for="r15" class="ident">c</label> := <span class="keyword">range</span> <label for="r11" class="ident">str</label> {</code></span>
+<span class="codeline" id="line-199"><code>		<span class="keyword">if</span> <label for="r9" class="ident">m</label>&amp;(<span class="lit-number">1</span>&lt;&lt;<a href="../../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">32</span>-<span class="lit-number">1</span>-<label for="r14" class="ident">i</label>)) != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-200"><code>			<label for="r12" class="ident">buf</label>[<label for="r13" class="ident">w</label>] = <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r15" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-201"><code>			<label for="r13" class="ident">w</label>++</code></span>
+<span class="codeline" id="line-202"><code>		}</code></span>
+<span class="codeline" id="line-203"><code>	}</code></span>
+<span class="codeline" id="line-204"><code>	<span class="keyword">if</span> <label for="r13" class="ident">w</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-205"><code>		<label for="r12" class="ident">buf</label>[<label for="r13" class="ident">w</label>] = <span class="lit-number">'-'</span></code></span>
+<span class="codeline" id="line-206"><code>		<label for="r13" class="ident">w</label>++</code></span>
+<span class="codeline" id="line-207"><code>	}</code></span>
+<span class="codeline" id="line-208"><code>	<span class="keyword">const</span> <label for="r16" class="ident">rwx</label> = <span class="lit-string">"rwxrwxrwx"</span></code></span>
+<span class="codeline" id="line-209"><code>	<span class="keyword">for</span> <label for="r17" class="ident">i</label>, <label for="r18" class="ident">c</label> := <span class="keyword">range</span> <label for="r16" class="ident">rwx</label> {</code></span>
+<span class="codeline" id="line-210"><code>		<span class="keyword">if</span> <label for="r9" class="ident">m</label>&amp;(<span class="lit-number">1</span>&lt;&lt;<a href="../../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">9</span>-<span class="lit-number">1</span>-<label for="r17" class="ident">i</label>)) != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-211"><code>			<label for="r12" class="ident">buf</label>[<label for="r13" class="ident">w</label>] = <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r18" class="ident">c</label>)</code></span>
+<span class="codeline" id="line-212"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-213"><code>			<label for="r12" class="ident">buf</label>[<label for="r13" class="ident">w</label>] = <span class="lit-number">'-'</span></code></span>
+<span class="codeline" id="line-214"><code>		}</code></span>
+<span class="codeline" id="line-215"><code>		<label for="r13" class="ident">w</label>++</code></span>
+<span class="codeline" id="line-216"><code>	}</code></span>
+<span class="codeline" id="line-217"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r12" class="ident">buf</label>[:<label for="r13" class="ident">w</label>])</code></span>
+<span class="codeline" id="line-218"><code>}</code></span>
+<span class="codeline" id="line-219"><code></code></span>
+<span class="codeline" id="line-220"><code><span class="comment">// IsDir reports whether m describes a directory.</span></code></span>
+<span class="codeline" id="line-221"><code><span class="comment">// That is, it tests for the ModeDir bit being set in m.</span></code></span>
+<span class="codeline" id="line-222"><code><span class="keyword">func</span> (<label for="r19" class="ident">m</label> <a href="#line-164" class="ident">FileMode</a>) <label for="r20" class="ident">IsDir</label>() <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-223"><code>	<span class="keyword">return</span> <label for="r19" class="ident">m</label>&amp;<a href="#line-174" class="ident">ModeDir</a> != <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-224"><code>}</code></span>
+<span class="codeline" id="line-225"><code></code></span>
+<span class="codeline" id="line-226"><code><span class="comment">// IsRegular reports whether m describes a regular file.</span></code></span>
+<span class="codeline" id="line-227"><code><span class="comment">// That is, it tests that no mode type bits are set.</span></code></span>
+<span class="codeline" id="line-228"><code><span class="keyword">func</span> (<label for="r21" class="ident">m</label> <a href="#line-164" class="ident">FileMode</a>) <label for="r22" class="ident">IsRegular</label>() <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-229"><code>	<span class="keyword">return</span> <label for="r21" class="ident">m</label>&amp;<a href="#line-189" class="ident">ModeType</a> == <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-230"><code>}</code></span>
+<span class="codeline" id="line-231"><code></code></span>
+<span class="codeline" id="line-232"><code><span class="comment">// Perm returns the Unix permission bits in m (m &amp; ModePerm).</span></code></span>
+<span class="codeline" id="line-233"><code><span class="keyword">func</span> (<label for="r23" class="ident">m</label> <a href="#line-164" class="ident">FileMode</a>) <label for="r24" class="ident">Perm</label>() <a href="#line-164" class="ident">FileMode</a> {</code></span>
+<span class="codeline" id="line-234"><code>	<span class="keyword">return</span> <label for="r23" class="ident">m</label> &amp; <a href="#line-191" class="ident">ModePerm</a></code></span>
+<span class="codeline" id="line-235"><code>}</code></span>
+<span class="codeline" id="line-236"><code></code></span>
+<span class="codeline" id="line-237"><code><span class="comment">// Type returns type bits in m (m &amp; ModeType).</span></code></span>
+<span class="codeline" id="line-238"><code><span class="keyword">func</span> (<label for="r25" class="ident">m</label> <a href="#line-164" class="ident">FileMode</a>) <label for="r26" class="ident">Type</label>() <a href="#line-164" class="ident">FileMode</a> {</code></span>
+<span class="codeline" id="line-239"><code>	<span class="keyword">return</span> <label for="r25" class="ident">m</label> &amp; <a href="#line-189" class="ident">ModeType</a></code></span>
+<span class="codeline" id="line-240"><code>}</code></span>
+<span class="codeline" id="line-241"><code></code></span>
+<span class="codeline" id="line-242"><code><span class="comment">// PathError records an error and the operation and file path that caused it.</span></code></span>
+<span class="codeline" id="line-243"><code><span class="keyword">type</span> <a href="../../../pkg/io/fs.html#name-PathError" class="ident">PathError</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-244"><code>	Op   <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-245"><code>	Path <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-246"><code>	Err  <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-247"><code>}</code></span>
+<span class="codeline" id="line-248"><code></code></span>
+<span class="codeline" id="line-249"><code><span class="keyword">func</span> (<label for="r27" class="ident">e</label> *<a href="#line-243" class="ident">PathError</a>) <label for="r28" class="ident"><a href="../../../imp/io/fs.PathError.html#name-.Error" class="ident">Error</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> { <span class="keyword">return</span> <label for="r27" class="ident">e</label>.<a href="#line-244" class="ident">Op</a> + <span class="lit-string">" "</span> + <label for="r27" class="ident">e</label>.<a href="#line-245" class="ident">Path</a> + <span class="lit-string">": "</span> + <label for="r27" class="ident">e</label>.<a href="#line-246" class="ident">Err</a>.Error() }</code></span>
+<span class="codeline" id="line-250"><code></code></span>
+<span class="codeline" id="line-251"><code><span class="keyword">func</span> (<label for="r29" class="ident">e</label> *<a href="#line-243" class="ident">PathError</a>) <label for="r30" class="ident">Unwrap</label>() <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> { <span class="keyword">return</span> <label for="r29" class="ident">e</label>.<a href="#line-246" class="ident">Err</a> }</code></span>
+<span class="codeline" id="line-252"><code></code></span>
+<span class="codeline" id="line-253"><code><span class="comment">// Timeout reports whether this error represents a timeout.</span></code></span>
+<span class="codeline" id="line-254"><code><span class="keyword">func</span> (<label for="r31" class="ident">e</label> *<a href="#line-243" class="ident">PathError</a>) <label for="r32" class="ident"><a href="../../../imp/io/fs.PathError.html#name-.Timeout" class="ident">Timeout</a></label>() <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-255"><code>	<label for="r33" class="ident">t</label>, <label for="r34" class="ident">ok</label> := <label for="r31" class="ident">e</label>.<a href="#line-246" class="ident">Err</a>.(<span class="keyword">interface</span>{ <label for="r35" class="ident">Timeout</label>() <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> })</code></span>
+<span class="codeline" id="line-256"><code>	<span class="keyword">return</span> <label for="r34" class="ident">ok</label> &amp;&amp; <label for="r33" class="ident">t</label>.<label for="r35" class="ident">Timeout</label>()</code></span>
+<span class="codeline" id="line-257"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

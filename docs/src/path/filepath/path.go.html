@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: path.go in package path/filepath</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	path.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/path/filepath.html">path/filepath</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104],
+input[id=r105]:checked ~pre label[for=r105],
+input[id=r106]:checked ~pre label[for=r106],
+input[id=r107]:checked ~pre label[for=r107],
+input[id=r108]:checked ~pre label[for=r108],
+input[id=r109]:checked ~pre label[for=r109],
+input[id=r110]:checked ~pre label[for=r110],
+input[id=r111]:checked ~pre label[for=r111],
+input[id=r112]:checked ~pre label[for=r112],
+input[id=r113]:checked ~pre label[for=r113],
+input[id=r114]:checked ~pre label[for=r114],
+input[id=r115]:checked ~pre label[for=r115],
+input[id=r116]:checked ~pre label[for=r116],
+input[id=r117]:checked ~pre label[for=r117],
+input[id=r118]:checked ~pre label[for=r118],
+input[id=r119]:checked ~pre label[for=r119],
+input[id=r120]:checked ~pre label[for=r120],
+input[id=r121]:checked ~pre label[for=r121],
+input[id=r122]:checked ~pre label[for=r122],
+input[id=r123]:checked ~pre label[for=r123],
+input[id=r124]:checked ~pre label[for=r124],
+input[id=r125]:checked ~pre label[for=r125]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="r105" type="radio" name="g"/>
+<input id="r106" type="radio" name="g"/>
+<input id="r107" type="radio" name="g"/>
+<input id="r108" type="radio" name="g"/>
+<input id="r109" type="radio" name="g"/>
+<input id="r110" type="radio" name="g"/>
+<input id="r111" type="radio" name="g"/>
+<input id="r112" type="radio" name="g"/>
+<input id="r113" type="radio" name="g"/>
+<input id="r114" type="radio" name="g"/>
+<input id="r115" type="radio" name="g"/>
+<input id="r116" type="radio" name="g"/>
+<input id="r117" type="radio" name="g"/>
+<input id="r118" type="radio" name="g"/>
+<input id="r119" type="radio" name="g"/>
+<input id="r120" type="radio" name="g"/>
+<input id="r121" type="radio" name="g"/>
+<input id="r122" type="radio" name="g"/>
+<input id="r123" type="radio" name="g"/>
+<input id="r124" type="radio" name="g"/>
+<input id="r125" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package filepath implements utility routines for manipulating filename paths</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// in a way compatible with the target operating system-defined file paths.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// The filepath package uses either forward slashes or backslashes,</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// depending on the operating system. To process paths such as URLs</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// that always use forward slashes regardless of the operating</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// system, see the path package.</span></code></span></div><span class="codeline" id="line-12"><code><span class="keyword">package</span> filepath</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-15"><code>	<label for="i0"><span class="lit-string i0">"errors"</span></label></code></span>
+<span class="codeline" id="line-16"><code>	<label for="i1"><span class="lit-string i1">"io/fs"</span></label></code></span>
+<span class="codeline" id="line-17"><code>	<label for="i2"><span class="lit-string i2">"os"</span></label></code></span>
+<span class="codeline" id="line-18"><code>	<label for="i3"><span class="lit-string i3">"sort"</span></label></code></span>
+<span class="codeline" id="line-19"><code>	<label for="i4"><span class="lit-string i4">"strings"</span></label></code></span>
+<span class="codeline" id="line-20"><code>)</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// A lazybuf is a lazily constructed path buffer.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// It supports append, reading previously appended bytes,</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// and retrieving the final string. It does not allocate a buffer</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// to hold the output until that output diverges from s.</span></code></span>
+<span class="codeline" id="line-26"><code><span class="keyword">type</span> <a href="../../../pkg/path/filepath.html#name-lazybuf" class="ident">lazybuf</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-27"><code>	path       <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-28"><code>	buf        []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-29"><code>	w          <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-30"><code>	volAndPath <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-31"><code>	volLen     <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-32"><code>}</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="keyword">func</span> (<label for="r0" class="ident">b</label> *<a href="#line-26" class="ident">lazybuf</a>) <label for="r1" class="ident">index</label>(<label for="r2" class="ident">i</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-35"><code>	<span class="keyword">if</span> <label for="r0" class="ident">b</label>.<a href="#line-28" class="ident">buf</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-36"><code>		<span class="keyword">return</span> <label for="r0" class="ident">b</label>.<a href="#line-28" class="ident">buf</a>[<label for="r2" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-37"><code>	}</code></span>
+<span class="codeline" id="line-38"><code>	<span class="keyword">return</span> <label for="r0" class="ident">b</label>.<a href="#line-27" class="ident">path</a>[<label for="r2" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-39"><code>}</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="keyword">func</span> (<label for="r3" class="ident">b</label> *<a href="#line-26" class="ident">lazybuf</a>) <label for="r4" class="ident">append</label>(<label for="r5" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) {</code></span>
+<span class="codeline" id="line-42"><code>	<span class="keyword">if</span> <label for="r3" class="ident">b</label>.<a href="#line-28" class="ident">buf</a> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-43"><code>		<span class="keyword">if</span> <label for="r3" class="ident">b</label>.<a href="#line-29" class="ident">w</a> &lt; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r3" class="ident">b</label>.<a href="#line-27" class="ident">path</a>) &amp;&amp; <label for="r3" class="ident">b</label>.<a href="#line-27" class="ident">path</a>[<label for="r3" class="ident">b</label>.<a href="#line-29" class="ident">w</a>] == <label for="r5" class="ident">c</label> {</code></span>
+<span class="codeline" id="line-44"><code>			<label for="r3" class="ident">b</label>.<a href="#line-29" class="ident">w</a>++</code></span>
+<span class="codeline" id="line-45"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-46"><code>		}</code></span>
+<span class="codeline" id="line-47"><code>		<label for="r3" class="ident">b</label>.<a href="#line-28" class="ident">buf</a> = <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r3" class="ident">b</label>.<a href="#line-27" class="ident">path</a>))</code></span>
+<span class="codeline" id="line-48"><code>		<a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r3" class="ident">b</label>.<a href="#line-28" class="ident">buf</a>, <label for="r3" class="ident">b</label>.<a href="#line-27" class="ident">path</a>[:<label for="r3" class="ident">b</label>.<a href="#line-29" class="ident">w</a>])</code></span>
+<span class="codeline" id="line-49"><code>	}</code></span>
+<span class="codeline" id="line-50"><code>	<label for="r3" class="ident">b</label>.<a href="#line-28" class="ident">buf</a>[<label for="r3" class="ident">b</label>.<a href="#line-29" class="ident">w</a>] = <label for="r5" class="ident">c</label></code></span>
+<span class="codeline" id="line-51"><code>	<label for="r3" class="ident">b</label>.<a href="#line-29" class="ident">w</a>++</code></span>
+<span class="codeline" id="line-52"><code>}</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code><span class="keyword">func</span> (<label for="r6" class="ident">b</label> *<a href="#line-26" class="ident">lazybuf</a>) <label for="r7" class="ident">string</label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-55"><code>	<span class="keyword">if</span> <label for="r6" class="ident">b</label>.<a href="#line-28" class="ident">buf</a> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-56"><code>		<span class="keyword">return</span> <label for="r6" class="ident">b</label>.<a href="#line-30" class="ident">volAndPath</a>[:<label for="r6" class="ident">b</label>.<a href="#line-31" class="ident">volLen</a>+<label for="r6" class="ident">b</label>.<a href="#line-29" class="ident">w</a>]</code></span>
+<span class="codeline" id="line-57"><code>	}</code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">return</span> <label for="r6" class="ident">b</label>.<a href="#line-30" class="ident">volAndPath</a>[:<label for="r6" class="ident">b</label>.<a href="#line-31" class="ident">volLen</a>] + <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r6" class="ident">b</label>.<a href="#line-28" class="ident">buf</a>[:<label for="r6" class="ident">b</label>.<a href="#line-29" class="ident">w</a>])</code></span>
+<span class="codeline" id="line-59"><code>}</code></span>
+<span class="codeline" id="line-60"><code></code></span>
+<span class="codeline" id="line-61"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-62"><code>	<a href="../../../pkg/path/filepath.html#name-Separator" class="ident">Separator</a>     = <a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/path_unix.go.html#line-10" class="ident">PathSeparator</a></code></span>
+<span class="codeline" id="line-63"><code>	<a href="../../../pkg/path/filepath.html#name-ListSeparator" class="ident">ListSeparator</a> = <a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/path_unix.go.html#line-11" class="ident">PathListSeparator</a></code></span>
+<span class="codeline" id="line-64"><code>)</code></span>
+<span class="codeline" id="line-65"><code></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// Clean returns the shortest path name equivalent to path</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// by purely lexical processing. It applies the following rules</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">// iteratively until no further processing can be done:</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">//	1. Replace multiple Separator elements with a single one.</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">//	2. Eliminate each . path name element (the current directory).</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">//	3. Eliminate each inner .. path name element (the parent directory)</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">//	   along with the non-.. element that precedes it.</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">//	4. Eliminate .. elements that begin a rooted path:</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">//	   that is, replace "/.." by "/" at the beginning of a path,</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">//	   assuming Separator is '/'.</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// The returned path ends in a slash only if it represents a root directory,</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// such as "/" on Unix or `C:\` on Windows.</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// Finally, any occurrences of slash are replaced by Separator.</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// If the result of this process is an empty string, Clean</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// returns the string ".".</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">// See also Rob Pike, ``Lexical File Names in Plan 9 or</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// Getting Dot-Dot Right,''</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">// https://9p.io/sys/doc/lexnames.html</span></code></span>
+<span class="codeline" id="line-89"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../../pkg/path/filepath.html#name-Clean" class="ident">Clean</a></label>(<label for="r9" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-90"><code>	<label for="r10" class="ident">originalPath</label> := <label for="r9" class="ident">path</label></code></span>
+<span class="codeline" id="line-91"><code>	<label for="r11" class="ident">volLen</label> := <a href="path_unix.go.html#line-18" class="ident">volumeNameLen</a>(<label for="r9" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-92"><code>	<label for="r9" class="ident">path</label> = <label for="r9" class="ident">path</label>[<label for="r11" class="ident">volLen</label>:]</code></span>
+<span class="codeline" id="line-93"><code>	<span class="keyword">if</span> <label for="r9" class="ident">path</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-94"><code>		<span class="keyword">if</span> <label for="r11" class="ident">volLen</label> &gt; <span class="lit-number">1</span> &amp;&amp; <label for="r10" class="ident">originalPath</label>[<span class="lit-number">1</span>] != <span class="lit-number">':'</span> {</code></span>
+<span class="codeline" id="line-95"><code>			<span class="comment">// should be UNC</span></code></span>
+<span class="codeline" id="line-96"><code>			<span class="keyword">return</span> <a href="#line-176" class="ident">FromSlash</a>(<label for="r10" class="ident">originalPath</label>)</code></span>
+<span class="codeline" id="line-97"><code>		}</code></span>
+<span class="codeline" id="line-98"><code>		<span class="keyword">return</span> <label for="r10" class="ident">originalPath</label> + <span class="lit-string">"."</span></code></span>
+<span class="codeline" id="line-99"><code>	}</code></span>
+<span class="codeline" id="line-100"><code>	<label for="r12" class="ident">rooted</label> := <a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/path_unix.go.html#line-15" class="ident">IsPathSeparator</a>(<label for="r9" class="ident">path</label>[<span class="lit-number">0</span>])</code></span>
+<span class="codeline" id="line-101"><code></code></span>
+<span class="codeline" id="line-102"><code>	<span class="comment">// Invariants:</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">	//	reading from path; r is index of next byte to process.</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">	//	writing to buf; w is index of next byte to write.</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">	//	dotdot is index in buf where .. must stop, either because</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">	//		it is the leading slash or it is a leading ../../.. prefix.</span></code></span>
+<span class="codeline" id="line-107"><code>	<label for="r13" class="ident">n</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r9" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-108"><code>	<label for="r14" class="ident">out</label> := <a href="#line-26" class="ident">lazybuf</a>{<a href="#line-27" class="ident">path</a>: <label for="r9" class="ident">path</label>, <a href="#line-30" class="ident">volAndPath</a>: <label for="r10" class="ident">originalPath</label>, <a href="#line-31" class="ident">volLen</a>: <label for="r11" class="ident">volLen</label>}</code></span>
+<span class="codeline" id="line-109"><code>	<label for="r15" class="ident">r</label>, <label for="r16" class="ident">dotdot</label> := <span class="lit-number">0</span>, <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-110"><code>	<span class="keyword">if</span> <label for="r12" class="ident">rooted</label> {</code></span>
+<span class="codeline" id="line-111"><code>		<label for="r14" class="ident">out</label>.<a href="#line-41" class="ident">append</a>(<a href="#line-62" class="ident">Separator</a>)</code></span>
+<span class="codeline" id="line-112"><code>		<label for="r15" class="ident">r</label>, <label for="r16" class="ident">dotdot</label> = <span class="lit-number">1</span>, <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-113"><code>	}</code></span>
+<span class="codeline" id="line-114"><code></code></span>
+<span class="codeline" id="line-115"><code>	<span class="keyword">for</span> <label for="r15" class="ident">r</label> &lt; <label for="r13" class="ident">n</label> {</code></span>
+<span class="codeline" id="line-116"><code>		<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-117"><code>		<span class="keyword">case</span> <a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/path_unix.go.html#line-15" class="ident">IsPathSeparator</a>(<label for="r9" class="ident">path</label>[<label for="r15" class="ident">r</label>]):</code></span>
+<span class="codeline" id="line-118"><code>			<span class="comment">// empty path element</span></code></span>
+<span class="codeline" id="line-119"><code>			<label for="r15" class="ident">r</label>++</code></span>
+<span class="codeline" id="line-120"><code>		<span class="keyword">case</span> <label for="r9" class="ident">path</label>[<label for="r15" class="ident">r</label>] == <span class="lit-number">'.'</span> &amp;&amp; (<label for="r15" class="ident">r</label>+<span class="lit-number">1</span> == <label for="r13" class="ident">n</label> || <a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/path_unix.go.html#line-15" class="ident">IsPathSeparator</a>(<label for="r9" class="ident">path</label>[<label for="r15" class="ident">r</label>+<span class="lit-number">1</span>])):</code></span>
+<span class="codeline" id="line-121"><code>			<span class="comment">// . element</span></code></span>
+<span class="codeline" id="line-122"><code>			<label for="r15" class="ident">r</label>++</code></span>
+<span class="codeline" id="line-123"><code>		<span class="keyword">case</span> <label for="r9" class="ident">path</label>[<label for="r15" class="ident">r</label>] == <span class="lit-number">'.'</span> &amp;&amp; <label for="r9" class="ident">path</label>[<label for="r15" class="ident">r</label>+<span class="lit-number">1</span>] == <span class="lit-number">'.'</span> &amp;&amp; (<label for="r15" class="ident">r</label>+<span class="lit-number">2</span> == <label for="r13" class="ident">n</label> || <a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/path_unix.go.html#line-15" class="ident">IsPathSeparator</a>(<label for="r9" class="ident">path</label>[<label for="r15" class="ident">r</label>+<span class="lit-number">2</span>])):</code></span>
+<span class="codeline" id="line-124"><code>			<span class="comment">// .. element: remove to last separator</span></code></span>
+<span class="codeline" id="line-125"><code>			<label for="r15" class="ident">r</label> += <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-126"><code>			<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-127"><code>			<span class="keyword">case</span> <label for="r14" class="ident">out</label>.<a href="#line-29" class="ident">w</a> &gt; <label for="r16" class="ident">dotdot</label>:</code></span>
+<span class="codeline" id="line-128"><code>				<span class="comment">// can backtrack</span></code></span>
+<span class="codeline" id="line-129"><code>				<label for="r14" class="ident">out</label>.<a href="#line-29" class="ident">w</a>--</code></span>
+<span class="codeline" id="line-130"><code>				<span class="keyword">for</span> <label for="r14" class="ident">out</label>.<a href="#line-29" class="ident">w</a> &gt; <label for="r16" class="ident">dotdot</label> &amp;&amp; !<a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/path_unix.go.html#line-15" class="ident">IsPathSeparator</a>(<label for="r14" class="ident">out</label>.<a href="#line-34" class="ident">index</a>(<label for="r14" class="ident">out</label>.<a href="#line-29" class="ident">w</a>)) {</code></span>
+<span class="codeline" id="line-131"><code>					<label for="r14" class="ident">out</label>.<a href="#line-29" class="ident">w</a>--</code></span>
+<span class="codeline" id="line-132"><code>				}</code></span>
+<span class="codeline" id="line-133"><code>			<span class="keyword">case</span> !<label for="r12" class="ident">rooted</label>:</code></span>
+<span class="codeline" id="line-134"><code>				<span class="comment">// cannot backtrack, but not rooted, so append .. element.</span></code></span>
+<span class="codeline" id="line-135"><code>				<span class="keyword">if</span> <label for="r14" class="ident">out</label>.<a href="#line-29" class="ident">w</a> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-136"><code>					<label for="r14" class="ident">out</label>.<a href="#line-41" class="ident">append</a>(<a href="#line-62" class="ident">Separator</a>)</code></span>
+<span class="codeline" id="line-137"><code>				}</code></span>
+<span class="codeline" id="line-138"><code>				<label for="r14" class="ident">out</label>.<a href="#line-41" class="ident">append</a>(<span class="lit-number">'.'</span>)</code></span>
+<span class="codeline" id="line-139"><code>				<label for="r14" class="ident">out</label>.<a href="#line-41" class="ident">append</a>(<span class="lit-number">'.'</span>)</code></span>
+<span class="codeline" id="line-140"><code>				<label for="r16" class="ident">dotdot</label> = <label for="r14" class="ident">out</label>.<a href="#line-29" class="ident">w</a></code></span>
+<span class="codeline" id="line-141"><code>			}</code></span>
+<span class="codeline" id="line-142"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-143"><code>			<span class="comment">// real path element.</span></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">			// add slash if needed</span></code></span>
+<span class="codeline" id="line-145"><code>			<span class="keyword">if</span> <label for="r12" class="ident">rooted</label> &amp;&amp; <label for="r14" class="ident">out</label>.<a href="#line-29" class="ident">w</a> != <span class="lit-number">1</span> || !<label for="r12" class="ident">rooted</label> &amp;&amp; <label for="r14" class="ident">out</label>.<a href="#line-29" class="ident">w</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-146"><code>				<label for="r14" class="ident">out</label>.<a href="#line-41" class="ident">append</a>(<a href="#line-62" class="ident">Separator</a>)</code></span>
+<span class="codeline" id="line-147"><code>			}</code></span>
+<span class="codeline" id="line-148"><code>			<span class="comment">// copy element</span></code></span>
+<span class="codeline" id="line-149"><code>			<span class="keyword">for</span> ; <label for="r15" class="ident">r</label> &lt; <label for="r13" class="ident">n</label> &amp;&amp; !<a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/path_unix.go.html#line-15" class="ident">IsPathSeparator</a>(<label for="r9" class="ident">path</label>[<label for="r15" class="ident">r</label>]); <label for="r15" class="ident">r</label>++ {</code></span>
+<span class="codeline" id="line-150"><code>				<label for="r14" class="ident">out</label>.<a href="#line-41" class="ident">append</a>(<label for="r9" class="ident">path</label>[<label for="r15" class="ident">r</label>])</code></span>
+<span class="codeline" id="line-151"><code>			}</code></span>
+<span class="codeline" id="line-152"><code>		}</code></span>
+<span class="codeline" id="line-153"><code>	}</code></span>
+<span class="codeline" id="line-154"><code></code></span>
+<span class="codeline" id="line-155"><code>	<span class="comment">// Turn empty string into "."</span></code></span>
+<span class="codeline" id="line-156"><code>	<span class="keyword">if</span> <label for="r14" class="ident">out</label>.<a href="#line-29" class="ident">w</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-157"><code>		<label for="r14" class="ident">out</label>.<a href="#line-41" class="ident">append</a>(<span class="lit-number">'.'</span>)</code></span>
+<span class="codeline" id="line-158"><code>	}</code></span>
+<span class="codeline" id="line-159"><code></code></span>
+<span class="codeline" id="line-160"><code>	<span class="keyword">return</span> <a href="#line-176" class="ident">FromSlash</a>(<label for="r14" class="ident">out</label>.<a href="#line-54" class="ident">string</a>())</code></span>
+<span class="codeline" id="line-161"><code>}</code></span>
+<span class="codeline" id="line-162"><code></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">// ToSlash returns the result of replacing each separator character</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">// in path with a slash ('/') character. Multiple separators are</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">// replaced by multiple slashes.</span></code></span>
+<span class="codeline" id="line-166"><code><span class="keyword">func</span> <label for="r17" class="ident"><a href="../../../pkg/path/filepath.html#name-ToSlash" class="ident">ToSlash</a></label>(<label for="r18" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-167"><code>	<span class="keyword">if</span> <a href="#line-62" class="ident">Separator</a> == <span class="lit-number">'/'</span> {</code></span>
+<span class="codeline" id="line-168"><code>		<span class="keyword">return</span> <label for="r18" class="ident">path</label></code></span>
+<span class="codeline" id="line-169"><code>	}</code></span>
+<span class="codeline" id="line-170"><code>	<span class="keyword">return</span> <a href="../../../pkg/strings.html" class="ident i4">strings</a>.<a href="../../strings/strings.go.html#line-963" class="ident">ReplaceAll</a>(<label for="r18" class="ident">path</label>, <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<a href="#line-62" class="ident">Separator</a>), <span class="lit-string">"/"</span>)</code></span>
+<span class="codeline" id="line-171"><code>}</code></span>
+<span class="codeline" id="line-172"><code></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">// FromSlash returns the result of replacing each slash ('/') character</span></code></span>
+<span class="codeline" id="line-174"><code><span class="comment">// in path with a separator character. Multiple slashes are replaced</span></code></span>
+<span class="codeline" id="line-175"><code><span class="comment">// by multiple separators.</span></code></span>
+<span class="codeline" id="line-176"><code><span class="keyword">func</span> <label for="r19" class="ident"><a href="../../../pkg/path/filepath.html#name-FromSlash" class="ident">FromSlash</a></label>(<label for="r20" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-177"><code>	<span class="keyword">if</span> <a href="#line-62" class="ident">Separator</a> == <span class="lit-number">'/'</span> {</code></span>
+<span class="codeline" id="line-178"><code>		<span class="keyword">return</span> <label for="r20" class="ident">path</label></code></span>
+<span class="codeline" id="line-179"><code>	}</code></span>
+<span class="codeline" id="line-180"><code>	<span class="keyword">return</span> <a href="../../../pkg/strings.html" class="ident i4">strings</a>.<a href="../../strings/strings.go.html#line-963" class="ident">ReplaceAll</a>(<label for="r20" class="ident">path</label>, <span class="lit-string">"/"</span>, <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<a href="#line-62" class="ident">Separator</a>))</code></span>
+<span class="codeline" id="line-181"><code>}</code></span>
+<span class="codeline" id="line-182"><code></code></span>
+<span class="codeline" id="line-183"><code><span class="comment">// SplitList splits a list of paths joined by the OS-specific ListSeparator,</span></code></span>
+<span class="codeline" id="line-184"><code><span class="comment">// usually found in PATH or GOPATH environment variables.</span></code></span>
+<span class="codeline" id="line-185"><code><span class="comment">// Unlike strings.Split, SplitList returns an empty slice when passed an empty</span></code></span>
+<span class="codeline" id="line-186"><code><span class="comment">// string.</span></code></span>
+<span class="codeline" id="line-187"><code><span class="keyword">func</span> <label for="r21" class="ident"><a href="../../../pkg/path/filepath.html#name-SplitList" class="ident">SplitList</a></label>(<label for="r22" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) []<a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-188"><code>	<span class="keyword">return</span> <a href="path_unix.go.html#line-30" class="ident">splitList</a>(<label for="r22" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-189"><code>}</code></span>
+<span class="codeline" id="line-190"><code></code></span>
+<span class="codeline" id="line-191"><code><span class="comment">// Split splits path immediately following the final Separator,</span></code></span>
+<span class="codeline" id="line-192"><code><span class="comment">// separating it into a directory and file name component.</span></code></span>
+<span class="codeline" id="line-193"><code><span class="comment">// If there is no Separator in path, Split returns an empty dir</span></code></span>
+<span class="codeline" id="line-194"><code><span class="comment">// and file set to path.</span></code></span>
+<span class="codeline" id="line-195"><code><span class="comment">// The returned values have the property that path = dir+file.</span></code></span>
+<span class="codeline" id="line-196"><code><span class="keyword">func</span> <label for="r23" class="ident"><a href="../../../pkg/path/filepath.html#name-Split" class="ident">Split</a></label>(<label for="r24" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r25" class="ident">dir</label>, <label for="r26" class="ident">file</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-197"><code>	<label for="r27" class="ident">vol</label> := <a href="#line-594" class="ident">VolumeName</a>(<label for="r24" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-198"><code>	<label for="r28" class="ident">i</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r24" class="ident">path</label>) - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-199"><code>	<span class="keyword">for</span> <label for="r28" class="ident">i</label> &gt;= <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r27" class="ident">vol</label>) &amp;&amp; !<a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/path_unix.go.html#line-15" class="ident">IsPathSeparator</a>(<label for="r24" class="ident">path</label>[<label for="r28" class="ident">i</label>]) {</code></span>
+<span class="codeline" id="line-200"><code>		<label for="r28" class="ident">i</label>--</code></span>
+<span class="codeline" id="line-201"><code>	}</code></span>
+<span class="codeline" id="line-202"><code>	<span class="keyword">return</span> <label for="r24" class="ident">path</label>[:<label for="r28" class="ident">i</label>+<span class="lit-number">1</span>], <label for="r24" class="ident">path</label>[<label for="r28" class="ident">i</label>+<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-203"><code>}</code></span>
+<span class="codeline" id="line-204"><code></code></span>
+<span class="codeline" id="line-205"><code><span class="comment">// Join joins any number of path elements into a single path,</span></code></span>
+<span class="codeline" id="line-206"><code><span class="comment">// separating them with an OS specific Separator. Empty elements</span></code></span>
+<span class="codeline" id="line-207"><code><span class="comment">// are ignored. The result is Cleaned. However, if the argument</span></code></span>
+<span class="codeline" id="line-208"><code><span class="comment">// list is empty or all its elements are empty, Join returns</span></code></span>
+<span class="codeline" id="line-209"><code><span class="comment">// an empty string.</span></code></span>
+<span class="codeline" id="line-210"><code><span class="comment">// On Windows, the result will only be a UNC path if the first</span></code></span>
+<span class="codeline" id="line-211"><code><span class="comment">// non-empty element is a UNC path.</span></code></span>
+<span class="codeline" id="line-212"><code><span class="keyword">func</span> <label for="r29" class="ident"><a href="../../../pkg/path/filepath.html#name-Join" class="ident">Join</a></label>(<label for="r30" class="ident">elem</label> ...<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-213"><code>	<span class="keyword">return</span> <a href="path_unix.go.html#line-41" class="ident">join</a>(<label for="r30" class="ident">elem</label>)</code></span>
+<span class="codeline" id="line-214"><code>}</code></span>
+<span class="codeline" id="line-215"><code></code></span>
+<span class="codeline" id="line-216"><code><span class="comment">// Ext returns the file name extension used by path.</span></code></span>
+<span class="codeline" id="line-217"><code><span class="comment">// The extension is the suffix beginning at the final dot</span></code></span>
+<span class="codeline" id="line-218"><code><span class="comment">// in the final element of path; it is empty if there is</span></code></span>
+<span class="codeline" id="line-219"><code><span class="comment">// no dot.</span></code></span>
+<span class="codeline" id="line-220"><code><span class="keyword">func</span> <label for="r31" class="ident"><a href="../../../pkg/path/filepath.html#name-Ext" class="ident">Ext</a></label>(<label for="r32" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-221"><code>	<span class="keyword">for</span> <label for="r33" class="ident">i</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r32" class="ident">path</label>) - <span class="lit-number">1</span>; <label for="r33" class="ident">i</label> &gt;= <span class="lit-number">0</span> &amp;&amp; !<a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/path_unix.go.html#line-15" class="ident">IsPathSeparator</a>(<label for="r32" class="ident">path</label>[<label for="r33" class="ident">i</label>]); <label for="r33" class="ident">i</label>-- {</code></span>
+<span class="codeline" id="line-222"><code>		<span class="keyword">if</span> <label for="r32" class="ident">path</label>[<label for="r33" class="ident">i</label>] == <span class="lit-number">'.'</span> {</code></span>
+<span class="codeline" id="line-223"><code>			<span class="keyword">return</span> <label for="r32" class="ident">path</label>[<label for="r33" class="ident">i</label>:]</code></span>
+<span class="codeline" id="line-224"><code>		}</code></span>
+<span class="codeline" id="line-225"><code>	}</code></span>
+<span class="codeline" id="line-226"><code>	<span class="keyword">return</span> <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-227"><code>}</code></span>
+<span class="codeline" id="line-228"><code></code></span>
+<span class="codeline" id="line-229"><code><span class="comment">// EvalSymlinks returns the path name after the evaluation of any symbolic</span></code></span>
+<span class="codeline" id="line-230"><code><span class="comment">// links.</span></code></span>
+<span class="codeline" id="line-231"><code><span class="comment">// If path is relative the result will be relative to the current directory,</span></code></span>
+<span class="codeline" id="line-232"><code><span class="comment">// unless one of the components is an absolute symbolic link.</span></code></span>
+<span class="codeline" id="line-233"><code><span class="comment">// EvalSymlinks calls Clean on the result.</span></code></span>
+<span class="codeline" id="line-234"><code><span class="keyword">func</span> <label for="r34" class="ident"><a href="../../../pkg/path/filepath.html#name-EvalSymlinks" class="ident">EvalSymlinks</a></label>(<label for="r35" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-235"><code>	<span class="keyword">return</span> <a href="symlink_unix.go.html#line-5" class="ident">evalSymlinks</a>(<label for="r35" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-236"><code>}</code></span>
+<span class="codeline" id="line-237"><code></code></span>
+<span class="codeline" id="line-238"><code><span class="comment">// Abs returns an absolute representation of path.</span></code></span>
+<span class="codeline" id="line-239"><code><span class="comment">// If the path is not absolute it will be joined with the current</span></code></span>
+<span class="codeline" id="line-240"><code><span class="comment">// working directory to turn it into an absolute path. The absolute</span></code></span>
+<span class="codeline" id="line-241"><code><span class="comment">// path name for a given file is not guaranteed to be unique.</span></code></span>
+<span class="codeline" id="line-242"><code><span class="comment">// Abs calls Clean on the result.</span></code></span>
+<span class="codeline" id="line-243"><code><span class="keyword">func</span> <label for="r36" class="ident"><a href="../../../pkg/path/filepath.html#name-Abs" class="ident">Abs</a></label>(<label for="r37" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-244"><code>	<span class="keyword">return</span> <a href="path_unix.go.html#line-37" class="ident">abs</a>(<label for="r37" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-245"><code>}</code></span>
+<span class="codeline" id="line-246"><code></code></span>
+<span class="codeline" id="line-247"><code><span class="keyword">func</span> <label for="r38" class="ident"><a href="../../../pkg/path/filepath.html#name-unixAbs" class="ident">unixAbs</a></label>(<label for="r39" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-248"><code>	<span class="keyword">if</span> <a href="path_unix.go.html#line-12" class="ident">IsAbs</a>(<label for="r39" class="ident">path</label>) {</code></span>
+<span class="codeline" id="line-249"><code>		<span class="keyword">return</span> <a href="#line-89" class="ident">Clean</a>(<label for="r39" class="ident">path</label>), <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-250"><code>	}</code></span>
+<span class="codeline" id="line-251"><code>	<label for="r40" class="ident">wd</label>, <label for="r41" class="ident">err</label> := <a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/getwd.go.html#line-22" class="ident">Getwd</a>()</code></span>
+<span class="codeline" id="line-252"><code>	<span class="keyword">if</span> <label for="r41" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-253"><code>		<span class="keyword">return</span> <span class="lit-string">""</span>, <label for="r41" class="ident">err</label></code></span>
+<span class="codeline" id="line-254"><code>	}</code></span>
+<span class="codeline" id="line-255"><code>	<span class="keyword">return</span> <a href="#line-212" class="ident">Join</a>(<label for="r40" class="ident">wd</label>, <label for="r39" class="ident">path</label>), <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-256"><code>}</code></span>
+<span class="codeline" id="line-257"><code></code></span>
+<span class="codeline" id="line-258"><code><span class="comment">// Rel returns a relative path that is lexically equivalent to targpath when</span></code></span>
+<span class="codeline" id="line-259"><code><span class="comment">// joined to basepath with an intervening separator. That is,</span></code></span>
+<span class="codeline" id="line-260"><code><span class="comment">// Join(basepath, Rel(basepath, targpath)) is equivalent to targpath itself.</span></code></span>
+<span class="codeline" id="line-261"><code><span class="comment">// On success, the returned path will always be relative to basepath,</span></code></span>
+<span class="codeline" id="line-262"><code><span class="comment">// even if basepath and targpath share no elements.</span></code></span>
+<span class="codeline" id="line-263"><code><span class="comment">// An error is returned if targpath can't be made relative to basepath or if</span></code></span>
+<span class="codeline" id="line-264"><code><span class="comment">// knowing the current working directory would be necessary to compute it.</span></code></span>
+<span class="codeline" id="line-265"><code><span class="comment">// Rel calls Clean on the result.</span></code></span>
+<span class="codeline" id="line-266"><code><span class="keyword">func</span> <label for="r42" class="ident"><a href="../../../pkg/path/filepath.html#name-Rel" class="ident">Rel</a></label>(<label for="r43" class="ident">basepath</label>, <label for="r44" class="ident">targpath</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-267"><code>	<label for="r45" class="ident">baseVol</label> := <a href="#line-594" class="ident">VolumeName</a>(<label for="r43" class="ident">basepath</label>)</code></span>
+<span class="codeline" id="line-268"><code>	<label for="r46" class="ident">targVol</label> := <a href="#line-594" class="ident">VolumeName</a>(<label for="r44" class="ident">targpath</label>)</code></span>
+<span class="codeline" id="line-269"><code>	<label for="r47" class="ident">base</label> := <a href="#line-89" class="ident">Clean</a>(<label for="r43" class="ident">basepath</label>)</code></span>
+<span class="codeline" id="line-270"><code>	<label for="r48" class="ident">targ</label> := <a href="#line-89" class="ident">Clean</a>(<label for="r44" class="ident">targpath</label>)</code></span>
+<span class="codeline" id="line-271"><code>	<span class="keyword">if</span> <a href="path_unix.go.html#line-51" class="ident">sameWord</a>(<label for="r48" class="ident">targ</label>, <label for="r47" class="ident">base</label>) {</code></span>
+<span class="codeline" id="line-272"><code>		<span class="keyword">return</span> <span class="lit-string">"."</span>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-273"><code>	}</code></span>
+<span class="codeline" id="line-274"><code>	<label for="r47" class="ident">base</label> = <label for="r47" class="ident">base</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r45" class="ident">baseVol</label>):]</code></span>
+<span class="codeline" id="line-275"><code>	<label for="r48" class="ident">targ</label> = <label for="r48" class="ident">targ</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r46" class="ident">targVol</label>):]</code></span>
+<span class="codeline" id="line-276"><code>	<span class="keyword">if</span> <label for="r47" class="ident">base</label> == <span class="lit-string">"."</span> {</code></span>
+<span class="codeline" id="line-277"><code>		<label for="r47" class="ident">base</label> = <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-278"><code>	}</code></span>
+<span class="codeline" id="line-279"><code>	<span class="comment">// Can't use IsAbs - `\a` and `a` are both relative in Windows.</span></code></span>
+<span class="codeline" id="line-280"><code>	<label for="r49" class="ident">baseSlashed</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r47" class="ident">base</label>) &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r47" class="ident">base</label>[<span class="lit-number">0</span>] == <a href="#line-62" class="ident">Separator</a></code></span>
+<span class="codeline" id="line-281"><code>	<label for="r50" class="ident">targSlashed</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r48" class="ident">targ</label>) &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r48" class="ident">targ</label>[<span class="lit-number">0</span>] == <a href="#line-62" class="ident">Separator</a></code></span>
+<span class="codeline" id="line-282"><code>	<span class="keyword">if</span> <label for="r49" class="ident">baseSlashed</label> != <label for="r50" class="ident">targSlashed</label> || !<a href="path_unix.go.html#line-51" class="ident">sameWord</a>(<label for="r45" class="ident">baseVol</label>, <label for="r46" class="ident">targVol</label>) {</code></span>
+<span class="codeline" id="line-283"><code>		<span class="keyword">return</span> <span class="lit-string">""</span>, <a href="../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"Rel: can't make "</span> + <label for="r44" class="ident">targpath</label> + <span class="lit-string">" relative to "</span> + <label for="r43" class="ident">basepath</label>)</code></span>
+<span class="codeline" id="line-284"><code>	}</code></span>
+<span class="codeline" id="line-285"><code>	<span class="comment">// Position base[b0:bi] and targ[t0:ti] at the first differing elements.</span></code></span>
+<span class="codeline" id="line-286"><code>	<label for="r51" class="ident">bl</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r47" class="ident">base</label>)</code></span>
+<span class="codeline" id="line-287"><code>	<label for="r52" class="ident">tl</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r48" class="ident">targ</label>)</code></span>
+<span class="codeline" id="line-288"><code>	<span class="keyword">var</span> <label for="r53" class="ident">b0</label>, <label for="r54" class="ident">bi</label>, <label for="r55" class="ident">t0</label>, <label for="r56" class="ident">ti</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-289"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-290"><code>		<span class="keyword">for</span> <label for="r54" class="ident">bi</label> &lt; <label for="r51" class="ident">bl</label> &amp;&amp; <label for="r47" class="ident">base</label>[<label for="r54" class="ident">bi</label>] != <a href="#line-62" class="ident">Separator</a> {</code></span>
+<span class="codeline" id="line-291"><code>			<label for="r54" class="ident">bi</label>++</code></span>
+<span class="codeline" id="line-292"><code>		}</code></span>
+<span class="codeline" id="line-293"><code>		<span class="keyword">for</span> <label for="r56" class="ident">ti</label> &lt; <label for="r52" class="ident">tl</label> &amp;&amp; <label for="r48" class="ident">targ</label>[<label for="r56" class="ident">ti</label>] != <a href="#line-62" class="ident">Separator</a> {</code></span>
+<span class="codeline" id="line-294"><code>			<label for="r56" class="ident">ti</label>++</code></span>
+<span class="codeline" id="line-295"><code>		}</code></span>
+<span class="codeline" id="line-296"><code>		<span class="keyword">if</span> !<a href="path_unix.go.html#line-51" class="ident">sameWord</a>(<label for="r48" class="ident">targ</label>[<label for="r55" class="ident">t0</label>:<label for="r56" class="ident">ti</label>], <label for="r47" class="ident">base</label>[<label for="r53" class="ident">b0</label>:<label for="r54" class="ident">bi</label>]) {</code></span>
+<span class="codeline" id="line-297"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-298"><code>		}</code></span>
+<span class="codeline" id="line-299"><code>		<span class="keyword">if</span> <label for="r54" class="ident">bi</label> &lt; <label for="r51" class="ident">bl</label> {</code></span>
+<span class="codeline" id="line-300"><code>			<label for="r54" class="ident">bi</label>++</code></span>
+<span class="codeline" id="line-301"><code>		}</code></span>
+<span class="codeline" id="line-302"><code>		<span class="keyword">if</span> <label for="r56" class="ident">ti</label> &lt; <label for="r52" class="ident">tl</label> {</code></span>
+<span class="codeline" id="line-303"><code>			<label for="r56" class="ident">ti</label>++</code></span>
+<span class="codeline" id="line-304"><code>		}</code></span>
+<span class="codeline" id="line-305"><code>		<label for="r53" class="ident">b0</label> = <label for="r54" class="ident">bi</label></code></span>
+<span class="codeline" id="line-306"><code>		<label for="r55" class="ident">t0</label> = <label for="r56" class="ident">ti</label></code></span>
+<span class="codeline" id="line-307"><code>	}</code></span>
+<span class="codeline" id="line-308"><code>	<span class="keyword">if</span> <label for="r47" class="ident">base</label>[<label for="r53" class="ident">b0</label>:<label for="r54" class="ident">bi</label>] == <span class="lit-string">".."</span> {</code></span>
+<span class="codeline" id="line-309"><code>		<span class="keyword">return</span> <span class="lit-string">""</span>, <a href="../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"Rel: can't make "</span> + <label for="r44" class="ident">targpath</label> + <span class="lit-string">" relative to "</span> + <label for="r43" class="ident">basepath</label>)</code></span>
+<span class="codeline" id="line-310"><code>	}</code></span>
+<span class="codeline" id="line-311"><code>	<span class="keyword">if</span> <label for="r53" class="ident">b0</label> != <label for="r51" class="ident">bl</label> {</code></span>
+<span class="codeline" id="line-312"><code>		<span class="comment">// Base elements left. Must go up before going down.</span></code></span>
+<span class="codeline" id="line-313"><code>		<label for="r57" class="ident">seps</label> := <a href="../../../pkg/strings.html" class="ident i4">strings</a>.<a href="../../strings/strings.go.html#line-41" class="ident">Count</a>(<label for="r47" class="ident">base</label>[<label for="r53" class="ident">b0</label>:<label for="r51" class="ident">bl</label>], <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<a href="#line-62" class="ident">Separator</a>))</code></span>
+<span class="codeline" id="line-314"><code>		<label for="r58" class="ident">size</label> := <span class="lit-number">2</span> + <label for="r57" class="ident">seps</label>*<span class="lit-number">3</span></code></span>
+<span class="codeline" id="line-315"><code>		<span class="keyword">if</span> <label for="r52" class="ident">tl</label> != <label for="r55" class="ident">t0</label> {</code></span>
+<span class="codeline" id="line-316"><code>			<label for="r58" class="ident">size</label> += <span class="lit-number">1</span> + <label for="r52" class="ident">tl</label> - <label for="r55" class="ident">t0</label></code></span>
+<span class="codeline" id="line-317"><code>		}</code></span>
+<span class="codeline" id="line-318"><code>		<label for="r59" class="ident">buf</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r58" class="ident">size</label>)</code></span>
+<span class="codeline" id="line-319"><code>		<label for="r60" class="ident">n</label> := <a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r59" class="ident">buf</label>, <span class="lit-string">".."</span>)</code></span>
+<span class="codeline" id="line-320"><code>		<span class="keyword">for</span> <label for="r61" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r61" class="ident">i</label> &lt; <label for="r57" class="ident">seps</label>; <label for="r61" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-321"><code>			<label for="r59" class="ident">buf</label>[<label for="r60" class="ident">n</label>] = <a href="#line-62" class="ident">Separator</a></code></span>
+<span class="codeline" id="line-322"><code>			<a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r59" class="ident">buf</label>[<label for="r60" class="ident">n</label>+<span class="lit-number">1</span>:], <span class="lit-string">".."</span>)</code></span>
+<span class="codeline" id="line-323"><code>			<label for="r60" class="ident">n</label> += <span class="lit-number">3</span></code></span>
+<span class="codeline" id="line-324"><code>		}</code></span>
+<span class="codeline" id="line-325"><code>		<span class="keyword">if</span> <label for="r55" class="ident">t0</label> != <label for="r52" class="ident">tl</label> {</code></span>
+<span class="codeline" id="line-326"><code>			<label for="r59" class="ident">buf</label>[<label for="r60" class="ident">n</label>] = <a href="#line-62" class="ident">Separator</a></code></span>
+<span class="codeline" id="line-327"><code>			<a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r59" class="ident">buf</label>[<label for="r60" class="ident">n</label>+<span class="lit-number">1</span>:], <label for="r48" class="ident">targ</label>[<label for="r55" class="ident">t0</label>:])</code></span>
+<span class="codeline" id="line-328"><code>		}</code></span>
+<span class="codeline" id="line-329"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r59" class="ident">buf</label>), <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-330"><code>	}</code></span>
+<span class="codeline" id="line-331"><code>	<span class="keyword">return</span> <label for="r48" class="ident">targ</label>[<label for="r55" class="ident">t0</label>:], <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-332"><code>}</code></span>
+<span class="codeline" id="line-333"><code></code></span>
+<span class="codeline" id="line-334"><code><span class="comment">// SkipDir is used as a return value from WalkFuncs to indicate that</span></code></span>
+<span class="codeline" id="line-335"><code><span class="comment">// the directory named in the call is to be skipped. It is not returned</span></code></span>
+<span class="codeline" id="line-336"><code><span class="comment">// as an error by any function.</span></code></span>
+<span class="codeline" id="line-337"><code><span class="keyword">var</span> <a href="../../../pkg/path/filepath.html#name-SkipDir" class="ident">SkipDir</a> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> = <a href="../../../pkg/io/fs.html" class="ident i1">fs</a>.<a href="../../io/fs/walk.go.html#line-15" class="ident">SkipDir</a></code></span>
+<span class="codeline" id="line-338"><code></code></span>
+<span class="codeline" id="line-339"><code><span class="comment">// WalkFunc is the type of the function called by Walk to visit each each</span></code></span>
+<span class="codeline" id="line-340"><code><span class="comment">// file or directory.</span></code></span>
+<span class="codeline" id="line-341"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-342"><code><span class="comment">// The path argument contains the argument to Walk as a prefix.</span></code></span>
+<span class="codeline" id="line-343"><code><span class="comment">// That is, if Walk is called with root argument "dir" and finds a file</span></code></span>
+<span class="codeline" id="line-344"><code><span class="comment">// named "a" in that directory, the walk function will be called with</span></code></span>
+<span class="codeline" id="line-345"><code><span class="comment">// argument "dir/a".</span></code></span>
+<span class="codeline" id="line-346"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-347"><code><span class="comment">// The directory and file are joined with Join, which may clean the</span></code></span>
+<span class="codeline" id="line-348"><code><span class="comment">// directory name: if Walk is called with the root argument "x/../dir"</span></code></span>
+<span class="codeline" id="line-349"><code><span class="comment">// and finds a file named "a" in that directory, the walk function will</span></code></span>
+<span class="codeline" id="line-350"><code><span class="comment">// be called with argument "dir/a", not "x/../dir/a".</span></code></span>
+<span class="codeline" id="line-351"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-352"><code><span class="comment">// The info argument is the fs.FileInfo for the named path.</span></code></span>
+<span class="codeline" id="line-353"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-354"><code><span class="comment">// The error result returned by the function controls how Walk continues.</span></code></span>
+<span class="codeline" id="line-355"><code><span class="comment">// If the function returns the special value SkipDir, Walk skips the</span></code></span>
+<span class="codeline" id="line-356"><code><span class="comment">// current directory (path if info.IsDir() is true, otherwise path's</span></code></span>
+<span class="codeline" id="line-357"><code><span class="comment">// parent directory). Otherwise, if the function returns a non-nil error,</span></code></span>
+<span class="codeline" id="line-358"><code><span class="comment">// Walk stops entirely and returns that error.</span></code></span>
+<span class="codeline" id="line-359"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-360"><code><span class="comment">// The err argument reports an error related to path, signaling that Walk</span></code></span>
+<span class="codeline" id="line-361"><code><span class="comment">// will not walk into that directory. The function can decide how to</span></code></span>
+<span class="codeline" id="line-362"><code><span class="comment">// handle that error; as described earlier, returning the error will</span></code></span>
+<span class="codeline" id="line-363"><code><span class="comment">// cause Walk to stop walking the entire tree.</span></code></span>
+<span class="codeline" id="line-364"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-365"><code><span class="comment">// Walk calls the function with a non-nil err argument in two cases.</span></code></span>
+<span class="codeline" id="line-366"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-367"><code><span class="comment">// First, if an os.Lstat on the root directory or any directory or file</span></code></span>
+<span class="codeline" id="line-368"><code><span class="comment">// in the tree fails, Walk calls the function with path set to that</span></code></span>
+<span class="codeline" id="line-369"><code><span class="comment">// directory or file's path, info set to nil, and err set to the error</span></code></span>
+<span class="codeline" id="line-370"><code><span class="comment">// from os.Lstat.</span></code></span>
+<span class="codeline" id="line-371"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-372"><code><span class="comment">// Second, if a directory's Readdirnames method fails, Walk calls the</span></code></span>
+<span class="codeline" id="line-373"><code><span class="comment">// function with path set to the directory's path, info, set to an</span></code></span>
+<span class="codeline" id="line-374"><code><span class="comment">// fs.FileInfo describing the directory, and err set to the error from</span></code></span>
+<span class="codeline" id="line-375"><code><span class="comment">// Readdirnames.</span></code></span>
+<span class="codeline" id="line-376"><code><span class="keyword">type</span> <a href="../../../pkg/path/filepath.html#name-WalkFunc" class="ident">WalkFunc</a> <span class="keyword">func</span>(path <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, info <a href="../../../pkg/io/fs.html" class="ident i1">fs</a>.<a href="../../io/fs/fs.go.html#line-150" class="ident">FileInfo</a>, err <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-377"><code></code></span>
+<span class="codeline" id="line-378"><code><span class="keyword">var</span> <a href="../../../pkg/path/filepath.html#name-lstat" class="ident">lstat</a> = <a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/stat.go.html#line-20" class="ident">Lstat</a> <span class="comment">// for testing</span></code></span>
+<span class="codeline" id="line-379"><code></code></span>
+<span class="codeline" id="line-380"><code><span class="comment">// walkDir recursively descends path, calling walkDirFn.</span></code></span>
+<span class="codeline" id="line-381"><code><span class="keyword">func</span> <label for="r62" class="ident"><a href="../../../pkg/path/filepath.html#name-walkDir" class="ident">walkDir</a></label>(<label for="r63" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r64" class="ident">d</label> <a href="../../../pkg/io/fs.html" class="ident i1">fs</a>.<a href="../../io/fs/fs.go.html#line-86" class="ident">DirEntry</a>, <label for="r65" class="ident">walkDirFn</label> <a href="../../../pkg/io/fs.html" class="ident i1">fs</a>.<a href="../../io/fs/walk.go.html#line-62" class="ident">WalkDirFunc</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-382"><code>	<span class="keyword">if</span> <label for="r66" class="ident">err</label> := <label for="r65" class="ident">walkDirFn</label>(<label for="r63" class="ident">path</label>, <label for="r64" class="ident">d</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>); <label for="r66" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> || !<label for="r64" class="ident">d</label>.<a href="../../io/fs/fs.go.html#line-93" class="ident">IsDir</a>() {</code></span>
+<span class="codeline" id="line-383"><code>		<span class="keyword">if</span> <label for="r66" class="ident">err</label> == <a href="#line-337" class="ident">SkipDir</a> &amp;&amp; <label for="r64" class="ident">d</label>.<a href="../../io/fs/fs.go.html#line-93" class="ident">IsDir</a>() {</code></span>
+<span class="codeline" id="line-384"><code>			<span class="comment">// Successfully skipped directory.</span></code></span>
+<span class="codeline" id="line-385"><code>			<label for="r66" class="ident">err</label> = <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-386"><code>		}</code></span>
+<span class="codeline" id="line-387"><code>		<span class="keyword">return</span> <label for="r66" class="ident">err</label></code></span>
+<span class="codeline" id="line-388"><code>	}</code></span>
+<span class="codeline" id="line-389"><code></code></span>
+<span class="codeline" id="line-390"><code>	<label for="r67" class="ident">dirs</label>, <label for="r68" class="ident">err</label> := <a href="#line-511" class="ident">readDir</a>(<label for="r63" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-391"><code>	<span class="keyword">if</span> <label for="r68" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-392"><code>		<span class="comment">// Second call, to report ReadDir error.</span></code></span>
+<span class="codeline" id="line-393"><code>		<label for="r68" class="ident">err</label> = <label for="r65" class="ident">walkDirFn</label>(<label for="r63" class="ident">path</label>, <label for="r64" class="ident">d</label>, <label for="r68" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-394"><code>		<span class="keyword">if</span> <label for="r68" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-395"><code>			<span class="keyword">return</span> <label for="r68" class="ident">err</label></code></span>
+<span class="codeline" id="line-396"><code>		}</code></span>
+<span class="codeline" id="line-397"><code>	}</code></span>
+<span class="codeline" id="line-398"><code></code></span>
+<span class="codeline" id="line-399"><code>	<span class="keyword">for</span> <label for="r69" class="ident">_</label>, <label for="r70" class="ident">d1</label> := <span class="keyword">range</span> <label for="r67" class="ident">dirs</label> {</code></span>
+<span class="codeline" id="line-400"><code>		<label for="r71" class="ident">path1</label> := <a href="#line-212" class="ident">Join</a>(<label for="r63" class="ident">path</label>, <label for="r70" class="ident">d1</label>.<a href="../../io/fs/fs.go.html#line-90" class="ident">Name</a>())</code></span>
+<span class="codeline" id="line-401"><code>		<span class="keyword">if</span> <label for="r72" class="ident">err</label> := <label for="r62" class="ident">walkDir</label>(<label for="r71" class="ident">path1</label>, <label for="r70" class="ident">d1</label>, <label for="r65" class="ident">walkDirFn</label>); <label for="r72" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-402"><code>			<span class="keyword">if</span> <label for="r72" class="ident">err</label> == <a href="#line-337" class="ident">SkipDir</a> {</code></span>
+<span class="codeline" id="line-403"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-404"><code>			}</code></span>
+<span class="codeline" id="line-405"><code>			<span class="keyword">return</span> <label for="r72" class="ident">err</label></code></span>
+<span class="codeline" id="line-406"><code>		}</code></span>
+<span class="codeline" id="line-407"><code>	}</code></span>
+<span class="codeline" id="line-408"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-409"><code>}</code></span>
+<span class="codeline" id="line-410"><code></code></span>
+<span class="codeline" id="line-411"><code><span class="comment">// walk recursively descends path, calling walkFn.</span></code></span>
+<span class="codeline" id="line-412"><code><span class="keyword">func</span> <label for="r73" class="ident"><a href="../../../pkg/path/filepath.html#name-walk" class="ident">walk</a></label>(<label for="r74" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r75" class="ident">info</label> <a href="../../../pkg/io/fs.html" class="ident i1">fs</a>.<a href="../../io/fs/fs.go.html#line-150" class="ident">FileInfo</a>, <label for="r76" class="ident">walkFn</label> <a href="#line-376" class="ident">WalkFunc</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-413"><code>	<span class="keyword">if</span> !<label for="r75" class="ident">info</label>.<a href="../../io/fs/fs.go.html#line-155" class="ident">IsDir</a>() {</code></span>
+<span class="codeline" id="line-414"><code>		<span class="keyword">return</span> <label for="r76" class="ident">walkFn</label>(<label for="r74" class="ident">path</label>, <label for="r75" class="ident">info</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-415"><code>	}</code></span>
+<span class="codeline" id="line-416"><code></code></span>
+<span class="codeline" id="line-417"><code>	<label for="r77" class="ident">names</label>, <label for="r78" class="ident">err</label> := <a href="#line-527" class="ident">readDirNames</a>(<label for="r74" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-418"><code>	<label for="r79" class="ident">err1</label> := <label for="r76" class="ident">walkFn</label>(<label for="r74" class="ident">path</label>, <label for="r75" class="ident">info</label>, <label for="r78" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-419"><code>	<span class="comment">// If err != nil, walk can't walk into this directory.</span></code></span>
+<span class="codeline" id="line-420"><code><span class="comment">	// err1 != nil means walkFn want walk to skip this directory or stop walking.</span></code></span>
+<span class="codeline" id="line-421"><code><span class="comment">	// Therefore, if one of err and err1 isn't nil, walk will return.</span></code></span>
+<span class="codeline" id="line-422"><code>	<span class="keyword">if</span> <label for="r78" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> || <label for="r79" class="ident">err1</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-423"><code>		<span class="comment">// The caller's behavior is controlled by the return value, which is decided</span></code></span>
+<span class="codeline" id="line-424"><code><span class="comment">		// by walkFn. walkFn may ignore err and return nil.</span></code></span>
+<span class="codeline" id="line-425"><code><span class="comment">		// If walkFn returns SkipDir, it will be handled by the caller.</span></code></span>
+<span class="codeline" id="line-426"><code><span class="comment">		// So walk should return whatever walkFn returns.</span></code></span>
+<span class="codeline" id="line-427"><code>		<span class="keyword">return</span> <label for="r79" class="ident">err1</label></code></span>
+<span class="codeline" id="line-428"><code>	}</code></span>
+<span class="codeline" id="line-429"><code></code></span>
+<span class="codeline" id="line-430"><code>	<span class="keyword">for</span> <label for="r80" class="ident">_</label>, <label for="r81" class="ident">name</label> := <span class="keyword">range</span> <label for="r77" class="ident">names</label> {</code></span>
+<span class="codeline" id="line-431"><code>		<label for="r82" class="ident">filename</label> := <a href="#line-212" class="ident">Join</a>(<label for="r74" class="ident">path</label>, <label for="r81" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-432"><code>		<label for="r83" class="ident">fileInfo</label>, <label for="r84" class="ident">err</label> := <a href="#line-378" class="ident">lstat</a>(<label for="r82" class="ident">filename</label>)</code></span>
+<span class="codeline" id="line-433"><code>		<span class="keyword">if</span> <label for="r84" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-434"><code>			<span class="keyword">if</span> <label for="r85" class="ident">err</label> := <label for="r76" class="ident">walkFn</label>(<label for="r82" class="ident">filename</label>, <label for="r83" class="ident">fileInfo</label>, <label for="r84" class="ident">err</label>); <label for="r85" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r85" class="ident">err</label> != <a href="#line-337" class="ident">SkipDir</a> {</code></span>
+<span class="codeline" id="line-435"><code>				<span class="keyword">return</span> <label for="r85" class="ident">err</label></code></span>
+<span class="codeline" id="line-436"><code>			}</code></span>
+<span class="codeline" id="line-437"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-438"><code>			<label for="r84" class="ident">err</label> = <label for="r73" class="ident">walk</label>(<label for="r82" class="ident">filename</label>, <label for="r83" class="ident">fileInfo</label>, <label for="r76" class="ident">walkFn</label>)</code></span>
+<span class="codeline" id="line-439"><code>			<span class="keyword">if</span> <label for="r84" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-440"><code>				<span class="keyword">if</span> !<label for="r83" class="ident">fileInfo</label>.<a href="../../io/fs/fs.go.html#line-155" class="ident">IsDir</a>() || <label for="r84" class="ident">err</label> != <a href="#line-337" class="ident">SkipDir</a> {</code></span>
+<span class="codeline" id="line-441"><code>					<span class="keyword">return</span> <label for="r84" class="ident">err</label></code></span>
+<span class="codeline" id="line-442"><code>				}</code></span>
+<span class="codeline" id="line-443"><code>			}</code></span>
+<span class="codeline" id="line-444"><code>		}</code></span>
+<span class="codeline" id="line-445"><code>	}</code></span>
+<span class="codeline" id="line-446"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-447"><code>}</code></span>
+<span class="codeline" id="line-448"><code></code></span>
+<span class="codeline" id="line-449"><code><span class="comment">// WalkDir walks the file tree rooted at root, calling fn for each file or</span></code></span>
+<span class="codeline" id="line-450"><code><span class="comment">// directory in the tree, including root.</span></code></span>
+<span class="codeline" id="line-451"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-452"><code><span class="comment">// All errors that arise visiting files and directories are filtered by fn:</span></code></span>
+<span class="codeline" id="line-453"><code><span class="comment">// see the fs.WalkDirFunc documentation for details.</span></code></span>
+<span class="codeline" id="line-454"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-455"><code><span class="comment">// The files are walked in lexical order, which makes the output deterministic</span></code></span>
+<span class="codeline" id="line-456"><code><span class="comment">// but requires WalkDir to read an entire directory into memory before proceeding</span></code></span>
+<span class="codeline" id="line-457"><code><span class="comment">// to walk that directory.</span></code></span>
+<span class="codeline" id="line-458"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-459"><code><span class="comment">// WalkDir does not follow symbolic links.</span></code></span>
+<span class="codeline" id="line-460"><code><span class="keyword">func</span> <label for="r86" class="ident"><a href="../../../pkg/path/filepath.html#name-WalkDir" class="ident">WalkDir</a></label>(<label for="r87" class="ident">root</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r88" class="ident">fn</label> <a href="../../../pkg/io/fs.html" class="ident i1">fs</a>.<a href="../../io/fs/walk.go.html#line-62" class="ident">WalkDirFunc</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-461"><code>	<label for="r89" class="ident">info</label>, <label for="r90" class="ident">err</label> := <a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/stat.go.html#line-20" class="ident">Lstat</a>(<label for="r87" class="ident">root</label>)</code></span>
+<span class="codeline" id="line-462"><code>	<span class="keyword">if</span> <label for="r90" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-463"><code>		<label for="r90" class="ident">err</label> = <label for="r88" class="ident">fn</label>(<label for="r87" class="ident">root</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r90" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-464"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-465"><code>		<label for="r90" class="ident">err</label> = <a href="#line-381" class="ident">walkDir</a>(<label for="r87" class="ident">root</label>, &amp;<a href="#line-473" class="ident">statDirEntry</a>{<label for="r89" class="ident">info</label>}, <label for="r88" class="ident">fn</label>)</code></span>
+<span class="codeline" id="line-466"><code>	}</code></span>
+<span class="codeline" id="line-467"><code>	<span class="keyword">if</span> <label for="r90" class="ident">err</label> == <a href="#line-337" class="ident">SkipDir</a> {</code></span>
+<span class="codeline" id="line-468"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-469"><code>	}</code></span>
+<span class="codeline" id="line-470"><code>	<span class="keyword">return</span> <label for="r90" class="ident">err</label></code></span>
+<span class="codeline" id="line-471"><code>}</code></span>
+<span class="codeline" id="line-472"><code></code></span>
+<span class="codeline" id="line-473"><code><span class="keyword">type</span> <a href="../../../pkg/path/filepath.html#name-statDirEntry" class="ident">statDirEntry</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-474"><code>	info <a href="../../../pkg/io/fs.html" class="ident i1">fs</a>.<a href="../../io/fs/fs.go.html#line-150" class="ident">FileInfo</a></code></span>
+<span class="codeline" id="line-475"><code>}</code></span>
+<span class="codeline" id="line-476"><code></code></span>
+<span class="codeline" id="line-477"><code><span class="keyword">func</span> (<label for="r91" class="ident">d</label> *<a href="#line-473" class="ident">statDirEntry</a>) <label for="r92" class="ident"><a href="../../../imp/path/filepath.statDirEntry*78a75.html#name-.Name" class="ident">Name</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>               { <span class="keyword">return</span> <label for="r91" class="ident">d</label>.<a href="#line-474" class="ident">info</a>.<a href="../../io/fs/fs.go.html#line-151" class="ident">Name</a>() }</code></span>
+<span class="codeline" id="line-478"><code><span class="keyword">func</span> (<label for="r93" class="ident">d</label> *<a href="#line-473" class="ident">statDirEntry</a>) <label for="r94" class="ident"><a href="../../../imp/path/filepath.statDirEntry*78a75.html#name-.IsDir" class="ident">IsDir</a></label>() <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>                { <span class="keyword">return</span> <label for="r93" class="ident">d</label>.<a href="#line-474" class="ident">info</a>.<a href="../../io/fs/fs.go.html#line-155" class="ident">IsDir</a>() }</code></span>
+<span class="codeline" id="line-479"><code><span class="keyword">func</span> (<label for="r95" class="ident">d</label> *<a href="#line-473" class="ident">statDirEntry</a>) <label for="r96" class="ident"><a href="../../../imp/path/filepath.statDirEntry*78a75.html#name-.Type" class="ident">Type</a></label>() <a href="../../../pkg/io/fs.html" class="ident i1">fs</a>.<a href="../../io/fs/fs.go.html#line-164" class="ident">FileMode</a>          { <span class="keyword">return</span> <label for="r95" class="ident">d</label>.<a href="#line-474" class="ident">info</a>.<a href="../../io/fs/fs.go.html#line-153" class="ident">Mode</a>().<a href="../../io/fs/fs.go.html#line-238" class="ident">Type</a>() }</code></span>
+<span class="codeline" id="line-480"><code><span class="keyword">func</span> (<label for="r97" class="ident">d</label> *<a href="#line-473" class="ident">statDirEntry</a>) <label for="r98" class="ident"><a href="../../../imp/path/filepath.statDirEntry*78a75.html#name-.Info" class="ident">Info</a></label>() (<a href="../../../pkg/io/fs.html" class="ident i1">fs</a>.<a href="../../io/fs/fs.go.html#line-150" class="ident">FileInfo</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) { <span class="keyword">return</span> <label for="r97" class="ident">d</label>.<a href="#line-474" class="ident">info</a>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> }</code></span>
+<span class="codeline" id="line-481"><code></code></span>
+<span class="codeline" id="line-482"><code><span class="comment">// Walk walks the file tree rooted at root, calling fn for each file or</span></code></span>
+<span class="codeline" id="line-483"><code><span class="comment">// directory in the tree, including root.</span></code></span>
+<span class="codeline" id="line-484"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-485"><code><span class="comment">// All errors that arise visiting files and directories are filtered by fn:</span></code></span>
+<span class="codeline" id="line-486"><code><span class="comment">// see the WalkFunc documentation for details.</span></code></span>
+<span class="codeline" id="line-487"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-488"><code><span class="comment">// The files are walked in lexical order, which makes the output deterministic</span></code></span>
+<span class="codeline" id="line-489"><code><span class="comment">// but requires Walk to read an entire directory into memory before proceeding</span></code></span>
+<span class="codeline" id="line-490"><code><span class="comment">// to walk that directory.</span></code></span>
+<span class="codeline" id="line-491"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-492"><code><span class="comment">// Walk does not follow symbolic links.</span></code></span>
+<span class="codeline" id="line-493"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-494"><code><span class="comment">// Walk is less efficient than WalkDir, introduced in Go 1.16,</span></code></span>
+<span class="codeline" id="line-495"><code><span class="comment">// which avoids calling os.Lstat on every visited file or directory.</span></code></span>
+<span class="codeline" id="line-496"><code><span class="keyword">func</span> <label for="r99" class="ident"><a href="../../../pkg/path/filepath.html#name-Walk" class="ident">Walk</a></label>(<label for="r100" class="ident">root</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r101" class="ident">fn</label> <a href="#line-376" class="ident">WalkFunc</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-497"><code>	<label for="r102" class="ident">info</label>, <label for="r103" class="ident">err</label> := <a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/stat.go.html#line-20" class="ident">Lstat</a>(<label for="r100" class="ident">root</label>)</code></span>
+<span class="codeline" id="line-498"><code>	<span class="keyword">if</span> <label for="r103" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-499"><code>		<label for="r103" class="ident">err</label> = <label for="r101" class="ident">fn</label>(<label for="r100" class="ident">root</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r103" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-500"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-501"><code>		<label for="r103" class="ident">err</label> = <a href="#line-412" class="ident">walk</a>(<label for="r100" class="ident">root</label>, <label for="r102" class="ident">info</label>, <label for="r101" class="ident">fn</label>)</code></span>
+<span class="codeline" id="line-502"><code>	}</code></span>
+<span class="codeline" id="line-503"><code>	<span class="keyword">if</span> <label for="r103" class="ident">err</label> == <a href="#line-337" class="ident">SkipDir</a> {</code></span>
+<span class="codeline" id="line-504"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-505"><code>	}</code></span>
+<span class="codeline" id="line-506"><code>	<span class="keyword">return</span> <label for="r103" class="ident">err</label></code></span>
+<span class="codeline" id="line-507"><code>}</code></span>
+<span class="codeline" id="line-508"><code></code></span>
+<span class="codeline" id="line-509"><code><span class="comment">// readDir reads the directory named by dirname and returns</span></code></span>
+<span class="codeline" id="line-510"><code><span class="comment">// a sorted list of directory entries.</span></code></span>
+<span class="codeline" id="line-511"><code><span class="keyword">func</span> <label for="r104" class="ident"><a href="../../../pkg/path/filepath.html#name-readDir" class="ident">readDir</a></label>(<label for="r105" class="ident">dirname</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) ([]<a href="../../../pkg/io/fs.html" class="ident i1">fs</a>.<a href="../../io/fs/fs.go.html#line-86" class="ident">DirEntry</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-512"><code>	<label for="r106" class="ident">f</label>, <label for="r107" class="ident">err</label> := <a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/file.go.html#line-310" class="ident">Open</a>(<label for="r105" class="ident">dirname</label>)</code></span>
+<span class="codeline" id="line-513"><code>	<span class="keyword">if</span> <label for="r107" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-514"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r107" class="ident">err</label></code></span>
+<span class="codeline" id="line-515"><code>	}</code></span>
+<span class="codeline" id="line-516"><code>	<label for="r108" class="ident">dirs</label>, <label for="r107" class="ident">err</label> := <label for="r106" class="ident">f</label>.<a href="../../os/dir.go.html#line-94" class="ident">ReadDir</a>(-<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-517"><code>	<label for="r106" class="ident">f</label>.<a href="../../os/file_posix.go.html#line-21" class="ident">Close</a>()</code></span>
+<span class="codeline" id="line-518"><code>	<span class="keyword">if</span> <label for="r107" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-519"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r107" class="ident">err</label></code></span>
+<span class="codeline" id="line-520"><code>	}</code></span>
+<span class="codeline" id="line-521"><code>	<a href="../../../pkg/sort.html" class="ident i3">sort</a>.<a href="../../sort/slice.go.html#line-16" class="ident">Slice</a>(<label for="r108" class="ident">dirs</label>, <span class="keyword">func</span>(<label for="r109" class="ident">i</label>, <label for="r110" class="ident">j</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> { <span class="keyword">return</span> <label for="r108" class="ident">dirs</label>[<label for="r109" class="ident">i</label>].<a href="../../io/fs/fs.go.html#line-90" class="ident">Name</a>() &lt; <label for="r108" class="ident">dirs</label>[<label for="r110" class="ident">j</label>].<a href="../../io/fs/fs.go.html#line-90" class="ident">Name</a>() })</code></span>
+<span class="codeline" id="line-522"><code>	<span class="keyword">return</span> <label for="r108" class="ident">dirs</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-523"><code>}</code></span>
+<span class="codeline" id="line-524"><code></code></span>
+<span class="codeline" id="line-525"><code><span class="comment">// readDirNames reads the directory named by dirname and returns</span></code></span>
+<span class="codeline" id="line-526"><code><span class="comment">// a sorted list of directory entry names.</span></code></span>
+<span class="codeline" id="line-527"><code><span class="keyword">func</span> <label for="r111" class="ident"><a href="../../../pkg/path/filepath.html#name-readDirNames" class="ident">readDirNames</a></label>(<label for="r112" class="ident">dirname</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) ([]<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-528"><code>	<label for="r113" class="ident">f</label>, <label for="r114" class="ident">err</label> := <a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/file.go.html#line-310" class="ident">Open</a>(<label for="r112" class="ident">dirname</label>)</code></span>
+<span class="codeline" id="line-529"><code>	<span class="keyword">if</span> <label for="r114" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-530"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r114" class="ident">err</label></code></span>
+<span class="codeline" id="line-531"><code>	}</code></span>
+<span class="codeline" id="line-532"><code>	<label for="r115" class="ident">names</label>, <label for="r114" class="ident">err</label> := <label for="r113" class="ident">f</label>.<a href="../../os/dir.go.html#line-66" class="ident">Readdirnames</a>(-<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-533"><code>	<label for="r113" class="ident">f</label>.<a href="../../os/file_posix.go.html#line-21" class="ident">Close</a>()</code></span>
+<span class="codeline" id="line-534"><code>	<span class="keyword">if</span> <label for="r114" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-535"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r114" class="ident">err</label></code></span>
+<span class="codeline" id="line-536"><code>	}</code></span>
+<span class="codeline" id="line-537"><code>	<a href="../../../pkg/sort.html" class="ident i3">sort</a>.<a href="../../sort/sort.go.html#line-335" class="ident">Strings</a>(<label for="r115" class="ident">names</label>)</code></span>
+<span class="codeline" id="line-538"><code>	<span class="keyword">return</span> <label for="r115" class="ident">names</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-539"><code>}</code></span>
+<span class="codeline" id="line-540"><code></code></span>
+<span class="codeline" id="line-541"><code><span class="comment">// Base returns the last element of path.</span></code></span>
+<span class="codeline" id="line-542"><code><span class="comment">// Trailing path separators are removed before extracting the last element.</span></code></span>
+<span class="codeline" id="line-543"><code><span class="comment">// If the path is empty, Base returns ".".</span></code></span>
+<span class="codeline" id="line-544"><code><span class="comment">// If the path consists entirely of separators, Base returns a single separator.</span></code></span>
+<span class="codeline" id="line-545"><code><span class="keyword">func</span> <label for="r116" class="ident"><a href="../../../pkg/path/filepath.html#name-Base" class="ident">Base</a></label>(<label for="r117" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-546"><code>	<span class="keyword">if</span> <label for="r117" class="ident">path</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-547"><code>		<span class="keyword">return</span> <span class="lit-string">"."</span></code></span>
+<span class="codeline" id="line-548"><code>	}</code></span>
+<span class="codeline" id="line-549"><code>	<span class="comment">// Strip trailing slashes.</span></code></span>
+<span class="codeline" id="line-550"><code>	<span class="keyword">for</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r117" class="ident">path</label>) &gt; <span class="lit-number">0</span> &amp;&amp; <a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/path_unix.go.html#line-15" class="ident">IsPathSeparator</a>(<label for="r117" class="ident">path</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r117" class="ident">path</label>)-<span class="lit-number">1</span>]) {</code></span>
+<span class="codeline" id="line-551"><code>		<label for="r117" class="ident">path</label> = <label for="r117" class="ident">path</label>[<span class="lit-number">0</span> : <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r117" class="ident">path</label>)-<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-552"><code>	}</code></span>
+<span class="codeline" id="line-553"><code>	<span class="comment">// Throw away volume name</span></code></span>
+<span class="codeline" id="line-554"><code>	<label for="r117" class="ident">path</label> = <label for="r117" class="ident">path</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-594" class="ident">VolumeName</a>(<label for="r117" class="ident">path</label>)):]</code></span>
+<span class="codeline" id="line-555"><code>	<span class="comment">// Find the last element</span></code></span>
+<span class="codeline" id="line-556"><code>	<label for="r118" class="ident">i</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r117" class="ident">path</label>) - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-557"><code>	<span class="keyword">for</span> <label for="r118" class="ident">i</label> &gt;= <span class="lit-number">0</span> &amp;&amp; !<a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/path_unix.go.html#line-15" class="ident">IsPathSeparator</a>(<label for="r117" class="ident">path</label>[<label for="r118" class="ident">i</label>]) {</code></span>
+<span class="codeline" id="line-558"><code>		<label for="r118" class="ident">i</label>--</code></span>
+<span class="codeline" id="line-559"><code>	}</code></span>
+<span class="codeline" id="line-560"><code>	<span class="keyword">if</span> <label for="r118" class="ident">i</label> &gt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-561"><code>		<label for="r117" class="ident">path</label> = <label for="r117" class="ident">path</label>[<label for="r118" class="ident">i</label>+<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-562"><code>	}</code></span>
+<span class="codeline" id="line-563"><code>	<span class="comment">// If empty now, it had only slashes.</span></code></span>
+<span class="codeline" id="line-564"><code>	<span class="keyword">if</span> <label for="r117" class="ident">path</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-565"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<a href="#line-62" class="ident">Separator</a>)</code></span>
+<span class="codeline" id="line-566"><code>	}</code></span>
+<span class="codeline" id="line-567"><code>	<span class="keyword">return</span> <label for="r117" class="ident">path</label></code></span>
+<span class="codeline" id="line-568"><code>}</code></span>
+<span class="codeline" id="line-569"><code></code></span>
+<span class="codeline" id="line-570"><code><span class="comment">// Dir returns all but the last element of path, typically the path's directory.</span></code></span>
+<span class="codeline" id="line-571"><code><span class="comment">// After dropping the final element, Dir calls Clean on the path and trailing</span></code></span>
+<span class="codeline" id="line-572"><code><span class="comment">// slashes are removed.</span></code></span>
+<span class="codeline" id="line-573"><code><span class="comment">// If the path is empty, Dir returns ".".</span></code></span>
+<span class="codeline" id="line-574"><code><span class="comment">// If the path consists entirely of separators, Dir returns a single separator.</span></code></span>
+<span class="codeline" id="line-575"><code><span class="comment">// The returned path does not end in a separator unless it is the root directory.</span></code></span>
+<span class="codeline" id="line-576"><code><span class="keyword">func</span> <label for="r119" class="ident"><a href="../../../pkg/path/filepath.html#name-Dir" class="ident">Dir</a></label>(<label for="r120" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-577"><code>	<label for="r121" class="ident">vol</label> := <a href="#line-594" class="ident">VolumeName</a>(<label for="r120" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-578"><code>	<label for="r122" class="ident">i</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r120" class="ident">path</label>) - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-579"><code>	<span class="keyword">for</span> <label for="r122" class="ident">i</label> &gt;= <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r121" class="ident">vol</label>) &amp;&amp; !<a href="../../../pkg/os.html" class="ident i2">os</a>.<a href="../../os/path_unix.go.html#line-15" class="ident">IsPathSeparator</a>(<label for="r120" class="ident">path</label>[<label for="r122" class="ident">i</label>]) {</code></span>
+<span class="codeline" id="line-580"><code>		<label for="r122" class="ident">i</label>--</code></span>
+<span class="codeline" id="line-581"><code>	}</code></span>
+<span class="codeline" id="line-582"><code>	<label for="r123" class="ident">dir</label> := <a href="#line-89" class="ident">Clean</a>(<label for="r120" class="ident">path</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r121" class="ident">vol</label>) : <label for="r122" class="ident">i</label>+<span class="lit-number">1</span>])</code></span>
+<span class="codeline" id="line-583"><code>	<span class="keyword">if</span> <label for="r123" class="ident">dir</label> == <span class="lit-string">"."</span> &amp;&amp; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r121" class="ident">vol</label>) &gt; <span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-584"><code>		<span class="comment">// must be UNC</span></code></span>
+<span class="codeline" id="line-585"><code>		<span class="keyword">return</span> <label for="r121" class="ident">vol</label></code></span>
+<span class="codeline" id="line-586"><code>	}</code></span>
+<span class="codeline" id="line-587"><code>	<span class="keyword">return</span> <label for="r121" class="ident">vol</label> + <label for="r123" class="ident">dir</label></code></span>
+<span class="codeline" id="line-588"><code>}</code></span>
+<span class="codeline" id="line-589"><code></code></span>
+<span class="codeline" id="line-590"><code><span class="comment">// VolumeName returns leading volume name.</span></code></span>
+<span class="codeline" id="line-591"><code><span class="comment">// Given "C:\foo\bar" it returns "C:" on Windows.</span></code></span>
+<span class="codeline" id="line-592"><code><span class="comment">// Given "\\host\share\foo" it returns "\\host\share".</span></code></span>
+<span class="codeline" id="line-593"><code><span class="comment">// On other platforms it returns "".</span></code></span>
+<span class="codeline" id="line-594"><code><span class="keyword">func</span> <label for="r124" class="ident"><a href="../../../pkg/path/filepath.html#name-VolumeName" class="ident">VolumeName</a></label>(<label for="r125" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-595"><code>	<span class="keyword">return</span> <label for="r125" class="ident">path</label>[:<a href="path_unix.go.html#line-18" class="ident">volumeNameLen</a>(<label for="r125" class="ident">path</label>)]</code></span>
+<span class="codeline" id="line-596"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

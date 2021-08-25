@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: runtime.go in package runtime</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	runtime.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"runtime/internal/atomic"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<a href="../../pkg/unsafe.html" class="ident i1">_</a> <label for="i1"><span class="lit-string i1">"unsafe"</span></label> <span class="comment">// for go:linkname</span></code></span>
+<span class="codeline" id="line-10"><code>)</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">//go:generate go run wincallback.go</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">//go:generate go run mkduff.go</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">//go:generate go run mkfastlog2table.go</span></code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-ticks" class="ident">ticks</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-17"><code>	lock <a href="runtime2.go.html#line-162" class="ident">mutex</a></code></span>
+<span class="codeline" id="line-18"><code>	pad  <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">// ensure 8-byte alignment of val on 386</span></code></span>
+<span class="codeline" id="line-19"><code>	val  <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-20"><code>}</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// Note: Called by runtime/pprof in addition to runtime code.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-tickspersecond" class="ident">tickspersecond</a></label>() <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a> {</code></span>
+<span class="codeline" id="line-24"><code>	<label for="r1" class="ident">r</label> := <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>(<a href="../../pkg/runtime/internal/atomic.html" class="ident i0">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-28" class="ident">Load64</a>(&amp;<a href="#line-16" class="ident">ticks</a>.<a href="#line-19" class="ident">val</a>))</code></span>
+<span class="codeline" id="line-25"><code>	<span class="keyword">if</span> <label for="r1" class="ident">r</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-26"><code>		<span class="keyword">return</span> <label for="r1" class="ident">r</label></code></span>
+<span class="codeline" id="line-27"><code>	}</code></span>
+<span class="codeline" id="line-28"><code>	<a href="lock_futex.go.html#line-46" class="ident">lock</a>(&amp;<a href="#line-16" class="ident">ticks</a>.<a href="#line-17" class="ident">lock</a>)</code></span>
+<span class="codeline" id="line-29"><code>	<label for="r1" class="ident">r</label> = <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>(<a href="#line-16" class="ident">ticks</a>.<a href="#line-19" class="ident">val</a>)</code></span>
+<span class="codeline" id="line-30"><code>	<span class="keyword">if</span> <label for="r1" class="ident">r</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-31"><code>		<label for="r2" class="ident">t0</label> := <a href="time_nofake.go.html#line-18" class="ident">nanotime</a>()</code></span>
+<span class="codeline" id="line-32"><code>		<label for="r3" class="ident">c0</label> := <a href="cputicks.go.html#line-17" class="ident">cputicks</a>()</code></span>
+<span class="codeline" id="line-33"><code>		<a href="stubs2.go.html#line-24" class="ident">usleep</a>(<span class="lit-number">100</span> * <span class="lit-number">1000</span>)</code></span>
+<span class="codeline" id="line-34"><code>		<label for="r4" class="ident">t1</label> := <a href="time_nofake.go.html#line-18" class="ident">nanotime</a>()</code></span>
+<span class="codeline" id="line-35"><code>		<label for="r5" class="ident">c1</label> := <a href="cputicks.go.html#line-17" class="ident">cputicks</a>()</code></span>
+<span class="codeline" id="line-36"><code>		<span class="keyword">if</span> <label for="r4" class="ident">t1</label> == <label for="r2" class="ident">t0</label> {</code></span>
+<span class="codeline" id="line-37"><code>			<label for="r4" class="ident">t1</label>++</code></span>
+<span class="codeline" id="line-38"><code>		}</code></span>
+<span class="codeline" id="line-39"><code>		<label for="r1" class="ident">r</label> = (<label for="r5" class="ident">c1</label> - <label for="r3" class="ident">c0</label>) * <span class="lit-number">1000</span> * <span class="lit-number">1000</span> * <span class="lit-number">1000</span> / (<label for="r4" class="ident">t1</label> - <label for="r2" class="ident">t0</label>)</code></span>
+<span class="codeline" id="line-40"><code>		<span class="keyword">if</span> <label for="r1" class="ident">r</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-41"><code>			<label for="r1" class="ident">r</label>++</code></span>
+<span class="codeline" id="line-42"><code>		}</code></span>
+<span class="codeline" id="line-43"><code>		<a href="../../pkg/runtime/internal/atomic.html" class="ident i0">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-101" class="ident">Store64</a>(&amp;<a href="#line-16" class="ident">ticks</a>.<a href="#line-19" class="ident">val</a>, <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r1" class="ident">r</label>))</code></span>
+<span class="codeline" id="line-44"><code>	}</code></span>
+<span class="codeline" id="line-45"><code>	<a href="lock_futex.go.html#line-110" class="ident">unlock</a>(&amp;<a href="#line-16" class="ident">ticks</a>.<a href="#line-17" class="ident">lock</a>)</code></span>
+<span class="codeline" id="line-46"><code>	<span class="keyword">return</span> <label for="r1" class="ident">r</label></code></span>
+<span class="codeline" id="line-47"><code>}</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-envs" class="ident">envs</a> []<a href="../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-50"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-argslice" class="ident">argslice</a> []<a href="../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-51"><code></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">//go:linkname syscall_runtime_envs syscall.runtime_envs</span></code></span>
+<span class="codeline" id="line-53"><code><span class="keyword">func</span> <label for="r6" class="ident"><a href="../../pkg/runtime.html#name-syscall_runtime_envs" class="ident">syscall_runtime_envs</a></label>() []<a href="../../pkg/builtin.html#name-string" class="ident">string</a> { <span class="keyword">return</span> <a href="../../pkg/builtin.html#name-append" class="ident">append</a>([]<a href="../../pkg/builtin.html#name-string" class="ident">string</a>{}, <a href="#line-49" class="ident">envs</a>...) }</code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">//go:linkname syscall_Getpagesize syscall.Getpagesize</span></code></span>
+<span class="codeline" id="line-56"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../pkg/runtime.html#name-syscall_Getpagesize" class="ident">syscall_Getpagesize</a></label>() <a href="../../pkg/builtin.html#name-int" class="ident">int</a> { <span class="keyword">return</span> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<a href="malloc.go.html#line-329" class="ident">physPageSize</a>) }</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">//go:linkname os_runtime_args os.runtime_args</span></code></span>
+<span class="codeline" id="line-59"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../pkg/runtime.html#name-os_runtime_args" class="ident">os_runtime_args</a></label>() []<a href="../../pkg/builtin.html#name-string" class="ident">string</a> { <span class="keyword">return</span> <a href="../../pkg/builtin.html#name-append" class="ident">append</a>([]<a href="../../pkg/builtin.html#name-string" class="ident">string</a>{}, <a href="#line-50" class="ident">argslice</a>...) }</code></span>
+<span class="codeline" id="line-60"><code></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">//go:linkname syscall_Exit syscall.Exit</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-63"><code><span class="keyword">func</span> <label for="r9" class="ident"><a href="../../pkg/runtime.html#name-syscall_Exit" class="ident">syscall_Exit</a></label>(<label for="r10" class="ident">code</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-64"><code>	<a href="stubs2.go.html#line-23" class="ident">exit</a>(<a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r10" class="ident">code</label>))</code></span>
+<span class="codeline" id="line-65"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

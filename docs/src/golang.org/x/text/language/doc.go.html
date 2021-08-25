@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: doc.go in package golang.org/x/text/language</title>
+<link href="../../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	doc.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/golang.org/x/text/language.html">golang.org/x/text/language</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2017 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package language implements BCP 47 language tags and related functionality.</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// The most important function of package language is to match a list of</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// user-preferred languages to a list of supported languages.</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// It alleviates the developer of dealing with the complexity of this process</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// and provides the user with the best experience</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// (see https://blog.golang.org/matchlang).</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// Matching preferred against supported languages</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// A Matcher for an application that supports English, Australian English,</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// Danish, and standard Mandarin can be created as follows:</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//    var matcher = language.NewMatcher([]language.Tag{</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">//        language.English,   // The first language is used as fallback.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">//        language.MustParse("en-AU"),</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">//        language.Danish,</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">//        language.Chinese,</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">//    })</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// This list of supported languages is typically implied by the languages for</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// which there exists translations of the user interface.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// User-preferred languages usually come as a comma-separated list of BCP 47</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// language tags.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// The MatchString finds best matches for such strings:</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">//    handler(w http.ResponseWriter, r *http.Request) {</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">//        lang, _ := r.Cookie("lang")</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">//        accept := r.Header.Get("Accept-Language")</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">//        tag, _ := language.MatchStrings(matcher, lang.String(), accept)</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">//        // tag should now be used for the initialization of any</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">//        // locale-specific service.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">//    }</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// The Matcher's Match method can be used to match Tags directly.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// Matchers are aware of the intricacies of equivalence between languages, such</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// as deprecated subtags, legacy tags, macro languages, mutual</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// intelligibility between scripts and languages, and transparently passing</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// BCP 47 user configuration.</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// For instance, it will know that a reader of Bokmål Danish can read Norwegian</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// and will know that Cantonese ("yue") is a good match for "zh-HK".</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// Using match results</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// To guarantee a consistent user experience to the user it is important to</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// use the same language tag for the selection of any locale-specific services.</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// For example, it is utterly confusing to substitute spelled-out numbers</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// or dates in one language in text of another language.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// More subtly confusing is using the wrong sorting order or casing</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">// algorithm for a certain language.</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">//    All the packages in x/text that provide locale-specific services</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">//    (e.g. collate, cases) should be initialized with the tag that was</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">//    obtained at the start of an interaction with the user.</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// Note that Tag that is returned by Match and MatchString may differ from any</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// of the supported languages, as it may contain carried over settings from</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// the user tags.</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">// This may be inconvenient when your application has some additional</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// locale-specific data for your supported languages.</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// Match and MatchString both return the index of the matched supported tag</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// to simplify associating such data with the matched tag.</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// Canonicalization</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">// If one uses the Matcher to compare languages one does not need to</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">// worry about canonicalization.</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// The meaning of a Tag varies per application. The language package</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// therefore delays canonicalization and preserves information as much</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// as possible. The Matcher, however, will always take into account that</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// two different tags may represent the same language.</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// By default, only legacy and deprecated tags are converted into their</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// canonical equivalent. All other information is preserved. This approach makes</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">// the confidence scores more accurate and allows matchers to distinguish</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// between variants that are otherwise lost.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">// As a consequence, two tags that should be treated as identical according to</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// BCP 47 or CLDR, like "en-Latn" and "en", will be represented differently. The</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">// Matcher handles such distinctions, though, and is aware of the</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">// equivalence relations. The CanonType type can be used to alter the</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">// canonicalization form.</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">// References</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">// BCP 47 - Tags for Identifying Languages http://tools.ietf.org/html/bcp47</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">//</span></code></span></div><span class="codeline" id="line-99"><code><span class="keyword">package</span> language <span class="comment">// import "golang.org/x/text/language"</span></code></span>
+<span class="codeline" id="line-100"><code></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// TODO: explanation on how to match languages for your own locale-specific</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// service.</span></code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

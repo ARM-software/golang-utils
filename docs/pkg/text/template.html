@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: text/template</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>template</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../index.html#pkg-text/template">text/template</a><i> (on <a href="https://pkg.go.dev/text/template" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../dep/text/template.html">17 packages</a>, and imported by <a href="../../dep/text/template.html#imported-by">one package</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<input type='checkbox' checked class="fold" id="file-0-fold-content"><label for="file-0-fold-content">   <a href="../../src/text/template/doc.go.html#doc">d➜</a> <a href="../../src/text/template/doc.go.html">doc.go</a></label><span id='file-0-fold-content-items' class="fold-items">
+		Package template implements data-driven templates for generating textual output.
+
+		To generate HTML output, see package html/template, which has the same interface
+		as this package but automatically secures HTML output against certain attacks.
+
+		Templates are executed by applying them to a data structure. Annotations in the
+		template refer to elements of the data structure (typically a field of a struct
+		or a key in a map) to control execution and derive values to be displayed.
+		Execution of the template walks the structure and sets the cursor, represented
+		by a period '.' and called "dot", to the value at the current location in the
+		structure as execution proceeds.
+
+		The input text for a template is UTF-8-encoded text in any format.
+		"Actions"--data evaluations or control structures--are delimited by
+		"{{" and "}}"; all text outside actions is copied to the output unchanged.
+		Except for raw strings, actions may not span newlines, although comments can.
+
+		Once parsed, a template may be executed safely in parallel, although if parallel
+		executions share a Writer the output may be interleaved.
+
+		Here is a trivial example that prints "17 items are made of wool".
+
+			type Inventory struct {
+				Material string
+				Count    uint
+			}
+			sweaters := Inventory{"wool", 17}
+			tmpl, err := template.New("test").Parse("{{.Count}} items are made of {{.Material}}")
+			if err != nil { panic(err) }
+			err = tmpl.Execute(os.Stdout, sweaters)
+			if err != nil { panic(err) }
+
+		More intricate examples appear below.
+
+		Text and spaces
+
+		By default, all text between actions is copied verbatim when the template is
+		executed. For example, the string " items are made of " in the example above
+		appears on standard output when the program is run.
+
+		However, to aid in formatting template source code, if an action's left
+		delimiter (by default "{{") is followed immediately by a minus sign and white
+		space, all trailing white space is trimmed from the immediately preceding text.
+		Similarly, if the right delimiter ("}}") is preceded by white space and a minus
+		sign, all leading white space is trimmed from the immediately following text.
+		In these trim markers, the white space must be present:
+		"{{- 3}}" is like "{{3}}" but trims the immediately preceding text, while
+		"{{-3}}" parses as an action containing the number -3.
+
+		For instance, when executing the template whose source is
+
+			"{{23 -}} &lt; {{- 45}}"
+
+		the generated output would be
+
+			"23&lt;45"
+
+		For this trimming, the definition of white space characters is the same as in Go:
+		space, horizontal tab, carriage return, and newline.
+
+		Actions
+
+		Here is the list of actions. "Arguments" and "pipelines" are evaluations of
+		data, defined in detail in the corresponding sections that follow.
+
+			{{/* a comment */}}
+			{{- /* a comment with white space trimmed from preceding and following text */ -}}
+				A comment; discarded. May contain newlines.
+				Comments do not nest and must start and end at the
+				delimiters, as shown here.
+
+			{{pipeline}}
+				The default textual representation (the same as would be
+				printed by fmt.Print) of the value of the pipeline is copied
+				to the output.
+
+			{{if pipeline}} T1 {{end}}
+				If the value of the pipeline is empty, no output is generated;
+				otherwise, T1 is executed. The empty values are false, 0, any
+				nil pointer or interface value, and any array, slice, map, or
+				string of length zero.
+				Dot is unaffected.
+
+			{{if pipeline}} T1 {{else}} T0 {{end}}
+				If the value of the pipeline is empty, T0 is executed;
+				otherwise, T1 is executed. Dot is unaffected.
+
+			{{if pipeline}} T1 {{else if pipeline}} T0 {{end}}
+				To simplify the appearance of if-else chains, the else action
+				of an if may include another if directly; the effect is exactly
+				the same as writing
+					{{if pipeline}} T1 {{else}}{{if pipeline}} T0 {{end}}{{end}}
+
+			{{range pipeline}} T1 {{end}}
+				The value of the pipeline must be an array, slice, map, or channel.
+				If the value of the pipeline has length zero, nothing is output;
+				otherwise, dot is set to the successive elements of the array,
+				slice, or map and T1 is executed. If the value is a map and the
+				keys are of basic type with a defined order, the elements will be
+				visited in sorted key order.
+
+			{{range pipeline}} T1 {{else}} T0 {{end}}
+				The value of the pipeline must be an array, slice, map, or channel.
+				If the value of the pipeline has length zero, dot is unaffected and
+				T0 is executed; otherwise, dot is set to the successive elements
+				of the array, slice, or map and T1 is executed.
+
+			{{template "name"}}
+				The template with the specified name is executed with nil data.
+
+			{{template "name" pipeline}}
+				The template with the specified name is executed with dot set
+				to the value of the pipeline.
+
+			{{block "name" pipeline}} T1 {{end}}
+				A block is shorthand for defining a template
+					{{define "name"}} T1 {{end}}
+				and then executing it in place
+					{{template "name" pipeline}}
+				The typical use is to define a set of root templates that are
+				then customized by redefining the block templates within.
+
+			{{with pipeline}} T1 {{end}}
+				If the value of the pipeline is empty, no output is generated;
+				otherwise, dot is set to the value of the pipeline and T1 is
+				executed.
+
+			{{with pipeline}} T1 {{else}} T0 {{end}}
+				If the value of the pipeline is empty, dot is unaffected and T0
+				is executed; otherwise, dot is set to the value of the pipeline
+				and T1 is executed.
+
+		Arguments
+
+		An argument is a simple value, denoted by one of the following.
+
+			- A boolean, string, character, integer, floating-point, imaginary
+			  or complex constant in Go syntax. These behave like Go's untyped
+			  constants. Note that, as in Go, whether a large integer constant
+			  overflows when assigned or passed to a function can depend on whether
+			  the host machine's ints are 32 or 64 bits.
+			- The keyword nil, representing an untyped Go nil.
+			- The character '.' (period):
+				.
+			  The result is the value of dot.
+			- A variable name, which is a (possibly empty) alphanumeric string
+			  preceded by a dollar sign, such as
+				$piOver2
+			  or
+				$
+			  The result is the value of the variable.
+			  Variables are described below.
+			- The name of a field of the data, which must be a struct, preceded
+			  by a period, such as
+				.Field
+			  The result is the value of the field. Field invocations may be
+			  chained:
+			    .Field1.Field2
+			  Fields can also be evaluated on variables, including chaining:
+			    $x.Field1.Field2
+			- The name of a key of the data, which must be a map, preceded
+			  by a period, such as
+				.Key
+			  The result is the map element value indexed by the key.
+			  Key invocations may be chained and combined with fields to any
+			  depth:
+			    .Field1.Key1.Field2.Key2
+			  Although the key must be an alphanumeric identifier, unlike with
+			  field names they do not need to start with an upper case letter.
+			  Keys can also be evaluated on variables, including chaining:
+			    $x.key1.key2
+			- The name of a niladic method of the data, preceded by a period,
+			  such as
+				.Method
+			  The result is the value of invoking the method with dot as the
+			  receiver, dot.Method(). Such a method must have one return value (of
+			  any type) or two return values, the second of which is an error.
+			  If it has two and the returned error is non-nil, execution terminates
+			  and an error is returned to the caller as the value of Execute.
+			  Method invocations may be chained and combined with fields and keys
+			  to any depth:
+			    .Field1.Key1.Method1.Field2.Key2.Method2
+			  Methods can also be evaluated on variables, including chaining:
+			    $x.Method1.Field
+			- The name of a niladic function, such as
+				fun
+			  The result is the value of invoking the function, fun(). The return
+			  types and values behave as in methods. Functions and function
+			  names are described below.
+			- A parenthesized instance of one the above, for grouping. The result
+			  may be accessed by a field or map key invocation.
+				print (.F1 arg1) (.F2 arg2)
+				(.StructValuedMethod "arg").Field
+
+		Arguments may evaluate to any type; if they are pointers the implementation
+		automatically indirects to the base type when required.
+		If an evaluation yields a function value, such as a function-valued
+		field of a struct, the function is not invoked automatically, but it
+		can be used as a truth value for an if action and the like. To invoke
+		it, use the call function, defined below.
+
+		Pipelines
+
+		A pipeline is a possibly chained sequence of "commands". A command is a simple
+		value (argument) or a function or method call, possibly with multiple arguments:
+
+			Argument
+				The result is the value of evaluating the argument.
+			.Method [Argument...]
+				The method can be alone or the last element of a chain but,
+				unlike methods in the middle of a chain, it can take arguments.
+				The result is the value of calling the method with the
+				arguments:
+					dot.Method(Argument1, etc.)
+			functionName [Argument...]
+				The result is the value of calling the function associated
+				with the name:
+					function(Argument1, etc.)
+				Functions and function names are described below.
+
+		A pipeline may be "chained" by separating a sequence of commands with pipeline
+		characters '|'. In a chained pipeline, the result of each command is
+		passed as the last argument of the following command. The output of the final
+		command in the pipeline is the value of the pipeline.
+
+		The output of a command will be either one value or two values, the second of
+		which has type error. If that second value is present and evaluates to
+		non-nil, execution terminates and the error is returned to the caller of
+		Execute.
+
+		Variables
+
+		A pipeline inside an action may initialize a variable to capture the result.
+		The initialization has syntax
+
+			$variable := pipeline
+
+		where $variable is the name of the variable. An action that declares a
+		variable produces no output.
+
+		Variables previously declared can also be assigned, using the syntax
+
+			$variable = pipeline
+
+		If a "range" action initializes a variable, the variable is set to the
+		successive elements of the iteration. Also, a "range" may declare two
+		variables, separated by a comma:
+
+			range $index, $element := pipeline
+
+		in which case $index and $element are set to the successive values of the
+		array/slice index or map key and element, respectively. Note that if there is
+		only one variable, it is assigned the element; this is opposite to the
+		convention in Go range clauses.
+
+		A variable's scope extends to the "end" action of the control structure ("if",
+		"with", or "range") in which it is declared, or to the end of the template if
+		there is no such control structure. A template invocation does not inherit
+		variables from the point of its invocation.
+
+		When execution begins, $ is set to the data argument passed to Execute, that is,
+		to the starting value of dot.
+
+		Examples
+
+		Here are some example one-line templates demonstrating pipelines and variables.
+		All produce the quoted word "output":
+
+			{{"\"output\""}}
+				A string constant.
+			{{`"output"`}}
+				A raw string constant.
+			{{printf "%q" "output"}}
+				A function call.
+			{{"output" | printf "%q"}}
+				A function call whose final argument comes from the previous
+				command.
+			{{printf "%q" (print "out" "put")}}
+				A parenthesized argument.
+			{{"put" | printf "%s%s" "out" | printf "%q"}}
+				A more elaborate call.
+			{{"output" | printf "%s" | printf "%q"}}
+				A longer chain.
+			{{with "output"}}{{printf "%q" .}}{{end}}
+				A with action using dot.
+			{{with $x := "output" | printf "%q"}}{{$x}}{{end}}
+				A with action that creates and uses a variable.
+			{{with $x := "output"}}{{printf "%q" $x}}{{end}}
+				A with action that uses the variable in another action.
+			{{with $x := "output"}}{{$x | printf "%q"}}{{end}}
+				The same, but pipelined.
+
+		Functions
+
+		During execution functions are found in two function maps: first in the
+		template, then in the global function map. By default, no functions are defined
+		in the template but the Funcs method can be used to add them.
+
+		Predefined global functions are named as follows.
+
+			and
+				Returns the boolean AND of its arguments by returning the
+				first empty argument or the last argument, that is,
+				"and x y" behaves as "if x then y else x". All the
+				arguments are evaluated.
+			call
+				Returns the result of calling the first argument, which
+				must be a function, with the remaining arguments as parameters.
+				Thus "call .X.Y 1 2" is, in Go notation, dot.X.Y(1, 2) where
+				Y is a func-valued field, map entry, or the like.
+				The first argument must be the result of an evaluation
+				that yields a value of function type (as distinct from
+				a predefined function such as print). The function must
+				return either one or two result values, the second of which
+				is of type error. If the arguments don't match the function
+				or the returned error value is non-nil, execution stops.
+			html
+				Returns the escaped HTML equivalent of the textual
+				representation of its arguments. This function is unavailable
+				in html/template, with a few exceptions.
+			index
+				Returns the result of indexing its first argument by the
+				following arguments. Thus "index x 1 2 3" is, in Go syntax,
+				x[1][2][3]. Each indexed item must be a map, slice, or array.
+			slice
+				slice returns the result of slicing its first argument by the
+				remaining arguments. Thus "slice x 1 2" is, in Go syntax, x[1:2],
+				while "slice x" is x[:], "slice x 1" is x[1:], and "slice x 1 2 3"
+				is x[1:2:3]. The first argument must be a string, slice, or array.
+			js
+				Returns the escaped JavaScript equivalent of the textual
+				representation of its arguments.
+			len
+				Returns the integer length of its argument.
+			not
+				Returns the boolean negation of its single argument.
+			or
+				Returns the boolean OR of its arguments by returning the
+				first non-empty argument or the last argument, that is,
+				"or x y" behaves as "if x then x else y". All the
+				arguments are evaluated.
+			print
+				An alias for fmt.Sprint
+			printf
+				An alias for fmt.Sprintf
+			println
+				An alias for fmt.Sprintln
+			urlquery
+				Returns the escaped value of the textual representation of
+				its arguments in a form suitable for embedding in a URL query.
+				This function is unavailable in html/template, with a few
+				exceptions.
+
+		The boolean functions take any zero value to be false and a non-zero
+		value to be true.
+
+		There is also a set of binary comparison operators defined as
+		functions:
+
+			eq
+				Returns the boolean truth of arg1 == arg2
+			ne
+				Returns the boolean truth of arg1 != arg2
+			lt
+				Returns the boolean truth of arg1 &lt; arg2
+			le
+				Returns the boolean truth of arg1 &lt;= arg2
+			gt
+				Returns the boolean truth of arg1 &gt; arg2
+			ge
+				Returns the boolean truth of arg1 &gt;= arg2
+
+		For simpler multi-way equality tests, eq (only) accepts two or more
+		arguments and compares the second and subsequent to the first,
+		returning in effect
+
+			arg1==arg2 || arg1==arg3 || arg1==arg4 ...
+
+		(Unlike with || in Go, however, eq is a function call and all the
+		arguments will be evaluated.)
+
+		The comparison functions work on any values whose type Go defines as
+		comparable. For basic types such as integers, the rules are relaxed:
+		size and exact type are ignored, so any integer value, signed or unsigned,
+		may be compared with any other integer value. (The arithmetic value is compared,
+		not the bit pattern, so all negative integers are less than all unsigned integers.)
+		However, as usual, one may not compare an int with a float32 and so on.
+
+		Associated templates
+
+		Each template is named by a string specified when it is created. Also, each
+		template is associated with zero or more other templates that it may invoke by
+		name; such associations are transitive and form a name space of templates.
+
+		A template may use a template invocation to instantiate another associated
+		template; see the explanation of the "template" action above. The name must be
+		that of a template associated with the template that contains the invocation.
+
+		Nested template definitions
+
+		When parsing a template, another template may be defined and associated with the
+		template being parsed. Template definitions must appear at the top level of the
+		template, much like global variables in a Go program.
+
+		The syntax of such definitions is to surround each template declaration with a
+		"define" and "end" action.
+
+		The define action names the template being created by providing a string
+		constant. Here is a simple example:
+
+			`{{define "T1"}}ONE{{end}}
+			{{define "T2"}}TWO{{end}}
+			{{define "T3"}}{{template "T1"}} {{template "T2"}}{{end}}
+			{{template "T3"}}`
+
+		This defines two templates, T1 and T2, and a third T3 that invokes the other two
+		when it is executed. Finally it invokes T3. If executed this template will
+		produce the text
+
+			ONE TWO
+
+		By construction, a template may reside in only one association. If it's
+		necessary to have a template addressable from multiple associations, the
+		template definition must be parsed multiple times to create distinct *Template
+		values, or must be copied with the Clone or AddParseTree method.
+
+		Parse may be called multiple times to assemble the various associated templates;
+		see the ParseFiles and ParseGlob functions and methods for simple ways to parse
+		related templates stored in files.
+
+		A template may be executed directly or through ExecuteTemplate, which executes
+		an associated template identified by name. To invoke our example above, we
+		might write,
+
+			err := tmpl.Execute(os.Stdout, "no data needed")
+			if err != nil {
+				log.Fatalf("execution failed: %s", err)
+			}
+
+		or to invoke a particular template explicitly by name,
+
+			err := tmpl.ExecuteTemplate(os.Stdout, "T2", "no data needed")
+			if err != nil {
+				log.Fatalf("execution failed: %s", err)
+			}
+</span>
+	<span class="nodocs">      <a href="../../src/text/template/exec.go.html">exec.go</a></span>
+	<span class="nodocs">      <a href="../../src/text/template/funcs.go.html">funcs.go</a></span>
+	<span class="nodocs">      <a href="../../src/text/template/helper.go.html">helper.go</a></span>
+	<span class="nodocs">      <a href="../../src/text/template/option.go.html">option.go</a></span>
+	<span class="nodocs">      <a href="../../src/text/template/template.go.html">template.go</a></span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content">Template</label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"log"
+			"os"
+			"text/template"
+		)
+		
+		func main() {
+			// Define a template.
+			const letter = `
+		Dear {{.Name}},
+		{{if .Attended}}
+		It was a pleasure to see you at the wedding.
+		{{- else}}
+		It is a shame you couldn't make it to the wedding.
+		{{- end}}
+		{{with .Gift -}}
+		Thank you for the lovely {{.}}.
+		{{end}}
+		Best wishes,
+		Josie
+		`
+		
+			// Prepare some data to insert into the template.
+			type Recipient struct {
+				Name, Gift string
+				Attended   bool
+			}
+			var recipients = []Recipient{
+				{"Aunt Mildred", "bone china tea set", true},
+				{"Uncle John", "moleskin pants", false},
+				{"Cousin Rodney", "", false},
+			}
+		
+			// Create a new template and parse the letter into it.
+			t := template.Must(template.New("letter").Parse(letter))
+		
+			// Execute the template for each recipient.
+			for _, r := range recipients {
+				err := t.Execute(os.Stdout, r)
+				if err != nil {
+					log.Println("executing template:", err)
+				}
+			}
+		
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-1-fold-content"><label for="example-1-fold-content">Template_block</label><span id='example-1-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"log"
+			"os"
+			"strings"
+			"text/template"
+		)
+		
+		func main() {
+			const (
+				master  = `Names:{{block "list" .}}{{"\n"}}{{range .}}{{println "-" .}}{{end}}{{end}}`
+				overlay = `{{define "list"}} {{join . ", "}}{{end}} `
+			)
+			var (
+				funcs     = template.FuncMap{"join": strings.Join}
+				guardians = []string{"Gamora", "Groot", "Nebula", "Rocket", "Star-Lord"}
+			)
+			masterTmpl, err := template.New("master").Funcs(funcs).Parse(master)
+			if err != nil {
+				log.Fatal(err)
+			}
+			overlayTmpl, err := template.Must(masterTmpl.Clone()).Parse(overlay)
+			if err != nil {
+				log.Fatal(err)
+			}
+			if err := masterTmpl.Execute(os.Stdout, guardians); err != nil {
+				log.Fatal(err)
+			}
+			if err := overlayTmpl.Execute(os.Stdout, guardians); err != nil {
+				log.Fatal(err)
+			}
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 11, in which 3 are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-ExecError" data-popularity="150">	<input type='checkbox' class="fold" id="ExecError-fold-content"><label for="ExecError-fold-content"> type <a href="../../src/text/template/exec.go.html#line-114">ExecError</a> <i>(struct)</i></label><span id='ExecError-fold-content-docs' class="fold-docs">
+		ExecError is the custom error type returned when Execute has an
+		error evaluating its template. (If a write error occurs, the actual
+		error is returned; it will not be of type ExecError.)
+
+		<input type='checkbox' class="fold" id="ExecError-fold-fields"><label for="ExecError-fold-fields">Fields (<i>total 2, both are exported</i>)</label><span id='ExecError-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="ExecError-fold-field-Err"><label for="ExecError-fold-field-Err"><a href="../../src/os/exec/exec.go.html#line-44">Err</a> <i><a href="../builtin.html#name-error">error</a></i></label><span id='ExecError-fold-field-Err-docs' class="fold-docs">
+				Err is the underlying error.
+</span></span><span>
+			<input type='checkbox' class="fold" id="ExecError-fold-field-Name"><label for="ExecError-fold-field-Name"><a href="../../src/os/exec/exec.go.html#line-42">Name</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='ExecError-fold-field-Name-docs' class="fold-docs">
+				Name is the file name for which the error occurred.
+</span></span></span>
+		<input type='checkbox' class="fold" id="ExecError-fold-methods"><label for="ExecError-fold-methods">Methods (<i>total 2, both are exported</i>)</label><span id='ExecError-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../../src/text/template/exec.go.html#line-119">Error</a>() <a href="../builtin.html#name-string">string</a></span></span><span>
+			<span class="nodocs">( T) <a href="../../src/text/template/exec.go.html#line-123">Unwrap</a>() <a href="../builtin.html#name-error">error</a></span></span></span>
+		<input type='checkbox' class="fold" id="ExecError-fold-impls"><label for="ExecError-fold-impls">Implements (<i>at least one exported</i>)</label><span id='ExecError-fold-impls-items' class="fold-items"><span>
+			 T : <a href="../builtin.html#name-error">error</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-FuncMap" data-popularity="220">	<input type='checkbox' class="fold" id="FuncMap-fold-content"><label for="FuncMap-fold-content"> type <a href="../../src/text/template/funcs.go.html#line-31">FuncMap</a> <i>(map)</i></label><span id='FuncMap-fold-content-docs' class="fold-docs">
+		FuncMap is the type of the map defining the mapping from names to functions.
+		Each function must have either a single return value, or two return values of
+		which the second has type error. In that case, if the second (error)
+		return value evaluates to non-nil during execution, execution terminates and
+		Execute returns that error.
+
+		When template execution invokes a function with an argument list, that list
+		must be assignable to the function's parameter types. Functions meant to
+		apply to arguments of arbitrary type can use parameters of type interface{} or
+		of type reflect.Value. Similarly, functions meant to return a result of arbitrary
+		type can return interface{} or reflect.Value.
+
+		<input type='checkbox' class="fold" id="FuncMap-fold-results"><label for="FuncMap-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='FuncMap-fold-results-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="FuncMap-showhide-inputofs"><i><label for="FuncMap-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="FuncMap-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-builtins">builtins</a>() <b>FuncMap</b></i></span></span>
+		<input type='checkbox' class="fold" id="FuncMap-fold-params"><label for="FuncMap-fold-params">As Inputs Of (<i>at least 4, in which 1 are exported</i>)</label><span id='FuncMap-fold-params-items' class="fold-items"><span>
+			func (*<a href="#name-Template">Template</a>).<a href="../../src/text/template/template.go.html#line-170">Funcs</a>(funcMap <b>FuncMap</b>) *<a href="#name-Template">Template</a></span>
+			<input type='checkbox' class="showhide" id="FuncMap-showhide-outputofs"><i><label for="FuncMap-showhide-outputofs" class="show-inline">/* 3+ unexporteds ... */</label><label for="FuncMap-showhide-outputofs" class="hide-inline">/* 3+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-addFuncs">addFuncs</a>(out, in <b>FuncMap</b>)</i></span><span class="hidden"><i>
+			func <a href="#name-addValueFuncs">addValueFuncs</a>(out map[<a href="../builtin.html#name-string">string</a>]<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, in <b>FuncMap</b>)</i></span><span class="hidden"><i>
+			func <a href="#name-createValueFuncs">createValueFuncs</a>(funcMap <b>FuncMap</b>) map[<a href="../builtin.html#name-string">string</a>]<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></i></span></span>
+		<input type='checkbox' class="fold" id="FuncMap-fold-values"><label for="FuncMap-fold-values">As Types Of (<i>only one, which is unexported</i>)</label><span id='FuncMap-fold-values-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="FuncMap-showhide-values"><i><label for="FuncMap-showhide-values" class="show-inline">/* one unexported ... */</label><label for="FuncMap-showhide-values" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			  var html/template.<a href="../html/template.html#name-funcMap">funcMap</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Template" data-popularity="5885">	<input type='checkbox' class="fold" id="Template-fold-content"><label for="Template-fold-content"> type <a href="../../src/text/template/template.go.html#line-28">Template</a> <i>(struct)</i></label><span id='Template-fold-content-docs' class="fold-docs">
+		Template is the representation of a parsed template. The *parse.Tree
+		field is exported only for use by html/template and should be treated
+		as unexported by all other clients.
+
+		<input type='checkbox' class="fold" id="Template-fold-fields"><label for="Template-fold-fields">Fields (<i>total 22, in which 4 are exported</i>)</label><span id='Template-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../src/text/template/template.go.html#line-30">Tree</a> <i>*<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Tree">Tree</a></i></span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-field-Mode"><label for="Template-fold-field-Mode"><a href="../../src/text/template/template.go.html#line-30" class="path-duplicate">Tree</a>.<a href="../../src/text/template/parse/parse.go.html#line-24">Mode</a> <i><a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Mode">Mode</a></i></label><span id='Template-fold-field-Mode-docs' class="fold-docs">
+				// parsing mode.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-field-ParseName"><label for="Template-fold-field-ParseName"><a href="../../src/text/template/template.go.html#line-30" class="path-duplicate">Tree</a>.<a href="../../src/text/template/parse/parse.go.html#line-22">ParseName</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='Template-fold-field-ParseName-docs' class="fold-docs">
+				// name of the top-level template during parsing, for error messages.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-field-Root"><label for="Template-fold-field-Root"><a href="../../src/text/template/template.go.html#line-30" class="path-duplicate">Tree</a>.<a href="../../src/text/template/parse/parse.go.html#line-23">Root</a> <i>*<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-ListNode">ListNode</a></i></label><span id='Template-fold-field-Root-docs' class="fold-docs">
+				// top-level root of the tree.
+</span></span>
+			<input type='checkbox' class="showhide" id="Template-showhide-fields"><i><label for="Template-showhide-fields" class="show-inline">/* 18 unexporteds ... */</label><label for="Template-showhide-fields" class="hide-inline">/* 18 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/template.go.html#line-31">common</a> <i>*<a href="#name-common">common</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/template.go.html#line-31" class="path-duplicate">common</a>.<a href="../../src/text/template/template.go.html#line-22">execFuncs</a> <i>map[<a href="../builtin.html#name-string">string</a>]<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-field-muFuncs"><label for="Template-fold-field-muFuncs"><a href="../../src/text/template/template.go.html#line-31" class="path-duplicate">common</a>.<a href="../../src/text/template/template.go.html#line-20">muFuncs</a> <i><a href="../sync.html">sync</a>.<a href="../sync.html#name-RWMutex">RWMutex</a></i></label><span id='Template-fold-field-muFuncs-docs' class="fold-docs">
+				We use two maps, one for parsing and one for execution.
+				This separation makes the API cleaner since it doesn't
+				expose reflection to the client.
+				// protects parseFuncs and execFuncs
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/template.go.html#line-31" class="path-duplicate">common</a>.<a href="../../src/text/template/template.go.html#line-16">option</a> <i><a href="#name-option">option</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/template.go.html#line-31" class="path-duplicate">common</a>.<a href="../../src/text/template/template.go.html#line-21">parseFuncs</a> <i><a href="#name-FuncMap">FuncMap</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-field-tmpl"><label for="Template-fold-field-tmpl"><a href="../../src/text/template/template.go.html#line-31" class="path-duplicate">common</a>.<a href="../../src/text/template/template.go.html#line-15">tmpl</a> <i>map[<a href="../builtin.html#name-string">string</a>]*<b>Template</b></i></label><span id='Template-fold-field-tmpl-docs' class="fold-docs">
+				// Map from name to defined templates.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/template.go.html#line-32">leftDelim</a> <i><a href="../builtin.html#name-string">string</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/template.go.html#line-29">name</a> <i><a href="../builtin.html#name-string">string</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/template.go.html#line-33">rightDelim</a> <i><a href="../builtin.html#name-string">string</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-field-actionLine"><label for="Template-fold-field-actionLine"><a href="../../src/text/template/template.go.html#line-30">Tree</a>.<a href="../../src/text/template/parse/parse.go.html#line-33">actionLine</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='Template-fold-field-actionLine-docs' class="fold-docs">
+				// line of left delim starting action
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-field-funcs"><label for="Template-fold-field-funcs"><a href="../../src/text/template/template.go.html#line-30" class="path-duplicate">Tree</a>.<a href="../../src/text/template/parse/parse.go.html#line-27">funcs</a> <i>[]map[<a href="../builtin.html#name-string">string</a>]interface{}</i></label><span id='Template-fold-field-funcs-docs' class="fold-docs">
+				Parsing only; cleared after parse.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/template.go.html#line-30" class="path-duplicate">Tree</a>.<a href="../../src/text/template/parse/parse.go.html#line-28">lex</a> <i>*<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-lexer">lexer</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/template.go.html#line-30" class="path-duplicate">Tree</a>.<a href="../../src/text/template/parse/parse.go.html#line-34">mode</a> <i><a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Mode">Mode</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/template.go.html#line-30" class="path-duplicate">Tree</a>.<a href="../../src/text/template/parse/parse.go.html#line-30">peekCount</a> <i><a href="../builtin.html#name-int">int</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-field-text"><label for="Template-fold-field-text"><a href="../../src/text/template/template.go.html#line-30" class="path-duplicate">Tree</a>.<a href="../../src/text/template/parse/parse.go.html#line-25">text</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='Template-fold-field-text-docs' class="fold-docs">
+				// text parsed to create the template (or its parent)
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-field-token"><label for="Template-fold-field-token"><a href="../../src/text/template/template.go.html#line-30" class="path-duplicate">Tree</a>.<a href="../../src/text/template/parse/parse.go.html#line-29">token</a> <i>[3]<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-item">item</a></i></label><span id='Template-fold-field-token-docs' class="fold-docs">
+				// three-token lookahead for parser.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/template.go.html#line-30" class="path-duplicate">Tree</a>.<a href="../../src/text/template/parse/parse.go.html#line-32">treeSet</a> <i>map[<a href="../builtin.html#name-string">string</a>]*<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Tree">Tree</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-field-vars"><label for="Template-fold-field-vars"><a href="../../src/text/template/template.go.html#line-30" class="path-duplicate">Tree</a>.<a href="../../src/text/template/parse/parse.go.html#line-31">vars</a> <i>[]<a href="../builtin.html#name-string">string</a></i></label><span id='Template-fold-field-vars-docs' class="fold-docs">
+				// variables defined at the moment.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Template-fold-methods"><label for="Template-fold-methods">Methods (<i>total 82, in which 18 are exported</i>)</label><span id='Template-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-AddParseTree"><label for="Template-fold-method-AddParseTree">(*T) <a href="../../src/text/template/template.go.html#line-126">AddParseTree</a>(name <a href="../builtin.html#name-string">string</a>, tree *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Tree">Tree</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</label><span id='Template-fold-method-AddParseTree-docs' class="fold-docs">
+				AddParseTree associates the argument parse tree with the template t, giving
+				it the specified name. If the template has not been defined, this tree becomes
+				its definition. If it has been defined and already has that name, the existing
+				definition is replaced; otherwise a new template is created, defined, and returned.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-Clone"><label for="Template-fold-method-Clone">(*T) <a href="../../src/text/template/template.go.html#line-85">Clone</a>() (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</label><span id='Template-fold-method-Clone-docs' class="fold-docs">
+				Clone returns a duplicate of the template, including all associated
+				templates. The actual representation is not copied, but the name space of
+				associated templates is, so further calls to Parse in the copy will add
+				templates to the copy but not to the original. Clone can be used to prepare
+				common templates and use them with variant definitions for other templates
+				by adding the variants after the clone is made.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-Copy"><label for="Template-fold-method-Copy">( T) <a href="../../src/text/template/parse/parse.go.html#line-45">Copy</a>() *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Tree">Tree</a></label><span id='Template-fold-method-Copy-docs' class="fold-docs">
+				Copy returns a copy of the Tree. Any parsing state is discarded.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-DefinedTemplates"><label for="Template-fold-method-DefinedTemplates">(*T) <a href="../../src/text/template/exec.go.html#line-228">DefinedTemplates</a>() <a href="../builtin.html#name-string">string</a></label><span id='Template-fold-method-DefinedTemplates-docs' class="fold-docs">
+				DefinedTemplates returns a string listing the defined templates,
+				prefixed by the string "; defined templates are: ". If there are none,
+				it returns the empty string. For generating an error message here
+				and in html/template.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-Delims"><label for="Template-fold-method-Delims">(*T) <a href="../../src/text/template/template.go.html#line-157">Delims</a>(left, right <a href="../builtin.html#name-string">string</a>) *<b>Template</b></label><span id='Template-fold-method-Delims-docs' class="fold-docs">
+				Delims sets the action delimiters to the specified strings, to be used in
+				subsequent calls to Parse, ParseFiles, or ParseGlob. Nested template
+				definitions will inherit the settings. An empty delimiter stands for the
+				corresponding default: {{ or }}.
+				The return value is the template, so calls can be chained.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-ErrorContext"><label for="Template-fold-method-ErrorContext">( T) <a href="../../src/text/template/parse/parse.go.html#line-140">ErrorContext</a>(n <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>) (location, context <a href="../builtin.html#name-string">string</a>)</label><span id='Template-fold-method-ErrorContext-docs' class="fold-docs">
+				ErrorContext returns a textual representation of the location of the node in the input text.
+				The receiver is only used when the node does not have a pointer to the tree inside,
+				which can occur in old code.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-Execute"><label for="Template-fold-method-Execute">(*T) <a href="../../src/text/template/exec.go.html#line-202">Execute</a>(wr <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, data interface{}) <a href="../builtin.html#name-error">error</a></label><span id='Template-fold-method-Execute-docs' class="fold-docs">
+				Execute applies a parsed template to the specified data object,
+				and writes the output to wr.
+				If an error occurs executing the template or writing its output,
+				execution stops, but partial results may already have been written to
+				the output writer.
+				A template may be executed safely in parallel, although if parallel
+				executions share a Writer the output may be interleaved.
+
+				If data is a reflect.Value, the template applies to the concrete
+				value that the reflect.Value holds, as in fmt.Print.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-ExecuteTemplate"><label for="Template-fold-method-ExecuteTemplate">(*T) <a href="../../src/text/template/exec.go.html#line-181">ExecuteTemplate</a>(wr <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, name <a href="../builtin.html#name-string">string</a>, data interface{}) <a href="../builtin.html#name-error">error</a></label><span id='Template-fold-method-ExecuteTemplate-docs' class="fold-docs">
+				ExecuteTemplate applies the template associated with t that has the given name
+				to the specified data object and writes the output to wr.
+				If an error occurs executing the template or writing its output,
+				execution stops, but partial results may already have been written to
+				the output writer.
+				A template may be executed safely in parallel, although if parallel
+				executions share a Writer the output may be interleaved.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-Funcs"><label for="Template-fold-method-Funcs">(*T) <a href="../../src/text/template/template.go.html#line-170">Funcs</a>(funcMap <a href="#name-FuncMap">FuncMap</a>) *<b>Template</b></label><span id='Template-fold-method-Funcs-docs' class="fold-docs">
+				Funcs adds the elements of the argument map to the template's function map.
+				It must be called before the template is parsed.
+				It panics if a value in the map is not a function with appropriate return
+				type or if the name cannot be used syntactically as a function in a template.
+				It is legal to overwrite elements of the map. The return value is the template,
+				so calls can be chained.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-Lookup"><label for="Template-fold-method-Lookup">(*T) <a href="../../src/text/template/template.go.html#line-181">Lookup</a>(name <a href="../builtin.html#name-string">string</a>) *<b>Template</b></label><span id='Template-fold-method-Lookup-docs' class="fold-docs">
+				Lookup returns the template with the given name that is associated with t.
+				It returns nil if there is no such template or the template has no definition.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-Name"><label for="Template-fold-method-Name">(*T) <a href="../../src/text/template/template.go.html#line-46">Name</a>() <a href="../builtin.html#name-string">string</a></label><span id='Template-fold-method-Name-docs' class="fold-docs">
+				Name returns the name of the template.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-New"><label for="Template-fold-method-New">(*T) <a href="../../src/text/template/template.go.html#line-57">New</a>(name <a href="../builtin.html#name-string">string</a>) *<b>Template</b></label><span id='Template-fold-method-New-docs' class="fold-docs">
+				New allocates a new, undefined template associated with the given one and with the same
+				delimiters. The association, which is transitive, allows one template to
+				invoke another with a {{template}} action.
+
+				Because associated templates share underlying data, template construction
+				cannot be done safely in parallel. Once the templates are constructed, they
+				can be executed in parallel.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-Option"><label for="Template-fold-method-Option">(*T) <a href="../../src/text/template/option.go.html#line-42">Option</a>(opt ...<a href="../builtin.html#name-string">string</a>) *<b>Template</b></label><span id='Template-fold-method-Option-docs' class="fold-docs">
+				Option sets options for the template. Options are described by
+				strings, either a simple string or "key=value". There can be at
+				most one equals sign in an option string. If the option string
+				is unrecognized or otherwise invalid, Option panics.
+
+				Known options:
+
+				missingkey: Control the behavior during execution if a map is
+				indexed with a key that is not present in the map.
+					"missingkey=default" or "missingkey=invalid"
+						The default behavior: Do nothing and continue execution.
+						If printed, the result of the index operation is the string
+						"&lt;no value&gt;".
+					"missingkey=zero"
+						The operation returns the zero value for the map type's element.
+					"missingkey=error"
+						Execution stops immediately with an error.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-Parse"><label for="Template-fold-method-Parse">(*T) <a href="../../src/text/template/template.go.html#line-198">Parse</a>(text <a href="../builtin.html#name-string">string</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</label><span id='Template-fold-method-Parse-docs' class="fold-docs">
+				Parse parses text as a template body for t.
+				Named template definitions ({{define ...}} or {{block ...}} statements) in text
+				define additional templates associated with t and are removed from the
+				definition of t itself.
+
+				Templates can be redefined in successive calls to Parse.
+				A template definition with a body containing only white space and comments
+				is considered empty and will not replace an existing template's body.
+				This allows using Parse to add new named template definitions without
+				overwriting the main template body.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-ParseFS"><label for="Template-fold-method-ParseFS">(*T) <a href="../../src/text/template/helper.go.html#line-145">ParseFS</a>(fsys <a href="../io/fs.html">fs</a>.<a href="../io/fs.html#name-FS">FS</a>, patterns ...<a href="../builtin.html#name-string">string</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</label><span id='Template-fold-method-ParseFS-docs' class="fold-docs">
+				ParseFS is like ParseFiles or ParseGlob but reads from the file system fsys
+				instead of the host operating system's file system.
+				It accepts a list of glob patterns.
+				(Note that most file names serve as glob patterns matching only themselves.)
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-ParseFiles"><label for="Template-fold-method-ParseFiles">(*T) <a href="../../src/text/template/helper.go.html#line-54">ParseFiles</a>(filenames ...<a href="../builtin.html#name-string">string</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</label><span id='Template-fold-method-ParseFiles-docs' class="fold-docs">
+				ParseFiles parses the named files and associates the resulting templates with
+				t. If an error occurs, parsing stops and the returned template is nil;
+				otherwise it is t. There must be at least one file.
+				Since the templates created by ParseFiles are named by the base
+				names of the argument files, t should usually have the name of one
+				of the (base) names of the files. If it does not, depending on t's
+				contents before calling ParseFiles, t.Execute may fail. In that
+				case use t.ExecuteTemplate to execute a valid template.
+
+				When parsing multiple files with the same name in different directories,
+				the last one mentioned will be the one that results.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-ParseGlob"><label for="Template-fold-method-ParseGlob">(*T) <a href="../../src/text/template/helper.go.html#line-116">ParseGlob</a>(pattern <a href="../builtin.html#name-string">string</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</label><span id='Template-fold-method-ParseGlob-docs' class="fold-docs">
+				ParseGlob parses the template definitions in the files identified by the
+				pattern and associates the resulting templates with t. The files are matched
+				according to the semantics of filepath.Match, and the pattern must match at
+				least one file. ParseGlob is equivalent to calling t.ParseFiles with the
+				list of files matched by the pattern.
+
+				When parsing multiple files with the same name in different directories,
+				the last one mentioned will be the one that results.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Template-fold-method-Templates"><label for="Template-fold-method-Templates">(*T) <a href="../../src/text/template/template.go.html#line-140">Templates</a>() []*<b>Template</b></label><span id='Template-fold-method-Templates-docs' class="fold-docs">
+				Templates returns a slice of defined templates associated with t.
+</span></span>
+			<input type='checkbox' class="showhide" id="Template-showhide-methods"><i><label for="Template-showhide-methods" class="show-inline">/* 64 unexporteds ... */</label><label for="Template-showhide-methods" class="hide-inline">/* 64 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-action"><label for="Template-fold-method-action">( T) <a href="../../src/text/template/parse/parse.go.html#line-384">action</a>() (n <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>)</label><span id='Template-fold-method-action-docs' class="fold-docs">
+				Action:
+					control
+					command ("|" command)*
+				Left delim is past. Now get actions.
+				First word could be a keyword such as range.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-add"><label for="Template-fold-method-add">( T) <a href="../../src/text/template/parse/parse.go.html#line-253">add</a>()</label><span id='Template-fold-method-add-docs' class="fold-docs">
+				add adds tree to t.treeSet.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-associate"><label for="Template-fold-method-associate">(*T) <a href="../../src/text/template/template.go.html#line-218">associate</a>(new *<b>Template</b>, tree *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Tree">Tree</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='Template-fold-method-associate-docs' class="fold-docs">
+				associate installs the new template into the group of templates associated
+				with t. The two are already known to share the common structure.
+				The boolean return value reports whether to store this tree as t.Tree.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-backup"><label for="Template-fold-method-backup">( T) <a href="../../src/text/template/parse/parse.go.html#line-80">backup</a>()</label><span id='Template-fold-method-backup-docs' class="fold-docs">
+				backup backs the input stream up one token.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-backup2"><label for="Template-fold-method-backup2">( T) <a href="../../src/text/template/parse/parse.go.html#line-86">backup2</a>(t1 <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-item">item</a>)</label><span id='Template-fold-method-backup2-docs' class="fold-docs">
+				backup2 backs the input stream up two tokens.
+				The zeroth token is already there.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-backup3"><label for="Template-fold-method-backup3">( T) <a href="../../src/text/template/parse/parse.go.html#line-93">backup3</a>(t2, t1 <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-item">item</a>)</label><span id='Template-fold-method-backup3-docs' class="fold-docs">
+				backup3 backs the input stream up three tokens
+				The zeroth token is already there.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-blockControl"><label for="Template-fold-method-blockControl">( T) <a href="../../src/text/template/parse/parse.go.html#line-562">blockControl</a>() <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a></label><span id='Template-fold-method-blockControl-docs' class="fold-docs">
+				Block:
+					{{block stringValue pipeline}}
+				Block keyword is past.
+				The name must be something that can evaluate to a string.
+				The pipeline is mandatory.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/parse.go.html#line-464">checkPipeline</a>(pipe *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-PipeNode">PipeNode</a>, context <a href="../builtin.html#name-string">string</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/parse.go.html#line-375">clearActionLine</a>()</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-command"><label for="Template-fold-method-command">( T) <a href="../../src/text/template/parse/parse.go.html#line-620">command</a>() *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-CommandNode">CommandNode</a></label><span id='Template-fold-method-command-docs' class="fold-docs">
+				command:
+					operand (space operand)*
+				space-separated arguments up to a pipeline character or right delimiter.
+				we consume the pipe character but leave the right delim to terminate the action.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-copy"><label for="Template-fold-method-copy">(*T) <a href="../../src/text/template/template.go.html#line-112">copy</a>(c *<a href="#name-common">common</a>) *<b>Template</b></label><span id='Template-fold-method-copy-docs' class="fold-docs">
+				copy returns a shallow copy of t, with common set to the argument.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-elseControl"><label for="Template-fold-method-elseControl">( T) <a href="../../src/text/template/parse/parse.go.html#line-546">elseControl</a>() <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a></label><span id='Template-fold-method-elseControl-docs' class="fold-docs">
+				Else:
+					{{else}}
+				Else keyword is past.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-endControl"><label for="Template-fold-method-endControl">( T) <a href="../../src/text/template/parse/parse.go.html#line-539">endControl</a>() <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a></label><span id='Template-fold-method-endControl-docs' class="fold-docs">
+				End:
+					{{end}}
+				End keyword is past.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-error"><label for="Template-fold-method-error">( T) <a href="../../src/text/template/parse/parse.go.html#line-167">error</a>(err <a href="../builtin.html#name-error">error</a>)</label><span id='Template-fold-method-error-docs' class="fold-docs">
+				error terminates processing.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-errorf"><label for="Template-fold-method-errorf">( T) <a href="../../src/text/template/parse/parse.go.html#line-160">errorf</a>(format <a href="../builtin.html#name-string">string</a>, args ...interface{})</label><span id='Template-fold-method-errorf-docs' class="fold-docs">
+				errorf formats the error and terminates processing.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-206">execute</a>(wr <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, data interface{}) (err <a href="../builtin.html#name-error">error</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-expect"><label for="Template-fold-method-expect">( T) <a href="../../src/text/template/parse/parse.go.html#line-172">expect</a>(expected <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-itemType">itemType</a>, context <a href="../builtin.html#name-string">string</a>) <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-item">item</a></label><span id='Template-fold-method-expect-docs' class="fold-docs">
+				expect consumes the next token and guarantees it has the required type.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-expectOneOf"><label for="Template-fold-method-expectOneOf">( T) <a href="../../src/text/template/parse/parse.go.html#line-181">expectOneOf</a>(expected1, expected2 <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-itemType">itemType</a>, context <a href="../builtin.html#name-string">string</a>) <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-item">item</a></label><span id='Template-fold-method-expectOneOf-docs' class="fold-docs">
+				expectOneOf consumes the next token and guarantees it has one of the required types.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-hasFunction"><label for="Template-fold-method-hasFunction">( T) <a href="../../src/text/template/parse/parse.go.html#line-726">hasFunction</a>(name <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='Template-fold-method-hasFunction-docs' class="fold-docs">
+				hasFunction reports if a function name exists in the Tree's maps.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-ifControl"><label for="Template-fold-method-ifControl">( T) <a href="../../src/text/template/parse/parse.go.html#line-516">ifControl</a>() <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a></label><span id='Template-fold-method-ifControl-docs' class="fold-docs">
+				If:
+					{{if pipeline}} itemList {{end}}
+					{{if pipeline}} itemList {{else}} itemList {{end}}
+				If keyword is past.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-init"><label for="Template-fold-method-init">(*T) <a href="../../src/text/template/template.go.html#line-69">init</a>()</label><span id='Template-fold-method-init-docs' class="fold-docs">
+				init guarantees that t has a valid common structure.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-itemList"><label for="Template-fold-method-itemList">( T) <a href="../../src/text/template/parse/parse.go.html#line-343">itemList</a>() (list *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-ListNode">ListNode</a>, next <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>)</label><span id='Template-fold-method-itemList-docs' class="fold-docs">
+				itemList:
+					textOrAction*
+				Terminates at {{end}} or {{else}}, returned separately.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-263">newAction</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>, line <a href="../builtin.html#name-int">int</a>, pipe *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-PipeNode">PipeNode</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-ActionNode">ActionNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-587">newBool</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>, true <a href="../builtin.html#name-bool">bool</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-BoolNode">BoolNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-535">newChain</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>, node <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-ChainNode">ChainNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-296">newCommand</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-CommandNode">CommandNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-161">newComment</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>, text <a href="../builtin.html#name-string">string</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-CommentNode">CommentNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-428">newDot</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-DotNode">DotNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-814">newElse</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>, line <a href="../builtin.html#name-int">int</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-elseNode">elseNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-786">newEnd</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-endNode">endNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-499">newField</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>, ident <a href="../builtin.html#name-string">string</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-FieldNode">FieldNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-902">newIf</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>, line <a href="../builtin.html#name-int">int</a>, pipe *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-PipeNode">PipeNode</a>, list, elseList *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-ListNode">ListNode</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-IfNode">IfNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-86">newList</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-ListNode">ListNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-462">newNil</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-NilNode">NilNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-628">newNumber</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>, text <a href="../builtin.html#name-string">string</a>, typ <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-itemType">itemType</a>) (*<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-NumberNode">NumberNode</a>, <a href="../builtin.html#name-error">error</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-196">newPipeline</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>, line <a href="../builtin.html#name-int">int</a>, vars []*<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-VariableNode">VariableNode</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-PipeNode">PipeNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-915">newRange</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>, line <a href="../builtin.html#name-int">int</a>, pipe *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-PipeNode">PipeNode</a>, list, elseList *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-ListNode">ListNode</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-RangeNode">RangeNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-758">newString</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>, orig, text <a href="../builtin.html#name-string">string</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-StringNode">StringNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-946">newTemplate</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>, line <a href="../builtin.html#name-int">int</a>, name <a href="../builtin.html#name-string">string</a>, pipe *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-PipeNode">PipeNode</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-TemplateNode">TemplateNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-133">newText</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>, text <a href="../builtin.html#name-string">string</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-TextNode">TextNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-394">newVariable</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>, ident <a href="../builtin.html#name-string">string</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-VariableNode">VariableNode</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/node.go.html#line-928">newWith</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>, line <a href="../builtin.html#name-int">int</a>, pipe *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-PipeNode">PipeNode</a>, list, elseList *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-ListNode">ListNode</a>) *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-WithNode">WithNode</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-next"><label for="Template-fold-method-next">( T) <a href="../../src/text/template/parse/parse.go.html#line-70">next</a>() <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-item">item</a></label><span id='Template-fold-method-next-docs' class="fold-docs">
+				next returns the next token.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-nextNonSpace"><label for="Template-fold-method-nextNonSpace">( T) <a href="../../src/text/template/parse/parse.go.html#line-110">nextNonSpace</a>() (token <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-item">item</a>)</label><span id='Template-fold-method-nextNonSpace-docs' class="fold-docs">
+				nextNonSpace returns the next non-space token.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-operand"><label for="Template-fold-method-operand">( T) <a href="../../src/text/template/parse/parse.go.html#line-651">operand</a>() <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a></label><span id='Template-fold-method-operand-docs' class="fold-docs">
+				operand:
+					term .Field*
+				An operand is a space-separated component of a command,
+				a term possibly followed by field accesses.
+				A nil return means the next item is not an operand.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-parse"><label for="Template-fold-method-parse">( T) <a href="../../src/text/template/parse/parse.go.html#line-294">parse</a>()</label><span id='Template-fold-method-parse-docs' class="fold-docs">
+				parse is the top-level parser for a template, essentially the same
+				as itemList except it also parses {{define}} actions.
+				It runs to EOF.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/parse.go.html#line-479">parseControl</a>(allowElseIf <a href="../builtin.html#name-bool">bool</a>, context <a href="../builtin.html#name-string">string</a>) (pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>, line <a href="../builtin.html#name-int">int</a>, pipe *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-PipeNode">PipeNode</a>, list, elseList *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-ListNode">ListNode</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-parseDefinition"><label for="Template-fold-method-parseDefinition">( T) <a href="../../src/text/template/parse/parse.go.html#line-322">parseDefinition</a>()</label><span id='Template-fold-method-parseDefinition-docs' class="fold-docs">
+				parseDefinition parses a {{define}} ...  {{end}} template definition and
+				installs the definition in t.treeSet. The "define" keyword has already
+				been scanned.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/text/template/parse/parse.go.html#line-602">parseTemplateName</a>(token <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-item">item</a>, context <a href="../builtin.html#name-string">string</a>) (name <a href="../builtin.html#name-string">string</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-peek"><label for="Template-fold-method-peek">( T) <a href="../../src/text/template/parse/parse.go.html#line-100">peek</a>() <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-item">item</a></label><span id='Template-fold-method-peek-docs' class="fold-docs">
+				peek returns but does not consume the next token.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-peekNonSpace"><label for="Template-fold-method-peekNonSpace">( T) <a href="../../src/text/template/parse/parse.go.html#line-121">peekNonSpace</a>() <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-item">item</a></label><span id='Template-fold-method-peekNonSpace-docs' class="fold-docs">
+				peekNonSpace returns but does not consume the next non-space token.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-pipeline"><label for="Template-fold-method-pipeline">( T) <a href="../../src/text/template/parse/parse.go.html#line-409">pipeline</a>(context <a href="../builtin.html#name-string">string</a>, end <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-itemType">itemType</a>) (pipe *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-PipeNode">PipeNode</a>)</label><span id='Template-fold-method-pipeline-docs' class="fold-docs">
+				Pipeline:
+					declarations? command ('|' command)*
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-popVars"><label for="Template-fold-method-popVars">( T) <a href="../../src/text/template/parse/parse.go.html#line-739">popVars</a>(n <a href="../builtin.html#name-int">int</a>)</label><span id='Template-fold-method-popVars-docs' class="fold-docs">
+				popVars trims the variable list to the specified length
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-rangeControl"><label for="Template-fold-method-rangeControl">( T) <a href="../../src/text/template/parse/parse.go.html#line-524">rangeControl</a>() <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a></label><span id='Template-fold-method-rangeControl-docs' class="fold-docs">
+				Range:
+					{{range pipeline}} itemList {{end}}
+					{{range pipeline}} itemList {{else}} itemList {{end}}
+				Range keyword is past.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-recover"><label for="Template-fold-method-recover">( T) <a href="../../src/text/template/parse/parse.go.html#line-205">recover</a>(errp *<a href="../builtin.html#name-error">error</a>)</label><span id='Template-fold-method-recover-docs' class="fold-docs">
+				recover is the handler that turns panics into returns from the top level of Parse.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/option.go.html#line-50">setOption</a>(opt <a href="../builtin.html#name-string">string</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-startParse"><label for="Template-fold-method-startParse">( T) <a href="../../src/text/template/parse/parse.go.html#line-220">startParse</a>(funcs []map[<a href="../builtin.html#name-string">string</a>]interface{}, lex *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-lexer">lexer</a>, treeSet map[<a href="../builtin.html#name-string">string</a>]*<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Tree">Tree</a>)</label><span id='Template-fold-method-startParse-docs' class="fold-docs">
+				startParse initializes the parser, using the lexer.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-stopParse"><label for="Template-fold-method-stopParse">( T) <a href="../../src/text/template/parse/parse.go.html#line-229">stopParse</a>()</label><span id='Template-fold-method-stopParse-docs' class="fold-docs">
+				stopParse terminates parsing.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-templateControl"><label for="Template-fold-method-templateControl">( T) <a href="../../src/text/template/parse/parse.go.html#line-589">templateControl</a>() <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a></label><span id='Template-fold-method-templateControl-docs' class="fold-docs">
+				Template:
+					{{template stringValue pipeline}}
+				Template keyword is past. The name must be something that can evaluate
+				to a string.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-term"><label for="Template-fold-method-term">( T) <a href="../../src/text/template/parse/parse.go.html#line-689">term</a>() <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a></label><span id='Template-fold-method-term-docs' class="fold-docs">
+				term:
+					literal (number, string, nil, boolean)
+					function (identifier)
+					.
+					.Field
+					$
+					'(' pipeline ')'
+				A term is a simple "expression".
+				A nil return means the next item is not a term.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-textOrAction"><label for="Template-fold-method-textOrAction">( T) <a href="../../src/text/template/parse/parse.go.html#line-359">textOrAction</a>() <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a></label><span id='Template-fold-method-textOrAction-docs' class="fold-docs">
+				textOrAction:
+					text | comment | action
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-unexpected"><label for="Template-fold-method-unexpected">( T) <a href="../../src/text/template/parse/parse.go.html#line-190">unexpected</a>(token <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-item">item</a>, context <a href="../builtin.html#name-string">string</a>)</label><span id='Template-fold-method-unexpected-docs' class="fold-docs">
+				unexpected complains about the token and terminates processing.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-useVar"><label for="Template-fold-method-useVar">( T) <a href="../../src/text/template/parse/parse.go.html#line-745">useVar</a>(pos <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Pos">Pos</a>, name <a href="../builtin.html#name-string">string</a>) <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a></label><span id='Template-fold-method-useVar-docs' class="fold-docs">
+				useVar returns a node for a variable reference. It errors if the
+				variable is not defined.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Template-fold-method-withControl"><label for="Template-fold-method-withControl">( T) <a href="../../src/text/template/parse/parse.go.html#line-532">withControl</a>() <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a></label><span id='Template-fold-method-withControl-docs' class="fold-docs">
+				With:
+					{{with pipeline}} itemList {{end}}
+					{{with pipeline}} itemList {{else}} itemList {{end}}
+				If keyword is past.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Template-fold-results"><label for="Template-fold-results">As Outputs Of (<i>at least 21, in which 17 are exported</i>)</label><span id='Template-fold-results-items' class="fold-items"><span>
+			func <a href="#name-Must">Must</a>(t *<b>Template</b>, err <a href="../builtin.html#name-error">error</a>) *<b>Template</b></span><span>
+			func <a href="#name-New">New</a>(name <a href="../builtin.html#name-string">string</a>) *<b>Template</b></span><span>
+			func <a href="#name-ParseFiles">ParseFiles</a>(filenames ...<a href="../builtin.html#name-string">string</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func <a href="#name-ParseFS">ParseFS</a>(fsys <a href="../io/fs.html">fs</a>.<a href="../io/fs.html#name-FS">FS</a>, patterns ...<a href="../builtin.html#name-string">string</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func <a href="#name-ParseGlob">ParseGlob</a>(pattern <a href="../builtin.html#name-string">string</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func (*Template).<a href="../../src/text/template/template.go.html#line-126">AddParseTree</a>(name <a href="../builtin.html#name-string">string</a>, tree *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Tree">Tree</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func (*Template).<a href="../../src/text/template/template.go.html#line-85">Clone</a>() (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func (*Template).<a href="../../src/text/template/template.go.html#line-157">Delims</a>(left, right <a href="../builtin.html#name-string">string</a>) *<b>Template</b></span><span>
+			func (*Template).<a href="../../src/text/template/template.go.html#line-170">Funcs</a>(funcMap <a href="#name-FuncMap">FuncMap</a>) *<b>Template</b></span><span>
+			func (*Template).<a href="../../src/text/template/template.go.html#line-181">Lookup</a>(name <a href="../builtin.html#name-string">string</a>) *<b>Template</b></span><span>
+			func (*Template).<a href="../../src/text/template/template.go.html#line-57">New</a>(name <a href="../builtin.html#name-string">string</a>) *<b>Template</b></span><span>
+			func (*Template).<a href="../../src/text/template/option.go.html#line-42">Option</a>(opt ...<a href="../builtin.html#name-string">string</a>) *<b>Template</b></span><span>
+			func (*Template).<a href="../../src/text/template/template.go.html#line-198">Parse</a>(text <a href="../builtin.html#name-string">string</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func (*Template).<a href="../../src/text/template/helper.go.html#line-54">ParseFiles</a>(filenames ...<a href="../builtin.html#name-string">string</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func (*Template).<a href="../../src/text/template/helper.go.html#line-145">ParseFS</a>(fsys <a href="../io/fs.html">fs</a>.<a href="../io/fs.html#name-FS">FS</a>, patterns ...<a href="../builtin.html#name-string">string</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func (*Template).<a href="../../src/text/template/helper.go.html#line-116">ParseGlob</a>(pattern <a href="../builtin.html#name-string">string</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func (*Template).<a href="../../src/text/template/template.go.html#line-140">Templates</a>() []*<b>Template</b></span>
+			<input type='checkbox' class="showhide" id="Template-showhide-inputofs"><i><label for="Template-showhide-inputofs" class="show-inline">/* 4+ unexporteds ... */</label><label for="Template-showhide-inputofs" class="hide-inline">/* 4+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-parseFiles">parseFiles</a>(t *<b>Template</b>, readFile func(<a href="../builtin.html#name-string">string</a>) (<a href="../builtin.html#name-string">string</a>, []<a href="../builtin.html#name-byte">byte</a>, <a href="../builtin.html#name-error">error</a>), filenames ...<a href="../builtin.html#name-string">string</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func <a href="#name-parseFS">parseFS</a>(t *<b>Template</b>, fsys <a href="../io/fs.html">fs</a>.<a href="../io/fs.html#name-FS">FS</a>, patterns []<a href="../builtin.html#name-string">string</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func <a href="#name-parseGlob">parseGlob</a>(t *<b>Template</b>, pattern <a href="../builtin.html#name-string">string</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func (*Template).<a href="../../src/text/template/template.go.html#line-112">copy</a>(c *<a href="#name-common">common</a>) *<b>Template</b></i></span></span>
+		<input type='checkbox' class="fold" id="Template-fold-params"><label for="Template-fold-params">As Inputs Of (<i>at least 6, in which 1 are exported</i>)</label><span id='Template-fold-params-items' class="fold-items"><span>
+			func <a href="#name-Must">Must</a>(t *<b>Template</b>, err <a href="../builtin.html#name-error">error</a>) *<b>Template</b></span>
+			<input type='checkbox' class="showhide" id="Template-showhide-outputofs"><i><label for="Template-showhide-outputofs" class="show-inline">/* 5+ unexporteds ... */</label><label for="Template-showhide-outputofs" class="hide-inline">/* 5+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-findFunction">findFunction</a>(name <a href="../builtin.html#name-string">string</a>, tmpl *<b>Template</b>) (<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, <a href="../builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func <a href="#name-parseFiles">parseFiles</a>(t *<b>Template</b>, readFile func(<a href="../builtin.html#name-string">string</a>) (<a href="../builtin.html#name-string">string</a>, []<a href="../builtin.html#name-byte">byte</a>, <a href="../builtin.html#name-error">error</a>), filenames ...<a href="../builtin.html#name-string">string</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func <a href="#name-parseFS">parseFS</a>(t *<b>Template</b>, fsys <a href="../io/fs.html">fs</a>.<a href="../io/fs.html#name-FS">FS</a>, patterns []<a href="../builtin.html#name-string">string</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func <a href="#name-parseGlob">parseGlob</a>(t *<b>Template</b>, pattern <a href="../builtin.html#name-string">string</a>) (*<b>Template</b>, <a href="../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func (*Template).<a href="../../src/text/template/template.go.html#line-218">associate</a>(new *<b>Template</b>, tree *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Tree">Tree</a>) <a href="../builtin.html#name-bool">bool</a></i></span></span>
+
+</span></div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* 8 unexporteds ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* 8 unexporteds: */</label></i><div class="anchor type-res hidden" id="name-common" data-popularity="35">	<input type='checkbox' class="fold" id="common-fold-content"><label for="common-fold-content"> type <a href="../../src/text/template/template.go.html#line-14">common</a> <i>(struct)</i></label><span id='common-fold-content-docs' class="fold-docs">
+		common holds the information shared by related templates.
+
+		<input type='checkbox' class="fold" id="common-fold-fields"><label for="common-fold-fields">Fields (<i>total 5, none are exported</i>)</label><span id='common-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="common-showhide-fields"><i><label for="common-showhide-fields" class="show-inline">/* 5 unexporteds ... */</label><label for="common-showhide-fields" class="hide-inline">/* 5 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/template.go.html#line-22">execFuncs</a> <i>map[<a href="../builtin.html#name-string">string</a>]<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="common-fold-field-muFuncs"><label for="common-fold-field-muFuncs"><a href="../../src/text/template/template.go.html#line-20">muFuncs</a> <i><a href="../sync.html">sync</a>.<a href="../sync.html#name-RWMutex">RWMutex</a></i></label><span id='common-fold-field-muFuncs-docs' class="fold-docs">
+				We use two maps, one for parsing and one for execution.
+				This separation makes the API cleaner since it doesn't
+				expose reflection to the client.
+				// protects parseFuncs and execFuncs
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/template.go.html#line-16">option</a> <i><a href="#name-option">option</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/template.go.html#line-21">parseFuncs</a> <i><a href="#name-FuncMap">FuncMap</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="common-fold-field-tmpl"><label for="common-fold-field-tmpl"><a href="../../src/text/template/template.go.html#line-15">tmpl</a> <i>map[<a href="../builtin.html#name-string">string</a>]*<a href="#name-Template">Template</a></i></label><span id='common-fold-field-tmpl-docs' class="fold-docs">
+				// Map from name to defined templates.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="common-fold-params"><label for="common-fold-params">As Inputs Of (<i>at least one unexported</i>)</label><span id='common-fold-params-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="common-showhide-outputofs"><i><label for="common-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="common-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func (*<a href="#name-Template">Template</a>).<a href="../../src/text/template/template.go.html#line-112">copy</a>(c *<b>common</b>) *<a href="#name-Template">Template</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-kind" data-popularity="90">	<input type='checkbox' class="fold" id="kind-fold-content"><label for="kind-fold-content"> type <a href="../../src/text/template/funcs.go.html#line-424">kind</a> <a href="../builtin.html#name-int">int</a> <i>(basic type)</i></label><span id='kind-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="kind-fold-results"><label for="kind-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='kind-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="kind-showhide-inputofs"><i><label for="kind-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="kind-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-basicKind">basicKind</a>(v <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) (<b>kind</b>, <a href="../builtin.html#name-error">error</a>)</i></span></span>
+		<input type='checkbox' class="fold" id="kind-fold-values"><label for="kind-fold-values">As Types Of (<i>total 7, none are exported</i>)</label><span id='kind-fold-values-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="kind-showhide-values"><i><label for="kind-showhide-values" class="show-inline">/* 7 unexporteds ... */</label><label for="kind-showhide-values" class="hide-inline">/* 7 unexporteds: */</label></i><span class="hidden"><i>
+			const <a href="#name-boolKind">boolKind</a></i></span><span class="hidden"><i>
+			const <a href="#name-complexKind">complexKind</a></i></span><span class="hidden"><i>
+			const <a href="#name-floatKind">floatKind</a></i></span><span class="hidden"><i>
+			const <a href="#name-intKind">intKind</a></i></span><span class="hidden"><i>
+			const <a href="#name-invalidKind">invalidKind</a></i></span><span class="hidden"><i>
+			const <a href="#name-stringKind">stringKind</a></i></span><span class="hidden"><i>
+			const <a href="#name-uintKind">uintKind</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-missingKeyAction" data-popularity="15">	<input type='checkbox' class="fold" id="missingKeyAction-fold-content"><label for="missingKeyAction-fold-content"> type <a href="../../src/text/template/option.go.html#line-12">missingKeyAction</a> <a href="../builtin.html#name-int">int</a> <i>(basic type)</i></label><span id='missingKeyAction-fold-content-docs' class="fold-docs">
+		missingKeyAction defines how to respond to indexing a map with a key that is not present.
+
+		<input type='checkbox' class="fold" id="missingKeyAction-fold-values"><label for="missingKeyAction-fold-values">As Types Of (<i>total 3, none are exported</i>)</label><span id='missingKeyAction-fold-values-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="missingKeyAction-showhide-values"><i><label for="missingKeyAction-showhide-values" class="show-inline">/* 3 unexporteds ... */</label><label for="missingKeyAction-showhide-values" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			const <a href="#name-mapError">mapError</a></i></span><span class="hidden"><i>
+			const <a href="#name-mapInvalid">mapInvalid</a></i></span><span class="hidden"><i>
+			const <a href="#name-mapZeroValue">mapZeroValue</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-missingValType" data-popularity="0">	<span class="nodocs"> type <a href="../../src/text/template/exec.go.html#line-92">missingValType</a> <i>(struct)</i></span></div><div class="anchor type-res hidden" id="name-option" data-popularity="0">	<input type='checkbox' class="fold" id="option-fold-content"><label for="option-fold-content"> type <a href="../../src/text/template/option.go.html#line-20">option</a> <i>(struct)</i></label><span id='option-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="option-fold-fields"><label for="option-fold-fields">Fields (<i>only one, which is unexported</i>)</label><span id='option-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="option-showhide-fields"><i><label for="option-showhide-fields" class="show-inline">/* one unexported ... */</label><label for="option-showhide-fields" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/option.go.html#line-21">missingKey</a> <i><a href="#name-missingKeyAction">missingKeyAction</a></i></span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-state" data-popularity="1700">	<input type='checkbox' class="fold" id="state-fold-content"><label for="state-fold-content"> type <a href="../../src/text/template/exec.go.html#line-33">state</a> <i>(struct)</i></label><span id='state-fold-content-docs' class="fold-docs">
+		state represents the state of an execution. It's not part of the
+		template so that multiple executions of the same template
+		can execute in parallel.
+
+		<input type='checkbox' class="fold" id="state-fold-fields"><label for="state-fold-fields">Fields (<i>total 5, none are exported</i>)</label><span id='state-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="state-showhide-fields"><i><label for="state-showhide-fields" class="show-inline">/* 5 unexporteds ... */</label><label for="state-showhide-fields" class="hide-inline">/* 5 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-field-depth"><label for="state-fold-field-depth"><a href="../../src/text/template/exec.go.html#line-38">depth</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='state-fold-field-depth-docs' class="fold-docs">
+				// the height of the stack of executing templates.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-field-node"><label for="state-fold-field-node"><a href="../../src/text/template/exec.go.html#line-36">node</a> <i><a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a></i></label><span id='state-fold-field-node-docs' class="fold-docs">
+				// current node, for errors
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/exec.go.html#line-34">tmpl</a> <i>*<a href="#name-Template">Template</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-field-vars"><label for="state-fold-field-vars"><a href="../../src/text/template/exec.go.html#line-37">vars</a> <i>[]<a href="#name-variable">variable</a></i></label><span id='state-fold-field-vars-docs' class="fold-docs">
+				// push-down stack of variable values.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/exec.go.html#line-35">wr</a> <i><a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="state-fold-methods"><label for="state-fold-methods">Methods (<i>total 34, none are exported</i>)</label><span id='state-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="state-showhide-methods"><i><label for="state-showhide-methods" class="show-inline">/* 34 unexporteds ... */</label><label for="state-showhide-methods" class="hide-inline">/* 34 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-method-at"><label for="state-fold-method-at">(*T) <a href="../../src/text/template/exec.go.html#line-97">at</a>(node <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>)</label><span id='state-fold-method-at-docs' class="fold-docs">
+				at marks the state to be on node n, for error reporting.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-method-errorf"><label for="state-fold-method-errorf">(*T) <a href="../../src/text/template/exec.go.html#line-128">errorf</a>(format <a href="../builtin.html#name-string">string</a>, args ...interface{})</label><span id='state-fold-method-errorf-docs' class="fold-docs">
+				errorf records an ExecError and terminates processing.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-792">evalArg</a>(dot <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, typ <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Type">Type</a>, n <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-839">evalBool</a>(typ <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Type">Type</a>, n <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-method-evalCall"><label for="state-fold-method-evalCall">(*T) <a href="../../src/text/template/exec.go.html#line-673">evalCall</a>(dot, fun <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, node <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>, name <a href="../builtin.html#name-string">string</a>, args []<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>, final <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></label><span id='state-fold-method-evalCall-docs' class="fold-docs">
+				evalCall executes a function or method call. If it's a method, fun already has the receiver bound, so
+				it looks just like a function call. The arg list, if non-nil, includes (in the manner of the shell), arg[0]
+				as the function itself.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-537">evalChainNode</a>(dot <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, chain *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-ChainNode">ChainNode</a>, args []<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>, final <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-458">evalCommand</a>(dot <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, cmd *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-CommandNode">CommandNode</a>, final <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-894">evalComplex</a>(typ <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Type">Type</a>, n <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-904">evalEmptyInterface</a>(dot <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, n <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-method-evalField"><label for="state-fold-method-evalField">(*T) <a href="../../src/text/template/exec.go.html#line-586">evalField</a>(dot <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, fieldName <a href="../builtin.html#name-string">string</a>, node <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>, args []<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>, final, receiver <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></label><span id='state-fold-method-evalField-docs' class="fold-docs">
+				evalField evaluates an expression like (.Field) or (.Field arg1 arg2).
+				The 'final' argument represents the return value from the preceding
+				value of the pipeline, if any.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-method-evalFieldChain"><label for="state-fold-method-evalFieldChain">(*T) <a href="../../src/text/template/exec.go.html#line-564">evalFieldChain</a>(dot, receiver <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, node <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>, ident []<a href="../builtin.html#name-string">string</a>, args []<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>, final <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></label><span id='state-fold-method-evalFieldChain-docs' class="fold-docs">
+				evalFieldChain evaluates .X.Y.Z possibly followed by arguments.
+				dot is the environment in which to evaluate arguments, while
+				receiver is the value being walked along the chain.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-532">evalFieldNode</a>(dot <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, field *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-FieldNode">FieldNode</a>, args []<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>, final <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-883">evalFloat</a>(typ <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Type">Type</a>, n <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-573">evalFunction</a>(dot <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, node *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-IdentifierNode">IdentifierNode</a>, cmd <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>, args []<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>, final <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-861">evalInteger</a>(typ <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Type">Type</a>, n <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-method-evalPipeline"><label for="state-fold-method-evalPipeline">(*T) <a href="../../src/text/template/exec.go.html#line-429">evalPipeline</a>(dot <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, pipe *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-PipeNode">PipeNode</a>) (value <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>)</label><span id='state-fold-method-evalPipeline-docs' class="fold-docs">
+				evalPipeline returns the value acquired by evaluating a pipeline. If the
+				pipeline has a variable declaration, the variable will be pushed on the
+				stack. Callers should therefore pop the stack after they are finished
+				executing commands depending on the pipeline value.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-850">evalString</a>(typ <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Type">Type</a>, n <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-872">evalUnsignedInteger</a>(typ <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Type">Type</a>, n <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-550">evalVariableNode</a>(dot <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, variable *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-VariableNode">VariableNode</a>, args []<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>, final <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-method-idealConstant"><label for="state-fold-method-idealConstant">(*T) <a href="../../src/text/template/exec.go.html#line-497">idealConstant</a>(constant *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-NumberNode">NumberNode</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></label><span id='state-fold-method-idealConstant-docs' class="fold-docs">
+				idealConstant is called to return the value of a number in a context where
+				we don't know the type. In that case, the syntax of the number tells us
+				its type, and we use Go rules to resolve. Note there is no such thing as
+				a uint ideal constant in this situation - the value must be of int type.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-method-mark"><label for="state-fold-method-mark">(*T) <a href="../../src/text/template/exec.go.html#line-53">mark</a>() <a href="../builtin.html#name-int">int</a></label><span id='state-fold-method-mark-docs' class="fold-docs">
+				mark returns the length of the variable stack.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-452">notAFunction</a>(args []<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>, final <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-method-pop"><label for="state-fold-method-pop">(*T) <a href="../../src/text/template/exec.go.html#line-58">pop</a>(mark <a href="../builtin.html#name-int">int</a>)</label><span id='state-fold-method-pop-docs' class="fold-docs">
+				pop pops the variable stack up to the mark.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-method-printValue"><label for="state-fold-method-printValue">(*T) <a href="../../src/text/template/exec.go.html#line-959">printValue</a>(n <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>, v <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>)</label><span id='state-fold-method-printValue-docs' class="fold-docs">
+				printValue writes the textual representation of the value to the output of
+				the template.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-method-push"><label for="state-fold-method-push">(*T) <a href="../../src/text/template/exec.go.html#line-48">push</a>(name <a href="../builtin.html#name-string">string</a>, value <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>)</label><span id='state-fold-method-push-docs' class="fold-docs">
+				push pushes a new variable on the stack.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-method-setTopVar"><label for="state-fold-method-setTopVar">(*T) <a href="../../src/text/template/exec.go.html#line-75">setTopVar</a>(n <a href="../builtin.html#name-int">int</a>, value <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>)</label><span id='state-fold-method-setTopVar-docs' class="fold-docs">
+				setTopVar overwrites the top-nth variable on the stack. Used by range iterations.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-method-setVar"><label for="state-fold-method-setVar">(*T) <a href="../../src/text/template/exec.go.html#line-64">setVar</a>(name <a href="../builtin.html#name-string">string</a>, value <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>)</label><span id='state-fold-method-setVar-docs' class="fold-docs">
+				setVar overwrites the last declared variable with the given name.
+				Used by variable assignments.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-method-validateType"><label for="state-fold-method-validateType">(*T) <a href="../../src/text/template/exec.go.html#line-750">validateType</a>(value <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, typ <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Type">Type</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></label><span id='state-fold-method-validateType-docs' class="fold-docs">
+				validateType guarantees that the value is valid and assignable to the type.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-method-varValue"><label for="state-fold-method-varValue">(*T) <a href="../../src/text/template/exec.go.html#line-80">varValue</a>(name <a href="../builtin.html#name-string">string</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></label><span id='state-fold-method-varValue-docs' class="fold-docs">
+				varValue returns the value of the named variable.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-method-walk"><label for="state-fold-method-walk">(*T) <a href="../../src/text/template/exec.go.html#line-249">walk</a>(dot <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, node <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-Node">Node</a>)</label><span id='state-fold-method-walk-docs' class="fold-docs">
+				Walk functions step through the major pieces of the template structure,
+				generating output as they go.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="state-fold-method-walkIfOrWith"><label for="state-fold-method-walkIfOrWith">(*T) <a href="../../src/text/template/exec.go.html#line-283">walkIfOrWith</a>(typ <a href="template/parse.html">parse</a>.<a href="template/parse.html#name-NodeType">NodeType</a>, dot <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, pipe *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-PipeNode">PipeNode</a>, list, elseList *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-ListNode">ListNode</a>)</label><span id='state-fold-method-walkIfOrWith-docs' class="fold-docs">
+				walkIfOrWith walks an 'if' or 'with' node. The two control structures
+				are identical in behavior except that 'with' sets dot.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-336">walkRange</a>(dot <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, r *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-RangeNode">RangeNode</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-402">walkTemplate</a>(dot <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, t *<a href="template/parse.html">parse</a>.<a href="template/parse.html#name-TemplateNode">TemplateNode</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/text/template/exec.go.html#line-150">writeError</a>(err <a href="../builtin.html#name-error">error</a>)</span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-variable" data-popularity="0">	<input type='checkbox' class="fold" id="variable-fold-content"><label for="variable-fold-content"> type <a href="../../src/text/template/exec.go.html#line-42">variable</a> <i>(struct)</i></label><span id='variable-fold-content-docs' class="fold-docs">
+		variable holds the dynamic value of a variable such as $, $x etc.
+
+		<input type='checkbox' class="fold" id="variable-fold-fields"><label for="variable-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='variable-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="variable-showhide-fields"><i><label for="variable-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="variable-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/exec.go.html#line-43">name</a> <i><a href="../builtin.html#name-string">string</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/text/template/exec.go.html#line-44">value</a> <i><a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></i></span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-writeError" data-popularity="0">	<input type='checkbox' class="fold" id="writeError-fold-content"><label for="writeError-fold-content"> type <a href="../../src/text/template/exec.go.html#line-146">writeError</a> <i>(struct)</i></label><span id='writeError-fold-content-docs' class="fold-docs">
+		writeError is the wrapper type used internally when Execute has an
+		error writing to its output. We strip the wrapper in errRecover.
+		Note that this is not an implementation of error, so it cannot escape
+		from the package as an error value.
+
+		<input type='checkbox' class="fold" id="writeError-fold-fields"><label for="writeError-fold-fields">Fields (<i>only one, which is exported</i>)</label><span id='writeError-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../src/net/net.go.html#line-591">Err</a> <i><a href="../builtin.html#name-error">error</a></i></span></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 57, in which 13 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-HTMLEscape">	<input type='checkbox' class="fold" id="HTMLEscape-fold-content"><label for="HTMLEscape-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-603">HTMLEscape</a>(w <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, b []<a href="../builtin.html#name-byte">byte</a>)</label><span id='HTMLEscape-fold-content-docs' class="fold-docs">
+		HTMLEscape writes to w the escaped HTML equivalent of the plain text data b.
+
+</span></div><div class="anchor value-res" id="name-HTMLEscaper">	<input type='checkbox' class="fold" id="HTMLEscaper-fold-content"><label for="HTMLEscaper-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-643">HTMLEscaper</a>(args ...interface{}) <a href="../builtin.html#name-string">string</a></label><span id='HTMLEscaper-fold-content-docs' class="fold-docs">
+		HTMLEscaper returns the escaped HTML equivalent of the textual
+		representation of its arguments.
+
+</span></div><div class="anchor value-res" id="name-HTMLEscapeString">	<input type='checkbox' class="fold" id="HTMLEscapeString-fold-content"><label for="HTMLEscapeString-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-631">HTMLEscapeString</a>(s <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-string">string</a></label><span id='HTMLEscapeString-fold-content-docs' class="fold-docs">
+		HTMLEscapeString returns the escaped HTML equivalent of the plain text data s.
+
+</span></div><div class="anchor value-res" id="name-IsTrue">	<input type='checkbox' class="fold" id="IsTrue-fold-content"><label for="IsTrue-fold-content"> func <a href="../../src/text/template/exec.go.html#line-304">IsTrue</a>(val interface{}) (truth, ok <a href="../builtin.html#name-bool">bool</a>)</label><span id='IsTrue-fold-content-docs' class="fold-docs">
+		IsTrue reports whether the value is 'true', in the sense of not the zero of its type,
+		and whether the value has a meaningful truth value. This is the definition of
+		truth used by if and other such actions.
+
+</span></div><div class="anchor value-res" id="name-JSEscape">	<input type='checkbox' class="fold" id="JSEscape-fold-content"><label for="JSEscape-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-663">JSEscape</a>(w <a href="../io.html">io</a>.<a href="../io.html#name-Writer">Writer</a>, b []<a href="../builtin.html#name-byte">byte</a>)</label><span id='JSEscape-fold-content-docs' class="fold-docs">
+		JSEscape writes to w the escaped JavaScript equivalent of the plain text data b.
+
+</span></div><div class="anchor value-res" id="name-JSEscaper">	<input type='checkbox' class="fold" id="JSEscaper-fold-content"><label for="JSEscaper-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-734">JSEscaper</a>(args ...interface{}) <a href="../builtin.html#name-string">string</a></label><span id='JSEscaper-fold-content-docs' class="fold-docs">
+		JSEscaper returns the escaped JavaScript equivalent of the textual
+		representation of its arguments.
+
+</span></div><div class="anchor value-res" id="name-JSEscapeString">	<input type='checkbox' class="fold" id="JSEscapeString-fold-content"><label for="JSEscapeString-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-714">JSEscapeString</a>(s <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-string">string</a></label><span id='JSEscapeString-fold-content-docs' class="fold-docs">
+		JSEscapeString returns the escaped JavaScript equivalent of the plain text data s.
+
+</span></div><div class="anchor value-res" id="name-Must">	<input type='checkbox' class="fold" id="Must-fold-content"><label for="Must-fold-content"> func <a href="../../src/text/template/helper.go.html#line-23">Must</a>(t *<a href="#name-Template">Template</a>, err <a href="../builtin.html#name-error">error</a>) *<a href="#name-Template">Template</a></label><span id='Must-fold-content-docs' class="fold-docs">
+		Must is a helper that wraps a call to a function returning (*Template, error)
+		and panics if the error is non-nil. It is intended for use in variable
+		initializations such as
+			var t = template.Must(template.New("name").Parse("text"))
+
+</span></div><div class="anchor value-res" id="name-New">	<input type='checkbox' class="fold" id="New-fold-content"><label for="New-fold-content"> func <a href="../../src/text/template/template.go.html#line-37">New</a>(name <a href="../builtin.html#name-string">string</a>) *<a href="#name-Template">Template</a></label><span id='New-fold-content-docs' class="fold-docs">
+		New allocates a new, undefined template with the given name.
+
+</span></div><div class="anchor value-res" id="name-ParseFiles">	<input type='checkbox' class="fold" id="ParseFiles-fold-content"><label for="ParseFiles-fold-content"> func <a href="../../src/text/template/helper.go.html#line-39">ParseFiles</a>(filenames ...<a href="../builtin.html#name-string">string</a>) (*<a href="#name-Template">Template</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='ParseFiles-fold-content-docs' class="fold-docs">
+		ParseFiles creates a new Template and parses the template definitions from
+		the named files. The returned template's name will have the base name and
+		parsed contents of the first file. There must be at least one file.
+		If an error occurs, parsing stops and the returned *Template is nil.
+
+		When parsing multiple files with the same name in different directories,
+		the last one mentioned will be the one that results.
+		For instance, ParseFiles("a/foo", "b/foo") stores "b/foo" as the template
+		named "foo", while "a/foo" is unavailable.
+
+</span></div><div class="anchor value-res" id="name-ParseFS">	<input type='checkbox' class="fold" id="ParseFS-fold-content"><label for="ParseFS-fold-content"> func <a href="../../src/text/template/helper.go.html#line-137">ParseFS</a>(fsys <a href="../io/fs.html">fs</a>.<a href="../io/fs.html#name-FS">FS</a>, patterns ...<a href="../builtin.html#name-string">string</a>) (*<a href="#name-Template">Template</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='ParseFS-fold-content-docs' class="fold-docs">
+		ParseFS is like ParseFiles or ParseGlob but reads from the file system fsys
+		instead of the host operating system's file system.
+		It accepts a list of glob patterns.
+		(Note that most file names serve as glob patterns matching only themselves.)
+
+</span></div><div class="anchor value-res" id="name-ParseGlob">	<input type='checkbox' class="fold" id="ParseGlob-fold-content"><label for="ParseGlob-fold-content"> func <a href="../../src/text/template/helper.go.html#line-104">ParseGlob</a>(pattern <a href="../builtin.html#name-string">string</a>) (*<a href="#name-Template">Template</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='ParseGlob-fold-content-docs' class="fold-docs">
+		ParseGlob creates a new Template and parses the template definitions from
+		the files identified by the pattern. The files are matched according to the
+		semantics of filepath.Match, and the pattern must match at least one file.
+		The returned template will have the (base) name and (parsed) contents of the
+		first file matched by the pattern. ParseGlob is equivalent to calling
+		ParseFiles with the list of files matched by the pattern.
+
+		When parsing multiple files with the same name in different directories,
+		the last one mentioned will be the one that results.
+
+</span></div><div class="anchor value-res" id="name-URLQueryEscaper">	<input type='checkbox' class="fold" id="URLQueryEscaper-fold-content"><label for="URLQueryEscaper-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-740">URLQueryEscaper</a>(args ...interface{}) <a href="../builtin.html#name-string">string</a></label><span id='URLQueryEscaper-fold-content-docs' class="fold-docs">
+		URLQueryEscaper returns the escaped value of the textual representation of
+		its arguments in a form suitable for embedding in a URL query.
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 44 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 44 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-addFuncs"><i>	<input type='checkbox' class="fold" id="addFuncs-fold-content"><label for="addFuncs-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-103">addFuncs</a>(out, in <a href="#name-FuncMap">FuncMap</a>)</label><span id='addFuncs-fold-content-docs' class="fold-docs">
+		addFuncs adds to values the functions in funcs. It does no checking of the input -
+		call addValueFuncs first.
+
+</span></i></div><div class="anchor value-res hidden" id="name-addValueFuncs"><i>	<input type='checkbox' class="fold" id="addValueFuncs-fold-content"><label for="addValueFuncs-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-85">addValueFuncs</a>(out map[<a href="../builtin.html#name-string">string</a>]<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, in <a href="#name-FuncMap">FuncMap</a>)</label><span id='addValueFuncs-fold-content-docs' class="fold-docs">
+		addValueFuncs adds to values the functions in funcs, converting them to reflect.Values.
+
+</span></i></div><div class="anchor value-res hidden" id="name-and"><i>	<input type='checkbox' class="fold" id="and-fold-content"><label for="and-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-381">and</a>(arg0 <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, args ...<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></label><span id='and-fold-content-docs' class="fold-docs">
+		and computes the Boolean AND of its arguments, returning
+		the first false argument it encounters, or the last argument.
+
+</span></i></div><div class="anchor value-res hidden" id="name-basicKind"><i>	<span class="nodocs"> func <a href="../../src/text/template/funcs.go.html#line-436">basicKind</a>(v <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) (<a href="#name-kind">kind</a>, <a href="../builtin.html#name-error">error</a>)</span></i></div><div class="anchor value-res hidden" id="name-builtinFuncs"><i>	<input type='checkbox' class="fold" id="builtinFuncs-fold-content"><label for="builtinFuncs-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-70">builtinFuncs</a>() map[<a href="../builtin.html#name-string">string</a>]<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></label><span id='builtinFuncs-fold-content-docs' class="fold-docs">
+		builtinFuncsOnce lazily computes &amp; caches the builtinFuncs map.
+		TODO: revert this back to a global map once golang.org/issue/2559 is fixed.
+
+</span></i></div><div class="anchor value-res hidden" id="name-builtins"><i>	<input type='checkbox' class="fold" id="builtins-fold-content"><label for="builtins-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-37">builtins</a>() <a href="#name-FuncMap">FuncMap</a></label><span id='builtins-fold-content-docs' class="fold-docs">
+		builtins returns the FuncMap.
+		It is not a global variable so the linker can dead code eliminate
+		more when this isn't called. See golang.org/issue/36021.
+		TODO: revert this back to a global map once golang.org/issue/2559 is fixed.
+
+</span></i></div><div class="anchor value-res hidden" id="name-call"><i>	<input type='checkbox' class="fold" id="call-fold-content"><label for="call-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-312">call</a>(fn <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, args ...<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) (<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='call-fold-content-docs' class="fold-docs">
+		call returns the result of evaluating the first argument as a function.
+		The function must return 1 result, or 2 results, the second of which is an error.
+
+</span></i></div><div class="anchor value-res hidden" id="name-canBeNil"><i>	<input type='checkbox' class="fold" id="canBeNil-fold-content"><label for="canBeNil-fold-content"> func <a href="../../src/text/template/exec.go.html#line-739">canBeNil</a>(typ <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Type">Type</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='canBeNil-fold-content-docs' class="fold-docs">
+		canBeNil reports whether an untyped nil can be assigned to the type. See reflect.Zero.
+
+</span></i></div><div class="anchor value-res hidden" id="name-createValueFuncs"><i>	<input type='checkbox' class="fold" id="createValueFuncs-fold-content"><label for="createValueFuncs-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-78">createValueFuncs</a>(funcMap <a href="#name-FuncMap">FuncMap</a>) map[<a href="../builtin.html#name-string">string</a>]<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></label><span id='createValueFuncs-fold-content-docs' class="fold-docs">
+		createValueFuncs turns a FuncMap into a map[string]reflect.Value
+
+</span></i></div><div class="anchor value-res hidden" id="name-doublePercent"><i>	<input type='checkbox' class="fold" id="doublePercent-fold-content"><label for="doublePercent-fold-content"> func <a href="../../src/text/template/exec.go.html#line-103">doublePercent</a>(str <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-string">string</a></label><span id='doublePercent-fold-content-docs' class="fold-docs">
+		doublePercent returns the string with %'s replaced by %%, if necessary,
+		so it can be used safely inside a Printf format string.
+
+</span></i></div><div class="anchor value-res hidden" id="name-eq"><i>	<input type='checkbox' class="fold" id="eq-fold-content"><label for="eq-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-455">eq</a>(arg1 <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, arg2 ...<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) (<a href="../builtin.html#name-bool">bool</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='eq-fold-content-docs' class="fold-docs">
+		eq evaluates the comparison a == b || a == c || ...
+
+</span></i></div><div class="anchor value-res hidden" id="name-errRecover"><i>	<input type='checkbox' class="fold" id="errRecover-fold-content"><label for="errRecover-fold-content"> func <a href="../../src/text/template/exec.go.html#line-158">errRecover</a>(errp *<a href="../builtin.html#name-error">error</a>)</label><span id='errRecover-fold-content-docs' class="fold-docs">
+		errRecover is the handler that turns panics into returns from the top
+		level of Parse.
+
+</span></i></div><div class="anchor value-res hidden" id="name-evalArgs"><i>	<input type='checkbox' class="fold" id="evalArgs-fold-content"><label for="evalArgs-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-749">evalArgs</a>(args []interface{}) <a href="../builtin.html#name-string">string</a></label><span id='evalArgs-fold-content-docs' class="fold-docs">
+		evalArgs formats the list of arguments into a string. It is therefore equivalent to
+			fmt.Sprint(args...)
+		except that each argument is indirected (if a pointer), as required,
+		using the same rules as the default string evaluation during template
+		execution.
+
+</span></i></div><div class="anchor value-res hidden" id="name-findFunction"><i>	<input type='checkbox' class="fold" id="findFunction-fold-content"><label for="findFunction-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-139">findFunction</a>(name <a href="../builtin.html#name-string">string</a>, tmpl *<a href="#name-Template">Template</a>) (<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, <a href="../builtin.html#name-bool">bool</a>)</label><span id='findFunction-fold-content-docs' class="fold-docs">
+		findFunction looks for a function in the template, and global map.
+
+</span></i></div><div class="anchor value-res hidden" id="name-ge"><i>	<input type='checkbox' class="fold" id="ge-fold-content"><label for="ge-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-582">ge</a>(arg1, arg2 <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) (<a href="../builtin.html#name-bool">bool</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='ge-fold-content-docs' class="fold-docs">
+		ge evaluates the comparison a &gt;= b.
+
+</span></i></div><div class="anchor value-res hidden" id="name-goodFunc"><i>	<input type='checkbox' class="fold" id="goodFunc-fold-content"><label for="goodFunc-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-110">goodFunc</a>(typ <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Type">Type</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='goodFunc-fold-content-docs' class="fold-docs">
+		goodFunc reports whether the function or method has the right result signature.
+
+</span></i></div><div class="anchor value-res hidden" id="name-goodName"><i>	<input type='checkbox' class="fold" id="goodName-fold-content"><label for="goodName-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-122">goodName</a>(name <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='goodName-fold-content-docs' class="fold-docs">
+		goodName reports whether the function name is a valid identifier.
+
+</span></i></div><div class="anchor value-res hidden" id="name-gt"><i>	<input type='checkbox' class="fold" id="gt-fold-content"><label for="gt-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-572">gt</a>(arg1, arg2 <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) (<a href="../builtin.html#name-bool">bool</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='gt-fold-content-docs' class="fold-docs">
+		gt evaluates the comparison a &gt; b.
+
+</span></i></div><div class="anchor value-res hidden" id="name-index"><i>	<input type='checkbox' class="fold" id="index-fold-content"><label for="index-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-206">index</a>(item <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, indexes ...<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) (<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='index-fold-content-docs' class="fold-docs">
+		index returns the result of indexing its first argument by the following
+		arguments. Thus "index x 1 2 3" is, in Go syntax, x[1][2][3]. Each
+		indexed item must be a map, slice, or array.
+
+</span></i></div><div class="anchor value-res hidden" id="name-indexArg"><i>	<input type='checkbox' class="fold" id="indexArg-fold-content"><label for="indexArg-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-183">indexArg</a>(index <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, cap <a href="../builtin.html#name-int">int</a>) (<a href="../builtin.html#name-int">int</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='indexArg-fold-content-docs' class="fold-docs">
+		indexArg checks if a reflect.Value can be used as an index, and converts it to int if possible.
+
+</span></i></div><div class="anchor value-res hidden" id="name-indirect"><i>	<input type='checkbox' class="fold" id="indirect-fold-content"><label for="indirect-fold-content"> func <a href="../../src/text/template/exec.go.html#line-934">indirect</a>(v <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) (rv <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, isNil <a href="../builtin.html#name-bool">bool</a>)</label><span id='indirect-fold-content-docs' class="fold-docs">
+		indirect returns the item at the end of indirection, and a bool to indicate
+		if it's nil. If the returned bool is true, the returned value's kind will be
+		either a pointer or interface.
+
+</span></i></div><div class="anchor value-res hidden" id="name-indirectInterface"><i>	<input type='checkbox' class="fold" id="indirectInterface-fold-content"><label for="indirectInterface-fold-content"> func <a href="../../src/text/template/exec.go.html#line-947">indirectInterface</a>(v <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></label><span id='indirectInterface-fold-content-docs' class="fold-docs">
+		indirectInterface returns the concrete value in an interface value,
+		or else the zero reflect.Value.
+		That is, if v represents the interface value x, the result is the same as reflect.ValueOf(x):
+		the fact that x was an interface value is forgotten.
+
+</span></i></div><div class="anchor value-res hidden" id="name-initMaxExecDepth"><i>	<span class="nodocs"> func <a href="../../src/text/template/exec.go.html#line-23">initMaxExecDepth</a>() <a href="../builtin.html#name-int">int</a></span></i></div><div class="anchor value-res hidden" id="name-intLike"><i>	<span class="nodocs"> func <a href="../../src/text/template/funcs.go.html#line-172">intLike</a>(typ <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Kind">Kind</a>) <a href="../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-isHexInt"><i>	<span class="nodocs"> func <a href="../../src/text/template/exec.go.html#line-528">isHexInt</a>(s <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-isRuneInt"><i>	<span class="nodocs"> func <a href="../../src/text/template/exec.go.html#line-524">isRuneInt</a>(s <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-isTrue"><i>	<span class="nodocs"> func <a href="../../src/text/template/exec.go.html#line-308">isTrue</a>(val <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) (truth, ok <a href="../builtin.html#name-bool">bool</a>)</span></i></div><div class="anchor value-res hidden" id="name-jsIsSpecial"><i>	<span class="nodocs"> func <a href="../../src/text/template/funcs.go.html#line-724">jsIsSpecial</a>(r <a href="../builtin.html#name-rune">rune</a>) <a href="../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-le"><i>	<input type='checkbox' class="fold" id="le-fold-content"><label for="le-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-562">le</a>(arg1, arg2 <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) (<a href="../builtin.html#name-bool">bool</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='le-fold-content-docs' class="fold-docs">
+		le evaluates the comparison &lt;= b.
+
+</span></i></div><div class="anchor value-res hidden" id="name-length"><i>	<input type='checkbox' class="fold" id="length-fold-content"><label for="length-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-296">length</a>(item <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) (<a href="../builtin.html#name-int">int</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='length-fold-content-docs' class="fold-docs">
+		length returns the length of the item, with an error if it has no defined length.
+
+</span></i></div><div class="anchor value-res hidden" id="name-lt"><i>	<input type='checkbox' class="fold" id="lt-fold-content"><label for="lt-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-520">lt</a>(arg1, arg2 <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) (<a href="../builtin.html#name-bool">bool</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='lt-fold-content-docs' class="fold-docs">
+		lt evaluates the comparison a &lt; b.
+
+</span></i></div><div class="anchor value-res hidden" id="name-ne"><i>	<input type='checkbox' class="fold" id="ne-fold-content"><label for="ne-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-513">ne</a>(arg1, arg2 <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) (<a href="../builtin.html#name-bool">bool</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='ne-fold-content-docs' class="fold-docs">
+		ne evaluates the comparison a != b.
+
+</span></i></div><div class="anchor value-res hidden" id="name-not"><i>	<input type='checkbox' class="fold" id="not-fold-content"><label for="not-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-410">not</a>(arg <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='not-fold-content-docs' class="fold-docs">
+		not returns the Boolean negation of its argument.
+
+</span></i></div><div class="anchor value-res hidden" id="name-or"><i>	<input type='checkbox' class="fold" id="or-fold-content"><label for="or-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-396">or</a>(arg0 <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, args ...<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></label><span id='or-fold-content-docs' class="fold-docs">
+		or computes the Boolean OR of its arguments, returning
+		the first true argument it encounters, or the last argument.
+
+</span></i></div><div class="anchor value-res hidden" id="name-parseFiles"><i>	<input type='checkbox' class="fold" id="parseFiles-fold-content"><label for="parseFiles-fold-content"> func <a href="../../src/text/template/helper.go.html#line-61">parseFiles</a>(t *<a href="#name-Template">Template</a>, readFile func(<a href="../builtin.html#name-string">string</a>) (<a href="../builtin.html#name-string">string</a>, []<a href="../builtin.html#name-byte">byte</a>, <a href="../builtin.html#name-error">error</a>), filenames ...<a href="../builtin.html#name-string">string</a>) (*<a href="#name-Template">Template</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='parseFiles-fold-content-docs' class="fold-docs">
+		parseFiles is the helper for the method and function. If the argument
+		template is nil, it is created from the first file.
+
+</span></i></div><div class="anchor value-res hidden" id="name-parseFS"><i>	<span class="nodocs"> func <a href="../../src/text/template/helper.go.html#line-150">parseFS</a>(t *<a href="#name-Template">Template</a>, fsys <a href="../io/fs.html">fs</a>.<a href="../io/fs.html#name-FS">FS</a>, patterns []<a href="../builtin.html#name-string">string</a>) (*<a href="#name-Template">Template</a>, <a href="../builtin.html#name-error">error</a>)</span></i></div><div class="anchor value-res hidden" id="name-parseGlob"><i>	<input type='checkbox' class="fold" id="parseGlob-fold-content"><label for="parseGlob-fold-content"> func <a href="../../src/text/template/helper.go.html#line-122">parseGlob</a>(t *<a href="#name-Template">Template</a>, pattern <a href="../builtin.html#name-string">string</a>) (*<a href="#name-Template">Template</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='parseGlob-fold-content-docs' class="fold-docs">
+		parseGlob is the implementation of the function and method ParseGlob.
+
+</span></i></div><div class="anchor value-res hidden" id="name-prepareArg"><i>	<input type='checkbox' class="fold" id="prepareArg-fold-content"><label for="prepareArg-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-155">prepareArg</a>(value <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, argType <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Type">Type</a>) (<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='prepareArg-fold-content-docs' class="fold-docs">
+		prepareArg checks if value can be used as an argument of type argType, and
+		converts an invalid value to appropriate zero if possible.
+
+</span></i></div><div class="anchor value-res hidden" id="name-printableValue"><i>	<input type='checkbox' class="fold" id="printableValue-fold-content"><label for="printableValue-fold-content"> func <a href="../../src/text/template/exec.go.html#line-973">printableValue</a>(v <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) (interface{}, <a href="../builtin.html#name-bool">bool</a>)</label><span id='printableValue-fold-content-docs' class="fold-docs">
+		printableValue returns the, possibly indirected, interface value inside v that
+		is best for a call to formatted printer.
+
+</span></i></div><div class="anchor value-res hidden" id="name-readFileFS"><i>	<span class="nodocs"> func <a href="../../src/text/template/helper.go.html#line-171">readFileFS</a>(fsys <a href="../io/fs.html">fs</a>.<a href="../io/fs.html#name-FS">FS</a>) func(<a href="../builtin.html#name-string">string</a>) (<a href="../builtin.html#name-string">string</a>, []<a href="../builtin.html#name-byte">byte</a>, <a href="../builtin.html#name-error">error</a>)</span></i></div><div class="anchor value-res hidden" id="name-readFileOS"><i>	<span class="nodocs"> func <a href="../../src/text/template/helper.go.html#line-165">readFileOS</a>(file <a href="../builtin.html#name-string">string</a>) (name <a href="../builtin.html#name-string">string</a>, b []<a href="../builtin.html#name-byte">byte</a>, err <a href="../builtin.html#name-error">error</a>)</span></i></div><div class="anchor value-res hidden" id="name-safeCall"><i>	<input type='checkbox' class="fold" id="safeCall-fold-content"><label for="safeCall-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-355">safeCall</a>(fun <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, args []<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) (val <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, err <a href="../builtin.html#name-error">error</a>)</label><span id='safeCall-fold-content-docs' class="fold-docs">
+		safeCall runs fun.Call(args), and returns the resulting value and error, if
+		any. If the call panics, the panic value is returned as an error.
+
+</span></i></div><div class="anchor value-res hidden" id="name-slice"><i>	<input type='checkbox' class="fold" id="slice-fold-content"><label for="slice-fold-content"> func <a href="../../src/text/template/funcs.go.html#line-250">slice</a>(item <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, indexes ...<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) (<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='slice-fold-content-docs' class="fold-docs">
+		slice returns the result of slicing its first argument by the remaining
+		arguments. Thus "slice x 1 2" is, in Go syntax, x[1:2], while "slice x"
+		is x[:], "slice x 1" is x[1:], and "slice x 1 2 3" is x[1:2:3]. The first
+		argument must be a string, slice, or array.
+
+</span></i></div><div class="anchor value-res hidden" id="name-truth"><i>	<span class="nodocs"> func <a href="../../src/text/template/funcs.go.html#line-374">truth</a>(arg <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>) <a href="../builtin.html#name-bool">bool</a></span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (total 25, none are exported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* 25 unexporteds ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* 25 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-builtinFuncsOnce"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-63">builtinFuncsOnce</a> struct{<a href="../sync.html">sync</a>.<a href="../sync.html#name-Once">Once</a>; v map[<a href="../builtin.html#name-string">string</a>]<a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a>}</span></i></div><div class="anchor value-res hidden" id="name-errBadComparison"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-420">errBadComparison</a> <a href="../builtin.html#name-error">error</a></span></i></div><div class="anchor value-res hidden" id="name-errBadComparisonType"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-419">errBadComparisonType</a> <a href="../builtin.html#name-error">error</a></span></i></div><div class="anchor value-res hidden" id="name-errNoComparison"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-421">errNoComparison</a> <a href="../builtin.html#name-error">error</a></span></i></div><div class="anchor value-res hidden" id="name-errorType"><i>	<span class="nodocs">  var <a href="../../src/text/template/exec.go.html#line-665">errorType</a> <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Type">Type</a></span></i></div><div class="anchor value-res hidden" id="name-fmtStringerType"><i>	<span class="nodocs">  var <a href="../../src/text/template/exec.go.html#line-666">fmtStringerType</a> <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Type">Type</a></span></i></div><div class="anchor value-res hidden" id="name-hex"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-651">hex</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-htmlAmp"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-596">htmlAmp</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-htmlApos"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-595">htmlApos</a> []<a href="../builtin.html#name-byte">byte</a> // shorter than "&amp;apos;" and apos was not in HTML until HTML5</span></i></div><div class="anchor value-res hidden" id="name-htmlGt"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-598">htmlGt</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-htmlLt"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-597">htmlLt</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-htmlNull"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-599">htmlNull</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-htmlQuot"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-594">htmlQuot</a> []<a href="../builtin.html#name-byte">byte</a> // shorter than "&amp;quot;"</span></i></div><div class="anchor value-res hidden" id="name-jsAmp"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-658">jsAmp</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-jsApos"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-654">jsApos</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-jsBackslash"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-653">jsBackslash</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-jsEq"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-659">jsEq</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-jsGt"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-657">jsGt</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-jsLowUni"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-650">jsLowUni</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-jsLt"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-656">jsLt</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-jsQuot"><i>	<span class="nodocs">  var <a href="../../src/text/template/funcs.go.html#line-655">jsQuot</a> []<a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-maxExecDepth"><i>	<input type='checkbox' class="fold" id="maxExecDepth-fold-content"><label for="maxExecDepth-fold-content">  var <a href="../../src/text/template/exec.go.html#line-21">maxExecDepth</a> <a href="../builtin.html#name-int">int</a></label><span id='maxExecDepth-fold-content-docs' class="fold-docs">
+		maxExecDepth specifies the maximum stack depth of templates within
+		templates. This limit is only practically reached by accidentally
+		recursive template invocations. This limit allows us to return
+		an error instead of triggering a stack overflow.
+
+</span></i></div><div class="anchor value-res hidden" id="name-missingVal"><i>	<span class="nodocs">  var <a href="../../src/text/template/exec.go.html#line-94">missingVal</a> <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></span></i></div><div class="anchor value-res hidden" id="name-reflectValueType"><i>	<span class="nodocs">  var <a href="../../src/text/template/exec.go.html#line-667">reflectValueType</a> <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Type">Type</a></span></i></div><div class="anchor value-res hidden" id="name-zero"><i>	<span class="nodocs">  var <a href="../../src/text/template/exec.go.html#line-90">zero</a> <a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Value">Value</a></span></i></div></div>
+<div id="exported-constants"><span class="title">Package-Level Constants<span class="title-stat"><i> (total 10, none are exported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-constants-showhide"><i><label for="unexported-constants-showhide" class="show-inline">/* 10 unexporteds ... */</label><label for="unexported-constants-showhide" class="hide-inline">/* 10 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-boolKind"><i>	<span class="nodocs">const <a href="../../src/text/template/funcs.go.html#line-428">boolKind</a> <a href="#name-kind">kind</a> = 1</span></i></div><div class="anchor value-res hidden" id="name-complexKind"><i>	<span class="nodocs">const <a href="../../src/text/template/funcs.go.html#line-429">complexKind</a> <a href="#name-kind">kind</a> = 2</span></i></div><div class="anchor value-res hidden" id="name-floatKind"><i>	<span class="nodocs">const <a href="../../src/text/template/funcs.go.html#line-431">floatKind</a> <a href="#name-kind">kind</a> = 4</span></i></div><div class="anchor value-res hidden" id="name-intKind"><i>	<span class="nodocs">const <a href="../../src/text/template/funcs.go.html#line-430">intKind</a> <a href="#name-kind">kind</a> = 3</span></i></div><div class="anchor value-res hidden" id="name-invalidKind"><i>	<span class="nodocs">const <a href="../../src/text/template/funcs.go.html#line-427">invalidKind</a> <a href="#name-kind">kind</a> = 0</span></i></div><div class="anchor value-res hidden" id="name-mapError"><i>	<span class="nodocs">const <a href="../../src/text/template/option.go.html#line-17">mapError</a> <a href="#name-missingKeyAction">missingKeyAction</a> = 2 // Error out</span></i></div><div class="anchor value-res hidden" id="name-mapInvalid"><i>	<span class="nodocs">const <a href="../../src/text/template/option.go.html#line-15">mapInvalid</a> <a href="#name-missingKeyAction">missingKeyAction</a> = 0 // Return an invalid reflect.Value.</span></i></div><div class="anchor value-res hidden" id="name-mapZeroValue"><i>	<span class="nodocs">const <a href="../../src/text/template/option.go.html#line-16">mapZeroValue</a> <a href="#name-missingKeyAction">missingKeyAction</a> = 1 // Return the zero value for the map element.</span></i></div><div class="anchor value-res hidden" id="name-stringKind"><i>	<span class="nodocs">const <a href="../../src/text/template/funcs.go.html#line-432">stringKind</a> <a href="#name-kind">kind</a> = 5</span></i></div><div class="anchor value-res hidden" id="name-uintKind"><i>	<span class="nodocs">const <a href="../../src/text/template/funcs.go.html#line-433">uintKind</a> <a href="#name-kind">kind</a> = 6</span></i></div></div></code></pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: vdso_elf64.go in package runtime</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	vdso_elf64.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2018 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// +build linux</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// +build amd64 arm64 mips64 mips64le ppc64 ppc64le</span></code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// ELF64 structure definitions for use by the vDSO loader</span></code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-elfSym" class="ident">elfSym</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-13"><code>	st_name  <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-14"><code>	st_info  <a href="../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-15"><code>	st_other <a href="../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-16"><code>	st_shndx <a href="../../pkg/builtin.html#name-uint16" class="ident">uint16</a></code></span>
+<span class="codeline" id="line-17"><code>	st_value <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-18"><code>	st_size  <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-19"><code>}</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-elfVerdef" class="ident">elfVerdef</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-22"><code>	vd_version <a href="../../pkg/builtin.html#name-uint16" class="ident">uint16</a> <span class="comment">/* Version revision */</span></code></span>
+<span class="codeline" id="line-23"><code>	vd_flags   <a href="../../pkg/builtin.html#name-uint16" class="ident">uint16</a> <span class="comment">/* Version information */</span></code></span>
+<span class="codeline" id="line-24"><code>	vd_ndx     <a href="../../pkg/builtin.html#name-uint16" class="ident">uint16</a> <span class="comment">/* Version Index */</span></code></span>
+<span class="codeline" id="line-25"><code>	vd_cnt     <a href="../../pkg/builtin.html#name-uint16" class="ident">uint16</a> <span class="comment">/* Number of associated aux entries */</span></code></span>
+<span class="codeline" id="line-26"><code>	vd_hash    <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">/* Version name hash value */</span></code></span>
+<span class="codeline" id="line-27"><code>	vd_aux     <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">/* Offset in bytes to verdaux array */</span></code></span>
+<span class="codeline" id="line-28"><code>	vd_next    <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">/* Offset in bytes to next verdef entry */</span></code></span>
+<span class="codeline" id="line-29"><code>}</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-elfEhdr" class="ident">elfEhdr</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-32"><code>	e_ident     [<a href="vdso_linux.go.html#line-50" class="ident">_EI_NIDENT</a>]<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a> <span class="comment">/* Magic number and other info */</span></code></span>
+<span class="codeline" id="line-33"><code>	e_type      <a href="../../pkg/builtin.html#name-uint16" class="ident">uint16</a>           <span class="comment">/* Object file type */</span></code></span>
+<span class="codeline" id="line-34"><code>	e_machine   <a href="../../pkg/builtin.html#name-uint16" class="ident">uint16</a>           <span class="comment">/* Architecture */</span></code></span>
+<span class="codeline" id="line-35"><code>	e_version   <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>           <span class="comment">/* Object file version */</span></code></span>
+<span class="codeline" id="line-36"><code>	e_entry     <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>           <span class="comment">/* Entry point virtual address */</span></code></span>
+<span class="codeline" id="line-37"><code>	e_phoff     <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>           <span class="comment">/* Program header table file offset */</span></code></span>
+<span class="codeline" id="line-38"><code>	e_shoff     <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>           <span class="comment">/* Section header table file offset */</span></code></span>
+<span class="codeline" id="line-39"><code>	e_flags     <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>           <span class="comment">/* Processor-specific flags */</span></code></span>
+<span class="codeline" id="line-40"><code>	e_ehsize    <a href="../../pkg/builtin.html#name-uint16" class="ident">uint16</a>           <span class="comment">/* ELF header size in bytes */</span></code></span>
+<span class="codeline" id="line-41"><code>	e_phentsize <a href="../../pkg/builtin.html#name-uint16" class="ident">uint16</a>           <span class="comment">/* Program header table entry size */</span></code></span>
+<span class="codeline" id="line-42"><code>	e_phnum     <a href="../../pkg/builtin.html#name-uint16" class="ident">uint16</a>           <span class="comment">/* Program header table entry count */</span></code></span>
+<span class="codeline" id="line-43"><code>	e_shentsize <a href="../../pkg/builtin.html#name-uint16" class="ident">uint16</a>           <span class="comment">/* Section header table entry size */</span></code></span>
+<span class="codeline" id="line-44"><code>	e_shnum     <a href="../../pkg/builtin.html#name-uint16" class="ident">uint16</a>           <span class="comment">/* Section header table entry count */</span></code></span>
+<span class="codeline" id="line-45"><code>	e_shstrndx  <a href="../../pkg/builtin.html#name-uint16" class="ident">uint16</a>           <span class="comment">/* Section header string table index */</span></code></span>
+<span class="codeline" id="line-46"><code>}</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-elfPhdr" class="ident">elfPhdr</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-49"><code>	p_type   <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">/* Segment type */</span></code></span>
+<span class="codeline" id="line-50"><code>	p_flags  <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">/* Segment flags */</span></code></span>
+<span class="codeline" id="line-51"><code>	p_offset <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> <span class="comment">/* Segment file offset */</span></code></span>
+<span class="codeline" id="line-52"><code>	p_vaddr  <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> <span class="comment">/* Segment virtual address */</span></code></span>
+<span class="codeline" id="line-53"><code>	p_paddr  <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> <span class="comment">/* Segment physical address */</span></code></span>
+<span class="codeline" id="line-54"><code>	p_filesz <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> <span class="comment">/* Segment size in file */</span></code></span>
+<span class="codeline" id="line-55"><code>	p_memsz  <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> <span class="comment">/* Segment size in memory */</span></code></span>
+<span class="codeline" id="line-56"><code>	p_align  <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> <span class="comment">/* Segment alignment */</span></code></span>
+<span class="codeline" id="line-57"><code>}</code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-elfShdr" class="ident">elfShdr</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-60"><code>	sh_name      <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">/* Section name (string tbl index) */</span></code></span>
+<span class="codeline" id="line-61"><code>	sh_type      <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">/* Section type */</span></code></span>
+<span class="codeline" id="line-62"><code>	sh_flags     <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> <span class="comment">/* Section flags */</span></code></span>
+<span class="codeline" id="line-63"><code>	sh_addr      <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> <span class="comment">/* Section virtual addr at execution */</span></code></span>
+<span class="codeline" id="line-64"><code>	sh_offset    <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> <span class="comment">/* Section file offset */</span></code></span>
+<span class="codeline" id="line-65"><code>	sh_size      <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> <span class="comment">/* Section size in bytes */</span></code></span>
+<span class="codeline" id="line-66"><code>	sh_link      <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">/* Link to another section */</span></code></span>
+<span class="codeline" id="line-67"><code>	sh_info      <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">/* Additional section information */</span></code></span>
+<span class="codeline" id="line-68"><code>	sh_addralign <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> <span class="comment">/* Section alignment */</span></code></span>
+<span class="codeline" id="line-69"><code>	sh_entsize   <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> <span class="comment">/* Entry size if section holds table */</span></code></span>
+<span class="codeline" id="line-70"><code>}</code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-elfDyn" class="ident">elfDyn</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-73"><code>	d_tag <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>  <span class="comment">/* Dynamic entry type */</span></code></span>
+<span class="codeline" id="line-74"><code>	d_val <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> <span class="comment">/* Integer value */</span></code></span>
+<span class="codeline" id="line-75"><code>}</code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-elfVerdaux" class="ident">elfVerdaux</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-78"><code>	vda_name <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">/* Version or dependency names */</span></code></span>
+<span class="codeline" id="line-79"><code>	vda_next <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">/* Offset in bytes to next verdaux entry */</span></code></span>
+<span class="codeline" id="line-80"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

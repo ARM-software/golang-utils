@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: atof.go in package strconv</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	atof.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/strconv.html">strconv</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104],
+input[id=r105]:checked ~pre label[for=r105],
+input[id=r106]:checked ~pre label[for=r106],
+input[id=r107]:checked ~pre label[for=r107],
+input[id=r108]:checked ~pre label[for=r108],
+input[id=r109]:checked ~pre label[for=r109],
+input[id=r110]:checked ~pre label[for=r110],
+input[id=r111]:checked ~pre label[for=r111],
+input[id=r112]:checked ~pre label[for=r112],
+input[id=r113]:checked ~pre label[for=r113],
+input[id=r114]:checked ~pre label[for=r114],
+input[id=r115]:checked ~pre label[for=r115],
+input[id=r116]:checked ~pre label[for=r116],
+input[id=r117]:checked ~pre label[for=r117],
+input[id=r118]:checked ~pre label[for=r118],
+input[id=r119]:checked ~pre label[for=r119],
+input[id=r120]:checked ~pre label[for=r120],
+input[id=r121]:checked ~pre label[for=r121],
+input[id=r122]:checked ~pre label[for=r122],
+input[id=r123]:checked ~pre label[for=r123],
+input[id=r124]:checked ~pre label[for=r124],
+input[id=r125]:checked ~pre label[for=r125],
+input[id=r126]:checked ~pre label[for=r126],
+input[id=r127]:checked ~pre label[for=r127],
+input[id=r128]:checked ~pre label[for=r128],
+input[id=r129]:checked ~pre label[for=r129],
+input[id=r130]:checked ~pre label[for=r130],
+input[id=r131]:checked ~pre label[for=r131],
+input[id=r132]:checked ~pre label[for=r132],
+input[id=r133]:checked ~pre label[for=r133],
+input[id=r134]:checked ~pre label[for=r134],
+input[id=r135]:checked ~pre label[for=r135],
+input[id=r136]:checked ~pre label[for=r136],
+input[id=r137]:checked ~pre label[for=r137],
+input[id=r138]:checked ~pre label[for=r138],
+input[id=r139]:checked ~pre label[for=r139],
+input[id=r140]:checked ~pre label[for=r140],
+input[id=r141]:checked ~pre label[for=r141],
+input[id=r142]:checked ~pre label[for=r142],
+input[id=r143]:checked ~pre label[for=r143]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="r105" type="radio" name="g"/>
+<input id="r106" type="radio" name="g"/>
+<input id="r107" type="radio" name="g"/>
+<input id="r108" type="radio" name="g"/>
+<input id="r109" type="radio" name="g"/>
+<input id="r110" type="radio" name="g"/>
+<input id="r111" type="radio" name="g"/>
+<input id="r112" type="radio" name="g"/>
+<input id="r113" type="radio" name="g"/>
+<input id="r114" type="radio" name="g"/>
+<input id="r115" type="radio" name="g"/>
+<input id="r116" type="radio" name="g"/>
+<input id="r117" type="radio" name="g"/>
+<input id="r118" type="radio" name="g"/>
+<input id="r119" type="radio" name="g"/>
+<input id="r120" type="radio" name="g"/>
+<input id="r121" type="radio" name="g"/>
+<input id="r122" type="radio" name="g"/>
+<input id="r123" type="radio" name="g"/>
+<input id="r124" type="radio" name="g"/>
+<input id="r125" type="radio" name="g"/>
+<input id="r126" type="radio" name="g"/>
+<input id="r127" type="radio" name="g"/>
+<input id="r128" type="radio" name="g"/>
+<input id="r129" type="radio" name="g"/>
+<input id="r130" type="radio" name="g"/>
+<input id="r131" type="radio" name="g"/>
+<input id="r132" type="radio" name="g"/>
+<input id="r133" type="radio" name="g"/>
+<input id="r134" type="radio" name="g"/>
+<input id="r135" type="radio" name="g"/>
+<input id="r136" type="radio" name="g"/>
+<input id="r137" type="radio" name="g"/>
+<input id="r138" type="radio" name="g"/>
+<input id="r139" type="radio" name="g"/>
+<input id="r140" type="radio" name="g"/>
+<input id="r141" type="radio" name="g"/>
+<input id="r142" type="radio" name="g"/>
+<input id="r143" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> strconv</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// decimal to binary floating point conversion.</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// Algorithm:</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">//   1) Store input in multiprecision decimal.</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">//   2) Multiply/divide decimal by powers of two until in range [0.5, 1)</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">//   3) Multiply by 2^precision and round to get mantissa.</span></code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"math"</span></label></code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="keyword">var</span> <a href="../../pkg/strconv.html#name-optimize" class="ident">optimize</a> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a> <span class="comment">// set to false to force slow-path conversions for testing</span></code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// commonPrefixLenIgnoreCase returns the length of the common</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// prefix of s and prefix, with the character case of s ignored.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// The prefix argument must be all lower-case.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/strconv.html#name-commonPrefixLenIgnoreCase" class="ident">commonPrefixLenIgnoreCase</a></label>(<label for="r1" class="ident">s</label>, <label for="r2" class="ident">prefix</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-21"><code>	<label for="r3" class="ident">n</label> := <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">prefix</label>)</code></span>
+<span class="codeline" id="line-22"><code>	<span class="keyword">if</span> <label for="r3" class="ident">n</label> &gt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">s</label>) {</code></span>
+<span class="codeline" id="line-23"><code>		<label for="r3" class="ident">n</label> = <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-24"><code>	}</code></span>
+<span class="codeline" id="line-25"><code>	<span class="keyword">for</span> <label for="r4" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r4" class="ident">i</label> &lt; <label for="r3" class="ident">n</label>; <label for="r4" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-26"><code>		<label for="r5" class="ident">c</label> := <label for="r1" class="ident">s</label>[<label for="r4" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-27"><code>		<span class="keyword">if</span> <span class="lit-number">'A'</span> &lt;= <label for="r5" class="ident">c</label> &amp;&amp; <label for="r5" class="ident">c</label> &lt;= <span class="lit-number">'Z'</span> {</code></span>
+<span class="codeline" id="line-28"><code>			<label for="r5" class="ident">c</label> += <span class="lit-number">'a'</span> - <span class="lit-number">'A'</span></code></span>
+<span class="codeline" id="line-29"><code>		}</code></span>
+<span class="codeline" id="line-30"><code>		<span class="keyword">if</span> <label for="r5" class="ident">c</label> != <label for="r2" class="ident">prefix</label>[<label for="r4" class="ident">i</label>] {</code></span>
+<span class="codeline" id="line-31"><code>			<span class="keyword">return</span> <label for="r4" class="ident">i</label></code></span>
+<span class="codeline" id="line-32"><code>		}</code></span>
+<span class="codeline" id="line-33"><code>	}</code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">return</span> <label for="r3" class="ident">n</label></code></span>
+<span class="codeline" id="line-35"><code>}</code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// special returns the floating-point value for the special,</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// possibly signed floating-point representations inf, infinity,</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// and NaN. The result is ok if a prefix of s contains one</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// of these representations and n is the length of that prefix.</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// The character case is ignored.</span></code></span>
+<span class="codeline" id="line-42"><code><span class="keyword">func</span> <label for="r6" class="ident"><a href="../../pkg/strconv.html#name-special" class="ident">special</a></label>(<label for="r7" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r8" class="ident">f</label> <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>, <label for="r9" class="ident">n</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r10" class="ident">ok</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-43"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r7" class="ident">s</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-44"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <span class="lit-number">0</span>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-45"><code>	}</code></span>
+<span class="codeline" id="line-46"><code>	<label for="r11" class="ident">sign</label> := <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-47"><code>	<label for="r12" class="ident">nsign</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">switch</span> <label for="r7" class="ident">s</label>[<span class="lit-number">0</span>] {</code></span>
+<span class="codeline" id="line-49"><code>	<span class="keyword">case</span> <span class="lit-number">'+'</span>, <span class="lit-number">'-'</span>:</code></span>
+<span class="codeline" id="line-50"><code>		<span class="keyword">if</span> <label for="r7" class="ident">s</label>[<span class="lit-number">0</span>] == <span class="lit-number">'-'</span> {</code></span>
+<span class="codeline" id="line-51"><code>			<label for="r11" class="ident">sign</label> = -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-52"><code>		}</code></span>
+<span class="codeline" id="line-53"><code>		<label for="r12" class="ident">nsign</label> = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-54"><code>		<label for="r7" class="ident">s</label> = <label for="r7" class="ident">s</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-55"><code>		<span class="keyword">fallthrough</span></code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">case</span> <span class="lit-number">'i'</span>, <span class="lit-number">'I'</span>:</code></span>
+<span class="codeline" id="line-57"><code>		<label for="r13" class="ident">n</label> := <a href="#line-20" class="ident">commonPrefixLenIgnoreCase</a>(<label for="r7" class="ident">s</label>, <span class="lit-string">"infinity"</span>)</code></span>
+<span class="codeline" id="line-58"><code>		<span class="comment">// Anything longer than "inf" is ok, but if we</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">		// don't have "infinity", only consume "inf".</span></code></span>
+<span class="codeline" id="line-60"><code>		<span class="keyword">if</span> <span class="lit-number">3</span> &lt; <label for="r13" class="ident">n</label> &amp;&amp; <label for="r13" class="ident">n</label> &lt; <span class="lit-number">8</span> {</code></span>
+<span class="codeline" id="line-61"><code>			<label for="r13" class="ident">n</label> = <span class="lit-number">3</span></code></span>
+<span class="codeline" id="line-62"><code>		}</code></span>
+<span class="codeline" id="line-63"><code>		<span class="keyword">if</span> <label for="r13" class="ident">n</label> == <span class="lit-number">3</span> || <label for="r13" class="ident">n</label> == <span class="lit-number">8</span> {</code></span>
+<span class="codeline" id="line-64"><code>			<span class="keyword">return</span> <a href="../../pkg/math.html" class="ident i0">math</a>.<a href="../math/bits.go.html#line-20" class="ident">Inf</a>(<label for="r11" class="ident">sign</label>), <label for="r12" class="ident">nsign</label> + <label for="r13" class="ident">n</label>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-65"><code>		}</code></span>
+<span class="codeline" id="line-66"><code>	<span class="keyword">case</span> <span class="lit-number">'n'</span>, <span class="lit-number">'N'</span>:</code></span>
+<span class="codeline" id="line-67"><code>		<span class="keyword">if</span> <a href="#line-20" class="ident">commonPrefixLenIgnoreCase</a>(<label for="r7" class="ident">s</label>, <span class="lit-string">"nan"</span>) == <span class="lit-number">3</span> {</code></span>
+<span class="codeline" id="line-68"><code>			<span class="keyword">return</span> <a href="../../pkg/math.html" class="ident i0">math</a>.<a href="../math/bits.go.html#line-31" class="ident">NaN</a>(), <span class="lit-number">3</span>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-69"><code>		}</code></span>
+<span class="codeline" id="line-70"><code>	}</code></span>
+<span class="codeline" id="line-71"><code>	<span class="keyword">return</span> <span class="lit-number">0</span>, <span class="lit-number">0</span>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-72"><code>}</code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code><span class="keyword">func</span> (<label for="r14" class="ident">b</label> *<a href="decimal.go.html#line-14" class="ident">decimal</a>) <label for="r15" class="ident">set</label>(<label for="r16" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r17" class="ident">ok</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-75"><code>	<label for="r18" class="ident">i</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-76"><code>	<label for="r14" class="ident">b</label>.<a href="decimal.go.html#line-18" class="ident">neg</a> = <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-77"><code>	<label for="r14" class="ident">b</label>.<a href="decimal.go.html#line-19" class="ident">trunc</a> = <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code>	<span class="comment">// optional sign</span></code></span>
+<span class="codeline" id="line-80"><code>	<span class="keyword">if</span> <label for="r18" class="ident">i</label> &gt;= <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r16" class="ident">s</label>) {</code></span>
+<span class="codeline" id="line-81"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-82"><code>	}</code></span>
+<span class="codeline" id="line-83"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">case</span> <label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>] == <span class="lit-number">'+'</span>:</code></span>
+<span class="codeline" id="line-85"><code>		<label for="r18" class="ident">i</label>++</code></span>
+<span class="codeline" id="line-86"><code>	<span class="keyword">case</span> <label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>] == <span class="lit-number">'-'</span>:</code></span>
+<span class="codeline" id="line-87"><code>		<label for="r14" class="ident">b</label>.<a href="decimal.go.html#line-18" class="ident">neg</a> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-88"><code>		<label for="r18" class="ident">i</label>++</code></span>
+<span class="codeline" id="line-89"><code>	}</code></span>
+<span class="codeline" id="line-90"><code></code></span>
+<span class="codeline" id="line-91"><code>	<span class="comment">// digits</span></code></span>
+<span class="codeline" id="line-92"><code>	<label for="r19" class="ident">sawdot</label> := <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-93"><code>	<label for="r20" class="ident">sawdigits</label> := <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-94"><code>	<span class="keyword">for</span> ; <label for="r18" class="ident">i</label> &lt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r16" class="ident">s</label>); <label for="r18" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-95"><code>		<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-96"><code>		<span class="keyword">case</span> <label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>] == <span class="lit-number">'_'</span>:</code></span>
+<span class="codeline" id="line-97"><code>			<span class="comment">// readFloat already checked underscores</span></code></span>
+<span class="codeline" id="line-98"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-99"><code>		<span class="keyword">case</span> <label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>] == <span class="lit-number">'.'</span>:</code></span>
+<span class="codeline" id="line-100"><code>			<span class="keyword">if</span> <label for="r19" class="ident">sawdot</label> {</code></span>
+<span class="codeline" id="line-101"><code>				<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-102"><code>			}</code></span>
+<span class="codeline" id="line-103"><code>			<label for="r19" class="ident">sawdot</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-104"><code>			<label for="r14" class="ident">b</label>.<a href="decimal.go.html#line-17" class="ident">dp</a> = <label for="r14" class="ident">b</label>.<a href="decimal.go.html#line-16" class="ident">nd</a></code></span>
+<span class="codeline" id="line-105"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-106"><code></code></span>
+<span class="codeline" id="line-107"><code>		<span class="keyword">case</span> <span class="lit-number">'0'</span> &lt;= <label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>] &amp;&amp; <label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>] &lt;= <span class="lit-number">'9'</span>:</code></span>
+<span class="codeline" id="line-108"><code>			<label for="r20" class="ident">sawdigits</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-109"><code>			<span class="keyword">if</span> <label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>] == <span class="lit-number">'0'</span> &amp;&amp; <label for="r14" class="ident">b</label>.<a href="decimal.go.html#line-16" class="ident">nd</a> == <span class="lit-number">0</span> { <span class="comment">// ignore leading zeros</span></code></span>
+<span class="codeline" id="line-110"><code>				<label for="r14" class="ident">b</label>.<a href="decimal.go.html#line-17" class="ident">dp</a>--</code></span>
+<span class="codeline" id="line-111"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-112"><code>			}</code></span>
+<span class="codeline" id="line-113"><code>			<span class="keyword">if</span> <label for="r14" class="ident">b</label>.<a href="decimal.go.html#line-16" class="ident">nd</a> &lt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r14" class="ident">b</label>.<a href="decimal.go.html#line-15" class="ident">d</a>) {</code></span>
+<span class="codeline" id="line-114"><code>				<label for="r14" class="ident">b</label>.<a href="decimal.go.html#line-15" class="ident">d</a>[<label for="r14" class="ident">b</label>.<a href="decimal.go.html#line-16" class="ident">nd</a>] = <label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-115"><code>				<label for="r14" class="ident">b</label>.<a href="decimal.go.html#line-16" class="ident">nd</a>++</code></span>
+<span class="codeline" id="line-116"><code>			} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>] != <span class="lit-number">'0'</span> {</code></span>
+<span class="codeline" id="line-117"><code>				<label for="r14" class="ident">b</label>.<a href="decimal.go.html#line-19" class="ident">trunc</a> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-118"><code>			}</code></span>
+<span class="codeline" id="line-119"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-120"><code>		}</code></span>
+<span class="codeline" id="line-121"><code>		<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-122"><code>	}</code></span>
+<span class="codeline" id="line-123"><code>	<span class="keyword">if</span> !<label for="r20" class="ident">sawdigits</label> {</code></span>
+<span class="codeline" id="line-124"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-125"><code>	}</code></span>
+<span class="codeline" id="line-126"><code>	<span class="keyword">if</span> !<label for="r19" class="ident">sawdot</label> {</code></span>
+<span class="codeline" id="line-127"><code>		<label for="r14" class="ident">b</label>.<a href="decimal.go.html#line-17" class="ident">dp</a> = <label for="r14" class="ident">b</label>.<a href="decimal.go.html#line-16" class="ident">nd</a></code></span>
+<span class="codeline" id="line-128"><code>	}</code></span>
+<span class="codeline" id="line-129"><code></code></span>
+<span class="codeline" id="line-130"><code>	<span class="comment">// optional exponent moves decimal point.</span></code></span>
+<span class="codeline" id="line-131"><code><span class="comment">	// if we read a very large, very long number,</span></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">	// just be sure to move the decimal point by</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">	// a lot (say, 100000).  it doesn't matter if it's</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">	// not the exact number.</span></code></span>
+<span class="codeline" id="line-135"><code>	<span class="keyword">if</span> <label for="r18" class="ident">i</label> &lt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r16" class="ident">s</label>) &amp;&amp; <a href="atoi.go.html#line-13" class="ident">lower</a>(<label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>]) == <span class="lit-number">'e'</span> {</code></span>
+<span class="codeline" id="line-136"><code>		<label for="r18" class="ident">i</label>++</code></span>
+<span class="codeline" id="line-137"><code>		<span class="keyword">if</span> <label for="r18" class="ident">i</label> &gt;= <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r16" class="ident">s</label>) {</code></span>
+<span class="codeline" id="line-138"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-139"><code>		}</code></span>
+<span class="codeline" id="line-140"><code>		<label for="r21" class="ident">esign</label> := <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-141"><code>		<span class="keyword">if</span> <label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>] == <span class="lit-number">'+'</span> {</code></span>
+<span class="codeline" id="line-142"><code>			<label for="r18" class="ident">i</label>++</code></span>
+<span class="codeline" id="line-143"><code>		} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>] == <span class="lit-number">'-'</span> {</code></span>
+<span class="codeline" id="line-144"><code>			<label for="r18" class="ident">i</label>++</code></span>
+<span class="codeline" id="line-145"><code>			<label for="r21" class="ident">esign</label> = -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-146"><code>		}</code></span>
+<span class="codeline" id="line-147"><code>		<span class="keyword">if</span> <label for="r18" class="ident">i</label> &gt;= <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r16" class="ident">s</label>) || <label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>] &lt; <span class="lit-number">'0'</span> || <label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>] &gt; <span class="lit-number">'9'</span> {</code></span>
+<span class="codeline" id="line-148"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-149"><code>		}</code></span>
+<span class="codeline" id="line-150"><code>		<label for="r22" class="ident">e</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-151"><code>		<span class="keyword">for</span> ; <label for="r18" class="ident">i</label> &lt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r16" class="ident">s</label>) &amp;&amp; (<span class="lit-number">'0'</span> &lt;= <label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>] &amp;&amp; <label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>] &lt;= <span class="lit-number">'9'</span> || <label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>] == <span class="lit-number">'_'</span>); <label for="r18" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-152"><code>			<span class="keyword">if</span> <label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>] == <span class="lit-number">'_'</span> {</code></span>
+<span class="codeline" id="line-153"><code>				<span class="comment">// readFloat already checked underscores</span></code></span>
+<span class="codeline" id="line-154"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-155"><code>			}</code></span>
+<span class="codeline" id="line-156"><code>			<span class="keyword">if</span> <label for="r22" class="ident">e</label> &lt; <span class="lit-number">10000</span> {</code></span>
+<span class="codeline" id="line-157"><code>				<label for="r22" class="ident">e</label> = <label for="r22" class="ident">e</label>*<span class="lit-number">10</span> + <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r16" class="ident">s</label>[<label for="r18" class="ident">i</label>]) - <span class="lit-number">'0'</span></code></span>
+<span class="codeline" id="line-158"><code>			}</code></span>
+<span class="codeline" id="line-159"><code>		}</code></span>
+<span class="codeline" id="line-160"><code>		<label for="r14" class="ident">b</label>.<a href="decimal.go.html#line-17" class="ident">dp</a> += <label for="r22" class="ident">e</label> * <label for="r21" class="ident">esign</label></code></span>
+<span class="codeline" id="line-161"><code>	}</code></span>
+<span class="codeline" id="line-162"><code></code></span>
+<span class="codeline" id="line-163"><code>	<span class="keyword">if</span> <label for="r18" class="ident">i</label> != <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r16" class="ident">s</label>) {</code></span>
+<span class="codeline" id="line-164"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-165"><code>	}</code></span>
+<span class="codeline" id="line-166"><code></code></span>
+<span class="codeline" id="line-167"><code>	<label for="r17" class="ident">ok</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-168"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-169"><code>}</code></span>
+<span class="codeline" id="line-170"><code></code></span>
+<span class="codeline" id="line-171"><code><span class="comment">// readFloat reads a decimal or hexadecimal mantissa and exponent from a float</span></code></span>
+<span class="codeline" id="line-172"><code><span class="comment">// string representation in s; the number may be followed by other characters.</span></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">// readFloat reports the number of bytes consumed (i), and whether the number</span></code></span>
+<span class="codeline" id="line-174"><code><span class="comment">// is valid (ok).</span></code></span>
+<span class="codeline" id="line-175"><code><span class="keyword">func</span> <label for="r23" class="ident"><a href="../../pkg/strconv.html#name-readFloat" class="ident">readFloat</a></label>(<label for="r24" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r25" class="ident">mantissa</label> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <label for="r26" class="ident">exp</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r27" class="ident">neg</label>, <label for="r28" class="ident">trunc</label>, <label for="r29" class="ident">hex</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r30" class="ident">i</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r31" class="ident">ok</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-176"><code>	<label for="r32" class="ident">underscores</label> := <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-177"><code></code></span>
+<span class="codeline" id="line-178"><code>	<span class="comment">// optional sign</span></code></span>
+<span class="codeline" id="line-179"><code>	<span class="keyword">if</span> <label for="r30" class="ident">i</label> &gt;= <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r24" class="ident">s</label>) {</code></span>
+<span class="codeline" id="line-180"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-181"><code>	}</code></span>
+<span class="codeline" id="line-182"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-183"><code>	<span class="keyword">case</span> <label for="r24" class="ident">s</label>[<label for="r30" class="ident">i</label>] == <span class="lit-number">'+'</span>:</code></span>
+<span class="codeline" id="line-184"><code>		<label for="r30" class="ident">i</label>++</code></span>
+<span class="codeline" id="line-185"><code>	<span class="keyword">case</span> <label for="r24" class="ident">s</label>[<label for="r30" class="ident">i</label>] == <span class="lit-number">'-'</span>:</code></span>
+<span class="codeline" id="line-186"><code>		<label for="r27" class="ident">neg</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-187"><code>		<label for="r30" class="ident">i</label>++</code></span>
+<span class="codeline" id="line-188"><code>	}</code></span>
+<span class="codeline" id="line-189"><code></code></span>
+<span class="codeline" id="line-190"><code>	<span class="comment">// digits</span></code></span>
+<span class="codeline" id="line-191"><code>	<label for="r33" class="ident">base</label> := <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<span class="lit-number">10</span>)</code></span>
+<span class="codeline" id="line-192"><code>	<label for="r34" class="ident">maxMantDigits</label> := <span class="lit-number">19</span> <span class="comment">// 10^19 fits in uint64</span></code></span>
+<span class="codeline" id="line-193"><code>	<label for="r35" class="ident">expChar</label> := <a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>(<span class="lit-number">'e'</span>)</code></span>
+<span class="codeline" id="line-194"><code>	<span class="keyword">if</span> <label for="r30" class="ident">i</label>+<span class="lit-number">2</span> &lt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r24" class="ident">s</label>) &amp;&amp; <label for="r24" class="ident">s</label>[<label for="r30" class="ident">i</label>] == <span class="lit-number">'0'</span> &amp;&amp; <a href="atoi.go.html#line-13" class="ident">lower</a>(<label for="r24" class="ident">s</label>[<label for="r30" class="ident">i</label>+<span class="lit-number">1</span>]) == <span class="lit-number">'x'</span> {</code></span>
+<span class="codeline" id="line-195"><code>		<label for="r33" class="ident">base</label> = <span class="lit-number">16</span></code></span>
+<span class="codeline" id="line-196"><code>		<label for="r34" class="ident">maxMantDigits</label> = <span class="lit-number">16</span> <span class="comment">// 16^16 fits in uint64</span></code></span>
+<span class="codeline" id="line-197"><code>		<label for="r30" class="ident">i</label> += <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-198"><code>		<label for="r35" class="ident">expChar</label> = <span class="lit-number">'p'</span></code></span>
+<span class="codeline" id="line-199"><code>		<label for="r29" class="ident">hex</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-200"><code>	}</code></span>
+<span class="codeline" id="line-201"><code>	<label for="r36" class="ident">sawdot</label> := <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-202"><code>	<label for="r37" class="ident">sawdigits</label> := <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-203"><code>	<label for="r38" class="ident">nd</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-204"><code>	<label for="r39" class="ident">ndMant</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-205"><code>	<label for="r40" class="ident">dp</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-206"><code><label for="r41" class="ident">loop</label>:</code></span>
+<span class="codeline" id="line-207"><code>	<span class="keyword">for</span> ; <label for="r30" class="ident">i</label> &lt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r24" class="ident">s</label>); <label for="r30" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-208"><code>		<span class="keyword">switch</span> <label for="r42" class="ident">c</label> := <label for="r24" class="ident">s</label>[<label for="r30" class="ident">i</label>]; <a href="../../pkg/builtin.html#name-true" class="ident">true</a> {</code></span>
+<span class="codeline" id="line-209"><code>		<span class="keyword">case</span> <label for="r42" class="ident">c</label> == <span class="lit-number">'_'</span>:</code></span>
+<span class="codeline" id="line-210"><code>			<label for="r32" class="ident">underscores</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-211"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-212"><code></code></span>
+<span class="codeline" id="line-213"><code>		<span class="keyword">case</span> <label for="r42" class="ident">c</label> == <span class="lit-number">'.'</span>:</code></span>
+<span class="codeline" id="line-214"><code>			<span class="keyword">if</span> <label for="r36" class="ident">sawdot</label> {</code></span>
+<span class="codeline" id="line-215"><code>				<span class="keyword">break</span> <label for="r41" class="ident">loop</label></code></span>
+<span class="codeline" id="line-216"><code>			}</code></span>
+<span class="codeline" id="line-217"><code>			<label for="r36" class="ident">sawdot</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-218"><code>			<label for="r40" class="ident">dp</label> = <label for="r38" class="ident">nd</label></code></span>
+<span class="codeline" id="line-219"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-220"><code></code></span>
+<span class="codeline" id="line-221"><code>		<span class="keyword">case</span> <span class="lit-number">'0'</span> &lt;= <label for="r42" class="ident">c</label> &amp;&amp; <label for="r42" class="ident">c</label> &lt;= <span class="lit-number">'9'</span>:</code></span>
+<span class="codeline" id="line-222"><code>			<label for="r37" class="ident">sawdigits</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-223"><code>			<span class="keyword">if</span> <label for="r42" class="ident">c</label> == <span class="lit-number">'0'</span> &amp;&amp; <label for="r38" class="ident">nd</label> == <span class="lit-number">0</span> { <span class="comment">// ignore leading zeros</span></code></span>
+<span class="codeline" id="line-224"><code>				<label for="r40" class="ident">dp</label>--</code></span>
+<span class="codeline" id="line-225"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-226"><code>			}</code></span>
+<span class="codeline" id="line-227"><code>			<label for="r38" class="ident">nd</label>++</code></span>
+<span class="codeline" id="line-228"><code>			<span class="keyword">if</span> <label for="r39" class="ident">ndMant</label> &lt; <label for="r34" class="ident">maxMantDigits</label> {</code></span>
+<span class="codeline" id="line-229"><code>				<label for="r25" class="ident">mantissa</label> *= <label for="r33" class="ident">base</label></code></span>
+<span class="codeline" id="line-230"><code>				<label for="r25" class="ident">mantissa</label> += <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r42" class="ident">c</label> - <span class="lit-number">'0'</span>)</code></span>
+<span class="codeline" id="line-231"><code>				<label for="r39" class="ident">ndMant</label>++</code></span>
+<span class="codeline" id="line-232"><code>			} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r42" class="ident">c</label> != <span class="lit-number">'0'</span> {</code></span>
+<span class="codeline" id="line-233"><code>				<label for="r28" class="ident">trunc</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-234"><code>			}</code></span>
+<span class="codeline" id="line-235"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-236"><code></code></span>
+<span class="codeline" id="line-237"><code>		<span class="keyword">case</span> <label for="r33" class="ident">base</label> == <span class="lit-number">16</span> &amp;&amp; <span class="lit-number">'a'</span> &lt;= <a href="atoi.go.html#line-13" class="ident">lower</a>(<label for="r42" class="ident">c</label>) &amp;&amp; <a href="atoi.go.html#line-13" class="ident">lower</a>(<label for="r42" class="ident">c</label>) &lt;= <span class="lit-number">'f'</span>:</code></span>
+<span class="codeline" id="line-238"><code>			<label for="r37" class="ident">sawdigits</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-239"><code>			<label for="r38" class="ident">nd</label>++</code></span>
+<span class="codeline" id="line-240"><code>			<span class="keyword">if</span> <label for="r39" class="ident">ndMant</label> &lt; <label for="r34" class="ident">maxMantDigits</label> {</code></span>
+<span class="codeline" id="line-241"><code>				<label for="r25" class="ident">mantissa</label> *= <span class="lit-number">16</span></code></span>
+<span class="codeline" id="line-242"><code>				<label for="r25" class="ident">mantissa</label> += <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="atoi.go.html#line-13" class="ident">lower</a>(<label for="r42" class="ident">c</label>) - <span class="lit-number">'a'</span> + <span class="lit-number">10</span>)</code></span>
+<span class="codeline" id="line-243"><code>				<label for="r39" class="ident">ndMant</label>++</code></span>
+<span class="codeline" id="line-244"><code>			} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-245"><code>				<label for="r28" class="ident">trunc</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-246"><code>			}</code></span>
+<span class="codeline" id="line-247"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-248"><code>		}</code></span>
+<span class="codeline" id="line-249"><code>		<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-250"><code>	}</code></span>
+<span class="codeline" id="line-251"><code>	<span class="keyword">if</span> !<label for="r37" class="ident">sawdigits</label> {</code></span>
+<span class="codeline" id="line-252"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-253"><code>	}</code></span>
+<span class="codeline" id="line-254"><code>	<span class="keyword">if</span> !<label for="r36" class="ident">sawdot</label> {</code></span>
+<span class="codeline" id="line-255"><code>		<label for="r40" class="ident">dp</label> = <label for="r38" class="ident">nd</label></code></span>
+<span class="codeline" id="line-256"><code>	}</code></span>
+<span class="codeline" id="line-257"><code></code></span>
+<span class="codeline" id="line-258"><code>	<span class="keyword">if</span> <label for="r33" class="ident">base</label> == <span class="lit-number">16</span> {</code></span>
+<span class="codeline" id="line-259"><code>		<label for="r40" class="ident">dp</label> *= <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-260"><code>		<label for="r39" class="ident">ndMant</label> *= <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-261"><code>	}</code></span>
+<span class="codeline" id="line-262"><code></code></span>
+<span class="codeline" id="line-263"><code>	<span class="comment">// optional exponent moves decimal point.</span></code></span>
+<span class="codeline" id="line-264"><code><span class="comment">	// if we read a very large, very long number,</span></code></span>
+<span class="codeline" id="line-265"><code><span class="comment">	// just be sure to move the decimal point by</span></code></span>
+<span class="codeline" id="line-266"><code><span class="comment">	// a lot (say, 100000).  it doesn't matter if it's</span></code></span>
+<span class="codeline" id="line-267"><code><span class="comment">	// not the exact number.</span></code></span>
+<span class="codeline" id="line-268"><code>	<span class="keyword">if</span> <label for="r30" class="ident">i</label> &lt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r24" class="ident">s</label>) &amp;&amp; <a href="atoi.go.html#line-13" class="ident">lower</a>(<label for="r24" class="ident">s</label>[<label for="r30" class="ident">i</label>]) == <label for="r35" class="ident">expChar</label> {</code></span>
+<span class="codeline" id="line-269"><code>		<label for="r30" class="ident">i</label>++</code></span>
+<span class="codeline" id="line-270"><code>		<span class="keyword">if</span> <label for="r30" class="ident">i</label> &gt;= <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r24" class="ident">s</label>) {</code></span>
+<span class="codeline" id="line-271"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-272"><code>		}</code></span>
+<span class="codeline" id="line-273"><code>		<label for="r43" class="ident">esign</label> := <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-274"><code>		<span class="keyword">if</span> <label for="r24" class="ident">s</label>[<label for="r30" class="ident">i</label>] == <span class="lit-number">'+'</span> {</code></span>
+<span class="codeline" id="line-275"><code>			<label for="r30" class="ident">i</label>++</code></span>
+<span class="codeline" id="line-276"><code>		} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r24" class="ident">s</label>[<label for="r30" class="ident">i</label>] == <span class="lit-number">'-'</span> {</code></span>
+<span class="codeline" id="line-277"><code>			<label for="r30" class="ident">i</label>++</code></span>
+<span class="codeline" id="line-278"><code>			<label for="r43" class="ident">esign</label> = -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-279"><code>		}</code></span>
+<span class="codeline" id="line-280"><code>		<span class="keyword">if</span> <label for="r30" class="ident">i</label> &gt;= <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r24" class="ident">s</label>) || <label for="r24" class="ident">s</label>[<label for="r30" class="ident">i</label>] &lt; <span class="lit-number">'0'</span> || <label for="r24" class="ident">s</label>[<label for="r30" class="ident">i</label>] &gt; <span class="lit-number">'9'</span> {</code></span>
+<span class="codeline" id="line-281"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-282"><code>		}</code></span>
+<span class="codeline" id="line-283"><code>		<label for="r44" class="ident">e</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-284"><code>		<span class="keyword">for</span> ; <label for="r30" class="ident">i</label> &lt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r24" class="ident">s</label>) &amp;&amp; (<span class="lit-number">'0'</span> &lt;= <label for="r24" class="ident">s</label>[<label for="r30" class="ident">i</label>] &amp;&amp; <label for="r24" class="ident">s</label>[<label for="r30" class="ident">i</label>] &lt;= <span class="lit-number">'9'</span> || <label for="r24" class="ident">s</label>[<label for="r30" class="ident">i</label>] == <span class="lit-number">'_'</span>); <label for="r30" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-285"><code>			<span class="keyword">if</span> <label for="r24" class="ident">s</label>[<label for="r30" class="ident">i</label>] == <span class="lit-number">'_'</span> {</code></span>
+<span class="codeline" id="line-286"><code>				<label for="r32" class="ident">underscores</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-287"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-288"><code>			}</code></span>
+<span class="codeline" id="line-289"><code>			<span class="keyword">if</span> <label for="r44" class="ident">e</label> &lt; <span class="lit-number">10000</span> {</code></span>
+<span class="codeline" id="line-290"><code>				<label for="r44" class="ident">e</label> = <label for="r44" class="ident">e</label>*<span class="lit-number">10</span> + <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r24" class="ident">s</label>[<label for="r30" class="ident">i</label>]) - <span class="lit-number">'0'</span></code></span>
+<span class="codeline" id="line-291"><code>			}</code></span>
+<span class="codeline" id="line-292"><code>		}</code></span>
+<span class="codeline" id="line-293"><code>		<label for="r40" class="ident">dp</label> += <label for="r44" class="ident">e</label> * <label for="r43" class="ident">esign</label></code></span>
+<span class="codeline" id="line-294"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r33" class="ident">base</label> == <span class="lit-number">16</span> {</code></span>
+<span class="codeline" id="line-295"><code>		<span class="comment">// Must have exponent.</span></code></span>
+<span class="codeline" id="line-296"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-297"><code>	}</code></span>
+<span class="codeline" id="line-298"><code></code></span>
+<span class="codeline" id="line-299"><code>	<span class="keyword">if</span> <label for="r25" class="ident">mantissa</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-300"><code>		<label for="r26" class="ident">exp</label> = <label for="r40" class="ident">dp</label> - <label for="r39" class="ident">ndMant</label></code></span>
+<span class="codeline" id="line-301"><code>	}</code></span>
+<span class="codeline" id="line-302"><code></code></span>
+<span class="codeline" id="line-303"><code>	<span class="keyword">if</span> <label for="r32" class="ident">underscores</label> &amp;&amp; !<a href="atoi.go.html#line-264" class="ident">underscoreOK</a>(<label for="r24" class="ident">s</label>[:<label for="r30" class="ident">i</label>]) {</code></span>
+<span class="codeline" id="line-304"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-305"><code>	}</code></span>
+<span class="codeline" id="line-306"><code></code></span>
+<span class="codeline" id="line-307"><code>	<label for="r31" class="ident">ok</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-308"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-309"><code>}</code></span>
+<span class="codeline" id="line-310"><code></code></span>
+<span class="codeline" id="line-311"><code><span class="comment">// decimal power of ten to binary power of two.</span></code></span>
+<span class="codeline" id="line-312"><code><span class="keyword">var</span> <a href="../../pkg/strconv.html#name-powtab" class="ident">powtab</a> = []<a href="../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">1</span>, <span class="lit-number">3</span>, <span class="lit-number">6</span>, <span class="lit-number">9</span>, <span class="lit-number">13</span>, <span class="lit-number">16</span>, <span class="lit-number">19</span>, <span class="lit-number">23</span>, <span class="lit-number">26</span>}</code></span>
+<span class="codeline" id="line-313"><code></code></span>
+<span class="codeline" id="line-314"><code><span class="keyword">func</span> (<label for="r45" class="ident">d</label> *<a href="decimal.go.html#line-14" class="ident">decimal</a>) <label for="r46" class="ident">floatBits</label>(<label for="r47" class="ident">flt</label> *<a href="ftoa.go.html#line-16" class="ident">floatInfo</a>) (<label for="r48" class="ident">b</label> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <label for="r49" class="ident">overflow</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-315"><code>	<span class="keyword">var</span> <label for="r50" class="ident">exp</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-316"><code>	<span class="keyword">var</span> <label for="r51" class="ident">mant</label> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-317"><code></code></span>
+<span class="codeline" id="line-318"><code>	<span class="comment">// Zero is always a special case.</span></code></span>
+<span class="codeline" id="line-319"><code>	<span class="keyword">if</span> <label for="r45" class="ident">d</label>.<a href="decimal.go.html#line-16" class="ident">nd</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-320"><code>		<label for="r51" class="ident">mant</label> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-321"><code>		<label for="r50" class="ident">exp</label> = <label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-19" class="ident">bias</a></code></span>
+<span class="codeline" id="line-322"><code>		<span class="keyword">goto</span> <label for="r52" class="ident">out</label></code></span>
+<span class="codeline" id="line-323"><code>	}</code></span>
+<span class="codeline" id="line-324"><code></code></span>
+<span class="codeline" id="line-325"><code>	<span class="comment">// Obvious overflow/underflow.</span></code></span>
+<span class="codeline" id="line-326"><code><span class="comment">	// These bounds are for 64-bit floats.</span></code></span>
+<span class="codeline" id="line-327"><code><span class="comment">	// Will have to change if we want to support 80-bit floats in the future.</span></code></span>
+<span class="codeline" id="line-328"><code>	<span class="keyword">if</span> <label for="r45" class="ident">d</label>.<a href="decimal.go.html#line-17" class="ident">dp</a> &gt; <span class="lit-number">310</span> {</code></span>
+<span class="codeline" id="line-329"><code>		<span class="keyword">goto</span> <label for="r53" class="ident">overflow</label></code></span>
+<span class="codeline" id="line-330"><code>	}</code></span>
+<span class="codeline" id="line-331"><code>	<span class="keyword">if</span> <label for="r45" class="ident">d</label>.<a href="decimal.go.html#line-17" class="ident">dp</a> &lt; -<span class="lit-number">330</span> {</code></span>
+<span class="codeline" id="line-332"><code>		<span class="comment">// zero</span></code></span>
+<span class="codeline" id="line-333"><code>		<label for="r51" class="ident">mant</label> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-334"><code>		<label for="r50" class="ident">exp</label> = <label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-19" class="ident">bias</a></code></span>
+<span class="codeline" id="line-335"><code>		<span class="keyword">goto</span> <label for="r52" class="ident">out</label></code></span>
+<span class="codeline" id="line-336"><code>	}</code></span>
+<span class="codeline" id="line-337"><code></code></span>
+<span class="codeline" id="line-338"><code>	<span class="comment">// Scale by powers of two until in range [0.5, 1.0)</span></code></span>
+<span class="codeline" id="line-339"><code>	<label for="r50" class="ident">exp</label> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-340"><code>	<span class="keyword">for</span> <label for="r45" class="ident">d</label>.<a href="decimal.go.html#line-17" class="ident">dp</a> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-341"><code>		<span class="keyword">var</span> <label for="r54" class="ident">n</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-342"><code>		<span class="keyword">if</span> <label for="r45" class="ident">d</label>.<a href="decimal.go.html#line-17" class="ident">dp</a> &gt;= <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-312" class="ident">powtab</a>) {</code></span>
+<span class="codeline" id="line-343"><code>			<label for="r54" class="ident">n</label> = <span class="lit-number">27</span></code></span>
+<span class="codeline" id="line-344"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-345"><code>			<label for="r54" class="ident">n</label> = <a href="#line-312" class="ident">powtab</a>[<label for="r45" class="ident">d</label>.<a href="decimal.go.html#line-17" class="ident">dp</a>]</code></span>
+<span class="codeline" id="line-346"><code>		}</code></span>
+<span class="codeline" id="line-347"><code>		<label for="r45" class="ident">d</label>.<a href="decimal.go.html#line-315" class="ident">Shift</a>(-<label for="r54" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-348"><code>		<label for="r50" class="ident">exp</label> += <label for="r54" class="ident">n</label></code></span>
+<span class="codeline" id="line-349"><code>	}</code></span>
+<span class="codeline" id="line-350"><code>	<span class="keyword">for</span> <label for="r45" class="ident">d</label>.<a href="decimal.go.html#line-17" class="ident">dp</a> &lt; <span class="lit-number">0</span> || <label for="r45" class="ident">d</label>.<a href="decimal.go.html#line-17" class="ident">dp</a> == <span class="lit-number">0</span> &amp;&amp; <label for="r45" class="ident">d</label>.<a href="decimal.go.html#line-15" class="ident">d</a>[<span class="lit-number">0</span>] &lt; <span class="lit-number">'5'</span> {</code></span>
+<span class="codeline" id="line-351"><code>		<span class="keyword">var</span> <label for="r55" class="ident">n</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-352"><code>		<span class="keyword">if</span> -<label for="r45" class="ident">d</label>.<a href="decimal.go.html#line-17" class="ident">dp</a> &gt;= <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-312" class="ident">powtab</a>) {</code></span>
+<span class="codeline" id="line-353"><code>			<label for="r55" class="ident">n</label> = <span class="lit-number">27</span></code></span>
+<span class="codeline" id="line-354"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-355"><code>			<label for="r55" class="ident">n</label> = <a href="#line-312" class="ident">powtab</a>[-<label for="r45" class="ident">d</label>.<a href="decimal.go.html#line-17" class="ident">dp</a>]</code></span>
+<span class="codeline" id="line-356"><code>		}</code></span>
+<span class="codeline" id="line-357"><code>		<label for="r45" class="ident">d</label>.<a href="decimal.go.html#line-315" class="ident">Shift</a>(<label for="r55" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-358"><code>		<label for="r50" class="ident">exp</label> -= <label for="r55" class="ident">n</label></code></span>
+<span class="codeline" id="line-359"><code>	}</code></span>
+<span class="codeline" id="line-360"><code></code></span>
+<span class="codeline" id="line-361"><code>	<span class="comment">// Our range is [0.5,1) but floating point range is [1,2).</span></code></span>
+<span class="codeline" id="line-362"><code>	<label for="r50" class="ident">exp</label>--</code></span>
+<span class="codeline" id="line-363"><code></code></span>
+<span class="codeline" id="line-364"><code>	<span class="comment">// Minimum representable exponent is flt.bias+1.</span></code></span>
+<span class="codeline" id="line-365"><code><span class="comment">	// If the exponent is smaller, move it up and</span></code></span>
+<span class="codeline" id="line-366"><code><span class="comment">	// adjust d accordingly.</span></code></span>
+<span class="codeline" id="line-367"><code>	<span class="keyword">if</span> <label for="r50" class="ident">exp</label> &lt; <label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-19" class="ident">bias</a>+<span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-368"><code>		<label for="r56" class="ident">n</label> := <label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-19" class="ident">bias</a> + <span class="lit-number">1</span> - <label for="r50" class="ident">exp</label></code></span>
+<span class="codeline" id="line-369"><code>		<label for="r45" class="ident">d</label>.<a href="decimal.go.html#line-315" class="ident">Shift</a>(-<label for="r56" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-370"><code>		<label for="r50" class="ident">exp</label> += <label for="r56" class="ident">n</label></code></span>
+<span class="codeline" id="line-371"><code>	}</code></span>
+<span class="codeline" id="line-372"><code></code></span>
+<span class="codeline" id="line-373"><code>	<span class="keyword">if</span> <label for="r50" class="ident">exp</label>-<label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-19" class="ident">bias</a> &gt;= <span class="lit-number">1</span>&lt;&lt;<label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-18" class="ident">expbits</a>-<span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-374"><code>		<span class="keyword">goto</span> <label for="r53" class="ident">overflow</label></code></span>
+<span class="codeline" id="line-375"><code>	}</code></span>
+<span class="codeline" id="line-376"><code></code></span>
+<span class="codeline" id="line-377"><code>	<span class="comment">// Extract 1+flt.mantbits bits.</span></code></span>
+<span class="codeline" id="line-378"><code>	<label for="r45" class="ident">d</label>.<a href="decimal.go.html#line-315" class="ident">Shift</a>(<a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<span class="lit-number">1</span> + <label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-17" class="ident">mantbits</a>))</code></span>
+<span class="codeline" id="line-379"><code>	<label for="r51" class="ident">mant</label> = <label for="r45" class="ident">d</label>.<a href="decimal.go.html#line-399" class="ident">RoundedInteger</a>()</code></span>
+<span class="codeline" id="line-380"><code></code></span>
+<span class="codeline" id="line-381"><code>	<span class="comment">// Rounding might have added a bit; shift down.</span></code></span>
+<span class="codeline" id="line-382"><code>	<span class="keyword">if</span> <label for="r51" class="ident">mant</label> == <span class="lit-number">2</span>&lt;&lt;<label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-17" class="ident">mantbits</a> {</code></span>
+<span class="codeline" id="line-383"><code>		<label for="r51" class="ident">mant</label> &gt;&gt;= <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-384"><code>		<label for="r50" class="ident">exp</label>++</code></span>
+<span class="codeline" id="line-385"><code>		<span class="keyword">if</span> <label for="r50" class="ident">exp</label>-<label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-19" class="ident">bias</a> &gt;= <span class="lit-number">1</span>&lt;&lt;<label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-18" class="ident">expbits</a>-<span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-386"><code>			<span class="keyword">goto</span> <label for="r53" class="ident">overflow</label></code></span>
+<span class="codeline" id="line-387"><code>		}</code></span>
+<span class="codeline" id="line-388"><code>	}</code></span>
+<span class="codeline" id="line-389"><code></code></span>
+<span class="codeline" id="line-390"><code>	<span class="comment">// Denormalized?</span></code></span>
+<span class="codeline" id="line-391"><code>	<span class="keyword">if</span> <label for="r51" class="ident">mant</label>&amp;(<span class="lit-number">1</span>&lt;&lt;<label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-17" class="ident">mantbits</a>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-392"><code>		<label for="r50" class="ident">exp</label> = <label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-19" class="ident">bias</a></code></span>
+<span class="codeline" id="line-393"><code>	}</code></span>
+<span class="codeline" id="line-394"><code>	<span class="keyword">goto</span> <label for="r52" class="ident">out</label></code></span>
+<span class="codeline" id="line-395"><code></code></span>
+<span class="codeline" id="line-396"><code><label for="r53" class="ident">overflow</label>:</code></span>
+<span class="codeline" id="line-397"><code>	<span class="comment">// ±Inf</span></code></span>
+<span class="codeline" id="line-398"><code>	<label for="r51" class="ident">mant</label> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-399"><code>	<label for="r50" class="ident">exp</label> = <span class="lit-number">1</span>&lt;&lt;<label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-18" class="ident">expbits</a> - <span class="lit-number">1</span> + <label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-19" class="ident">bias</a></code></span>
+<span class="codeline" id="line-400"><code>	<label for="r49" class="ident">overflow</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-401"><code></code></span>
+<span class="codeline" id="line-402"><code><label for="r52" class="ident">out</label>:</code></span>
+<span class="codeline" id="line-403"><code>	<span class="comment">// Assemble bits.</span></code></span>
+<span class="codeline" id="line-404"><code>	<label for="r57" class="ident">bits</label> := <label for="r51" class="ident">mant</label> &amp; (<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<span class="lit-number">1</span>)&lt;&lt;<label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-17" class="ident">mantbits</a> - <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-405"><code>	<label for="r57" class="ident">bits</label> |= <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>((<label for="r50" class="ident">exp</label>-<label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-19" class="ident">bias</a>)&amp;(<span class="lit-number">1</span>&lt;&lt;<label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-18" class="ident">expbits</a>-<span class="lit-number">1</span>)) &lt;&lt; <label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-17" class="ident">mantbits</a></code></span>
+<span class="codeline" id="line-406"><code>	<span class="keyword">if</span> <label for="r45" class="ident">d</label>.<a href="decimal.go.html#line-18" class="ident">neg</a> {</code></span>
+<span class="codeline" id="line-407"><code>		<label for="r57" class="ident">bits</label> |= <span class="lit-number">1</span> &lt;&lt; <label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-17" class="ident">mantbits</a> &lt;&lt; <label for="r47" class="ident">flt</label>.<a href="ftoa.go.html#line-18" class="ident">expbits</a></code></span>
+<span class="codeline" id="line-408"><code>	}</code></span>
+<span class="codeline" id="line-409"><code>	<span class="keyword">return</span> <label for="r57" class="ident">bits</label>, <label for="r49" class="ident">overflow</label></code></span>
+<span class="codeline" id="line-410"><code>}</code></span>
+<span class="codeline" id="line-411"><code></code></span>
+<span class="codeline" id="line-412"><code><span class="comment">// Exact powers of 10.</span></code></span>
+<span class="codeline" id="line-413"><code><span class="keyword">var</span> <a href="../../pkg/strconv.html#name-float64pow10" class="ident">float64pow10</a> = []<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>{</code></span>
+<span class="codeline" id="line-414"><code>	<span class="lit-number">1e0</span>, <span class="lit-number">1e1</span>, <span class="lit-number">1e2</span>, <span class="lit-number">1e3</span>, <span class="lit-number">1e4</span>, <span class="lit-number">1e5</span>, <span class="lit-number">1e6</span>, <span class="lit-number">1e7</span>, <span class="lit-number">1e8</span>, <span class="lit-number">1e9</span>,</code></span>
+<span class="codeline" id="line-415"><code>	<span class="lit-number">1e10</span>, <span class="lit-number">1e11</span>, <span class="lit-number">1e12</span>, <span class="lit-number">1e13</span>, <span class="lit-number">1e14</span>, <span class="lit-number">1e15</span>, <span class="lit-number">1e16</span>, <span class="lit-number">1e17</span>, <span class="lit-number">1e18</span>, <span class="lit-number">1e19</span>,</code></span>
+<span class="codeline" id="line-416"><code>	<span class="lit-number">1e20</span>, <span class="lit-number">1e21</span>, <span class="lit-number">1e22</span>,</code></span>
+<span class="codeline" id="line-417"><code>}</code></span>
+<span class="codeline" id="line-418"><code><span class="keyword">var</span> <a href="../../pkg/strconv.html#name-float32pow10" class="ident">float32pow10</a> = []<a href="../../pkg/builtin.html#name-float32" class="ident">float32</a>{<span class="lit-number">1e0</span>, <span class="lit-number">1e1</span>, <span class="lit-number">1e2</span>, <span class="lit-number">1e3</span>, <span class="lit-number">1e4</span>, <span class="lit-number">1e5</span>, <span class="lit-number">1e6</span>, <span class="lit-number">1e7</span>, <span class="lit-number">1e8</span>, <span class="lit-number">1e9</span>, <span class="lit-number">1e10</span>}</code></span>
+<span class="codeline" id="line-419"><code></code></span>
+<span class="codeline" id="line-420"><code><span class="comment">// If possible to convert decimal representation to 64-bit float f exactly,</span></code></span>
+<span class="codeline" id="line-421"><code><span class="comment">// entirely in floating-point math, do so, avoiding the expense of decimalToFloatBits.</span></code></span>
+<span class="codeline" id="line-422"><code><span class="comment">// Three common cases:</span></code></span>
+<span class="codeline" id="line-423"><code><span class="comment">//	value is exact integer</span></code></span>
+<span class="codeline" id="line-424"><code><span class="comment">//	value is exact integer * exact power of ten</span></code></span>
+<span class="codeline" id="line-425"><code><span class="comment">//	value is exact integer / exact power of ten</span></code></span>
+<span class="codeline" id="line-426"><code><span class="comment">// These all produce potentially inexact but correctly rounded answers.</span></code></span>
+<span class="codeline" id="line-427"><code><span class="keyword">func</span> <label for="r58" class="ident"><a href="../../pkg/strconv.html#name-atof64exact" class="ident">atof64exact</a></label>(<label for="r59" class="ident">mantissa</label> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <label for="r60" class="ident">exp</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r61" class="ident">neg</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) (<label for="r62" class="ident">f</label> <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>, <label for="r63" class="ident">ok</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-428"><code>	<span class="keyword">if</span> <label for="r59" class="ident">mantissa</label>&gt;&gt;<a href="ftoa.go.html#line-23" class="ident">float64info</a>.<a href="ftoa.go.html#line-17" class="ident">mantbits</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-429"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-430"><code>	}</code></span>
+<span class="codeline" id="line-431"><code>	<label for="r62" class="ident">f</label> = <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>(<label for="r59" class="ident">mantissa</label>)</code></span>
+<span class="codeline" id="line-432"><code>	<span class="keyword">if</span> <label for="r61" class="ident">neg</label> {</code></span>
+<span class="codeline" id="line-433"><code>		<label for="r62" class="ident">f</label> = -<label for="r62" class="ident">f</label></code></span>
+<span class="codeline" id="line-434"><code>	}</code></span>
+<span class="codeline" id="line-435"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-436"><code>	<span class="keyword">case</span> <label for="r60" class="ident">exp</label> == <span class="lit-number">0</span>:</code></span>
+<span class="codeline" id="line-437"><code>		<span class="comment">// an integer.</span></code></span>
+<span class="codeline" id="line-438"><code>		<span class="keyword">return</span> <label for="r62" class="ident">f</label>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-439"><code>	<span class="comment">// Exact integers are &lt;= 10^15.</span></code></span>
+<span class="codeline" id="line-440"><code><span class="comment">	// Exact powers of ten are &lt;= 10^22.</span></code></span>
+<span class="codeline" id="line-441"><code>	<span class="keyword">case</span> <label for="r60" class="ident">exp</label> &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r60" class="ident">exp</label> &lt;= <span class="lit-number">15</span>+<span class="lit-number">22</span>: <span class="comment">// int * 10^k</span></code></span>
+<span class="codeline" id="line-442"><code>		<span class="comment">// If exponent is big but number of digits is not,</span></code></span>
+<span class="codeline" id="line-443"><code><span class="comment">		// can move a few zeros into the integer part.</span></code></span>
+<span class="codeline" id="line-444"><code>		<span class="keyword">if</span> <label for="r60" class="ident">exp</label> &gt; <span class="lit-number">22</span> {</code></span>
+<span class="codeline" id="line-445"><code>			<label for="r62" class="ident">f</label> *= <a href="#line-413" class="ident">float64pow10</a>[<label for="r60" class="ident">exp</label>-<span class="lit-number">22</span>]</code></span>
+<span class="codeline" id="line-446"><code>			<label for="r60" class="ident">exp</label> = <span class="lit-number">22</span></code></span>
+<span class="codeline" id="line-447"><code>		}</code></span>
+<span class="codeline" id="line-448"><code>		<span class="keyword">if</span> <label for="r62" class="ident">f</label> &gt; <span class="lit-number">1e15</span> || <label for="r62" class="ident">f</label> &lt; -<span class="lit-number">1e15</span> {</code></span>
+<span class="codeline" id="line-449"><code>			<span class="comment">// the exponent was really too large.</span></code></span>
+<span class="codeline" id="line-450"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-451"><code>		}</code></span>
+<span class="codeline" id="line-452"><code>		<span class="keyword">return</span> <label for="r62" class="ident">f</label> * <a href="#line-413" class="ident">float64pow10</a>[<label for="r60" class="ident">exp</label>], <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-453"><code>	<span class="keyword">case</span> <label for="r60" class="ident">exp</label> &lt; <span class="lit-number">0</span> &amp;&amp; <label for="r60" class="ident">exp</label> &gt;= -<span class="lit-number">22</span>: <span class="comment">// int / 10^k</span></code></span>
+<span class="codeline" id="line-454"><code>		<span class="keyword">return</span> <label for="r62" class="ident">f</label> / <a href="#line-413" class="ident">float64pow10</a>[-<label for="r60" class="ident">exp</label>], <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-455"><code>	}</code></span>
+<span class="codeline" id="line-456"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-457"><code>}</code></span>
+<span class="codeline" id="line-458"><code></code></span>
+<span class="codeline" id="line-459"><code><span class="comment">// If possible to compute mantissa*10^exp to 32-bit float f exactly,</span></code></span>
+<span class="codeline" id="line-460"><code><span class="comment">// entirely in floating-point math, do so, avoiding the machinery above.</span></code></span>
+<span class="codeline" id="line-461"><code><span class="keyword">func</span> <label for="r64" class="ident"><a href="../../pkg/strconv.html#name-atof32exact" class="ident">atof32exact</a></label>(<label for="r65" class="ident">mantissa</label> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <label for="r66" class="ident">exp</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r67" class="ident">neg</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) (<label for="r68" class="ident">f</label> <a href="../../pkg/builtin.html#name-float32" class="ident">float32</a>, <label for="r69" class="ident">ok</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-462"><code>	<span class="keyword">if</span> <label for="r65" class="ident">mantissa</label>&gt;&gt;<a href="ftoa.go.html#line-22" class="ident">float32info</a>.<a href="ftoa.go.html#line-17" class="ident">mantbits</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-463"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-464"><code>	}</code></span>
+<span class="codeline" id="line-465"><code>	<label for="r68" class="ident">f</label> = <a href="../../pkg/builtin.html#name-float32" class="ident">float32</a>(<label for="r65" class="ident">mantissa</label>)</code></span>
+<span class="codeline" id="line-466"><code>	<span class="keyword">if</span> <label for="r67" class="ident">neg</label> {</code></span>
+<span class="codeline" id="line-467"><code>		<label for="r68" class="ident">f</label> = -<label for="r68" class="ident">f</label></code></span>
+<span class="codeline" id="line-468"><code>	}</code></span>
+<span class="codeline" id="line-469"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-470"><code>	<span class="keyword">case</span> <label for="r66" class="ident">exp</label> == <span class="lit-number">0</span>:</code></span>
+<span class="codeline" id="line-471"><code>		<span class="keyword">return</span> <label for="r68" class="ident">f</label>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-472"><code>	<span class="comment">// Exact integers are &lt;= 10^7.</span></code></span>
+<span class="codeline" id="line-473"><code><span class="comment">	// Exact powers of ten are &lt;= 10^10.</span></code></span>
+<span class="codeline" id="line-474"><code>	<span class="keyword">case</span> <label for="r66" class="ident">exp</label> &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r66" class="ident">exp</label> &lt;= <span class="lit-number">7</span>+<span class="lit-number">10</span>: <span class="comment">// int * 10^k</span></code></span>
+<span class="codeline" id="line-475"><code>		<span class="comment">// If exponent is big but number of digits is not,</span></code></span>
+<span class="codeline" id="line-476"><code><span class="comment">		// can move a few zeros into the integer part.</span></code></span>
+<span class="codeline" id="line-477"><code>		<span class="keyword">if</span> <label for="r66" class="ident">exp</label> &gt; <span class="lit-number">10</span> {</code></span>
+<span class="codeline" id="line-478"><code>			<label for="r68" class="ident">f</label> *= <a href="#line-418" class="ident">float32pow10</a>[<label for="r66" class="ident">exp</label>-<span class="lit-number">10</span>]</code></span>
+<span class="codeline" id="line-479"><code>			<label for="r66" class="ident">exp</label> = <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-480"><code>		}</code></span>
+<span class="codeline" id="line-481"><code>		<span class="keyword">if</span> <label for="r68" class="ident">f</label> &gt; <span class="lit-number">1e7</span> || <label for="r68" class="ident">f</label> &lt; -<span class="lit-number">1e7</span> {</code></span>
+<span class="codeline" id="line-482"><code>			<span class="comment">// the exponent was really too large.</span></code></span>
+<span class="codeline" id="line-483"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-484"><code>		}</code></span>
+<span class="codeline" id="line-485"><code>		<span class="keyword">return</span> <label for="r68" class="ident">f</label> * <a href="#line-418" class="ident">float32pow10</a>[<label for="r66" class="ident">exp</label>], <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-486"><code>	<span class="keyword">case</span> <label for="r66" class="ident">exp</label> &lt; <span class="lit-number">0</span> &amp;&amp; <label for="r66" class="ident">exp</label> &gt;= -<span class="lit-number">10</span>: <span class="comment">// int / 10^k</span></code></span>
+<span class="codeline" id="line-487"><code>		<span class="keyword">return</span> <label for="r68" class="ident">f</label> / <a href="#line-418" class="ident">float32pow10</a>[-<label for="r66" class="ident">exp</label>], <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-488"><code>	}</code></span>
+<span class="codeline" id="line-489"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-490"><code>}</code></span>
+<span class="codeline" id="line-491"><code></code></span>
+<span class="codeline" id="line-492"><code><span class="comment">// atofHex converts the hex floating-point string s</span></code></span>
+<span class="codeline" id="line-493"><code><span class="comment">// to a rounded float32 or float64 value (depending on flt==&amp;float32info or flt==&amp;float64info)</span></code></span>
+<span class="codeline" id="line-494"><code><span class="comment">// and returns it as a float64.</span></code></span>
+<span class="codeline" id="line-495"><code><span class="comment">// The string s has already been parsed into a mantissa, exponent, and sign (neg==true for negative).</span></code></span>
+<span class="codeline" id="line-496"><code><span class="comment">// If trunc is true, trailing non-zero bits have been omitted from the mantissa.</span></code></span>
+<span class="codeline" id="line-497"><code><span class="keyword">func</span> <label for="r70" class="ident"><a href="../../pkg/strconv.html#name-atofHex" class="ident">atofHex</a></label>(<label for="r71" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r72" class="ident">flt</label> *<a href="ftoa.go.html#line-16" class="ident">floatInfo</a>, <label for="r73" class="ident">mantissa</label> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <label for="r74" class="ident">exp</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r75" class="ident">neg</label>, <label for="r76" class="ident">trunc</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) (<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-498"><code>	<label for="r77" class="ident">maxExp</label> := <span class="lit-number">1</span>&lt;&lt;<label for="r72" class="ident">flt</label>.<a href="ftoa.go.html#line-18" class="ident">expbits</a> + <label for="r72" class="ident">flt</label>.<a href="ftoa.go.html#line-19" class="ident">bias</a> - <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-499"><code>	<label for="r78" class="ident">minExp</label> := <label for="r72" class="ident">flt</label>.<a href="ftoa.go.html#line-19" class="ident">bias</a> + <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-500"><code>	<label for="r74" class="ident">exp</label> += <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r72" class="ident">flt</label>.<a href="ftoa.go.html#line-17" class="ident">mantbits</a>) <span class="comment">// mantissa now implicitly divided by 2^mantbits.</span></code></span>
+<span class="codeline" id="line-501"><code></code></span>
+<span class="codeline" id="line-502"><code>	<span class="comment">// Shift mantissa and exponent to bring representation into float range.</span></code></span>
+<span class="codeline" id="line-503"><code><span class="comment">	// Eventually we want a mantissa with a leading 1-bit followed by mantbits other bits.</span></code></span>
+<span class="codeline" id="line-504"><code><span class="comment">	// For rounding, we need two more, where the bottom bit represents</span></code></span>
+<span class="codeline" id="line-505"><code><span class="comment">	// whether that bit or any later bit was non-zero.</span></code></span>
+<span class="codeline" id="line-506"><code><span class="comment">	// (If the mantissa has already lost non-zero bits, trunc is true,</span></code></span>
+<span class="codeline" id="line-507"><code><span class="comment">	// and we OR in a 1 below after shifting left appropriately.)</span></code></span>
+<span class="codeline" id="line-508"><code>	<span class="keyword">for</span> <label for="r73" class="ident">mantissa</label> != <span class="lit-number">0</span> &amp;&amp; <label for="r73" class="ident">mantissa</label>&gt;&gt;(<label for="r72" class="ident">flt</label>.<a href="ftoa.go.html#line-17" class="ident">mantbits</a>+<span class="lit-number">2</span>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-509"><code>		<label for="r73" class="ident">mantissa</label> &lt;&lt;= <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-510"><code>		<label for="r74" class="ident">exp</label>--</code></span>
+<span class="codeline" id="line-511"><code>	}</code></span>
+<span class="codeline" id="line-512"><code>	<span class="keyword">if</span> <label for="r76" class="ident">trunc</label> {</code></span>
+<span class="codeline" id="line-513"><code>		<label for="r73" class="ident">mantissa</label> |= <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-514"><code>	}</code></span>
+<span class="codeline" id="line-515"><code>	<span class="keyword">for</span> <label for="r73" class="ident">mantissa</label>&gt;&gt;(<span class="lit-number">1</span>+<label for="r72" class="ident">flt</label>.<a href="ftoa.go.html#line-17" class="ident">mantbits</a>+<span class="lit-number">2</span>) != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-516"><code>		<label for="r73" class="ident">mantissa</label> = <label for="r73" class="ident">mantissa</label>&gt;&gt;<span class="lit-number">1</span> | <label for="r73" class="ident">mantissa</label>&amp;<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-517"><code>		<label for="r74" class="ident">exp</label>++</code></span>
+<span class="codeline" id="line-518"><code>	}</code></span>
+<span class="codeline" id="line-519"><code></code></span>
+<span class="codeline" id="line-520"><code>	<span class="comment">// If exponent is too negative,</span></code></span>
+<span class="codeline" id="line-521"><code><span class="comment">	// denormalize in hopes of making it representable.</span></code></span>
+<span class="codeline" id="line-522"><code><span class="comment">	// (The -2 is for the rounding bits.)</span></code></span>
+<span class="codeline" id="line-523"><code>	<span class="keyword">for</span> <label for="r73" class="ident">mantissa</label> &gt; <span class="lit-number">1</span> &amp;&amp; <label for="r74" class="ident">exp</label> &lt; <label for="r78" class="ident">minExp</label>-<span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-524"><code>		<label for="r73" class="ident">mantissa</label> = <label for="r73" class="ident">mantissa</label>&gt;&gt;<span class="lit-number">1</span> | <label for="r73" class="ident">mantissa</label>&amp;<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-525"><code>		<label for="r74" class="ident">exp</label>++</code></span>
+<span class="codeline" id="line-526"><code>	}</code></span>
+<span class="codeline" id="line-527"><code></code></span>
+<span class="codeline" id="line-528"><code>	<span class="comment">// Round using two bottom bits.</span></code></span>
+<span class="codeline" id="line-529"><code>	<label for="r79" class="ident">round</label> := <label for="r73" class="ident">mantissa</label> &amp; <span class="lit-number">3</span></code></span>
+<span class="codeline" id="line-530"><code>	<label for="r73" class="ident">mantissa</label> &gt;&gt;= <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-531"><code>	<label for="r79" class="ident">round</label> |= <label for="r73" class="ident">mantissa</label> &amp; <span class="lit-number">1</span> <span class="comment">// round to even (round up if mantissa is odd)</span></code></span>
+<span class="codeline" id="line-532"><code>	<label for="r74" class="ident">exp</label> += <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-533"><code>	<span class="keyword">if</span> <label for="r79" class="ident">round</label> == <span class="lit-number">3</span> {</code></span>
+<span class="codeline" id="line-534"><code>		<label for="r73" class="ident">mantissa</label>++</code></span>
+<span class="codeline" id="line-535"><code>		<span class="keyword">if</span> <label for="r73" class="ident">mantissa</label> == <span class="lit-number">1</span>&lt;&lt;(<span class="lit-number">1</span>+<label for="r72" class="ident">flt</label>.<a href="ftoa.go.html#line-17" class="ident">mantbits</a>) {</code></span>
+<span class="codeline" id="line-536"><code>			<label for="r73" class="ident">mantissa</label> &gt;&gt;= <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-537"><code>			<label for="r74" class="ident">exp</label>++</code></span>
+<span class="codeline" id="line-538"><code>		}</code></span>
+<span class="codeline" id="line-539"><code>	}</code></span>
+<span class="codeline" id="line-540"><code></code></span>
+<span class="codeline" id="line-541"><code>	<span class="keyword">if</span> <label for="r73" class="ident">mantissa</label>&gt;&gt;<label for="r72" class="ident">flt</label>.<a href="ftoa.go.html#line-17" class="ident">mantbits</a> == <span class="lit-number">0</span> { <span class="comment">// Denormal or zero.</span></code></span>
+<span class="codeline" id="line-542"><code>		<label for="r74" class="ident">exp</label> = <label for="r72" class="ident">flt</label>.<a href="ftoa.go.html#line-19" class="ident">bias</a></code></span>
+<span class="codeline" id="line-543"><code>	}</code></span>
+<span class="codeline" id="line-544"><code>	<span class="keyword">var</span> <label for="r80" class="ident">err</label> <a href="../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-545"><code>	<span class="keyword">if</span> <label for="r74" class="ident">exp</label> &gt; <label for="r77" class="ident">maxExp</label> { <span class="comment">// infinity and range error</span></code></span>
+<span class="codeline" id="line-546"><code>		<label for="r73" class="ident">mantissa</label> = <span class="lit-number">1</span> &lt;&lt; <label for="r72" class="ident">flt</label>.<a href="ftoa.go.html#line-17" class="ident">mantbits</a></code></span>
+<span class="codeline" id="line-547"><code>		<label for="r74" class="ident">exp</label> = <label for="r77" class="ident">maxExp</label> + <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-548"><code>		<label for="r80" class="ident">err</label> = <a href="atoi.go.html#line-40" class="ident">rangeError</a>(<a href="#line-562" class="ident">fnParseFloat</a>, <label for="r71" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-549"><code>	}</code></span>
+<span class="codeline" id="line-550"><code></code></span>
+<span class="codeline" id="line-551"><code>	<label for="r81" class="ident">bits</label> := <label for="r73" class="ident">mantissa</label> &amp; (<span class="lit-number">1</span>&lt;&lt;<label for="r72" class="ident">flt</label>.<a href="ftoa.go.html#line-17" class="ident">mantbits</a> - <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-552"><code>	<label for="r81" class="ident">bits</label> |= <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>((<label for="r74" class="ident">exp</label>-<label for="r72" class="ident">flt</label>.<a href="ftoa.go.html#line-19" class="ident">bias</a>)&amp;(<span class="lit-number">1</span>&lt;&lt;<label for="r72" class="ident">flt</label>.<a href="ftoa.go.html#line-18" class="ident">expbits</a>-<span class="lit-number">1</span>)) &lt;&lt; <label for="r72" class="ident">flt</label>.<a href="ftoa.go.html#line-17" class="ident">mantbits</a></code></span>
+<span class="codeline" id="line-553"><code>	<span class="keyword">if</span> <label for="r75" class="ident">neg</label> {</code></span>
+<span class="codeline" id="line-554"><code>		<label for="r81" class="ident">bits</label> |= <span class="lit-number">1</span> &lt;&lt; <label for="r72" class="ident">flt</label>.<a href="ftoa.go.html#line-17" class="ident">mantbits</a> &lt;&lt; <label for="r72" class="ident">flt</label>.<a href="ftoa.go.html#line-18" class="ident">expbits</a></code></span>
+<span class="codeline" id="line-555"><code>	}</code></span>
+<span class="codeline" id="line-556"><code>	<span class="keyword">if</span> <label for="r72" class="ident">flt</label> == &amp;<a href="ftoa.go.html#line-22" class="ident">float32info</a> {</code></span>
+<span class="codeline" id="line-557"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>(<a href="../../pkg/math.html" class="ident i0">math</a>.<a href="../math/unsafe.go.html#line-18" class="ident">Float32frombits</a>(<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r81" class="ident">bits</label>))), <label for="r80" class="ident">err</label></code></span>
+<span class="codeline" id="line-558"><code>	}</code></span>
+<span class="codeline" id="line-559"><code>	<span class="keyword">return</span> <a href="../../pkg/math.html" class="ident i0">math</a>.<a href="../math/unsafe.go.html#line-29" class="ident">Float64frombits</a>(<label for="r81" class="ident">bits</label>), <label for="r80" class="ident">err</label></code></span>
+<span class="codeline" id="line-560"><code>}</code></span>
+<span class="codeline" id="line-561"><code></code></span>
+<span class="codeline" id="line-562"><code><span class="keyword">const</span> <a href="../../pkg/strconv.html#name-fnParseFloat" class="ident">fnParseFloat</a> = <span class="lit-string">"ParseFloat"</span></code></span>
+<span class="codeline" id="line-563"><code></code></span>
+<span class="codeline" id="line-564"><code><span class="keyword">func</span> <label for="r82" class="ident"><a href="../../pkg/strconv.html#name-atof32" class="ident">atof32</a></label>(<label for="r83" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r84" class="ident">f</label> <a href="../../pkg/builtin.html#name-float32" class="ident">float32</a>, <label for="r85" class="ident">n</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r86" class="ident">err</label> <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-565"><code>	<span class="keyword">if</span> <label for="r87" class="ident">val</label>, <label for="r88" class="ident">n</label>, <label for="r89" class="ident">ok</label> := <a href="#line-42" class="ident">special</a>(<label for="r83" class="ident">s</label>); <label for="r89" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-566"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-float32" class="ident">float32</a>(<label for="r87" class="ident">val</label>), <label for="r88" class="ident">n</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-567"><code>	}</code></span>
+<span class="codeline" id="line-568"><code></code></span>
+<span class="codeline" id="line-569"><code>	<label for="r90" class="ident">mantissa</label>, <label for="r91" class="ident">exp</label>, <label for="r92" class="ident">neg</label>, <label for="r93" class="ident">trunc</label>, <label for="r94" class="ident">hex</label>, <label for="r85" class="ident">n</label>, <label for="r95" class="ident">ok</label> := <a href="#line-175" class="ident">readFloat</a>(<label for="r83" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-570"><code>	<span class="keyword">if</span> !<label for="r95" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-571"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <label for="r85" class="ident">n</label>, <a href="atoi.go.html#line-36" class="ident">syntaxError</a>(<a href="#line-562" class="ident">fnParseFloat</a>, <label for="r83" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-572"><code>	}</code></span>
+<span class="codeline" id="line-573"><code></code></span>
+<span class="codeline" id="line-574"><code>	<span class="keyword">if</span> <label for="r94" class="ident">hex</label> {</code></span>
+<span class="codeline" id="line-575"><code>		<label for="r96" class="ident">f</label>, <label for="r97" class="ident">err</label> := <a href="#line-497" class="ident">atofHex</a>(<label for="r83" class="ident">s</label>[:<label for="r85" class="ident">n</label>], &amp;<a href="ftoa.go.html#line-22" class="ident">float32info</a>, <label for="r90" class="ident">mantissa</label>, <label for="r91" class="ident">exp</label>, <label for="r92" class="ident">neg</label>, <label for="r93" class="ident">trunc</label>)</code></span>
+<span class="codeline" id="line-576"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-float32" class="ident">float32</a>(<label for="r96" class="ident">f</label>), <label for="r85" class="ident">n</label>, <label for="r97" class="ident">err</label></code></span>
+<span class="codeline" id="line-577"><code>	}</code></span>
+<span class="codeline" id="line-578"><code></code></span>
+<span class="codeline" id="line-579"><code>	<span class="keyword">if</span> <a href="#line-15" class="ident">optimize</a> {</code></span>
+<span class="codeline" id="line-580"><code>		<span class="comment">// Try pure floating-point arithmetic conversion, and if that fails,</span></code></span>
+<span class="codeline" id="line-581"><code><span class="comment">		// the Eisel-Lemire algorithm.</span></code></span>
+<span class="codeline" id="line-582"><code>		<span class="keyword">if</span> !<label for="r93" class="ident">trunc</label> {</code></span>
+<span class="codeline" id="line-583"><code>			<span class="keyword">if</span> <label for="r98" class="ident">f</label>, <label for="r99" class="ident">ok</label> := <a href="#line-461" class="ident">atof32exact</a>(<label for="r90" class="ident">mantissa</label>, <label for="r91" class="ident">exp</label>, <label for="r92" class="ident">neg</label>); <label for="r99" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-584"><code>				<span class="keyword">return</span> <label for="r98" class="ident">f</label>, <label for="r85" class="ident">n</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-585"><code>			}</code></span>
+<span class="codeline" id="line-586"><code>		}</code></span>
+<span class="codeline" id="line-587"><code>		<label for="r100" class="ident">f</label>, <label for="r101" class="ident">ok</label> := <a href="eisel_lemire.go.html#line-94" class="ident">eiselLemire32</a>(<label for="r90" class="ident">mantissa</label>, <label for="r91" class="ident">exp</label>, <label for="r92" class="ident">neg</label>)</code></span>
+<span class="codeline" id="line-588"><code>		<span class="keyword">if</span> <label for="r101" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-589"><code>			<span class="keyword">if</span> !<label for="r93" class="ident">trunc</label> {</code></span>
+<span class="codeline" id="line-590"><code>				<span class="keyword">return</span> <label for="r100" class="ident">f</label>, <label for="r85" class="ident">n</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-591"><code>			}</code></span>
+<span class="codeline" id="line-592"><code>			<span class="comment">// Even if the mantissa was truncated, we may</span></code></span>
+<span class="codeline" id="line-593"><code><span class="comment">			// have found the correct result. Confirm by</span></code></span>
+<span class="codeline" id="line-594"><code><span class="comment">			// converting the upper mantissa bound.</span></code></span>
+<span class="codeline" id="line-595"><code>			<label for="r102" class="ident">fUp</label>, <label for="r103" class="ident">ok</label> := <a href="eisel_lemire.go.html#line-94" class="ident">eiselLemire32</a>(<label for="r90" class="ident">mantissa</label>+<span class="lit-number">1</span>, <label for="r91" class="ident">exp</label>, <label for="r92" class="ident">neg</label>)</code></span>
+<span class="codeline" id="line-596"><code>			<span class="keyword">if</span> <label for="r103" class="ident">ok</label> &amp;&amp; <label for="r100" class="ident">f</label> == <label for="r102" class="ident">fUp</label> {</code></span>
+<span class="codeline" id="line-597"><code>				<span class="keyword">return</span> <label for="r100" class="ident">f</label>, <label for="r85" class="ident">n</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-598"><code>			}</code></span>
+<span class="codeline" id="line-599"><code>		}</code></span>
+<span class="codeline" id="line-600"><code>	}</code></span>
+<span class="codeline" id="line-601"><code></code></span>
+<span class="codeline" id="line-602"><code>	<span class="comment">// Slow fallback.</span></code></span>
+<span class="codeline" id="line-603"><code>	<span class="keyword">var</span> <label for="r104" class="ident">d</label> <a href="decimal.go.html#line-14" class="ident">decimal</a></code></span>
+<span class="codeline" id="line-604"><code>	<span class="keyword">if</span> !<label for="r104" class="ident">d</label>.<a href="#line-74" class="ident">set</a>(<label for="r83" class="ident">s</label>[:<label for="r85" class="ident">n</label>]) {</code></span>
+<span class="codeline" id="line-605"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <label for="r85" class="ident">n</label>, <a href="atoi.go.html#line-36" class="ident">syntaxError</a>(<a href="#line-562" class="ident">fnParseFloat</a>, <label for="r83" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-606"><code>	}</code></span>
+<span class="codeline" id="line-607"><code>	<label for="r105" class="ident">b</label>, <label for="r106" class="ident">ovf</label> := <label for="r104" class="ident">d</label>.<a href="#line-314" class="ident">floatBits</a>(&amp;<a href="ftoa.go.html#line-22" class="ident">float32info</a>)</code></span>
+<span class="codeline" id="line-608"><code>	<label for="r84" class="ident">f</label> = <a href="../../pkg/math.html" class="ident i0">math</a>.<a href="../math/unsafe.go.html#line-18" class="ident">Float32frombits</a>(<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r105" class="ident">b</label>))</code></span>
+<span class="codeline" id="line-609"><code>	<span class="keyword">if</span> <label for="r106" class="ident">ovf</label> {</code></span>
+<span class="codeline" id="line-610"><code>		<label for="r86" class="ident">err</label> = <a href="atoi.go.html#line-40" class="ident">rangeError</a>(<a href="#line-562" class="ident">fnParseFloat</a>, <label for="r83" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-611"><code>	}</code></span>
+<span class="codeline" id="line-612"><code>	<span class="keyword">return</span> <label for="r84" class="ident">f</label>, <label for="r85" class="ident">n</label>, <label for="r86" class="ident">err</label></code></span>
+<span class="codeline" id="line-613"><code>}</code></span>
+<span class="codeline" id="line-614"><code></code></span>
+<span class="codeline" id="line-615"><code><span class="keyword">func</span> <label for="r107" class="ident"><a href="../../pkg/strconv.html#name-atof64" class="ident">atof64</a></label>(<label for="r108" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r109" class="ident">f</label> <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>, <label for="r110" class="ident">n</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r111" class="ident">err</label> <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-616"><code>	<span class="keyword">if</span> <label for="r112" class="ident">val</label>, <label for="r113" class="ident">n</label>, <label for="r114" class="ident">ok</label> := <a href="#line-42" class="ident">special</a>(<label for="r108" class="ident">s</label>); <label for="r114" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-617"><code>		<span class="keyword">return</span> <label for="r112" class="ident">val</label>, <label for="r113" class="ident">n</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-618"><code>	}</code></span>
+<span class="codeline" id="line-619"><code></code></span>
+<span class="codeline" id="line-620"><code>	<label for="r115" class="ident">mantissa</label>, <label for="r116" class="ident">exp</label>, <label for="r117" class="ident">neg</label>, <label for="r118" class="ident">trunc</label>, <label for="r119" class="ident">hex</label>, <label for="r110" class="ident">n</label>, <label for="r120" class="ident">ok</label> := <a href="#line-175" class="ident">readFloat</a>(<label for="r108" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-621"><code>	<span class="keyword">if</span> !<label for="r120" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-622"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <label for="r110" class="ident">n</label>, <a href="atoi.go.html#line-36" class="ident">syntaxError</a>(<a href="#line-562" class="ident">fnParseFloat</a>, <label for="r108" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-623"><code>	}</code></span>
+<span class="codeline" id="line-624"><code></code></span>
+<span class="codeline" id="line-625"><code>	<span class="keyword">if</span> <label for="r119" class="ident">hex</label> {</code></span>
+<span class="codeline" id="line-626"><code>		<label for="r121" class="ident">f</label>, <label for="r122" class="ident">err</label> := <a href="#line-497" class="ident">atofHex</a>(<label for="r108" class="ident">s</label>[:<label for="r110" class="ident">n</label>], &amp;<a href="ftoa.go.html#line-23" class="ident">float64info</a>, <label for="r115" class="ident">mantissa</label>, <label for="r116" class="ident">exp</label>, <label for="r117" class="ident">neg</label>, <label for="r118" class="ident">trunc</label>)</code></span>
+<span class="codeline" id="line-627"><code>		<span class="keyword">return</span> <label for="r121" class="ident">f</label>, <label for="r110" class="ident">n</label>, <label for="r122" class="ident">err</label></code></span>
+<span class="codeline" id="line-628"><code>	}</code></span>
+<span class="codeline" id="line-629"><code></code></span>
+<span class="codeline" id="line-630"><code>	<span class="keyword">if</span> <a href="#line-15" class="ident">optimize</a> {</code></span>
+<span class="codeline" id="line-631"><code>		<span class="comment">// Try pure floating-point arithmetic conversion, and if that fails,</span></code></span>
+<span class="codeline" id="line-632"><code><span class="comment">		// the Eisel-Lemire algorithm.</span></code></span>
+<span class="codeline" id="line-633"><code>		<span class="keyword">if</span> !<label for="r118" class="ident">trunc</label> {</code></span>
+<span class="codeline" id="line-634"><code>			<span class="keyword">if</span> <label for="r123" class="ident">f</label>, <label for="r124" class="ident">ok</label> := <a href="#line-427" class="ident">atof64exact</a>(<label for="r115" class="ident">mantissa</label>, <label for="r116" class="ident">exp</label>, <label for="r117" class="ident">neg</label>); <label for="r124" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-635"><code>				<span class="keyword">return</span> <label for="r123" class="ident">f</label>, <label for="r110" class="ident">n</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-636"><code>			}</code></span>
+<span class="codeline" id="line-637"><code>		}</code></span>
+<span class="codeline" id="line-638"><code>		<label for="r125" class="ident">f</label>, <label for="r126" class="ident">ok</label> := <a href="eisel_lemire.go.html#line-25" class="ident">eiselLemire64</a>(<label for="r115" class="ident">mantissa</label>, <label for="r116" class="ident">exp</label>, <label for="r117" class="ident">neg</label>)</code></span>
+<span class="codeline" id="line-639"><code>		<span class="keyword">if</span> <label for="r126" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-640"><code>			<span class="keyword">if</span> !<label for="r118" class="ident">trunc</label> {</code></span>
+<span class="codeline" id="line-641"><code>				<span class="keyword">return</span> <label for="r125" class="ident">f</label>, <label for="r110" class="ident">n</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-642"><code>			}</code></span>
+<span class="codeline" id="line-643"><code>			<span class="comment">// Even if the mantissa was truncated, we may</span></code></span>
+<span class="codeline" id="line-644"><code><span class="comment">			// have found the correct result. Confirm by</span></code></span>
+<span class="codeline" id="line-645"><code><span class="comment">			// converting the upper mantissa bound.</span></code></span>
+<span class="codeline" id="line-646"><code>			<label for="r127" class="ident">fUp</label>, <label for="r128" class="ident">ok</label> := <a href="eisel_lemire.go.html#line-25" class="ident">eiselLemire64</a>(<label for="r115" class="ident">mantissa</label>+<span class="lit-number">1</span>, <label for="r116" class="ident">exp</label>, <label for="r117" class="ident">neg</label>)</code></span>
+<span class="codeline" id="line-647"><code>			<span class="keyword">if</span> <label for="r128" class="ident">ok</label> &amp;&amp; <label for="r125" class="ident">f</label> == <label for="r127" class="ident">fUp</label> {</code></span>
+<span class="codeline" id="line-648"><code>				<span class="keyword">return</span> <label for="r125" class="ident">f</label>, <label for="r110" class="ident">n</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-649"><code>			}</code></span>
+<span class="codeline" id="line-650"><code>		}</code></span>
+<span class="codeline" id="line-651"><code>	}</code></span>
+<span class="codeline" id="line-652"><code></code></span>
+<span class="codeline" id="line-653"><code>	<span class="comment">// Slow fallback.</span></code></span>
+<span class="codeline" id="line-654"><code>	<span class="keyword">var</span> <label for="r129" class="ident">d</label> <a href="decimal.go.html#line-14" class="ident">decimal</a></code></span>
+<span class="codeline" id="line-655"><code>	<span class="keyword">if</span> !<label for="r129" class="ident">d</label>.<a href="#line-74" class="ident">set</a>(<label for="r108" class="ident">s</label>[:<label for="r110" class="ident">n</label>]) {</code></span>
+<span class="codeline" id="line-656"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <label for="r110" class="ident">n</label>, <a href="atoi.go.html#line-36" class="ident">syntaxError</a>(<a href="#line-562" class="ident">fnParseFloat</a>, <label for="r108" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-657"><code>	}</code></span>
+<span class="codeline" id="line-658"><code>	<label for="r130" class="ident">b</label>, <label for="r131" class="ident">ovf</label> := <label for="r129" class="ident">d</label>.<a href="#line-314" class="ident">floatBits</a>(&amp;<a href="ftoa.go.html#line-23" class="ident">float64info</a>)</code></span>
+<span class="codeline" id="line-659"><code>	<label for="r109" class="ident">f</label> = <a href="../../pkg/math.html" class="ident i0">math</a>.<a href="../math/unsafe.go.html#line-29" class="ident">Float64frombits</a>(<label for="r130" class="ident">b</label>)</code></span>
+<span class="codeline" id="line-660"><code>	<span class="keyword">if</span> <label for="r131" class="ident">ovf</label> {</code></span>
+<span class="codeline" id="line-661"><code>		<label for="r111" class="ident">err</label> = <a href="atoi.go.html#line-40" class="ident">rangeError</a>(<a href="#line-562" class="ident">fnParseFloat</a>, <label for="r108" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-662"><code>	}</code></span>
+<span class="codeline" id="line-663"><code>	<span class="keyword">return</span> <label for="r109" class="ident">f</label>, <label for="r110" class="ident">n</label>, <label for="r111" class="ident">err</label></code></span>
+<span class="codeline" id="line-664"><code>}</code></span>
+<span class="codeline" id="line-665"><code></code></span>
+<span class="codeline" id="line-666"><code><span class="comment">// ParseFloat converts the string s to a floating-point number</span></code></span>
+<span class="codeline" id="line-667"><code><span class="comment">// with the precision specified by bitSize: 32 for float32, or 64 for float64.</span></code></span>
+<span class="codeline" id="line-668"><code><span class="comment">// When bitSize=32, the result still has type float64, but it will be</span></code></span>
+<span class="codeline" id="line-669"><code><span class="comment">// convertible to float32 without changing its value.</span></code></span>
+<span class="codeline" id="line-670"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-671"><code><span class="comment">// ParseFloat accepts decimal and hexadecimal floating-point number syntax.</span></code></span>
+<span class="codeline" id="line-672"><code><span class="comment">// If s is well-formed and near a valid floating-point number,</span></code></span>
+<span class="codeline" id="line-673"><code><span class="comment">// ParseFloat returns the nearest floating-point number rounded</span></code></span>
+<span class="codeline" id="line-674"><code><span class="comment">// using IEEE754 unbiased rounding.</span></code></span>
+<span class="codeline" id="line-675"><code><span class="comment">// (Parsing a hexadecimal floating-point value only rounds when</span></code></span>
+<span class="codeline" id="line-676"><code><span class="comment">// there are more bits in the hexadecimal representation than</span></code></span>
+<span class="codeline" id="line-677"><code><span class="comment">// will fit in the mantissa.)</span></code></span>
+<span class="codeline" id="line-678"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-679"><code><span class="comment">// The errors that ParseFloat returns have concrete type *NumError</span></code></span>
+<span class="codeline" id="line-680"><code><span class="comment">// and include err.Num = s.</span></code></span>
+<span class="codeline" id="line-681"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-682"><code><span class="comment">// If s is not syntactically well-formed, ParseFloat returns err.Err = ErrSyntax.</span></code></span>
+<span class="codeline" id="line-683"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-684"><code><span class="comment">// If s is syntactically well-formed but is more than 1/2 ULP</span></code></span>
+<span class="codeline" id="line-685"><code><span class="comment">// away from the largest floating point number of the given size,</span></code></span>
+<span class="codeline" id="line-686"><code><span class="comment">// ParseFloat returns f = ±Inf, err.Err = ErrRange.</span></code></span>
+<span class="codeline" id="line-687"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-688"><code><span class="comment">// ParseFloat recognizes the strings "NaN", and the (possibly signed) strings "Inf" and "Infinity"</span></code></span>
+<span class="codeline" id="line-689"><code><span class="comment">// as their respective special floating point values. It ignores case when matching.</span></code></span>
+<span class="codeline" id="line-690"><code><span class="keyword">func</span> <label for="r132" class="ident"><a href="../../pkg/strconv.html#name-ParseFloat" class="ident">ParseFloat</a></label>(<label for="r133" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r134" class="ident">bitSize</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) (<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-691"><code>	<label for="r135" class="ident">f</label>, <label for="r136" class="ident">n</label>, <label for="r137" class="ident">err</label> := <a href="#line-698" class="ident">parseFloatPrefix</a>(<label for="r133" class="ident">s</label>, <label for="r134" class="ident">bitSize</label>)</code></span>
+<span class="codeline" id="line-692"><code>	<span class="keyword">if</span> <label for="r137" class="ident">err</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r136" class="ident">n</label> != <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r133" class="ident">s</label>) {</code></span>
+<span class="codeline" id="line-693"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="atoi.go.html#line-36" class="ident">syntaxError</a>(<a href="#line-562" class="ident">fnParseFloat</a>, <label for="r133" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-694"><code>	}</code></span>
+<span class="codeline" id="line-695"><code>	<span class="keyword">return</span> <label for="r135" class="ident">f</label>, <label for="r137" class="ident">err</label></code></span>
+<span class="codeline" id="line-696"><code>}</code></span>
+<span class="codeline" id="line-697"><code></code></span>
+<span class="codeline" id="line-698"><code><span class="keyword">func</span> <label for="r138" class="ident"><a href="../../pkg/strconv.html#name-parseFloatPrefix" class="ident">parseFloatPrefix</a></label>(<label for="r139" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r140" class="ident">bitSize</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) (<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>, <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-699"><code>	<span class="keyword">if</span> <label for="r140" class="ident">bitSize</label> == <span class="lit-number">32</span> {</code></span>
+<span class="codeline" id="line-700"><code>		<label for="r141" class="ident">f</label>, <label for="r142" class="ident">n</label>, <label for="r143" class="ident">err</label> := <a href="#line-564" class="ident">atof32</a>(<label for="r139" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-701"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>(<label for="r141" class="ident">f</label>), <label for="r142" class="ident">n</label>, <label for="r143" class="ident">err</label></code></span>
+<span class="codeline" id="line-702"><code>	}</code></span>
+<span class="codeline" id="line-703"><code>	<span class="keyword">return</span> <a href="#line-615" class="ident">atof64</a>(<label for="r139" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-704"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

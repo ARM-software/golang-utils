@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: waitgroup.go in package sync</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	waitgroup.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/sync.html">sync</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> sync</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"internal/race"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"sync/atomic"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// A WaitGroup waits for a collection of goroutines to finish.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// The main goroutine calls Add to set the number of</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// goroutines to wait for. Then each of the goroutines</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// runs and calls Done when finished. At the same time,</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// Wait can be used to block until all goroutines have finished.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// A WaitGroup must not be copied after first use.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">type</span> <a href="../../pkg/sync.html#name-WaitGroup" class="ident">WaitGroup</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-21"><code>	noCopy <a href="cond.go.html#line-94" class="ident">noCopy</a></code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code>	<span class="comment">// 64-bit value: high 32 bits are counter, low 32 bits are waiter count.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">	// 64-bit atomic operations require 64-bit alignment, but 32-bit</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">	// compilers do not ensure it. So we allocate 12 bytes and then use</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">	// the aligned 8 bytes in them as state, and the other 4 as storage</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">	// for the sema.</span></code></span>
+<span class="codeline" id="line-28"><code>	state1 [<span class="lit-number">3</span>]<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-29"><code>}</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// state returns pointers to the state and sema fields stored within wg.state1.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="keyword">func</span> (<label for="r0" class="ident">wg</label> *<a href="#line-20" class="ident">WaitGroup</a>) <label for="r1" class="ident">state</label>() (<label for="r2" class="ident">statep</label> *<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <label for="r3" class="ident">semap</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
+<span class="codeline" id="line-33"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r0" class="ident">wg</label>.<a href="#line-28" class="ident">state1</a>))%<span class="lit-number">8</span> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-34"><code>		<span class="keyword">return</span> (*<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>)(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r0" class="ident">wg</label>.<a href="#line-28" class="ident">state1</a>)), &amp;<label for="r0" class="ident">wg</label>.<a href="#line-28" class="ident">state1</a>[<span class="lit-number">2</span>]</code></span>
+<span class="codeline" id="line-35"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-36"><code>		<span class="keyword">return</span> (*<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>)(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r0" class="ident">wg</label>.<a href="#line-28" class="ident">state1</a>[<span class="lit-number">1</span>])), &amp;<label for="r0" class="ident">wg</label>.<a href="#line-28" class="ident">state1</a>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-37"><code>	}</code></span>
+<span class="codeline" id="line-38"><code>}</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// Add adds delta, which may be negative, to the WaitGroup counter.</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// If the counter becomes zero, all goroutines blocked on Wait are released.</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// If the counter goes negative, Add panics.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// Note that calls with a positive delta that occur when the counter is zero</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// must happen before a Wait. Calls with a negative delta, or calls with a</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// positive delta that start when the counter is greater than zero, may happen</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// at any time.</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// Typically this means the calls to Add should execute before the statement</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// creating the goroutine or other event to be waited for.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// If a WaitGroup is reused to wait for several independent sets of events,</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// new Add calls must happen after all previous Wait calls have returned.</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// See the WaitGroup example.</span></code></span>
+<span class="codeline" id="line-53"><code><span class="keyword">func</span> (<label for="r4" class="ident">wg</label> *<a href="#line-20" class="ident">WaitGroup</a>) <label for="r5" class="ident">Add</label>(<label for="r6" class="ident">delta</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-54"><code>	<label for="r7" class="ident">statep</label>, <label for="r8" class="ident">semap</label> := <label for="r4" class="ident">wg</label>.<a href="#line-32" class="ident">state</a>()</code></span>
+<span class="codeline" id="line-55"><code>	<span class="keyword">if</span> <a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-13" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-56"><code>		_ = *<label for="r7" class="ident">statep</label> <span class="comment">// trigger nil deref early</span></code></span>
+<span class="codeline" id="line-57"><code>		<span class="keyword">if</span> <label for="r6" class="ident">delta</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-58"><code>			<span class="comment">// Synchronize decrements with Wait.</span></code></span>
+<span class="codeline" id="line-59"><code>			<a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-21" class="ident">ReleaseMerge</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r4" class="ident">wg</label>))</code></span>
+<span class="codeline" id="line-60"><code>		}</code></span>
+<span class="codeline" id="line-61"><code>		<a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-24" class="ident">Disable</a>()</code></span>
+<span class="codeline" id="line-62"><code>		<span class="keyword">defer</span> <a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-27" class="ident">Enable</a>()</code></span>
+<span class="codeline" id="line-63"><code>	}</code></span>
+<span class="codeline" id="line-64"><code>	<label for="r9" class="ident">state</label> := <a href="../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="atomic/doc.go.html#line-105" class="ident">AddUint64</a>(<label for="r7" class="ident">statep</label>, <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r6" class="ident">delta</label>)&lt;&lt;<span class="lit-number">32</span>)</code></span>
+<span class="codeline" id="line-65"><code>	<label for="r10" class="ident">v</label> := <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r9" class="ident">state</label> &gt;&gt; <span class="lit-number">32</span>)</code></span>
+<span class="codeline" id="line-66"><code>	<label for="r11" class="ident">w</label> := <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r9" class="ident">state</label>)</code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">if</span> <a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-13" class="ident">Enabled</a> &amp;&amp; <label for="r6" class="ident">delta</label> &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r10" class="ident">v</label> == <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r6" class="ident">delta</label>) {</code></span>
+<span class="codeline" id="line-68"><code>		<span class="comment">// The first increment must be synchronized with Wait.</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">		// Need to model this as a read, because there can be</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">		// several concurrent wg.counter transitions from 0.</span></code></span>
+<span class="codeline" id="line-71"><code>		<a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-30" class="ident">Read</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r8" class="ident">semap</label>))</code></span>
+<span class="codeline" id="line-72"><code>	}</code></span>
+<span class="codeline" id="line-73"><code>	<span class="keyword">if</span> <label for="r10" class="ident">v</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-74"><code>		<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"sync: negative WaitGroup counter"</span>)</code></span>
+<span class="codeline" id="line-75"><code>	}</code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">if</span> <label for="r11" class="ident">w</label> != <span class="lit-number">0</span> &amp;&amp; <label for="r6" class="ident">delta</label> &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r10" class="ident">v</label> == <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r6" class="ident">delta</label>) {</code></span>
+<span class="codeline" id="line-77"><code>		<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"sync: WaitGroup misuse: Add called concurrently with Wait"</span>)</code></span>
+<span class="codeline" id="line-78"><code>	}</code></span>
+<span class="codeline" id="line-79"><code>	<span class="keyword">if</span> <label for="r10" class="ident">v</label> &gt; <span class="lit-number">0</span> || <label for="r11" class="ident">w</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-80"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-81"><code>	}</code></span>
+<span class="codeline" id="line-82"><code>	<span class="comment">// This goroutine has set counter to 0 when waiters &gt; 0.</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">	// Now there can't be concurrent mutations of state:</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">	// - Adds must not happen concurrently with Wait,</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">	// - Wait does not increment waiters if it sees counter == 0.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">	// Still do a cheap sanity check to detect WaitGroup misuse.</span></code></span>
+<span class="codeline" id="line-87"><code>	<span class="keyword">if</span> *<label for="r7" class="ident">statep</label> != <label for="r9" class="ident">state</label> {</code></span>
+<span class="codeline" id="line-88"><code>		<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"sync: WaitGroup misuse: Add called concurrently with Wait"</span>)</code></span>
+<span class="codeline" id="line-89"><code>	}</code></span>
+<span class="codeline" id="line-90"><code>	<span class="comment">// Reset waiters count to 0.</span></code></span>
+<span class="codeline" id="line-91"><code>	*<label for="r7" class="ident">statep</label> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-92"><code>	<span class="keyword">for</span> ; <label for="r11" class="ident">w</label> != <span class="lit-number">0</span>; <label for="r11" class="ident">w</label>-- {</code></span>
+<span class="codeline" id="line-93"><code>		<a href="runtime.go.html#line-29" class="ident">runtime_Semrelease</a>(<label for="r8" class="ident">semap</label>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-94"><code>	}</code></span>
+<span class="codeline" id="line-95"><code>}</code></span>
+<span class="codeline" id="line-96"><code></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">// Done decrements the WaitGroup counter by one.</span></code></span>
+<span class="codeline" id="line-98"><code><span class="keyword">func</span> (<label for="r12" class="ident">wg</label> *<a href="#line-20" class="ident">WaitGroup</a>) <label for="r13" class="ident">Done</label>() {</code></span>
+<span class="codeline" id="line-99"><code>	<label for="r12" class="ident">wg</label>.<a href="#line-53" class="ident">Add</a>(-<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-100"><code>}</code></span>
+<span class="codeline" id="line-101"><code></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// Wait blocks until the WaitGroup counter is zero.</span></code></span>
+<span class="codeline" id="line-103"><code><span class="keyword">func</span> (<label for="r14" class="ident">wg</label> *<a href="#line-20" class="ident">WaitGroup</a>) <label for="r15" class="ident">Wait</label>() {</code></span>
+<span class="codeline" id="line-104"><code>	<label for="r16" class="ident">statep</label>, <label for="r17" class="ident">semap</label> := <label for="r14" class="ident">wg</label>.<a href="#line-32" class="ident">state</a>()</code></span>
+<span class="codeline" id="line-105"><code>	<span class="keyword">if</span> <a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-13" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-106"><code>		_ = *<label for="r16" class="ident">statep</label> <span class="comment">// trigger nil deref early</span></code></span>
+<span class="codeline" id="line-107"><code>		<a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-24" class="ident">Disable</a>()</code></span>
+<span class="codeline" id="line-108"><code>	}</code></span>
+<span class="codeline" id="line-109"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-110"><code>		<label for="r18" class="ident">state</label> := <a href="../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="atomic/doc.go.html#line-120" class="ident">LoadUint64</a>(<label for="r16" class="ident">statep</label>)</code></span>
+<span class="codeline" id="line-111"><code>		<label for="r19" class="ident">v</label> := <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r18" class="ident">state</label> &gt;&gt; <span class="lit-number">32</span>)</code></span>
+<span class="codeline" id="line-112"><code>		<label for="r20" class="ident">w</label> := <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r18" class="ident">state</label>)</code></span>
+<span class="codeline" id="line-113"><code>		<span class="keyword">if</span> <label for="r19" class="ident">v</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-114"><code>			<span class="comment">// Counter is 0, no need to wait.</span></code></span>
+<span class="codeline" id="line-115"><code>			<span class="keyword">if</span> <a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-13" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-116"><code>				<a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-27" class="ident">Enable</a>()</code></span>
+<span class="codeline" id="line-117"><code>				<a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-15" class="ident">Acquire</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r14" class="ident">wg</label>))</code></span>
+<span class="codeline" id="line-118"><code>			}</code></span>
+<span class="codeline" id="line-119"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-120"><code>		}</code></span>
+<span class="codeline" id="line-121"><code>		<span class="comment">// Increment waiters count.</span></code></span>
+<span class="codeline" id="line-122"><code>		<span class="keyword">if</span> <a href="../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="atomic/doc.go.html#line-83" class="ident">CompareAndSwapUint64</a>(<label for="r16" class="ident">statep</label>, <label for="r18" class="ident">state</label>, <label for="r18" class="ident">state</label>+<span class="lit-number">1</span>) {</code></span>
+<span class="codeline" id="line-123"><code>			<span class="keyword">if</span> <a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-13" class="ident">Enabled</a> &amp;&amp; <label for="r20" class="ident">w</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-124"><code>				<span class="comment">// Wait must be synchronized with the first Add.</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">				// Need to model this is as a write to race with the read in Add.</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">				// As a consequence, can do the write only for the first waiter,</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">				// otherwise concurrent Waits will race with each other.</span></code></span>
+<span class="codeline" id="line-128"><code>				<a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-33" class="ident">Write</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r17" class="ident">semap</label>))</code></span>
+<span class="codeline" id="line-129"><code>			}</code></span>
+<span class="codeline" id="line-130"><code>			<a href="runtime.go.html#line-14" class="ident">runtime_Semacquire</a>(<label for="r17" class="ident">semap</label>)</code></span>
+<span class="codeline" id="line-131"><code>			<span class="keyword">if</span> *<label for="r16" class="ident">statep</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-132"><code>				<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"sync: WaitGroup is reused before previous Wait has returned"</span>)</code></span>
+<span class="codeline" id="line-133"><code>			}</code></span>
+<span class="codeline" id="line-134"><code>			<span class="keyword">if</span> <a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-13" class="ident">Enabled</a> {</code></span>
+<span class="codeline" id="line-135"><code>				<a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-27" class="ident">Enable</a>()</code></span>
+<span class="codeline" id="line-136"><code>				<a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-15" class="ident">Acquire</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r14" class="ident">wg</label>))</code></span>
+<span class="codeline" id="line-137"><code>			}</code></span>
+<span class="codeline" id="line-138"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-139"><code>		}</code></span>
+<span class="codeline" id="line-140"><code>	}</code></span>
+<span class="codeline" id="line-141"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: cond.go in package sync</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	cond.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/sync.html">sync</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> sync</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"sync/atomic"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-10"><code>)</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// Cond implements a condition variable, a rendezvous point</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// for goroutines waiting for or announcing the occurrence</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// of an event.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// Each Cond has an associated Locker L (often a *Mutex or *RWMutex),</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// which must be held when changing the condition and</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// when calling the Wait method.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// A Cond must not be copied after first use.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">type</span> <a href="../../pkg/sync.html#name-Cond" class="ident">Cond</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-22"><code>	noCopy <a href="#line-94" class="ident">noCopy</a></code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code>	<span class="comment">// L is held while observing or changing the condition</span></code></span>
+<span class="codeline" id="line-25"><code>	L <a href="mutex.go.html#line-31" class="ident">Locker</a></code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code>	notify  <a href="runtime2.go.html#line-13" class="ident">notifyList</a></code></span>
+<span class="codeline" id="line-28"><code>	checker <a href="#line-79" class="ident">copyChecker</a></code></span>
+<span class="codeline" id="line-29"><code>}</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// NewCond returns a new Cond with Locker l.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/sync.html#name-NewCond" class="ident">NewCond</a></label>(<label for="r1" class="ident">l</label> <a href="mutex.go.html#line-31" class="ident">Locker</a>) *<a href="#line-21" class="ident">Cond</a> {</code></span>
+<span class="codeline" id="line-33"><code>	<span class="keyword">return</span> &amp;<a href="#line-21" class="ident">Cond</a>{<a href="#line-25" class="ident">L</a>: <label for="r1" class="ident">l</label>}</code></span>
+<span class="codeline" id="line-34"><code>}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// Wait atomically unlocks c.L and suspends execution</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// of the calling goroutine. After later resuming execution,</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// Wait locks c.L before returning. Unlike in other systems,</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// Wait cannot return unless awoken by Broadcast or Signal.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// Because c.L is not locked when Wait first resumes, the caller</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// typically cannot assume that the condition is true when</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// Wait returns. Instead, the caller should Wait in a loop:</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">//    c.L.Lock()</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">//    for !condition() {</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">//        c.Wait()</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">//    }</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">//    ... make use of condition ...</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">//    c.L.Unlock()</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-52"><code><span class="keyword">func</span> (<label for="r2" class="ident">c</label> *<a href="#line-21" class="ident">Cond</a>) <label for="r3" class="ident">Wait</label>() {</code></span>
+<span class="codeline" id="line-53"><code>	<label for="r2" class="ident">c</label>.<a href="#line-28" class="ident">checker</a>.<a href="#line-81" class="ident">check</a>()</code></span>
+<span class="codeline" id="line-54"><code>	<label for="r4" class="ident">t</label> := <a href="runtime.go.html#line-32" class="ident">runtime_notifyListAdd</a>(&amp;<label for="r2" class="ident">c</label>.<a href="#line-27" class="ident">notify</a>)</code></span>
+<span class="codeline" id="line-55"><code>	<label for="r2" class="ident">c</label>.<a href="#line-25" class="ident">L</a>.<a href="mutex.go.html#line-33" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-56"><code>	<a href="runtime.go.html#line-35" class="ident">runtime_notifyListWait</a>(&amp;<label for="r2" class="ident">c</label>.<a href="#line-27" class="ident">notify</a>, <label for="r4" class="ident">t</label>)</code></span>
+<span class="codeline" id="line-57"><code>	<label for="r2" class="ident">c</label>.<a href="#line-25" class="ident">L</a>.<a href="mutex.go.html#line-32" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-58"><code>}</code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// Signal wakes one goroutine waiting on c, if there is any.</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">// It is allowed but not required for the caller to hold c.L</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// during the call.</span></code></span>
+<span class="codeline" id="line-64"><code><span class="keyword">func</span> (<label for="r5" class="ident">c</label> *<a href="#line-21" class="ident">Cond</a>) <label for="r6" class="ident">Signal</label>() {</code></span>
+<span class="codeline" id="line-65"><code>	<label for="r5" class="ident">c</label>.<a href="#line-28" class="ident">checker</a>.<a href="#line-81" class="ident">check</a>()</code></span>
+<span class="codeline" id="line-66"><code>	<a href="runtime.go.html#line-41" class="ident">runtime_notifyListNotifyOne</a>(&amp;<label for="r5" class="ident">c</label>.<a href="#line-27" class="ident">notify</a>)</code></span>
+<span class="codeline" id="line-67"><code>}</code></span>
+<span class="codeline" id="line-68"><code></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// Broadcast wakes all goroutines waiting on c.</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// It is allowed but not required for the caller to hold c.L</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">// during the call.</span></code></span>
+<span class="codeline" id="line-73"><code><span class="keyword">func</span> (<label for="r7" class="ident">c</label> *<a href="#line-21" class="ident">Cond</a>) <label for="r8" class="ident">Broadcast</label>() {</code></span>
+<span class="codeline" id="line-74"><code>	<label for="r7" class="ident">c</label>.<a href="#line-28" class="ident">checker</a>.<a href="#line-81" class="ident">check</a>()</code></span>
+<span class="codeline" id="line-75"><code>	<a href="runtime.go.html#line-38" class="ident">runtime_notifyListNotifyAll</a>(&amp;<label for="r7" class="ident">c</label>.<a href="#line-27" class="ident">notify</a>)</code></span>
+<span class="codeline" id="line-76"><code>}</code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// copyChecker holds back pointer to itself to detect object copying.</span></code></span>
+<span class="codeline" id="line-79"><code><span class="keyword">type</span> <a href="../../pkg/sync.html#name-copyChecker" class="ident">copyChecker</a> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a></code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code><span class="keyword">func</span> (<label for="r9" class="ident">c</label> *<a href="#line-79" class="ident">copyChecker</a>) <label for="r10" class="ident">check</label>() {</code></span>
+<span class="codeline" id="line-82"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(*<label for="r9" class="ident">c</label>) != <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r9" class="ident">c</label>)) &amp;&amp;</code></span>
+<span class="codeline" id="line-83"><code>		!<a href="../../pkg/sync/atomic.html" class="ident i0">atomic</a>.<a href="atomic/doc.go.html#line-86" class="ident">CompareAndSwapUintptr</a>((*<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>)(<label for="r9" class="ident">c</label>), <span class="lit-number">0</span>, <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r9" class="ident">c</label>))) &amp;&amp;</code></span>
+<span class="codeline" id="line-84"><code>		<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(*<label for="r9" class="ident">c</label>) != <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r9" class="ident">c</label>)) {</code></span>
+<span class="codeline" id="line-85"><code>		<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"sync.Cond is copied"</span>)</code></span>
+<span class="codeline" id="line-86"><code>	}</code></span>
+<span class="codeline" id="line-87"><code>}</code></span>
+<span class="codeline" id="line-88"><code></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">// noCopy may be embedded into structs which must not be copied</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// after the first use.</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">// See https://golang.org/issues/8005#issuecomment-190753527</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">// for details.</span></code></span>
+<span class="codeline" id="line-94"><code><span class="keyword">type</span> <a href="../../pkg/sync.html#name-noCopy" class="ident">noCopy</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-95"><code></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// Lock is a no-op used by -copylocks checker from `go vet`.</span></code></span>
+<span class="codeline" id="line-97"><code><span class="keyword">func</span> (*<a href="#line-94" class="ident">noCopy</a>) <label for="r11" class="ident"><a href="../../imp/sync.noCopy*1a9fd.html#name-.Lock" class="ident">Lock</a></label>()   {}</code></span>
+<span class="codeline" id="line-98"><code><span class="keyword">func</span> (*<a href="#line-94" class="ident">noCopy</a>) <label for="r12" class="ident"><a href="../../imp/sync.noCopy*1a9fd.html#name-.Unlock" class="ident">Unlock</a></label>() {}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

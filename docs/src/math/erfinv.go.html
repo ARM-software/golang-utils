@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: erfinv.go in package math</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	erfinv.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/math.html">math</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2017 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> math</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">	Inverse of the floating-point error function.</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">*/</span></code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// This implementation is based on the rational approximation</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// of percentage points of normal distribution available from</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// https://www.jstor.org/stable/2347330.</span></code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-16"><code>	<span class="comment">// Coefficients for approximation to erf in |x| &lt;= 0.85</span></code></span>
+<span class="codeline" id="line-17"><code>	<a href="../../pkg/math.html#name-a0" class="ident">a0</a> = <span class="lit-number">1.1975323115670912564578e0</span></code></span>
+<span class="codeline" id="line-18"><code>	<a href="../../pkg/math.html#name-a1" class="ident">a1</a> = <span class="lit-number">4.7072688112383978012285e1</span></code></span>
+<span class="codeline" id="line-19"><code>	<a href="../../pkg/math.html#name-a2" class="ident">a2</a> = <span class="lit-number">6.9706266534389598238465e2</span></code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../pkg/math.html#name-a3" class="ident">a3</a> = <span class="lit-number">4.8548868893843886794648e3</span></code></span>
+<span class="codeline" id="line-21"><code>	<a href="../../pkg/math.html#name-a4" class="ident">a4</a> = <span class="lit-number">1.6235862515167575384252e4</span></code></span>
+<span class="codeline" id="line-22"><code>	<a href="../../pkg/math.html#name-a5" class="ident">a5</a> = <span class="lit-number">2.3782041382114385731252e4</span></code></span>
+<span class="codeline" id="line-23"><code>	<a href="../../pkg/math.html#name-a6" class="ident">a6</a> = <span class="lit-number">1.1819493347062294404278e4</span></code></span>
+<span class="codeline" id="line-24"><code>	<a href="../../pkg/math.html#name-a7" class="ident">a7</a> = <span class="lit-number">8.8709406962545514830200e2</span></code></span>
+<span class="codeline" id="line-25"><code>	<a href="../../pkg/math.html#name-b0" class="ident">b0</a> = <span class="lit-number">1.0000000000000000000e0</span></code></span>
+<span class="codeline" id="line-26"><code>	<a href="../../pkg/math.html#name-b1" class="ident">b1</a> = <span class="lit-number">4.2313330701600911252e1</span></code></span>
+<span class="codeline" id="line-27"><code>	<a href="../../pkg/math.html#name-b2" class="ident">b2</a> = <span class="lit-number">6.8718700749205790830e2</span></code></span>
+<span class="codeline" id="line-28"><code>	<a href="../../pkg/math.html#name-b3" class="ident">b3</a> = <span class="lit-number">5.3941960214247511077e3</span></code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../pkg/math.html#name-b4" class="ident">b4</a> = <span class="lit-number">2.1213794301586595867e4</span></code></span>
+<span class="codeline" id="line-30"><code>	<a href="../../pkg/math.html#name-b5" class="ident">b5</a> = <span class="lit-number">3.9307895800092710610e4</span></code></span>
+<span class="codeline" id="line-31"><code>	<a href="../../pkg/math.html#name-b6" class="ident">b6</a> = <span class="lit-number">2.8729085735721942674e4</span></code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../pkg/math.html#name-b7" class="ident">b7</a> = <span class="lit-number">5.2264952788528545610e3</span></code></span>
+<span class="codeline" id="line-33"><code>	<span class="comment">// Coefficients for approximation to erf in 0.85 &lt; |x| &lt;= 1-2*exp(-25)</span></code></span>
+<span class="codeline" id="line-34"><code>	<a href="../../pkg/math.html#name-c0" class="ident">c0</a> = <span class="lit-number">1.42343711074968357734e0</span></code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../pkg/math.html#name-c1" class="ident">c1</a> = <span class="lit-number">4.63033784615654529590e0</span></code></span>
+<span class="codeline" id="line-36"><code>	<a href="../../pkg/math.html#name-c2" class="ident">c2</a> = <span class="lit-number">5.76949722146069140550e0</span></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../pkg/math.html#name-c3" class="ident">c3</a> = <span class="lit-number">3.64784832476320460504e0</span></code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../pkg/math.html#name-c4" class="ident">c4</a> = <span class="lit-number">1.27045825245236838258e0</span></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../pkg/math.html#name-c5" class="ident">c5</a> = <span class="lit-number">2.41780725177450611770e-1</span></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../pkg/math.html#name-c6" class="ident">c6</a> = <span class="lit-number">2.27238449892691845833e-2</span></code></span>
+<span class="codeline" id="line-41"><code>	<a href="../../pkg/math.html#name-c7" class="ident">c7</a> = <span class="lit-number">7.74545014278341407640e-4</span></code></span>
+<span class="codeline" id="line-42"><code>	<a href="../../pkg/math.html#name-d0" class="ident">d0</a> = <span class="lit-number">1.4142135623730950488016887e0</span></code></span>
+<span class="codeline" id="line-43"><code>	<a href="../../pkg/math.html#name-d1" class="ident">d1</a> = <span class="lit-number">2.9036514445419946173133295e0</span></code></span>
+<span class="codeline" id="line-44"><code>	<a href="../../pkg/math.html#name-d2" class="ident">d2</a> = <span class="lit-number">2.3707661626024532365971225e0</span></code></span>
+<span class="codeline" id="line-45"><code>	<a href="../../pkg/math.html#name-d3" class="ident">d3</a> = <span class="lit-number">9.7547832001787427186894837e-1</span></code></span>
+<span class="codeline" id="line-46"><code>	<a href="../../pkg/math.html#name-d4" class="ident">d4</a> = <span class="lit-number">2.0945065210512749128288442e-1</span></code></span>
+<span class="codeline" id="line-47"><code>	<a href="../../pkg/math.html#name-d5" class="ident">d5</a> = <span class="lit-number">2.1494160384252876777097297e-2</span></code></span>
+<span class="codeline" id="line-48"><code>	<a href="../../pkg/math.html#name-d6" class="ident">d6</a> = <span class="lit-number">7.7441459065157709165577218e-4</span></code></span>
+<span class="codeline" id="line-49"><code>	<a href="../../pkg/math.html#name-d7" class="ident">d7</a> = <span class="lit-number">1.4859850019840355905497876e-9</span></code></span>
+<span class="codeline" id="line-50"><code>	<span class="comment">// Coefficients for approximation to erf in 1-2*exp(-25) &lt; |x| &lt; 1</span></code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../pkg/math.html#name-e0" class="ident">e0</a> = <span class="lit-number">6.65790464350110377720e0</span></code></span>
+<span class="codeline" id="line-52"><code>	<a href="../../pkg/math.html#name-e1" class="ident">e1</a> = <span class="lit-number">5.46378491116411436990e0</span></code></span>
+<span class="codeline" id="line-53"><code>	<a href="../../pkg/math.html#name-e2" class="ident">e2</a> = <span class="lit-number">1.78482653991729133580e0</span></code></span>
+<span class="codeline" id="line-54"><code>	<a href="../../pkg/math.html#name-e3" class="ident">e3</a> = <span class="lit-number">2.96560571828504891230e-1</span></code></span>
+<span class="codeline" id="line-55"><code>	<a href="../../pkg/math.html#name-e4" class="ident">e4</a> = <span class="lit-number">2.65321895265761230930e-2</span></code></span>
+<span class="codeline" id="line-56"><code>	<a href="../../pkg/math.html#name-e5" class="ident">e5</a> = <span class="lit-number">1.24266094738807843860e-3</span></code></span>
+<span class="codeline" id="line-57"><code>	<a href="../../pkg/math.html#name-e6" class="ident">e6</a> = <span class="lit-number">2.71155556874348757815e-5</span></code></span>
+<span class="codeline" id="line-58"><code>	<a href="../../pkg/math.html#name-e7" class="ident">e7</a> = <span class="lit-number">2.01033439929228813265e-7</span></code></span>
+<span class="codeline" id="line-59"><code>	<a href="../../pkg/math.html#name-f0" class="ident">f0</a> = <span class="lit-number">1.414213562373095048801689e0</span></code></span>
+<span class="codeline" id="line-60"><code>	<a href="../../pkg/math.html#name-f1" class="ident">f1</a> = <span class="lit-number">8.482908416595164588112026e-1</span></code></span>
+<span class="codeline" id="line-61"><code>	<a href="../../pkg/math.html#name-f2" class="ident">f2</a> = <span class="lit-number">1.936480946950659106176712e-1</span></code></span>
+<span class="codeline" id="line-62"><code>	<a href="../../pkg/math.html#name-f3" class="ident">f3</a> = <span class="lit-number">2.103693768272068968719679e-2</span></code></span>
+<span class="codeline" id="line-63"><code>	<a href="../../pkg/math.html#name-f4" class="ident">f4</a> = <span class="lit-number">1.112800997078859844711555e-3</span></code></span>
+<span class="codeline" id="line-64"><code>	<a href="../../pkg/math.html#name-f5" class="ident">f5</a> = <span class="lit-number">2.611088405080593625138020e-5</span></code></span>
+<span class="codeline" id="line-65"><code>	<a href="../../pkg/math.html#name-f6" class="ident">f6</a> = <span class="lit-number">2.010321207683943062279931e-7</span></code></span>
+<span class="codeline" id="line-66"><code>	<a href="../../pkg/math.html#name-f7" class="ident">f7</a> = <span class="lit-number">2.891024605872965461538222e-15</span></code></span>
+<span class="codeline" id="line-67"><code>)</code></span>
+<span class="codeline" id="line-68"><code></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// Erfinv returns the inverse error function of x.</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// Special cases are:</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">//	Erfinv(1) = +Inf</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">//	Erfinv(-1) = -Inf</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">//	Erfinv(x) = NaN if x &lt; -1 or x &gt; 1</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">//	Erfinv(NaN) = NaN</span></code></span>
+<span class="codeline" id="line-76"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/math.html#name-Erfinv" class="ident">Erfinv</a></label>(<label for="r1" class="ident">x</label> <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>) <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a> {</code></span>
+<span class="codeline" id="line-77"><code>	<span class="comment">// special cases</span></code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">if</span> <a href="bits.go.html#line-34" class="ident">IsNaN</a>(<label for="r1" class="ident">x</label>) || <label for="r1" class="ident">x</label> &lt;= -<span class="lit-number">1</span> || <label for="r1" class="ident">x</label> &gt;= <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-79"><code>		<span class="keyword">if</span> <label for="r1" class="ident">x</label> == -<span class="lit-number">1</span> || <label for="r1" class="ident">x</label> == <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-80"><code>			<span class="keyword">return</span> <a href="bits.go.html#line-20" class="ident">Inf</a>(<a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r1" class="ident">x</label>))</code></span>
+<span class="codeline" id="line-81"><code>		}</code></span>
+<span class="codeline" id="line-82"><code>		<span class="keyword">return</span> <a href="bits.go.html#line-31" class="ident">NaN</a>()</code></span>
+<span class="codeline" id="line-83"><code>	}</code></span>
+<span class="codeline" id="line-84"><code></code></span>
+<span class="codeline" id="line-85"><code>	<label for="r2" class="ident">sign</label> := <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-86"><code>	<span class="keyword">if</span> <label for="r1" class="ident">x</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-87"><code>		<label for="r1" class="ident">x</label> = -<label for="r1" class="ident">x</label></code></span>
+<span class="codeline" id="line-88"><code>		<label for="r2" class="ident">sign</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-89"><code>	}</code></span>
+<span class="codeline" id="line-90"><code></code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">var</span> <label for="r3" class="ident">ans</label> <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a></code></span>
+<span class="codeline" id="line-92"><code>	<span class="keyword">if</span> <label for="r1" class="ident">x</label> &lt;= <span class="lit-number">0.85</span> { <span class="comment">// |x| &lt;= 0.85</span></code></span>
+<span class="codeline" id="line-93"><code>		<label for="r4" class="ident">r</label> := <span class="lit-number">0.180625</span> - <span class="lit-number">0.25</span>*<label for="r1" class="ident">x</label>*<label for="r1" class="ident">x</label></code></span>
+<span class="codeline" id="line-94"><code>		<label for="r5" class="ident">z1</label> := ((((((<a href="#line-24" class="ident">a7</a>*<label for="r4" class="ident">r</label>+<a href="#line-23" class="ident">a6</a>)*<label for="r4" class="ident">r</label>+<a href="#line-22" class="ident">a5</a>)*<label for="r4" class="ident">r</label>+<a href="#line-21" class="ident">a4</a>)*<label for="r4" class="ident">r</label>+<a href="#line-20" class="ident">a3</a>)*<label for="r4" class="ident">r</label>+<a href="#line-19" class="ident">a2</a>)*<label for="r4" class="ident">r</label>+<a href="#line-18" class="ident">a1</a>)*<label for="r4" class="ident">r</label> + <a href="#line-17" class="ident">a0</a></code></span>
+<span class="codeline" id="line-95"><code>		<label for="r6" class="ident">z2</label> := ((((((<a href="#line-32" class="ident">b7</a>*<label for="r4" class="ident">r</label>+<a href="#line-31" class="ident">b6</a>)*<label for="r4" class="ident">r</label>+<a href="#line-30" class="ident">b5</a>)*<label for="r4" class="ident">r</label>+<a href="#line-29" class="ident">b4</a>)*<label for="r4" class="ident">r</label>+<a href="#line-28" class="ident">b3</a>)*<label for="r4" class="ident">r</label>+<a href="#line-27" class="ident">b2</a>)*<label for="r4" class="ident">r</label>+<a href="#line-26" class="ident">b1</a>)*<label for="r4" class="ident">r</label> + <a href="#line-25" class="ident">b0</a></code></span>
+<span class="codeline" id="line-96"><code>		<label for="r3" class="ident">ans</label> = (<label for="r1" class="ident">x</label> * <label for="r5" class="ident">z1</label>) / <label for="r6" class="ident">z2</label></code></span>
+<span class="codeline" id="line-97"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-98"><code>		<span class="keyword">var</span> <label for="r7" class="ident">z1</label>, <label for="r8" class="ident">z2</label> <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a></code></span>
+<span class="codeline" id="line-99"><code>		<label for="r9" class="ident">r</label> := <a href="sqrt.go.html#line-92" class="ident">Sqrt</a>(<a href="const.go.html#line-21" class="ident">Ln2</a> - <a href="log.go.html#line-80" class="ident">Log</a>(<span class="lit-number">1.0</span>-<label for="r1" class="ident">x</label>))</code></span>
+<span class="codeline" id="line-100"><code>		<span class="keyword">if</span> <label for="r9" class="ident">r</label> &lt;= <span class="lit-number">5.0</span> {</code></span>
+<span class="codeline" id="line-101"><code>			<label for="r9" class="ident">r</label> -= <span class="lit-number">1.6</span></code></span>
+<span class="codeline" id="line-102"><code>			<label for="r7" class="ident">z1</label> = ((((((<a href="#line-41" class="ident">c7</a>*<label for="r9" class="ident">r</label>+<a href="#line-40" class="ident">c6</a>)*<label for="r9" class="ident">r</label>+<a href="#line-39" class="ident">c5</a>)*<label for="r9" class="ident">r</label>+<a href="#line-38" class="ident">c4</a>)*<label for="r9" class="ident">r</label>+<a href="#line-37" class="ident">c3</a>)*<label for="r9" class="ident">r</label>+<a href="#line-36" class="ident">c2</a>)*<label for="r9" class="ident">r</label>+<a href="#line-35" class="ident">c1</a>)*<label for="r9" class="ident">r</label> + <a href="#line-34" class="ident">c0</a></code></span>
+<span class="codeline" id="line-103"><code>			<label for="r8" class="ident">z2</label> = ((((((<a href="#line-49" class="ident">d7</a>*<label for="r9" class="ident">r</label>+<a href="#line-48" class="ident">d6</a>)*<label for="r9" class="ident">r</label>+<a href="#line-47" class="ident">d5</a>)*<label for="r9" class="ident">r</label>+<a href="#line-46" class="ident">d4</a>)*<label for="r9" class="ident">r</label>+<a href="#line-45" class="ident">d3</a>)*<label for="r9" class="ident">r</label>+<a href="#line-44" class="ident">d2</a>)*<label for="r9" class="ident">r</label>+<a href="#line-43" class="ident">d1</a>)*<label for="r9" class="ident">r</label> + <a href="#line-42" class="ident">d0</a></code></span>
+<span class="codeline" id="line-104"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-105"><code>			<label for="r9" class="ident">r</label> -= <span class="lit-number">5.0</span></code></span>
+<span class="codeline" id="line-106"><code>			<label for="r7" class="ident">z1</label> = ((((((<a href="#line-58" class="ident">e7</a>*<label for="r9" class="ident">r</label>+<a href="#line-57" class="ident">e6</a>)*<label for="r9" class="ident">r</label>+<a href="#line-56" class="ident">e5</a>)*<label for="r9" class="ident">r</label>+<a href="#line-55" class="ident">e4</a>)*<label for="r9" class="ident">r</label>+<a href="#line-54" class="ident">e3</a>)*<label for="r9" class="ident">r</label>+<a href="#line-53" class="ident">e2</a>)*<label for="r9" class="ident">r</label>+<a href="#line-52" class="ident">e1</a>)*<label for="r9" class="ident">r</label> + <a href="#line-51" class="ident">e0</a></code></span>
+<span class="codeline" id="line-107"><code>			<label for="r8" class="ident">z2</label> = ((((((<a href="#line-66" class="ident">f7</a>*<label for="r9" class="ident">r</label>+<a href="#line-65" class="ident">f6</a>)*<label for="r9" class="ident">r</label>+<a href="#line-64" class="ident">f5</a>)*<label for="r9" class="ident">r</label>+<a href="#line-63" class="ident">f4</a>)*<label for="r9" class="ident">r</label>+<a href="#line-62" class="ident">f3</a>)*<label for="r9" class="ident">r</label>+<a href="#line-61" class="ident">f2</a>)*<label for="r9" class="ident">r</label>+<a href="#line-60" class="ident">f1</a>)*<label for="r9" class="ident">r</label> + <a href="#line-59" class="ident">f0</a></code></span>
+<span class="codeline" id="line-108"><code>		}</code></span>
+<span class="codeline" id="line-109"><code>		<label for="r3" class="ident">ans</label> = <label for="r7" class="ident">z1</label> / <label for="r8" class="ident">z2</label></code></span>
+<span class="codeline" id="line-110"><code>	}</code></span>
+<span class="codeline" id="line-111"><code></code></span>
+<span class="codeline" id="line-112"><code>	<span class="keyword">if</span> <label for="r2" class="ident">sign</label> {</code></span>
+<span class="codeline" id="line-113"><code>		<span class="keyword">return</span> -<label for="r3" class="ident">ans</label></code></span>
+<span class="codeline" id="line-114"><code>	}</code></span>
+<span class="codeline" id="line-115"><code>	<span class="keyword">return</span> <label for="r3" class="ident">ans</label></code></span>
+<span class="codeline" id="line-116"><code>}</code></span>
+<span class="codeline" id="line-117"><code></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">// Erfcinv returns the inverse of Erfc(x).</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">// Special cases are:</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">//	Erfcinv(0) = +Inf</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">//	Erfcinv(2) = -Inf</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">//	Erfcinv(x) = NaN if x &lt; 0 or x &gt; 2</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">//	Erfcinv(NaN) = NaN</span></code></span>
+<span class="codeline" id="line-125"><code><span class="keyword">func</span> <label for="r10" class="ident"><a href="../../pkg/math.html#name-Erfcinv" class="ident">Erfcinv</a></label>(<label for="r11" class="ident">x</label> <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>) <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a> {</code></span>
+<span class="codeline" id="line-126"><code>	<span class="keyword">return</span> <a href="#line-76" class="ident">Erfinv</a>(<span class="lit-number">1</span> - <label for="r11" class="ident">x</label>)</code></span>
+<span class="codeline" id="line-127"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

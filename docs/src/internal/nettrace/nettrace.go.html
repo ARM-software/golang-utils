@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: nettrace.go in package internal/nettrace</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	nettrace.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/internal/nettrace.html">internal/nettrace</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2016 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package nettrace contains internal hooks for tracing activity in</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// the net package. This package is purely internal for use by the</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// net/http/httptrace package and has no stable API exposed to end</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// users.</span></code></span></div><span class="codeline" id="line-9"><code><span class="keyword">package</span> nettrace</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// TraceKey is a context.Context Value key. Its associated value should</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// be a *Trace struct.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">type</span> <a href="../../../pkg/internal/nettrace.html#name-TraceKey" class="ident">TraceKey</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// LookupIPAltResolverKey is a context.Context Value key used by tests to</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// specify an alternate resolver func.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// It is not exposed to outsider users. (But see issue 12503)</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// The value should be the same type as lookupIP:</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//     func lookupIP(ctx context.Context, host string) ([]IPAddr, error)</span></code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">type</span> <a href="../../../pkg/internal/nettrace.html#name-LookupIPAltResolverKey" class="ident">LookupIPAltResolverKey</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// Trace contains a set of hooks for tracing events within</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// the net package. Any specific hook may be nil.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="keyword">type</span> <a href="../../../pkg/internal/nettrace.html#name-Trace" class="ident">Trace</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-25"><code>	<span class="comment">// DNSStart is called with the hostname of a DNS lookup</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">	// before it begins.</span></code></span>
+<span class="codeline" id="line-27"><code>	DNSStart <span class="keyword">func</span>(name <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code>	<span class="comment">// DNSDone is called after a DNS lookup completes (or fails).</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	// The coalesced parameter is whether singleflight de-dupped</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	// the call. The addrs are of type net.IPAddr but can't</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">	// actually be for circular dependency reasons.</span></code></span>
+<span class="codeline" id="line-33"><code>	DNSDone <span class="keyword">func</span>(netIPs []<span class="keyword">interface</span>{}, coalesced <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>, err <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code>	<span class="comment">// ConnectStart is called before a Dial, excluding Dials made</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	// during DNS lookups. In the case of DualStack (Happy Eyeballs)</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">	// dialing, this may be called multiple times, from multiple</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">	// goroutines.</span></code></span>
+<span class="codeline" id="line-39"><code>	ConnectStart <span class="keyword">func</span>(network, addr <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code>	<span class="comment">// ConnectStart is called after a Dial with the results, excluding</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	// Dials made during DNS lookups. It may also be called multiple</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// times, like ConnectStart.</span></code></span>
+<span class="codeline" id="line-44"><code>	ConnectDone <span class="keyword">func</span>(network, addr <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, err <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-45"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

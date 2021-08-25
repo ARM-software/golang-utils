@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: decimal.go in package strconv</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	decimal.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/strconv.html">strconv</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// Multiprecision decimal numbers.</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// For floating-point formatting only; not general purpose.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// Only operations are assign and (binary) left/right shift.</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// Can do binary floating point in multiprecision decimal precisely</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// because 2 divides 10; cannot do decimal floating point</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// in multiprecision binary precisely.</span></code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">package</span> strconv</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">type</span> <a href="../../pkg/strconv.html#name-decimal" class="ident">decimal</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-15"><code>	d     [<span class="lit-number">800</span>]<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a> <span class="comment">// digits, big-endian representation</span></code></span>
+<span class="codeline" id="line-16"><code>	nd    <a href="../../pkg/builtin.html#name-int" class="ident">int</a>       <span class="comment">// number of digits used</span></code></span>
+<span class="codeline" id="line-17"><code>	dp    <a href="../../pkg/builtin.html#name-int" class="ident">int</a>       <span class="comment">// decimal point</span></code></span>
+<span class="codeline" id="line-18"><code>	neg   <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>      <span class="comment">// negative flag</span></code></span>
+<span class="codeline" id="line-19"><code>	trunc <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>      <span class="comment">// discarded nonzero digits beyond d[:nd]</span></code></span>
+<span class="codeline" id="line-20"><code>}</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">func</span> (<label for="r0" class="ident">a</label> *<a href="#line-14" class="ident">decimal</a>) <label for="r1" class="ident"><a href="../../imp/strconv.decimal*3e6d4.html#name-.String" class="ident">String</a></label>() <a href="../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-23"><code>	<label for="r2" class="ident">n</label> := <span class="lit-number">10</span> + <label for="r0" class="ident">a</label>.<a href="#line-16" class="ident">nd</a></code></span>
+<span class="codeline" id="line-24"><code>	<span class="keyword">if</span> <label for="r0" class="ident">a</label>.<a href="#line-17" class="ident">dp</a> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-25"><code>		<label for="r2" class="ident">n</label> += <label for="r0" class="ident">a</label>.<a href="#line-17" class="ident">dp</a></code></span>
+<span class="codeline" id="line-26"><code>	}</code></span>
+<span class="codeline" id="line-27"><code>	<span class="keyword">if</span> <label for="r0" class="ident">a</label>.<a href="#line-17" class="ident">dp</a> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-28"><code>		<label for="r2" class="ident">n</label> += -<label for="r0" class="ident">a</label>.<a href="#line-17" class="ident">dp</a></code></span>
+<span class="codeline" id="line-29"><code>	}</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code>	<label for="r3" class="ident">buf</label> := <a href="../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r2" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-32"><code>	<label for="r4" class="ident">w</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-33"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">case</span> <label for="r0" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> == <span class="lit-number">0</span>:</code></span>
+<span class="codeline" id="line-35"><code>		<span class="keyword">return</span> <span class="lit-string">"0"</span></code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code>	<span class="keyword">case</span> <label for="r0" class="ident">a</label>.<a href="#line-17" class="ident">dp</a> &lt;= <span class="lit-number">0</span>:</code></span>
+<span class="codeline" id="line-38"><code>		<span class="comment">// zeros fill space between decimal point and digits</span></code></span>
+<span class="codeline" id="line-39"><code>		<label for="r3" class="ident">buf</label>[<label for="r4" class="ident">w</label>] = <span class="lit-number">'0'</span></code></span>
+<span class="codeline" id="line-40"><code>		<label for="r4" class="ident">w</label>++</code></span>
+<span class="codeline" id="line-41"><code>		<label for="r3" class="ident">buf</label>[<label for="r4" class="ident">w</label>] = <span class="lit-number">'.'</span></code></span>
+<span class="codeline" id="line-42"><code>		<label for="r4" class="ident">w</label>++</code></span>
+<span class="codeline" id="line-43"><code>		<label for="r4" class="ident">w</label> += <a href="#line-61" class="ident">digitZero</a>(<label for="r3" class="ident">buf</label>[<label for="r4" class="ident">w</label> : <label for="r4" class="ident">w</label>+-<label for="r0" class="ident">a</label>.<a href="#line-17" class="ident">dp</a>])</code></span>
+<span class="codeline" id="line-44"><code>		<label for="r4" class="ident">w</label> += <a href="../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r3" class="ident">buf</label>[<label for="r4" class="ident">w</label>:], <label for="r0" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<span class="lit-number">0</span>:<label for="r0" class="ident">a</label>.<a href="#line-16" class="ident">nd</a>])</code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code>	<span class="keyword">case</span> <label for="r0" class="ident">a</label>.<a href="#line-17" class="ident">dp</a> &lt; <label for="r0" class="ident">a</label>.<a href="#line-16" class="ident">nd</a>:</code></span>
+<span class="codeline" id="line-47"><code>		<span class="comment">// decimal point in middle of digits</span></code></span>
+<span class="codeline" id="line-48"><code>		<label for="r4" class="ident">w</label> += <a href="../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r3" class="ident">buf</label>[<label for="r4" class="ident">w</label>:], <label for="r0" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<span class="lit-number">0</span>:<label for="r0" class="ident">a</label>.<a href="#line-17" class="ident">dp</a>])</code></span>
+<span class="codeline" id="line-49"><code>		<label for="r3" class="ident">buf</label>[<label for="r4" class="ident">w</label>] = <span class="lit-number">'.'</span></code></span>
+<span class="codeline" id="line-50"><code>		<label for="r4" class="ident">w</label>++</code></span>
+<span class="codeline" id="line-51"><code>		<label for="r4" class="ident">w</label> += <a href="../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r3" class="ident">buf</label>[<label for="r4" class="ident">w</label>:], <label for="r0" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<label for="r0" class="ident">a</label>.<a href="#line-17" class="ident">dp</a>:<label for="r0" class="ident">a</label>.<a href="#line-16" class="ident">nd</a>])</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-54"><code>		<span class="comment">// zeros fill space between digits and decimal point</span></code></span>
+<span class="codeline" id="line-55"><code>		<label for="r4" class="ident">w</label> += <a href="../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r3" class="ident">buf</label>[<label for="r4" class="ident">w</label>:], <label for="r0" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<span class="lit-number">0</span>:<label for="r0" class="ident">a</label>.<a href="#line-16" class="ident">nd</a>])</code></span>
+<span class="codeline" id="line-56"><code>		<label for="r4" class="ident">w</label> += <a href="#line-61" class="ident">digitZero</a>(<label for="r3" class="ident">buf</label>[<label for="r4" class="ident">w</label> : <label for="r4" class="ident">w</label>+<label for="r0" class="ident">a</label>.<a href="#line-17" class="ident">dp</a>-<label for="r0" class="ident">a</label>.<a href="#line-16" class="ident">nd</a>])</code></span>
+<span class="codeline" id="line-57"><code>	}</code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r3" class="ident">buf</label>[<span class="lit-number">0</span>:<label for="r4" class="ident">w</label>])</code></span>
+<span class="codeline" id="line-59"><code>}</code></span>
+<span class="codeline" id="line-60"><code></code></span>
+<span class="codeline" id="line-61"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../pkg/strconv.html#name-digitZero" class="ident">digitZero</a></label>(<label for="r6" class="ident">dst</label> []<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-62"><code>	<span class="keyword">for</span> <label for="r7" class="ident">i</label> := <span class="keyword">range</span> <label for="r6" class="ident">dst</label> {</code></span>
+<span class="codeline" id="line-63"><code>		<label for="r6" class="ident">dst</label>[<label for="r7" class="ident">i</label>] = <span class="lit-number">'0'</span></code></span>
+<span class="codeline" id="line-64"><code>	}</code></span>
+<span class="codeline" id="line-65"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">dst</label>)</code></span>
+<span class="codeline" id="line-66"><code>}</code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">// trim trailing zeros from number.</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// (They are meaningless; the decimal point is tracked</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// independent of the number of digits.)</span></code></span>
+<span class="codeline" id="line-71"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../pkg/strconv.html#name-trim" class="ident">trim</a></label>(<label for="r9" class="ident">a</label> *<a href="#line-14" class="ident">decimal</a>) {</code></span>
+<span class="codeline" id="line-72"><code>	<span class="keyword">for</span> <label for="r9" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r9" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<label for="r9" class="ident">a</label>.<a href="#line-16" class="ident">nd</a>-<span class="lit-number">1</span>] == <span class="lit-number">'0'</span> {</code></span>
+<span class="codeline" id="line-73"><code>		<label for="r9" class="ident">a</label>.<a href="#line-16" class="ident">nd</a>--</code></span>
+<span class="codeline" id="line-74"><code>	}</code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">if</span> <label for="r9" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-76"><code>		<label for="r9" class="ident">a</label>.<a href="#line-17" class="ident">dp</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-77"><code>	}</code></span>
+<span class="codeline" id="line-78"><code>}</code></span>
+<span class="codeline" id="line-79"><code></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// Assign v to a.</span></code></span>
+<span class="codeline" id="line-81"><code><span class="keyword">func</span> (<label for="r10" class="ident">a</label> *<a href="#line-14" class="ident">decimal</a>) <label for="r11" class="ident">Assign</label>(<label for="r12" class="ident">v</label> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) {</code></span>
+<span class="codeline" id="line-82"><code>	<span class="keyword">var</span> <label for="r13" class="ident">buf</label> [<span class="lit-number">24</span>]<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code>	<span class="comment">// Write reversed decimal in buf.</span></code></span>
+<span class="codeline" id="line-85"><code>	<label for="r14" class="ident">n</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-86"><code>	<span class="keyword">for</span> <label for="r12" class="ident">v</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-87"><code>		<label for="r15" class="ident">v1</label> := <label for="r12" class="ident">v</label> / <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-88"><code>		<label for="r12" class="ident">v</label> -= <span class="lit-number">10</span> * <label for="r15" class="ident">v1</label></code></span>
+<span class="codeline" id="line-89"><code>		<label for="r13" class="ident">buf</label>[<label for="r14" class="ident">n</label>] = <a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r12" class="ident">v</label> + <span class="lit-number">'0'</span>)</code></span>
+<span class="codeline" id="line-90"><code>		<label for="r14" class="ident">n</label>++</code></span>
+<span class="codeline" id="line-91"><code>		<label for="r12" class="ident">v</label> = <label for="r15" class="ident">v1</label></code></span>
+<span class="codeline" id="line-92"><code>	}</code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code>	<span class="comment">// Reverse again to produce forward decimal in a.d.</span></code></span>
+<span class="codeline" id="line-95"><code>	<label for="r10" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-96"><code>	<span class="keyword">for</span> <label for="r14" class="ident">n</label>--; <label for="r14" class="ident">n</label> &gt;= <span class="lit-number">0</span>; <label for="r14" class="ident">n</label>-- {</code></span>
+<span class="codeline" id="line-97"><code>		<label for="r10" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<label for="r10" class="ident">a</label>.<a href="#line-16" class="ident">nd</a>] = <label for="r13" class="ident">buf</label>[<label for="r14" class="ident">n</label>]</code></span>
+<span class="codeline" id="line-98"><code>		<label for="r10" class="ident">a</label>.<a href="#line-16" class="ident">nd</a>++</code></span>
+<span class="codeline" id="line-99"><code>	}</code></span>
+<span class="codeline" id="line-100"><code>	<label for="r10" class="ident">a</label>.<a href="#line-17" class="ident">dp</a> = <label for="r10" class="ident">a</label>.<a href="#line-16" class="ident">nd</a></code></span>
+<span class="codeline" id="line-101"><code>	<a href="#line-71" class="ident">trim</a>(<label for="r10" class="ident">a</label>)</code></span>
+<span class="codeline" id="line-102"><code>}</code></span>
+<span class="codeline" id="line-103"><code></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">// Maximum shift that we can do in one pass without overflow.</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// A uint has 32 or 64 bits, and we have to be able to accommodate 9&lt;&lt;k.</span></code></span>
+<span class="codeline" id="line-106"><code><span class="keyword">const</span> <a href="../../pkg/strconv.html#name-uintSize" class="ident">uintSize</a> = <span class="lit-number">32</span> &lt;&lt; (^<a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<span class="lit-number">0</span>) &gt;&gt; <span class="lit-number">63</span>)</code></span>
+<span class="codeline" id="line-107"><code><span class="keyword">const</span> <a href="../../pkg/strconv.html#name-maxShift" class="ident">maxShift</a> = <a href="#line-106" class="ident">uintSize</a> - <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-108"><code></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">// Binary shift right (/ 2) by k bits.  k &lt;= maxShift to avoid overflow.</span></code></span>
+<span class="codeline" id="line-110"><code><span class="keyword">func</span> <label for="r16" class="ident"><a href="../../pkg/strconv.html#name-rightShift" class="ident">rightShift</a></label>(<label for="r17" class="ident">a</label> *<a href="#line-14" class="ident">decimal</a>, <label for="r18" class="ident">k</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) {</code></span>
+<span class="codeline" id="line-111"><code>	<label for="r19" class="ident">r</label> := <span class="lit-number">0</span> <span class="comment">// read pointer</span></code></span>
+<span class="codeline" id="line-112"><code>	<label for="r20" class="ident">w</label> := <span class="lit-number">0</span> <span class="comment">// write pointer</span></code></span>
+<span class="codeline" id="line-113"><code></code></span>
+<span class="codeline" id="line-114"><code>	<span class="comment">// Pick up enough leading digits to cover first shift.</span></code></span>
+<span class="codeline" id="line-115"><code>	<span class="keyword">var</span> <label for="r21" class="ident">n</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a></code></span>
+<span class="codeline" id="line-116"><code>	<span class="keyword">for</span> ; <label for="r21" class="ident">n</label>&gt;&gt;<label for="r18" class="ident">k</label> == <span class="lit-number">0</span>; <label for="r19" class="ident">r</label>++ {</code></span>
+<span class="codeline" id="line-117"><code>		<span class="keyword">if</span> <label for="r19" class="ident">r</label> &gt;= <label for="r17" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> {</code></span>
+<span class="codeline" id="line-118"><code>			<span class="keyword">if</span> <label for="r21" class="ident">n</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-119"><code>				<span class="comment">// a == 0; shouldn't get here, but handle anyway.</span></code></span>
+<span class="codeline" id="line-120"><code>				<label for="r17" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-121"><code>				<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-122"><code>			}</code></span>
+<span class="codeline" id="line-123"><code>			<span class="keyword">for</span> <label for="r21" class="ident">n</label>&gt;&gt;<label for="r18" class="ident">k</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-124"><code>				<label for="r21" class="ident">n</label> = <label for="r21" class="ident">n</label> * <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-125"><code>				<label for="r19" class="ident">r</label>++</code></span>
+<span class="codeline" id="line-126"><code>			}</code></span>
+<span class="codeline" id="line-127"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-128"><code>		}</code></span>
+<span class="codeline" id="line-129"><code>		<label for="r22" class="ident">c</label> := <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<label for="r17" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<label for="r19" class="ident">r</label>])</code></span>
+<span class="codeline" id="line-130"><code>		<label for="r21" class="ident">n</label> = <label for="r21" class="ident">n</label>*<span class="lit-number">10</span> + <label for="r22" class="ident">c</label> - <span class="lit-number">'0'</span></code></span>
+<span class="codeline" id="line-131"><code>	}</code></span>
+<span class="codeline" id="line-132"><code>	<label for="r17" class="ident">a</label>.<a href="#line-17" class="ident">dp</a> -= <label for="r19" class="ident">r</label> - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-133"><code></code></span>
+<span class="codeline" id="line-134"><code>	<span class="keyword">var</span> <label for="r23" class="ident">mask</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a> = (<span class="lit-number">1</span> &lt;&lt; <label for="r18" class="ident">k</label>) - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-135"><code></code></span>
+<span class="codeline" id="line-136"><code>	<span class="comment">// Pick up a digit, put down a digit.</span></code></span>
+<span class="codeline" id="line-137"><code>	<span class="keyword">for</span> ; <label for="r19" class="ident">r</label> &lt; <label for="r17" class="ident">a</label>.<a href="#line-16" class="ident">nd</a>; <label for="r19" class="ident">r</label>++ {</code></span>
+<span class="codeline" id="line-138"><code>		<label for="r24" class="ident">c</label> := <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<label for="r17" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<label for="r19" class="ident">r</label>])</code></span>
+<span class="codeline" id="line-139"><code>		<label for="r25" class="ident">dig</label> := <label for="r21" class="ident">n</label> &gt;&gt; <label for="r18" class="ident">k</label></code></span>
+<span class="codeline" id="line-140"><code>		<label for="r21" class="ident">n</label> &amp;= <label for="r23" class="ident">mask</label></code></span>
+<span class="codeline" id="line-141"><code>		<label for="r17" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<label for="r20" class="ident">w</label>] = <a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r25" class="ident">dig</label> + <span class="lit-number">'0'</span>)</code></span>
+<span class="codeline" id="line-142"><code>		<label for="r20" class="ident">w</label>++</code></span>
+<span class="codeline" id="line-143"><code>		<label for="r21" class="ident">n</label> = <label for="r21" class="ident">n</label>*<span class="lit-number">10</span> + <label for="r24" class="ident">c</label> - <span class="lit-number">'0'</span></code></span>
+<span class="codeline" id="line-144"><code>	}</code></span>
+<span class="codeline" id="line-145"><code></code></span>
+<span class="codeline" id="line-146"><code>	<span class="comment">// Put down extra digits.</span></code></span>
+<span class="codeline" id="line-147"><code>	<span class="keyword">for</span> <label for="r21" class="ident">n</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-148"><code>		<label for="r26" class="ident">dig</label> := <label for="r21" class="ident">n</label> &gt;&gt; <label for="r18" class="ident">k</label></code></span>
+<span class="codeline" id="line-149"><code>		<label for="r21" class="ident">n</label> &amp;= <label for="r23" class="ident">mask</label></code></span>
+<span class="codeline" id="line-150"><code>		<span class="keyword">if</span> <label for="r20" class="ident">w</label> &lt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r17" class="ident">a</label>.<a href="#line-15" class="ident">d</a>) {</code></span>
+<span class="codeline" id="line-151"><code>			<label for="r17" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<label for="r20" class="ident">w</label>] = <a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r26" class="ident">dig</label> + <span class="lit-number">'0'</span>)</code></span>
+<span class="codeline" id="line-152"><code>			<label for="r20" class="ident">w</label>++</code></span>
+<span class="codeline" id="line-153"><code>		} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r26" class="ident">dig</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-154"><code>			<label for="r17" class="ident">a</label>.<a href="#line-19" class="ident">trunc</a> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-155"><code>		}</code></span>
+<span class="codeline" id="line-156"><code>		<label for="r21" class="ident">n</label> = <label for="r21" class="ident">n</label> * <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-157"><code>	}</code></span>
+<span class="codeline" id="line-158"><code></code></span>
+<span class="codeline" id="line-159"><code>	<label for="r17" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> = <label for="r20" class="ident">w</label></code></span>
+<span class="codeline" id="line-160"><code>	<a href="#line-71" class="ident">trim</a>(<label for="r17" class="ident">a</label>)</code></span>
+<span class="codeline" id="line-161"><code>}</code></span>
+<span class="codeline" id="line-162"><code></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">// Cheat sheet for left shift: table indexed by shift count giving</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">// number of new digits that will be introduced by that shift.</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">// For example, leftcheats[4] = {2, "625"}.  That means that</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">// if we are shifting by 4 (multiplying by 16), it will add 2 digits</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">// when the string prefix is "625" through "999", and one fewer digit</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">// if the string prefix is "000" through "624".</span></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-171"><code><span class="comment">// Credit for this trick goes to Ken.</span></code></span>
+<span class="codeline" id="line-172"><code></code></span>
+<span class="codeline" id="line-173"><code><span class="keyword">type</span> <a href="../../pkg/strconv.html#name-leftCheat" class="ident">leftCheat</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-174"><code>	delta  <a href="../../pkg/builtin.html#name-int" class="ident">int</a>    <span class="comment">// number of new digits</span></code></span>
+<span class="codeline" id="line-175"><code>	cutoff <a href="../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// minus one digit if original &lt; a.</span></code></span>
+<span class="codeline" id="line-176"><code>}</code></span>
+<span class="codeline" id="line-177"><code></code></span>
+<span class="codeline" id="line-178"><code><span class="keyword">var</span> <a href="../../pkg/strconv.html#name-leftcheats" class="ident">leftcheats</a> = []<a href="#line-173" class="ident">leftCheat</a>{</code></span>
+<span class="codeline" id="line-179"><code>	<span class="comment">// Leading digits of 1/2^i = 5^i.</span></code></span>
+<span class="codeline" id="line-180"><code><span class="comment">	// 5^23 is not an exact 64-bit floating point number,</span></code></span>
+<span class="codeline" id="line-181"><code><span class="comment">	// so have to use bc for the math.</span></code></span>
+<span class="codeline" id="line-182"><code><span class="comment">	// Go up to 60 to be large enough for 32bit and 64bit platforms.</span></code></span>
+<span class="codeline" id="line-183"><code><span class="comment">	/*</span></code></span>
+<span class="codeline" id="line-184"><code><span class="comment">		seq 60 | sed 's/^/5^/' | bc |</span></code></span>
+<span class="codeline" id="line-185"><code><span class="comment">		awk 'BEGIN{ print "\t{ 0, \"\" }," }</span></code></span>
+<span class="codeline" id="line-186"><code><span class="comment">		{</span></code></span>
+<span class="codeline" id="line-187"><code><span class="comment">			log2 = log(2)/log(10)</span></code></span>
+<span class="codeline" id="line-188"><code><span class="comment">			printf("\t{ %d, \"%s\" },\t// * %d\n",</span></code></span>
+<span class="codeline" id="line-189"><code><span class="comment">				int(log2*NR+1), $0, 2**NR)</span></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">		}'</span></code></span>
+<span class="codeline" id="line-191"><code><span class="comment">	*/</span></code></span>
+<span class="codeline" id="line-192"><code>	{<span class="lit-number">0</span>, <span class="lit-string">""</span>},</code></span>
+<span class="codeline" id="line-193"><code>	{<span class="lit-number">1</span>, <span class="lit-string">"5"</span>},                                           <span class="comment">// * 2</span></code></span>
+<span class="codeline" id="line-194"><code>	{<span class="lit-number">1</span>, <span class="lit-string">"25"</span>},                                          <span class="comment">// * 4</span></code></span>
+<span class="codeline" id="line-195"><code>	{<span class="lit-number">1</span>, <span class="lit-string">"125"</span>},                                         <span class="comment">// * 8</span></code></span>
+<span class="codeline" id="line-196"><code>	{<span class="lit-number">2</span>, <span class="lit-string">"625"</span>},                                         <span class="comment">// * 16</span></code></span>
+<span class="codeline" id="line-197"><code>	{<span class="lit-number">2</span>, <span class="lit-string">"3125"</span>},                                        <span class="comment">// * 32</span></code></span>
+<span class="codeline" id="line-198"><code>	{<span class="lit-number">2</span>, <span class="lit-string">"15625"</span>},                                       <span class="comment">// * 64</span></code></span>
+<span class="codeline" id="line-199"><code>	{<span class="lit-number">3</span>, <span class="lit-string">"78125"</span>},                                       <span class="comment">// * 128</span></code></span>
+<span class="codeline" id="line-200"><code>	{<span class="lit-number">3</span>, <span class="lit-string">"390625"</span>},                                      <span class="comment">// * 256</span></code></span>
+<span class="codeline" id="line-201"><code>	{<span class="lit-number">3</span>, <span class="lit-string">"1953125"</span>},                                     <span class="comment">// * 512</span></code></span>
+<span class="codeline" id="line-202"><code>	{<span class="lit-number">4</span>, <span class="lit-string">"9765625"</span>},                                     <span class="comment">// * 1024</span></code></span>
+<span class="codeline" id="line-203"><code>	{<span class="lit-number">4</span>, <span class="lit-string">"48828125"</span>},                                    <span class="comment">// * 2048</span></code></span>
+<span class="codeline" id="line-204"><code>	{<span class="lit-number">4</span>, <span class="lit-string">"244140625"</span>},                                   <span class="comment">// * 4096</span></code></span>
+<span class="codeline" id="line-205"><code>	{<span class="lit-number">4</span>, <span class="lit-string">"1220703125"</span>},                                  <span class="comment">// * 8192</span></code></span>
+<span class="codeline" id="line-206"><code>	{<span class="lit-number">5</span>, <span class="lit-string">"6103515625"</span>},                                  <span class="comment">// * 16384</span></code></span>
+<span class="codeline" id="line-207"><code>	{<span class="lit-number">5</span>, <span class="lit-string">"30517578125"</span>},                                 <span class="comment">// * 32768</span></code></span>
+<span class="codeline" id="line-208"><code>	{<span class="lit-number">5</span>, <span class="lit-string">"152587890625"</span>},                                <span class="comment">// * 65536</span></code></span>
+<span class="codeline" id="line-209"><code>	{<span class="lit-number">6</span>, <span class="lit-string">"762939453125"</span>},                                <span class="comment">// * 131072</span></code></span>
+<span class="codeline" id="line-210"><code>	{<span class="lit-number">6</span>, <span class="lit-string">"3814697265625"</span>},                               <span class="comment">// * 262144</span></code></span>
+<span class="codeline" id="line-211"><code>	{<span class="lit-number">6</span>, <span class="lit-string">"19073486328125"</span>},                              <span class="comment">// * 524288</span></code></span>
+<span class="codeline" id="line-212"><code>	{<span class="lit-number">7</span>, <span class="lit-string">"95367431640625"</span>},                              <span class="comment">// * 1048576</span></code></span>
+<span class="codeline" id="line-213"><code>	{<span class="lit-number">7</span>, <span class="lit-string">"476837158203125"</span>},                             <span class="comment">// * 2097152</span></code></span>
+<span class="codeline" id="line-214"><code>	{<span class="lit-number">7</span>, <span class="lit-string">"2384185791015625"</span>},                            <span class="comment">// * 4194304</span></code></span>
+<span class="codeline" id="line-215"><code>	{<span class="lit-number">7</span>, <span class="lit-string">"11920928955078125"</span>},                           <span class="comment">// * 8388608</span></code></span>
+<span class="codeline" id="line-216"><code>	{<span class="lit-number">8</span>, <span class="lit-string">"59604644775390625"</span>},                           <span class="comment">// * 16777216</span></code></span>
+<span class="codeline" id="line-217"><code>	{<span class="lit-number">8</span>, <span class="lit-string">"298023223876953125"</span>},                          <span class="comment">// * 33554432</span></code></span>
+<span class="codeline" id="line-218"><code>	{<span class="lit-number">8</span>, <span class="lit-string">"1490116119384765625"</span>},                         <span class="comment">// * 67108864</span></code></span>
+<span class="codeline" id="line-219"><code>	{<span class="lit-number">9</span>, <span class="lit-string">"7450580596923828125"</span>},                         <span class="comment">// * 134217728</span></code></span>
+<span class="codeline" id="line-220"><code>	{<span class="lit-number">9</span>, <span class="lit-string">"37252902984619140625"</span>},                        <span class="comment">// * 268435456</span></code></span>
+<span class="codeline" id="line-221"><code>	{<span class="lit-number">9</span>, <span class="lit-string">"186264514923095703125"</span>},                       <span class="comment">// * 536870912</span></code></span>
+<span class="codeline" id="line-222"><code>	{<span class="lit-number">10</span>, <span class="lit-string">"931322574615478515625"</span>},                      <span class="comment">// * 1073741824</span></code></span>
+<span class="codeline" id="line-223"><code>	{<span class="lit-number">10</span>, <span class="lit-string">"4656612873077392578125"</span>},                     <span class="comment">// * 2147483648</span></code></span>
+<span class="codeline" id="line-224"><code>	{<span class="lit-number">10</span>, <span class="lit-string">"23283064365386962890625"</span>},                    <span class="comment">// * 4294967296</span></code></span>
+<span class="codeline" id="line-225"><code>	{<span class="lit-number">10</span>, <span class="lit-string">"116415321826934814453125"</span>},                   <span class="comment">// * 8589934592</span></code></span>
+<span class="codeline" id="line-226"><code>	{<span class="lit-number">11</span>, <span class="lit-string">"582076609134674072265625"</span>},                   <span class="comment">// * 17179869184</span></code></span>
+<span class="codeline" id="line-227"><code>	{<span class="lit-number">11</span>, <span class="lit-string">"2910383045673370361328125"</span>},                  <span class="comment">// * 34359738368</span></code></span>
+<span class="codeline" id="line-228"><code>	{<span class="lit-number">11</span>, <span class="lit-string">"14551915228366851806640625"</span>},                 <span class="comment">// * 68719476736</span></code></span>
+<span class="codeline" id="line-229"><code>	{<span class="lit-number">12</span>, <span class="lit-string">"72759576141834259033203125"</span>},                 <span class="comment">// * 137438953472</span></code></span>
+<span class="codeline" id="line-230"><code>	{<span class="lit-number">12</span>, <span class="lit-string">"363797880709171295166015625"</span>},                <span class="comment">// * 274877906944</span></code></span>
+<span class="codeline" id="line-231"><code>	{<span class="lit-number">12</span>, <span class="lit-string">"1818989403545856475830078125"</span>},               <span class="comment">// * 549755813888</span></code></span>
+<span class="codeline" id="line-232"><code>	{<span class="lit-number">13</span>, <span class="lit-string">"9094947017729282379150390625"</span>},               <span class="comment">// * 1099511627776</span></code></span>
+<span class="codeline" id="line-233"><code>	{<span class="lit-number">13</span>, <span class="lit-string">"45474735088646411895751953125"</span>},              <span class="comment">// * 2199023255552</span></code></span>
+<span class="codeline" id="line-234"><code>	{<span class="lit-number">13</span>, <span class="lit-string">"227373675443232059478759765625"</span>},             <span class="comment">// * 4398046511104</span></code></span>
+<span class="codeline" id="line-235"><code>	{<span class="lit-number">13</span>, <span class="lit-string">"1136868377216160297393798828125"</span>},            <span class="comment">// * 8796093022208</span></code></span>
+<span class="codeline" id="line-236"><code>	{<span class="lit-number">14</span>, <span class="lit-string">"5684341886080801486968994140625"</span>},            <span class="comment">// * 17592186044416</span></code></span>
+<span class="codeline" id="line-237"><code>	{<span class="lit-number">14</span>, <span class="lit-string">"28421709430404007434844970703125"</span>},           <span class="comment">// * 35184372088832</span></code></span>
+<span class="codeline" id="line-238"><code>	{<span class="lit-number">14</span>, <span class="lit-string">"142108547152020037174224853515625"</span>},          <span class="comment">// * 70368744177664</span></code></span>
+<span class="codeline" id="line-239"><code>	{<span class="lit-number">15</span>, <span class="lit-string">"710542735760100185871124267578125"</span>},          <span class="comment">// * 140737488355328</span></code></span>
+<span class="codeline" id="line-240"><code>	{<span class="lit-number">15</span>, <span class="lit-string">"3552713678800500929355621337890625"</span>},         <span class="comment">// * 281474976710656</span></code></span>
+<span class="codeline" id="line-241"><code>	{<span class="lit-number">15</span>, <span class="lit-string">"17763568394002504646778106689453125"</span>},        <span class="comment">// * 562949953421312</span></code></span>
+<span class="codeline" id="line-242"><code>	{<span class="lit-number">16</span>, <span class="lit-string">"88817841970012523233890533447265625"</span>},        <span class="comment">// * 1125899906842624</span></code></span>
+<span class="codeline" id="line-243"><code>	{<span class="lit-number">16</span>, <span class="lit-string">"444089209850062616169452667236328125"</span>},       <span class="comment">// * 2251799813685248</span></code></span>
+<span class="codeline" id="line-244"><code>	{<span class="lit-number">16</span>, <span class="lit-string">"2220446049250313080847263336181640625"</span>},      <span class="comment">// * 4503599627370496</span></code></span>
+<span class="codeline" id="line-245"><code>	{<span class="lit-number">16</span>, <span class="lit-string">"11102230246251565404236316680908203125"</span>},     <span class="comment">// * 9007199254740992</span></code></span>
+<span class="codeline" id="line-246"><code>	{<span class="lit-number">17</span>, <span class="lit-string">"55511151231257827021181583404541015625"</span>},     <span class="comment">// * 18014398509481984</span></code></span>
+<span class="codeline" id="line-247"><code>	{<span class="lit-number">17</span>, <span class="lit-string">"277555756156289135105907917022705078125"</span>},    <span class="comment">// * 36028797018963968</span></code></span>
+<span class="codeline" id="line-248"><code>	{<span class="lit-number">17</span>, <span class="lit-string">"1387778780781445675529539585113525390625"</span>},   <span class="comment">// * 72057594037927936</span></code></span>
+<span class="codeline" id="line-249"><code>	{<span class="lit-number">18</span>, <span class="lit-string">"6938893903907228377647697925567626953125"</span>},   <span class="comment">// * 144115188075855872</span></code></span>
+<span class="codeline" id="line-250"><code>	{<span class="lit-number">18</span>, <span class="lit-string">"34694469519536141888238489627838134765625"</span>},  <span class="comment">// * 288230376151711744</span></code></span>
+<span class="codeline" id="line-251"><code>	{<span class="lit-number">18</span>, <span class="lit-string">"173472347597680709441192448139190673828125"</span>}, <span class="comment">// * 576460752303423488</span></code></span>
+<span class="codeline" id="line-252"><code>	{<span class="lit-number">19</span>, <span class="lit-string">"867361737988403547205962240695953369140625"</span>}, <span class="comment">// * 1152921504606846976</span></code></span>
+<span class="codeline" id="line-253"><code>}</code></span>
+<span class="codeline" id="line-254"><code></code></span>
+<span class="codeline" id="line-255"><code><span class="comment">// Is the leading prefix of b lexicographically less than s?</span></code></span>
+<span class="codeline" id="line-256"><code><span class="keyword">func</span> <label for="r27" class="ident"><a href="../../pkg/strconv.html#name-prefixIsLessThan" class="ident">prefixIsLessThan</a></label>(<label for="r28" class="ident">b</label> []<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r29" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-257"><code>	<span class="keyword">for</span> <label for="r30" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r30" class="ident">i</label> &lt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r29" class="ident">s</label>); <label for="r30" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-258"><code>		<span class="keyword">if</span> <label for="r30" class="ident">i</label> &gt;= <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r28" class="ident">b</label>) {</code></span>
+<span class="codeline" id="line-259"><code>			<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-260"><code>		}</code></span>
+<span class="codeline" id="line-261"><code>		<span class="keyword">if</span> <label for="r28" class="ident">b</label>[<label for="r30" class="ident">i</label>] != <label for="r29" class="ident">s</label>[<label for="r30" class="ident">i</label>] {</code></span>
+<span class="codeline" id="line-262"><code>			<span class="keyword">return</span> <label for="r28" class="ident">b</label>[<label for="r30" class="ident">i</label>] &lt; <label for="r29" class="ident">s</label>[<label for="r30" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-263"><code>		}</code></span>
+<span class="codeline" id="line-264"><code>	}</code></span>
+<span class="codeline" id="line-265"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-266"><code>}</code></span>
+<span class="codeline" id="line-267"><code></code></span>
+<span class="codeline" id="line-268"><code><span class="comment">// Binary shift left (* 2) by k bits.  k &lt;= maxShift to avoid overflow.</span></code></span>
+<span class="codeline" id="line-269"><code><span class="keyword">func</span> <label for="r31" class="ident"><a href="../../pkg/strconv.html#name-leftShift" class="ident">leftShift</a></label>(<label for="r32" class="ident">a</label> *<a href="#line-14" class="ident">decimal</a>, <label for="r33" class="ident">k</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>) {</code></span>
+<span class="codeline" id="line-270"><code>	<label for="r34" class="ident">delta</label> := <a href="#line-178" class="ident">leftcheats</a>[<label for="r33" class="ident">k</label>].<a href="#line-174" class="ident">delta</a></code></span>
+<span class="codeline" id="line-271"><code>	<span class="keyword">if</span> <a href="#line-256" class="ident">prefixIsLessThan</a>(<label for="r32" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<span class="lit-number">0</span>:<label for="r32" class="ident">a</label>.<a href="#line-16" class="ident">nd</a>], <a href="#line-178" class="ident">leftcheats</a>[<label for="r33" class="ident">k</label>].<a href="#line-175" class="ident">cutoff</a>) {</code></span>
+<span class="codeline" id="line-272"><code>		<label for="r34" class="ident">delta</label>--</code></span>
+<span class="codeline" id="line-273"><code>	}</code></span>
+<span class="codeline" id="line-274"><code></code></span>
+<span class="codeline" id="line-275"><code>	<label for="r35" class="ident">r</label> := <label for="r32" class="ident">a</label>.<a href="#line-16" class="ident">nd</a>         <span class="comment">// read index</span></code></span>
+<span class="codeline" id="line-276"><code>	<label for="r36" class="ident">w</label> := <label for="r32" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> + <label for="r34" class="ident">delta</label> <span class="comment">// write index</span></code></span>
+<span class="codeline" id="line-277"><code></code></span>
+<span class="codeline" id="line-278"><code>	<span class="comment">// Pick up a digit, put down a digit.</span></code></span>
+<span class="codeline" id="line-279"><code>	<span class="keyword">var</span> <label for="r37" class="ident">n</label> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a></code></span>
+<span class="codeline" id="line-280"><code>	<span class="keyword">for</span> <label for="r35" class="ident">r</label>--; <label for="r35" class="ident">r</label> &gt;= <span class="lit-number">0</span>; <label for="r35" class="ident">r</label>-- {</code></span>
+<span class="codeline" id="line-281"><code>		<label for="r37" class="ident">n</label> += (<a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<label for="r32" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<label for="r35" class="ident">r</label>]) - <span class="lit-number">'0'</span>) &lt;&lt; <label for="r33" class="ident">k</label></code></span>
+<span class="codeline" id="line-282"><code>		<label for="r38" class="ident">quo</label> := <label for="r37" class="ident">n</label> / <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-283"><code>		<label for="r39" class="ident">rem</label> := <label for="r37" class="ident">n</label> - <span class="lit-number">10</span>*<label for="r38" class="ident">quo</label></code></span>
+<span class="codeline" id="line-284"><code>		<label for="r36" class="ident">w</label>--</code></span>
+<span class="codeline" id="line-285"><code>		<span class="keyword">if</span> <label for="r36" class="ident">w</label> &lt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r32" class="ident">a</label>.<a href="#line-15" class="ident">d</a>) {</code></span>
+<span class="codeline" id="line-286"><code>			<label for="r32" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<label for="r36" class="ident">w</label>] = <a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r39" class="ident">rem</label> + <span class="lit-number">'0'</span>)</code></span>
+<span class="codeline" id="line-287"><code>		} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r39" class="ident">rem</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-288"><code>			<label for="r32" class="ident">a</label>.<a href="#line-19" class="ident">trunc</a> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-289"><code>		}</code></span>
+<span class="codeline" id="line-290"><code>		<label for="r37" class="ident">n</label> = <label for="r38" class="ident">quo</label></code></span>
+<span class="codeline" id="line-291"><code>	}</code></span>
+<span class="codeline" id="line-292"><code></code></span>
+<span class="codeline" id="line-293"><code>	<span class="comment">// Put down extra digits.</span></code></span>
+<span class="codeline" id="line-294"><code>	<span class="keyword">for</span> <label for="r37" class="ident">n</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-295"><code>		<label for="r40" class="ident">quo</label> := <label for="r37" class="ident">n</label> / <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-296"><code>		<label for="r41" class="ident">rem</label> := <label for="r37" class="ident">n</label> - <span class="lit-number">10</span>*<label for="r40" class="ident">quo</label></code></span>
+<span class="codeline" id="line-297"><code>		<label for="r36" class="ident">w</label>--</code></span>
+<span class="codeline" id="line-298"><code>		<span class="keyword">if</span> <label for="r36" class="ident">w</label> &lt; <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r32" class="ident">a</label>.<a href="#line-15" class="ident">d</a>) {</code></span>
+<span class="codeline" id="line-299"><code>			<label for="r32" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<label for="r36" class="ident">w</label>] = <a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r41" class="ident">rem</label> + <span class="lit-number">'0'</span>)</code></span>
+<span class="codeline" id="line-300"><code>		} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r41" class="ident">rem</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-301"><code>			<label for="r32" class="ident">a</label>.<a href="#line-19" class="ident">trunc</a> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-302"><code>		}</code></span>
+<span class="codeline" id="line-303"><code>		<label for="r37" class="ident">n</label> = <label for="r40" class="ident">quo</label></code></span>
+<span class="codeline" id="line-304"><code>	}</code></span>
+<span class="codeline" id="line-305"><code></code></span>
+<span class="codeline" id="line-306"><code>	<label for="r32" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> += <label for="r34" class="ident">delta</label></code></span>
+<span class="codeline" id="line-307"><code>	<span class="keyword">if</span> <label for="r32" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> &gt;= <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r32" class="ident">a</label>.<a href="#line-15" class="ident">d</a>) {</code></span>
+<span class="codeline" id="line-308"><code>		<label for="r32" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> = <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r32" class="ident">a</label>.<a href="#line-15" class="ident">d</a>)</code></span>
+<span class="codeline" id="line-309"><code>	}</code></span>
+<span class="codeline" id="line-310"><code>	<label for="r32" class="ident">a</label>.<a href="#line-17" class="ident">dp</a> += <label for="r34" class="ident">delta</label></code></span>
+<span class="codeline" id="line-311"><code>	<a href="#line-71" class="ident">trim</a>(<label for="r32" class="ident">a</label>)</code></span>
+<span class="codeline" id="line-312"><code>}</code></span>
+<span class="codeline" id="line-313"><code></code></span>
+<span class="codeline" id="line-314"><code><span class="comment">// Binary shift left (k &gt; 0) or right (k &lt; 0).</span></code></span>
+<span class="codeline" id="line-315"><code><span class="keyword">func</span> (<label for="r42" class="ident">a</label> *<a href="#line-14" class="ident">decimal</a>) <label for="r43" class="ident">Shift</label>(<label for="r44" class="ident">k</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-316"><code>	<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-317"><code>	<span class="keyword">case</span> <label for="r42" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> == <span class="lit-number">0</span>:</code></span>
+<span class="codeline" id="line-318"><code>		<span class="comment">// nothing to do: a == 0</span></code></span>
+<span class="codeline" id="line-319"><code>	<span class="keyword">case</span> <label for="r44" class="ident">k</label> &gt; <span class="lit-number">0</span>:</code></span>
+<span class="codeline" id="line-320"><code>		<span class="keyword">for</span> <label for="r44" class="ident">k</label> &gt; <a href="#line-107" class="ident">maxShift</a> {</code></span>
+<span class="codeline" id="line-321"><code>			<a href="#line-269" class="ident">leftShift</a>(<label for="r42" class="ident">a</label>, <a href="#line-107" class="ident">maxShift</a>)</code></span>
+<span class="codeline" id="line-322"><code>			<label for="r44" class="ident">k</label> -= <a href="#line-107" class="ident">maxShift</a></code></span>
+<span class="codeline" id="line-323"><code>		}</code></span>
+<span class="codeline" id="line-324"><code>		<a href="#line-269" class="ident">leftShift</a>(<label for="r42" class="ident">a</label>, <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(<label for="r44" class="ident">k</label>))</code></span>
+<span class="codeline" id="line-325"><code>	<span class="keyword">case</span> <label for="r44" class="ident">k</label> &lt; <span class="lit-number">0</span>:</code></span>
+<span class="codeline" id="line-326"><code>		<span class="keyword">for</span> <label for="r44" class="ident">k</label> &lt; -<a href="#line-107" class="ident">maxShift</a> {</code></span>
+<span class="codeline" id="line-327"><code>			<a href="#line-110" class="ident">rightShift</a>(<label for="r42" class="ident">a</label>, <a href="#line-107" class="ident">maxShift</a>)</code></span>
+<span class="codeline" id="line-328"><code>			<label for="r44" class="ident">k</label> += <a href="#line-107" class="ident">maxShift</a></code></span>
+<span class="codeline" id="line-329"><code>		}</code></span>
+<span class="codeline" id="line-330"><code>		<a href="#line-110" class="ident">rightShift</a>(<label for="r42" class="ident">a</label>, <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a>(-<label for="r44" class="ident">k</label>))</code></span>
+<span class="codeline" id="line-331"><code>	}</code></span>
+<span class="codeline" id="line-332"><code>}</code></span>
+<span class="codeline" id="line-333"><code></code></span>
+<span class="codeline" id="line-334"><code><span class="comment">// If we chop a at nd digits, should we round up?</span></code></span>
+<span class="codeline" id="line-335"><code><span class="keyword">func</span> <label for="r45" class="ident"><a href="../../pkg/strconv.html#name-shouldRoundUp" class="ident">shouldRoundUp</a></label>(<label for="r46" class="ident">a</label> *<a href="#line-14" class="ident">decimal</a>, <label for="r47" class="ident">nd</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-336"><code>	<span class="keyword">if</span> <label for="r47" class="ident">nd</label> &lt; <span class="lit-number">0</span> || <label for="r47" class="ident">nd</label> &gt;= <label for="r46" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> {</code></span>
+<span class="codeline" id="line-337"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-338"><code>	}</code></span>
+<span class="codeline" id="line-339"><code>	<span class="keyword">if</span> <label for="r46" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<label for="r47" class="ident">nd</label>] == <span class="lit-number">'5'</span> &amp;&amp; <label for="r47" class="ident">nd</label>+<span class="lit-number">1</span> == <label for="r46" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> { <span class="comment">// exactly halfway - round to even</span></code></span>
+<span class="codeline" id="line-340"><code>		<span class="comment">// if we truncated, a little higher than what's recorded - always round up</span></code></span>
+<span class="codeline" id="line-341"><code>		<span class="keyword">if</span> <label for="r46" class="ident">a</label>.<a href="#line-19" class="ident">trunc</a> {</code></span>
+<span class="codeline" id="line-342"><code>			<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-343"><code>		}</code></span>
+<span class="codeline" id="line-344"><code>		<span class="keyword">return</span> <label for="r47" class="ident">nd</label> &gt; <span class="lit-number">0</span> &amp;&amp; (<label for="r46" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<label for="r47" class="ident">nd</label>-<span class="lit-number">1</span>]-<span class="lit-number">'0'</span>)%<span class="lit-number">2</span> != <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-345"><code>	}</code></span>
+<span class="codeline" id="line-346"><code>	<span class="comment">// not halfway - digit tells all</span></code></span>
+<span class="codeline" id="line-347"><code>	<span class="keyword">return</span> <label for="r46" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<label for="r47" class="ident">nd</label>] &gt;= <span class="lit-number">'5'</span></code></span>
+<span class="codeline" id="line-348"><code>}</code></span>
+<span class="codeline" id="line-349"><code></code></span>
+<span class="codeline" id="line-350"><code><span class="comment">// Round a to nd digits (or fewer).</span></code></span>
+<span class="codeline" id="line-351"><code><span class="comment">// If nd is zero, it means we're rounding</span></code></span>
+<span class="codeline" id="line-352"><code><span class="comment">// just to the left of the digits, as in</span></code></span>
+<span class="codeline" id="line-353"><code><span class="comment">// 0.09 -&gt; 0.1.</span></code></span>
+<span class="codeline" id="line-354"><code><span class="keyword">func</span> (<label for="r48" class="ident">a</label> *<a href="#line-14" class="ident">decimal</a>) <label for="r49" class="ident">Round</label>(<label for="r50" class="ident">nd</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-355"><code>	<span class="keyword">if</span> <label for="r50" class="ident">nd</label> &lt; <span class="lit-number">0</span> || <label for="r50" class="ident">nd</label> &gt;= <label for="r48" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> {</code></span>
+<span class="codeline" id="line-356"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-357"><code>	}</code></span>
+<span class="codeline" id="line-358"><code>	<span class="keyword">if</span> <a href="#line-335" class="ident">shouldRoundUp</a>(<label for="r48" class="ident">a</label>, <label for="r50" class="ident">nd</label>) {</code></span>
+<span class="codeline" id="line-359"><code>		<label for="r48" class="ident">a</label>.<a href="#line-375" class="ident">RoundUp</a>(<label for="r50" class="ident">nd</label>)</code></span>
+<span class="codeline" id="line-360"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-361"><code>		<label for="r48" class="ident">a</label>.<a href="#line-366" class="ident">RoundDown</a>(<label for="r50" class="ident">nd</label>)</code></span>
+<span class="codeline" id="line-362"><code>	}</code></span>
+<span class="codeline" id="line-363"><code>}</code></span>
+<span class="codeline" id="line-364"><code></code></span>
+<span class="codeline" id="line-365"><code><span class="comment">// Round a down to nd digits (or fewer).</span></code></span>
+<span class="codeline" id="line-366"><code><span class="keyword">func</span> (<label for="r51" class="ident">a</label> *<a href="#line-14" class="ident">decimal</a>) <label for="r52" class="ident">RoundDown</label>(<label for="r53" class="ident">nd</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-367"><code>	<span class="keyword">if</span> <label for="r53" class="ident">nd</label> &lt; <span class="lit-number">0</span> || <label for="r53" class="ident">nd</label> &gt;= <label for="r51" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> {</code></span>
+<span class="codeline" id="line-368"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-369"><code>	}</code></span>
+<span class="codeline" id="line-370"><code>	<label for="r51" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> = <label for="r53" class="ident">nd</label></code></span>
+<span class="codeline" id="line-371"><code>	<a href="#line-71" class="ident">trim</a>(<label for="r51" class="ident">a</label>)</code></span>
+<span class="codeline" id="line-372"><code>}</code></span>
+<span class="codeline" id="line-373"><code></code></span>
+<span class="codeline" id="line-374"><code><span class="comment">// Round a up to nd digits (or fewer).</span></code></span>
+<span class="codeline" id="line-375"><code><span class="keyword">func</span> (<label for="r54" class="ident">a</label> *<a href="#line-14" class="ident">decimal</a>) <label for="r55" class="ident">RoundUp</label>(<label for="r56" class="ident">nd</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-376"><code>	<span class="keyword">if</span> <label for="r56" class="ident">nd</label> &lt; <span class="lit-number">0</span> || <label for="r56" class="ident">nd</label> &gt;= <label for="r54" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> {</code></span>
+<span class="codeline" id="line-377"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-378"><code>	}</code></span>
+<span class="codeline" id="line-379"><code></code></span>
+<span class="codeline" id="line-380"><code>	<span class="comment">// round up</span></code></span>
+<span class="codeline" id="line-381"><code>	<span class="keyword">for</span> <label for="r57" class="ident">i</label> := <label for="r56" class="ident">nd</label> - <span class="lit-number">1</span>; <label for="r57" class="ident">i</label> &gt;= <span class="lit-number">0</span>; <label for="r57" class="ident">i</label>-- {</code></span>
+<span class="codeline" id="line-382"><code>		<label for="r58" class="ident">c</label> := <label for="r54" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<label for="r57" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-383"><code>		<span class="keyword">if</span> <label for="r58" class="ident">c</label> &lt; <span class="lit-number">'9'</span> { <span class="comment">// can stop after this digit</span></code></span>
+<span class="codeline" id="line-384"><code>			<label for="r54" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<label for="r57" class="ident">i</label>]++</code></span>
+<span class="codeline" id="line-385"><code>			<label for="r54" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> = <label for="r57" class="ident">i</label> + <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-386"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-387"><code>		}</code></span>
+<span class="codeline" id="line-388"><code>	}</code></span>
+<span class="codeline" id="line-389"><code></code></span>
+<span class="codeline" id="line-390"><code>	<span class="comment">// Number is all 9s.</span></code></span>
+<span class="codeline" id="line-391"><code><span class="comment">	// Change to single 1 with adjusted decimal point.</span></code></span>
+<span class="codeline" id="line-392"><code>	<label for="r54" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<span class="lit-number">0</span>] = <span class="lit-number">'1'</span></code></span>
+<span class="codeline" id="line-393"><code>	<label for="r54" class="ident">a</label>.<a href="#line-16" class="ident">nd</a> = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-394"><code>	<label for="r54" class="ident">a</label>.<a href="#line-17" class="ident">dp</a>++</code></span>
+<span class="codeline" id="line-395"><code>}</code></span>
+<span class="codeline" id="line-396"><code></code></span>
+<span class="codeline" id="line-397"><code><span class="comment">// Extract integer part, rounded appropriately.</span></code></span>
+<span class="codeline" id="line-398"><code><span class="comment">// No guarantees about overflow.</span></code></span>
+<span class="codeline" id="line-399"><code><span class="keyword">func</span> (<label for="r59" class="ident">a</label> *<a href="#line-14" class="ident">decimal</a>) <label for="r60" class="ident">RoundedInteger</label>() <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> {</code></span>
+<span class="codeline" id="line-400"><code>	<span class="keyword">if</span> <label for="r59" class="ident">a</label>.<a href="#line-17" class="ident">dp</a> &gt; <span class="lit-number">20</span> {</code></span>
+<span class="codeline" id="line-401"><code>		<span class="keyword">return</span> <span class="lit-number">0xFFFFFFFFFFFFFFFF</span></code></span>
+<span class="codeline" id="line-402"><code>	}</code></span>
+<span class="codeline" id="line-403"><code>	<span class="keyword">var</span> <label for="r61" class="ident">i</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-404"><code>	<label for="r62" class="ident">n</label> := <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-405"><code>	<span class="keyword">for</span> <label for="r61" class="ident">i</label> = <span class="lit-number">0</span>; <label for="r61" class="ident">i</label> &lt; <label for="r59" class="ident">a</label>.<a href="#line-17" class="ident">dp</a> &amp;&amp; <label for="r61" class="ident">i</label> &lt; <label for="r59" class="ident">a</label>.<a href="#line-16" class="ident">nd</a>; <label for="r61" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-406"><code>		<label for="r62" class="ident">n</label> = <label for="r62" class="ident">n</label>*<span class="lit-number">10</span> + <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r59" class="ident">a</label>.<a href="#line-15" class="ident">d</a>[<label for="r61" class="ident">i</label>]-<span class="lit-number">'0'</span>)</code></span>
+<span class="codeline" id="line-407"><code>	}</code></span>
+<span class="codeline" id="line-408"><code>	<span class="keyword">for</span> ; <label for="r61" class="ident">i</label> &lt; <label for="r59" class="ident">a</label>.<a href="#line-17" class="ident">dp</a>; <label for="r61" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-409"><code>		<label for="r62" class="ident">n</label> *= <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-410"><code>	}</code></span>
+<span class="codeline" id="line-411"><code>	<span class="keyword">if</span> <a href="#line-335" class="ident">shouldRoundUp</a>(<label for="r59" class="ident">a</label>, <label for="r59" class="ident">a</label>.<a href="#line-17" class="ident">dp</a>) {</code></span>
+<span class="codeline" id="line-412"><code>		<label for="r62" class="ident">n</label>++</code></span>
+<span class="codeline" id="line-413"><code>	}</code></span>
+<span class="codeline" id="line-414"><code>	<span class="keyword">return</span> <label for="r62" class="ident">n</label></code></span>
+<span class="codeline" id="line-415"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: pipe_linux.go in package os</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	pipe_linux.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/os.html">os</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2013 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> os</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"syscall"</span></label></code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// Pipe returns a connected pair of Files; reads from r return bytes written to w.</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// It returns the files and an error, if any.</span></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/os.html#name-Pipe" class="ident">Pipe</a></label>() (<label for="r1" class="ident">r</label> *<a href="types.go.html#line-16" class="ident">File</a>, <label for="r2" class="ident">w</label> *<a href="types.go.html#line-16" class="ident">File</a>, <label for="r3" class="ident">err</label> <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-12"><code>	<span class="keyword">var</span> <label for="r4" class="ident">p</label> [<span class="lit-number">2</span>]<a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code>	<label for="r5" class="ident">e</label> := <a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/syscall_linux_amd64.go.html#line-128" class="ident">Pipe2</a>(<label for="r4" class="ident">p</label>[<span class="lit-number">0</span>:], <a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-647" class="ident">O_CLOEXEC</a>)</code></span>
+<span class="codeline" id="line-15"><code>	<span class="comment">// pipe2 was added in 2.6.27 and our minimum requirement is 2.6.23, so it</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">	// might not be implemented.</span></code></span>
+<span class="codeline" id="line-17"><code>	<span class="keyword">if</span> <label for="r5" class="ident">e</label> == <a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1294" class="ident">ENOSYS</a> {</code></span>
+<span class="codeline" id="line-18"><code>		<span class="comment">// See ../syscall/exec.go for description of lock.</span></code></span>
+<span class="codeline" id="line-19"><code>		<a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/exec_unix.go.html#line-66" class="ident">ForkLock</a>.<a href="../sync/rwmutex.go.html#line-56" class="ident">RLock</a>()</code></span>
+<span class="codeline" id="line-20"><code>		<label for="r5" class="ident">e</label> = <a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/syscall_linux_amd64.go.html#line-115" class="ident">Pipe</a>(<label for="r4" class="ident">p</label>[<span class="lit-number">0</span>:])</code></span>
+<span class="codeline" id="line-21"><code>		<span class="keyword">if</span> <label for="r5" class="ident">e</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-22"><code>			<a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/exec_unix.go.html#line-66" class="ident">ForkLock</a>.<a href="../sync/rwmutex.go.html#line-75" class="ident">RUnlock</a>()</code></span>
+<span class="codeline" id="line-23"><code>			<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="error.go.html#line-69" class="ident">NewSyscallError</a>(<span class="lit-string">"pipe"</span>, <label for="r5" class="ident">e</label>)</code></span>
+<span class="codeline" id="line-24"><code>		}</code></span>
+<span class="codeline" id="line-25"><code>		<a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/exec_unix.go.html#line-104" class="ident">CloseOnExec</a>(<label for="r4" class="ident">p</label>[<span class="lit-number">0</span>])</code></span>
+<span class="codeline" id="line-26"><code>		<a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/exec_unix.go.html#line-104" class="ident">CloseOnExec</a>(<label for="r4" class="ident">p</label>[<span class="lit-number">1</span>])</code></span>
+<span class="codeline" id="line-27"><code>		<a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/exec_unix.go.html#line-66" class="ident">ForkLock</a>.<a href="../sync/rwmutex.go.html#line-75" class="ident">RUnlock</a>()</code></span>
+<span class="codeline" id="line-28"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r5" class="ident">e</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-29"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="error.go.html#line-69" class="ident">NewSyscallError</a>(<span class="lit-string">"pipe2"</span>, <label for="r5" class="ident">e</label>)</code></span>
+<span class="codeline" id="line-30"><code>	}</code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code>	<span class="keyword">return</span> <a href="file_unix.go.html#line-122" class="ident">newFile</a>(<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r4" class="ident">p</label>[<span class="lit-number">0</span>]), <span class="lit-string">"|0"</span>, <a href="file_unix.go.html#line-115" class="ident">kindPipe</a>), <a href="file_unix.go.html#line-122" class="ident">newFile</a>(<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r4" class="ident">p</label>[<span class="lit-number">1</span>]), <span class="lit-string">"|1"</span>, <a href="file_unix.go.html#line-115" class="ident">kindPipe</a>), <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-33"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

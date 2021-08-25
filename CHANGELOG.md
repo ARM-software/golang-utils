@@ -14,4 +14,26 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.0.0" (2021-08-25)"1.0.0" (2021-08-25)
+====================
+
+Major changes
+-------------
+
+- Initial Release (#202108121209)
+- Changed imports to `ARM-software` organisation (#202108121238)
+
+
+Improved Documentation
+----------------------
+
+- Added guides (#202108121209)
+- Added Licence headers (#202108121730)
+
+
+Misc
+----
+
+- #202108131530, #202108231725
+
 

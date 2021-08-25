@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: sql.go in package github.com/gofrs/uuid</title>
+<link href="../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	sql.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/github.com/gofrs/uuid.html">github.com/gofrs/uuid</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright (C) 2013-2018 by Maxim Bublis &lt;b@codemonkey.ru&gt;</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// Permission is hereby granted, free of charge, to any person obtaining</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment">// a copy of this software and associated documentation files (the</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// "Software"), to deal in the Software without restriction, including</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// without limitation the rights to use, copy, modify, merge, publish,</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// distribute, sublicense, and/or sell copies of the Software, and to</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// permit persons to whom the Software is furnished to do so, subject to</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// the following conditions:</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// The above copyright notice and this permission notice shall be</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// included in all copies or substantial portions of the Software.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</span></code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">package</span> uuid</code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-25"><code>	<label for="i0"><span class="lit-string i0">"bytes"</span></label></code></span>
+<span class="codeline" id="line-26"><code>	<label for="i1"><span class="lit-string i1">"database/sql/driver"</span></label></code></span>
+<span class="codeline" id="line-27"><code>	<label for="i2"><span class="lit-string i2">"encoding/json"</span></label></code></span>
+<span class="codeline" id="line-28"><code>	<label for="i3"><span class="lit-string i3">"fmt"</span></label></code></span>
+<span class="codeline" id="line-29"><code>)</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// Value implements the driver.Valuer interface.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="keyword">func</span> (<label for="r0" class="ident">u</label> <a href="uuid.go.html#line-45" class="ident">UUID</a>) <label for="r1" class="ident"><a href="../../../../imp/github.com/gofrs/uuid.UUID.html#name-.Value" class="ident">Value</a></label>() (<a href="../../../../pkg/database/sql/driver.html" class="ident i1">driver</a>.<a href="../../../database/sql/driver/driver.go.html#line-61" class="ident">Value</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-33"><code>	<span class="keyword">return</span> <label for="r0" class="ident">u</label>.<a href="uuid.go.html#line-145" class="ident">String</a>(), <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-34"><code>}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">// Scan implements the sql.Scanner interface.</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// A 16-byte slice will be handled by UnmarshalBinary, while</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">// a longer byte slice or a string will be handled by UnmarshalText.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="keyword">func</span> (<label for="r2" class="ident">u</label> *<a href="uuid.go.html#line-45" class="ident">UUID</a>) <label for="r3" class="ident">Scan</label>(<label for="r4" class="ident">src</label> <span class="keyword">interface</span>{}) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-40"><code>	<span class="keyword">switch</span> src := <label for="r4" class="ident">src</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-41"><code>	<span class="keyword">case</span> <a href="uuid.go.html#line-45" class="ident">UUID</a>: <span class="comment">// support gorm convert from UUID to NullUUID</span></code></span>
+<span class="codeline" id="line-42"><code>		*<label for="r2" class="ident">u</label> = <label for="r5" class="ident">src</label></code></span>
+<span class="codeline" id="line-43"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">case</span> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>:</code></span>
+<span class="codeline" id="line-46"><code>		<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">src</label>) == <a href="uuid.go.html#line-42" class="ident">Size</a> {</code></span>
+<span class="codeline" id="line-47"><code>			<span class="keyword">return</span> <label for="r2" class="ident">u</label>.<a href="codec.go.html#line-205" class="ident">UnmarshalBinary</a>(<label for="r6" class="ident">src</label>)</code></span>
+<span class="codeline" id="line-48"><code>		}</code></span>
+<span class="codeline" id="line-49"><code>		<span class="keyword">return</span> <label for="r2" class="ident">u</label>.<a href="codec.go.html#line-106" class="ident">UnmarshalText</a>(<label for="r6" class="ident">src</label>)</code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code>	<span class="keyword">case</span> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>:</code></span>
+<span class="codeline" id="line-52"><code>		<span class="keyword">return</span> <label for="r2" class="ident">u</label>.<a href="codec.go.html#line-106" class="ident">UnmarshalText</a>([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<label for="r7" class="ident">src</label>))</code></span>
+<span class="codeline" id="line-53"><code>	}</code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code>	<span class="keyword">return</span> <a href="../../../../pkg/fmt.html" class="ident i3">fmt</a>.<a href="../../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"uuid: cannot convert %T to UUID"</span>, <label for="r4" class="ident">src</label>)</code></span>
+<span class="codeline" id="line-56"><code>}</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// NullUUID can be used with the standard sql package to represent a</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">// UUID value that can be NULL in the database.</span></code></span>
+<span class="codeline" id="line-60"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/gofrs/uuid.html#name-NullUUID" class="ident">NullUUID</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-61"><code>	UUID  <a href="uuid.go.html#line-45" class="ident">UUID</a></code></span>
+<span class="codeline" id="line-62"><code>	Valid <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-63"><code>}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// Value implements the driver.Valuer interface.</span></code></span>
+<span class="codeline" id="line-66"><code><span class="keyword">func</span> (<label for="r8" class="ident">u</label> <a href="#line-60" class="ident">NullUUID</a>) <label for="r9" class="ident"><a href="../../../../imp/github.com/gofrs/uuid.NullUUID.html#name-.Value" class="ident">Value</a></label>() (<a href="../../../../pkg/database/sql/driver.html" class="ident i1">driver</a>.<a href="../../../database/sql/driver/driver.go.html#line-61" class="ident">Value</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">if</span> !<label for="r8" class="ident">u</label>.<a href="#line-62" class="ident">Valid</a> {</code></span>
+<span class="codeline" id="line-68"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-69"><code>	}</code></span>
+<span class="codeline" id="line-70"><code>	<span class="comment">// Delegate to UUID Value function</span></code></span>
+<span class="codeline" id="line-71"><code>	<span class="keyword">return</span> <label for="r8" class="ident">u</label>.<a href="#line-61" class="ident">UUID</a>.<a href="#line-32" class="ident">Value</a>()</code></span>
+<span class="codeline" id="line-72"><code>}</code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// Scan implements the sql.Scanner interface.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="keyword">func</span> (<label for="r10" class="ident">u</label> *<a href="#line-60" class="ident">NullUUID</a>) <label for="r11" class="ident">Scan</label>(<label for="r12" class="ident">src</label> <span class="keyword">interface</span>{}) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">if</span> <label for="r12" class="ident">src</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-77"><code>		<label for="r10" class="ident">u</label>.<a href="#line-61" class="ident">UUID</a>, <label for="r10" class="ident">u</label>.<a href="#line-62" class="ident">Valid</a> = <a href="uuid.go.html#line-107" class="ident">Nil</a>, <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-78"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-79"><code>	}</code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code>	<span class="comment">// Delegate to UUID Scan function</span></code></span>
+<span class="codeline" id="line-82"><code>	<label for="r10" class="ident">u</label>.<a href="#line-62" class="ident">Valid</a> = <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-83"><code>	<span class="keyword">return</span> <label for="r10" class="ident">u</label>.<a href="#line-61" class="ident">UUID</a>.<a href="#line-39" class="ident">Scan</a>(<label for="r12" class="ident">src</label>)</code></span>
+<span class="codeline" id="line-84"><code>}</code></span>
+<span class="codeline" id="line-85"><code></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">// MarshalJSON marshals the NullUUID as null or the nested UUID</span></code></span>
+<span class="codeline" id="line-87"><code><span class="keyword">func</span> (<label for="r13" class="ident">u</label> <a href="#line-60" class="ident">NullUUID</a>) <label for="r14" class="ident"><a href="../../../../imp/github.com/gofrs/uuid.NullUUID.html#name-.MarshalJSON" class="ident">MarshalJSON</a></label>() ([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-88"><code>	<span class="keyword">if</span> !<label for="r13" class="ident">u</label>.<a href="#line-62" class="ident">Valid</a> {</code></span>
+<span class="codeline" id="line-89"><code>		<span class="keyword">return</span> <a href="../../../../pkg/encoding/json.html" class="ident i2">json</a>.<a href="../../../encoding/json/encode.go.html#line-158" class="ident">Marshal</a>(<a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-90"><code>	}</code></span>
+<span class="codeline" id="line-91"><code></code></span>
+<span class="codeline" id="line-92"><code>	<span class="keyword">return</span> <a href="../../../../pkg/encoding/json.html" class="ident i2">json</a>.<a href="../../../encoding/json/encode.go.html#line-158" class="ident">Marshal</a>(<label for="r13" class="ident">u</label>.<a href="#line-61" class="ident">UUID</a>)</code></span>
+<span class="codeline" id="line-93"><code>}</code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">// UnmarshalJSON unmarshals a NullUUID</span></code></span>
+<span class="codeline" id="line-96"><code><span class="keyword">func</span> (<label for="r15" class="ident">u</label> *<a href="#line-60" class="ident">NullUUID</a>) <label for="r16" class="ident"><a href="../../../../imp/github.com/gofrs/uuid.NullUUID.html#name-.UnmarshalJSON" class="ident">UnmarshalJSON</a></label>(<label for="r17" class="ident">b</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-97"><code>	<span class="keyword">if</span> <a href="../../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../../bytes/bytes.go.html#line-18" class="ident">Equal</a>(<label for="r17" class="ident">b</label>, []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>(<span class="lit-string">"null"</span>)) {</code></span>
+<span class="codeline" id="line-98"><code>		<label for="r15" class="ident">u</label>.<a href="#line-61" class="ident">UUID</a>, <label for="r15" class="ident">u</label>.<a href="#line-62" class="ident">Valid</a> = <a href="uuid.go.html#line-107" class="ident">Nil</a>, <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-99"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-100"><code>	}</code></span>
+<span class="codeline" id="line-101"><code></code></span>
+<span class="codeline" id="line-102"><code>	<span class="keyword">if</span> <label for="r18" class="ident">err</label> := <a href="../../../../pkg/encoding/json.html" class="ident i2">json</a>.<a href="../../../encoding/json/decode.go.html#line-96" class="ident">Unmarshal</a>(<label for="r17" class="ident">b</label>, &amp;<label for="r15" class="ident">u</label>.<a href="#line-61" class="ident">UUID</a>); <label for="r18" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-103"><code>		<span class="keyword">return</span> <label for="r18" class="ident">err</label></code></span>
+<span class="codeline" id="line-104"><code>	}</code></span>
+<span class="codeline" id="line-105"><code></code></span>
+<span class="codeline" id="line-106"><code>	<label for="r15" class="ident">u</label>.<a href="#line-62" class="ident">Valid</a> = <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-107"><code></code></span>
+<span class="codeline" id="line-108"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-109"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

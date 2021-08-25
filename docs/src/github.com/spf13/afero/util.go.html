@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: util.go in package github.com/spf13/afero</title>
+<link href="../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	util.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/github.com/spf13/afero.html">github.com/spf13/afero</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104],
+input[id=r105]:checked ~pre label[for=r105],
+input[id=r106]:checked ~pre label[for=r106],
+input[id=r107]:checked ~pre label[for=r107],
+input[id=r108]:checked ~pre label[for=r108],
+input[id=r109]:checked ~pre label[for=r109],
+input[id=r110]:checked ~pre label[for=r110],
+input[id=r111]:checked ~pre label[for=r111],
+input[id=r112]:checked ~pre label[for=r112],
+input[id=r113]:checked ~pre label[for=r113],
+input[id=r114]:checked ~pre label[for=r114],
+input[id=r115]:checked ~pre label[for=r115],
+input[id=r116]:checked ~pre label[for=r116],
+input[id=r117]:checked ~pre label[for=r117],
+input[id=r118]:checked ~pre label[for=r118],
+input[id=r119]:checked ~pre label[for=r119],
+input[id=r120]:checked ~pre label[for=r120],
+input[id=r121]:checked ~pre label[for=r121],
+input[id=r122]:checked ~pre label[for=r122],
+input[id=r123]:checked ~pre label[for=r123],
+input[id=r124]:checked ~pre label[for=r124],
+input[id=r125]:checked ~pre label[for=r125],
+input[id=r126]:checked ~pre label[for=r126],
+input[id=r127]:checked ~pre label[for=r127],
+input[id=r128]:checked ~pre label[for=r128],
+input[id=r129]:checked ~pre label[for=r129],
+input[id=r130]:checked ~pre label[for=r130],
+input[id=r131]:checked ~pre label[for=r131]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7,
+input[id=i8]:checked ~pre .i8
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="r105" type="radio" name="g"/>
+<input id="r106" type="radio" name="g"/>
+<input id="r107" type="radio" name="g"/>
+<input id="r108" type="radio" name="g"/>
+<input id="r109" type="radio" name="g"/>
+<input id="r110" type="radio" name="g"/>
+<input id="r111" type="radio" name="g"/>
+<input id="r112" type="radio" name="g"/>
+<input id="r113" type="radio" name="g"/>
+<input id="r114" type="radio" name="g"/>
+<input id="r115" type="radio" name="g"/>
+<input id="r116" type="radio" name="g"/>
+<input id="r117" type="radio" name="g"/>
+<input id="r118" type="radio" name="g"/>
+<input id="r119" type="radio" name="g"/>
+<input id="r120" type="radio" name="g"/>
+<input id="r121" type="radio" name="g"/>
+<input id="r122" type="radio" name="g"/>
+<input id="r123" type="radio" name="g"/>
+<input id="r124" type="radio" name="g"/>
+<input id="r125" type="radio" name="g"/>
+<input id="r126" type="radio" name="g"/>
+<input id="r127" type="radio" name="g"/>
+<input id="r128" type="radio" name="g"/>
+<input id="r129" type="radio" name="g"/>
+<input id="r130" type="radio" name="g"/>
+<input id="r131" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+<input id="i8" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright ©2015 Steve Francia &lt;spf@spf13.com&gt;</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Portions Copyright ©2015 The Hugo Authors</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// Portions Copyright 2016-present Bjørn Erik Pedersen &lt;bjorn.erik.pedersen@gmail.com&gt;</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// Licensed under the Apache License, Version 2.0 (the "License");</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// you may not use this file except in compliance with the License.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// You may obtain a copy of the License at</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">//     http://www.apache.org/licenses/LICENSE-2.0</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// Unless required by applicable law or agreed to in writing, software</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// distributed under the License is distributed on an "AS IS" BASIS,</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// See the License for the specific language governing permissions and</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// limitations under the License.</span></code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">package</span> afero</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-20"><code>	<label for="i0"><span class="lit-string i0">"bytes"</span></label></code></span>
+<span class="codeline" id="line-21"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-22"><code>	<label for="i2"><span class="lit-string i2">"io"</span></label></code></span>
+<span class="codeline" id="line-23"><code>	<label for="i3"><span class="lit-string i3">"os"</span></label></code></span>
+<span class="codeline" id="line-24"><code>	<label for="i4"><span class="lit-string i4">"path/filepath"</span></label></code></span>
+<span class="codeline" id="line-25"><code>	<label for="i5"><span class="lit-string i5">"strings"</span></label></code></span>
+<span class="codeline" id="line-26"><code>	<label for="i6"><span class="lit-string i6">"unicode"</span></label></code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code>	<label for="i7"><span class="lit-string i7">"golang.org/x/text/transform"</span></label></code></span>
+<span class="codeline" id="line-29"><code>	<label for="i8"><span class="lit-string i8">"golang.org/x/text/unicode/norm"</span></label></code></span>
+<span class="codeline" id="line-30"><code>)</code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// Filepath separator defined by os.Separator.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">const</span> <a href="../../../../pkg/github.com/spf13/afero.html#name-FilePathSeparator" class="ident">FilePathSeparator</a> = <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>(<a href="../../../../pkg/path/filepath.html" class="ident i4">filepath</a>.<a href="../../../path/filepath/path.go.html#line-62" class="ident">Separator</a>)</code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// Takes a reader and a path and writes the content</span></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">func</span> (<label for="r0" class="ident">a</label> <a href="afero.go.html#line-32" class="ident">Afero</a>) <label for="r1" class="ident">WriteReader</label>(<label for="r2" class="ident">path</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r3" class="ident">r</label> <a href="../../../../pkg/io.html" class="ident i2">io</a>.<a href="../../../io/io.go.html#line-83" class="ident">Reader</a>) (<label for="r4" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-37"><code>	<span class="keyword">return</span> <a href="#line-40" class="ident">WriteReader</a>(<label for="r0" class="ident">a</label>.<a href="afero.go.html#line-33" class="ident">Fs</a>, <label for="r2" class="ident">path</label>, <label for="r3" class="ident">r</label>)</code></span>
+<span class="codeline" id="line-38"><code>}</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../../../pkg/github.com/spf13/afero.html#name-WriteReader" class="ident">WriteReader</a></label>(<label for="r6" class="ident">fs</label> <a href="afero.go.html#line-57" class="ident">Fs</a>, <label for="r7" class="ident">path</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r8" class="ident">r</label> <a href="../../../../pkg/io.html" class="ident i2">io</a>.<a href="../../../io/io.go.html#line-83" class="ident">Reader</a>) (<label for="r9" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-41"><code>	<label for="r10" class="ident">dir</label>, <label for="r11" class="ident">_</label> := <a href="../../../../pkg/path/filepath.html" class="ident i4">filepath</a>.<a href="../../../path/filepath/path.go.html#line-196" class="ident">Split</a>(<label for="r7" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-42"><code>	<label for="r12" class="ident">ospath</label> := <a href="../../../../pkg/path/filepath.html" class="ident i4">filepath</a>.<a href="../../../path/filepath/path.go.html#line-176" class="ident">FromSlash</a>(<label for="r10" class="ident">dir</label>)</code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code>	<span class="keyword">if</span> <label for="r12" class="ident">ospath</label> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-45"><code>		<label for="r9" class="ident">err</label> = <label for="r6" class="ident">fs</label>.<a href="afero.go.html#line-68" class="ident">MkdirAll</a>(<label for="r12" class="ident">ospath</label>, <span class="lit-number">0777</span>) <span class="comment">// rwx, rw, r</span></code></span>
+<span class="codeline" id="line-46"><code>		<span class="keyword">if</span> <label for="r9" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-47"><code>			<span class="keyword">if</span> <label for="r9" class="ident">err</label> != <a href="../../../../pkg/os.html" class="ident i3">os</a>.<a href="../../../os/error.go.html#line-23" class="ident">ErrExist</a> {</code></span>
+<span class="codeline" id="line-48"><code>				<span class="keyword">return</span> <label for="r9" class="ident">err</label></code></span>
+<span class="codeline" id="line-49"><code>			}</code></span>
+<span class="codeline" id="line-50"><code>		}</code></span>
+<span class="codeline" id="line-51"><code>	}</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code>	<label for="r13" class="ident">file</label>, <label for="r9" class="ident">err</label> := <label for="r6" class="ident">fs</label>.<a href="afero.go.html#line-60" class="ident">Create</a>(<label for="r7" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-54"><code>	<span class="keyword">if</span> <label for="r9" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-55"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-56"><code>	}</code></span>
+<span class="codeline" id="line-57"><code>	<span class="keyword">defer</span> <label for="r13" class="ident">file</label>.<a href="../../../io/io.go.html#line-105" class="ident">Close</a>()</code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code>	_, <label for="r9" class="ident">err</label> = <a href="../../../../pkg/io.html" class="ident i2">io</a>.<a href="../../../io/io.go.html#line-381" class="ident">Copy</a>(<label for="r13" class="ident">file</label>, <label for="r8" class="ident">r</label>)</code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-61"><code>}</code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// Same as WriteReader but checks to see if file/directory already exists.</span></code></span>
+<span class="codeline" id="line-64"><code><span class="keyword">func</span> (<label for="r14" class="ident">a</label> <a href="afero.go.html#line-32" class="ident">Afero</a>) <label for="r15" class="ident">SafeWriteReader</label>(<label for="r16" class="ident">path</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r17" class="ident">r</label> <a href="../../../../pkg/io.html" class="ident i2">io</a>.<a href="../../../io/io.go.html#line-83" class="ident">Reader</a>) (<label for="r18" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-65"><code>	<span class="keyword">return</span> <a href="#line-68" class="ident">SafeWriteReader</a>(<label for="r14" class="ident">a</label>.<a href="afero.go.html#line-33" class="ident">Fs</a>, <label for="r16" class="ident">path</label>, <label for="r17" class="ident">r</label>)</code></span>
+<span class="codeline" id="line-66"><code>}</code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code><span class="keyword">func</span> <label for="r19" class="ident"><a href="../../../../pkg/github.com/spf13/afero.html#name-SafeWriteReader" class="ident">SafeWriteReader</a></label>(<label for="r20" class="ident">fs</label> <a href="afero.go.html#line-57" class="ident">Fs</a>, <label for="r21" class="ident">path</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r22" class="ident">r</label> <a href="../../../../pkg/io.html" class="ident i2">io</a>.<a href="../../../io/io.go.html#line-83" class="ident">Reader</a>) (<label for="r23" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-69"><code>	<label for="r24" class="ident">dir</label>, <label for="r25" class="ident">_</label> := <a href="../../../../pkg/path/filepath.html" class="ident i4">filepath</a>.<a href="../../../path/filepath/path.go.html#line-196" class="ident">Split</a>(<label for="r21" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-70"><code>	<label for="r26" class="ident">ospath</label> := <a href="../../../../pkg/path/filepath.html" class="ident i4">filepath</a>.<a href="../../../path/filepath/path.go.html#line-176" class="ident">FromSlash</a>(<label for="r24" class="ident">dir</label>)</code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code>	<span class="keyword">if</span> <label for="r26" class="ident">ospath</label> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-73"><code>		<label for="r23" class="ident">err</label> = <label for="r20" class="ident">fs</label>.<a href="afero.go.html#line-68" class="ident">MkdirAll</a>(<label for="r26" class="ident">ospath</label>, <span class="lit-number">0777</span>) <span class="comment">// rwx, rw, r</span></code></span>
+<span class="codeline" id="line-74"><code>		<span class="keyword">if</span> <label for="r23" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-75"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-76"><code>		}</code></span>
+<span class="codeline" id="line-77"><code>	}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code>	<label for="r27" class="ident">exists</label>, <label for="r23" class="ident">err</label> := <a href="#line-312" class="ident">Exists</a>(<label for="r20" class="ident">fs</label>, <label for="r21" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-80"><code>	<span class="keyword">if</span> <label for="r23" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-81"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-82"><code>	}</code></span>
+<span class="codeline" id="line-83"><code>	<span class="keyword">if</span> <label for="r27" class="ident">exists</label> {</code></span>
+<span class="codeline" id="line-84"><code>		<span class="keyword">return</span> <a href="../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"%v already exists"</span>, <label for="r21" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-85"><code>	}</code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code>	<label for="r28" class="ident">file</label>, <label for="r23" class="ident">err</label> := <label for="r20" class="ident">fs</label>.<a href="afero.go.html#line-60" class="ident">Create</a>(<label for="r21" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-88"><code>	<span class="keyword">if</span> <label for="r23" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-89"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-90"><code>	}</code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">defer</span> <label for="r28" class="ident">file</label>.<a href="../../../io/io.go.html#line-105" class="ident">Close</a>()</code></span>
+<span class="codeline" id="line-92"><code></code></span>
+<span class="codeline" id="line-93"><code>	_, <label for="r23" class="ident">err</label> = <a href="../../../../pkg/io.html" class="ident i2">io</a>.<a href="../../../io/io.go.html#line-381" class="ident">Copy</a>(<label for="r28" class="ident">file</label>, <label for="r22" class="ident">r</label>)</code></span>
+<span class="codeline" id="line-94"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-95"><code>}</code></span>
+<span class="codeline" id="line-96"><code></code></span>
+<span class="codeline" id="line-97"><code><span class="keyword">func</span> (<label for="r29" class="ident">a</label> <a href="afero.go.html#line-32" class="ident">Afero</a>) <label for="r30" class="ident">GetTempDir</label>(<label for="r31" class="ident">subPath</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-98"><code>	<span class="keyword">return</span> <a href="#line-103" class="ident">GetTempDir</a>(<label for="r29" class="ident">a</label>.<a href="afero.go.html#line-33" class="ident">Fs</a>, <label for="r31" class="ident">subPath</label>)</code></span>
+<span class="codeline" id="line-99"><code>}</code></span>
+<span class="codeline" id="line-100"><code></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// GetTempDir returns the default temp directory with trailing slash</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// if subPath is not empty then it will be created recursively with mode 777 rwx rwx rwx</span></code></span>
+<span class="codeline" id="line-103"><code><span class="keyword">func</span> <label for="r32" class="ident"><a href="../../../../pkg/github.com/spf13/afero.html#name-GetTempDir" class="ident">GetTempDir</a></label>(<label for="r33" class="ident">fs</label> <a href="afero.go.html#line-57" class="ident">Fs</a>, <label for="r34" class="ident">subPath</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-104"><code>	<label for="r35" class="ident">addSlash</label> := <span class="keyword">func</span>(<label for="r36" class="ident">p</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-105"><code>		<span class="keyword">if</span> <a href="#line-33" class="ident">FilePathSeparator</a> != <label for="r36" class="ident">p</label>[<a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r36" class="ident">p</label>)-<span class="lit-number">1</span>:] {</code></span>
+<span class="codeline" id="line-106"><code>			<label for="r36" class="ident">p</label> = <label for="r36" class="ident">p</label> + <a href="#line-33" class="ident">FilePathSeparator</a></code></span>
+<span class="codeline" id="line-107"><code>		}</code></span>
+<span class="codeline" id="line-108"><code>		<span class="keyword">return</span> <label for="r36" class="ident">p</label></code></span>
+<span class="codeline" id="line-109"><code>	}</code></span>
+<span class="codeline" id="line-110"><code>	<label for="r37" class="ident">dir</label> := <label for="r35" class="ident">addSlash</label>(<a href="../../../../pkg/os.html" class="ident i3">os</a>.<a href="../../../os/file.go.html#line-382" class="ident">TempDir</a>())</code></span>
+<span class="codeline" id="line-111"><code></code></span>
+<span class="codeline" id="line-112"><code>	<span class="keyword">if</span> <label for="r34" class="ident">subPath</label> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-113"><code>		<span class="comment">// preserve windows backslash :-(</span></code></span>
+<span class="codeline" id="line-114"><code>		<span class="keyword">if</span> <a href="#line-33" class="ident">FilePathSeparator</a> == <span class="lit-string">"\\"</span> {</code></span>
+<span class="codeline" id="line-115"><code>			<label for="r34" class="ident">subPath</label> = <a href="../../../../pkg/strings.html" class="ident i5">strings</a>.<a href="../../../strings/strings.go.html#line-924" class="ident">Replace</a>(<label for="r34" class="ident">subPath</label>, <span class="lit-string">"\\"</span>, <span class="lit-string">"____"</span>, -<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-116"><code>		}</code></span>
+<span class="codeline" id="line-117"><code>		<label for="r37" class="ident">dir</label> = <label for="r37" class="ident">dir</label> + <a href="#line-136" class="ident">UnicodeSanitize</a>((<label for="r34" class="ident">subPath</label>))</code></span>
+<span class="codeline" id="line-118"><code>		<span class="keyword">if</span> <a href="#line-33" class="ident">FilePathSeparator</a> == <span class="lit-string">"\\"</span> {</code></span>
+<span class="codeline" id="line-119"><code>			<label for="r37" class="ident">dir</label> = <a href="../../../../pkg/strings.html" class="ident i5">strings</a>.<a href="../../../strings/strings.go.html#line-924" class="ident">Replace</a>(<label for="r37" class="ident">dir</label>, <span class="lit-string">"____"</span>, <span class="lit-string">"\\"</span>, -<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-120"><code>		}</code></span>
+<span class="codeline" id="line-121"><code></code></span>
+<span class="codeline" id="line-122"><code>		<span class="keyword">if</span> <label for="r38" class="ident">exists</label>, <label for="r39" class="ident">_</label> := <a href="#line-312" class="ident">Exists</a>(<label for="r33" class="ident">fs</label>, <label for="r37" class="ident">dir</label>); <label for="r38" class="ident">exists</label> {</code></span>
+<span class="codeline" id="line-123"><code>			<span class="keyword">return</span> <label for="r35" class="ident">addSlash</label>(<label for="r37" class="ident">dir</label>)</code></span>
+<span class="codeline" id="line-124"><code>		}</code></span>
+<span class="codeline" id="line-125"><code></code></span>
+<span class="codeline" id="line-126"><code>		<label for="r40" class="ident">err</label> := <label for="r33" class="ident">fs</label>.<a href="afero.go.html#line-68" class="ident">MkdirAll</a>(<label for="r37" class="ident">dir</label>, <span class="lit-number">0777</span>)</code></span>
+<span class="codeline" id="line-127"><code>		<span class="keyword">if</span> <label for="r40" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-128"><code>			<a href="../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<label for="r40" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-129"><code>		}</code></span>
+<span class="codeline" id="line-130"><code>		<label for="r37" class="ident">dir</label> = <label for="r35" class="ident">addSlash</label>(<label for="r37" class="ident">dir</label>)</code></span>
+<span class="codeline" id="line-131"><code>	}</code></span>
+<span class="codeline" id="line-132"><code>	<span class="keyword">return</span> <label for="r37" class="ident">dir</label></code></span>
+<span class="codeline" id="line-133"><code>}</code></span>
+<span class="codeline" id="line-134"><code></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">// Rewrite string to remove non-standard path characters</span></code></span>
+<span class="codeline" id="line-136"><code><span class="keyword">func</span> <label for="r41" class="ident"><a href="../../../../pkg/github.com/spf13/afero.html#name-UnicodeSanitize" class="ident">UnicodeSanitize</a></label>(<label for="r42" class="ident">s</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-137"><code>	<label for="r43" class="ident">source</label> := []<a href="../../../../pkg/builtin.html#name-rune" class="ident">rune</a>(<label for="r42" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-138"><code>	<label for="r44" class="ident">target</label> := <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../pkg/builtin.html#name-rune" class="ident">rune</a>, <span class="lit-number">0</span>, <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r43" class="ident">source</label>))</code></span>
+<span class="codeline" id="line-139"><code></code></span>
+<span class="codeline" id="line-140"><code>	<span class="keyword">for</span> <label for="r45" class="ident">_</label>, <label for="r46" class="ident">r</label> := <span class="keyword">range</span> <label for="r43" class="ident">source</label> {</code></span>
+<span class="codeline" id="line-141"><code>		<span class="keyword">if</span> <a href="../../../../pkg/unicode.html" class="ident i6">unicode</a>.<a href="../../../unicode/graphic.go.html#line-90" class="ident">IsLetter</a>(<label for="r46" class="ident">r</label>) ||</code></span>
+<span class="codeline" id="line-142"><code>			<a href="../../../../pkg/unicode.html" class="ident i6">unicode</a>.<a href="../../../unicode/digit.go.html#line-8" class="ident">IsDigit</a>(<label for="r46" class="ident">r</label>) ||</code></span>
+<span class="codeline" id="line-143"><code>			<a href="../../../../pkg/unicode.html" class="ident i6">unicode</a>.<a href="../../../unicode/graphic.go.html#line-98" class="ident">IsMark</a>(<label for="r46" class="ident">r</label>) ||</code></span>
+<span class="codeline" id="line-144"><code>			<label for="r46" class="ident">r</label> == <span class="lit-number">'.'</span> ||</code></span>
+<span class="codeline" id="line-145"><code>			<label for="r46" class="ident">r</label> == <span class="lit-number">'/'</span> ||</code></span>
+<span class="codeline" id="line-146"><code>			<label for="r46" class="ident">r</label> == <span class="lit-number">'\\'</span> ||</code></span>
+<span class="codeline" id="line-147"><code>			<label for="r46" class="ident">r</label> == <span class="lit-number">'_'</span> ||</code></span>
+<span class="codeline" id="line-148"><code>			<label for="r46" class="ident">r</label> == <span class="lit-number">'-'</span> ||</code></span>
+<span class="codeline" id="line-149"><code>			<label for="r46" class="ident">r</label> == <span class="lit-number">'%'</span> ||</code></span>
+<span class="codeline" id="line-150"><code>			<label for="r46" class="ident">r</label> == <span class="lit-number">' '</span> ||</code></span>
+<span class="codeline" id="line-151"><code>			<label for="r46" class="ident">r</label> == <span class="lit-number">'#'</span> {</code></span>
+<span class="codeline" id="line-152"><code>			<label for="r44" class="ident">target</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r44" class="ident">target</label>, <label for="r46" class="ident">r</label>)</code></span>
+<span class="codeline" id="line-153"><code>		}</code></span>
+<span class="codeline" id="line-154"><code>	}</code></span>
+<span class="codeline" id="line-155"><code></code></span>
+<span class="codeline" id="line-156"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r44" class="ident">target</label>)</code></span>
+<span class="codeline" id="line-157"><code>}</code></span>
+<span class="codeline" id="line-158"><code></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">// Transform characters with accents into plain forms.</span></code></span>
+<span class="codeline" id="line-160"><code><span class="keyword">func</span> <label for="r47" class="ident"><a href="../../../../pkg/github.com/spf13/afero.html#name-NeuterAccents" class="ident">NeuterAccents</a></label>(<label for="r48" class="ident">s</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-161"><code>	<label for="r49" class="ident">t</label> := <a href="../../../../pkg/golang.org/x/text/transform.html" class="ident i7">transform</a>.<a href="../../../golang.org/x/text/transform/transform.go.html#line-378" class="ident">Chain</a>(<a href="../../../../pkg/golang.org/x/text/unicode/norm.html" class="ident i8">norm</a>.<a href="../../../golang.org/x/text/unicode/norm/normalize.go.html#line-38" class="ident">NFD</a>, <a href="../../../../pkg/golang.org/x/text/transform.html" class="ident i7">transform</a>.<a href="../../../golang.org/x/text/transform/transform.go.html#line-497" class="ident">RemoveFunc</a>(<a href="#line-167" class="ident">isMn</a>), <a href="../../../../pkg/golang.org/x/text/unicode/norm.html" class="ident i8">norm</a>.<a href="../../../golang.org/x/text/unicode/norm/normalize.go.html#line-37" class="ident">NFC</a>)</code></span>
+<span class="codeline" id="line-162"><code>	<label for="r50" class="ident">result</label>, <label for="r51" class="ident">_</label>, <label for="r52" class="ident">_</label> := <a href="../../../../pkg/golang.org/x/text/transform.html" class="ident i7">transform</a>.<a href="../../../golang.org/x/text/transform/transform.go.html#line-568" class="ident">String</a>(<label for="r49" class="ident">t</label>, <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r48" class="ident">s</label>))</code></span>
+<span class="codeline" id="line-163"><code></code></span>
+<span class="codeline" id="line-164"><code>	<span class="keyword">return</span> <label for="r50" class="ident">result</label></code></span>
+<span class="codeline" id="line-165"><code>}</code></span>
+<span class="codeline" id="line-166"><code></code></span>
+<span class="codeline" id="line-167"><code><span class="keyword">func</span> <label for="r53" class="ident"><a href="../../../../pkg/github.com/spf13/afero.html#name-isMn" class="ident">isMn</a></label>(<label for="r54" class="ident">r</label> <a href="../../../../pkg/builtin.html#name-rune" class="ident">rune</a>) <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-168"><code>	<span class="keyword">return</span> <a href="../../../../pkg/unicode.html" class="ident i6">unicode</a>.<a href="../../../unicode/letter.go.html#line-155" class="ident">Is</a>(<a href="../../../../pkg/unicode.html" class="ident i6">unicode</a>.<a href="../../../unicode/tables.go.html#line-3621" class="ident">Mn</a>, <label for="r54" class="ident">r</label>) <span class="comment">// Mn: nonspacing marks</span></code></span>
+<span class="codeline" id="line-169"><code>}</code></span>
+<span class="codeline" id="line-170"><code></code></span>
+<span class="codeline" id="line-171"><code><span class="keyword">func</span> (<label for="r55" class="ident">a</label> <a href="afero.go.html#line-32" class="ident">Afero</a>) <label for="r56" class="ident">FileContainsBytes</label>(<label for="r57" class="ident">filename</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r58" class="ident">subslice</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-172"><code>	<span class="keyword">return</span> <a href="#line-176" class="ident">FileContainsBytes</a>(<label for="r55" class="ident">a</label>.<a href="afero.go.html#line-33" class="ident">Fs</a>, <label for="r57" class="ident">filename</label>, <label for="r58" class="ident">subslice</label>)</code></span>
+<span class="codeline" id="line-173"><code>}</code></span>
+<span class="codeline" id="line-174"><code></code></span>
+<span class="codeline" id="line-175"><code><span class="comment">// Check if a file contains a specified byte slice.</span></code></span>
+<span class="codeline" id="line-176"><code><span class="keyword">func</span> <label for="r59" class="ident"><a href="../../../../pkg/github.com/spf13/afero.html#name-FileContainsBytes" class="ident">FileContainsBytes</a></label>(<label for="r60" class="ident">fs</label> <a href="afero.go.html#line-57" class="ident">Fs</a>, <label for="r61" class="ident">filename</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r62" class="ident">subslice</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-177"><code>	<label for="r63" class="ident">f</label>, <label for="r64" class="ident">err</label> := <label for="r60" class="ident">fs</label>.<a href="afero.go.html#line-71" class="ident">Open</a>(<label for="r61" class="ident">filename</label>)</code></span>
+<span class="codeline" id="line-178"><code>	<span class="keyword">if</span> <label for="r64" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-179"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a>, <label for="r64" class="ident">err</label></code></span>
+<span class="codeline" id="line-180"><code>	}</code></span>
+<span class="codeline" id="line-181"><code>	<span class="keyword">defer</span> <label for="r63" class="ident">f</label>.<a href="../../../io/io.go.html#line-105" class="ident">Close</a>()</code></span>
+<span class="codeline" id="line-182"><code></code></span>
+<span class="codeline" id="line-183"><code>	<span class="keyword">return</span> <a href="#line-202" class="ident">readerContainsAny</a>(<label for="r63" class="ident">f</label>, <label for="r62" class="ident">subslice</label>), <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-184"><code>}</code></span>
+<span class="codeline" id="line-185"><code></code></span>
+<span class="codeline" id="line-186"><code><span class="keyword">func</span> (<label for="r65" class="ident">a</label> <a href="afero.go.html#line-32" class="ident">Afero</a>) <label for="r66" class="ident">FileContainsAnyBytes</label>(<label for="r67" class="ident">filename</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r68" class="ident">subslices</label> [][]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-187"><code>	<span class="keyword">return</span> <a href="#line-191" class="ident">FileContainsAnyBytes</a>(<label for="r65" class="ident">a</label>.<a href="afero.go.html#line-33" class="ident">Fs</a>, <label for="r67" class="ident">filename</label>, <label for="r68" class="ident">subslices</label>)</code></span>
+<span class="codeline" id="line-188"><code>}</code></span>
+<span class="codeline" id="line-189"><code></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">// Check if a file contains any of the specified byte slices.</span></code></span>
+<span class="codeline" id="line-191"><code><span class="keyword">func</span> <label for="r69" class="ident"><a href="../../../../pkg/github.com/spf13/afero.html#name-FileContainsAnyBytes" class="ident">FileContainsAnyBytes</a></label>(<label for="r70" class="ident">fs</label> <a href="afero.go.html#line-57" class="ident">Fs</a>, <label for="r71" class="ident">filename</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r72" class="ident">subslices</label> [][]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-192"><code>	<label for="r73" class="ident">f</label>, <label for="r74" class="ident">err</label> := <label for="r70" class="ident">fs</label>.<a href="afero.go.html#line-71" class="ident">Open</a>(<label for="r71" class="ident">filename</label>)</code></span>
+<span class="codeline" id="line-193"><code>	<span class="keyword">if</span> <label for="r74" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-194"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a>, <label for="r74" class="ident">err</label></code></span>
+<span class="codeline" id="line-195"><code>	}</code></span>
+<span class="codeline" id="line-196"><code>	<span class="keyword">defer</span> <label for="r73" class="ident">f</label>.<a href="../../../io/io.go.html#line-105" class="ident">Close</a>()</code></span>
+<span class="codeline" id="line-197"><code></code></span>
+<span class="codeline" id="line-198"><code>	<span class="keyword">return</span> <a href="#line-202" class="ident">readerContainsAny</a>(<label for="r73" class="ident">f</label>, <label for="r72" class="ident">subslices</label>...), <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-199"><code>}</code></span>
+<span class="codeline" id="line-200"><code></code></span>
+<span class="codeline" id="line-201"><code><span class="comment">// readerContains reports whether any of the subslices is within r.</span></code></span>
+<span class="codeline" id="line-202"><code><span class="keyword">func</span> <label for="r75" class="ident"><a href="../../../../pkg/github.com/spf13/afero.html#name-readerContainsAny" class="ident">readerContainsAny</a></label>(<label for="r76" class="ident">r</label> <a href="../../../../pkg/io.html" class="ident i2">io</a>.<a href="../../../io/io.go.html#line-83" class="ident">Reader</a>, <label for="r77" class="ident">subslices</label> ...[]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-203"><code></code></span>
+<span class="codeline" id="line-204"><code>	<span class="keyword">if</span> <label for="r76" class="ident">r</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> || <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r77" class="ident">subslices</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-205"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-206"><code>	}</code></span>
+<span class="codeline" id="line-207"><code></code></span>
+<span class="codeline" id="line-208"><code>	<label for="r78" class="ident">largestSlice</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-209"><code></code></span>
+<span class="codeline" id="line-210"><code>	<span class="keyword">for</span> <label for="r79" class="ident">_</label>, <label for="r80" class="ident">sl</label> := <span class="keyword">range</span> <label for="r77" class="ident">subslices</label> {</code></span>
+<span class="codeline" id="line-211"><code>		<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r80" class="ident">sl</label>) &gt; <label for="r78" class="ident">largestSlice</label> {</code></span>
+<span class="codeline" id="line-212"><code>			<label for="r78" class="ident">largestSlice</label> = <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r80" class="ident">sl</label>)</code></span>
+<span class="codeline" id="line-213"><code>		}</code></span>
+<span class="codeline" id="line-214"><code>	}</code></span>
+<span class="codeline" id="line-215"><code></code></span>
+<span class="codeline" id="line-216"><code>	<span class="keyword">if</span> <label for="r78" class="ident">largestSlice</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-217"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-218"><code>	}</code></span>
+<span class="codeline" id="line-219"><code></code></span>
+<span class="codeline" id="line-220"><code>	<label for="r81" class="ident">bufflen</label> := <label for="r78" class="ident">largestSlice</label> * <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-221"><code>	<label for="r82" class="ident">halflen</label> := <label for="r81" class="ident">bufflen</label> / <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-222"><code>	<label for="r83" class="ident">buff</label> := <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r81" class="ident">bufflen</label>)</code></span>
+<span class="codeline" id="line-223"><code>	<span class="keyword">var</span> <label for="r84" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-224"><code>	<span class="keyword">var</span> <label for="r85" class="ident">n</label>, <label for="r86" class="ident">i</label> <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-225"><code></code></span>
+<span class="codeline" id="line-226"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-227"><code>		<label for="r86" class="ident">i</label>++</code></span>
+<span class="codeline" id="line-228"><code>		<span class="keyword">if</span> <label for="r86" class="ident">i</label> == <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-229"><code>			<label for="r85" class="ident">n</label>, <label for="r84" class="ident">err</label> = <a href="../../../../pkg/io.html" class="ident i2">io</a>.<a href="../../../io/io.go.html#line-322" class="ident">ReadAtLeast</a>(<label for="r76" class="ident">r</label>, <label for="r83" class="ident">buff</label>[:<label for="r82" class="ident">halflen</label>], <label for="r82" class="ident">halflen</label>)</code></span>
+<span class="codeline" id="line-230"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-231"><code>			<span class="keyword">if</span> <label for="r86" class="ident">i</label> != <span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-232"><code>				<span class="comment">// shift left to catch overlapping matches</span></code></span>
+<span class="codeline" id="line-233"><code>				<a href="../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r83" class="ident">buff</label>[:], <label for="r83" class="ident">buff</label>[<label for="r82" class="ident">halflen</label>:])</code></span>
+<span class="codeline" id="line-234"><code>			}</code></span>
+<span class="codeline" id="line-235"><code>			<label for="r85" class="ident">n</label>, <label for="r84" class="ident">err</label> = <a href="../../../../pkg/io.html" class="ident i2">io</a>.<a href="../../../io/io.go.html#line-322" class="ident">ReadAtLeast</a>(<label for="r76" class="ident">r</label>, <label for="r83" class="ident">buff</label>[<label for="r82" class="ident">halflen</label>:], <label for="r82" class="ident">halflen</label>)</code></span>
+<span class="codeline" id="line-236"><code>		}</code></span>
+<span class="codeline" id="line-237"><code></code></span>
+<span class="codeline" id="line-238"><code>		<span class="keyword">if</span> <label for="r85" class="ident">n</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-239"><code>			<span class="keyword">for</span> <label for="r87" class="ident">_</label>, <label for="r88" class="ident">sl</label> := <span class="keyword">range</span> <label for="r77" class="ident">subslices</label> {</code></span>
+<span class="codeline" id="line-240"><code>				<span class="keyword">if</span> <a href="../../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../../bytes/bytes.go.html#line-75" class="ident">Contains</a>(<label for="r83" class="ident">buff</label>, <label for="r88" class="ident">sl</label>) {</code></span>
+<span class="codeline" id="line-241"><code>					<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-242"><code>				}</code></span>
+<span class="codeline" id="line-243"><code>			}</code></span>
+<span class="codeline" id="line-244"><code>		}</code></span>
+<span class="codeline" id="line-245"><code></code></span>
+<span class="codeline" id="line-246"><code>		<span class="keyword">if</span> <label for="r84" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-247"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-248"><code>		}</code></span>
+<span class="codeline" id="line-249"><code>	}</code></span>
+<span class="codeline" id="line-250"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-251"><code>}</code></span>
+<span class="codeline" id="line-252"><code></code></span>
+<span class="codeline" id="line-253"><code><span class="keyword">func</span> (<label for="r89" class="ident">a</label> <a href="afero.go.html#line-32" class="ident">Afero</a>) <label for="r90" class="ident">DirExists</label>(<label for="r91" class="ident">path</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-254"><code>	<span class="keyword">return</span> <a href="#line-258" class="ident">DirExists</a>(<label for="r89" class="ident">a</label>.<a href="afero.go.html#line-33" class="ident">Fs</a>, <label for="r91" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-255"><code>}</code></span>
+<span class="codeline" id="line-256"><code></code></span>
+<span class="codeline" id="line-257"><code><span class="comment">// DirExists checks if a path exists and is a directory.</span></code></span>
+<span class="codeline" id="line-258"><code><span class="keyword">func</span> <label for="r92" class="ident"><a href="../../../../pkg/github.com/spf13/afero.html#name-DirExists" class="ident">DirExists</a></label>(<label for="r93" class="ident">fs</label> <a href="afero.go.html#line-57" class="ident">Fs</a>, <label for="r94" class="ident">path</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-259"><code>	<label for="r95" class="ident">fi</label>, <label for="r96" class="ident">err</label> := <label for="r93" class="ident">fs</label>.<a href="afero.go.html#line-89" class="ident">Stat</a>(<label for="r94" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-260"><code>	<span class="keyword">if</span> <label for="r96" class="ident">err</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r95" class="ident">fi</label>.<a href="../../../io/fs/fs.go.html#line-155" class="ident">IsDir</a>() {</code></span>
+<span class="codeline" id="line-261"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-262"><code>	}</code></span>
+<span class="codeline" id="line-263"><code>	<span class="keyword">if</span> <a href="../../../../pkg/os.html" class="ident i3">os</a>.<a href="../../../os/error.go.html#line-92" class="ident">IsNotExist</a>(<label for="r96" class="ident">err</label>) {</code></span>
+<span class="codeline" id="line-264"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-265"><code>	}</code></span>
+<span class="codeline" id="line-266"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a>, <label for="r96" class="ident">err</label></code></span>
+<span class="codeline" id="line-267"><code>}</code></span>
+<span class="codeline" id="line-268"><code></code></span>
+<span class="codeline" id="line-269"><code><span class="keyword">func</span> (<label for="r97" class="ident">a</label> <a href="afero.go.html#line-32" class="ident">Afero</a>) <label for="r98" class="ident">IsDir</label>(<label for="r99" class="ident">path</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-270"><code>	<span class="keyword">return</span> <a href="#line-274" class="ident">IsDir</a>(<label for="r97" class="ident">a</label>.<a href="afero.go.html#line-33" class="ident">Fs</a>, <label for="r99" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-271"><code>}</code></span>
+<span class="codeline" id="line-272"><code></code></span>
+<span class="codeline" id="line-273"><code><span class="comment">// IsDir checks if a given path is a directory.</span></code></span>
+<span class="codeline" id="line-274"><code><span class="keyword">func</span> <label for="r100" class="ident"><a href="../../../../pkg/github.com/spf13/afero.html#name-IsDir" class="ident">IsDir</a></label>(<label for="r101" class="ident">fs</label> <a href="afero.go.html#line-57" class="ident">Fs</a>, <label for="r102" class="ident">path</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-275"><code>	<label for="r103" class="ident">fi</label>, <label for="r104" class="ident">err</label> := <label for="r101" class="ident">fs</label>.<a href="afero.go.html#line-89" class="ident">Stat</a>(<label for="r102" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-276"><code>	<span class="keyword">if</span> <label for="r104" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-277"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a>, <label for="r104" class="ident">err</label></code></span>
+<span class="codeline" id="line-278"><code>	}</code></span>
+<span class="codeline" id="line-279"><code>	<span class="keyword">return</span> <label for="r103" class="ident">fi</label>.<a href="../../../io/fs/fs.go.html#line-155" class="ident">IsDir</a>(), <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-280"><code>}</code></span>
+<span class="codeline" id="line-281"><code></code></span>
+<span class="codeline" id="line-282"><code><span class="keyword">func</span> (<label for="r105" class="ident">a</label> <a href="afero.go.html#line-32" class="ident">Afero</a>) <label for="r106" class="ident">IsEmpty</label>(<label for="r107" class="ident">path</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-283"><code>	<span class="keyword">return</span> <a href="#line-287" class="ident">IsEmpty</a>(<label for="r105" class="ident">a</label>.<a href="afero.go.html#line-33" class="ident">Fs</a>, <label for="r107" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-284"><code>}</code></span>
+<span class="codeline" id="line-285"><code></code></span>
+<span class="codeline" id="line-286"><code><span class="comment">// IsEmpty checks if a given file or directory is empty.</span></code></span>
+<span class="codeline" id="line-287"><code><span class="keyword">func</span> <label for="r108" class="ident"><a href="../../../../pkg/github.com/spf13/afero.html#name-IsEmpty" class="ident">IsEmpty</a></label>(<label for="r109" class="ident">fs</label> <a href="afero.go.html#line-57" class="ident">Fs</a>, <label for="r110" class="ident">path</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-288"><code>	<span class="keyword">if</span> <label for="r111" class="ident">b</label>, <label for="r112" class="ident">_</label> := <a href="#line-312" class="ident">Exists</a>(<label for="r109" class="ident">fs</label>, <label for="r110" class="ident">path</label>); !<label for="r111" class="ident">b</label> {</code></span>
+<span class="codeline" id="line-289"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a>, <a href="../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"%q path does not exist"</span>, <label for="r110" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-290"><code>	}</code></span>
+<span class="codeline" id="line-291"><code>	<label for="r113" class="ident">fi</label>, <label for="r114" class="ident">err</label> := <label for="r109" class="ident">fs</label>.<a href="afero.go.html#line-89" class="ident">Stat</a>(<label for="r110" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-292"><code>	<span class="keyword">if</span> <label for="r114" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-293"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a>, <label for="r114" class="ident">err</label></code></span>
+<span class="codeline" id="line-294"><code>	}</code></span>
+<span class="codeline" id="line-295"><code>	<span class="keyword">if</span> <label for="r113" class="ident">fi</label>.<a href="../../../io/fs/fs.go.html#line-155" class="ident">IsDir</a>() {</code></span>
+<span class="codeline" id="line-296"><code>		<label for="r115" class="ident">f</label>, <label for="r116" class="ident">err</label> := <label for="r109" class="ident">fs</label>.<a href="afero.go.html#line-71" class="ident">Open</a>(<label for="r110" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-297"><code>		<span class="keyword">if</span> <label for="r116" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-298"><code>			<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a>, <label for="r116" class="ident">err</label></code></span>
+<span class="codeline" id="line-299"><code>		}</code></span>
+<span class="codeline" id="line-300"><code>		<span class="keyword">defer</span> <label for="r115" class="ident">f</label>.<a href="../../../io/io.go.html#line-105" class="ident">Close</a>()</code></span>
+<span class="codeline" id="line-301"><code>		<label for="r117" class="ident">list</label>, <label for="r116" class="ident">err</label> := <label for="r115" class="ident">f</label>.<a href="afero.go.html#line-46" class="ident">Readdir</a>(-<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-302"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r117" class="ident">list</label>) == <span class="lit-number">0</span>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-303"><code>	}</code></span>
+<span class="codeline" id="line-304"><code>	<span class="keyword">return</span> <label for="r113" class="ident">fi</label>.<a href="../../../io/fs/fs.go.html#line-152" class="ident">Size</a>() == <span class="lit-number">0</span>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-305"><code>}</code></span>
+<span class="codeline" id="line-306"><code></code></span>
+<span class="codeline" id="line-307"><code><span class="keyword">func</span> (<label for="r118" class="ident">a</label> <a href="afero.go.html#line-32" class="ident">Afero</a>) <label for="r119" class="ident">Exists</label>(<label for="r120" class="ident">path</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-308"><code>	<span class="keyword">return</span> <a href="#line-312" class="ident">Exists</a>(<label for="r118" class="ident">a</label>.<a href="afero.go.html#line-33" class="ident">Fs</a>, <label for="r120" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-309"><code>}</code></span>
+<span class="codeline" id="line-310"><code></code></span>
+<span class="codeline" id="line-311"><code><span class="comment">// Check if a file or directory exists.</span></code></span>
+<span class="codeline" id="line-312"><code><span class="keyword">func</span> <label for="r121" class="ident"><a href="../../../../pkg/github.com/spf13/afero.html#name-Exists" class="ident">Exists</a></label>(<label for="r122" class="ident">fs</label> <a href="afero.go.html#line-57" class="ident">Fs</a>, <label for="r123" class="ident">path</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-313"><code>	<label for="r124" class="ident">_</label>, <label for="r125" class="ident">err</label> := <label for="r122" class="ident">fs</label>.<a href="afero.go.html#line-89" class="ident">Stat</a>(<label for="r123" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-314"><code>	<span class="keyword">if</span> <label for="r125" class="ident">err</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-315"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-316"><code>	}</code></span>
+<span class="codeline" id="line-317"><code>	<span class="keyword">if</span> <a href="../../../../pkg/os.html" class="ident i3">os</a>.<a href="../../../os/error.go.html#line-92" class="ident">IsNotExist</a>(<label for="r125" class="ident">err</label>) {</code></span>
+<span class="codeline" id="line-318"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-319"><code>	}</code></span>
+<span class="codeline" id="line-320"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a>, <label for="r125" class="ident">err</label></code></span>
+<span class="codeline" id="line-321"><code>}</code></span>
+<span class="codeline" id="line-322"><code></code></span>
+<span class="codeline" id="line-323"><code><span class="keyword">func</span> <label for="r126" class="ident"><a href="../../../../pkg/github.com/spf13/afero.html#name-FullBaseFsPath" class="ident">FullBaseFsPath</a></label>(<label for="r127" class="ident">basePathFs</label> *<a href="basepath.go.html#line-21" class="ident">BasePathFs</a>, <label for="r128" class="ident">relativePath</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-324"><code>	<label for="r129" class="ident">combinedPath</label> := <a href="../../../../pkg/path/filepath.html" class="ident i4">filepath</a>.<a href="../../../path/filepath/path.go.html#line-212" class="ident">Join</a>(<label for="r127" class="ident">basePathFs</label>.<a href="basepath.go.html#line-23" class="ident">path</a>, <label for="r128" class="ident">relativePath</label>)</code></span>
+<span class="codeline" id="line-325"><code>	<span class="keyword">if</span> <label for="r130" class="ident">parent</label>, <label for="r131" class="ident">ok</label> := <label for="r127" class="ident">basePathFs</label>.<a href="basepath.go.html#line-22" class="ident">source</a>.(*<a href="basepath.go.html#line-21" class="ident">BasePathFs</a>); <label for="r131" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-326"><code>		<span class="keyword">return</span> <label for="r126" class="ident">FullBaseFsPath</label>(<label for="r130" class="ident">parent</label>, <label for="r129" class="ident">combinedPath</label>)</code></span>
+<span class="codeline" id="line-327"><code>	}</code></span>
+<span class="codeline" id="line-328"><code></code></span>
+<span class="codeline" id="line-329"><code>	<span class="keyword">return</span> <label for="r129" class="ident">combinedPath</label></code></span>
+<span class="codeline" id="line-330"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

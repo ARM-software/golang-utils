@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: net/url</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>url</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../index.html#pkg-net/url">net/url</a><i> (on <a href="https://pkg.go.dev/net/url" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../dep/net/url.html">5 packages</a>, and imported by <a href="../../dep/net/url.html#imported-by">7 packages</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<input type='checkbox' checked class="fold" id="file-0-fold-content"><label for="file-0-fold-content">   <a href="../../src/net/url/url.go.html#doc">d➜</a> <a href="../../src/net/url/url.go.html">url.go</a></label><span id='file-0-fold-content-items' class="fold-items">
+		Package url parses URLs and implements query escaping.</span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content">ParseQuery</label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"encoding/json"
+			"fmt"
+			"log"
+			"net/url"
+			"strings"
+		)
+		
+		func main() {
+			m, err := url.ParseQuery(`x=1&y=2&y=3;z`)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(toJSON(m))
+		}
+		
+		func toJSON(m interface{}) string {
+			js, err := json.Marshal(m)
+			if err != nil {
+				log.Fatal(err)
+			}
+			return strings.ReplaceAll(string(js), ",", ", ")
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-1-fold-content"><label for="example-1-fold-content">URL</label><span id='example-1-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"log"
+			"net/url"
+		)
+		
+		func main() {
+			u, err := url.Parse("http://bing.com/search?q=dotnet")
+			if err != nil {
+				log.Fatal(err)
+			}
+			u.Scheme = "https"
+			u.Host = "google.com"
+			q := u.Query()
+			q.Set("q", "golang")
+			u.RawQuery = q.Encode()
+			fmt.Println(u)
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-2-fold-content"><label for="example-2-fold-content">URL_EscapedFragment</label><span id='example-2-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"log"
+			"net/url"
+		)
+		
+		func main() {
+			u, err := url.Parse("http://example.com/#x/y%2Fz")
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println("Fragment:", u.Fragment)
+			fmt.Println("RawFragment:", u.RawFragment)
+			fmt.Println("EscapedFragment:", u.EscapedFragment())
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-3-fold-content"><label for="example-3-fold-content">URL_EscapedPath</label><span id='example-3-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"log"
+			"net/url"
+		)
+		
+		func main() {
+			u, err := url.Parse("http://example.com/x/y%2Fz")
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println("Path:", u.Path)
+			fmt.Println("RawPath:", u.RawPath)
+			fmt.Println("EscapedPath:", u.EscapedPath())
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-4-fold-content"><label for="example-4-fold-content">URL_Hostname</label><span id='example-4-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"log"
+			"net/url"
+		)
+		
+		func main() {
+			u, err := url.Parse("https://example.org:8000/path")
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(u.Hostname())
+			u, err = url.Parse("https://[2001:0db8:85a3:0000:0000:8a2e:0370:7334]:17000")
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(u.Hostname())
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-5-fold-content"><label for="example-5-fold-content">URL_IsAbs</label><span id='example-5-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"net/url"
+		)
+		
+		func main() {
+			u := url.URL{Host: "example.com", Path: "foo"}
+			fmt.Println(u.IsAbs())
+			u.Scheme = "http"
+			fmt.Println(u.IsAbs())
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-6-fold-content"><label for="example-6-fold-content">URL_MarshalBinary</label><span id='example-6-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"log"
+			"net/url"
+		)
+		
+		func main() {
+			u, _ := url.Parse("https://example.org")
+			b, err := u.MarshalBinary()
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("%s\n", b)
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-7-fold-content"><label for="example-7-fold-content">URL_Parse</label><span id='example-7-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"log"
+			"net/url"
+		)
+		
+		func main() {
+			u, err := url.Parse("https://example.org")
+			if err != nil {
+				log.Fatal(err)
+			}
+			rel, err := u.Parse("/foo")
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(rel)
+			_, err = u.Parse(":foo")
+			if _, ok := err.(*url.Error); !ok {
+				log.Fatal(err)
+			}
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-8-fold-content"><label for="example-8-fold-content">URL_Port</label><span id='example-8-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"log"
+			"net/url"
+		)
+		
+		func main() {
+			u, err := url.Parse("https://example.org")
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(u.Port())
+			u, err = url.Parse("https://example.org:8080")
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(u.Port())
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-9-fold-content"><label for="example-9-fold-content">URL_Query</label><span id='example-9-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"log"
+			"net/url"
+		)
+		
+		func main() {
+			u, err := url.Parse("https://example.org/?a=1&a=2&b=&=3&&&&")
+			if err != nil {
+				log.Fatal(err)
+			}
+			q := u.Query()
+			fmt.Println(q["a"])
+			fmt.Println(q.Get("b"))
+			fmt.Println(q.Get(""))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-10-fold-content"><label for="example-10-fold-content">URL_Redacted</label><span id='example-10-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"net/url"
+		)
+		
+		func main() {
+			u := &url.URL{
+				Scheme: "https",
+				User:   url.UserPassword("user", "password"),
+				Host:   "example.com",
+				Path:   "foo/bar",
+			}
+			fmt.Println(u.Redacted())
+			u.User = url.UserPassword("me", "newerPassword")
+			fmt.Println(u.Redacted())
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-11-fold-content"><label for="example-11-fold-content">URL_RequestURI</label><span id='example-11-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"log"
+			"net/url"
+		)
+		
+		func main() {
+			u, err := url.Parse("https://example.org/path?foo=bar")
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(u.RequestURI())
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-12-fold-content"><label for="example-12-fold-content">URL_ResolveReference</label><span id='example-12-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"log"
+			"net/url"
+		)
+		
+		func main() {
+			u, err := url.Parse("../../..//search?q=dotnet")
+			if err != nil {
+				log.Fatal(err)
+			}
+			base, err := url.Parse("http://example.com/directory/")
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(base.ResolveReference(u))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-13-fold-content"><label for="example-13-fold-content">URL_String</label><span id='example-13-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"net/url"
+		)
+		
+		func main() {
+			u := &url.URL{
+				Scheme:   "https",
+				User:     url.UserPassword("me", "pass"),
+				Host:     "example.com",
+				Path:     "foo/bar",
+				RawQuery: "x=1&y=2",
+				Fragment: "anchor",
+			}
+			fmt.Println(u.String())
+			u.Opaque = "opaque"
+			fmt.Println(u.String())
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-14-fold-content"><label for="example-14-fold-content">URL_UnmarshalBinary</label><span id='example-14-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"log"
+			"net/url"
+		)
+		
+		func main() {
+			u := &url.URL{}
+			err := u.UnmarshalBinary([]byte("https://example.org/foo"))
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("%s\n", u)
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-15-fold-content"><label for="example-15-fold-content">URL_roundtrip</label><span id='example-15-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"log"
+			"net/url"
+		)
+		
+		func main() {
+			// Parse + String preserve the original encoding.
+			u, err := url.Parse("https://example.com/foo%2fbar")
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(u.Path)
+			fmt.Println(u.RawPath)
+			fmt.Println(u.String())
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-16-fold-content"><label for="example-16-fold-content">Values</label><span id='example-16-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"net/url"
+		)
+		
+		func main() {
+			v := url.Values{}
+			v.Set("name", "Ava")
+			v.Add("friend", "Jess")
+			v.Add("friend", "Sarah")
+			v.Add("friend", "Zoe")
+			// v.Encode() == "name=Ava&friend=Jess&friend=Sarah&friend=Zoe"
+			fmt.Println(v.Get("name"))
+			fmt.Println(v.Get("friend"))
+			fmt.Println(v["friend"])
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 7, in which 6 are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-Error" data-popularity="450">	<input type='checkbox' class="fold" id="Error-fold-content"><label for="Error-fold-content"> type <a href="../../src/net/url/url.go.html#line-22">Error</a> <i>(struct)</i></label><span id='Error-fold-content-docs' class="fold-docs">
+		Error reports an error and the operation and URL that caused it.
+
+		<input type='checkbox' class="fold" id="Error-fold-fields"><label for="Error-fold-fields">Fields (<i>total 3, all are exported</i>)</label><span id='Error-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../src/net/url/url.go.html#line-25">Err</a> <i><a href="../builtin.html#name-error">error</a></i></span></span><span>
+			<span class="nodocs"><a href="../../src/net/url/url.go.html#line-23">Op</a> <i><a href="../builtin.html#name-string">string</a></i></span></span><span>
+			<span class="nodocs"><a href="../../src/net/url/url.go.html#line-24">URL</a> <i><a href="../builtin.html#name-string">string</a></i></span></span></span>
+		<input type='checkbox' class="fold" id="Error-fold-methods"><label for="Error-fold-methods">Methods (<i>total 4, all are exported</i>)</label><span id='Error-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*T) <a href="../../src/net/url/url.go.html#line-29">Error</a>() <a href="../builtin.html#name-string">string</a></span></span><span>
+			<span class="nodocs">(*T) <a href="../../src/net/url/url.go.html#line-38">Temporary</a>() <a href="../builtin.html#name-bool">bool</a></span></span><span>
+			<span class="nodocs">(*T) <a href="../../src/net/url/url.go.html#line-31">Timeout</a>() <a href="../builtin.html#name-bool">bool</a></span></span><span>
+			<span class="nodocs">(*T) <a href="../../src/net/url/url.go.html#line-28">Unwrap</a>() <a href="../builtin.html#name-error">error</a></span></span></span>
+		<input type='checkbox' class="fold" id="Error-fold-impls"><label for="Error-fold-impls">Implements (<i>at least 5, in which 2 are exported</i>)</label><span id='Error-fold-impls-items' class="fold-items"><span>
+			*T : net.<a href="../net.html#name-Error">Error</a></span><span>
+			*T : <a href="../builtin.html#name-error">error</a></span>
+			<input type='checkbox' class="showhide" id="Error-showhide-impls"><i><label for="Error-showhide-impls" class="show-inline">/* 3+ unexporteds ... */</label><label for="Error-showhide-impls" class="hide-inline">/* 3+ unexporteds: */</label></i><span class="hidden"><i>
+			*T : net.<a href="../net.html#name-temporary">temporary</a></i></span><span class="hidden"><i>
+			*T : net.<a href="../net.html#name-timeout">timeout</a></i></span><span class="hidden"><i>
+			*T : os.<a href="../os.html#name-timeout">timeout</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-EscapeError" data-popularity="100">	<input type='checkbox' class="fold" id="EscapeError-fold-content"><label for="EscapeError-fold-content"> type <a href="../../src/net/url/url.go.html#line-83">EscapeError</a> <a href="../builtin.html#name-string">string</a> <i>(basic type)</i></label><span id='EscapeError-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="EscapeError-fold-methods"><label for="EscapeError-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='EscapeError-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../../src/net/url/url.go.html#line-85">Error</a>() <a href="../builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="EscapeError-fold-impls"><label for="EscapeError-fold-impls">Implements (<i>at least one exported</i>)</label><span id='EscapeError-fold-impls-items' class="fold-items"><span>
+			 T : <a href="../builtin.html#name-error">error</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-InvalidHostError" data-popularity="100">	<input type='checkbox' class="fold" id="InvalidHostError-fold-content"><label for="InvalidHostError-fold-content"> type <a href="../../src/net/url/url.go.html#line-89">InvalidHostError</a> <a href="../builtin.html#name-string">string</a> <i>(basic type)</i></label><span id='InvalidHostError-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="InvalidHostError-fold-methods"><label for="InvalidHostError-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='InvalidHostError-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../../src/net/url/url.go.html#line-91">Error</a>() <a href="../builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="InvalidHostError-fold-impls"><label for="InvalidHostError-fold-impls">Implements (<i>at least one exported</i>)</label><span id='InvalidHostError-fold-impls-items' class="fold-items"><span>
+			 T : <a href="../builtin.html#name-error">error</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-URL" data-popularity="2330">	<input type='checkbox' class="fold" id="URL-fold-content"><label for="URL-fold-content"> type <a href="../../src/net/url/url.go.html#line-358">URL</a> <i>(struct)</i></label><span id='URL-fold-content-docs' class="fold-docs">
+		A URL represents a parsed URL (technically, a URI reference).
+
+		The general form represented is:
+
+			[scheme:][//[userinfo@]host][/]path[?query][#fragment]
+
+		URLs that do not start with a slash after the scheme are interpreted as:
+
+			scheme:opaque[?query][#fragment]
+
+		Note that the Path field is stored in decoded form: /%47%6f%2f becomes /Go/.
+		A consequence is that it is impossible to tell which slashes in the Path were
+		slashes in the raw URL and which were %2f. This distinction is rarely important,
+		but when it is, the code should use RawPath, an optional field which only gets
+		set if the default encoding is different from Path.
+
+		URL's String method uses the EscapedPath method to obtain the path. See the
+		EscapedPath method for more details.
+
+		<input type='checkbox' class="fold" id="URL-fold-fields"><label for="URL-fold-fields">Fields (<i>total 10, all are exported</i>)</label><span id='URL-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="URL-fold-field-ForceQuery"><label for="URL-fold-field-ForceQuery"><a href="../../src/net/url/url.go.html#line-365">ForceQuery</a> <i><a href="../builtin.html#name-bool">bool</a></i></label><span id='URL-fold-field-ForceQuery-docs' class="fold-docs">
+				// append a query ('?') even if RawQuery is empty
+</span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-field-Fragment"><label for="URL-fold-field-Fragment"><a href="../../src/net/url/url.go.html#line-367">Fragment</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='URL-fold-field-Fragment-docs' class="fold-docs">
+				// fragment for references, without '#'
+</span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-field-Host"><label for="URL-fold-field-Host"><a href="../../src/net/url/url.go.html#line-362">Host</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='URL-fold-field-Host-docs' class="fold-docs">
+				// host or host:port
+</span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-field-Opaque"><label for="URL-fold-field-Opaque"><a href="../../src/net/url/url.go.html#line-360">Opaque</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='URL-fold-field-Opaque-docs' class="fold-docs">
+				// encoded opaque data
+</span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-field-Path"><label for="URL-fold-field-Path"><a href="../../src/net/url/url.go.html#line-363">Path</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='URL-fold-field-Path-docs' class="fold-docs">
+				// path (relative paths may omit leading slash)
+</span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-field-RawFragment"><label for="URL-fold-field-RawFragment"><a href="../../src/net/url/url.go.html#line-368">RawFragment</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='URL-fold-field-RawFragment-docs' class="fold-docs">
+				// encoded fragment hint (see EscapedFragment method)
+</span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-field-RawPath"><label for="URL-fold-field-RawPath"><a href="../../src/net/url/url.go.html#line-364">RawPath</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='URL-fold-field-RawPath-docs' class="fold-docs">
+				// encoded path hint (see EscapedPath method)
+</span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-field-RawQuery"><label for="URL-fold-field-RawQuery"><a href="../../src/net/url/url.go.html#line-366">RawQuery</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='URL-fold-field-RawQuery-docs' class="fold-docs">
+				// encoded query values, without '?'
+</span></span><span>
+			<span class="nodocs"><a href="../../src/net/url/url.go.html#line-359">Scheme</a> <i><a href="../builtin.html#name-string">string</a></i></span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-field-User"><label for="URL-fold-field-User"><a href="../../src/net/url/url.go.html#line-361">User</a> <i>*<a href="#name-Userinfo">Userinfo</a></i></label><span id='URL-fold-field-User-docs' class="fold-docs">
+				// username and password information
+</span></span></span>
+		<input type='checkbox' class="fold" id="URL-fold-methods"><label for="URL-fold-methods">Methods (<i>total 15, in which 13 are exported</i>)</label><span id='URL-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="URL-fold-method-EscapedFragment"><label for="URL-fold-method-EscapedFragment">(*T) <a href="../../src/net/url/url.go.html#line-763">EscapedFragment</a>() <a href="../builtin.html#name-string">string</a></label><span id='URL-fold-method-EscapedFragment-docs' class="fold-docs">
+				EscapedFragment returns the escaped form of u.Fragment.
+				In general there are multiple possible escaped forms of any fragment.
+				EscapedFragment returns u.RawFragment when it is a valid escaping of u.Fragment.
+				Otherwise EscapedFragment ignores u.RawFragment and computes an escaped
+				form on its own.
+				The String method uses EscapedFragment to construct its result.
+				In general, code should call EscapedFragment instead of
+				reading u.RawFragment directly.
+</span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-method-EscapedPath"><label for="URL-fold-method-EscapedPath">(*T) <a href="../../src/net/url/url.go.html#line-700">EscapedPath</a>() <a href="../builtin.html#name-string">string</a></label><span id='URL-fold-method-EscapedPath-docs' class="fold-docs">
+				EscapedPath returns the escaped form of u.Path.
+				In general there are multiple possible escaped forms of any path.
+				EscapedPath returns u.RawPath when it is a valid escaping of u.Path.
+				Otherwise EscapedPath ignores u.RawPath and computes an escaped
+				form on its own.
+				The String and RequestURI methods use EscapedPath to construct
+				their results.
+				In general, code should call EscapedPath instead of
+				reading u.RawPath directly.
+</span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-method-Hostname"><label for="URL-fold-method-Hostname">(*T) <a href="../../src/net/url/url.go.html#line-1138">Hostname</a>() <a href="../builtin.html#name-string">string</a></label><span id='URL-fold-method-Hostname-docs' class="fold-docs">
+				Hostname returns u.Host, stripping any valid port number if present.
+
+				If the result is enclosed in square brackets, as literal IPv6 addresses are,
+				the square brackets are removed from the result.
+</span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-method-IsAbs"><label for="URL-fold-method-IsAbs">(*T) <a href="../../src/net/url/url.go.html#line-1053">IsAbs</a>() <a href="../builtin.html#name-bool">bool</a></label><span id='URL-fold-method-IsAbs-docs' class="fold-docs">
+				IsAbs reports whether the URL is absolute.
+				Absolute means that it has a non-empty scheme.
+</span></span><span>
+			<span class="nodocs">(*T) <a href="../../src/net/url/url.go.html#line-1172">MarshalBinary</a>() (text []<a href="../builtin.html#name-byte">byte</a>, err <a href="../builtin.html#name-error">error</a>)</span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-method-Parse"><label for="URL-fold-method-Parse">(*T) <a href="../../src/net/url/url.go.html#line-1060">Parse</a>(ref <a href="../builtin.html#name-string">string</a>) (*<b>URL</b>, <a href="../builtin.html#name-error">error</a>)</label><span id='URL-fold-method-Parse-docs' class="fold-docs">
+				Parse parses a URL in the context of the receiver. The provided URL
+				may be relative or absolute. Parse returns nil, err on parse
+				failure, otherwise its return value is the same as ResolveReference.
+</span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-method-Port"><label for="URL-fold-method-Port">(*T) <a href="../../src/net/url/url.go.html#line-1146">Port</a>() <a href="../builtin.html#name-string">string</a></label><span id='URL-fold-method-Port-docs' class="fold-docs">
+				Port returns the port part of u.Host, without the leading colon.
+
+				If u.Host doesn't contain a valid numeric port, Port returns an empty string.
+</span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-method-Query"><label for="URL-fold-method-Query">(*T) <a href="../../src/net/url/url.go.html#line-1109">Query</a>() <a href="#name-Values">Values</a></label><span id='URL-fold-method-Query-docs' class="fold-docs">
+				Query parses RawQuery and returns the corresponding values.
+				It silently discards malformed value pairs.
+				To check errors use ParseQuery.
+</span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-method-Redacted"><label for="URL-fold-method-Redacted">(*T) <a href="../../src/net/url/url.go.html#line-862">Redacted</a>() <a href="../builtin.html#name-string">string</a></label><span id='URL-fold-method-Redacted-docs' class="fold-docs">
+				Redacted is like String but replaces any password with "xxxxx".
+				Only the password in u.URL is redacted.
+</span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-method-RequestURI"><label for="URL-fold-method-RequestURI">(*T) <a href="../../src/net/url/url.go.html#line-1116">RequestURI</a>() <a href="../builtin.html#name-string">string</a></label><span id='URL-fold-method-RequestURI-docs' class="fold-docs">
+				RequestURI returns the encoded path?query or opaque?query
+				string that would be used in an HTTP request for u.
+</span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-method-ResolveReference"><label for="URL-fold-method-ResolveReference">(*T) <a href="../../src/net/url/url.go.html#line-1074">ResolveReference</a>(ref *<b>URL</b>) *<b>URL</b></label><span id='URL-fold-method-ResolveReference-docs' class="fold-docs">
+				ResolveReference resolves a URI reference to an absolute URI from
+				an absolute base URI u, per RFC 3986 Section 5.2. The URI reference
+				may be relative or absolute. ResolveReference always returns a new
+				URL instance, even if the returned URL is identical to either the
+				base or reference. If ref is an absolute URL, then ResolveReference
+				ignores base and returns a copy of ref.
+</span></span><span>
+			<input type='checkbox' class="fold" id="URL-fold-method-String"><label for="URL-fold-method-String">(*T) <a href="../../src/net/url/url.go.html#line-811">String</a>() <a href="../builtin.html#name-string">string</a></label><span id='URL-fold-method-String-docs' class="fold-docs">
+				String reassembles the URL into a valid URL string.
+				The general form of the result is one of:
+
+					scheme:opaque?query#fragment
+					scheme://userinfo@host/path?query#fragment
+
+				If u.Opaque is non-empty, String uses the first form;
+				otherwise it uses the second form.
+				Any non-ASCII characters in host are escaped.
+				To obtain the path, String uses u.EscapedPath().
+
+				In the second form, the following rules apply:
+					- if u.Scheme is empty, scheme: is omitted.
+					- if u.User is nil, userinfo@ is omitted.
+					- if u.Host is empty, host/ is omitted.
+					- if u.Scheme and u.Host are empty and u.User is nil,
+					   the entire scheme://userinfo@host/ is omitted.
+					- if u.Host is non-empty and u.Path begins with a /,
+					   the form host/path does not add its own /.
+					- if u.RawQuery is empty, ?query is omitted.
+					- if u.Fragment is empty, #fragment is omitted.
+</span></span><span>
+			<span class="nodocs">(*T) <a href="../../src/net/url/url.go.html#line-1176">UnmarshalBinary</a>(text []<a href="../builtin.html#name-byte">byte</a>) <a href="../builtin.html#name-error">error</a></span></span>
+			<input type='checkbox' class="showhide" id="URL-showhide-methods"><i><label for="URL-showhide-methods" class="show-inline">/* 2 unexporteds ... */</label><label for="URL-showhide-methods" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="URL-fold-method-setFragment"><label for="URL-fold-method-setFragment">(*T) <a href="../../src/net/url/url.go.html#line-740">setFragment</a>(f <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-error">error</a></label><span id='URL-fold-method-setFragment-docs' class="fold-docs">
+				setFragment is like setPath but for Fragment/RawFragment.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="URL-fold-method-setPath"><label for="URL-fold-method-setPath">(*T) <a href="../../src/net/url/url.go.html#line-676">setPath</a>(p <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-error">error</a></label><span id='URL-fold-method-setPath-docs' class="fold-docs">
+				setPath sets the Path and RawPath fields of the URL based on the provided
+				escaped path p. It maintains the invariant that RawPath is only specified
+				when it differs from the default encoding of the path.
+				For example:
+				- setPath("/foo/bar")   will set Path="/foo/bar" and RawPath=""
+				- setPath("/foo%2fbar") will set Path="/foo/bar" and RawPath="/foo%2fbar"
+				setPath will return an error only if the provided path contains an invalid
+				escaping.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="URL-fold-impls"><label for="URL-fold-impls">Implements (<i>at least 6, in which 3 are exported</i>)</label><span id='URL-fold-impls-items' class="fold-items"><span>
+			*T : encoding.<a href="../encoding.html#name-BinaryMarshaler">BinaryMarshaler</a></span><span>
+			*T : encoding.<a href="../encoding.html#name-BinaryUnmarshaler">BinaryUnmarshaler</a></span><span>
+			*T : fmt.<a href="../fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="URL-showhide-impls"><i><label for="URL-showhide-impls" class="show-inline">/* 3+ unexporteds ... */</label><label for="URL-showhide-impls" class="hide-inline">/* 3+ unexporteds: */</label></i><span class="hidden"><i>
+			*T : context.<a href="../context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*T : crypto/hmac.<a href="../crypto/hmac.html#name-marshalable">marshalable</a></i></span><span class="hidden"><i>
+			*T : runtime.<a href="../runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="URL-fold-results"><label for="URL-fold-results">As Outputs Of (<i>at least 11, in which 6 are exported</i>)</label><span id='URL-fold-results-items' class="fold-items"><span>
+			func <a href="#name-Parse">Parse</a>(rawurl <a href="../builtin.html#name-string">string</a>) (*<b>URL</b>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func <a href="#name-ParseRequestURI">ParseRequestURI</a>(rawurl <a href="../builtin.html#name-string">string</a>) (*<b>URL</b>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func (*URL).<a href="../../src/net/url/url.go.html#line-1060">Parse</a>(ref <a href="../builtin.html#name-string">string</a>) (*<b>URL</b>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func (*URL).<a href="../../src/net/url/url.go.html#line-1074">ResolveReference</a>(ref *<b>URL</b>) *<b>URL</b></span><span>
+			func net/http.<a href="http.html#name-ProxyFromEnvironment">ProxyFromEnvironment</a>(req *<a href="http.html">http</a>.<a href="http.html#name-Request">Request</a>) (*<b>URL</b>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func net/http.(*<a href="http.html#name-Response">Response</a>).<a href="../../src/net/http/response.go.html#line-137">Location</a>() (*<b>URL</b>, <a href="../builtin.html#name-error">error</a>)</span>
+			<input type='checkbox' class="showhide" id="URL-showhide-inputofs"><i><label for="URL-showhide-inputofs" class="show-inline">/* 5+ unexporteds ... */</label><label for="URL-showhide-inputofs" class="hide-inline">/* 5+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-parse">parse</a>(rawurl <a href="../builtin.html#name-string">string</a>, viaRequest <a href="../builtin.html#name-bool">bool</a>) (*<b>URL</b>, <a href="../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func net/http.<a href="http.html#name-cloneURL">cloneURL</a>(u *<b>URL</b>) *<b>URL</b></i></span><span class="hidden"><i>
+			func net/http.(*<a href="http.html#name-ServeMux">ServeMux</a>).<a href="../../src/net/http/server.go.html#line-2311">redirectToPathSlash</a>(host, path <a href="../builtin.html#name-string">string</a>, u *<b>URL</b>) (*<b>URL</b>, <a href="../builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func crypto/x509.<a href="../crypto/x509.html#name-parseSANExtension">parseSANExtension</a>(value []<a href="../builtin.html#name-byte">byte</a>) (dnsNames, emailAddresses []<a href="../builtin.html#name-string">string</a>, ipAddresses []<a href="../net.html">net</a>.<a href="../net.html#name-IP">IP</a>, uris []*<b>URL</b>, err <a href="../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func vendor/golang.org/x/net/http/httpproxy.<a href="../vendor/golang.org/x/net/http/httpproxy.html#name-parseProxy">parseProxy</a>(proxy <a href="../builtin.html#name-string">string</a>) (*<b>URL</b>, <a href="../builtin.html#name-error">error</a>)</i></span></span>
+		<input type='checkbox' class="fold" id="URL-fold-params"><label for="URL-fold-params">As Inputs Of (<i>at least 13, in which 4 are exported</i>)</label><span id='URL-fold-params-items' class="fold-items"><span>
+			func (*URL).<a href="../../src/net/url/url.go.html#line-1074">ResolveReference</a>(ref *<b>URL</b>) *<b>URL</b></span><span>
+			func net/http.<a href="http.html#name-ProxyURL">ProxyURL</a>(fixedURL *<b>URL</b>) func(*<a href="http.html">http</a>.<a href="http.html#name-Request">Request</a>) (*<b>URL</b>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func net/http.<a href="http.html#name-CookieJar">CookieJar</a>.<a href="../../src/net/http/jar.go.html#line-26">Cookies</a>(u *<b>URL</b>) []*<a href="http.html">http</a>.<a href="http.html#name-Cookie">Cookie</a></span><span>
+			func net/http.<a href="http.html#name-CookieJar">CookieJar</a>.<a href="../../src/net/http/jar.go.html#line-21">SetCookies</a>(u *<b>URL</b>, cookies []*<a href="http.html">http</a>.<a href="http.html#name-Cookie">Cookie</a>)</span>
+			<input type='checkbox' class="showhide" id="URL-showhide-outputofs"><i><label for="URL-showhide-outputofs" class="show-inline">/* 9+ unexporteds ... */</label><label for="URL-showhide-outputofs" class="hide-inline">/* 9+ unexporteds: */</label></i><span class="hidden"><i>
+			func net/http.<a href="http.html#name-canonicalAddr">canonicalAddr</a>(url *<b>URL</b>) <a href="../builtin.html#name-string">string</a></i></span><span class="hidden"><i>
+			func net/http.<a href="http.html#name-cloneURL">cloneURL</a>(u *<b>URL</b>) *<b>URL</b></i></span><span class="hidden"><i>
+			func net/http.<a href="http.html#name-refererForURL">refererForURL</a>(lastReq, newReq *<b>URL</b>) <a href="../builtin.html#name-string">string</a></i></span><span class="hidden"><i>
+			func net/http.<a href="http.html#name-shouldCopyHeaderOnRedirect">shouldCopyHeaderOnRedirect</a>(headerKey <a href="../builtin.html#name-string">string</a>, initial, dest *<b>URL</b>) <a href="../builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func net/http.<a href="http.html#name-stripPassword">stripPassword</a>(u *<b>URL</b>) <a href="../builtin.html#name-string">string</a></i></span><span class="hidden"><i>
+			func net/http.(*<a href="http.html#name-ServeMux">ServeMux</a>).<a href="../../src/net/http/server.go.html#line-2311">redirectToPathSlash</a>(host, path <a href="../builtin.html#name-string">string</a>, u *<b>URL</b>) (*<b>URL</b>, <a href="../builtin.html#name-bool">bool</a>)</i></span><span class="hidden"><i>
+			func crypto/x509.<a href="../crypto/x509.html#name-marshalSANs">marshalSANs</a>(dnsNames, emailAddresses []<a href="../builtin.html#name-string">string</a>, ipAddresses []<a href="../net.html">net</a>.<a href="../net.html#name-IP">IP</a>, uris []*<b>URL</b>) (derBytes []<a href="../builtin.html#name-byte">byte</a>, err <a href="../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func crypto/x509.<a href="../crypto/x509.html#name-matchURIConstraint">matchURIConstraint</a>(uri *<b>URL</b>, constraint <a href="../builtin.html#name-string">string</a>) (<a href="../builtin.html#name-bool">bool</a>, <a href="../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func vendor/golang.org/x/net/http/httpproxy.<a href="../vendor/golang.org/x/net/http/httpproxy.html#name-canonicalAddr">canonicalAddr</a>(url *<b>URL</b>) <a href="../builtin.html#name-string">string</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Userinfo" data-popularity="525">	<input type='checkbox' class="fold" id="Userinfo-fold-content"><label for="Userinfo-fold-content"> type <a href="../../src/net/url/url.go.html#line-393">Userinfo</a> <i>(struct)</i></label><span id='Userinfo-fold-content-docs' class="fold-docs">
+		The Userinfo type is an immutable encapsulation of username and
+		password details for a URL. An existing Userinfo value is guaranteed
+		to have a username set (potentially empty, as allowed by RFC 2396),
+		and optionally a password.
+
+		<input type='checkbox' class="fold" id="Userinfo-fold-fields"><label for="Userinfo-fold-fields">Fields (<i>total 3, none are exported</i>)</label><span id='Userinfo-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Userinfo-showhide-fields"><i><label for="Userinfo-showhide-fields" class="show-inline">/* 3 unexporteds ... */</label><label for="Userinfo-showhide-fields" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/net/url/url.go.html#line-395">password</a> <i><a href="../builtin.html#name-string">string</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/net/url/url.go.html#line-396">passwordSet</a> <i><a href="../builtin.html#name-bool">bool</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/net/url/url.go.html#line-394">username</a> <i><a href="../builtin.html#name-string">string</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="Userinfo-fold-methods"><label for="Userinfo-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='Userinfo-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Userinfo-fold-method-Password"><label for="Userinfo-fold-method-Password">(*T) <a href="../../src/net/url/url.go.html#line-408">Password</a>() (<a href="../builtin.html#name-string">string</a>, <a href="../builtin.html#name-bool">bool</a>)</label><span id='Userinfo-fold-method-Password-docs' class="fold-docs">
+				Password returns the password in case it is set, and whether it is set.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Userinfo-fold-method-String"><label for="Userinfo-fold-method-String">(*T) <a href="../../src/net/url/url.go.html#line-417">String</a>() <a href="../builtin.html#name-string">string</a></label><span id='Userinfo-fold-method-String-docs' class="fold-docs">
+				String returns the encoded userinfo information in the standard form
+				of "username[:password]".
+</span></span><span>
+			<input type='checkbox' class="fold" id="Userinfo-fold-method-Username"><label for="Userinfo-fold-method-Username">(*T) <a href="../../src/net/url/url.go.html#line-400">Username</a>() <a href="../builtin.html#name-string">string</a></label><span id='Userinfo-fold-method-Username-docs' class="fold-docs">
+				Username returns the username.
+</span></span></span>
+		<input type='checkbox' class="fold" id="Userinfo-fold-impls"><label for="Userinfo-fold-impls">Implements (<i>at least 3, in which 1 are exported</i>)</label><span id='Userinfo-fold-impls-items' class="fold-items"><span>
+			*T : fmt.<a href="../fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="Userinfo-showhide-impls"><i><label for="Userinfo-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="Userinfo-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			*T : context.<a href="../context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*T : runtime.<a href="../runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="Userinfo-fold-results"><label for="Userinfo-fold-results">As Outputs Of (<i>at least 3, in which 2 are exported</i>)</label><span id='Userinfo-fold-results-items' class="fold-items"><span>
+			func <a href="#name-User">User</a>(username <a href="../builtin.html#name-string">string</a>) *<b>Userinfo</b></span><span>
+			func <a href="#name-UserPassword">UserPassword</a>(username, password <a href="../builtin.html#name-string">string</a>) *<b>Userinfo</b></span>
+			<input type='checkbox' class="showhide" id="Userinfo-showhide-inputofs"><i><label for="Userinfo-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="Userinfo-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-parseAuthority">parseAuthority</a>(authority <a href="../builtin.html#name-string">string</a>) (user *<b>Userinfo</b>, host <a href="../builtin.html#name-string">string</a>, err <a href="../builtin.html#name-error">error</a>)</i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Values" data-popularity="865">	<input type='checkbox' class="fold" id="Values-fold-content"><label for="Values-fold-content"> type <a href="../../src/net/url/url.go.html#line-878">Values</a> <i>(map)</i></label><span id='Values-fold-content-docs' class="fold-docs">
+		Values maps a string key to a list of values.
+		It is typically used for query parameters and form values.
+		Unlike in the http.Header map, the keys in a Values map
+		are case-sensitive.
+
+		<input type='checkbox' class="fold" id="Values-fold-methods"><label for="Values-fold-methods">Methods (<i>total 5, all are exported</i>)</label><span id='Values-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Values-fold-method-Add"><label for="Values-fold-method-Add">( T) <a href="../../src/net/url/url.go.html#line-903">Add</a>(key, value <a href="../builtin.html#name-string">string</a>)</label><span id='Values-fold-method-Add-docs' class="fold-docs">
+				Add adds the value to key. It appends to any existing
+				values associated with key.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Values-fold-method-Del"><label for="Values-fold-method-Del">( T) <a href="../../src/net/url/url.go.html#line-908">Del</a>(key <a href="../builtin.html#name-string">string</a>)</label><span id='Values-fold-method-Del-docs' class="fold-docs">
+				Del deletes the values associated with key.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Values-fold-method-Encode"><label for="Values-fold-method-Encode">( T) <a href="../../src/net/url/url.go.html#line-963">Encode</a>() <a href="../builtin.html#name-string">string</a></label><span id='Values-fold-method-Encode-docs' class="fold-docs">
+				Encode encodes the values into ``URL encoded'' form
+				("bar=baz&amp;foo=quux") sorted by key.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Values-fold-method-Get"><label for="Values-fold-method-Get">( T) <a href="../../src/net/url/url.go.html#line-884">Get</a>(key <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-string">string</a></label><span id='Values-fold-method-Get-docs' class="fold-docs">
+				Get gets the first value associated with the given key.
+				If there are no values associated with the key, Get returns
+				the empty string. To access multiple values, use the map
+				directly.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Values-fold-method-Set"><label for="Values-fold-method-Set">( T) <a href="../../src/net/url/url.go.html#line-897">Set</a>(key, value <a href="../builtin.html#name-string">string</a>)</label><span id='Values-fold-method-Set-docs' class="fold-docs">
+				Set sets the key to value. It replaces any existing
+				values.
+</span></span></span>
+		<input type='checkbox' class="fold" id="Values-fold-results"><label for="Values-fold-results">As Outputs Of (<i>at least 4, in which 2 are exported</i>)</label><span id='Values-fold-results-items' class="fold-items"><span>
+			func <a href="#name-ParseQuery">ParseQuery</a>(query <a href="../builtin.html#name-string">string</a>) (<b>Values</b>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func (*<a href="#name-URL">URL</a>).<a href="../../src/net/url/url.go.html#line-1109">Query</a>() <b>Values</b></span>
+			<input type='checkbox' class="showhide" id="Values-showhide-inputofs"><i><label for="Values-showhide-inputofs" class="show-inline">/* 2+ unexporteds ... */</label><label for="Values-showhide-inputofs" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			func net/http.<a href="http.html#name-cloneURLValues">cloneURLValues</a>(v <b>Values</b>) <b>Values</b></i></span><span class="hidden"><i>
+			func net/http.<a href="http.html#name-parsePostForm">parsePostForm</a>(r *<a href="http.html">http</a>.<a href="http.html#name-Request">Request</a>) (vs <b>Values</b>, err <a href="../builtin.html#name-error">error</a>)</i></span></span>
+		<input type='checkbox' class="fold" id="Values-fold-params"><label for="Values-fold-params">As Inputs Of (<i>at least 9, in which 6 are exported</i>)</label><span id='Values-fold-params-items' class="fold-items"><span>
+			func net/http.<a href="http.html#name-PostForm">PostForm</a>(url <a href="../builtin.html#name-string">string</a>, data <b>Values</b>) (resp *<a href="http.html">http</a>.<a href="http.html#name-Response">Response</a>, err <a href="../builtin.html#name-error">error</a>)</span><span>
+			func net/http.(*<a href="http.html#name-Client">Client</a>).<a href="../../src/net/http/client.go.html#line-876">PostForm</a>(url <a href="../builtin.html#name-string">string</a>, data <b>Values</b>) (resp *<a href="http.html">http</a>.<a href="http.html#name-Response">Response</a>, err <a href="../builtin.html#name-error">error</a>)</span><span>
+			func github.com/ARM-software/golang-utils/utils/http.<a href="../github.com/ARM-software*34f8c/golang-utils/utils/http.html#name-IClient">IClient</a>.<a href="../../src/github.com/ARM-software*34f8c/golang-utils/utils/http/client.go.html#line-24">PostForm</a>(url <a href="../builtin.html#name-string">string</a>, data <b>Values</b>) (*<a href="http.html">http</a>.<a href="http.html#name-Response">Response</a>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func github.com/ARM-software/golang-utils/utils/http.(*<a href="../github.com/ARM-software*34f8c/golang-utils/utils/http.html#name-RetryableClient">RetryableClient</a>).<a href="../../src/github.com/ARM-software*34f8c/golang-utils/utils/http/client.go.html#line-52">PostForm</a>(url <a href="../builtin.html#name-string">string</a>, data <b>Values</b>) (*<a href="http.html">http</a>.<a href="http.html#name-Response">Response</a>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func github.com/hashicorp/go-retryablehttp.<a href="../github.com/hashicorp/go-retryablehttp.html#name-PostForm">PostForm</a>(url <a href="../builtin.html#name-string">string</a>, data <b>Values</b>) (*<a href="http.html">http</a>.<a href="http.html#name-Response">Response</a>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func github.com/hashicorp/go-retryablehttp.(*<a href="../github.com/hashicorp/go-retryablehttp.html#name-Client">Client</a>).<a href="../../src/github.com/hashicorp/go-retryablehttp/client.go.html#line-764">PostForm</a>(url <a href="../builtin.html#name-string">string</a>, data <b>Values</b>) (*<a href="http.html">http</a>.<a href="http.html#name-Response">Response</a>, <a href="../builtin.html#name-error">error</a>)</span>
+			<input type='checkbox' class="showhide" id="Values-showhide-outputofs"><i><label for="Values-showhide-outputofs" class="show-inline">/* 3+ unexporteds ... */</label><label for="Values-showhide-outputofs" class="hide-inline">/* 3+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-parseQuery">parseQuery</a>(m <b>Values</b>, query <a href="../builtin.html#name-string">string</a>) (err <a href="../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func net/http.<a href="http.html#name-cloneURLValues">cloneURLValues</a>(v <b>Values</b>) <b>Values</b></i></span><span class="hidden"><i>
+			func net/http.<a href="http.html#name-copyValues">copyValues</a>(dst, src <b>Values</b>)</i></span></span>
+
+</span></div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* one unexported ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* one unexported: */</label></i><div class="anchor type-res hidden" id="name-encoding" data-popularity="155">	<input type='checkbox' class="fold" id="encoding-fold-content"><label for="encoding-fold-content"> type <a href="../../src/net/url/url.go.html#line-71">encoding</a> <a href="../builtin.html#name-int">int</a> <i>(basic type)</i></label><span id='encoding-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="encoding-fold-params"><label for="encoding-fold-params">As Inputs Of (<i>at least 4, none are exported</i>)</label><span id='encoding-fold-params-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="encoding-showhide-outputofs"><i><label for="encoding-showhide-outputofs" class="show-inline">/* 4+ unexporteds ... */</label><label for="encoding-showhide-outputofs" class="hide-inline">/* 4+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-escape">escape</a>(s <a href="../builtin.html#name-string">string</a>, mode <b>encoding</b>) <a href="../builtin.html#name-string">string</a></i></span><span class="hidden"><i>
+			func <a href="#name-shouldEscape">shouldEscape</a>(c <a href="../builtin.html#name-byte">byte</a>, mode <b>encoding</b>) <a href="../builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func <a href="#name-unescape">unescape</a>(s <a href="../builtin.html#name-string">string</a>, mode <b>encoding</b>) (<a href="../builtin.html#name-string">string</a>, <a href="../builtin.html#name-error">error</a>)</i></span><span class="hidden"><i>
+			func <a href="#name-validEncoded">validEncoded</a>(s <a href="../builtin.html#name-string">string</a>, mode <b>encoding</b>) <a href="../builtin.html#name-bool">bool</a></i></span></span>
+		<input type='checkbox' class="fold" id="encoding-fold-values"><label for="encoding-fold-values">As Types Of (<i>total 7, none are exported</i>)</label><span id='encoding-fold-values-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="encoding-showhide-values"><i><label for="encoding-showhide-values" class="show-inline">/* 7 unexporteds ... */</label><label for="encoding-showhide-values" class="hide-inline">/* 7 unexporteds: */</label></i><span class="hidden"><i>
+			const <a href="#name-encodeFragment">encodeFragment</a></i></span><span class="hidden"><i>
+			const <a href="#name-encodeHost">encodeHost</a></i></span><span class="hidden"><i>
+			const <a href="#name-encodePath">encodePath</a></i></span><span class="hidden"><i>
+			const <a href="#name-encodePathSegment">encodePathSegment</a></i></span><span class="hidden"><i>
+			const <a href="#name-encodeQueryComponent">encodeQueryComponent</a></i></span><span class="hidden"><i>
+			const <a href="#name-encodeUserPassword">encodeUserPassword</a></i></span><span class="hidden"><i>
+			const <a href="#name-encodeZone">encodeZone</a></i></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 26, in which 9 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-Parse">	<input type='checkbox' class="fold" id="Parse-fold-content"><label for="Parse-fold-content"> func <a href="../../src/net/url/url.go.html#line-475">Parse</a>(rawurl <a href="../builtin.html#name-string">string</a>) (*<a href="#name-URL">URL</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='Parse-fold-content-docs' class="fold-docs">
+		Parse parses rawurl into a URL structure.
+
+		The rawurl may be relative (a path, without a host) or absolute
+		(starting with a scheme). Trying to parse a hostname and path
+		without a scheme is invalid but may not necessarily return an
+		error, due to parsing ambiguities.
+
+</span></div><div class="anchor value-res" id="name-ParseQuery">	<input type='checkbox' class="fold" id="ParseQuery-fold-content"><label for="ParseQuery-fold-content"> func <a href="../../src/net/url/url.go.html#line-921">ParseQuery</a>(query <a href="../builtin.html#name-string">string</a>) (<a href="#name-Values">Values</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='ParseQuery-fold-content-docs' class="fold-docs">
+		ParseQuery parses the URL-encoded query string and returns
+		a map listing the values specified for each key.
+		ParseQuery always returns a non-nil map containing all the
+		valid query parameters found; err describes the first decoding error
+		encountered, if any.
+
+		Query is expected to be a list of key=value settings separated by
+		ampersands or semicolons. A setting without an equals sign is
+		interpreted as a key set to an empty value.
+
+</span></div><div class="anchor value-res" id="name-ParseRequestURI">	<input type='checkbox' class="fold" id="ParseRequestURI-fold-content"><label for="ParseRequestURI-fold-content"> func <a href="../../src/net/url/url.go.html#line-496">ParseRequestURI</a>(rawurl <a href="../builtin.html#name-string">string</a>) (*<a href="#name-URL">URL</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='ParseRequestURI-fold-content-docs' class="fold-docs">
+		ParseRequestURI parses rawurl into a URL structure. It assumes that
+		rawurl was received in an HTTP request, so the rawurl is interpreted
+		only as an absolute URI or an absolute path.
+		The string rawurl is assumed not to have a #fragment suffix.
+		(Web browsers strip #fragment before sending the URL to a web server.)
+
+</span></div><div class="anchor value-res" id="name-PathEscape">	<input type='checkbox' class="fold" id="PathEscape-fold-content"><label for="PathEscape-fold-content"> func <a href="../../src/net/url/url.go.html#line-280">PathEscape</a>(s <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-string">string</a></label><span id='PathEscape-fold-content-docs' class="fold-docs">
+		PathEscape escapes the string so it can be safely placed inside a URL path segment,
+		replacing special characters (including /) with %XX sequences as needed.
+
+</span></div><div class="anchor value-res" id="name-PathUnescape">	<input type='checkbox' class="fold" id="PathUnescape-fold-content"><label for="PathUnescape-fold-content"> func <a href="../../src/net/url/url.go.html#line-193">PathUnescape</a>(s <a href="../builtin.html#name-string">string</a>) (<a href="../builtin.html#name-string">string</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='PathUnescape-fold-content-docs' class="fold-docs">
+		PathUnescape does the inverse transformation of PathEscape,
+		converting each 3-byte encoded substring of the form "%AB" into the
+		hex-decoded byte 0xAB. It returns an error if any % is not followed
+		by two hexadecimal digits.
+
+		PathUnescape is identical to QueryUnescape except that it does not
+		unescape '+' to ' ' (space).
+
+</span></div><div class="anchor value-res" id="name-QueryEscape">	<input type='checkbox' class="fold" id="QueryEscape-fold-content"><label for="QueryEscape-fold-content"> func <a href="../../src/net/url/url.go.html#line-274">QueryEscape</a>(s <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-string">string</a></label><span id='QueryEscape-fold-content-docs' class="fold-docs">
+		QueryEscape escapes the string so it can be safely placed
+		inside a URL query.
+
+</span></div><div class="anchor value-res" id="name-QueryUnescape">	<input type='checkbox' class="fold" id="QueryUnescape-fold-content"><label for="QueryUnescape-fold-content"> func <a href="../../src/net/url/url.go.html#line-182">QueryUnescape</a>(s <a href="../builtin.html#name-string">string</a>) (<a href="../builtin.html#name-string">string</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='QueryUnescape-fold-content-docs' class="fold-docs">
+		QueryUnescape does the inverse transformation of QueryEscape,
+		converting each 3-byte encoded substring of the form "%AB" into the
+		hex-decoded byte 0xAB.
+		It returns an error if any % is not followed by two hexadecimal
+		digits.
+
+</span></div><div class="anchor value-res" id="name-User">	<input type='checkbox' class="fold" id="User-fold-content"><label for="User-fold-content"> func <a href="../../src/net/url/url.go.html#line-373">User</a>(username <a href="../builtin.html#name-string">string</a>) *<a href="#name-Userinfo">Userinfo</a></label><span id='User-fold-content-docs' class="fold-docs">
+		User returns a Userinfo containing the provided username
+		and no password set.
+
+</span></div><div class="anchor value-res" id="name-UserPassword">	<input type='checkbox' class="fold" id="UserPassword-fold-content"><label for="UserPassword-fold-content"> func <a href="../../src/net/url/url.go.html#line-385">UserPassword</a>(username, password <a href="../builtin.html#name-string">string</a>) *<a href="#name-Userinfo">Userinfo</a></label><span id='UserPassword-fold-content-docs' class="fold-docs">
+		UserPassword returns a Userinfo containing the provided username
+		and password.
+
+		This functionality should only be used with legacy web sites.
+		RFC 2396 warns that interpreting Userinfo this way
+		``is NOT RECOMMENDED, because the passing of authentication
+		information in clear text (such as URI) has proven to be a
+		security risk in almost every case where it has been used.''
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 17 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 17 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-escape"><i>	<span class="nodocs"> func <a href="../../src/net/url/url.go.html#line-284">escape</a>(s <a href="../builtin.html#name-string">string</a>, mode <a href="#name-encoding">encoding</a>) <a href="../builtin.html#name-string">string</a></span></i></div><div class="anchor value-res hidden" id="name-getscheme"><i>	<input type='checkbox' class="fold" id="getscheme-fold-content"><label for="getscheme-fold-content"> func <a href="../../src/net/url/url.go.html#line-431">getscheme</a>(rawurl <a href="../builtin.html#name-string">string</a>) (scheme, path <a href="../builtin.html#name-string">string</a>, err <a href="../builtin.html#name-error">error</a>)</label><span id='getscheme-fold-content-docs' class="fold-docs">
+		Maybe rawurl is of the form scheme:path.
+		(Scheme must be [a-zA-Z][a-zA-Z0-9+-.]*)
+		If so, return scheme, path; else return "", rawurl.
+
+</span></i></div><div class="anchor value-res hidden" id="name-ishex"><i>	<span class="nodocs"> func <a href="../../src/net/url/url.go.html#line-47">ishex</a>(c <a href="../builtin.html#name-byte">byte</a>) <a href="../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-parse"><i>	<input type='checkbox' class="fold" id="parse-fold-content"><label for="parse-fold-content"> func <a href="../../src/net/url/url.go.html#line-508">parse</a>(rawurl <a href="../builtin.html#name-string">string</a>, viaRequest <a href="../builtin.html#name-bool">bool</a>) (*<a href="#name-URL">URL</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='parse-fold-content-docs' class="fold-docs">
+		parse parses a URL from a string in one of two contexts. If
+		viaRequest is true, the URL is assumed to have arrived via an HTTP request,
+		in which case only absolute URLs or path-absolute relative URLs are allowed.
+		If viaRequest is false, all forms of relative URLs are allowed.
+
+</span></i></div><div class="anchor value-res hidden" id="name-parseAuthority"><i>	<span class="nodocs"> func <a href="../../src/net/url/url.go.html#line-582">parseAuthority</a>(authority <a href="../builtin.html#name-string">string</a>) (user *<a href="#name-Userinfo">Userinfo</a>, host <a href="../builtin.html#name-string">string</a>, err <a href="../builtin.html#name-error">error</a>)</span></i></div><div class="anchor value-res hidden" id="name-parseHost"><i>	<input type='checkbox' class="fold" id="parseHost-fold-content"><label for="parseHost-fold-content"> func <a href="../../src/net/url/url.go.html#line-619">parseHost</a>(host <a href="../builtin.html#name-string">string</a>) (<a href="../builtin.html#name-string">string</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='parseHost-fold-content-docs' class="fold-docs">
+		parseHost parses host as an authority without user
+		information. That is, as host[:port].
+
+</span></i></div><div class="anchor value-res hidden" id="name-parseQuery"><i>	<span class="nodocs"> func <a href="../../src/net/url/url.go.html#line-927">parseQuery</a>(m <a href="#name-Values">Values</a>, query <a href="../builtin.html#name-string">string</a>) (err <a href="../builtin.html#name-error">error</a>)</span></i></div><div class="anchor value-res hidden" id="name-resolvePath"><i>	<input type='checkbox' class="fold" id="resolvePath-fold-content"><label for="resolvePath-fold-content"> func <a href="../../src/net/url/url.go.html#line-990">resolvePath</a>(base, ref <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-string">string</a></label><span id='resolvePath-fold-content-docs' class="fold-docs">
+		resolvePath applies special path segments from refs and applies
+		them to base, per RFC 3986.
+
+</span></i></div><div class="anchor value-res hidden" id="name-shouldEscape"><i>	<input type='checkbox' class="fold" id="shouldEscape-fold-content"><label for="shouldEscape-fold-content"> func <a href="../../src/net/url/url.go.html#line-100">shouldEscape</a>(c <a href="../builtin.html#name-byte">byte</a>, mode <a href="#name-encoding">encoding</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='shouldEscape-fold-content-docs' class="fold-docs">
+		Return true if the specified character should be escaped when
+		appearing in a URL string, according to RFC 3986.
+
+		Please be informed that for now shouldEscape does not check all
+		reserved characters correctly. See golang.org/issue/5684.
+
+</span></i></div><div class="anchor value-res hidden" id="name-split"><i>	<input type='checkbox' class="fold" id="split-fold-content"><label for="split-fold-content"> func <a href="../../src/net/url/url.go.html#line-458">split</a>(s <a href="../builtin.html#name-string">string</a>, sep <a href="../builtin.html#name-byte">byte</a>, cutc <a href="../builtin.html#name-bool">bool</a>) (<a href="../builtin.html#name-string">string</a>, <a href="../builtin.html#name-string">string</a>)</label><span id='split-fold-content-docs' class="fold-docs">
+		split slices s into two substrings separated by the first occurrence of
+		sep. If cutc is true then sep is excluded from the second substring.
+		If sep does not occur in s then s and the empty string is returned.
+
+</span></i></div><div class="anchor value-res hidden" id="name-splitHostPort"><i>	<input type='checkbox' class="fold" id="splitHostPort-fold-content"><label for="splitHostPort-fold-content"> func <a href="../../src/net/url/url.go.html#line-1154">splitHostPort</a>(hostport <a href="../builtin.html#name-string">string</a>) (host, port <a href="../builtin.html#name-string">string</a>)</label><span id='splitHostPort-fold-content-docs' class="fold-docs">
+		splitHostPort separates host and port. If the port is not valid, it returns
+		the entire input as host, and it doesn't check the validity of the host.
+		Unlike net.SplitHostPort, but per RFC 3986, it requires ports to be numeric.
+
+</span></i></div><div class="anchor value-res hidden" id="name-stringContainsCTLByte"><i>	<input type='checkbox' class="fold" id="stringContainsCTLByte-fold-content"><label for="stringContainsCTLByte-fold-content"> func <a href="../../src/net/url/url.go.html#line-1216">stringContainsCTLByte</a>(s <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='stringContainsCTLByte-fold-content-docs' class="fold-docs">
+		stringContainsCTLByte reports whether s contains any ASCII control character.
+
+</span></i></div><div class="anchor value-res hidden" id="name-unescape"><i>	<input type='checkbox' class="fold" id="unescape-fold-content"><label for="unescape-fold-content"> func <a href="../../src/net/url/url.go.html#line-199">unescape</a>(s <a href="../builtin.html#name-string">string</a>, mode <a href="#name-encoding">encoding</a>) (<a href="../builtin.html#name-string">string</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='unescape-fold-content-docs' class="fold-docs">
+		unescape unescapes a string; the mode specifies
+		which section of the URL string is being unescaped.
+
+</span></i></div><div class="anchor value-res hidden" id="name-unhex"><i>	<span class="nodocs"> func <a href="../../src/net/url/url.go.html#line-59">unhex</a>(c <a href="../builtin.html#name-byte">byte</a>) <a href="../builtin.html#name-byte">byte</a></span></i></div><div class="anchor value-res hidden" id="name-validEncoded"><i>	<input type='checkbox' class="fold" id="validEncoded-fold-content"><label for="validEncoded-fold-content"> func <a href="../../src/net/url/url.go.html#line-716">validEncoded</a>(s <a href="../builtin.html#name-string">string</a>, mode <a href="#name-encoding">encoding</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='validEncoded-fold-content-docs' class="fold-docs">
+		validEncoded reports whether s is a valid encoded path or fragment,
+		according to mode.
+		It must not contain any bytes that require escaping during encoding.
+
+</span></i></div><div class="anchor value-res hidden" id="name-validOptionalPort"><i>	<input type='checkbox' class="fold" id="validOptionalPort-fold-content"><label for="validOptionalPort-fold-content"> func <a href="../../src/net/url/url.go.html#line-775">validOptionalPort</a>(port <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='validOptionalPort-fold-content-docs' class="fold-docs">
+		validOptionalPort reports whether port is either an empty string
+		or matches /^:\d*$/
+
+</span></i></div><div class="anchor value-res hidden" id="name-validUserinfo"><i>	<input type='checkbox' class="fold" id="validUserinfo-fold-content"><label for="validUserinfo-fold-content"> func <a href="../../src/net/url/url.go.html#line-1193">validUserinfo</a>(s <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='validUserinfo-fold-content-docs' class="fold-docs">
+		validUserinfo reports whether s is a valid userinfo string per RFC 3986
+		Section 3.2.1:
+		    userinfo    = *( unreserved / pct-encoded / sub-delims / ":" )
+		    unreserved  = ALPHA / DIGIT / "-" / "." / "_" / "~"
+		    sub-delims  = "!" / "$" / "&amp;" / "'" / "(" / ")"
+		                  / "*" / "+" / "," / ";" / "="
+
+		It doesn't validate pct-encoded. The caller does that via func unescape.
+
+</span></i></div></div>
+<div id="exported-constants"><span class="title">Package-Level Constants<span class="title-stat"><i> (total 8, none are exported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-constants-showhide"><i><label for="unexported-constants-showhide" class="show-inline">/* 8 unexporteds ... */</label><label for="unexported-constants-showhide" class="hide-inline">/* 8 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-encodeFragment"><i>	<span class="nodocs">const <a href="../../src/net/url/url.go.html#line-80">encodeFragment</a> <a href="#name-encoding">encoding</a> = 7</span></i></div><div class="anchor value-res hidden" id="name-encodeHost"><i>	<span class="nodocs">const <a href="../../src/net/url/url.go.html#line-76">encodeHost</a> <a href="#name-encoding">encoding</a> = 3</span></i></div><div class="anchor value-res hidden" id="name-encodePath"><i>	<span class="nodocs">const <a href="../../src/net/url/url.go.html#line-74">encodePath</a> <a href="#name-encoding">encoding</a> = 1</span></i></div><div class="anchor value-res hidden" id="name-encodePathSegment"><i>	<span class="nodocs">const <a href="../../src/net/url/url.go.html#line-75">encodePathSegment</a> <a href="#name-encoding">encoding</a> = 2</span></i></div><div class="anchor value-res hidden" id="name-encodeQueryComponent"><i>	<span class="nodocs">const <a href="../../src/net/url/url.go.html#line-79">encodeQueryComponent</a> <a href="#name-encoding">encoding</a> = 6</span></i></div><div class="anchor value-res hidden" id="name-encodeUserPassword"><i>	<span class="nodocs">const <a href="../../src/net/url/url.go.html#line-78">encodeUserPassword</a> <a href="#name-encoding">encoding</a> = 5</span></i></div><div class="anchor value-res hidden" id="name-encodeZone"><i>	<span class="nodocs">const <a href="../../src/net/url/url.go.html#line-77">encodeZone</a> <a href="#name-encoding">encoding</a> = 4</span></i></div><div class="anchor value-res hidden" id="name-upperhex"><i>	<span class="nodocs">const <a href="../../src/net/url/url.go.html#line-45">upperhex</a> = "0123456789ABCDEF"</span></i></div></div></code></pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

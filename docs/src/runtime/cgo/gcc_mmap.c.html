@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: gcc_mmap.c in package runtime/cgo</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	gcc_mmap.c
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/runtime/cgo.html">runtime/cgo</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code>// Copyright 2015 The Go Authors. All rights reserved.</code></span>
+<span class="codeline" id="line-2"><code>// Use of this source code is governed by a BSD-style</code></span>
+<span class="codeline" id="line-3"><code>// license that can be found in the LICENSE file.</code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code>// +build linux,amd64 linux,arm64</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code>#include &lt;errno.h&gt;</code></span>
+<span class="codeline" id="line-8"><code>#include &lt;stdint.h&gt;</code></span>
+<span class="codeline" id="line-9"><code>#include &lt;stdlib.h&gt;</code></span>
+<span class="codeline" id="line-10"><code>#include &lt;sys/mman.h&gt;</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code>#include "libcgo.h"</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code>uintptr_t</code></span>
+<span class="codeline" id="line-15"><code>x_cgo_mmap(void *addr, uintptr_t length, int32_t prot, int32_t flags, int32_t fd, uint32_t offset) {</code></span>
+<span class="codeline" id="line-16"><code>	void *p;</code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code>	_cgo_tsan_acquire();</code></span>
+<span class="codeline" id="line-19"><code>	p = mmap(addr, length, prot, flags, fd, offset);</code></span>
+<span class="codeline" id="line-20"><code>	_cgo_tsan_release();</code></span>
+<span class="codeline" id="line-21"><code>	if (p == MAP_FAILED) {</code></span>
+<span class="codeline" id="line-22"><code>		/* This is what the Go code expects on failure.  */</code></span>
+<span class="codeline" id="line-23"><code>		return (uintptr_t)errno;</code></span>
+<span class="codeline" id="line-24"><code>	}</code></span>
+<span class="codeline" id="line-25"><code>	return (uintptr_t)p;</code></span>
+<span class="codeline" id="line-26"><code>}</code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code>void</code></span>
+<span class="codeline" id="line-29"><code>x_cgo_munmap(void *addr, uintptr_t length) {</code></span>
+<span class="codeline" id="line-30"><code>	int r;</code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code>	_cgo_tsan_acquire();</code></span>
+<span class="codeline" id="line-33"><code>	r = munmap(addr, length);</code></span>
+<span class="codeline" id="line-34"><code>	_cgo_tsan_release();</code></span>
+<span class="codeline" id="line-35"><code>	if (r &lt; 0) {</code></span>
+<span class="codeline" id="line-36"><code>		/* The Go runtime is not prepared for munmap to fail.  */</code></span>
+<span class="codeline" id="line-37"><code>		abort();</code></span>
+<span class="codeline" id="line-38"><code>	}</code></span>
+<span class="codeline" id="line-39"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

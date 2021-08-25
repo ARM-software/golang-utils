@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: hzgb2312.go in package golang.org/x/text/encoding/simplifiedchinese</title>
+<link href="../../../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	hzgb2312.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/golang.org/x/text/encoding/simplifiedchinese.html">golang.org/x/text/encoding/simplifiedchinese</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2013 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> simplifiedchinese</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"unicode/utf8"</span></label></code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i1"><span class="lit-string i1">"golang.org/x/text/encoding"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i2"><span class="lit-string i2">"golang.org/x/text/encoding/internal"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i3"><span class="lit-string i3">"golang.org/x/text/encoding/internal/identifier"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i4"><span class="lit-string i4">"golang.org/x/text/transform"</span></label></code></span>
+<span class="codeline" id="line-14"><code>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// HZGB2312 is the HZ-GB2312 encoding.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">var</span> <a href="../../../../../../pkg/golang.org/x/text/encoding/simplifiedchinese.html#name-HZGB2312" class="ident">HZGB2312</a> <a href="../../../../../../pkg/golang.org/x/text/encoding.html" class="ident i1">encoding</a>.<a href="../encoding.go.html#line-32" class="ident">Encoding</a> = &amp;<a href="#line-19" class="ident">hzGB2312</a></code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">var</span> <a href="../../../../../../pkg/golang.org/x/text/encoding/simplifiedchinese.html#name-hzGB2312" class="ident">hzGB2312</a> = <a href="../../../../../../pkg/golang.org/x/text/encoding/internal.html" class="ident i2">internal</a>.<a href="../internal/internal.go.html#line-16" class="ident">Encoding</a>{</code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../../../../../pkg/golang.org/x/text/encoding/internal.html" class="ident i2">internal</a>.<a href="../internal/internal.go.html#line-49" class="ident">FuncEncoding</a>{<a href="#line-25" class="ident">hzGB2312NewDecoder</a>, <a href="#line-29" class="ident">hzGB2312NewEncoder</a>},</code></span>
+<span class="codeline" id="line-21"><code>	<span class="lit-string">"HZ-GB2312"</span>,</code></span>
+<span class="codeline" id="line-22"><code>	<a href="../../../../../../pkg/golang.org/x/text/encoding/internal/identifier.html" class="ident i3">identifier</a>.<a href="../internal/identifier/mib.go.html#line-1442" class="ident">HZGB2312</a>,</code></span>
+<span class="codeline" id="line-23"><code>}</code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/golang.org/x/text/encoding/simplifiedchinese.html#name-hzGB2312NewDecoder" class="ident">hzGB2312NewDecoder</a></label>() <a href="../../../../../../pkg/golang.org/x/text/transform.html" class="ident i4">transform</a>.<a href="../../transform/transform.go.html#line-41" class="ident">Transformer</a> {</code></span>
+<span class="codeline" id="line-26"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="#line-38" class="ident">hzGB2312Decoder</a>)</code></span>
+<span class="codeline" id="line-27"><code>}</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">func</span> <label for="r1" class="ident"><a href="../../../../../../pkg/golang.org/x/text/encoding/simplifiedchinese.html#name-hzGB2312NewEncoder" class="ident">hzGB2312NewEncoder</a></label>() <a href="../../../../../../pkg/golang.org/x/text/transform.html" class="ident i4">transform</a>.<a href="../../transform/transform.go.html#line-41" class="ident">Transformer</a> {</code></span>
+<span class="codeline" id="line-30"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="#line-125" class="ident">hzGB2312Encoder</a>)</code></span>
+<span class="codeline" id="line-31"><code>}</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-34"><code>	<a href="../../../../../../pkg/golang.org/x/text/encoding/simplifiedchinese.html#name-asciiState" class="ident">asciiState</a> = <a href="../../../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-35"><code>	<a href="../../../../../../pkg/golang.org/x/text/encoding/simplifiedchinese.html#name-gbState" class="ident">gbState</a></code></span>
+<span class="codeline" id="line-36"><code>)</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/text/encoding/simplifiedchinese.html#name-hzGB2312Decoder" class="ident">hzGB2312Decoder</a> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code><span class="keyword">func</span> (<label for="r2" class="ident">d</label> *<a href="#line-38" class="ident">hzGB2312Decoder</a>) <label for="r3" class="ident"><a href="../../../../../../imp/golang.org/x/text/encoding/simplifiedchinese.hzGB2312Decoder*39c76.html#name-.Reset" class="ident">Reset</a></label>() {</code></span>
+<span class="codeline" id="line-41"><code>	*<label for="r2" class="ident">d</label> = <a href="#line-34" class="ident">asciiState</a></code></span>
+<span class="codeline" id="line-42"><code>}</code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code><span class="keyword">func</span> (<label for="r4" class="ident">d</label> *<a href="#line-38" class="ident">hzGB2312Decoder</a>) <label for="r5" class="ident"><a href="../../../../../../imp/golang.org/x/text/encoding/simplifiedchinese.hzGB2312Decoder*39c76.html#name-.Transform" class="ident">Transform</a></label>(<label for="r6" class="ident">dst</label>, <label for="r7" class="ident">src</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r8" class="ident">atEOF</label> <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) (<label for="r9" class="ident">nDst</label>, <label for="r10" class="ident">nSrc</label> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r11" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-45"><code>	<label for="r12" class="ident">r</label>, <label for="r13" class="ident">size</label> := <a href="../../../../../../pkg/builtin.html#name-rune" class="ident">rune</a>(<span class="lit-number">0</span>), <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-46"><code><label for="r14" class="ident">loop</label>:</code></span>
+<span class="codeline" id="line-47"><code>	<span class="keyword">for</span> ; <label for="r10" class="ident">nSrc</label> &lt; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r7" class="ident">src</label>); <label for="r10" class="ident">nSrc</label> += <label for="r13" class="ident">size</label> {</code></span>
+<span class="codeline" id="line-48"><code>		<label for="r15" class="ident">c0</label> := <label for="r7" class="ident">src</label>[<label for="r10" class="ident">nSrc</label>]</code></span>
+<span class="codeline" id="line-49"><code>		<span class="keyword">if</span> <label for="r15" class="ident">c0</label> &gt;= <a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-17" class="ident">RuneSelf</a> {</code></span>
+<span class="codeline" id="line-50"><code>			<label for="r12" class="ident">r</label>, <label for="r13" class="ident">size</label> = <a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-16" class="ident">RuneError</a>, <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-51"><code>			<span class="keyword">goto</span> <label for="r16" class="ident">write</label></code></span>
+<span class="codeline" id="line-52"><code>		}</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code>		<span class="keyword">if</span> <label for="r15" class="ident">c0</label> == <span class="lit-number">'~'</span> {</code></span>
+<span class="codeline" id="line-55"><code>			<span class="keyword">if</span> <label for="r10" class="ident">nSrc</label>+<span class="lit-number">1</span> &gt;= <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r7" class="ident">src</label>) {</code></span>
+<span class="codeline" id="line-56"><code>				<span class="keyword">if</span> !<label for="r8" class="ident">atEOF</label> {</code></span>
+<span class="codeline" id="line-57"><code>					<label for="r11" class="ident">err</label> = <a href="../../../../../../pkg/golang.org/x/text/transform.html" class="ident i4">transform</a>.<a href="../../transform/transform.go.html#line-25" class="ident">ErrShortSrc</a></code></span>
+<span class="codeline" id="line-58"><code>					<span class="keyword">break</span> <label for="r14" class="ident">loop</label></code></span>
+<span class="codeline" id="line-59"><code>				}</code></span>
+<span class="codeline" id="line-60"><code>				<label for="r12" class="ident">r</label>, <label for="r13" class="ident">size</label> = <a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-16" class="ident">RuneError</a>, <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-61"><code>				<span class="keyword">goto</span> <label for="r16" class="ident">write</label></code></span>
+<span class="codeline" id="line-62"><code>			}</code></span>
+<span class="codeline" id="line-63"><code>			<label for="r13" class="ident">size</label> = <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-64"><code>			<span class="keyword">switch</span> <label for="r7" class="ident">src</label>[<label for="r10" class="ident">nSrc</label>+<span class="lit-number">1</span>] {</code></span>
+<span class="codeline" id="line-65"><code>			<span class="keyword">case</span> <span class="lit-number">'{'</span>:</code></span>
+<span class="codeline" id="line-66"><code>				*<label for="r4" class="ident">d</label> = <a href="#line-35" class="ident">gbState</a></code></span>
+<span class="codeline" id="line-67"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-68"><code>			<span class="keyword">case</span> <span class="lit-number">'}'</span>:</code></span>
+<span class="codeline" id="line-69"><code>				*<label for="r4" class="ident">d</label> = <a href="#line-34" class="ident">asciiState</a></code></span>
+<span class="codeline" id="line-70"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-71"><code>			<span class="keyword">case</span> <span class="lit-number">'~'</span>:</code></span>
+<span class="codeline" id="line-72"><code>				<span class="keyword">if</span> <label for="r9" class="ident">nDst</label> &gt;= <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">dst</label>) {</code></span>
+<span class="codeline" id="line-73"><code>					<label for="r11" class="ident">err</label> = <a href="../../../../../../pkg/golang.org/x/text/transform.html" class="ident i4">transform</a>.<a href="../../transform/transform.go.html#line-21" class="ident">ErrShortDst</a></code></span>
+<span class="codeline" id="line-74"><code>					<span class="keyword">break</span> <label for="r14" class="ident">loop</label></code></span>
+<span class="codeline" id="line-75"><code>				}</code></span>
+<span class="codeline" id="line-76"><code>				<label for="r6" class="ident">dst</label>[<label for="r9" class="ident">nDst</label>] = <span class="lit-number">'~'</span></code></span>
+<span class="codeline" id="line-77"><code>				<label for="r9" class="ident">nDst</label>++</code></span>
+<span class="codeline" id="line-78"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-79"><code>			<span class="keyword">case</span> <span class="lit-number">'\n'</span>:</code></span>
+<span class="codeline" id="line-80"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-81"><code>			<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-82"><code>				<label for="r12" class="ident">r</label> = <a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-16" class="ident">RuneError</a></code></span>
+<span class="codeline" id="line-83"><code>				<span class="keyword">goto</span> <label for="r16" class="ident">write</label></code></span>
+<span class="codeline" id="line-84"><code>			}</code></span>
+<span class="codeline" id="line-85"><code>		}</code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code>		<span class="keyword">if</span> *<label for="r4" class="ident">d</label> == <a href="#line-34" class="ident">asciiState</a> {</code></span>
+<span class="codeline" id="line-88"><code>			<label for="r12" class="ident">r</label>, <label for="r13" class="ident">size</label> = <a href="../../../../../../pkg/builtin.html#name-rune" class="ident">rune</a>(<label for="r15" class="ident">c0</label>), <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-89"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-90"><code>			<span class="keyword">if</span> <label for="r10" class="ident">nSrc</label>+<span class="lit-number">1</span> &gt;= <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r7" class="ident">src</label>) {</code></span>
+<span class="codeline" id="line-91"><code>				<span class="keyword">if</span> !<label for="r8" class="ident">atEOF</label> {</code></span>
+<span class="codeline" id="line-92"><code>					<label for="r11" class="ident">err</label> = <a href="../../../../../../pkg/golang.org/x/text/transform.html" class="ident i4">transform</a>.<a href="../../transform/transform.go.html#line-25" class="ident">ErrShortSrc</a></code></span>
+<span class="codeline" id="line-93"><code>					<span class="keyword">break</span> <label for="r14" class="ident">loop</label></code></span>
+<span class="codeline" id="line-94"><code>				}</code></span>
+<span class="codeline" id="line-95"><code>				<label for="r12" class="ident">r</label>, <label for="r13" class="ident">size</label> = <a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-16" class="ident">RuneError</a>, <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-96"><code>				<span class="keyword">goto</span> <label for="r16" class="ident">write</label></code></span>
+<span class="codeline" id="line-97"><code>			}</code></span>
+<span class="codeline" id="line-98"><code>			<label for="r13" class="ident">size</label> = <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-99"><code>			<label for="r17" class="ident">c1</label> := <label for="r7" class="ident">src</label>[<label for="r10" class="ident">nSrc</label>+<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-100"><code>			<span class="keyword">if</span> <label for="r15" class="ident">c0</label> &lt; <span class="lit-number">0x21</span> || <span class="lit-number">0x7e</span> &lt;= <label for="r15" class="ident">c0</label> || <label for="r17" class="ident">c1</label> &lt; <span class="lit-number">0x21</span> || <span class="lit-number">0x7f</span> &lt;= <label for="r17" class="ident">c1</label> {</code></span>
+<span class="codeline" id="line-101"><code>				<span class="comment">// error</span></code></span>
+<span class="codeline" id="line-102"><code>			} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r18" class="ident">i</label> := <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r15" class="ident">c0</label>-<span class="lit-number">0x01</span>)*<span class="lit-number">190</span> + <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r17" class="ident">c1</label>+<span class="lit-number">0x3f</span>); <label for="r18" class="ident">i</label> &lt; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="tables.go.html#line-218" class="ident">decode</a>) {</code></span>
+<span class="codeline" id="line-103"><code>				<label for="r12" class="ident">r</label> = <a href="../../../../../../pkg/builtin.html#name-rune" class="ident">rune</a>(<a href="tables.go.html#line-218" class="ident">decode</a>[<label for="r18" class="ident">i</label>])</code></span>
+<span class="codeline" id="line-104"><code>				<span class="keyword">if</span> <label for="r12" class="ident">r</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-105"><code>					<span class="keyword">goto</span> <label for="r16" class="ident">write</label></code></span>
+<span class="codeline" id="line-106"><code>				}</code></span>
+<span class="codeline" id="line-107"><code>			}</code></span>
+<span class="codeline" id="line-108"><code>			<span class="keyword">if</span> <label for="r17" class="ident">c1</label> &gt; <a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-17" class="ident">RuneSelf</a> {</code></span>
+<span class="codeline" id="line-109"><code>				<span class="comment">// Be consistent and always treat non-ASCII as a single error.</span></code></span>
+<span class="codeline" id="line-110"><code>				<label for="r13" class="ident">size</label> = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-111"><code>			}</code></span>
+<span class="codeline" id="line-112"><code>			<label for="r12" class="ident">r</label> = <a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-16" class="ident">RuneError</a></code></span>
+<span class="codeline" id="line-113"><code>		}</code></span>
+<span class="codeline" id="line-114"><code></code></span>
+<span class="codeline" id="line-115"><code>	<label for="r16" class="ident">write</label>:</code></span>
+<span class="codeline" id="line-116"><code>		<span class="keyword">if</span> <label for="r9" class="ident">nDst</label>+<a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-321" class="ident">RuneLen</a>(<label for="r12" class="ident">r</label>) &gt; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">dst</label>) {</code></span>
+<span class="codeline" id="line-117"><code>			<label for="r11" class="ident">err</label> = <a href="../../../../../../pkg/golang.org/x/text/transform.html" class="ident i4">transform</a>.<a href="../../transform/transform.go.html#line-21" class="ident">ErrShortDst</a></code></span>
+<span class="codeline" id="line-118"><code>			<span class="keyword">break</span> <label for="r14" class="ident">loop</label></code></span>
+<span class="codeline" id="line-119"><code>		}</code></span>
+<span class="codeline" id="line-120"><code>		<label for="r9" class="ident">nDst</label> += <a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-342" class="ident">EncodeRune</a>(<label for="r6" class="ident">dst</label>[<label for="r9" class="ident">nDst</label>:], <label for="r12" class="ident">r</label>)</code></span>
+<span class="codeline" id="line-121"><code>	}</code></span>
+<span class="codeline" id="line-122"><code>	<span class="keyword">return</span> <label for="r9" class="ident">nDst</label>, <label for="r10" class="ident">nSrc</label>, <label for="r11" class="ident">err</label></code></span>
+<span class="codeline" id="line-123"><code>}</code></span>
+<span class="codeline" id="line-124"><code></code></span>
+<span class="codeline" id="line-125"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/text/encoding/simplifiedchinese.html#name-hzGB2312Encoder" class="ident">hzGB2312Encoder</a> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-126"><code></code></span>
+<span class="codeline" id="line-127"><code><span class="keyword">func</span> (<label for="r19" class="ident">d</label> *<a href="#line-125" class="ident">hzGB2312Encoder</a>) <label for="r20" class="ident"><a href="../../../../../../imp/golang.org/x/text/encoding/simplifiedchinese.hzGB2312Encoder*956a1.html#name-.Reset" class="ident">Reset</a></label>() {</code></span>
+<span class="codeline" id="line-128"><code>	*<label for="r19" class="ident">d</label> = <a href="#line-34" class="ident">asciiState</a></code></span>
+<span class="codeline" id="line-129"><code>}</code></span>
+<span class="codeline" id="line-130"><code></code></span>
+<span class="codeline" id="line-131"><code><span class="keyword">func</span> (<label for="r21" class="ident">e</label> *<a href="#line-125" class="ident">hzGB2312Encoder</a>) <label for="r22" class="ident"><a href="../../../../../../imp/golang.org/x/text/encoding/simplifiedchinese.hzGB2312Encoder*956a1.html#name-.Transform" class="ident">Transform</a></label>(<label for="r23" class="ident">dst</label>, <label for="r24" class="ident">src</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r25" class="ident">atEOF</label> <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) (<label for="r26" class="ident">nDst</label>, <label for="r27" class="ident">nSrc</label> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r28" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-132"><code>	<label for="r29" class="ident">r</label>, <label for="r30" class="ident">size</label> := <a href="../../../../../../pkg/builtin.html#name-rune" class="ident">rune</a>(<span class="lit-number">0</span>), <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-133"><code>	<span class="keyword">for</span> ; <label for="r27" class="ident">nSrc</label> &lt; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r24" class="ident">src</label>); <label for="r27" class="ident">nSrc</label> += <label for="r30" class="ident">size</label> {</code></span>
+<span class="codeline" id="line-134"><code>		<label for="r29" class="ident">r</label> = <a href="../../../../../../pkg/builtin.html#name-rune" class="ident">rune</a>(<label for="r24" class="ident">src</label>[<label for="r27" class="ident">nSrc</label>])</code></span>
+<span class="codeline" id="line-135"><code></code></span>
+<span class="codeline" id="line-136"><code>		<span class="comment">// Decode a 1-byte rune.</span></code></span>
+<span class="codeline" id="line-137"><code>		<span class="keyword">if</span> <label for="r29" class="ident">r</label> &lt; <a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-17" class="ident">RuneSelf</a> {</code></span>
+<span class="codeline" id="line-138"><code>			<label for="r30" class="ident">size</label> = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-139"><code>			<span class="keyword">if</span> <label for="r29" class="ident">r</label> == <span class="lit-number">'~'</span> {</code></span>
+<span class="codeline" id="line-140"><code>				<span class="keyword">if</span> <label for="r26" class="ident">nDst</label>+<span class="lit-number">2</span> &gt; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r23" class="ident">dst</label>) {</code></span>
+<span class="codeline" id="line-141"><code>					<label for="r28" class="ident">err</label> = <a href="../../../../../../pkg/golang.org/x/text/transform.html" class="ident i4">transform</a>.<a href="../../transform/transform.go.html#line-21" class="ident">ErrShortDst</a></code></span>
+<span class="codeline" id="line-142"><code>					<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-143"><code>				}</code></span>
+<span class="codeline" id="line-144"><code>				<label for="r23" class="ident">dst</label>[<label for="r26" class="ident">nDst</label>+<span class="lit-number">0</span>] = <span class="lit-number">'~'</span></code></span>
+<span class="codeline" id="line-145"><code>				<label for="r23" class="ident">dst</label>[<label for="r26" class="ident">nDst</label>+<span class="lit-number">1</span>] = <span class="lit-number">'~'</span></code></span>
+<span class="codeline" id="line-146"><code>				<label for="r26" class="ident">nDst</label> += <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-147"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-148"><code>			} <span class="keyword">else</span> <span class="keyword">if</span> *<label for="r21" class="ident">e</label> != <a href="#line-34" class="ident">asciiState</a> {</code></span>
+<span class="codeline" id="line-149"><code>				<span class="keyword">if</span> <label for="r26" class="ident">nDst</label>+<span class="lit-number">3</span> &gt; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r23" class="ident">dst</label>) {</code></span>
+<span class="codeline" id="line-150"><code>					<label for="r28" class="ident">err</label> = <a href="../../../../../../pkg/golang.org/x/text/transform.html" class="ident i4">transform</a>.<a href="../../transform/transform.go.html#line-21" class="ident">ErrShortDst</a></code></span>
+<span class="codeline" id="line-151"><code>					<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-152"><code>				}</code></span>
+<span class="codeline" id="line-153"><code>				*<label for="r21" class="ident">e</label> = <a href="#line-34" class="ident">asciiState</a></code></span>
+<span class="codeline" id="line-154"><code>				<label for="r23" class="ident">dst</label>[<label for="r26" class="ident">nDst</label>+<span class="lit-number">0</span>] = <span class="lit-number">'~'</span></code></span>
+<span class="codeline" id="line-155"><code>				<label for="r23" class="ident">dst</label>[<label for="r26" class="ident">nDst</label>+<span class="lit-number">1</span>] = <span class="lit-number">'}'</span></code></span>
+<span class="codeline" id="line-156"><code>				<label for="r26" class="ident">nDst</label> += <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-157"><code>			} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r26" class="ident">nDst</label> &gt;= <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r23" class="ident">dst</label>) {</code></span>
+<span class="codeline" id="line-158"><code>				<label for="r28" class="ident">err</label> = <a href="../../../../../../pkg/golang.org/x/text/transform.html" class="ident i4">transform</a>.<a href="../../transform/transform.go.html#line-21" class="ident">ErrShortDst</a></code></span>
+<span class="codeline" id="line-159"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-160"><code>			}</code></span>
+<span class="codeline" id="line-161"><code>			<label for="r23" class="ident">dst</label>[<label for="r26" class="ident">nDst</label>] = <a href="../../../../../../pkg/builtin.html#name-uint8" class="ident">uint8</a>(<label for="r29" class="ident">r</label>)</code></span>
+<span class="codeline" id="line-162"><code>			<label for="r26" class="ident">nDst</label> += <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-163"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-164"><code></code></span>
+<span class="codeline" id="line-165"><code>		}</code></span>
+<span class="codeline" id="line-166"><code></code></span>
+<span class="codeline" id="line-167"><code>		<span class="comment">// Decode a multi-byte rune.</span></code></span>
+<span class="codeline" id="line-168"><code>		<label for="r29" class="ident">r</label>, <label for="r30" class="ident">size</label> = <a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-151" class="ident">DecodeRune</a>(<label for="r24" class="ident">src</label>[<label for="r27" class="ident">nSrc</label>:])</code></span>
+<span class="codeline" id="line-169"><code>		<span class="keyword">if</span> <label for="r30" class="ident">size</label> == <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-170"><code>			<span class="comment">// All valid runes of size 1 (those below utf8.RuneSelf) were</span></code></span>
+<span class="codeline" id="line-171"><code><span class="comment">			// handled above. We have invalid UTF-8 or we haven't seen the</span></code></span>
+<span class="codeline" id="line-172"><code><span class="comment">			// full character yet.</span></code></span>
+<span class="codeline" id="line-173"><code>			<span class="keyword">if</span> !<label for="r25" class="ident">atEOF</label> &amp;&amp; !<a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-104" class="ident">FullRune</a>(<label for="r24" class="ident">src</label>[<label for="r27" class="ident">nSrc</label>:]) {</code></span>
+<span class="codeline" id="line-174"><code>				<label for="r28" class="ident">err</label> = <a href="../../../../../../pkg/golang.org/x/text/transform.html" class="ident i4">transform</a>.<a href="../../transform/transform.go.html#line-25" class="ident">ErrShortSrc</a></code></span>
+<span class="codeline" id="line-175"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-176"><code>			}</code></span>
+<span class="codeline" id="line-177"><code>		}</code></span>
+<span class="codeline" id="line-178"><code></code></span>
+<span class="codeline" id="line-179"><code>		<span class="comment">// func init checks that the switch covers all tables.</span></code></span>
+<span class="codeline" id="line-180"><code>		<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-181"><code>		<span class="keyword">case</span> <a href="tables.go.html#line-22104" class="ident">encode0Low</a> &lt;= <label for="r29" class="ident">r</label> &amp;&amp; <label for="r29" class="ident">r</label> &lt; <a href="tables.go.html#line-22104" class="ident">encode0High</a>:</code></span>
+<span class="codeline" id="line-182"><code>			<span class="keyword">if</span> <label for="r29" class="ident">r</label> = <a href="../../../../../../pkg/builtin.html#name-rune" class="ident">rune</a>(<a href="tables.go.html#line-22106" class="ident">encode0</a>[<label for="r29" class="ident">r</label>-<a href="tables.go.html#line-22104" class="ident">encode0Low</a>]); <label for="r29" class="ident">r</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-183"><code>				<span class="keyword">goto</span> <label for="r31" class="ident">writeGB</label></code></span>
+<span class="codeline" id="line-184"><code>			}</code></span>
+<span class="codeline" id="line-185"><code>		<span class="keyword">case</span> <a href="tables.go.html#line-43360" class="ident">encode1Low</a> &lt;= <label for="r29" class="ident">r</label> &amp;&amp; <label for="r29" class="ident">r</label> &lt; <a href="tables.go.html#line-43360" class="ident">encode1High</a>:</code></span>
+<span class="codeline" id="line-186"><code>			<span class="keyword">if</span> <label for="r29" class="ident">r</label> = <a href="../../../../../../pkg/builtin.html#name-rune" class="ident">rune</a>(<a href="tables.go.html#line-43362" class="ident">encode1</a>[<label for="r29" class="ident">r</label>-<a href="tables.go.html#line-43360" class="ident">encode1Low</a>]); <label for="r29" class="ident">r</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-187"><code>				<span class="keyword">goto</span> <label for="r31" class="ident">writeGB</label></code></span>
+<span class="codeline" id="line-188"><code>			}</code></span>
+<span class="codeline" id="line-189"><code>		<span class="keyword">case</span> <a href="tables.go.html#line-43655" class="ident">encode2Low</a> &lt;= <label for="r29" class="ident">r</label> &amp;&amp; <label for="r29" class="ident">r</label> &lt; <a href="tables.go.html#line-43655" class="ident">encode2High</a>:</code></span>
+<span class="codeline" id="line-190"><code>			<span class="keyword">if</span> <label for="r29" class="ident">r</label> = <a href="../../../../../../pkg/builtin.html#name-rune" class="ident">rune</a>(<a href="tables.go.html#line-43657" class="ident">encode2</a>[<label for="r29" class="ident">r</label>-<a href="tables.go.html#line-43655" class="ident">encode2Low</a>]); <label for="r29" class="ident">r</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-191"><code>				<span class="keyword">goto</span> <label for="r31" class="ident">writeGB</label></code></span>
+<span class="codeline" id="line-192"><code>			}</code></span>
+<span class="codeline" id="line-193"><code>		<span class="keyword">case</span> <a href="tables.go.html#line-43818" class="ident">encode3Low</a> &lt;= <label for="r29" class="ident">r</label> &amp;&amp; <label for="r29" class="ident">r</label> &lt; <a href="tables.go.html#line-43818" class="ident">encode3High</a>:</code></span>
+<span class="codeline" id="line-194"><code>			<span class="keyword">if</span> <label for="r29" class="ident">r</label> = <a href="../../../../../../pkg/builtin.html#name-rune" class="ident">rune</a>(<a href="tables.go.html#line-43820" class="ident">encode3</a>[<label for="r29" class="ident">r</label>-<a href="tables.go.html#line-43818" class="ident">encode3Low</a>]); <label for="r29" class="ident">r</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-195"><code>				<span class="keyword">goto</span> <label for="r31" class="ident">writeGB</label></code></span>
+<span class="codeline" id="line-196"><code>			}</code></span>
+<span class="codeline" id="line-197"><code>		<span class="keyword">case</span> <a href="tables.go.html#line-43975" class="ident">encode4Low</a> &lt;= <label for="r29" class="ident">r</label> &amp;&amp; <label for="r29" class="ident">r</label> &lt; <a href="tables.go.html#line-43975" class="ident">encode4High</a>:</code></span>
+<span class="codeline" id="line-198"><code>			<span class="keyword">if</span> <label for="r29" class="ident">r</label> = <a href="../../../../../../pkg/builtin.html#name-rune" class="ident">rune</a>(<a href="tables.go.html#line-43977" class="ident">encode4</a>[<label for="r29" class="ident">r</label>-<a href="tables.go.html#line-43975" class="ident">encode4Low</a>]); <label for="r29" class="ident">r</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-199"><code>				<span class="keyword">goto</span> <label for="r31" class="ident">writeGB</label></code></span>
+<span class="codeline" id="line-200"><code>			}</code></span>
+<span class="codeline" id="line-201"><code>		}</code></span>
+<span class="codeline" id="line-202"><code></code></span>
+<span class="codeline" id="line-203"><code>	<label for="r32" class="ident">terminateInASCIIState</label>:</code></span>
+<span class="codeline" id="line-204"><code>		<span class="comment">// Switch back to ASCII state in case of error so that an ASCII</span></code></span>
+<span class="codeline" id="line-205"><code><span class="comment">		// replacement character can be written in the correct state.</span></code></span>
+<span class="codeline" id="line-206"><code>		<span class="keyword">if</span> *<label for="r21" class="ident">e</label> != <a href="#line-34" class="ident">asciiState</a> {</code></span>
+<span class="codeline" id="line-207"><code>			<span class="keyword">if</span> <label for="r26" class="ident">nDst</label>+<span class="lit-number">2</span> &gt; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r23" class="ident">dst</label>) {</code></span>
+<span class="codeline" id="line-208"><code>				<label for="r28" class="ident">err</label> = <a href="../../../../../../pkg/golang.org/x/text/transform.html" class="ident i4">transform</a>.<a href="../../transform/transform.go.html#line-21" class="ident">ErrShortDst</a></code></span>
+<span class="codeline" id="line-209"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-210"><code>			}</code></span>
+<span class="codeline" id="line-211"><code>			<label for="r23" class="ident">dst</label>[<label for="r26" class="ident">nDst</label>+<span class="lit-number">0</span>] = <span class="lit-number">'~'</span></code></span>
+<span class="codeline" id="line-212"><code>			<label for="r23" class="ident">dst</label>[<label for="r26" class="ident">nDst</label>+<span class="lit-number">1</span>] = <span class="lit-number">'}'</span></code></span>
+<span class="codeline" id="line-213"><code>			<label for="r26" class="ident">nDst</label> += <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-214"><code>		}</code></span>
+<span class="codeline" id="line-215"><code>		<label for="r28" class="ident">err</label> = <a href="../../../../../../pkg/golang.org/x/text/encoding/internal.html" class="ident i2">internal</a>.<a href="../internal/internal.go.html#line-75" class="ident">ErrASCIIReplacement</a></code></span>
+<span class="codeline" id="line-216"><code>		<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-217"><code></code></span>
+<span class="codeline" id="line-218"><code>	<label for="r31" class="ident">writeGB</label>:</code></span>
+<span class="codeline" id="line-219"><code>		<label for="r33" class="ident">c0</label> := <a href="../../../../../../pkg/builtin.html#name-uint8" class="ident">uint8</a>(<label for="r29" class="ident">r</label>&gt;&gt;<span class="lit-number">8</span>) - <span class="lit-number">0x80</span></code></span>
+<span class="codeline" id="line-220"><code>		<label for="r34" class="ident">c1</label> := <a href="../../../../../../pkg/builtin.html#name-uint8" class="ident">uint8</a>(<label for="r29" class="ident">r</label>) - <span class="lit-number">0x80</span></code></span>
+<span class="codeline" id="line-221"><code>		<span class="keyword">if</span> <label for="r33" class="ident">c0</label> &lt; <span class="lit-number">0x21</span> || <span class="lit-number">0x7e</span> &lt;= <label for="r33" class="ident">c0</label> || <label for="r34" class="ident">c1</label> &lt; <span class="lit-number">0x21</span> || <span class="lit-number">0x7f</span> &lt;= <label for="r34" class="ident">c1</label> {</code></span>
+<span class="codeline" id="line-222"><code>			<span class="keyword">goto</span> <label for="r32" class="ident">terminateInASCIIState</label></code></span>
+<span class="codeline" id="line-223"><code>		}</code></span>
+<span class="codeline" id="line-224"><code>		<span class="keyword">if</span> *<label for="r21" class="ident">e</label> == <a href="#line-34" class="ident">asciiState</a> {</code></span>
+<span class="codeline" id="line-225"><code>			<span class="keyword">if</span> <label for="r26" class="ident">nDst</label>+<span class="lit-number">4</span> &gt; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r23" class="ident">dst</label>) {</code></span>
+<span class="codeline" id="line-226"><code>				<label for="r28" class="ident">err</label> = <a href="../../../../../../pkg/golang.org/x/text/transform.html" class="ident i4">transform</a>.<a href="../../transform/transform.go.html#line-21" class="ident">ErrShortDst</a></code></span>
+<span class="codeline" id="line-227"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-228"><code>			}</code></span>
+<span class="codeline" id="line-229"><code>			*<label for="r21" class="ident">e</label> = <a href="#line-35" class="ident">gbState</a></code></span>
+<span class="codeline" id="line-230"><code>			<label for="r23" class="ident">dst</label>[<label for="r26" class="ident">nDst</label>+<span class="lit-number">0</span>] = <span class="lit-number">'~'</span></code></span>
+<span class="codeline" id="line-231"><code>			<label for="r23" class="ident">dst</label>[<label for="r26" class="ident">nDst</label>+<span class="lit-number">1</span>] = <span class="lit-number">'{'</span></code></span>
+<span class="codeline" id="line-232"><code>			<label for="r26" class="ident">nDst</label> += <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-233"><code>		} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r26" class="ident">nDst</label>+<span class="lit-number">2</span> &gt; <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r23" class="ident">dst</label>) {</code></span>
+<span class="codeline" id="line-234"><code>			<label for="r28" class="ident">err</label> = <a href="../../../../../../pkg/golang.org/x/text/transform.html" class="ident i4">transform</a>.<a href="../../transform/transform.go.html#line-21" class="ident">ErrShortDst</a></code></span>
+<span class="codeline" id="line-235"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-236"><code>		}</code></span>
+<span class="codeline" id="line-237"><code>		<label for="r23" class="ident">dst</label>[<label for="r26" class="ident">nDst</label>+<span class="lit-number">0</span>] = <label for="r33" class="ident">c0</label></code></span>
+<span class="codeline" id="line-238"><code>		<label for="r23" class="ident">dst</label>[<label for="r26" class="ident">nDst</label>+<span class="lit-number">1</span>] = <label for="r34" class="ident">c1</label></code></span>
+<span class="codeline" id="line-239"><code>		<label for="r26" class="ident">nDst</label> += <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-240"><code>		<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-241"><code>	}</code></span>
+<span class="codeline" id="line-242"><code>	<span class="comment">// TODO: should one always terminate in ASCII state to make it safe to</span></code></span>
+<span class="codeline" id="line-243"><code><span class="comment">	// concatenate two HZ-GB2312-encoded strings?</span></code></span>
+<span class="codeline" id="line-244"><code>	<span class="keyword">return</span> <label for="r26" class="ident">nDst</label>, <label for="r27" class="ident">nSrc</label>, <label for="r28" class="ident">err</label></code></span>
+<span class="codeline" id="line-245"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

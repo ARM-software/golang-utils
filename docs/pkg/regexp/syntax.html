@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: regexp/syntax</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>syntax</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../index.html#pkg-regexp/syntax">regexp/syntax</a><i> (on <a href="https://pkg.go.dev/regexp/syntax" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../dep/regexp/syntax.html">5 packages</a>, and imported by <a href="../../dep/regexp/syntax.html#imported-by">one package</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<span class="nodocs">      <a href="../../src/regexp/syntax/compile.go.html">compile.go</a></span>
+	<input type='checkbox' checked class="fold" id="file-1-fold-content"><label for="file-1-fold-content">   <a href="../../src/regexp/syntax/doc.go.html#doc">d➜</a> <a href="../../src/regexp/syntax/doc.go.html">doc.go</a></label><span id='file-1-fold-content-items' class="fold-items">
+		Package syntax parses regular expressions into parse trees and compiles
+		parse trees into programs. Most clients of regular expressions will use the
+		facilities of package regexp (such as Compile and Match) instead of this package.
+
+		Syntax
+
+		The regular expression syntax understood by this package when parsing with the Perl flag is as follows.
+		Parts of the syntax can be disabled by passing alternate flags to Parse.
+
+		Single characters:
+		  .              any character, possibly including newline (flag s=true)
+		  [xyz]          character class
+		  [^xyz]         negated character class
+		  \d             Perl character class
+		  \D             negated Perl character class
+		  [[:alpha:]]    ASCII character class
+		  [[:^alpha:]]   negated ASCII character class
+		  \pN            Unicode character class (one-letter name)
+		  \p{Greek}      Unicode character class
+		  \PN            negated Unicode character class (one-letter name)
+		  \P{Greek}      negated Unicode character class
+
+		Composites:
+		  xy             x followed by y
+		  x|y            x or y (prefer x)
+
+		Repetitions:
+		  x*             zero or more x, prefer more
+		  x+             one or more x, prefer more
+		  x?             zero or one x, prefer one
+		  x{n,m}         n or n+1 or ... or m x, prefer more
+		  x{n,}          n or more x, prefer more
+		  x{n}           exactly n x
+		  x*?            zero or more x, prefer fewer
+		  x+?            one or more x, prefer fewer
+		  x??            zero or one x, prefer zero
+		  x{n,m}?        n or n+1 or ... or m x, prefer fewer
+		  x{n,}?         n or more x, prefer fewer
+		  x{n}?          exactly n x
+
+		Implementation restriction: The counting forms x{n,m}, x{n,}, and x{n}
+		reject forms that create a minimum or maximum repetition count above 1000.
+		Unlimited repetitions are not subject to this restriction.
+
+		Grouping:
+		  (re)           numbered capturing group (submatch)
+		  (?P&lt;name&gt;re)   named &amp; numbered capturing group (submatch)
+		  (?:re)         non-capturing group
+		  (?flags)       set flags within current group; non-capturing
+		  (?flags:re)    set flags during re; non-capturing
+
+		  Flag syntax is xyz (set) or -xyz (clear) or xy-z (set xy, clear z). The flags are:
+
+		  i              case-insensitive (default false)
+		  m              multi-line mode: ^ and $ match begin/end line in addition to begin/end text (default false)
+		  s              let . match \n (default false)
+		  U              ungreedy: swap meaning of x* and x*?, x+ and x+?, etc (default false)
+
+		Empty strings:
+		  ^              at beginning of text or line (flag m=true)
+		  $              at end of text (like \z not \Z) or line (flag m=true)
+		  \A             at beginning of text
+		  \b             at ASCII word boundary (\w on one side and \W, \A, or \z on the other)
+		  \B             not at ASCII word boundary
+		  \z             at end of text
+
+		Escape sequences:
+		  \a             bell (== \007)
+		  \f             form feed (== \014)
+		  \t             horizontal tab (== \011)
+		  \n             newline (== \012)
+		  \r             carriage return (== \015)
+		  \v             vertical tab character (== \013)
+		  \*             literal *, for any punctuation character *
+		  \123           octal character code (up to three digits)
+		  \x7F           hex character code (exactly two digits)
+		  \x{10FFFF}     hex character code
+		  \Q...\E        literal text ... even if ... has punctuation
+
+		Character class elements:
+		  x              single character
+		  A-Z            character range (inclusive)
+		  \d             Perl character class
+		  [:foo:]        ASCII character class foo
+		  \p{Foo}        Unicode character class Foo
+		  \pF            Unicode character class F (one-letter name)
+
+		Named character classes as character class elements:
+		  [\d]           digits (== \d)
+		  [^\d]          not digits (== \D)
+		  [\D]           not digits (== \D)
+		  [^\D]          not not digits (== \d)
+		  [[:name:]]     named ASCII class inside character class (== [:name:])
+		  [^[:name:]]    named ASCII class inside negated character class (== [:^name:])
+		  [\p{Name}]     named Unicode property inside character class (== \p{Name})
+		  [^\p{Name}]    named Unicode property inside negated character class (== \P{Name})
+
+		Perl character classes (all ASCII-only):
+		  \d             digits (== [0-9])
+		  \D             not digits (== [^0-9])
+		  \s             whitespace (== [\t\n\f\r ])
+		  \S             not whitespace (== [^\t\n\f\r ])
+		  \w             word characters (== [0-9A-Za-z_])
+		  \W             not word characters (== [^0-9A-Za-z_])
+
+		ASCII character classes:
+		  [[:alnum:]]    alphanumeric (== [0-9A-Za-z])
+		  [[:alpha:]]    alphabetic (== [A-Za-z])
+		  [[:ascii:]]    ASCII (== [\x00-\x7F])
+		  [[:blank:]]    blank (== [\t ])
+		  [[:cntrl:]]    control (== [\x00-\x1F\x7F])
+		  [[:digit:]]    digits (== [0-9])
+		  [[:graph:]]    graphical (== [!-~] == [A-Za-z0-9!"#$%&amp;'()*+,\-./:;&lt;=&gt;?@[\\\]^_`{|}~])
+		  [[:lower:]]    lower case (== [a-z])
+		  [[:print:]]    printable (== [ -~] == [ [:graph:]])
+		  [[:punct:]]    punctuation (== [!-/:-@[-`{-~])
+		  [[:space:]]    whitespace (== [\t\n\v\f\r ])
+		  [[:upper:]]    upper case (== [A-Z])
+		  [[:word:]]     word characters (== [0-9A-Za-z_])
+		  [[:xdigit:]]   hex digit (== [0-9A-Fa-f])
+
+		Unicode character classes are those in unicode.Categories and unicode.Scripts.
+</span>
+	<span class="nodocs">      <a href="../../src/regexp/syntax/op_string.go.html">op_string.go</a></span>
+	<span class="nodocs">      <a href="../../src/regexp/syntax/parse.go.html">parse.go</a></span>
+	<span class="nodocs">      <a href="../../src/regexp/syntax/perl_groups.go.html">perl_groups.go</a></span>
+	<span class="nodocs">      <a href="../../src/regexp/syntax/prog.go.html">prog.go</a></span>
+	<span class="nodocs">      <a href="../../src/regexp/syntax/regexp.go.html">regexp.go</a></span>
+	<span class="nodocs">      <a href="../../src/regexp/syntax/simplify.go.html">simplify.go</a></span></div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 15, in which 9 are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-EmptyOp" data-popularity="165">	<input type='checkbox' class="fold" id="EmptyOp-fold-content"><label for="EmptyOp-fold-content"> type <a href="../../src/regexp/syntax/prog.go.html#line-62">EmptyOp</a> <a href="../builtin.html#name-uint8">uint8</a> <i>(basic type)</i></label><span id='EmptyOp-fold-content-docs' class="fold-docs">
+		An EmptyOp specifies a kind or mixture of zero-width assertions.
+
+		<input type='checkbox' class="fold" id="EmptyOp-fold-results"><label for="EmptyOp-fold-results">As Outputs Of (<i>at least 2, both are exported</i>)</label><span id='EmptyOp-fold-results-items' class="fold-items"><span>
+			func <a href="#name-EmptyOpContext">EmptyOpContext</a>(r1, r2 <a href="../builtin.html#name-rune">rune</a>) <b>EmptyOp</b></span><span>
+			func (*<a href="#name-Prog">Prog</a>).<a href="../../src/regexp/syntax/prog.go.html#line-166">StartCond</a>() <b>EmptyOp</b></span></span>
+		<input type='checkbox' class="fold" id="EmptyOp-fold-values"><label for="EmptyOp-fold-values">As Types Of (<i>total 6, all are exported</i>)</label><span id='EmptyOp-fold-values-items' class="fold-items"><span>
+			const <a href="#name-EmptyBeginLine">EmptyBeginLine</a></span><span>
+			const <a href="#name-EmptyBeginText">EmptyBeginText</a></span><span>
+			const <a href="#name-EmptyEndLine">EmptyEndLine</a></span><span>
+			const <a href="#name-EmptyEndText">EmptyEndText</a></span><span>
+			const <a href="#name-EmptyNoWordBoundary">EmptyNoWordBoundary</a></span><span>
+			const <a href="#name-EmptyWordBoundary">EmptyWordBoundary</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-Error" data-popularity="100">	<input type='checkbox' class="fold" id="Error-fold-content"><label for="Error-fold-content"> type <a href="../../src/regexp/syntax/parse.go.html#line-16">Error</a> <i>(struct)</i></label><span id='Error-fold-content-docs' class="fold-docs">
+		An Error describes a failure to parse a regular expression
+		and gives the offending expression.
+
+		<input type='checkbox' class="fold" id="Error-fold-fields"><label for="Error-fold-fields">Fields (<i>total 2, both are exported</i>)</label><span id='Error-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../src/regexp/syntax/parse.go.html#line-17">Code</a> <i><a href="#name-ErrorCode">ErrorCode</a></i></span></span><span>
+			<span class="nodocs"><a href="../../src/regexp/syntax/parse.go.html#line-18">Expr</a> <i><a href="../builtin.html#name-string">string</a></i></span></span></span>
+		<input type='checkbox' class="fold" id="Error-fold-methods"><label for="Error-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='Error-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-21">Error</a>() <a href="../builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="Error-fold-impls"><label for="Error-fold-impls">Implements (<i>at least one exported</i>)</label><span id='Error-fold-impls-items' class="fold-items"><span>
+			*T : <a href="../builtin.html#name-error">error</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-ErrorCode" data-popularity="215">	<input type='checkbox' class="fold" id="ErrorCode-fold-content"><label for="ErrorCode-fold-content"> type <a href="../../src/regexp/syntax/parse.go.html#line-26">ErrorCode</a> <a href="../builtin.html#name-string">string</a> <i>(basic type)</i></label><span id='ErrorCode-fold-content-docs' class="fold-docs">
+		An ErrorCode describes a failure to parse a regular expression.
+
+		<input type='checkbox' class="fold" id="ErrorCode-fold-methods"><label for="ErrorCode-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='ErrorCode-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../../src/regexp/syntax/parse.go.html#line-48">String</a>() <a href="../builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="ErrorCode-fold-impls"><label for="ErrorCode-fold-impls">Implements (<i>at least 3, in which 1 are exported</i>)</label><span id='ErrorCode-fold-impls-items' class="fold-items"><span>
+			 T : fmt.<a href="../fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="ErrorCode-showhide-impls"><i><label for="ErrorCode-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="ErrorCode-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			 T : context.<a href="../context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			 T : runtime.<a href="../runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="ErrorCode-fold-values"><label for="ErrorCode-fold-values">As Types Of (<i>total 14, all are exported</i>)</label><span id='ErrorCode-fold-values-items' class="fold-items"><span>
+			const <a href="#name-ErrInternalError">ErrInternalError</a></span><span>
+			const <a href="#name-ErrInvalidCharClass">ErrInvalidCharClass</a></span><span>
+			const <a href="#name-ErrInvalidCharRange">ErrInvalidCharRange</a></span><span>
+			const <a href="#name-ErrInvalidEscape">ErrInvalidEscape</a></span><span>
+			const <a href="#name-ErrInvalidNamedCapture">ErrInvalidNamedCapture</a></span><span>
+			const <a href="#name-ErrInvalidPerlOp">ErrInvalidPerlOp</a></span><span>
+			const <a href="#name-ErrInvalidRepeatOp">ErrInvalidRepeatOp</a></span><span>
+			const <a href="#name-ErrInvalidRepeatSize">ErrInvalidRepeatSize</a></span><span>
+			const <a href="#name-ErrInvalidUTF8">ErrInvalidUTF8</a></span><span>
+			const <a href="#name-ErrMissingBracket">ErrMissingBracket</a></span><span>
+			const <a href="#name-ErrMissingParen">ErrMissingParen</a></span><span>
+			const <a href="#name-ErrMissingRepeatArgument">ErrMissingRepeatArgument</a></span><span>
+			const <a href="#name-ErrTrailingBackslash">ErrTrailingBackslash</a></span><span>
+			const <a href="#name-ErrUnexpectedParen">ErrUnexpectedParen</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-Flags" data-popularity="190">	<input type='checkbox' class="fold" id="Flags-fold-content"><label for="Flags-fold-content"> type <a href="../../src/regexp/syntax/parse.go.html#line-53">Flags</a> <a href="../builtin.html#name-uint16">uint16</a> <i>(basic type)</i></label><span id='Flags-fold-content-docs' class="fold-docs">
+		Flags control the behavior of the parser and record information about regexp context.
+
+		<input type='checkbox' class="fold" id="Flags-fold-params"><label for="Flags-fold-params">As Inputs Of (<i>at least 5, in which 1 are exported</i>)</label><span id='Flags-fold-params-items' class="fold-items"><span>
+			func <a href="#name-Parse">Parse</a>(s <a href="../builtin.html#name-string">string</a>, flags <b>Flags</b>) (*<a href="#name-Regexp">Regexp</a>, <a href="../builtin.html#name-error">error</a>)</span>
+			<input type='checkbox' class="showhide" id="Flags-showhide-outputofs"><i><label for="Flags-showhide-outputofs" class="show-inline">/* 4+ unexporteds ... */</label><label for="Flags-showhide-outputofs" class="hide-inline">/* 4+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-appendLiteral">appendLiteral</a>(r []<a href="../builtin.html#name-rune">rune</a>, x <a href="../builtin.html#name-rune">rune</a>, flags <b>Flags</b>) []<a href="../builtin.html#name-rune">rune</a></i></span><span class="hidden"><i>
+			func <a href="#name-literalRegexp">literalRegexp</a>(s <a href="../builtin.html#name-string">string</a>, flags <b>Flags</b>) *<a href="#name-Regexp">Regexp</a></i></span><span class="hidden"><i>
+			func <a href="#name-simplify1">simplify1</a>(op <a href="#name-Op">Op</a>, flags <b>Flags</b>, sub, re *<a href="#name-Regexp">Regexp</a>) *<a href="#name-Regexp">Regexp</a></i></span><span class="hidden"><i>
+			func regexp.<a href="../regexp.html#name-compile">compile</a>(expr <a href="../builtin.html#name-string">string</a>, mode <b>Flags</b>, longest <a href="../builtin.html#name-bool">bool</a>) (*<a href="../regexp.html">regexp</a>.<a href="../regexp.html#name-Regexp">Regexp</a>, <a href="../builtin.html#name-error">error</a>)</i></span></span>
+		<input type='checkbox' class="fold" id="Flags-fold-values"><label for="Flags-fold-values">As Types Of (<i>total 13, all are exported</i>)</label><span id='Flags-fold-values-items' class="fold-items"><span>
+			const <a href="#name-ClassNL">ClassNL</a></span><span>
+			const <a href="#name-DotNL">DotNL</a></span><span>
+			const <a href="#name-FoldCase">FoldCase</a></span><span>
+			const <a href="#name-Literal">Literal</a></span><span>
+			const <a href="#name-MatchNL">MatchNL</a></span><span>
+			const <a href="#name-NonGreedy">NonGreedy</a></span><span>
+			const <a href="#name-OneLine">OneLine</a></span><span>
+			const <a href="#name-Perl">Perl</a></span><span>
+			const <a href="#name-PerlX">PerlX</a></span><span>
+			const <a href="#name-POSIX">POSIX</a></span><span>
+			const <a href="#name-Simple">Simple</a></span><span>
+			const <a href="#name-UnicodeGroups">UnicodeGroups</a></span><span>
+			const <a href="#name-WasDollar">WasDollar</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-Inst" data-popularity="545">	<input type='checkbox' class="fold" id="Inst-fold-content"><label for="Inst-fold-content"> type <a href="../../src/regexp/syntax/prog.go.html#line-112">Inst</a> <i>(struct)</i></label><span id='Inst-fold-content-docs' class="fold-docs">
+		An Inst is a single instruction in a regular expression program.
+
+		<input type='checkbox' class="fold" id="Inst-fold-fields"><label for="Inst-fold-fields">Fields (<i>total 4, all are exported</i>)</label><span id='Inst-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Inst-fold-field-Arg"><label for="Inst-fold-field-Arg"><a href="../../src/regexp/syntax/prog.go.html#line-115">Arg</a> <i><a href="../builtin.html#name-uint32">uint32</a></i></label><span id='Inst-fold-field-Arg-docs' class="fold-docs">
+				// InstAlt, InstAltMatch, InstCapture, InstEmptyWidth
+</span></span><span>
+			<span class="nodocs"><a href="../../src/regexp/syntax/prog.go.html#line-113">Op</a> <i><a href="#name-InstOp">InstOp</a></i></span></span><span>
+			<input type='checkbox' class="fold" id="Inst-fold-field-Out"><label for="Inst-fold-field-Out"><a href="../../src/regexp/syntax/prog.go.html#line-114">Out</a> <i><a href="../builtin.html#name-uint32">uint32</a></i></label><span id='Inst-fold-field-Out-docs' class="fold-docs">
+				// all but InstMatch, InstFail
+</span></span><span>
+			<span class="nodocs"><a href="../../src/regexp/syntax/prog.go.html#line-116">Rune</a> <i>[]<a href="../builtin.html#name-rune">rune</a></i></span></span></span>
+		<input type='checkbox' class="fold" id="Inst-fold-methods"><label for="Inst-fold-methods">Methods (<i>total 5, in which 4 are exported</i>)</label><span id='Inst-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Inst-fold-method-MatchEmptyWidth"><label for="Inst-fold-method-MatchEmptyWidth">(*T) <a href="../../src/regexp/syntax/prog.go.html#line-263">MatchEmptyWidth</a>(before <a href="../builtin.html#name-rune">rune</a>, after <a href="../builtin.html#name-rune">rune</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='Inst-fold-method-MatchEmptyWidth-docs' class="fold-docs">
+				MatchEmptyWidth reports whether the instruction matches
+				an empty string between the runes before and after.
+				It should only be called when i.Op == InstEmptyWidth.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Inst-fold-method-MatchRune"><label for="Inst-fold-method-MatchRune">(*T) <a href="../../src/regexp/syntax/prog.go.html#line-192">MatchRune</a>(r <a href="../builtin.html#name-rune">rune</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='Inst-fold-method-MatchRune-docs' class="fold-docs">
+				MatchRune reports whether the instruction matches (and consumes) r.
+				It should only be called when i.Op == InstRune.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Inst-fold-method-MatchRunePos"><label for="Inst-fold-method-MatchRunePos">(*T) <a href="../../src/regexp/syntax/prog.go.html#line-201">MatchRunePos</a>(r <a href="../builtin.html#name-rune">rune</a>) <a href="../builtin.html#name-int">int</a></label><span id='Inst-fold-method-MatchRunePos-docs' class="fold-docs">
+				MatchRunePos checks whether the instruction matches (and consumes) r.
+				If so, MatchRunePos returns the index of the matching rune pair
+				(or, when len(i.Rune) == 1, rune singleton).
+				If not, MatchRunePos returns -1.
+				MatchRunePos should only be called when i.Op == InstRune.
+</span></span><span>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/prog.go.html#line-281">String</a>() <a href="../builtin.html#name-string">string</a></span></span>
+			<input type='checkbox' class="showhide" id="Inst-showhide-methods"><i><label for="Inst-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="Inst-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Inst-fold-method-op"><label for="Inst-fold-method-op">(*T) <a href="../../src/regexp/syntax/prog.go.html#line-135">op</a>() <a href="#name-InstOp">InstOp</a></label><span id='Inst-fold-method-op-docs' class="fold-docs">
+				op returns i.Op but merges all the Rune special cases into InstRune
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Inst-fold-impls"><label for="Inst-fold-impls">Implements (<i>at least 3, in which 1 are exported</i>)</label><span id='Inst-fold-impls-items' class="fold-items"><span>
+			*T : fmt.<a href="../fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="Inst-showhide-impls"><i><label for="Inst-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="Inst-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			*T : context.<a href="../context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*T : runtime.<a href="../runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="Inst-fold-results"><label for="Inst-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='Inst-fold-results-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Inst-showhide-inputofs"><i><label for="Inst-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="Inst-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func (*<a href="#name-Prog">Prog</a>).<a href="../../src/regexp/syntax/prog.go.html#line-126">skipNop</a>(pc <a href="../builtin.html#name-uint32">uint32</a>) *<b>Inst</b></i></span></span>
+		<input type='checkbox' class="fold" id="Inst-fold-params"><label for="Inst-fold-params">As Inputs Of (<i>at least 2, neither is exported</i>)</label><span id='Inst-fold-params-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Inst-showhide-outputofs"><i><label for="Inst-showhide-outputofs" class="show-inline">/* 2+ unexporteds ... */</label><label for="Inst-showhide-outputofs" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-dumpInst">dumpInst</a>(b *<a href="../strings.html">strings</a>.<a href="../strings.html#name-Builder">Builder</a>, i *<b>Inst</b>)</i></span><span class="hidden"><i>
+			func regexp.<a href="../regexp.html#name-iop">iop</a>(i *<b>Inst</b>) <a href="#name-InstOp">InstOp</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-InstOp" data-popularity="365">	<input type='checkbox' class="fold" id="InstOp-fold-content"><label for="InstOp-fold-content"> type <a href="../../src/regexp/syntax/prog.go.html#line-24">InstOp</a> <a href="../builtin.html#name-uint8">uint8</a> <i>(basic type)</i></label><span id='InstOp-fold-content-docs' class="fold-docs">
+		An InstOp is an instruction opcode.
+
+		<input type='checkbox' class="fold" id="InstOp-fold-methods"><label for="InstOp-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='InstOp-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../../src/regexp/syntax/prog.go.html#line-54">String</a>() <a href="../builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="InstOp-fold-impls"><label for="InstOp-fold-impls">Implements (<i>at least 3, in which 1 are exported</i>)</label><span id='InstOp-fold-impls-items' class="fold-items"><span>
+			 T : fmt.<a href="../fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="InstOp-showhide-impls"><i><label for="InstOp-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="InstOp-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			 T : context.<a href="../context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			 T : runtime.<a href="../runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="InstOp-fold-results"><label for="InstOp-fold-results">As Outputs Of (<i>at least 2, neither is exported</i>)</label><span id='InstOp-fold-results-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="InstOp-showhide-inputofs"><i><label for="InstOp-showhide-inputofs" class="show-inline">/* 2+ unexporteds ... */</label><label for="InstOp-showhide-inputofs" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			func (*<a href="#name-Inst">Inst</a>).<a href="../../src/regexp/syntax/prog.go.html#line-135">op</a>() <b>InstOp</b></i></span><span class="hidden"><i>
+			func regexp.<a href="../regexp.html#name-iop">iop</a>(i *<a href="#name-Inst">Inst</a>) <b>InstOp</b></i></span></span>
+		<input type='checkbox' class="fold" id="InstOp-fold-values"><label for="InstOp-fold-values">As Types Of (<i>total 11, all are exported</i>)</label><span id='InstOp-fold-values-items' class="fold-items"><span>
+			const <a href="#name-InstAlt">InstAlt</a></span><span>
+			const <a href="#name-InstAltMatch">InstAltMatch</a></span><span>
+			const <a href="#name-InstCapture">InstCapture</a></span><span>
+			const <a href="#name-InstEmptyWidth">InstEmptyWidth</a></span><span>
+			const <a href="#name-InstFail">InstFail</a></span><span>
+			const <a href="#name-InstMatch">InstMatch</a></span><span>
+			const <a href="#name-InstNop">InstNop</a></span><span>
+			const <a href="#name-InstRune">InstRune</a></span><span>
+			const <a href="#name-InstRune1">InstRune1</a></span><span>
+			const <a href="#name-InstRuneAny">InstRuneAny</a></span><span>
+			const <a href="#name-InstRuneAnyNotNL">InstRuneAnyNotNL</a></span></span>
+
+</span></div><div class="anchor type-res" id="name-Op" data-popularity="250">	<input type='checkbox' class="fold" id="Op-fold-content"><label for="Op-fold-content"> type <a href="../../src/regexp/syntax/regexp.go.html#line-32">Op</a> <a href="../builtin.html#name-uint8">uint8</a> <i>(basic type)</i></label><span id='Op-fold-content-docs' class="fold-docs">
+		An Op is a single regular expression operator.
+
+		<input type='checkbox' class="fold" id="Op-fold-methods"><label for="Op-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='Op-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../../src/regexp/syntax/op_string.go.html#line-16">String</a>() <a href="../builtin.html#name-string">string</a></span></span></span>
+		<input type='checkbox' class="fold" id="Op-fold-impls"><label for="Op-fold-impls">Implements (<i>at least 3, in which 1 are exported</i>)</label><span id='Op-fold-impls-items' class="fold-items"><span>
+			 T : fmt.<a href="../fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="Op-showhide-impls"><i><label for="Op-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="Op-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			 T : context.<a href="../context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			 T : runtime.<a href="../runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="Op-fold-params"><label for="Op-fold-params">As Inputs Of (<i>at least one unexported</i>)</label><span id='Op-fold-params-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Op-showhide-outputofs"><i><label for="Op-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="Op-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-simplify1">simplify1</a>(op <b>Op</b>, flags <a href="#name-Flags">Flags</a>, sub, re *<a href="#name-Regexp">Regexp</a>) *<a href="#name-Regexp">Regexp</a></i></span></span>
+		<input type='checkbox' class="fold" id="Op-fold-values"><label for="Op-fold-values">As Types Of (<i>total 22, in which 19 are exported</i>)</label><span id='Op-fold-values-items' class="fold-items"><span>
+			const <a href="#name-OpAlternate">OpAlternate</a></span><span>
+			const <a href="#name-OpAnyChar">OpAnyChar</a></span><span>
+			const <a href="#name-OpAnyCharNotNL">OpAnyCharNotNL</a></span><span>
+			const <a href="#name-OpBeginLine">OpBeginLine</a></span><span>
+			const <a href="#name-OpBeginText">OpBeginText</a></span><span>
+			const <a href="#name-OpCapture">OpCapture</a></span><span>
+			const <a href="#name-OpCharClass">OpCharClass</a></span><span>
+			const <a href="#name-OpConcat">OpConcat</a></span><span>
+			const <a href="#name-OpEmptyMatch">OpEmptyMatch</a></span><span>
+			const <a href="#name-OpEndLine">OpEndLine</a></span><span>
+			const <a href="#name-OpEndText">OpEndText</a></span><span>
+			const <a href="#name-OpLiteral">OpLiteral</a></span><span>
+			const <a href="#name-OpNoMatch">OpNoMatch</a></span><span>
+			const <a href="#name-OpNoWordBoundary">OpNoWordBoundary</a></span><span>
+			const <a href="#name-OpPlus">OpPlus</a></span><span>
+			const <a href="#name-OpQuest">OpQuest</a></span><span>
+			const <a href="#name-OpRepeat">OpRepeat</a></span><span>
+			const <a href="#name-OpStar">OpStar</a></span><span>
+			const <a href="#name-OpWordBoundary">OpWordBoundary</a></span>
+			<input type='checkbox' class="showhide" id="Op-showhide-values"><i><label for="Op-showhide-values" class="show-inline">/* 3 unexporteds ... */</label><label for="Op-showhide-values" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			const <a href="#name-opLeftParen">opLeftParen</a></i></span><span class="hidden"><i>
+			const <a href="#name-opPseudo">opPseudo</a></i></span><span class="hidden"><i>
+			const <a href="#name-opVerticalBar">opVerticalBar</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Prog" data-popularity="670">	<input type='checkbox' class="fold" id="Prog-fold-content"><label for="Prog-fold-content"> type <a href="../../src/regexp/syntax/prog.go.html#line-17">Prog</a> <i>(struct)</i></label><span id='Prog-fold-content-docs' class="fold-docs">
+		A Prog is a compiled regular expression program.
+
+		<input type='checkbox' class="fold" id="Prog-fold-fields"><label for="Prog-fold-fields">Fields (<i>total 3, all are exported</i>)</label><span id='Prog-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../../src/regexp/syntax/prog.go.html#line-18">Inst</a> <i>[]<a href="#name-Inst">Inst</a></i></span></span><span>
+			<input type='checkbox' class="fold" id="Prog-fold-field-NumCap"><label for="Prog-fold-field-NumCap"><a href="../../src/regexp/syntax/prog.go.html#line-20">NumCap</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='Prog-fold-field-NumCap-docs' class="fold-docs">
+				// number of InstCapture insts in re
+</span></span><span>
+			<input type='checkbox' class="fold" id="Prog-fold-field-Start"><label for="Prog-fold-field-Start"><a href="../../src/regexp/syntax/prog.go.html#line-19">Start</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='Prog-fold-field-Start-docs' class="fold-docs">
+				// index of start instruction
+</span></span></span>
+		<input type='checkbox' class="fold" id="Prog-fold-methods"><label for="Prog-fold-methods">Methods (<i>total 4, in which 3 are exported</i>)</label><span id='Prog-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Prog-fold-method-Prefix"><label for="Prog-fold-method-Prefix">(*T) <a href="../../src/regexp/syntax/prog.go.html#line-147">Prefix</a>() (prefix <a href="../builtin.html#name-string">string</a>, complete <a href="../builtin.html#name-bool">bool</a>)</label><span id='Prog-fold-method-Prefix-docs' class="fold-docs">
+				Prefix returns a literal string that all matches for the
+				regexp must start with. Complete is true if the prefix
+				is the entire match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Prog-fold-method-StartCond"><label for="Prog-fold-method-StartCond">(*T) <a href="../../src/regexp/syntax/prog.go.html#line-166">StartCond</a>() <a href="#name-EmptyOp">EmptyOp</a></label><span id='Prog-fold-method-StartCond-docs' class="fold-docs">
+				StartCond returns the leading empty-width conditions that must
+				be true in any match. It returns ^EmptyOp(0) if no matches are possible.
+</span></span><span>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/prog.go.html#line-119">String</a>() <a href="../builtin.html#name-string">string</a></span></span>
+			<input type='checkbox' class="showhide" id="Prog-showhide-methods"><i><label for="Prog-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="Prog-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Prog-fold-method-skipNop"><label for="Prog-fold-method-skipNop">(*T) <a href="../../src/regexp/syntax/prog.go.html#line-126">skipNop</a>(pc <a href="../builtin.html#name-uint32">uint32</a>) *<a href="#name-Inst">Inst</a></label><span id='Prog-fold-method-skipNop-docs' class="fold-docs">
+				skipNop follows any no-op or capturing instructions.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Prog-fold-impls"><label for="Prog-fold-impls">Implements (<i>at least 3, in which 1 are exported</i>)</label><span id='Prog-fold-impls-items' class="fold-items"><span>
+			*T : fmt.<a href="../fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="Prog-showhide-impls"><i><label for="Prog-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="Prog-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			*T : context.<a href="../context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*T : runtime.<a href="../runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="Prog-fold-results"><label for="Prog-fold-results">As Outputs Of (<i>at least one exported</i>)</label><span id='Prog-fold-results-items' class="fold-items"><span>
+			func <a href="#name-Compile">Compile</a>(re *<a href="#name-Regexp">Regexp</a>) (*<b>Prog</b>, <a href="../builtin.html#name-error">error</a>)</span></span>
+		<input type='checkbox' class="fold" id="Prog-fold-params"><label for="Prog-fold-params">As Inputs Of (<i>at least 7, none are exported</i>)</label><span id='Prog-fold-params-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Prog-showhide-outputofs"><i><label for="Prog-showhide-outputofs" class="show-inline">/* 7+ unexporteds ... */</label><label for="Prog-showhide-outputofs" class="hide-inline">/* 7+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-dumpProg">dumpProg</a>(b *<a href="../strings.html">strings</a>.<a href="../strings.html#name-Builder">Builder</a>, p *<b>Prog</b>)</i></span><span class="hidden"><i>
+			func regexp.<a href="../regexp.html#name-cleanupOnePass">cleanupOnePass</a>(prog *<a href="../regexp.html">regexp</a>.<a href="../regexp.html#name-onePassProg">onePassProg</a>, original *<b>Prog</b>)</i></span><span class="hidden"><i>
+			func regexp.<a href="../regexp.html#name-compileOnePass">compileOnePass</a>(prog *<b>Prog</b>) (p *<a href="../regexp.html">regexp</a>.<a href="../regexp.html#name-onePassProg">onePassProg</a>)</i></span><span class="hidden"><i>
+			func regexp.<a href="../regexp.html#name-maxBitStateLen">maxBitStateLen</a>(prog *<b>Prog</b>) <a href="../builtin.html#name-int">int</a></i></span><span class="hidden"><i>
+			func regexp.<a href="../regexp.html#name-onePassCopy">onePassCopy</a>(prog *<b>Prog</b>) *<a href="../regexp.html">regexp</a>.<a href="../regexp.html#name-onePassProg">onePassProg</a></i></span><span class="hidden"><i>
+			func regexp.<a href="../regexp.html#name-onePassPrefix">onePassPrefix</a>(p *<b>Prog</b>) (prefix <a href="../builtin.html#name-string">string</a>, complete <a href="../builtin.html#name-bool">bool</a>, pc <a href="../builtin.html#name-uint32">uint32</a>)</i></span><span class="hidden"><i>
+			func regexp.<a href="../regexp.html#name-shouldBacktrack">shouldBacktrack</a>(prog *<b>Prog</b>) <a href="../builtin.html#name-bool">bool</a></i></span></span>
+
+</span></div><div class="anchor type-res" id="name-Regexp" data-popularity="1100">	<input type='checkbox' class="fold" id="Regexp-fold-content"><label for="Regexp-fold-content"> type <a href="../../src/regexp/syntax/regexp.go.html#line-17">Regexp</a> <i>(struct)</i></label><span id='Regexp-fold-content-docs' class="fold-docs">
+		A Regexp is a node in a regular expression syntax tree.
+
+		<input type='checkbox' class="fold" id="Regexp-fold-fields"><label for="Regexp-fold-fields">Fields (<i>total 10, all are exported</i>)</label><span id='Regexp-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-Cap"><label for="Regexp-fold-field-Cap"><a href="../../src/regexp/syntax/regexp.go.html#line-25">Cap</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='Regexp-fold-field-Cap-docs' class="fold-docs">
+				// capturing index, for OpCapture
+</span></span><span>
+			<span class="nodocs"><a href="../../src/regexp/syntax/regexp.go.html#line-19">Flags</a> <i><a href="#name-Flags">Flags</a></i></span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-Max"><label for="Regexp-fold-field-Max"><a href="../../src/regexp/syntax/regexp.go.html#line-24">Max</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='Regexp-fold-field-Max-docs' class="fold-docs">
+				// min, max for OpRepeat
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-Min"><label for="Regexp-fold-field-Min"><a href="../../src/regexp/syntax/regexp.go.html#line-24">Min</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='Regexp-fold-field-Min-docs' class="fold-docs">
+				// min, max for OpRepeat
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-Name"><label for="Regexp-fold-field-Name"><a href="../../src/regexp/syntax/regexp.go.html#line-26">Name</a> <i><a href="../builtin.html#name-string">string</a></i></label><span id='Regexp-fold-field-Name-docs' class="fold-docs">
+				// capturing name, for OpCapture
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-Op"><label for="Regexp-fold-field-Op"><a href="../../src/regexp/syntax/regexp.go.html#line-18">Op</a> <i><a href="#name-Op">Op</a></i></label><span id='Regexp-fold-field-Op-docs' class="fold-docs">
+				// operator
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-Rune"><label for="Regexp-fold-field-Rune"><a href="../../src/regexp/syntax/regexp.go.html#line-22">Rune</a> <i>[]<a href="../builtin.html#name-rune">rune</a></i></label><span id='Regexp-fold-field-Rune-docs' class="fold-docs">
+				// matched runes, for OpLiteral, OpCharClass
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-Rune0"><label for="Regexp-fold-field-Rune0"><a href="../../src/regexp/syntax/regexp.go.html#line-23">Rune0</a> <i>[2]<a href="../builtin.html#name-rune">rune</a></i></label><span id='Regexp-fold-field-Rune0-docs' class="fold-docs">
+				// storage for short Rune
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-Sub"><label for="Regexp-fold-field-Sub"><a href="../../src/regexp/syntax/regexp.go.html#line-20">Sub</a> <i>[]*<b>Regexp</b></i></label><span id='Regexp-fold-field-Sub-docs' class="fold-docs">
+				// subexpressions, if any
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-Sub0"><label for="Regexp-fold-field-Sub0"><a href="../../src/regexp/syntax/regexp.go.html#line-21">Sub0</a> <i>[1]*<b>Regexp</b></i></label><span id='Regexp-fold-field-Sub0-docs' class="fold-docs">
+				// storage for short Sub
+</span></span></span>
+		<input type='checkbox' class="fold" id="Regexp-fold-methods"><label for="Regexp-fold-methods">Methods (<i>total 6, in which 5 are exported</i>)</label><span id='Regexp-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-CapNames"><label for="Regexp-fold-method-CapNames">(*T) <a href="../../src/regexp/syntax/regexp.go.html#line-307">CapNames</a>() []<a href="../builtin.html#name-string">string</a></label><span id='Regexp-fold-method-CapNames-docs' class="fold-docs">
+				CapNames walks the regexp to find the names of capturing groups.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-Equal"><label for="Regexp-fold-method-Equal">(*T) <a href="../../src/regexp/syntax/regexp.go.html#line-63">Equal</a>(y *<b>Regexp</b>) <a href="../builtin.html#name-bool">bool</a></label><span id='Regexp-fold-method-Equal-docs' class="fold-docs">
+				Equal reports whether x and y have identical structure.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-MaxCap"><label for="Regexp-fold-method-MaxCap">(*T) <a href="../../src/regexp/syntax/regexp.go.html#line-293">MaxCap</a>() <a href="../builtin.html#name-int">int</a></label><span id='Regexp-fold-method-MaxCap-docs' class="fold-docs">
+				MaxCap walks the regexp to find the maximum capture index.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-Simplify"><label for="Regexp-fold-method-Simplify">(*T) <a href="../../src/regexp/syntax/simplify.go.html#line-14">Simplify</a>() *<b>Regexp</b></label><span id='Regexp-fold-method-Simplify-docs' class="fold-docs">
+				Simplify returns a regexp equivalent to re but without counted repetitions
+				and with various other simplifications, such as rewriting /(?:a+)+/ to /a+/.
+				The resulting regexp will execute correctly but its string representation
+				will not produce the same parse tree, because capturing parentheses
+				may have been duplicated or removed. For example, the simplified form
+				for /(x){1,2}/ is /(x)(x)?/ but both parentheses capture as $1.
+				The returned regexp may share structure with or be the original.
+</span></span><span>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/regexp.go.html#line-246">String</a>() <a href="../builtin.html#name-string">string</a></span></span>
+			<input type='checkbox' class="showhide" id="Regexp-showhide-methods"><i><label for="Regexp-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="Regexp-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/regexp.go.html#line-313">capNames</a>(names []<a href="../builtin.html#name-string">string</a>)</span></i></span></span>
+		<input type='checkbox' class="fold" id="Regexp-fold-impls"><label for="Regexp-fold-impls">Implements (<i>at least 3, in which 1 are exported</i>)</label><span id='Regexp-fold-impls-items' class="fold-items"><span>
+			*T : fmt.<a href="../fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="Regexp-showhide-impls"><i><label for="Regexp-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="Regexp-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			*T : context.<a href="../context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*T : runtime.<a href="../runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="Regexp-fold-results"><label for="Regexp-fold-results">As Outputs Of (<i>at least 4, in which 2 are exported</i>)</label><span id='Regexp-fold-results-items' class="fold-items"><span>
+			func <a href="#name-Parse">Parse</a>(s <a href="../builtin.html#name-string">string</a>, flags <a href="#name-Flags">Flags</a>) (*<b>Regexp</b>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func (*Regexp).<a href="../../src/regexp/syntax/simplify.go.html#line-14">Simplify</a>() *<b>Regexp</b></span>
+			<input type='checkbox' class="showhide" id="Regexp-showhide-inputofs"><i><label for="Regexp-showhide-inputofs" class="show-inline">/* 2+ unexporteds ... */</label><label for="Regexp-showhide-inputofs" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-literalRegexp">literalRegexp</a>(s <a href="../builtin.html#name-string">string</a>, flags <a href="#name-Flags">Flags</a>) *<b>Regexp</b></i></span><span class="hidden"><i>
+			func <a href="#name-simplify1">simplify1</a>(op <a href="#name-Op">Op</a>, flags <a href="#name-Flags">Flags</a>, sub, re *<b>Regexp</b>) *<b>Regexp</b></i></span></span>
+		<input type='checkbox' class="fold" id="Regexp-fold-params"><label for="Regexp-fold-params">As Inputs Of (<i>at least 10, in which 2 are exported</i>)</label><span id='Regexp-fold-params-items' class="fold-items"><span>
+			func <a href="#name-Compile">Compile</a>(re *<b>Regexp</b>) (*<a href="#name-Prog">Prog</a>, <a href="../builtin.html#name-error">error</a>)</span><span>
+			func (*Regexp).<a href="../../src/regexp/syntax/regexp.go.html#line-63">Equal</a>(y *<b>Regexp</b>) <a href="../builtin.html#name-bool">bool</a></span>
+			<input type='checkbox' class="showhide" id="Regexp-showhide-outputofs"><i><label for="Regexp-showhide-outputofs" class="show-inline">/* 8+ unexporteds ... */</label><label for="Regexp-showhide-outputofs" class="hide-inline">/* 8+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-cleanAlt">cleanAlt</a>(re *<b>Regexp</b>)</i></span><span class="hidden"><i>
+			func <a href="#name-isCharClass">isCharClass</a>(re *<b>Regexp</b>) <a href="../builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func <a href="#name-matchRune">matchRune</a>(re *<b>Regexp</b>, r <a href="../builtin.html#name-rune">rune</a>) <a href="../builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func <a href="#name-mergeCharClass">mergeCharClass</a>(dst, src *<b>Regexp</b>)</i></span><span class="hidden"><i>
+			func <a href="#name-repeatIsValid">repeatIsValid</a>(re *<b>Regexp</b>, n <a href="../builtin.html#name-int">int</a>) <a href="../builtin.html#name-bool">bool</a></i></span><span class="hidden"><i>
+			func <a href="#name-simplify1">simplify1</a>(op <a href="#name-Op">Op</a>, flags <a href="#name-Flags">Flags</a>, sub, re *<b>Regexp</b>) *<b>Regexp</b></i></span><span class="hidden"><i>
+			func <a href="#name-writeRegexp">writeRegexp</a>(b *<a href="../strings.html">strings</a>.<a href="../strings.html#name-Builder">Builder</a>, re *<b>Regexp</b>)</i></span><span class="hidden"><i>
+			func regexp.<a href="../regexp.html#name-minInputLen">minInputLen</a>(re *<b>Regexp</b>) <a href="../builtin.html#name-int">int</a></i></span></span>
+
+</span></div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* 6 unexporteds ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* 6 unexporteds: */</label></i><div class="anchor type-res hidden" id="name-charGroup" data-popularity="0">	<input type='checkbox' class="fold" id="charGroup-fold-content"><label for="charGroup-fold-content"> type <a href="../../src/regexp/syntax/parse.go.html#line-1368">charGroup</a> <i>(struct)</i></label><span id='charGroup-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="charGroup-fold-fields"><label for="charGroup-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='charGroup-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="charGroup-showhide-fields"><i><label for="charGroup-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="charGroup-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/regexp/syntax/parse.go.html#line-1370">class</a> <i>[]<a href="../builtin.html#name-rune">rune</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/regexp/syntax/parse.go.html#line-1369">sign</a> <i><a href="../builtin.html#name-int">int</a></i></span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-compiler" data-popularity="650">	<input type='checkbox' class="fold" id="compiler-fold-content"><label for="compiler-fold-content"> type <a href="../../src/regexp/syntax/compile.go.html#line-64">compiler</a> <i>(struct)</i></label><span id='compiler-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="compiler-fold-fields"><label for="compiler-fold-fields">Fields (<i>only one, which is unexported</i>)</label><span id='compiler-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="compiler-showhide-fields"><i><label for="compiler-showhide-fields" class="show-inline">/* one unexported ... */</label><label for="compiler-showhide-fields" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/regexp/syntax/compile.go.html#line-65">p</a> <i>*<a href="#name-Prog">Prog</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="compiler-fold-methods"><label for="compiler-fold-methods">Methods (<i>total 13, none are exported</i>)</label><span id='compiler-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="compiler-showhide-methods"><i><label for="compiler-showhide-methods" class="show-inline">/* 13 unexporteds ... */</label><label for="compiler-showhide-methods" class="hide-inline">/* 13 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/compile.go.html#line-200">alt</a>(f1, f2 <a href="#name-frag">frag</a>) <a href="#name-frag">frag</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/compile.go.html#line-177">cap</a>(arg <a href="../builtin.html#name-uint32">uint32</a>) <a href="#name-frag">frag</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/compile.go.html#line-188">cat</a>(f1, f2 <a href="#name-frag">frag</a>) <a href="#name-frag">frag</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/compile.go.html#line-88">compile</a>(re *<a href="#name-Regexp">Regexp</a>) <a href="#name-frag">frag</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/compile.go.html#line-249">empty</a>(op <a href="#name-EmptyOp">EmptyOp</a>) <a href="#name-frag">frag</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/compile.go.html#line-173">fail</a>() <a href="#name-frag">frag</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/compile.go.html#line-79">init</a>()</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/compile.go.html#line-160">inst</a>(op <a href="#name-InstOp">InstOp</a>) <a href="#name-frag">frag</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/compile.go.html#line-167">nop</a>() <a href="#name-frag">frag</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/compile.go.html#line-245">plus</a>(f1 <a href="#name-frag">frag</a>, nongreedy <a href="../builtin.html#name-bool">bool</a>) <a href="#name-frag">frag</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/compile.go.html#line-217">quest</a>(f1 <a href="#name-frag">frag</a>, nongreedy <a href="../builtin.html#name-bool">bool</a>) <a href="#name-frag">frag</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/compile.go.html#line-256">rune</a>(r []<a href="../builtin.html#name-rune">rune</a>, flags <a href="#name-Flags">Flags</a>) <a href="#name-frag">frag</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/compile.go.html#line-231">star</a>(f1 <a href="#name-frag">frag</a>, nongreedy <a href="../builtin.html#name-bool">bool</a>) <a href="#name-frag">frag</a></span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-frag" data-popularity="0">	<input type='checkbox' class="fold" id="frag-fold-content"><label for="frag-fold-content"> type <a href="../../src/regexp/syntax/compile.go.html#line-59">frag</a> <i>(struct)</i></label><span id='frag-fold-content-docs' class="fold-docs">
+		A frag represents a compiled program fragment.
+
+		<input type='checkbox' class="fold" id="frag-fold-fields"><label for="frag-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='frag-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="frag-showhide-fields"><i><label for="frag-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="frag-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="frag-fold-field-i"><label for="frag-fold-field-i"><a href="../../src/regexp/syntax/compile.go.html#line-60">i</a> <i><a href="../builtin.html#name-uint32">uint32</a></i></label><span id='frag-fold-field-i-docs' class="fold-docs">
+				// index of first instruction
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="frag-fold-field-out"><label for="frag-fold-field-out"><a href="../../src/regexp/syntax/compile.go.html#line-61">out</a> <i><a href="#name-patchList">patchList</a></i></label><span id='frag-fold-field-out-docs' class="fold-docs">
+				// where to record end instruction
+</span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-parser" data-popularity="1400">	<input type='checkbox' class="fold" id="parser-fold-content"><label for="parser-fold-content"> type <a href="../../src/regexp/syntax/parse.go.html#line-79">parser</a> <i>(struct)</i></label><span id='parser-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="parser-fold-fields"><label for="parser-fold-fields">Fields (<i>total 6, none are exported</i>)</label><span id='parser-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="parser-showhide-fields"><i><label for="parser-showhide-fields" class="show-inline">/* 6 unexporteds ... */</label><label for="parser-showhide-fields" class="hide-inline">/* 6 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-field-flags"><label for="parser-fold-field-flags"><a href="../../src/regexp/syntax/parse.go.html#line-80">flags</a> <i><a href="#name-Flags">Flags</a></i></label><span id='parser-fold-field-flags-docs' class="fold-docs">
+				// parse mode flags
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/regexp/syntax/parse.go.html#line-82">free</a> <i>*<a href="#name-Regexp">Regexp</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-field-numCap"><label for="parser-fold-field-numCap"><a href="../../src/regexp/syntax/parse.go.html#line-83">numCap</a> <i><a href="../builtin.html#name-int">int</a></i></label><span id='parser-fold-field-numCap-docs' class="fold-docs">
+				// number of capturing groups seen
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-field-stack"><label for="parser-fold-field-stack"><a href="../../src/regexp/syntax/parse.go.html#line-81">stack</a> <i>[]*<a href="#name-Regexp">Regexp</a></i></label><span id='parser-fold-field-stack-docs' class="fold-docs">
+				// stack of parsed expressions
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-field-tmpClass"><label for="parser-fold-field-tmpClass"><a href="../../src/regexp/syntax/parse.go.html#line-85">tmpClass</a> <i>[]<a href="../builtin.html#name-rune">rune</a></i></label><span id='parser-fold-field-tmpClass-docs' class="fold-docs">
+				// temporary char class work space
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/regexp/syntax/parse.go.html#line-84">wholeRegexp</a> <i><a href="../builtin.html#name-string">string</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="parser-fold-methods"><label for="parser-fold-methods">Methods (<i>total 28, none are exported</i>)</label><span id='parser-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="parser-showhide-methods"><i><label for="parser-showhide-methods" class="show-inline">/* 28 unexporteds ... */</label><label for="parser-showhide-methods" class="hide-inline">/* 28 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-alternate"><label for="parser-fold-method-alternate">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-311">alternate</a>() *<a href="#name-Regexp">Regexp</a></label><span id='parser-fold-method-alternate-docs' class="fold-docs">
+				alternate replaces the top of the stack (above the topmost '(') with its alternation.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-1408">appendGroup</a>(r []<a href="../builtin.html#name-rune">rune</a>, g <a href="#name-charGroup">charGroup</a>) []<a href="../builtin.html#name-rune">rune</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-collapse"><label for="parser-fold-method-collapse">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-363">collapse</a>(subs []*<a href="#name-Regexp">Regexp</a>, op <a href="#name-Op">Op</a>) *<a href="#name-Regexp">Regexp</a></label><span id='parser-fold-method-collapse-docs' class="fold-docs">
+				collapse returns the result of applying op to sub.
+				If sub contains op nodes, they all get hoisted up
+				so that there is never a concat of a concat or an
+				alternate of an alternate.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-concat"><label for="parser-fold-method-concat">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-291">concat</a>() *<a href="#name-Regexp">Regexp</a></label><span id='parser-fold-method-concat-docs' class="fold-docs">
+				concat replaces the top of the stack (above the topmost '|' or '(') with its concatenation.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-factor"><label for="parser-fold-method-factor">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-399">factor</a>(sub []*<a href="#name-Regexp">Regexp</a>) []*<a href="#name-Regexp">Regexp</a></label><span id='parser-fold-method-factor-docs' class="fold-docs">
+				factor factors common prefixes from the alternation list sub.
+				It returns a replacement list that reuses the same storage and
+				frees (passes to p.reuse) any removed *Regexps.
+
+				For example,
+				    ABC|ABD|AEF|BCX|BCY
+				simplifies by literal prefix extraction to
+				    A(B(C|D)|EF)|BC(X|Y)
+				which simplifies by character class introduction to
+				    A(B[CD]|EF)|BC[XY]
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-leadingRegexp"><label for="parser-fold-method-leadingRegexp">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-635">leadingRegexp</a>(re *<a href="#name-Regexp">Regexp</a>) *<a href="#name-Regexp">Regexp</a></label><span id='parser-fold-method-leadingRegexp-docs' class="fold-docs">
+				leadingRegexp returns the leading regexp that re begins with.
+				The regexp refers to storage in re or its children.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-leadingString"><label for="parser-fold-method-leadingString">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-586">leadingString</a>(re *<a href="#name-Regexp">Regexp</a>) ([]<a href="../builtin.html#name-rune">rune</a>, <a href="#name-Flags">Flags</a>)</label><span id='parser-fold-method-leadingString-docs' class="fold-docs">
+				leadingString returns the leading literal string that re begins with.
+				The string refers to storage in re or its children.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-literal"><label for="parser-fold-method-literal">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-181">literal</a>(r <a href="../builtin.html#name-rune">rune</a>)</label><span id='parser-fold-method-literal-docs' class="fold-docs">
+				literal pushes a literal regexp for the rune r on the stack.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-maybeConcat"><label for="parser-fold-method-maybeConcat">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-152">maybeConcat</a>(r <a href="../builtin.html#name-rune">rune</a>, flags <a href="#name-Flags">Flags</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='parser-fold-method-maybeConcat-docs' class="fold-docs">
+				maybeConcat implements incremental concatenation
+				of literal runes into string nodes. The parser calls this
+				before each push, so only the top fragment of the stack
+				might need processing. Since this is called before a push,
+				the topmost literal is no longer subject to operators like *
+				(Otherwise ab* would turn into (ab)*.)
+				If r &gt;= 0 and there's a node left over, maybeConcat uses it
+				to push r with the given flags.
+				maybeConcat reports whether r was pushed.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-88">newRegexp</a>(op <a href="#name-Op">Op</a>) *<a href="#name-Regexp">Regexp</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-op"><label for="parser-fold-method-op">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-209">op</a>(op <a href="#name-Op">Op</a>) *<a href="#name-Regexp">Regexp</a></label><span id='parser-fold-method-op-docs' class="fold-docs">
+				op pushes a regexp with the given op onto the stack
+				and returns that regexp.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-parseClass"><label for="parser-fold-method-parseClass">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-1526">parseClass</a>(s <a href="../builtin.html#name-string">string</a>) (rest <a href="../builtin.html#name-string">string</a>, err <a href="../builtin.html#name-error">error</a>)</label><span id='parser-fold-method-parseClass-docs' class="fold-docs">
+				parseClass parses a character class at the beginning of s
+				and pushes it onto the parse stack.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-parseClassChar"><label for="parser-fold-method-parseClassChar">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-1354">parseClassChar</a>(s, wholeClass <a href="../builtin.html#name-string">string</a>) (r <a href="../builtin.html#name-rune">rune</a>, rest <a href="../builtin.html#name-string">string</a>, err <a href="../builtin.html#name-error">error</a>)</label><span id='parser-fold-method-parseClassChar-docs' class="fold-docs">
+				parseClassChar parses a character class character at the beginning of s
+				and returns it.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-parseEscape"><label for="parser-fold-method-parseEscape">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-1238">parseEscape</a>(s <a href="../builtin.html#name-string">string</a>) (r <a href="../builtin.html#name-rune">rune</a>, rest <a href="../builtin.html#name-string">string</a>, err <a href="../builtin.html#name-error">error</a>)</label><span id='parser-fold-method-parseEscape-docs' class="fold-docs">
+				parseEscape parses an escape sequence at the beginning of s
+				and returns the rune.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-parseInt"><label for="parser-fold-method-parseInt">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-1064">parseInt</a>(s <a href="../builtin.html#name-string">string</a>) (n <a href="../builtin.html#name-int">int</a>, rest <a href="../builtin.html#name-string">string</a>, ok <a href="../builtin.html#name-bool">bool</a>)</label><span id='parser-fold-method-parseInt-docs' class="fold-docs">
+				parseInt parses a decimal integer.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-parseNamedClass"><label for="parser-fold-method-parseNamedClass">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-1390">parseNamedClass</a>(s <a href="../builtin.html#name-string">string</a>, r []<a href="../builtin.html#name-rune">rune</a>) (out []<a href="../builtin.html#name-rune">rune</a>, rest <a href="../builtin.html#name-string">string</a>, err <a href="../builtin.html#name-error">error</a>)</label><span id='parser-fold-method-parseNamedClass-docs' class="fold-docs">
+				parseNamedClass parses a leading POSIX named character class like [:alnum:]
+				from the beginning of s. If one is present, it appends the characters to r
+				and returns the new slice r and the remainder of the string.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-parsePerlClassEscape"><label for="parser-fold-method-parsePerlClassEscape">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-1376">parsePerlClassEscape</a>(s <a href="../builtin.html#name-string">string</a>, r []<a href="../builtin.html#name-rune">rune</a>) (out []<a href="../builtin.html#name-rune">rune</a>, rest <a href="../builtin.html#name-string">string</a>)</label><span id='parser-fold-method-parsePerlClassEscape-docs' class="fold-docs">
+				parsePerlClassEscape parses a leading Perl character class escape like \d
+				from the beginning of s. If one is present, it appends the characters to r
+				and returns the new slice r and the remainder of the string.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-parsePerlFlags"><label for="parser-fold-method-parsePerlFlags">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-941">parsePerlFlags</a>(s <a href="../builtin.html#name-string">string</a>) (rest <a href="../builtin.html#name-string">string</a>, err <a href="../builtin.html#name-error">error</a>)</label><span id='parser-fold-method-parsePerlFlags-docs' class="fold-docs">
+				parsePerlFlags parses a Perl flag setting or non-capturing group or both,
+				like (?i) or (?: or (?i:.  It removes the prefix from s and updates the parse state.
+				The caller must have ensured that s begins with "(?".
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-parseRepeat"><label for="parser-fold-method-parseRepeat">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-902">parseRepeat</a>(s <a href="../builtin.html#name-string">string</a>) (min, max <a href="../builtin.html#name-int">int</a>, rest <a href="../builtin.html#name-string">string</a>, ok <a href="../builtin.html#name-bool">bool</a>)</label><span id='parser-fold-method-parseRepeat-docs' class="fold-docs">
+				parseRepeat parses {min} (max=min) or {min,} (max=-1) or {min,max}.
+				If s is not of that form, it returns ok == false.
+				If s has the right form but the values are too big, it returns min == -1, ok == true.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-parseRightParen"><label for="parser-fold-method-parseRightParen">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-1204">parseRightParen</a>() <a href="../builtin.html#name-error">error</a></label><span id='parser-fold-method-parseRightParen-docs' class="fold-docs">
+				parseRightParen handles a ) in the input.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-parseUnicodeClass"><label for="parser-fold-method-parseUnicodeClass">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-1453">parseUnicodeClass</a>(s <a href="../builtin.html#name-string">string</a>, r []<a href="../builtin.html#name-rune">rune</a>) (out []<a href="../builtin.html#name-rune">rune</a>, rest <a href="../builtin.html#name-string">string</a>, err <a href="../builtin.html#name-error">error</a>)</label><span id='parser-fold-method-parseUnicodeClass-docs' class="fold-docs">
+				parseUnicodeClass parses a leading Unicode character class like \p{Han}
+				from the beginning of s. If one is present, it appends the characters to r
+				and returns the new slice r and the remainder of the string.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-parseVerticalBar"><label for="parser-fold-method-parseVerticalBar">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-1121">parseVerticalBar</a>() <a href="../builtin.html#name-error">error</a></label><span id='parser-fold-method-parseVerticalBar-docs' class="fold-docs">
+				parseVerticalBar handles a | in the input.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-push"><label for="parser-fold-method-push">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-108">push</a>(re *<a href="#name-Regexp">Regexp</a>) *<a href="#name-Regexp">Regexp</a></label><span id='parser-fold-method-push-docs' class="fold-docs">
+				push pushes the regexp re onto the parse stack and returns the regexp.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-removeLeadingRegexp"><label for="parser-fold-method-removeLeadingRegexp">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-652">removeLeadingRegexp</a>(re *<a href="#name-Regexp">Regexp</a>, reuse <a href="../builtin.html#name-bool">bool</a>) *<a href="#name-Regexp">Regexp</a></label><span id='parser-fold-method-removeLeadingRegexp-docs' class="fold-docs">
+				removeLeadingRegexp removes the leading regexp in re.
+				It returns the replacement for re.
+				If reuse is true, it passes the removed regexp (if no longer needed) to p.reuse.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-removeLeadingString"><label for="parser-fold-method-removeLeadingString">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-598">removeLeadingString</a>(re *<a href="#name-Regexp">Regexp</a>, n <a href="../builtin.html#name-int">int</a>) *<a href="#name-Regexp">Regexp</a></label><span id='parser-fold-method-removeLeadingString-docs' class="fold-docs">
+				removeLeadingString removes the first n leading runes
+				from the beginning of re. It returns the replacement for re.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-repeat"><label for="parser-fold-method-repeat">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-219">repeat</a>(op <a href="#name-Op">Op</a>, min, max <a href="../builtin.html#name-int">int</a>, before, after, lastRepeat <a href="../builtin.html#name-string">string</a>) (<a href="../builtin.html#name-string">string</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='parser-fold-method-repeat-docs' class="fold-docs">
+				repeat replaces the top stack element with itself repeated according to op, min, max.
+				before is the regexp suffix starting at the repetition operator.
+				after is the regexp suffix following after the repetition operator.
+				repeat returns an updated 'after' and an error, if any.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-100">reuse</a>(re *<a href="#name-Regexp">Regexp</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="parser-fold-method-swapVerticalBar"><label for="parser-fold-method-swapVerticalBar">(*T) <a href="../../src/regexp/syntax/parse.go.html#line-1168">swapVerticalBar</a>() <a href="../builtin.html#name-bool">bool</a></label><span id='parser-fold-method-swapVerticalBar-docs' class="fold-docs">
+				If the top of the stack is an element followed by an opVerticalBar
+				swapVerticalBar swaps the two and returns true.
+				Otherwise it returns false.
+</span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-patchList" data-popularity="175">	<input type='checkbox' class="fold" id="patchList-fold-content"><label for="patchList-fold-content"> type <a href="../../src/regexp/syntax/compile.go.html#line-19">patchList</a> <i>(struct)</i></label><span id='patchList-fold-content-docs' class="fold-docs">
+		A patchList is a list of instruction pointers that need to be filled in (patched).
+		Because the pointers haven't been filled in yet, we can reuse their storage
+		to hold the list. It's kind of sleazy, but works well in practice.
+		See https://swtch.com/~rsc/regexp/regexp1.html for inspiration.
+
+		These aren't really pointers: they're integers, so we can reinterpret them
+		this way without using package unsafe. A value l.head denotes
+		p.inst[l.head&gt;&gt;1].Out (l.head&amp;1==0) or .Arg (l.head&amp;1==1).
+		head == 0 denotes the empty list, okay because we start every program
+		with a fail instruction, so we'll never want to point at its output link.
+
+		<input type='checkbox' class="fold" id="patchList-fold-fields"><label for="patchList-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='patchList-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="patchList-showhide-fields"><i><label for="patchList-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="patchList-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/regexp/syntax/compile.go.html#line-20">head</a> <i><a href="../builtin.html#name-uint32">uint32</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/regexp/syntax/compile.go.html#line-20">tail</a> <i><a href="../builtin.html#name-uint32">uint32</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="patchList-fold-methods"><label for="patchList-fold-methods">Methods (<i>total 2, neither is exported</i>)</label><span id='patchList-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="patchList-showhide-methods"><i><label for="patchList-showhide-methods" class="show-inline">/* 2 unexporteds ... */</label><label for="patchList-showhide-methods" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/regexp/syntax/compile.go.html#line-41">append</a>(p *<a href="#name-Prog">Prog</a>, l2 <b>patchList</b>) <b>patchList</b></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../../src/regexp/syntax/compile.go.html#line-27">patch</a>(p *<a href="#name-Prog">Prog</a>, val <a href="../builtin.html#name-uint32">uint32</a>)</span></i></span></span>
+		<input type='checkbox' class="fold" id="patchList-fold-results"><label for="patchList-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='patchList-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="patchList-showhide-inputofs"><i><label for="patchList-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="patchList-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-makePatchList">makePatchList</a>(n <a href="../builtin.html#name-uint32">uint32</a>) <b>patchList</b></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-ranges" data-popularity="250">	<input type='checkbox' class="fold" id="ranges-fold-content"><label for="ranges-fold-content"> type <a href="../../src/regexp/syntax/parse.go.html#line-1854">ranges</a> <i>(struct)</i></label><span id='ranges-fold-content-docs' class="fold-docs">
+		ranges implements sort.Interface on a []rune.
+		The choice of receiver type definition is strange
+		but avoids an allocation since we already have
+		a *[]rune.
+
+		<input type='checkbox' class="fold" id="ranges-fold-fields"><label for="ranges-fold-fields">Fields (<i>only one, which is unexported</i>)</label><span id='ranges-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="ranges-showhide-fields"><i><label for="ranges-showhide-fields" class="show-inline">/* one unexported ... */</label><label for="ranges-showhide-fields" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../../src/regexp/syntax/parse.go.html#line-1855">p</a> <i>*[]<a href="../builtin.html#name-rune">rune</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="ranges-fold-methods"><label for="ranges-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='ranges-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../../src/regexp/syntax/parse.go.html#line-1865">Len</a>() <a href="../builtin.html#name-int">int</a></span></span><span>
+			<span class="nodocs">( T) <a href="../../src/regexp/syntax/parse.go.html#line-1858">Less</a>(i, j <a href="../builtin.html#name-int">int</a>) <a href="../builtin.html#name-bool">bool</a></span></span><span>
+			<span class="nodocs">( T) <a href="../../src/regexp/syntax/parse.go.html#line-1869">Swap</a>(i, j <a href="../builtin.html#name-int">int</a>)</span></span></span>
+		<input type='checkbox' class="fold" id="ranges-fold-impls"><label for="ranges-fold-impls">Implements (<i>at least 2, both are exported</i>)</label><span id='ranges-fold-impls-items' class="fold-items"><span>
+			 T : github.com/hashicorp/go-retryablehttp.<a href="../github.com/hashicorp/go-retryablehttp.html#name-LenReader">LenReader</a></span><span>
+			 T : sort.<a href="../sort.html#name-Interface">Interface</a></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 35, in which 4 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-Compile">	<input type='checkbox' class="fold" id="Compile-fold-content"><label for="Compile-fold-content"> func <a href="../../src/regexp/syntax/compile.go.html#line-70">Compile</a>(re *<a href="#name-Regexp">Regexp</a>) (*<a href="#name-Prog">Prog</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='Compile-fold-content-docs' class="fold-docs">
+		Compile compiles the regexp into a program to be executed.
+		The regexp should have been simplified already (returned from re.Simplify).
+
+</span></div><div class="anchor value-res" id="name-EmptyOpContext">	<input type='checkbox' class="fold" id="EmptyOpContext-fold-content"><label for="EmptyOpContext-fold-content"> func <a href="../../src/regexp/syntax/prog.go.html#line-79">EmptyOpContext</a>(r1, r2 <a href="../builtin.html#name-rune">rune</a>) <a href="#name-EmptyOp">EmptyOp</a></label><span id='EmptyOpContext-fold-content-docs' class="fold-docs">
+		EmptyOpContext returns the zero-width assertions
+		satisfied at the position between the runes r1 and r2.
+		Passing r1 == -1 indicates that the position is
+		at the beginning of the text.
+		Passing r2 == -1 indicates that the position is
+		at the end of the text.
+
+</span></div><div class="anchor value-res" id="name-IsWordChar">	<input type='checkbox' class="fold" id="IsWordChar-fold-content"><label for="IsWordChar-fold-content"> func <a href="../../src/regexp/syntax/prog.go.html#line-107">IsWordChar</a>(r <a href="../builtin.html#name-rune">rune</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='IsWordChar-fold-content-docs' class="fold-docs">
+		IsWordChar reports whether r is consider a ``word character''
+		during the evaluation of the \b and \B zero-width assertions.
+		These assertions are ASCII-only: the word characters are [A-Za-z0-9_].
+
+</span></div><div class="anchor value-res" id="name-Parse">	<input type='checkbox' class="fold" id="Parse-fold-content"><label for="Parse-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-695">Parse</a>(s <a href="../builtin.html#name-string">string</a>, flags <a href="#name-Flags">Flags</a>) (*<a href="#name-Regexp">Regexp</a>, <a href="../builtin.html#name-error">error</a>)</label><span id='Parse-fold-content-docs' class="fold-docs">
+		Parse parses a regular expression string s, controlled by the specified
+		Flags, and returns a regular expression parse tree. The syntax is
+		described in the top-level comment.
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 31 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 31 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-appendClass"><i>	<input type='checkbox' class="fold" id="appendClass-fold-content"><label for="appendClass-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-1729">appendClass</a>(r []<a href="../builtin.html#name-rune">rune</a>, x []<a href="../builtin.html#name-rune">rune</a>) []<a href="../builtin.html#name-rune">rune</a></label><span id='appendClass-fold-content-docs' class="fold-docs">
+		appendClass returns the result of appending the class x to the class r.
+		It assume x is clean.
+
+</span></i></div><div class="anchor value-res hidden" id="name-appendFoldedClass"><i>	<input type='checkbox' class="fold" id="appendFoldedClass-fold-content"><label for="appendFoldedClass-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-1737">appendFoldedClass</a>(r []<a href="../builtin.html#name-rune">rune</a>, x []<a href="../builtin.html#name-rune">rune</a>) []<a href="../builtin.html#name-rune">rune</a></label><span id='appendFoldedClass-fold-content-docs' class="fold-docs">
+		appendFolded returns the result of appending the case folding of the class x to the class r.
+
+</span></i></div><div class="anchor value-res hidden" id="name-appendFoldedRange"><i>	<input type='checkbox' class="fold" id="appendFoldedRange-fold-content"><label for="appendFoldedRange-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-1694">appendFoldedRange</a>(r []<a href="../builtin.html#name-rune">rune</a>, lo, hi <a href="../builtin.html#name-rune">rune</a>) []<a href="../builtin.html#name-rune">rune</a></label><span id='appendFoldedRange-fold-content-docs' class="fold-docs">
+		appendFoldedRange returns the result of appending the range lo-hi
+		and its case folding-equivalent runes to the class r.
+
+</span></i></div><div class="anchor value-res hidden" id="name-appendLiteral"><i>	<input type='checkbox' class="fold" id="appendLiteral-fold-content"><label for="appendLiteral-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-1653">appendLiteral</a>(r []<a href="../builtin.html#name-rune">rune</a>, x <a href="../builtin.html#name-rune">rune</a>, flags <a href="#name-Flags">Flags</a>) []<a href="../builtin.html#name-rune">rune</a></label><span id='appendLiteral-fold-content-docs' class="fold-docs">
+		appendLiteral returns the result of appending the literal x to the class r.
+
+</span></i></div><div class="anchor value-res hidden" id="name-appendNegatedClass"><i>	<input type='checkbox' class="fold" id="appendNegatedClass-fold-content"><label for="appendNegatedClass-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-1746">appendNegatedClass</a>(r []<a href="../builtin.html#name-rune">rune</a>, x []<a href="../builtin.html#name-rune">rune</a>) []<a href="../builtin.html#name-rune">rune</a></label><span id='appendNegatedClass-fold-content-docs' class="fold-docs">
+		appendNegatedClass returns the result of appending the negation of the class x to the class r.
+		It assumes x is clean.
+
+</span></i></div><div class="anchor value-res hidden" id="name-appendNegatedTable"><i>	<input type='checkbox' class="fold" id="appendNegatedTable-fold-content"><label for="appendNegatedTable-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-1787">appendNegatedTable</a>(r []<a href="../builtin.html#name-rune">rune</a>, x *<a href="../unicode.html">unicode</a>.<a href="../unicode.html#name-RangeTable">RangeTable</a>) []<a href="../builtin.html#name-rune">rune</a></label><span id='appendNegatedTable-fold-content-docs' class="fold-docs">
+		appendNegatedTable returns the result of appending the negation of x to the class r.
+
+</span></i></div><div class="anchor value-res hidden" id="name-appendRange"><i>	<input type='checkbox' class="fold" id="appendRange-fold-content"><label for="appendRange-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-1661">appendRange</a>(r []<a href="../builtin.html#name-rune">rune</a>, lo, hi <a href="../builtin.html#name-rune">rune</a>) []<a href="../builtin.html#name-rune">rune</a></label><span id='appendRange-fold-content-docs' class="fold-docs">
+		appendRange returns the result of appending the range lo-hi to the class r.
+
+</span></i></div><div class="anchor value-res hidden" id="name-appendTable"><i>	<input type='checkbox' class="fold" id="appendTable-fold-content"><label for="appendTable-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-1762">appendTable</a>(r []<a href="../builtin.html#name-rune">rune</a>, x *<a href="../unicode.html">unicode</a>.<a href="../unicode.html#name-RangeTable">RangeTable</a>) []<a href="../builtin.html#name-rune">rune</a></label><span id='appendTable-fold-content-docs' class="fold-docs">
+		appendTable returns the result of appending x to the class r.
+
+</span></i></div><div class="anchor value-res hidden" id="name-bw"><i>	<span class="nodocs"> func <a href="../../src/regexp/syntax/prog.go.html#line-287">bw</a>(b *<a href="../strings.html">strings</a>.<a href="../strings.html#name-Builder">Builder</a>, args ...<a href="../builtin.html#name-string">string</a>)</span></i></div><div class="anchor value-res hidden" id="name-checkUTF8"><i>	<span class="nodocs"> func <a href="../../src/regexp/syntax/parse.go.html#line-1876">checkUTF8</a>(s <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-error">error</a></span></i></div><div class="anchor value-res hidden" id="name-cleanAlt"><i>	<input type='checkbox' class="fold" id="cleanAlt-fold-content"><label for="cleanAlt-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-337">cleanAlt</a>(re *<a href="#name-Regexp">Regexp</a>)</label><span id='cleanAlt-fold-content-docs' class="fold-docs">
+		cleanAlt cleans re for eventual inclusion in an alternation.
+
+</span></i></div><div class="anchor value-res hidden" id="name-cleanClass"><i>	<input type='checkbox' class="fold" id="cleanClass-fold-content"><label for="cleanClass-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-1622">cleanClass</a>(rp *[]<a href="../builtin.html#name-rune">rune</a>) []<a href="../builtin.html#name-rune">rune</a></label><span id='cleanClass-fold-content-docs' class="fold-docs">
+		cleanClass sorts the ranges (pairs of elements of r),
+		merges them, and eliminates duplicates.
+
+</span></i></div><div class="anchor value-res hidden" id="name-dumpInst"><i>	<span class="nodocs"> func <a href="../../src/regexp/syntax/prog.go.html#line-313">dumpInst</a>(b *<a href="../strings.html">strings</a>.<a href="../strings.html#name-Builder">Builder</a>, i *<a href="#name-Inst">Inst</a>)</span></i></div><div class="anchor value-res hidden" id="name-dumpProg"><i>	<span class="nodocs"> func <a href="../../src/regexp/syntax/prog.go.html#line-293">dumpProg</a>(b *<a href="../strings.html">strings</a>.<a href="../strings.html#name-Builder">Builder</a>, p *<a href="#name-Prog">Prog</a>)</span></i></div><div class="anchor value-res hidden" id="name-escape"><i>	<span class="nodocs"> func <a href="../../src/regexp/syntax/regexp.go.html#line-254">escape</a>(b *<a href="../strings.html">strings</a>.<a href="../strings.html#name-Builder">Builder</a>, r <a href="../builtin.html#name-rune">rune</a>, force <a href="../builtin.html#name-bool">bool</a>)</span></i></div><div class="anchor value-res hidden" id="name-isalnum"><i>	<span class="nodocs"> func <a href="../../src/regexp/syntax/parse.go.html#line-1895">isalnum</a>(c <a href="../builtin.html#name-rune">rune</a>) <a href="../builtin.html#name-bool">bool</a></span></i></div><div class="anchor value-res hidden" id="name-isCharClass"><i>	<input type='checkbox' class="fold" id="isCharClass-fold-content"><label for="isCharClass-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-1093">isCharClass</a>(re *<a href="#name-Regexp">Regexp</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='isCharClass-fold-content-docs' class="fold-docs">
+		can this be represented as a character class?
+		single-rune literal string, char class, ., and .|\n.
+
+</span></i></div><div class="anchor value-res hidden" id="name-isValidCaptureName"><i>	<input type='checkbox' class="fold" id="isValidCaptureName-fold-content"><label for="isValidCaptureName-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-1051">isValidCaptureName</a>(name <a href="../builtin.html#name-string">string</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='isValidCaptureName-fold-content-docs' class="fold-docs">
+		isValidCaptureName reports whether name
+		is a valid capture name: [A-Za-z0-9_]+.
+		PCRE limits names to 32 bytes.
+		Python rejects names starting with digits.
+		We don't enforce either of those.
+
+</span></i></div><div class="anchor value-res hidden" id="name-literalRegexp"><i>	<span class="nodocs"> func <a href="../../src/regexp/syntax/parse.go.html#line-675">literalRegexp</a>(s <a href="../builtin.html#name-string">string</a>, flags <a href="#name-Flags">Flags</a>) *<a href="#name-Regexp">Regexp</a></span></i></div><div class="anchor value-res hidden" id="name-makePatchList"><i>	<span class="nodocs"> func <a href="../../src/regexp/syntax/compile.go.html#line-23">makePatchList</a>(n <a href="../builtin.html#name-uint32">uint32</a>) <a href="#name-patchList">patchList</a></span></i></div><div class="anchor value-res hidden" id="name-matchRune"><i>	<input type='checkbox' class="fold" id="matchRune-fold-content"><label for="matchRune-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-1101">matchRune</a>(re *<a href="#name-Regexp">Regexp</a>, r <a href="../builtin.html#name-rune">rune</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='matchRune-fold-content-docs' class="fold-docs">
+		does re match r?
+
+</span></i></div><div class="anchor value-res hidden" id="name-mergeCharClass"><i>	<input type='checkbox' class="fold" id="mergeCharClass-fold-content"><label for="mergeCharClass-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-1138">mergeCharClass</a>(dst, src *<a href="#name-Regexp">Regexp</a>)</label><span id='mergeCharClass-fold-content-docs' class="fold-docs">
+		mergeCharClass makes dst = dst|src.
+		The caller must ensure that dst.Op &gt;= src.Op,
+		to reduce the amount of copying.
+
+</span></i></div><div class="anchor value-res hidden" id="name-minFoldRune"><i>	<input type='checkbox' class="fold" id="minFoldRune-fold-content"><label for="minFoldRune-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-193">minFoldRune</a>(r <a href="../builtin.html#name-rune">rune</a>) <a href="../builtin.html#name-rune">rune</a></label><span id='minFoldRune-fold-content-docs' class="fold-docs">
+		minFoldRune returns the minimum rune fold-equivalent to r.
+
+</span></i></div><div class="anchor value-res hidden" id="name-negateClass"><i>	<input type='checkbox' class="fold" id="negateClass-fold-content"><label for="negateClass-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-1829">negateClass</a>(r []<a href="../builtin.html#name-rune">rune</a>) []<a href="../builtin.html#name-rune">rune</a></label><span id='negateClass-fold-content-docs' class="fold-docs">
+		negateClass overwrites r and returns r's negation.
+		It assumes the class r is already clean.
+
+</span></i></div><div class="anchor value-res hidden" id="name-nextRune"><i>	<span class="nodocs"> func <a href="../../src/regexp/syntax/parse.go.html#line-1887">nextRune</a>(s <a href="../builtin.html#name-string">string</a>) (c <a href="../builtin.html#name-rune">rune</a>, t <a href="../builtin.html#name-string">string</a>, err <a href="../builtin.html#name-error">error</a>)</span></i></div><div class="anchor value-res hidden" id="name-repeatIsValid"><i>	<input type='checkbox' class="fold" id="repeatIsValid-fold-content"><label for="repeatIsValid-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-266">repeatIsValid</a>(re *<a href="#name-Regexp">Regexp</a>, n <a href="../builtin.html#name-int">int</a>) <a href="../builtin.html#name-bool">bool</a></label><span id='repeatIsValid-fold-content-docs' class="fold-docs">
+		repeatIsValid reports whether the repetition re is valid.
+		Valid means that the combination of the top-level repetition
+		and any inner repetitions does not exceed n copies of the
+		innermost thing.
+		This function rewalks the regexp tree and is called for every repetition,
+		so we have to worry about inducing quadratic behavior in the parser.
+		We avoid this by only calling repeatIsValid when min or max &gt;= 2.
+		In that case the depth of any &gt;= 2 nesting can only get to 9 without
+		triggering a parse error, so each subtree can only be rewalked 9 times.
+
+</span></i></div><div class="anchor value-res hidden" id="name-simplify1"><i>	<input type='checkbox' class="fold" id="simplify1-fold-content"><label for="simplify1-fold-content"> func <a href="../../src/regexp/syntax/simplify.go.html#line-134">simplify1</a>(op <a href="#name-Op">Op</a>, flags <a href="#name-Flags">Flags</a>, sub, re *<a href="#name-Regexp">Regexp</a>) *<a href="#name-Regexp">Regexp</a></label><span id='simplify1-fold-content-docs' class="fold-docs">
+		simplify1 implements Simplify for the unary OpStar,
+		OpPlus, and OpQuest operators. It returns the simple regexp
+		equivalent to
+
+			Regexp{Op: op, Flags: flags, Sub: {sub}}
+
+		under the assumption that sub is already simple, and
+		without first allocating that structure. If the regexp
+		to be returned turns out to be equivalent to re, simplify1
+		returns re instead.
+
+		simplify1 is factored out of Simplify because the implementation
+		for other operators generates these unary expressions.
+		Letting them call simplify1 makes sure the expressions they
+		generate are simple.
+
+</span></i></div><div class="anchor value-res hidden" id="name-u32"><i>	<span class="nodocs"> func <a href="../../src/regexp/syntax/prog.go.html#line-309">u32</a>(i <a href="../builtin.html#name-uint32">uint32</a>) <a href="../builtin.html#name-string">string</a></span></i></div><div class="anchor value-res hidden" id="name-unhex"><i>	<span class="nodocs"> func <a href="../../src/regexp/syntax/parse.go.html#line-1899">unhex</a>(c <a href="../builtin.html#name-rune">rune</a>) <a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-unicodeTable"><i>	<input type='checkbox' class="fold" id="unicodeTable-fold-content"><label for="unicodeTable-fold-content"> func <a href="../../src/regexp/syntax/parse.go.html#line-1436">unicodeTable</a>(name <a href="../builtin.html#name-string">string</a>) (*<a href="../unicode.html">unicode</a>.<a href="../unicode.html#name-RangeTable">RangeTable</a>, *<a href="../unicode.html">unicode</a>.<a href="../unicode.html#name-RangeTable">RangeTable</a>)</label><span id='unicodeTable-fold-content-docs' class="fold-docs">
+		unicodeTable returns the unicode.RangeTable identified by name
+		and the table of additional fold-equivalent code points.
+
+</span></i></div><div class="anchor value-res hidden" id="name-writeRegexp"><i>	<input type='checkbox' class="fold" id="writeRegexp-fold-content"><label for="writeRegexp-fold-content"> func <a href="../../src/regexp/syntax/regexp.go.html#line-116">writeRegexp</a>(b *<a href="../strings.html">strings</a>.<a href="../strings.html#name-Builder">Builder</a>, re *<a href="#name-Regexp">Regexp</a>)</label><span id='writeRegexp-fold-content-docs' class="fold-docs">
+		writeRegexp writes the Perl syntax for the regular expression re to b.
+
+</span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (total 24, none are exported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* 24 unexporteds ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* 24 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-_Op_index_0"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/op_string.go.html#line-13">_Op_index_0</a> [20]<a href="../builtin.html#name-uint8">uint8</a></span></i></div><div class="anchor value-res hidden" id="name-anyRune"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/compile.go.html#line-86">anyRune</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-anyRuneNotNL"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/compile.go.html#line-85">anyRuneNotNL</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-anyTable"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/parse.go.html#line-1429">anyTable</a> *<a href="../unicode.html">unicode</a>.<a href="../unicode.html#name-RangeTable">RangeTable</a></span></i></div><div class="anchor value-res hidden" id="name-code1"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-10">code1</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-code10"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-64">code10</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-code11"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-68">code11</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-code12"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-72">code12</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-code13"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-76">code13</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-code14"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-83">code14</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-code15"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-88">code15</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-code16"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-92">code16</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-code17"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-99">code17</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-code2"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-14">code2</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-code3"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-20">code3</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-code4"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-35">code4</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-code5"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-41">code5</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-code6"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-46">code6</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-code7"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-50">code7</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-code8"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-55">code8</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-code9"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-60">code9</a> []<a href="../builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-instOpNames"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/prog.go.html#line-40">instOpNames</a> []<a href="../builtin.html#name-string">string</a></span></i></div><div class="anchor value-res hidden" id="name-perlGroup"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-27">perlGroup</a> map[<a href="../builtin.html#name-string">string</a>]<a href="#name-charGroup">charGroup</a></span></i></div><div class="anchor value-res hidden" id="name-posixGroup"><i>	<span class="nodocs">  var <a href="../../src/regexp/syntax/perl_groups.go.html#line-105">posixGroup</a> map[<a href="../builtin.html#name-string">string</a>]<a href="#name-charGroup">charGroup</a></span></i></div></div>
+<div id="exported-constants"><span class="title">Package-Level Constants<span class="title-stat"><i> (total 72, in which 63 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-ClassNL">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-58">ClassNL</a> <a href="#name-Flags">Flags</a> = 4 // allow character classes like [^a-z] and [[:space:]] to match newline</span></div><div class="anchor value-res" id="name-DotNL">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-59">DotNL</a> <a href="#name-Flags">Flags</a> = 8 // allow . to match newline</span></div><div class="anchor value-res" id="name-EmptyBeginLine">	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-65">EmptyBeginLine</a> <a href="#name-EmptyOp">EmptyOp</a> = 1</span></div><div class="anchor value-res" id="name-EmptyBeginText">	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-67">EmptyBeginText</a> <a href="#name-EmptyOp">EmptyOp</a> = 4</span></div><div class="anchor value-res" id="name-EmptyEndLine">	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-66">EmptyEndLine</a> <a href="#name-EmptyOp">EmptyOp</a> = 2</span></div><div class="anchor value-res" id="name-EmptyEndText">	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-68">EmptyEndText</a> <a href="#name-EmptyOp">EmptyOp</a> = 8</span></div><div class="anchor value-res" id="name-EmptyNoWordBoundary">	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-70">EmptyNoWordBoundary</a> <a href="#name-EmptyOp">EmptyOp</a> = 32</span></div><div class="anchor value-res" id="name-EmptyWordBoundary">	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-69">EmptyWordBoundary</a> <a href="#name-EmptyOp">EmptyOp</a> = 16</span></div><div class="anchor value-res" id="name-ErrInternalError">	<input type='checkbox' class="fold" id="ErrInternalError-fold-content"><label for="ErrInternalError-fold-content">const <a href="../../src/regexp/syntax/parse.go.html#line-30">ErrInternalError</a> <a href="#name-ErrorCode">ErrorCode</a> = "regexp/syntax: internal error"</label><span id='ErrInternalError-fold-content-docs' class="fold-docs">
+		Unexpected error
+
+</span></div><div class="anchor value-res" id="name-ErrInvalidCharClass">	<input type='checkbox' class="fold" id="ErrInvalidCharClass-fold-content"><label for="ErrInvalidCharClass-fold-content">const <a href="../../src/regexp/syntax/parse.go.html#line-33">ErrInvalidCharClass</a> <a href="#name-ErrorCode">ErrorCode</a> = "invalid character class"</label><span id='ErrInvalidCharClass-fold-content-docs' class="fold-docs">
+		Parse errors
+
+</span></div><div class="anchor value-res" id="name-ErrInvalidCharRange">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-34">ErrInvalidCharRange</a> <a href="#name-ErrorCode">ErrorCode</a> = "invalid character class range"</span></div><div class="anchor value-res" id="name-ErrInvalidEscape">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-35">ErrInvalidEscape</a> <a href="#name-ErrorCode">ErrorCode</a> = "invalid escape sequence"</span></div><div class="anchor value-res" id="name-ErrInvalidNamedCapture">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-36">ErrInvalidNamedCapture</a> <a href="#name-ErrorCode">ErrorCode</a> = "invalid named capture"</span></div><div class="anchor value-res" id="name-ErrInvalidPerlOp">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-37">ErrInvalidPerlOp</a> <a href="#name-ErrorCode">ErrorCode</a> = "invalid or unsupported Perl syntax"</span></div><div class="anchor value-res" id="name-ErrInvalidRepeatOp">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-38">ErrInvalidRepeatOp</a> <a href="#name-ErrorCode">ErrorCode</a> = "invalid nested repetition operator"</span></div><div class="anchor value-res" id="name-ErrInvalidRepeatSize">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-39">ErrInvalidRepeatSize</a> <a href="#name-ErrorCode">ErrorCode</a> = "invalid repeat count"</span></div><div class="anchor value-res" id="name-ErrInvalidUTF8">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-40">ErrInvalidUTF8</a> <a href="#name-ErrorCode">ErrorCode</a> = "invalid UTF-8"</span></div><div class="anchor value-res" id="name-ErrMissingBracket">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-41">ErrMissingBracket</a> <a href="#name-ErrorCode">ErrorCode</a> = "missing closing ]"</span></div><div class="anchor value-res" id="name-ErrMissingParen">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-42">ErrMissingParen</a> <a href="#name-ErrorCode">ErrorCode</a> = "missing closing )"</span></div><div class="anchor value-res" id="name-ErrMissingRepeatArgument">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-43">ErrMissingRepeatArgument</a> <a href="#name-ErrorCode">ErrorCode</a> = "missing argument to repetition operator"</span></div><div class="anchor value-res" id="name-ErrTrailingBackslash">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-44">ErrTrailingBackslash</a> <a href="#name-ErrorCode">ErrorCode</a> = "trailing backslash at end of expression"</span></div><div class="anchor value-res" id="name-ErrUnexpectedParen">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-45">ErrUnexpectedParen</a> <a href="#name-ErrorCode">ErrorCode</a> = "unexpected )"</span></div><div class="anchor value-res" id="name-FoldCase">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-56">FoldCase</a> <a href="#name-Flags">Flags</a> = 1 // case-insensitive match</span></div><div class="anchor value-res" id="name-InstAlt">	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-27">InstAlt</a> <a href="#name-InstOp">InstOp</a> = 0</span></div><div class="anchor value-res" id="name-InstAltMatch">	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-28">InstAltMatch</a> <a href="#name-InstOp">InstOp</a> = 1</span></div><div class="anchor value-res" id="name-InstCapture">	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-29">InstCapture</a> <a href="#name-InstOp">InstOp</a> = 2</span></div><div class="anchor value-res" id="name-InstEmptyWidth">	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-30">InstEmptyWidth</a> <a href="#name-InstOp">InstOp</a> = 3</span></div><div class="anchor value-res" id="name-InstFail">	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-32">InstFail</a> <a href="#name-InstOp">InstOp</a> = 5</span></div><div class="anchor value-res" id="name-InstMatch">	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-31">InstMatch</a> <a href="#name-InstOp">InstOp</a> = 4</span></div><div class="anchor value-res" id="name-InstNop">	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-33">InstNop</a> <a href="#name-InstOp">InstOp</a> = 6</span></div><div class="anchor value-res" id="name-InstRune">	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-34">InstRune</a> <a href="#name-InstOp">InstOp</a> = 7</span></div><div class="anchor value-res" id="name-InstRune1">	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-35">InstRune1</a> <a href="#name-InstOp">InstOp</a> = 8</span></div><div class="anchor value-res" id="name-InstRuneAny">	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-36">InstRuneAny</a> <a href="#name-InstOp">InstOp</a> = 9</span></div><div class="anchor value-res" id="name-InstRuneAnyNotNL">	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-37">InstRuneAnyNotNL</a> <a href="#name-InstOp">InstOp</a> = 10</span></div><div class="anchor value-res" id="name-Literal">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-57">Literal</a> <a href="#name-Flags">Flags</a> = 2 // treat pattern as literal string</span></div><div class="anchor value-res" id="name-MatchNL">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-67">MatchNL</a> <a href="#name-Flags">Flags</a> = 12</span></div><div class="anchor value-res" id="name-NonGreedy">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-61">NonGreedy</a> <a href="#name-Flags">Flags</a> = 32 // make repetition operators default to non-greedy</span></div><div class="anchor value-res" id="name-OneLine">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-60">OneLine</a> <a href="#name-Flags">Flags</a> = 16 // treat ^ and $ as only matching at beginning and end of text</span></div><div class="anchor value-res" id="name-OpAlternate">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-57">OpAlternate</a> <a href="#name-Op">Op</a> = 19 // matches alternation of Subs</span></div><div class="anchor value-res" id="name-OpAnyChar">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-44">OpAnyChar</a> <a href="#name-Op">Op</a> = 6 // matches any character</span></div><div class="anchor value-res" id="name-OpAnyCharNotNL">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-43">OpAnyCharNotNL</a> <a href="#name-Op">Op</a> = 5 // matches any character except newline</span></div><div class="anchor value-res" id="name-OpBeginLine">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-45">OpBeginLine</a> <a href="#name-Op">Op</a> = 7 // matches empty string at beginning of line</span></div><div class="anchor value-res" id="name-OpBeginText">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-47">OpBeginText</a> <a href="#name-Op">Op</a> = 9 // matches empty string at beginning of text</span></div><div class="anchor value-res" id="name-OpCapture">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-51">OpCapture</a> <a href="#name-Op">Op</a> = 13 // capturing subexpression with index Cap, optional name Name</span></div><div class="anchor value-res" id="name-OpCharClass">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-42">OpCharClass</a> <a href="#name-Op">Op</a> = 4 // matches Runes interpreted as range pair list</span></div><div class="anchor value-res" id="name-OpConcat">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-56">OpConcat</a> <a href="#name-Op">Op</a> = 18 // matches concatenation of Subs</span></div><div class="anchor value-res" id="name-OpEmptyMatch">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-40">OpEmptyMatch</a> <a href="#name-Op">Op</a> = 2 // matches empty string</span></div><div class="anchor value-res" id="name-OpEndLine">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-46">OpEndLine</a> <a href="#name-Op">Op</a> = 8 // matches empty string at end of line</span></div><div class="anchor value-res" id="name-OpEndText">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-48">OpEndText</a> <a href="#name-Op">Op</a> = 10 // matches empty string at end of text</span></div><div class="anchor value-res" id="name-OpLiteral">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-41">OpLiteral</a> <a href="#name-Op">Op</a> = 3 // matches Runes sequence</span></div><div class="anchor value-res" id="name-OpNoMatch">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-39">OpNoMatch</a> <a href="#name-Op">Op</a> = 1 // matches no strings</span></div><div class="anchor value-res" id="name-OpNoWordBoundary">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-50">OpNoWordBoundary</a> <a href="#name-Op">Op</a> = 12 // matches word non-boundary `\B`</span></div><div class="anchor value-res" id="name-OpPlus">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-53">OpPlus</a> <a href="#name-Op">Op</a> = 15 // matches Sub[0] one or more times</span></div><div class="anchor value-res" id="name-OpQuest">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-54">OpQuest</a> <a href="#name-Op">Op</a> = 16 // matches Sub[0] zero or one times</span></div><div class="anchor value-res" id="name-OpRepeat">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-55">OpRepeat</a> <a href="#name-Op">Op</a> = 17 // matches Sub[0] at least Min times, at most Max (Max == -1 is no limit)</span></div><div class="anchor value-res" id="name-OpStar">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-52">OpStar</a> <a href="#name-Op">Op</a> = 14 // matches Sub[0] zero or more times</span></div><div class="anchor value-res" id="name-OpWordBoundary">	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-49">OpWordBoundary</a> <a href="#name-Op">Op</a> = 11 // matches word boundary `\b`</span></div><div class="anchor value-res" id="name-Perl">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-69">Perl</a> <a href="#name-Flags">Flags</a> = 212 // as close to Perl as possible</span></div><div class="anchor value-res" id="name-PerlX">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-62">PerlX</a> <a href="#name-Flags">Flags</a> = 64 // allow Perl extensions</span></div><div class="anchor value-res" id="name-POSIX">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-70">POSIX</a> <a href="#name-Flags">Flags</a> = 0 // POSIX syntax</span></div><div class="anchor value-res" id="name-Simple">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-65">Simple</a> <a href="#name-Flags">Flags</a> = 512 // regexp contains no counted repetition</span></div><div class="anchor value-res" id="name-UnicodeGroups">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-63">UnicodeGroups</a> <a href="#name-Flags">Flags</a> = 128 // allow \p{Han}, \P{Han} for Unicode group and negation</span></div><div class="anchor value-res" id="name-WasDollar">	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-64">WasDollar</a> <a href="#name-Flags">Flags</a> = 256 // regexp OpEndText was $, not \z</span></div>	<input type='checkbox' class="showhide" id="unexported-constants-showhide"><i><label for="unexported-constants-showhide" class="show-inline">/* 9 unexporteds ... */</label><label for="unexported-constants-showhide" class="hide-inline">/* 9 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-_Op_name_0"><i>	<span class="nodocs">const <a href="../../src/regexp/syntax/op_string.go.html#line-8">_Op_name_0</a> = "NoMatchEmptyMatchLiteralCharClassAnyCharNotNLAnyCharBeginLineEndLine...</span></i></div><div class="anchor value-res hidden" id="name-_Op_name_1"><i>	<span class="nodocs">const <a href="../../src/regexp/syntax/op_string.go.html#line-9">_Op_name_1</a> = "opPseudo"</span></i></div><div class="anchor value-res hidden" id="name-maxFold"><i>	<span class="nodocs">const <a href="../../src/regexp/syntax/parse.go.html#line-1689">maxFold</a> = 125251</span></i></div><div class="anchor value-res hidden" id="name-meta"><i>	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-252">meta</a> = "\\.+*?()|[]{}^$"</span></i></div><div class="anchor value-res hidden" id="name-minFold"><i>	<input type='checkbox' class="fold" id="minFold-fold-content"><label for="minFold-fold-content">const <a href="../../src/regexp/syntax/parse.go.html#line-1688">minFold</a> = 65</label><span id='minFold-fold-content-docs' class="fold-docs">
+		minimum and maximum runes involved in folding.
+		checked during test.
+
+</span></i></div><div class="anchor value-res hidden" id="name-noMatch"><i>	<span class="nodocs">const <a href="../../src/regexp/syntax/prog.go.html#line-188">noMatch</a> = -1</span></i></div><div class="anchor value-res hidden" id="name-opLeftParen"><i>	<input type='checkbox' class="fold" id="opLeftParen-fold-content"><label for="opLeftParen-fold-content">const <a href="../../src/regexp/syntax/parse.go.html#line-75">opLeftParen</a> <a href="#name-Op">Op</a> = 128</label><span id='opLeftParen-fold-content-docs' class="fold-docs">
+		Pseudo-ops for parsing stack.
+
+</span></i></div><div class="anchor value-res hidden" id="name-opPseudo"><i>	<span class="nodocs">const <a href="../../src/regexp/syntax/regexp.go.html#line-60">opPseudo</a> <a href="#name-Op">Op</a> = 128 // where pseudo-ops start</span></i></div><div class="anchor value-res hidden" id="name-opVerticalBar"><i>	<input type='checkbox' class="fold" id="opVerticalBar-fold-content"><label for="opVerticalBar-fold-content">const <a href="../../src/regexp/syntax/parse.go.html#line-76">opVerticalBar</a> <a href="#name-Op">Op</a> = 129</label><span id='opVerticalBar-fold-content-docs' class="fold-docs">
+		Pseudo-ops for parsing stack.
+
+</span></i></div></div></code></pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

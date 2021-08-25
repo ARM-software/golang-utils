@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: sha256block.go in package crypto/sha256</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	sha256block.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/crypto/sha256.html">crypto/sha256</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// SHA256 block step.</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// In its own file so that a faster assembly or C version</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// can be substituted easily.</span></code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">package</span> sha256</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"math/bits"</span></label></code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">var</span> <a href="../../../pkg/crypto/sha256.html#name-_K" class="ident">_K</a> = []<a href="../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>{</code></span>
+<span class="codeline" id="line-14"><code>	<span class="lit-number">0x428a2f98</span>,</code></span>
+<span class="codeline" id="line-15"><code>	<span class="lit-number">0x71374491</span>,</code></span>
+<span class="codeline" id="line-16"><code>	<span class="lit-number">0xb5c0fbcf</span>,</code></span>
+<span class="codeline" id="line-17"><code>	<span class="lit-number">0xe9b5dba5</span>,</code></span>
+<span class="codeline" id="line-18"><code>	<span class="lit-number">0x3956c25b</span>,</code></span>
+<span class="codeline" id="line-19"><code>	<span class="lit-number">0x59f111f1</span>,</code></span>
+<span class="codeline" id="line-20"><code>	<span class="lit-number">0x923f82a4</span>,</code></span>
+<span class="codeline" id="line-21"><code>	<span class="lit-number">0xab1c5ed5</span>,</code></span>
+<span class="codeline" id="line-22"><code>	<span class="lit-number">0xd807aa98</span>,</code></span>
+<span class="codeline" id="line-23"><code>	<span class="lit-number">0x12835b01</span>,</code></span>
+<span class="codeline" id="line-24"><code>	<span class="lit-number">0x243185be</span>,</code></span>
+<span class="codeline" id="line-25"><code>	<span class="lit-number">0x550c7dc3</span>,</code></span>
+<span class="codeline" id="line-26"><code>	<span class="lit-number">0x72be5d74</span>,</code></span>
+<span class="codeline" id="line-27"><code>	<span class="lit-number">0x80deb1fe</span>,</code></span>
+<span class="codeline" id="line-28"><code>	<span class="lit-number">0x9bdc06a7</span>,</code></span>
+<span class="codeline" id="line-29"><code>	<span class="lit-number">0xc19bf174</span>,</code></span>
+<span class="codeline" id="line-30"><code>	<span class="lit-number">0xe49b69c1</span>,</code></span>
+<span class="codeline" id="line-31"><code>	<span class="lit-number">0xefbe4786</span>,</code></span>
+<span class="codeline" id="line-32"><code>	<span class="lit-number">0x0fc19dc6</span>,</code></span>
+<span class="codeline" id="line-33"><code>	<span class="lit-number">0x240ca1cc</span>,</code></span>
+<span class="codeline" id="line-34"><code>	<span class="lit-number">0x2de92c6f</span>,</code></span>
+<span class="codeline" id="line-35"><code>	<span class="lit-number">0x4a7484aa</span>,</code></span>
+<span class="codeline" id="line-36"><code>	<span class="lit-number">0x5cb0a9dc</span>,</code></span>
+<span class="codeline" id="line-37"><code>	<span class="lit-number">0x76f988da</span>,</code></span>
+<span class="codeline" id="line-38"><code>	<span class="lit-number">0x983e5152</span>,</code></span>
+<span class="codeline" id="line-39"><code>	<span class="lit-number">0xa831c66d</span>,</code></span>
+<span class="codeline" id="line-40"><code>	<span class="lit-number">0xb00327c8</span>,</code></span>
+<span class="codeline" id="line-41"><code>	<span class="lit-number">0xbf597fc7</span>,</code></span>
+<span class="codeline" id="line-42"><code>	<span class="lit-number">0xc6e00bf3</span>,</code></span>
+<span class="codeline" id="line-43"><code>	<span class="lit-number">0xd5a79147</span>,</code></span>
+<span class="codeline" id="line-44"><code>	<span class="lit-number">0x06ca6351</span>,</code></span>
+<span class="codeline" id="line-45"><code>	<span class="lit-number">0x14292967</span>,</code></span>
+<span class="codeline" id="line-46"><code>	<span class="lit-number">0x27b70a85</span>,</code></span>
+<span class="codeline" id="line-47"><code>	<span class="lit-number">0x2e1b2138</span>,</code></span>
+<span class="codeline" id="line-48"><code>	<span class="lit-number">0x4d2c6dfc</span>,</code></span>
+<span class="codeline" id="line-49"><code>	<span class="lit-number">0x53380d13</span>,</code></span>
+<span class="codeline" id="line-50"><code>	<span class="lit-number">0x650a7354</span>,</code></span>
+<span class="codeline" id="line-51"><code>	<span class="lit-number">0x766a0abb</span>,</code></span>
+<span class="codeline" id="line-52"><code>	<span class="lit-number">0x81c2c92e</span>,</code></span>
+<span class="codeline" id="line-53"><code>	<span class="lit-number">0x92722c85</span>,</code></span>
+<span class="codeline" id="line-54"><code>	<span class="lit-number">0xa2bfe8a1</span>,</code></span>
+<span class="codeline" id="line-55"><code>	<span class="lit-number">0xa81a664b</span>,</code></span>
+<span class="codeline" id="line-56"><code>	<span class="lit-number">0xc24b8b70</span>,</code></span>
+<span class="codeline" id="line-57"><code>	<span class="lit-number">0xc76c51a3</span>,</code></span>
+<span class="codeline" id="line-58"><code>	<span class="lit-number">0xd192e819</span>,</code></span>
+<span class="codeline" id="line-59"><code>	<span class="lit-number">0xd6990624</span>,</code></span>
+<span class="codeline" id="line-60"><code>	<span class="lit-number">0xf40e3585</span>,</code></span>
+<span class="codeline" id="line-61"><code>	<span class="lit-number">0x106aa070</span>,</code></span>
+<span class="codeline" id="line-62"><code>	<span class="lit-number">0x19a4c116</span>,</code></span>
+<span class="codeline" id="line-63"><code>	<span class="lit-number">0x1e376c08</span>,</code></span>
+<span class="codeline" id="line-64"><code>	<span class="lit-number">0x2748774c</span>,</code></span>
+<span class="codeline" id="line-65"><code>	<span class="lit-number">0x34b0bcb5</span>,</code></span>
+<span class="codeline" id="line-66"><code>	<span class="lit-number">0x391c0cb3</span>,</code></span>
+<span class="codeline" id="line-67"><code>	<span class="lit-number">0x4ed8aa4a</span>,</code></span>
+<span class="codeline" id="line-68"><code>	<span class="lit-number">0x5b9cca4f</span>,</code></span>
+<span class="codeline" id="line-69"><code>	<span class="lit-number">0x682e6ff3</span>,</code></span>
+<span class="codeline" id="line-70"><code>	<span class="lit-number">0x748f82ee</span>,</code></span>
+<span class="codeline" id="line-71"><code>	<span class="lit-number">0x78a5636f</span>,</code></span>
+<span class="codeline" id="line-72"><code>	<span class="lit-number">0x84c87814</span>,</code></span>
+<span class="codeline" id="line-73"><code>	<span class="lit-number">0x8cc70208</span>,</code></span>
+<span class="codeline" id="line-74"><code>	<span class="lit-number">0x90befffa</span>,</code></span>
+<span class="codeline" id="line-75"><code>	<span class="lit-number">0xa4506ceb</span>,</code></span>
+<span class="codeline" id="line-76"><code>	<span class="lit-number">0xbef9a3f7</span>,</code></span>
+<span class="codeline" id="line-77"><code>	<span class="lit-number">0xc67178f2</span>,</code></span>
+<span class="codeline" id="line-78"><code>}</code></span>
+<span class="codeline" id="line-79"><code></code></span>
+<span class="codeline" id="line-80"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/crypto/sha256.html#name-blockGeneric" class="ident">blockGeneric</a></label>(<label for="r1" class="ident">dig</label> *<a href="sha256.go.html#line-51" class="ident">digest</a>, <label for="r2" class="ident">p</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) {</code></span>
+<span class="codeline" id="line-81"><code>	<span class="keyword">var</span> <label for="r3" class="ident">w</label> [<span class="lit-number">64</span>]<a href="../../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-82"><code>	<label for="r4" class="ident">h0</label>, <label for="r5" class="ident">h1</label>, <label for="r6" class="ident">h2</label>, <label for="r7" class="ident">h3</label>, <label for="r8" class="ident">h4</label>, <label for="r9" class="ident">h5</label>, <label for="r10" class="ident">h6</label>, <label for="r11" class="ident">h7</label> := <label for="r1" class="ident">dig</label>.<a href="sha256.go.html#line-52" class="ident">h</a>[<span class="lit-number">0</span>], <label for="r1" class="ident">dig</label>.<a href="sha256.go.html#line-52" class="ident">h</a>[<span class="lit-number">1</span>], <label for="r1" class="ident">dig</label>.<a href="sha256.go.html#line-52" class="ident">h</a>[<span class="lit-number">2</span>], <label for="r1" class="ident">dig</label>.<a href="sha256.go.html#line-52" class="ident">h</a>[<span class="lit-number">3</span>], <label for="r1" class="ident">dig</label>.<a href="sha256.go.html#line-52" class="ident">h</a>[<span class="lit-number">4</span>], <label for="r1" class="ident">dig</label>.<a href="sha256.go.html#line-52" class="ident">h</a>[<span class="lit-number">5</span>], <label for="r1" class="ident">dig</label>.<a href="sha256.go.html#line-52" class="ident">h</a>[<span class="lit-number">6</span>], <label for="r1" class="ident">dig</label>.<a href="sha256.go.html#line-52" class="ident">h</a>[<span class="lit-number">7</span>]</code></span>
+<span class="codeline" id="line-83"><code>	<span class="keyword">for</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">p</label>) &gt;= <a href="sha256.go.html#line-31" class="ident">chunk</a> {</code></span>
+<span class="codeline" id="line-84"><code>		<span class="comment">// Can interlace the computation of w with the</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">		// rounds below if needed for speed.</span></code></span>
+<span class="codeline" id="line-86"><code>		<span class="keyword">for</span> <label for="r12" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r12" class="ident">i</label> &lt; <span class="lit-number">16</span>; <label for="r12" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-87"><code>			<label for="r13" class="ident">j</label> := <label for="r12" class="ident">i</label> * <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-88"><code>			<label for="r3" class="ident">w</label>[<label for="r12" class="ident">i</label>] = <a href="../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r2" class="ident">p</label>[<label for="r13" class="ident">j</label>])&lt;&lt;<span class="lit-number">24</span> | <a href="../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r2" class="ident">p</label>[<label for="r13" class="ident">j</label>+<span class="lit-number">1</span>])&lt;&lt;<span class="lit-number">16</span> | <a href="../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r2" class="ident">p</label>[<label for="r13" class="ident">j</label>+<span class="lit-number">2</span>])&lt;&lt;<span class="lit-number">8</span> | <a href="../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r2" class="ident">p</label>[<label for="r13" class="ident">j</label>+<span class="lit-number">3</span>])</code></span>
+<span class="codeline" id="line-89"><code>		}</code></span>
+<span class="codeline" id="line-90"><code>		<span class="keyword">for</span> <label for="r14" class="ident">i</label> := <span class="lit-number">16</span>; <label for="r14" class="ident">i</label> &lt; <span class="lit-number">64</span>; <label for="r14" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-91"><code>			<label for="r15" class="ident">v1</label> := <label for="r3" class="ident">w</label>[<label for="r14" class="ident">i</label>-<span class="lit-number">2</span>]</code></span>
+<span class="codeline" id="line-92"><code>			<label for="r16" class="ident">t1</label> := (<a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-201" class="ident">RotateLeft32</a>(<label for="r15" class="ident">v1</label>, -<span class="lit-number">17</span>)) ^ (<a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-201" class="ident">RotateLeft32</a>(<label for="r15" class="ident">v1</label>, -<span class="lit-number">19</span>)) ^ (<label for="r15" class="ident">v1</label> &gt;&gt; <span class="lit-number">10</span>)</code></span>
+<span class="codeline" id="line-93"><code>			<label for="r17" class="ident">v2</label> := <label for="r3" class="ident">w</label>[<label for="r14" class="ident">i</label>-<span class="lit-number">15</span>]</code></span>
+<span class="codeline" id="line-94"><code>			<label for="r18" class="ident">t2</label> := (<a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-201" class="ident">RotateLeft32</a>(<label for="r17" class="ident">v2</label>, -<span class="lit-number">7</span>)) ^ (<a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-201" class="ident">RotateLeft32</a>(<label for="r17" class="ident">v2</label>, -<span class="lit-number">18</span>)) ^ (<label for="r17" class="ident">v2</label> &gt;&gt; <span class="lit-number">3</span>)</code></span>
+<span class="codeline" id="line-95"><code>			<label for="r3" class="ident">w</label>[<label for="r14" class="ident">i</label>] = <label for="r16" class="ident">t1</label> + <label for="r3" class="ident">w</label>[<label for="r14" class="ident">i</label>-<span class="lit-number">7</span>] + <label for="r18" class="ident">t2</label> + <label for="r3" class="ident">w</label>[<label for="r14" class="ident">i</label>-<span class="lit-number">16</span>]</code></span>
+<span class="codeline" id="line-96"><code>		}</code></span>
+<span class="codeline" id="line-97"><code></code></span>
+<span class="codeline" id="line-98"><code>		<label for="r19" class="ident">a</label>, <label for="r20" class="ident">b</label>, <label for="r21" class="ident">c</label>, <label for="r22" class="ident">d</label>, <label for="r23" class="ident">e</label>, <label for="r24" class="ident">f</label>, <label for="r25" class="ident">g</label>, <label for="r26" class="ident">h</label> := <label for="r4" class="ident">h0</label>, <label for="r5" class="ident">h1</label>, <label for="r6" class="ident">h2</label>, <label for="r7" class="ident">h3</label>, <label for="r8" class="ident">h4</label>, <label for="r9" class="ident">h5</label>, <label for="r10" class="ident">h6</label>, <label for="r11" class="ident">h7</label></code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code>		<span class="keyword">for</span> <label for="r27" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r27" class="ident">i</label> &lt; <span class="lit-number">64</span>; <label for="r27" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-101"><code>			<label for="r28" class="ident">t1</label> := <label for="r26" class="ident">h</label> + ((<a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-201" class="ident">RotateLeft32</a>(<label for="r23" class="ident">e</label>, -<span class="lit-number">6</span>)) ^ (<a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-201" class="ident">RotateLeft32</a>(<label for="r23" class="ident">e</label>, -<span class="lit-number">11</span>)) ^ (<a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-201" class="ident">RotateLeft32</a>(<label for="r23" class="ident">e</label>, -<span class="lit-number">25</span>))) + ((<label for="r23" class="ident">e</label> &amp; <label for="r24" class="ident">f</label>) ^ (^<label for="r23" class="ident">e</label> &amp; <label for="r25" class="ident">g</label>)) + <a href="#line-13" class="ident">_K</a>[<label for="r27" class="ident">i</label>] + <label for="r3" class="ident">w</label>[<label for="r27" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code>			<label for="r29" class="ident">t2</label> := ((<a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-201" class="ident">RotateLeft32</a>(<label for="r19" class="ident">a</label>, -<span class="lit-number">2</span>)) ^ (<a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-201" class="ident">RotateLeft32</a>(<label for="r19" class="ident">a</label>, -<span class="lit-number">13</span>)) ^ (<a href="../../../pkg/math/bits.html" class="ident i0">bits</a>.<a href="../../math/bits/bits.go.html#line-201" class="ident">RotateLeft32</a>(<label for="r19" class="ident">a</label>, -<span class="lit-number">22</span>))) + ((<label for="r19" class="ident">a</label> &amp; <label for="r20" class="ident">b</label>) ^ (<label for="r19" class="ident">a</label> &amp; <label for="r21" class="ident">c</label>) ^ (<label for="r20" class="ident">b</label> &amp; <label for="r21" class="ident">c</label>))</code></span>
+<span class="codeline" id="line-104"><code></code></span>
+<span class="codeline" id="line-105"><code>			<label for="r26" class="ident">h</label> = <label for="r25" class="ident">g</label></code></span>
+<span class="codeline" id="line-106"><code>			<label for="r25" class="ident">g</label> = <label for="r24" class="ident">f</label></code></span>
+<span class="codeline" id="line-107"><code>			<label for="r24" class="ident">f</label> = <label for="r23" class="ident">e</label></code></span>
+<span class="codeline" id="line-108"><code>			<label for="r23" class="ident">e</label> = <label for="r22" class="ident">d</label> + <label for="r28" class="ident">t1</label></code></span>
+<span class="codeline" id="line-109"><code>			<label for="r22" class="ident">d</label> = <label for="r21" class="ident">c</label></code></span>
+<span class="codeline" id="line-110"><code>			<label for="r21" class="ident">c</label> = <label for="r20" class="ident">b</label></code></span>
+<span class="codeline" id="line-111"><code>			<label for="r20" class="ident">b</label> = <label for="r19" class="ident">a</label></code></span>
+<span class="codeline" id="line-112"><code>			<label for="r19" class="ident">a</label> = <label for="r28" class="ident">t1</label> + <label for="r29" class="ident">t2</label></code></span>
+<span class="codeline" id="line-113"><code>		}</code></span>
+<span class="codeline" id="line-114"><code></code></span>
+<span class="codeline" id="line-115"><code>		<label for="r4" class="ident">h0</label> += <label for="r19" class="ident">a</label></code></span>
+<span class="codeline" id="line-116"><code>		<label for="r5" class="ident">h1</label> += <label for="r20" class="ident">b</label></code></span>
+<span class="codeline" id="line-117"><code>		<label for="r6" class="ident">h2</label> += <label for="r21" class="ident">c</label></code></span>
+<span class="codeline" id="line-118"><code>		<label for="r7" class="ident">h3</label> += <label for="r22" class="ident">d</label></code></span>
+<span class="codeline" id="line-119"><code>		<label for="r8" class="ident">h4</label> += <label for="r23" class="ident">e</label></code></span>
+<span class="codeline" id="line-120"><code>		<label for="r9" class="ident">h5</label> += <label for="r24" class="ident">f</label></code></span>
+<span class="codeline" id="line-121"><code>		<label for="r10" class="ident">h6</label> += <label for="r25" class="ident">g</label></code></span>
+<span class="codeline" id="line-122"><code>		<label for="r11" class="ident">h7</label> += <label for="r26" class="ident">h</label></code></span>
+<span class="codeline" id="line-123"><code></code></span>
+<span class="codeline" id="line-124"><code>		<label for="r2" class="ident">p</label> = <label for="r2" class="ident">p</label>[<a href="sha256.go.html#line-31" class="ident">chunk</a>:]</code></span>
+<span class="codeline" id="line-125"><code>	}</code></span>
+<span class="codeline" id="line-126"><code></code></span>
+<span class="codeline" id="line-127"><code>	<label for="r1" class="ident">dig</label>.<a href="sha256.go.html#line-52" class="ident">h</a>[<span class="lit-number">0</span>], <label for="r1" class="ident">dig</label>.<a href="sha256.go.html#line-52" class="ident">h</a>[<span class="lit-number">1</span>], <label for="r1" class="ident">dig</label>.<a href="sha256.go.html#line-52" class="ident">h</a>[<span class="lit-number">2</span>], <label for="r1" class="ident">dig</label>.<a href="sha256.go.html#line-52" class="ident">h</a>[<span class="lit-number">3</span>], <label for="r1" class="ident">dig</label>.<a href="sha256.go.html#line-52" class="ident">h</a>[<span class="lit-number">4</span>], <label for="r1" class="ident">dig</label>.<a href="sha256.go.html#line-52" class="ident">h</a>[<span class="lit-number">5</span>], <label for="r1" class="ident">dig</label>.<a href="sha256.go.html#line-52" class="ident">h</a>[<span class="lit-number">6</span>], <label for="r1" class="ident">dig</label>.<a href="sha256.go.html#line-52" class="ident">h</a>[<span class="lit-number">7</span>] = <label for="r4" class="ident">h0</label>, <label for="r5" class="ident">h1</label>, <label for="r6" class="ident">h2</label>, <label for="r7" class="ident">h3</label>, <label for="r8" class="ident">h4</label>, <label for="r9" class="ident">h5</label>, <label for="r10" class="ident">h6</label>, <label for="r11" class="ident">h7</label></code></span>
+<span class="codeline" id="line-128"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

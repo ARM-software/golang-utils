@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: parse.go in package text/template/parse</title>
+<link href="../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	parse.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/text/template/parse.html">text/template/parse</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104],
+input[id=r105]:checked ~pre label[for=r105],
+input[id=r106]:checked ~pre label[for=r106],
+input[id=r107]:checked ~pre label[for=r107],
+input[id=r108]:checked ~pre label[for=r108],
+input[id=r109]:checked ~pre label[for=r109],
+input[id=r110]:checked ~pre label[for=r110],
+input[id=r111]:checked ~pre label[for=r111],
+input[id=r112]:checked ~pre label[for=r112],
+input[id=r113]:checked ~pre label[for=r113],
+input[id=r114]:checked ~pre label[for=r114],
+input[id=r115]:checked ~pre label[for=r115],
+input[id=r116]:checked ~pre label[for=r116],
+input[id=r117]:checked ~pre label[for=r117],
+input[id=r118]:checked ~pre label[for=r118],
+input[id=r119]:checked ~pre label[for=r119],
+input[id=r120]:checked ~pre label[for=r120],
+input[id=r121]:checked ~pre label[for=r121],
+input[id=r122]:checked ~pre label[for=r122],
+input[id=r123]:checked ~pre label[for=r123],
+input[id=r124]:checked ~pre label[for=r124],
+input[id=r125]:checked ~pre label[for=r125],
+input[id=r126]:checked ~pre label[for=r126],
+input[id=r127]:checked ~pre label[for=r127],
+input[id=r128]:checked ~pre label[for=r128],
+input[id=r129]:checked ~pre label[for=r129],
+input[id=r130]:checked ~pre label[for=r130],
+input[id=r131]:checked ~pre label[for=r131],
+input[id=r132]:checked ~pre label[for=r132],
+input[id=r133]:checked ~pre label[for=r133],
+input[id=r134]:checked ~pre label[for=r134],
+input[id=r135]:checked ~pre label[for=r135],
+input[id=r136]:checked ~pre label[for=r136],
+input[id=r137]:checked ~pre label[for=r137],
+input[id=r138]:checked ~pre label[for=r138],
+input[id=r139]:checked ~pre label[for=r139],
+input[id=r140]:checked ~pre label[for=r140],
+input[id=r141]:checked ~pre label[for=r141],
+input[id=r142]:checked ~pre label[for=r142],
+input[id=r143]:checked ~pre label[for=r143],
+input[id=r144]:checked ~pre label[for=r144],
+input[id=r145]:checked ~pre label[for=r145],
+input[id=r146]:checked ~pre label[for=r146],
+input[id=r147]:checked ~pre label[for=r147],
+input[id=r148]:checked ~pre label[for=r148],
+input[id=r149]:checked ~pre label[for=r149],
+input[id=r150]:checked ~pre label[for=r150],
+input[id=r151]:checked ~pre label[for=r151],
+input[id=r152]:checked ~pre label[for=r152],
+input[id=r153]:checked ~pre label[for=r153],
+input[id=r154]:checked ~pre label[for=r154],
+input[id=r155]:checked ~pre label[for=r155],
+input[id=r156]:checked ~pre label[for=r156],
+input[id=r157]:checked ~pre label[for=r157],
+input[id=r158]:checked ~pre label[for=r158],
+input[id=r159]:checked ~pre label[for=r159],
+input[id=r160]:checked ~pre label[for=r160],
+input[id=r161]:checked ~pre label[for=r161],
+input[id=r162]:checked ~pre label[for=r162],
+input[id=r163]:checked ~pre label[for=r163],
+input[id=r164]:checked ~pre label[for=r164],
+input[id=r165]:checked ~pre label[for=r165],
+input[id=r166]:checked ~pre label[for=r166],
+input[id=r167]:checked ~pre label[for=r167],
+input[id=r168]:checked ~pre label[for=r168],
+input[id=r169]:checked ~pre label[for=r169],
+input[id=r170]:checked ~pre label[for=r170],
+input[id=r171]:checked ~pre label[for=r171],
+input[id=r172]:checked ~pre label[for=r172],
+input[id=r173]:checked ~pre label[for=r173],
+input[id=r174]:checked ~pre label[for=r174],
+input[id=r175]:checked ~pre label[for=r175],
+input[id=r176]:checked ~pre label[for=r176],
+input[id=r177]:checked ~pre label[for=r177],
+input[id=r178]:checked ~pre label[for=r178],
+input[id=r179]:checked ~pre label[for=r179],
+input[id=r180]:checked ~pre label[for=r180],
+input[id=r181]:checked ~pre label[for=r181],
+input[id=r182]:checked ~pre label[for=r182],
+input[id=r183]:checked ~pre label[for=r183],
+input[id=r184]:checked ~pre label[for=r184],
+input[id=r185]:checked ~pre label[for=r185],
+input[id=r186]:checked ~pre label[for=r186],
+input[id=r187]:checked ~pre label[for=r187],
+input[id=r188]:checked ~pre label[for=r188],
+input[id=r189]:checked ~pre label[for=r189],
+input[id=r190]:checked ~pre label[for=r190],
+input[id=r191]:checked ~pre label[for=r191],
+input[id=r192]:checked ~pre label[for=r192],
+input[id=r193]:checked ~pre label[for=r193],
+input[id=r194]:checked ~pre label[for=r194],
+input[id=r195]:checked ~pre label[for=r195],
+input[id=r196]:checked ~pre label[for=r196],
+input[id=r197]:checked ~pre label[for=r197],
+input[id=r198]:checked ~pre label[for=r198],
+input[id=r199]:checked ~pre label[for=r199],
+input[id=r200]:checked ~pre label[for=r200],
+input[id=r201]:checked ~pre label[for=r201],
+input[id=r202]:checked ~pre label[for=r202],
+input[id=r203]:checked ~pre label[for=r203],
+input[id=r204]:checked ~pre label[for=r204],
+input[id=r205]:checked ~pre label[for=r205],
+input[id=r206]:checked ~pre label[for=r206],
+input[id=r207]:checked ~pre label[for=r207],
+input[id=r208]:checked ~pre label[for=r208],
+input[id=r209]:checked ~pre label[for=r209],
+input[id=r210]:checked ~pre label[for=r210],
+input[id=r211]:checked ~pre label[for=r211],
+input[id=r212]:checked ~pre label[for=r212],
+input[id=r213]:checked ~pre label[for=r213],
+input[id=r214]:checked ~pre label[for=r214],
+input[id=r215]:checked ~pre label[for=r215],
+input[id=r216]:checked ~pre label[for=r216]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="r105" type="radio" name="g"/>
+<input id="r106" type="radio" name="g"/>
+<input id="r107" type="radio" name="g"/>
+<input id="r108" type="radio" name="g"/>
+<input id="r109" type="radio" name="g"/>
+<input id="r110" type="radio" name="g"/>
+<input id="r111" type="radio" name="g"/>
+<input id="r112" type="radio" name="g"/>
+<input id="r113" type="radio" name="g"/>
+<input id="r114" type="radio" name="g"/>
+<input id="r115" type="radio" name="g"/>
+<input id="r116" type="radio" name="g"/>
+<input id="r117" type="radio" name="g"/>
+<input id="r118" type="radio" name="g"/>
+<input id="r119" type="radio" name="g"/>
+<input id="r120" type="radio" name="g"/>
+<input id="r121" type="radio" name="g"/>
+<input id="r122" type="radio" name="g"/>
+<input id="r123" type="radio" name="g"/>
+<input id="r124" type="radio" name="g"/>
+<input id="r125" type="radio" name="g"/>
+<input id="r126" type="radio" name="g"/>
+<input id="r127" type="radio" name="g"/>
+<input id="r128" type="radio" name="g"/>
+<input id="r129" type="radio" name="g"/>
+<input id="r130" type="radio" name="g"/>
+<input id="r131" type="radio" name="g"/>
+<input id="r132" type="radio" name="g"/>
+<input id="r133" type="radio" name="g"/>
+<input id="r134" type="radio" name="g"/>
+<input id="r135" type="radio" name="g"/>
+<input id="r136" type="radio" name="g"/>
+<input id="r137" type="radio" name="g"/>
+<input id="r138" type="radio" name="g"/>
+<input id="r139" type="radio" name="g"/>
+<input id="r140" type="radio" name="g"/>
+<input id="r141" type="radio" name="g"/>
+<input id="r142" type="radio" name="g"/>
+<input id="r143" type="radio" name="g"/>
+<input id="r144" type="radio" name="g"/>
+<input id="r145" type="radio" name="g"/>
+<input id="r146" type="radio" name="g"/>
+<input id="r147" type="radio" name="g"/>
+<input id="r148" type="radio" name="g"/>
+<input id="r149" type="radio" name="g"/>
+<input id="r150" type="radio" name="g"/>
+<input id="r151" type="radio" name="g"/>
+<input id="r152" type="radio" name="g"/>
+<input id="r153" type="radio" name="g"/>
+<input id="r154" type="radio" name="g"/>
+<input id="r155" type="radio" name="g"/>
+<input id="r156" type="radio" name="g"/>
+<input id="r157" type="radio" name="g"/>
+<input id="r158" type="radio" name="g"/>
+<input id="r159" type="radio" name="g"/>
+<input id="r160" type="radio" name="g"/>
+<input id="r161" type="radio" name="g"/>
+<input id="r162" type="radio" name="g"/>
+<input id="r163" type="radio" name="g"/>
+<input id="r164" type="radio" name="g"/>
+<input id="r165" type="radio" name="g"/>
+<input id="r166" type="radio" name="g"/>
+<input id="r167" type="radio" name="g"/>
+<input id="r168" type="radio" name="g"/>
+<input id="r169" type="radio" name="g"/>
+<input id="r170" type="radio" name="g"/>
+<input id="r171" type="radio" name="g"/>
+<input id="r172" type="radio" name="g"/>
+<input id="r173" type="radio" name="g"/>
+<input id="r174" type="radio" name="g"/>
+<input id="r175" type="radio" name="g"/>
+<input id="r176" type="radio" name="g"/>
+<input id="r177" type="radio" name="g"/>
+<input id="r178" type="radio" name="g"/>
+<input id="r179" type="radio" name="g"/>
+<input id="r180" type="radio" name="g"/>
+<input id="r181" type="radio" name="g"/>
+<input id="r182" type="radio" name="g"/>
+<input id="r183" type="radio" name="g"/>
+<input id="r184" type="radio" name="g"/>
+<input id="r185" type="radio" name="g"/>
+<input id="r186" type="radio" name="g"/>
+<input id="r187" type="radio" name="g"/>
+<input id="r188" type="radio" name="g"/>
+<input id="r189" type="radio" name="g"/>
+<input id="r190" type="radio" name="g"/>
+<input id="r191" type="radio" name="g"/>
+<input id="r192" type="radio" name="g"/>
+<input id="r193" type="radio" name="g"/>
+<input id="r194" type="radio" name="g"/>
+<input id="r195" type="radio" name="g"/>
+<input id="r196" type="radio" name="g"/>
+<input id="r197" type="radio" name="g"/>
+<input id="r198" type="radio" name="g"/>
+<input id="r199" type="radio" name="g"/>
+<input id="r200" type="radio" name="g"/>
+<input id="r201" type="radio" name="g"/>
+<input id="r202" type="radio" name="g"/>
+<input id="r203" type="radio" name="g"/>
+<input id="r204" type="radio" name="g"/>
+<input id="r205" type="radio" name="g"/>
+<input id="r206" type="radio" name="g"/>
+<input id="r207" type="radio" name="g"/>
+<input id="r208" type="radio" name="g"/>
+<input id="r209" type="radio" name="g"/>
+<input id="r210" type="radio" name="g"/>
+<input id="r211" type="radio" name="g"/>
+<input id="r212" type="radio" name="g"/>
+<input id="r213" type="radio" name="g"/>
+<input id="r214" type="radio" name="g"/>
+<input id="r215" type="radio" name="g"/>
+<input id="r216" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package parse builds parse trees for templates as defined by text/template</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// and html/template. Clients should use those packages to construct templates</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// rather than this one, which provides shared internal data structures not</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// intended for general use.</span></code></span></div><span class="codeline" id="line-9"><code><span class="keyword">package</span> parse</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-12"><code>	<label for="i0"><span class="lit-string i0">"bytes"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-14"><code>	<label for="i2"><span class="lit-string i2">"runtime"</span></label></code></span>
+<span class="codeline" id="line-15"><code>	<label for="i3"><span class="lit-string i3">"strconv"</span></label></code></span>
+<span class="codeline" id="line-16"><code>	<label for="i4"><span class="lit-string i4">"strings"</span></label></code></span>
+<span class="codeline" id="line-17"><code>)</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// Tree is the representation of a single parsed template.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">type</span> <a href="../../../../pkg/text/template/parse.html#name-Tree" class="ident">Tree</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-21"><code>	Name      <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>    <span class="comment">// name of the template represented by the tree.</span></code></span>
+<span class="codeline" id="line-22"><code>	ParseName <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>    <span class="comment">// name of the top-level template during parsing, for error messages.</span></code></span>
+<span class="codeline" id="line-23"><code>	Root      *<a href="node.go.html#line-79" class="ident">ListNode</a> <span class="comment">// top-level root of the tree.</span></code></span>
+<span class="codeline" id="line-24"><code>	Mode      <a href="#line-38" class="ident">Mode</a>      <span class="comment">// parsing mode.</span></code></span>
+<span class="codeline" id="line-25"><code>	text      <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>    <span class="comment">// text parsed to create the template (or its parent)</span></code></span>
+<span class="codeline" id="line-26"><code>	<span class="comment">// Parsing only; cleared after parse.</span></code></span>
+<span class="codeline" id="line-27"><code>	funcs      []<span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>]<span class="keyword">interface</span>{}</code></span>
+<span class="codeline" id="line-28"><code>	lex        *<a href="lex.go.html#line-109" class="ident">lexer</a></code></span>
+<span class="codeline" id="line-29"><code>	token      [<span class="lit-number">3</span>]<a href="lex.go.html#line-15" class="ident">item</a> <span class="comment">// three-token lookahead for parser.</span></code></span>
+<span class="codeline" id="line-30"><code>	peekCount  <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-31"><code>	vars       []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// variables defined at the moment.</span></code></span>
+<span class="codeline" id="line-32"><code>	treeSet    <span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>]*<a href="#line-20" class="ident">Tree</a></code></span>
+<span class="codeline" id="line-33"><code>	actionLine <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// line of left delim starting action</span></code></span>
+<span class="codeline" id="line-34"><code>	mode       <a href="#line-38" class="ident">Mode</a></code></span>
+<span class="codeline" id="line-35"><code>}</code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// A mode value is a set of flags (or 0). Modes control parser behavior.</span></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">type</span> <a href="../../../../pkg/text/template/parse.html#name-Mode" class="ident">Mode</a> <a href="../../../../pkg/builtin.html#name-uint" class="ident">uint</a></code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-41"><code>	<a href="../../../../pkg/text/template/parse.html#name-ParseComments" class="ident">ParseComments</a> <a href="#line-38" class="ident">Mode</a> = <span class="lit-number">1</span> &lt;&lt; <a href="../../../../pkg/builtin.html#name-iota" class="ident">iota</a> <span class="comment">// parse comments and add them to AST</span></code></span>
+<span class="codeline" id="line-42"><code>)</code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// Copy returns a copy of the Tree. Any parsing state is discarded.</span></code></span>
+<span class="codeline" id="line-45"><code><span class="keyword">func</span> (<label for="r0" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r1" class="ident">Copy</label>() *<a href="#line-20" class="ident">Tree</a> {</code></span>
+<span class="codeline" id="line-46"><code>	<span class="keyword">if</span> <label for="r0" class="ident">t</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-47"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-48"><code>	}</code></span>
+<span class="codeline" id="line-49"><code>	<span class="keyword">return</span> &amp;<a href="#line-20" class="ident">Tree</a>{</code></span>
+<span class="codeline" id="line-50"><code>		<a href="#line-21" class="ident">Name</a>:      <label for="r0" class="ident">t</label>.<a href="#line-21" class="ident">Name</a>,</code></span>
+<span class="codeline" id="line-51"><code>		<a href="#line-22" class="ident">ParseName</a>: <label for="r0" class="ident">t</label>.<a href="#line-22" class="ident">ParseName</a>,</code></span>
+<span class="codeline" id="line-52"><code>		<a href="#line-23" class="ident">Root</a>:      <label for="r0" class="ident">t</label>.<a href="#line-23" class="ident">Root</a>.<a href="node.go.html#line-110" class="ident">CopyList</a>(),</code></span>
+<span class="codeline" id="line-53"><code>		<a href="#line-25" class="ident">text</a>:      <label for="r0" class="ident">t</label>.<a href="#line-25" class="ident">text</a>,</code></span>
+<span class="codeline" id="line-54"><code>	}</code></span>
+<span class="codeline" id="line-55"><code>}</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// Parse returns a map from template name to parse.Tree, created by parsing the</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">// templates described in the argument string. The top-level template will be</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">// given the specified name. If an error is encountered, parsing stops and an</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// empty map is returned with the error.</span></code></span>
+<span class="codeline" id="line-61"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../../../pkg/text/template/parse.html#name-Parse" class="ident">Parse</a></label>(<label for="r3" class="ident">name</label>, <label for="r4" class="ident">text</label>, <label for="r5" class="ident">leftDelim</label>, <label for="r6" class="ident">rightDelim</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r7" class="ident">funcs</label> ...<span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>]<span class="keyword">interface</span>{}) (<span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>]*<a href="#line-20" class="ident">Tree</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-62"><code>	<label for="r8" class="ident">treeSet</label> := <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>(<span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>]*<a href="#line-20" class="ident">Tree</a>)</code></span>
+<span class="codeline" id="line-63"><code>	<label for="r9" class="ident">t</label> := <a href="#line-130" class="ident">New</a>(<label for="r3" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-64"><code>	<label for="r9" class="ident">t</label>.<a href="#line-25" class="ident">text</a> = <label for="r4" class="ident">text</label></code></span>
+<span class="codeline" id="line-65"><code>	<label for="r10" class="ident">_</label>, <label for="r11" class="ident">err</label> := <label for="r9" class="ident">t</label>.<a href="#line-240" class="ident">Parse</a>(<label for="r4" class="ident">text</label>, <label for="r5" class="ident">leftDelim</label>, <label for="r6" class="ident">rightDelim</label>, <label for="r8" class="ident">treeSet</label>, <label for="r7" class="ident">funcs</label>...)</code></span>
+<span class="codeline" id="line-66"><code>	<span class="keyword">return</span> <label for="r8" class="ident">treeSet</label>, <label for="r11" class="ident">err</label></code></span>
+<span class="codeline" id="line-67"><code>}</code></span>
+<span class="codeline" id="line-68"><code></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// next returns the next token.</span></code></span>
+<span class="codeline" id="line-70"><code><span class="keyword">func</span> (<label for="r12" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r13" class="ident">next</label>() <a href="lex.go.html#line-15" class="ident">item</a> {</code></span>
+<span class="codeline" id="line-71"><code>	<span class="keyword">if</span> <label for="r12" class="ident">t</label>.<a href="#line-30" class="ident">peekCount</a> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-72"><code>		<label for="r12" class="ident">t</label>.<a href="#line-30" class="ident">peekCount</a>--</code></span>
+<span class="codeline" id="line-73"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-74"><code>		<label for="r12" class="ident">t</label>.<a href="#line-29" class="ident">token</a>[<span class="lit-number">0</span>] = <label for="r12" class="ident">t</label>.<a href="#line-28" class="ident">lex</a>.<a href="lex.go.html#line-194" class="ident">nextItem</a>()</code></span>
+<span class="codeline" id="line-75"><code>	}</code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">return</span> <label for="r12" class="ident">t</label>.<a href="#line-29" class="ident">token</a>[<label for="r12" class="ident">t</label>.<a href="#line-30" class="ident">peekCount</a>]</code></span>
+<span class="codeline" id="line-77"><code>}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// backup backs the input stream up one token.</span></code></span>
+<span class="codeline" id="line-80"><code><span class="keyword">func</span> (<label for="r14" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r15" class="ident">backup</label>() {</code></span>
+<span class="codeline" id="line-81"><code>	<label for="r14" class="ident">t</label>.<a href="#line-30" class="ident">peekCount</a>++</code></span>
+<span class="codeline" id="line-82"><code>}</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// backup2 backs the input stream up two tokens.</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// The zeroth token is already there.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="keyword">func</span> (<label for="r16" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r17" class="ident">backup2</label>(<label for="r18" class="ident">t1</label> <a href="lex.go.html#line-15" class="ident">item</a>) {</code></span>
+<span class="codeline" id="line-87"><code>	<label for="r16" class="ident">t</label>.<a href="#line-29" class="ident">token</a>[<span class="lit-number">1</span>] = <label for="r18" class="ident">t1</label></code></span>
+<span class="codeline" id="line-88"><code>	<label for="r16" class="ident">t</label>.<a href="#line-30" class="ident">peekCount</a> = <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-89"><code>}</code></span>
+<span class="codeline" id="line-90"><code></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">// backup3 backs the input stream up three tokens</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">// The zeroth token is already there.</span></code></span>
+<span class="codeline" id="line-93"><code><span class="keyword">func</span> (<label for="r19" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r20" class="ident">backup3</label>(<label for="r21" class="ident">t2</label>, <label for="r22" class="ident">t1</label> <a href="lex.go.html#line-15" class="ident">item</a>) { <span class="comment">// Reverse order: we're pushing back.</span></code></span>
+<span class="codeline" id="line-94"><code>	<label for="r19" class="ident">t</label>.<a href="#line-29" class="ident">token</a>[<span class="lit-number">1</span>] = <label for="r22" class="ident">t1</label></code></span>
+<span class="codeline" id="line-95"><code>	<label for="r19" class="ident">t</label>.<a href="#line-29" class="ident">token</a>[<span class="lit-number">2</span>] = <label for="r21" class="ident">t2</label></code></span>
+<span class="codeline" id="line-96"><code>	<label for="r19" class="ident">t</label>.<a href="#line-30" class="ident">peekCount</a> = <span class="lit-number">3</span></code></span>
+<span class="codeline" id="line-97"><code>}</code></span>
+<span class="codeline" id="line-98"><code></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">// peek returns but does not consume the next token.</span></code></span>
+<span class="codeline" id="line-100"><code><span class="keyword">func</span> (<label for="r23" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r24" class="ident">peek</label>() <a href="lex.go.html#line-15" class="ident">item</a> {</code></span>
+<span class="codeline" id="line-101"><code>	<span class="keyword">if</span> <label for="r23" class="ident">t</label>.<a href="#line-30" class="ident">peekCount</a> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-102"><code>		<span class="keyword">return</span> <label for="r23" class="ident">t</label>.<a href="#line-29" class="ident">token</a>[<label for="r23" class="ident">t</label>.<a href="#line-30" class="ident">peekCount</a>-<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-103"><code>	}</code></span>
+<span class="codeline" id="line-104"><code>	<label for="r23" class="ident">t</label>.<a href="#line-30" class="ident">peekCount</a> = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-105"><code>	<label for="r23" class="ident">t</label>.<a href="#line-29" class="ident">token</a>[<span class="lit-number">0</span>] = <label for="r23" class="ident">t</label>.<a href="#line-28" class="ident">lex</a>.<a href="lex.go.html#line-194" class="ident">nextItem</a>()</code></span>
+<span class="codeline" id="line-106"><code>	<span class="keyword">return</span> <label for="r23" class="ident">t</label>.<a href="#line-29" class="ident">token</a>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-107"><code>}</code></span>
+<span class="codeline" id="line-108"><code></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">// nextNonSpace returns the next non-space token.</span></code></span>
+<span class="codeline" id="line-110"><code><span class="keyword">func</span> (<label for="r25" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r26" class="ident">nextNonSpace</label>() (<label for="r27" class="ident">token</label> <a href="lex.go.html#line-15" class="ident">item</a>) {</code></span>
+<span class="codeline" id="line-111"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-112"><code>		<label for="r27" class="ident">token</label> = <label for="r25" class="ident">t</label>.<a href="#line-70" class="ident">next</a>()</code></span>
+<span class="codeline" id="line-113"><code>		<span class="keyword">if</span> <label for="r27" class="ident">token</label>.<a href="lex.go.html#line-16" class="ident">typ</a> != <a href="lex.go.html#line-58" class="ident">itemSpace</a> {</code></span>
+<span class="codeline" id="line-114"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-115"><code>		}</code></span>
+<span class="codeline" id="line-116"><code>	}</code></span>
+<span class="codeline" id="line-117"><code>	<span class="keyword">return</span> <label for="r27" class="ident">token</label></code></span>
+<span class="codeline" id="line-118"><code>}</code></span>
+<span class="codeline" id="line-119"><code></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">// peekNonSpace returns but does not consume the next non-space token.</span></code></span>
+<span class="codeline" id="line-121"><code><span class="keyword">func</span> (<label for="r28" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r29" class="ident">peekNonSpace</label>() <a href="lex.go.html#line-15" class="ident">item</a> {</code></span>
+<span class="codeline" id="line-122"><code>	<label for="r30" class="ident">token</label> := <label for="r28" class="ident">t</label>.<a href="#line-110" class="ident">nextNonSpace</a>()</code></span>
+<span class="codeline" id="line-123"><code>	<label for="r28" class="ident">t</label>.<a href="#line-80" class="ident">backup</a>()</code></span>
+<span class="codeline" id="line-124"><code>	<span class="keyword">return</span> <label for="r30" class="ident">token</label></code></span>
+<span class="codeline" id="line-125"><code>}</code></span>
+<span class="codeline" id="line-126"><code></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">// Parsing.</span></code></span>
+<span class="codeline" id="line-128"><code></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">// New allocates a new parse tree with the given name.</span></code></span>
+<span class="codeline" id="line-130"><code><span class="keyword">func</span> <label for="r31" class="ident"><a href="../../../../pkg/text/template/parse.html#name-New" class="ident">New</a></label>(<label for="r32" class="ident">name</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r33" class="ident">funcs</label> ...<span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>]<span class="keyword">interface</span>{}) *<a href="#line-20" class="ident">Tree</a> {</code></span>
+<span class="codeline" id="line-131"><code>	<span class="keyword">return</span> &amp;<a href="#line-20" class="ident">Tree</a>{</code></span>
+<span class="codeline" id="line-132"><code>		<a href="#line-21" class="ident">Name</a>:  <label for="r32" class="ident">name</label>,</code></span>
+<span class="codeline" id="line-133"><code>		<a href="#line-27" class="ident">funcs</a>: <label for="r33" class="ident">funcs</label>,</code></span>
+<span class="codeline" id="line-134"><code>	}</code></span>
+<span class="codeline" id="line-135"><code>}</code></span>
+<span class="codeline" id="line-136"><code></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">// ErrorContext returns a textual representation of the location of the node in the input text.</span></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">// The receiver is only used when the node does not have a pointer to the tree inside,</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">// which can occur in old code.</span></code></span>
+<span class="codeline" id="line-140"><code><span class="keyword">func</span> (<label for="r34" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r35" class="ident">ErrorContext</label>(<label for="r36" class="ident">n</label> <a href="node.go.html#line-20" class="ident">Node</a>) (<label for="r37" class="ident">location</label>, <label for="r38" class="ident">context</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-141"><code>	<label for="r39" class="ident">pos</label> := <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r36" class="ident">n</label>.<a href="node.go.html#line-27" class="ident">Position</a>())</code></span>
+<span class="codeline" id="line-142"><code>	<label for="r40" class="ident">tree</label> := <label for="r36" class="ident">n</label>.<a href="node.go.html#line-30" class="ident">tree</a>()</code></span>
+<span class="codeline" id="line-143"><code>	<span class="keyword">if</span> <label for="r40" class="ident">tree</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-144"><code>		<label for="r40" class="ident">tree</label> = <label for="r34" class="ident">t</label></code></span>
+<span class="codeline" id="line-145"><code>	}</code></span>
+<span class="codeline" id="line-146"><code>	<label for="r41" class="ident">text</label> := <label for="r40" class="ident">tree</label>.<a href="#line-25" class="ident">text</a>[:<label for="r39" class="ident">pos</label>]</code></span>
+<span class="codeline" id="line-147"><code>	<label for="r42" class="ident">byteNum</label> := <a href="../../../../pkg/strings.html" class="ident i4">strings</a>.<a href="../../../strings/strings.go.html#line-76" class="ident">LastIndex</a>(<label for="r41" class="ident">text</label>, <span class="lit-string">"\n"</span>)</code></span>
+<span class="codeline" id="line-148"><code>	<span class="keyword">if</span> <label for="r42" class="ident">byteNum</label> == -<span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-149"><code>		<label for="r42" class="ident">byteNum</label> = <label for="r39" class="ident">pos</label> <span class="comment">// On first line.</span></code></span>
+<span class="codeline" id="line-150"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-151"><code>		<label for="r42" class="ident">byteNum</label>++ <span class="comment">// After the newline.</span></code></span>
+<span class="codeline" id="line-152"><code>		<label for="r42" class="ident">byteNum</label> = <label for="r39" class="ident">pos</label> - <label for="r42" class="ident">byteNum</label></code></span>
+<span class="codeline" id="line-153"><code>	}</code></span>
+<span class="codeline" id="line-154"><code>	<label for="r43" class="ident">lineNum</label> := <span class="lit-number">1</span> + <a href="../../../../pkg/strings.html" class="ident i4">strings</a>.<a href="../../../strings/strings.go.html#line-41" class="ident">Count</a>(<label for="r41" class="ident">text</label>, <span class="lit-string">"\n"</span>)</code></span>
+<span class="codeline" id="line-155"><code>	<label for="r38" class="ident">context</label> = <label for="r36" class="ident">n</label>.<a href="node.go.html#line-22" class="ident">String</a>()</code></span>
+<span class="codeline" id="line-156"><code>	<span class="keyword">return</span> <a href="../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(<span class="lit-string">"%s:%d:%d"</span>, <label for="r40" class="ident">tree</label>.<a href="#line-22" class="ident">ParseName</a>, <label for="r43" class="ident">lineNum</label>, <label for="r42" class="ident">byteNum</label>), <label for="r38" class="ident">context</label></code></span>
+<span class="codeline" id="line-157"><code>}</code></span>
+<span class="codeline" id="line-158"><code></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">// errorf formats the error and terminates processing.</span></code></span>
+<span class="codeline" id="line-160"><code><span class="keyword">func</span> (<label for="r44" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r45" class="ident">errorf</label>(<label for="r46" class="ident">format</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r47" class="ident">args</label> ...<span class="keyword">interface</span>{}) {</code></span>
+<span class="codeline" id="line-161"><code>	<label for="r44" class="ident">t</label>.<a href="#line-23" class="ident">Root</a> = <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-162"><code>	<label for="r46" class="ident">format</label> = <a href="../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(<span class="lit-string">"template: %s:%d: %s"</span>, <label for="r44" class="ident">t</label>.<a href="#line-22" class="ident">ParseName</a>, <label for="r44" class="ident">t</label>.<a href="#line-29" class="ident">token</a>[<span class="lit-number">0</span>].<a href="lex.go.html#line-19" class="ident">line</a>, <label for="r46" class="ident">format</label>)</code></span>
+<span class="codeline" id="line-163"><code>	<a href="../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<a href="../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<label for="r46" class="ident">format</label>, <label for="r47" class="ident">args</label>...))</code></span>
+<span class="codeline" id="line-164"><code>}</code></span>
+<span class="codeline" id="line-165"><code></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">// error terminates processing.</span></code></span>
+<span class="codeline" id="line-167"><code><span class="keyword">func</span> (<label for="r48" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r49" class="ident">error</label>(<label for="r50" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-168"><code>	<label for="r48" class="ident">t</label>.<a href="#line-160" class="ident">errorf</a>(<span class="lit-string">"%s"</span>, <label for="r50" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-169"><code>}</code></span>
+<span class="codeline" id="line-170"><code></code></span>
+<span class="codeline" id="line-171"><code><span class="comment">// expect consumes the next token and guarantees it has the required type.</span></code></span>
+<span class="codeline" id="line-172"><code><span class="keyword">func</span> (<label for="r51" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r52" class="ident">expect</label>(<label for="r53" class="ident">expected</label> <a href="lex.go.html#line-37" class="ident">itemType</a>, <label for="r54" class="ident">context</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="lex.go.html#line-15" class="ident">item</a> {</code></span>
+<span class="codeline" id="line-173"><code>	<label for="r55" class="ident">token</label> := <label for="r51" class="ident">t</label>.<a href="#line-110" class="ident">nextNonSpace</a>()</code></span>
+<span class="codeline" id="line-174"><code>	<span class="keyword">if</span> <label for="r55" class="ident">token</label>.<a href="lex.go.html#line-16" class="ident">typ</a> != <label for="r53" class="ident">expected</label> {</code></span>
+<span class="codeline" id="line-175"><code>		<label for="r51" class="ident">t</label>.<a href="#line-190" class="ident">unexpected</a>(<label for="r55" class="ident">token</label>, <label for="r54" class="ident">context</label>)</code></span>
+<span class="codeline" id="line-176"><code>	}</code></span>
+<span class="codeline" id="line-177"><code>	<span class="keyword">return</span> <label for="r55" class="ident">token</label></code></span>
+<span class="codeline" id="line-178"><code>}</code></span>
+<span class="codeline" id="line-179"><code></code></span>
+<span class="codeline" id="line-180"><code><span class="comment">// expectOneOf consumes the next token and guarantees it has one of the required types.</span></code></span>
+<span class="codeline" id="line-181"><code><span class="keyword">func</span> (<label for="r56" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r57" class="ident">expectOneOf</label>(<label for="r58" class="ident">expected1</label>, <label for="r59" class="ident">expected2</label> <a href="lex.go.html#line-37" class="ident">itemType</a>, <label for="r60" class="ident">context</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="lex.go.html#line-15" class="ident">item</a> {</code></span>
+<span class="codeline" id="line-182"><code>	<label for="r61" class="ident">token</label> := <label for="r56" class="ident">t</label>.<a href="#line-110" class="ident">nextNonSpace</a>()</code></span>
+<span class="codeline" id="line-183"><code>	<span class="keyword">if</span> <label for="r61" class="ident">token</label>.<a href="lex.go.html#line-16" class="ident">typ</a> != <label for="r58" class="ident">expected1</label> &amp;&amp; <label for="r61" class="ident">token</label>.<a href="lex.go.html#line-16" class="ident">typ</a> != <label for="r59" class="ident">expected2</label> {</code></span>
+<span class="codeline" id="line-184"><code>		<label for="r56" class="ident">t</label>.<a href="#line-190" class="ident">unexpected</a>(<label for="r61" class="ident">token</label>, <label for="r60" class="ident">context</label>)</code></span>
+<span class="codeline" id="line-185"><code>	}</code></span>
+<span class="codeline" id="line-186"><code>	<span class="keyword">return</span> <label for="r61" class="ident">token</label></code></span>
+<span class="codeline" id="line-187"><code>}</code></span>
+<span class="codeline" id="line-188"><code></code></span>
+<span class="codeline" id="line-189"><code><span class="comment">// unexpected complains about the token and terminates processing.</span></code></span>
+<span class="codeline" id="line-190"><code><span class="keyword">func</span> (<label for="r62" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r63" class="ident">unexpected</label>(<label for="r64" class="ident">token</label> <a href="lex.go.html#line-15" class="ident">item</a>, <label for="r65" class="ident">context</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-191"><code>	<span class="keyword">if</span> <label for="r64" class="ident">token</label>.<a href="lex.go.html#line-16" class="ident">typ</a> == <a href="lex.go.html#line-40" class="ident">itemError</a> {</code></span>
+<span class="codeline" id="line-192"><code>		<label for="r66" class="ident">extra</label> := <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-193"><code>		<span class="keyword">if</span> <label for="r62" class="ident">t</label>.<a href="#line-33" class="ident">actionLine</a> != <span class="lit-number">0</span> &amp;&amp; <label for="r62" class="ident">t</label>.<a href="#line-33" class="ident">actionLine</a> != <label for="r64" class="ident">token</label>.<a href="lex.go.html#line-19" class="ident">line</a> {</code></span>
+<span class="codeline" id="line-194"><code>			<label for="r66" class="ident">extra</label> = <a href="../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(<span class="lit-string">" in action started at %s:%d"</span>, <label for="r62" class="ident">t</label>.<a href="#line-22" class="ident">ParseName</a>, <label for="r62" class="ident">t</label>.<a href="#line-33" class="ident">actionLine</a>)</code></span>
+<span class="codeline" id="line-195"><code>			<span class="keyword">if</span> <a href="../../../../pkg/strings.html" class="ident i4">strings</a>.<a href="../../../strings/strings.go.html#line-449" class="ident">HasSuffix</a>(<label for="r64" class="ident">token</label>.<a href="lex.go.html#line-18" class="ident">val</a>, <span class="lit-string">" action"</span>) {</code></span>
+<span class="codeline" id="line-196"><code>				<label for="r66" class="ident">extra</label> = <label for="r66" class="ident">extra</label>[<a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<span class="lit-string">" in action"</span>):] <span class="comment">// avoid "action in action"</span></code></span>
+<span class="codeline" id="line-197"><code>			}</code></span>
+<span class="codeline" id="line-198"><code>		}</code></span>
+<span class="codeline" id="line-199"><code>		<label for="r62" class="ident">t</label>.<a href="#line-160" class="ident">errorf</a>(<span class="lit-string">"%s%s"</span>, <label for="r64" class="ident">token</label>, <label for="r66" class="ident">extra</label>)</code></span>
+<span class="codeline" id="line-200"><code>	}</code></span>
+<span class="codeline" id="line-201"><code>	<label for="r62" class="ident">t</label>.<a href="#line-160" class="ident">errorf</a>(<span class="lit-string">"unexpected %s in %s"</span>, <label for="r64" class="ident">token</label>, <label for="r65" class="ident">context</label>)</code></span>
+<span class="codeline" id="line-202"><code>}</code></span>
+<span class="codeline" id="line-203"><code></code></span>
+<span class="codeline" id="line-204"><code><span class="comment">// recover is the handler that turns panics into returns from the top level of Parse.</span></code></span>
+<span class="codeline" id="line-205"><code><span class="keyword">func</span> (<label for="r67" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r68" class="ident">recover</label>(<label for="r69" class="ident">errp</label> *<a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-206"><code>	<label for="r70" class="ident">e</label> := <a href="../../../../pkg/builtin.html#name-recover" class="ident">recover</a>()</code></span>
+<span class="codeline" id="line-207"><code>	<span class="keyword">if</span> <label for="r70" class="ident">e</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-208"><code>		<span class="keyword">if</span> <label for="r71" class="ident">_</label>, <label for="r72" class="ident">ok</label> := <label for="r70" class="ident">e</label>.(<a href="../../../../pkg/runtime.html" class="ident i2">runtime</a>.<a href="../../../runtime/error.go.html#line-10" class="ident">Error</a>); <label for="r72" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-209"><code>			<a href="../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<label for="r70" class="ident">e</label>)</code></span>
+<span class="codeline" id="line-210"><code>		}</code></span>
+<span class="codeline" id="line-211"><code>		<span class="keyword">if</span> <label for="r67" class="ident">t</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-212"><code>			<label for="r67" class="ident">t</label>.<a href="#line-28" class="ident">lex</a>.<a href="lex.go.html#line-200" class="ident">drain</a>()</code></span>
+<span class="codeline" id="line-213"><code>			<label for="r67" class="ident">t</label>.<a href="#line-229" class="ident">stopParse</a>()</code></span>
+<span class="codeline" id="line-214"><code>		}</code></span>
+<span class="codeline" id="line-215"><code>		*<label for="r69" class="ident">errp</label> = <label for="r70" class="ident">e</label>.(<a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-216"><code>	}</code></span>
+<span class="codeline" id="line-217"><code>}</code></span>
+<span class="codeline" id="line-218"><code></code></span>
+<span class="codeline" id="line-219"><code><span class="comment">// startParse initializes the parser, using the lexer.</span></code></span>
+<span class="codeline" id="line-220"><code><span class="keyword">func</span> (<label for="r73" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r74" class="ident">startParse</label>(<label for="r75" class="ident">funcs</label> []<span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>]<span class="keyword">interface</span>{}, <label for="r76" class="ident">lex</label> *<a href="lex.go.html#line-109" class="ident">lexer</a>, <label for="r77" class="ident">treeSet</label> <span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>]*<a href="#line-20" class="ident">Tree</a>) {</code></span>
+<span class="codeline" id="line-221"><code>	<label for="r73" class="ident">t</label>.<a href="#line-23" class="ident">Root</a> = <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-222"><code>	<label for="r73" class="ident">t</label>.<a href="#line-28" class="ident">lex</a> = <label for="r76" class="ident">lex</label></code></span>
+<span class="codeline" id="line-223"><code>	<label for="r73" class="ident">t</label>.<a href="#line-31" class="ident">vars</a> = []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>{<span class="lit-string">"$"</span>}</code></span>
+<span class="codeline" id="line-224"><code>	<label for="r73" class="ident">t</label>.<a href="#line-27" class="ident">funcs</a> = <label for="r75" class="ident">funcs</label></code></span>
+<span class="codeline" id="line-225"><code>	<label for="r73" class="ident">t</label>.<a href="#line-32" class="ident">treeSet</a> = <label for="r77" class="ident">treeSet</label></code></span>
+<span class="codeline" id="line-226"><code>}</code></span>
+<span class="codeline" id="line-227"><code></code></span>
+<span class="codeline" id="line-228"><code><span class="comment">// stopParse terminates parsing.</span></code></span>
+<span class="codeline" id="line-229"><code><span class="keyword">func</span> (<label for="r78" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r79" class="ident">stopParse</label>() {</code></span>
+<span class="codeline" id="line-230"><code>	<label for="r78" class="ident">t</label>.<a href="#line-28" class="ident">lex</a> = <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-231"><code>	<label for="r78" class="ident">t</label>.<a href="#line-31" class="ident">vars</a> = <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-232"><code>	<label for="r78" class="ident">t</label>.<a href="#line-27" class="ident">funcs</a> = <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-233"><code>	<label for="r78" class="ident">t</label>.<a href="#line-32" class="ident">treeSet</a> = <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-234"><code>}</code></span>
+<span class="codeline" id="line-235"><code></code></span>
+<span class="codeline" id="line-236"><code><span class="comment">// Parse parses the template definition string to construct a representation of</span></code></span>
+<span class="codeline" id="line-237"><code><span class="comment">// the template for execution. If either action delimiter string is empty, the</span></code></span>
+<span class="codeline" id="line-238"><code><span class="comment">// default ("{{" or "}}") is used. Embedded template definitions are added to</span></code></span>
+<span class="codeline" id="line-239"><code><span class="comment">// the treeSet map.</span></code></span>
+<span class="codeline" id="line-240"><code><span class="keyword">func</span> (<label for="r80" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r81" class="ident">Parse</label>(<label for="r82" class="ident">text</label>, <label for="r83" class="ident">leftDelim</label>, <label for="r84" class="ident">rightDelim</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r85" class="ident">treeSet</label> <span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>]*<a href="#line-20" class="ident">Tree</a>, <label for="r86" class="ident">funcs</label> ...<span class="keyword">map</span>[<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>]<span class="keyword">interface</span>{}) (<label for="r87" class="ident">tree</label> *<a href="#line-20" class="ident">Tree</a>, <label for="r88" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-241"><code>	<span class="keyword">defer</span> <label for="r80" class="ident">t</label>.<a href="#line-205" class="ident">recover</a>(&amp;<label for="r88" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-242"><code>	<label for="r80" class="ident">t</label>.<a href="#line-22" class="ident">ParseName</a> = <label for="r80" class="ident">t</label>.<a href="#line-21" class="ident">Name</a></code></span>
+<span class="codeline" id="line-243"><code>	<label for="r89" class="ident">emitComment</label> := <label for="r80" class="ident">t</label>.<a href="#line-24" class="ident">Mode</a>&amp;<a href="#line-41" class="ident">ParseComments</a> != <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-244"><code>	<label for="r80" class="ident">t</label>.<a href="#line-220" class="ident">startParse</a>(<label for="r86" class="ident">funcs</label>, <a href="lex.go.html#line-206" class="ident">lex</a>(<label for="r80" class="ident">t</label>.<a href="#line-21" class="ident">Name</a>, <label for="r82" class="ident">text</label>, <label for="r83" class="ident">leftDelim</label>, <label for="r84" class="ident">rightDelim</label>, <label for="r89" class="ident">emitComment</label>), <label for="r85" class="ident">treeSet</label>)</code></span>
+<span class="codeline" id="line-245"><code>	<label for="r80" class="ident">t</label>.<a href="#line-25" class="ident">text</a> = <label for="r82" class="ident">text</label></code></span>
+<span class="codeline" id="line-246"><code>	<label for="r80" class="ident">t</label>.<a href="#line-294" class="ident">parse</a>()</code></span>
+<span class="codeline" id="line-247"><code>	<label for="r80" class="ident">t</label>.<a href="#line-253" class="ident">add</a>()</code></span>
+<span class="codeline" id="line-248"><code>	<label for="r80" class="ident">t</label>.<a href="#line-229" class="ident">stopParse</a>()</code></span>
+<span class="codeline" id="line-249"><code>	<span class="keyword">return</span> <label for="r80" class="ident">t</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-250"><code>}</code></span>
+<span class="codeline" id="line-251"><code></code></span>
+<span class="codeline" id="line-252"><code><span class="comment">// add adds tree to t.treeSet.</span></code></span>
+<span class="codeline" id="line-253"><code><span class="keyword">func</span> (<label for="r90" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r91" class="ident">add</label>() {</code></span>
+<span class="codeline" id="line-254"><code>	<label for="r92" class="ident">tree</label> := <label for="r90" class="ident">t</label>.<a href="#line-32" class="ident">treeSet</a>[<label for="r90" class="ident">t</label>.<a href="#line-21" class="ident">Name</a>]</code></span>
+<span class="codeline" id="line-255"><code>	<span class="keyword">if</span> <label for="r92" class="ident">tree</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> || <a href="#line-265" class="ident">IsEmptyTree</a>(<label for="r92" class="ident">tree</label>.<a href="#line-23" class="ident">Root</a>) {</code></span>
+<span class="codeline" id="line-256"><code>		<label for="r90" class="ident">t</label>.<a href="#line-32" class="ident">treeSet</a>[<label for="r90" class="ident">t</label>.<a href="#line-21" class="ident">Name</a>] = <label for="r90" class="ident">t</label></code></span>
+<span class="codeline" id="line-257"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-258"><code>	}</code></span>
+<span class="codeline" id="line-259"><code>	<span class="keyword">if</span> !<a href="#line-265" class="ident">IsEmptyTree</a>(<label for="r90" class="ident">t</label>.<a href="#line-23" class="ident">Root</a>) {</code></span>
+<span class="codeline" id="line-260"><code>		<label for="r90" class="ident">t</label>.<a href="#line-160" class="ident">errorf</a>(<span class="lit-string">"template: multiple definition of template %q"</span>, <label for="r90" class="ident">t</label>.<a href="#line-21" class="ident">Name</a>)</code></span>
+<span class="codeline" id="line-261"><code>	}</code></span>
+<span class="codeline" id="line-262"><code>}</code></span>
+<span class="codeline" id="line-263"><code></code></span>
+<span class="codeline" id="line-264"><code><span class="comment">// IsEmptyTree reports whether this tree (node) is empty of everything but space or comments.</span></code></span>
+<span class="codeline" id="line-265"><code><span class="keyword">func</span> <label for="r93" class="ident"><a href="../../../../pkg/text/template/parse.html#name-IsEmptyTree" class="ident">IsEmptyTree</a></label>(<label for="r94" class="ident">n</label> <a href="node.go.html#line-20" class="ident">Node</a>) <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-266"><code>	<span class="keyword">switch</span> n := <label for="r94" class="ident">n</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-267"><code>	<span class="keyword">case</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>:</code></span>
+<span class="codeline" id="line-268"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-269"><code>	<span class="keyword">case</span> *<a href="node.go.html#line-255" class="ident">ActionNode</a>:</code></span>
+<span class="codeline" id="line-270"><code>	<span class="keyword">case</span> *<a href="node.go.html#line-154" class="ident">CommentNode</a>:</code></span>
+<span class="codeline" id="line-271"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-272"><code>	<span class="keyword">case</span> *<a href="node.go.html#line-898" class="ident">IfNode</a>:</code></span>
+<span class="codeline" id="line-273"><code>	<span class="keyword">case</span> *<a href="node.go.html#line-79" class="ident">ListNode</a>:</code></span>
+<span class="codeline" id="line-274"><code>		<span class="keyword">for</span> <label for="r95" class="ident">_</label>, <label for="r96" class="ident">node</label> := <span class="keyword">range</span> <label for="r97" class="ident">n</label>.<a href="node.go.html#line-83" class="ident">Nodes</a> {</code></span>
+<span class="codeline" id="line-275"><code>			<span class="keyword">if</span> !<label for="r93" class="ident">IsEmptyTree</label>(<label for="r96" class="ident">node</label>) {</code></span>
+<span class="codeline" id="line-276"><code>				<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-277"><code>			}</code></span>
+<span class="codeline" id="line-278"><code>		}</code></span>
+<span class="codeline" id="line-279"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-280"><code>	<span class="keyword">case</span> *<a href="node.go.html#line-911" class="ident">RangeNode</a>:</code></span>
+<span class="codeline" id="line-281"><code>	<span class="keyword">case</span> *<a href="node.go.html#line-937" class="ident">TemplateNode</a>:</code></span>
+<span class="codeline" id="line-282"><code>	<span class="keyword">case</span> *<a href="node.go.html#line-126" class="ident">TextNode</a>:</code></span>
+<span class="codeline" id="line-283"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="../../../../pkg/bytes.html" class="ident i0">bytes</a>.<a href="../../../bytes/bytes.go.html#line-931" class="ident">TrimSpace</a>(<label for="r98" class="ident">n</label>.<a href="node.go.html#line-130" class="ident">Text</a>)) == <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-284"><code>	<span class="keyword">case</span> *<a href="node.go.html#line-924" class="ident">WithNode</a>:</code></span>
+<span class="codeline" id="line-285"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-286"><code>		<a href="../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"unknown node: "</span> + <label for="r99" class="ident">n</label>.<a href="node.go.html#line-22" class="ident">String</a>())</code></span>
+<span class="codeline" id="line-287"><code>	}</code></span>
+<span class="codeline" id="line-288"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-289"><code>}</code></span>
+<span class="codeline" id="line-290"><code></code></span>
+<span class="codeline" id="line-291"><code><span class="comment">// parse is the top-level parser for a template, essentially the same</span></code></span>
+<span class="codeline" id="line-292"><code><span class="comment">// as itemList except it also parses {{define}} actions.</span></code></span>
+<span class="codeline" id="line-293"><code><span class="comment">// It runs to EOF.</span></code></span>
+<span class="codeline" id="line-294"><code><span class="keyword">func</span> (<label for="r100" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r101" class="ident">parse</label>() {</code></span>
+<span class="codeline" id="line-295"><code>	<label for="r100" class="ident">t</label>.<a href="#line-23" class="ident">Root</a> = <label for="r100" class="ident">t</label>.<a href="node.go.html#line-86" class="ident">newList</a>(<label for="r100" class="ident">t</label>.<a href="#line-100" class="ident">peek</a>().<a href="lex.go.html#line-17" class="ident">pos</a>)</code></span>
+<span class="codeline" id="line-296"><code>	<span class="keyword">for</span> <label for="r100" class="ident">t</label>.<a href="#line-100" class="ident">peek</a>().<a href="lex.go.html#line-16" class="ident">typ</a> != <a href="lex.go.html#line-48" class="ident">itemEOF</a> {</code></span>
+<span class="codeline" id="line-297"><code>		<span class="keyword">if</span> <label for="r100" class="ident">t</label>.<a href="#line-100" class="ident">peek</a>().<a href="lex.go.html#line-16" class="ident">typ</a> == <a href="lex.go.html#line-51" class="ident">itemLeftDelim</a> {</code></span>
+<span class="codeline" id="line-298"><code>			<label for="r102" class="ident">delim</label> := <label for="r100" class="ident">t</label>.<a href="#line-70" class="ident">next</a>()</code></span>
+<span class="codeline" id="line-299"><code>			<span class="keyword">if</span> <label for="r100" class="ident">t</label>.<a href="#line-110" class="ident">nextNonSpace</a>().<a href="lex.go.html#line-16" class="ident">typ</a> == <a href="lex.go.html#line-66" class="ident">itemDefine</a> {</code></span>
+<span class="codeline" id="line-300"><code>				<label for="r103" class="ident">newT</label> := <a href="#line-130" class="ident">New</a>(<span class="lit-string">"definition"</span>) <span class="comment">// name will be updated once we know it.</span></code></span>
+<span class="codeline" id="line-301"><code>				<label for="r103" class="ident">newT</label>.<a href="#line-25" class="ident">text</a> = <label for="r100" class="ident">t</label>.<a href="#line-25" class="ident">text</a></code></span>
+<span class="codeline" id="line-302"><code>				<label for="r103" class="ident">newT</label>.<a href="#line-24" class="ident">Mode</a> = <label for="r100" class="ident">t</label>.<a href="#line-24" class="ident">Mode</a></code></span>
+<span class="codeline" id="line-303"><code>				<label for="r103" class="ident">newT</label>.<a href="#line-22" class="ident">ParseName</a> = <label for="r100" class="ident">t</label>.<a href="#line-22" class="ident">ParseName</a></code></span>
+<span class="codeline" id="line-304"><code>				<label for="r103" class="ident">newT</label>.<a href="#line-220" class="ident">startParse</a>(<label for="r100" class="ident">t</label>.<a href="#line-27" class="ident">funcs</a>, <label for="r100" class="ident">t</label>.<a href="#line-28" class="ident">lex</a>, <label for="r100" class="ident">t</label>.<a href="#line-32" class="ident">treeSet</a>)</code></span>
+<span class="codeline" id="line-305"><code>				<label for="r103" class="ident">newT</label>.<a href="#line-322" class="ident">parseDefinition</a>()</code></span>
+<span class="codeline" id="line-306"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-307"><code>			}</code></span>
+<span class="codeline" id="line-308"><code>			<label for="r100" class="ident">t</label>.<a href="#line-86" class="ident">backup2</a>(<label for="r102" class="ident">delim</label>)</code></span>
+<span class="codeline" id="line-309"><code>		}</code></span>
+<span class="codeline" id="line-310"><code>		<span class="keyword">switch</span> <label for="r104" class="ident">n</label> := <label for="r100" class="ident">t</label>.<a href="#line-359" class="ident">textOrAction</a>(); <label for="r104" class="ident">n</label>.<a href="node.go.html#line-21" class="ident">Type</a>() {</code></span>
+<span class="codeline" id="line-311"><code>		<span class="keyword">case</span> <a href="node.go.html#line-60" class="ident">nodeEnd</a>, <a href="node.go.html#line-59" class="ident">nodeElse</a>:</code></span>
+<span class="codeline" id="line-312"><code>			<label for="r100" class="ident">t</label>.<a href="#line-160" class="ident">errorf</a>(<span class="lit-string">"unexpected %s"</span>, <label for="r104" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-313"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-314"><code>			<label for="r100" class="ident">t</label>.<a href="#line-23" class="ident">Root</a>.<a href="node.go.html#line-90" class="ident">append</a>(<label for="r104" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-315"><code>		}</code></span>
+<span class="codeline" id="line-316"><code>	}</code></span>
+<span class="codeline" id="line-317"><code>}</code></span>
+<span class="codeline" id="line-318"><code></code></span>
+<span class="codeline" id="line-319"><code><span class="comment">// parseDefinition parses a {{define}} ...  {{end}} template definition and</span></code></span>
+<span class="codeline" id="line-320"><code><span class="comment">// installs the definition in t.treeSet. The "define" keyword has already</span></code></span>
+<span class="codeline" id="line-321"><code><span class="comment">// been scanned.</span></code></span>
+<span class="codeline" id="line-322"><code><span class="keyword">func</span> (<label for="r105" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r106" class="ident">parseDefinition</label>() {</code></span>
+<span class="codeline" id="line-323"><code>	<span class="keyword">const</span> <label for="r107" class="ident">context</label> = <span class="lit-string">"define clause"</span></code></span>
+<span class="codeline" id="line-324"><code>	<label for="r108" class="ident">name</label> := <label for="r105" class="ident">t</label>.<a href="#line-181" class="ident">expectOneOf</a>(<a href="lex.go.html#line-59" class="ident">itemString</a>, <a href="lex.go.html#line-55" class="ident">itemRawString</a>, <label for="r107" class="ident">context</label>)</code></span>
+<span class="codeline" id="line-325"><code>	<span class="keyword">var</span> <label for="r109" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-326"><code>	<label for="r105" class="ident">t</label>.<a href="#line-21" class="ident">Name</a>, <label for="r109" class="ident">err</label> = <a href="../../../../pkg/strconv.html" class="ident i3">strconv</a>.<a href="../../../strconv/quote.go.html#line-368" class="ident">Unquote</a>(<label for="r108" class="ident">name</label>.<a href="lex.go.html#line-18" class="ident">val</a>)</code></span>
+<span class="codeline" id="line-327"><code>	<span class="keyword">if</span> <label for="r109" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-328"><code>		<label for="r105" class="ident">t</label>.<a href="#line-167" class="ident">error</a>(<label for="r109" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-329"><code>	}</code></span>
+<span class="codeline" id="line-330"><code>	<label for="r105" class="ident">t</label>.<a href="#line-172" class="ident">expect</a>(<a href="lex.go.html#line-56" class="ident">itemRightDelim</a>, <label for="r107" class="ident">context</label>)</code></span>
+<span class="codeline" id="line-331"><code>	<span class="keyword">var</span> <label for="r110" class="ident">end</label> <a href="node.go.html#line-20" class="ident">Node</a></code></span>
+<span class="codeline" id="line-332"><code>	<label for="r105" class="ident">t</label>.<a href="#line-23" class="ident">Root</a>, <label for="r110" class="ident">end</label> = <label for="r105" class="ident">t</label>.<a href="#line-343" class="ident">itemList</a>()</code></span>
+<span class="codeline" id="line-333"><code>	<span class="keyword">if</span> <label for="r110" class="ident">end</label>.<a href="node.go.html#line-21" class="ident">Type</a>() != <a href="node.go.html#line-60" class="ident">nodeEnd</a> {</code></span>
+<span class="codeline" id="line-334"><code>		<label for="r105" class="ident">t</label>.<a href="#line-160" class="ident">errorf</a>(<span class="lit-string">"unexpected %s in %s"</span>, <label for="r110" class="ident">end</label>, <label for="r107" class="ident">context</label>)</code></span>
+<span class="codeline" id="line-335"><code>	}</code></span>
+<span class="codeline" id="line-336"><code>	<label for="r105" class="ident">t</label>.<a href="#line-253" class="ident">add</a>()</code></span>
+<span class="codeline" id="line-337"><code>	<label for="r105" class="ident">t</label>.<a href="#line-229" class="ident">stopParse</a>()</code></span>
+<span class="codeline" id="line-338"><code>}</code></span>
+<span class="codeline" id="line-339"><code></code></span>
+<span class="codeline" id="line-340"><code><span class="comment">// itemList:</span></code></span>
+<span class="codeline" id="line-341"><code><span class="comment">//	textOrAction*</span></code></span>
+<span class="codeline" id="line-342"><code><span class="comment">// Terminates at {{end}} or {{else}}, returned separately.</span></code></span>
+<span class="codeline" id="line-343"><code><span class="keyword">func</span> (<label for="r111" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r112" class="ident">itemList</label>() (<label for="r113" class="ident">list</label> *<a href="node.go.html#line-79" class="ident">ListNode</a>, <label for="r114" class="ident">next</label> <a href="node.go.html#line-20" class="ident">Node</a>) {</code></span>
+<span class="codeline" id="line-344"><code>	<label for="r113" class="ident">list</label> = <label for="r111" class="ident">t</label>.<a href="node.go.html#line-86" class="ident">newList</a>(<label for="r111" class="ident">t</label>.<a href="#line-121" class="ident">peekNonSpace</a>().<a href="lex.go.html#line-17" class="ident">pos</a>)</code></span>
+<span class="codeline" id="line-345"><code>	<span class="keyword">for</span> <label for="r111" class="ident">t</label>.<a href="#line-121" class="ident">peekNonSpace</a>().<a href="lex.go.html#line-16" class="ident">typ</a> != <a href="lex.go.html#line-48" class="ident">itemEOF</a> {</code></span>
+<span class="codeline" id="line-346"><code>		<label for="r115" class="ident">n</label> := <label for="r111" class="ident">t</label>.<a href="#line-359" class="ident">textOrAction</a>()</code></span>
+<span class="codeline" id="line-347"><code>		<span class="keyword">switch</span> <label for="r115" class="ident">n</label>.<a href="node.go.html#line-21" class="ident">Type</a>() {</code></span>
+<span class="codeline" id="line-348"><code>		<span class="keyword">case</span> <a href="node.go.html#line-60" class="ident">nodeEnd</a>, <a href="node.go.html#line-59" class="ident">nodeElse</a>:</code></span>
+<span class="codeline" id="line-349"><code>			<span class="keyword">return</span> <label for="r113" class="ident">list</label>, <label for="r115" class="ident">n</label></code></span>
+<span class="codeline" id="line-350"><code>		}</code></span>
+<span class="codeline" id="line-351"><code>		<label for="r113" class="ident">list</label>.<a href="node.go.html#line-90" class="ident">append</a>(<label for="r115" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-352"><code>	}</code></span>
+<span class="codeline" id="line-353"><code>	<label for="r111" class="ident">t</label>.<a href="#line-160" class="ident">errorf</a>(<span class="lit-string">"unexpected EOF"</span>)</code></span>
+<span class="codeline" id="line-354"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-355"><code>}</code></span>
+<span class="codeline" id="line-356"><code></code></span>
+<span class="codeline" id="line-357"><code><span class="comment">// textOrAction:</span></code></span>
+<span class="codeline" id="line-358"><code><span class="comment">//	text | comment | action</span></code></span>
+<span class="codeline" id="line-359"><code><span class="keyword">func</span> (<label for="r116" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r117" class="ident">textOrAction</label>() <a href="node.go.html#line-20" class="ident">Node</a> {</code></span>
+<span class="codeline" id="line-360"><code>	<span class="keyword">switch</span> <label for="r118" class="ident">token</label> := <label for="r116" class="ident">t</label>.<a href="#line-110" class="ident">nextNonSpace</a>(); <label for="r118" class="ident">token</label>.<a href="lex.go.html#line-16" class="ident">typ</a> {</code></span>
+<span class="codeline" id="line-361"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-60" class="ident">itemText</a>:</code></span>
+<span class="codeline" id="line-362"><code>		<span class="keyword">return</span> <label for="r116" class="ident">t</label>.<a href="node.go.html#line-133" class="ident">newText</a>(<label for="r118" class="ident">token</label>.<a href="lex.go.html#line-17" class="ident">pos</a>, <label for="r118" class="ident">token</label>.<a href="lex.go.html#line-18" class="ident">val</a>)</code></span>
+<span class="codeline" id="line-363"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-51" class="ident">itemLeftDelim</a>:</code></span>
+<span class="codeline" id="line-364"><code>		<label for="r116" class="ident">t</label>.<a href="#line-33" class="ident">actionLine</a> = <label for="r118" class="ident">token</label>.<a href="lex.go.html#line-19" class="ident">line</a></code></span>
+<span class="codeline" id="line-365"><code>		<span class="keyword">defer</span> <label for="r116" class="ident">t</label>.<a href="#line-375" class="ident">clearActionLine</a>()</code></span>
+<span class="codeline" id="line-366"><code>		<span class="keyword">return</span> <label for="r116" class="ident">t</label>.<a href="#line-384" class="ident">action</a>()</code></span>
+<span class="codeline" id="line-367"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-44" class="ident">itemComment</a>:</code></span>
+<span class="codeline" id="line-368"><code>		<span class="keyword">return</span> <label for="r116" class="ident">t</label>.<a href="node.go.html#line-161" class="ident">newComment</a>(<label for="r118" class="ident">token</label>.<a href="lex.go.html#line-17" class="ident">pos</a>, <label for="r118" class="ident">token</label>.<a href="lex.go.html#line-18" class="ident">val</a>)</code></span>
+<span class="codeline" id="line-369"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-370"><code>		<label for="r116" class="ident">t</label>.<a href="#line-190" class="ident">unexpected</a>(<label for="r118" class="ident">token</label>, <span class="lit-string">"input"</span>)</code></span>
+<span class="codeline" id="line-371"><code>	}</code></span>
+<span class="codeline" id="line-372"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-373"><code>}</code></span>
+<span class="codeline" id="line-374"><code></code></span>
+<span class="codeline" id="line-375"><code><span class="keyword">func</span> (<label for="r119" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r120" class="ident">clearActionLine</label>() {</code></span>
+<span class="codeline" id="line-376"><code>	<label for="r119" class="ident">t</label>.<a href="#line-33" class="ident">actionLine</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-377"><code>}</code></span>
+<span class="codeline" id="line-378"><code></code></span>
+<span class="codeline" id="line-379"><code><span class="comment">// Action:</span></code></span>
+<span class="codeline" id="line-380"><code><span class="comment">//	control</span></code></span>
+<span class="codeline" id="line-381"><code><span class="comment">//	command ("|" command)*</span></code></span>
+<span class="codeline" id="line-382"><code><span class="comment">// Left delim is past. Now get actions.</span></code></span>
+<span class="codeline" id="line-383"><code><span class="comment">// First word could be a keyword such as range.</span></code></span>
+<span class="codeline" id="line-384"><code><span class="keyword">func</span> (<label for="r121" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r122" class="ident">action</label>() (<label for="r123" class="ident">n</label> <a href="node.go.html#line-20" class="ident">Node</a>) {</code></span>
+<span class="codeline" id="line-385"><code>	<span class="keyword">switch</span> <label for="r124" class="ident">token</label> := <label for="r121" class="ident">t</label>.<a href="#line-110" class="ident">nextNonSpace</a>(); <label for="r124" class="ident">token</label>.<a href="lex.go.html#line-16" class="ident">typ</a> {</code></span>
+<span class="codeline" id="line-386"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-64" class="ident">itemBlock</a>:</code></span>
+<span class="codeline" id="line-387"><code>		<span class="keyword">return</span> <label for="r121" class="ident">t</label>.<a href="#line-562" class="ident">blockControl</a>()</code></span>
+<span class="codeline" id="line-388"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-67" class="ident">itemElse</a>:</code></span>
+<span class="codeline" id="line-389"><code>		<span class="keyword">return</span> <label for="r121" class="ident">t</label>.<a href="#line-546" class="ident">elseControl</a>()</code></span>
+<span class="codeline" id="line-390"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-68" class="ident">itemEnd</a>:</code></span>
+<span class="codeline" id="line-391"><code>		<span class="keyword">return</span> <label for="r121" class="ident">t</label>.<a href="#line-539" class="ident">endControl</a>()</code></span>
+<span class="codeline" id="line-392"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-69" class="ident">itemIf</a>:</code></span>
+<span class="codeline" id="line-393"><code>		<span class="keyword">return</span> <label for="r121" class="ident">t</label>.<a href="#line-516" class="ident">ifControl</a>()</code></span>
+<span class="codeline" id="line-394"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-71" class="ident">itemRange</a>:</code></span>
+<span class="codeline" id="line-395"><code>		<span class="keyword">return</span> <label for="r121" class="ident">t</label>.<a href="#line-524" class="ident">rangeControl</a>()</code></span>
+<span class="codeline" id="line-396"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-72" class="ident">itemTemplate</a>:</code></span>
+<span class="codeline" id="line-397"><code>		<span class="keyword">return</span> <label for="r121" class="ident">t</label>.<a href="#line-589" class="ident">templateControl</a>()</code></span>
+<span class="codeline" id="line-398"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-73" class="ident">itemWith</a>:</code></span>
+<span class="codeline" id="line-399"><code>		<span class="keyword">return</span> <label for="r121" class="ident">t</label>.<a href="#line-532" class="ident">withControl</a>()</code></span>
+<span class="codeline" id="line-400"><code>	}</code></span>
+<span class="codeline" id="line-401"><code>	<label for="r121" class="ident">t</label>.<a href="#line-80" class="ident">backup</a>()</code></span>
+<span class="codeline" id="line-402"><code>	<label for="r125" class="ident">token</label> := <label for="r121" class="ident">t</label>.<a href="#line-100" class="ident">peek</a>()</code></span>
+<span class="codeline" id="line-403"><code>	<span class="comment">// Do not pop variables; they persist until "end".</span></code></span>
+<span class="codeline" id="line-404"><code>	<span class="keyword">return</span> <label for="r121" class="ident">t</label>.<a href="node.go.html#line-263" class="ident">newAction</a>(<label for="r125" class="ident">token</label>.<a href="lex.go.html#line-17" class="ident">pos</a>, <label for="r125" class="ident">token</label>.<a href="lex.go.html#line-19" class="ident">line</a>, <label for="r121" class="ident">t</label>.<a href="#line-409" class="ident">pipeline</a>(<span class="lit-string">"command"</span>, <a href="lex.go.html#line-56" class="ident">itemRightDelim</a>))</code></span>
+<span class="codeline" id="line-405"><code>}</code></span>
+<span class="codeline" id="line-406"><code></code></span>
+<span class="codeline" id="line-407"><code><span class="comment">// Pipeline:</span></code></span>
+<span class="codeline" id="line-408"><code><span class="comment">//	declarations? command ('|' command)*</span></code></span>
+<span class="codeline" id="line-409"><code><span class="keyword">func</span> (<label for="r126" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r127" class="ident">pipeline</label>(<label for="r128" class="ident">context</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r129" class="ident">end</label> <a href="lex.go.html#line-37" class="ident">itemType</a>) (<label for="r130" class="ident">pipe</label> *<a href="node.go.html#line-186" class="ident">PipeNode</a>) {</code></span>
+<span class="codeline" id="line-410"><code>	<label for="r131" class="ident">token</label> := <label for="r126" class="ident">t</label>.<a href="#line-121" class="ident">peekNonSpace</a>()</code></span>
+<span class="codeline" id="line-411"><code>	<label for="r130" class="ident">pipe</label> = <label for="r126" class="ident">t</label>.<a href="node.go.html#line-196" class="ident">newPipeline</a>(<label for="r131" class="ident">token</label>.<a href="lex.go.html#line-17" class="ident">pos</a>, <label for="r131" class="ident">token</label>.<a href="lex.go.html#line-19" class="ident">line</a>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-412"><code>	<span class="comment">// Are there declarations or assignments?</span></code></span>
+<span class="codeline" id="line-413"><code><label for="r132" class="ident">decls</label>:</code></span>
+<span class="codeline" id="line-414"><code>	<span class="keyword">if</span> <label for="r133" class="ident">v</label> := <label for="r126" class="ident">t</label>.<a href="#line-121" class="ident">peekNonSpace</a>(); <label for="r133" class="ident">v</label>.<a href="lex.go.html#line-16" class="ident">typ</a> == <a href="lex.go.html#line-61" class="ident">itemVariable</a> {</code></span>
+<span class="codeline" id="line-415"><code>		<label for="r126" class="ident">t</label>.<a href="#line-70" class="ident">next</a>()</code></span>
+<span class="codeline" id="line-416"><code>		<span class="comment">// Since space is a token, we need 3-token look-ahead here in the worst case:</span></code></span>
+<span class="codeline" id="line-417"><code><span class="comment">		// in "$x foo" we need to read "foo" (as opposed to ":=") to know that $x is an</span></code></span>
+<span class="codeline" id="line-418"><code><span class="comment">		// argument variable rather than a declaration. So remember the token</span></code></span>
+<span class="codeline" id="line-419"><code><span class="comment">		// adjacent to the variable so we can push it back if necessary.</span></code></span>
+<span class="codeline" id="line-420"><code>		<label for="r134" class="ident">tokenAfterVariable</label> := <label for="r126" class="ident">t</label>.<a href="#line-100" class="ident">peek</a>()</code></span>
+<span class="codeline" id="line-421"><code>		<label for="r135" class="ident">next</label> := <label for="r126" class="ident">t</label>.<a href="#line-121" class="ident">peekNonSpace</a>()</code></span>
+<span class="codeline" id="line-422"><code>		<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-423"><code>		<span class="keyword">case</span> <label for="r135" class="ident">next</label>.<a href="lex.go.html#line-16" class="ident">typ</a> == <a href="lex.go.html#line-46" class="ident">itemAssign</a>, <label for="r135" class="ident">next</label>.<a href="lex.go.html#line-16" class="ident">typ</a> == <a href="lex.go.html#line-47" class="ident">itemDeclare</a>:</code></span>
+<span class="codeline" id="line-424"><code>			<label for="r130" class="ident">pipe</label>.<a href="node.go.html#line-191" class="ident">IsAssign</a> = <label for="r135" class="ident">next</label>.<a href="lex.go.html#line-16" class="ident">typ</a> == <a href="lex.go.html#line-46" class="ident">itemAssign</a></code></span>
+<span class="codeline" id="line-425"><code>			<label for="r126" class="ident">t</label>.<a href="#line-110" class="ident">nextNonSpace</a>()</code></span>
+<span class="codeline" id="line-426"><code>			<label for="r130" class="ident">pipe</label>.<a href="node.go.html#line-192" class="ident">Decl</a> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r130" class="ident">pipe</label>.<a href="node.go.html#line-192" class="ident">Decl</a>, <label for="r126" class="ident">t</label>.<a href="node.go.html#line-394" class="ident">newVariable</a>(<label for="r133" class="ident">v</label>.<a href="lex.go.html#line-17" class="ident">pos</a>, <label for="r133" class="ident">v</label>.<a href="lex.go.html#line-18" class="ident">val</a>))</code></span>
+<span class="codeline" id="line-427"><code>			<label for="r126" class="ident">t</label>.<a href="#line-31" class="ident">vars</a> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r126" class="ident">t</label>.<a href="#line-31" class="ident">vars</a>, <label for="r133" class="ident">v</label>.<a href="lex.go.html#line-18" class="ident">val</a>)</code></span>
+<span class="codeline" id="line-428"><code>		<span class="keyword">case</span> <label for="r135" class="ident">next</label>.<a href="lex.go.html#line-16" class="ident">typ</a> == <a href="lex.go.html#line-42" class="ident">itemChar</a> &amp;&amp; <label for="r135" class="ident">next</label>.<a href="lex.go.html#line-18" class="ident">val</a> == <span class="lit-string">","</span>:</code></span>
+<span class="codeline" id="line-429"><code>			<label for="r126" class="ident">t</label>.<a href="#line-110" class="ident">nextNonSpace</a>()</code></span>
+<span class="codeline" id="line-430"><code>			<label for="r130" class="ident">pipe</label>.<a href="node.go.html#line-192" class="ident">Decl</a> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r130" class="ident">pipe</label>.<a href="node.go.html#line-192" class="ident">Decl</a>, <label for="r126" class="ident">t</label>.<a href="node.go.html#line-394" class="ident">newVariable</a>(<label for="r133" class="ident">v</label>.<a href="lex.go.html#line-17" class="ident">pos</a>, <label for="r133" class="ident">v</label>.<a href="lex.go.html#line-18" class="ident">val</a>))</code></span>
+<span class="codeline" id="line-431"><code>			<label for="r126" class="ident">t</label>.<a href="#line-31" class="ident">vars</a> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r126" class="ident">t</label>.<a href="#line-31" class="ident">vars</a>, <label for="r133" class="ident">v</label>.<a href="lex.go.html#line-18" class="ident">val</a>)</code></span>
+<span class="codeline" id="line-432"><code>			<span class="keyword">if</span> <label for="r128" class="ident">context</label> == <span class="lit-string">"range"</span> &amp;&amp; <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r130" class="ident">pipe</label>.<a href="node.go.html#line-192" class="ident">Decl</a>) &lt; <span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-433"><code>				<span class="keyword">switch</span> <label for="r126" class="ident">t</label>.<a href="#line-121" class="ident">peekNonSpace</a>().<a href="lex.go.html#line-16" class="ident">typ</a> {</code></span>
+<span class="codeline" id="line-434"><code>				<span class="keyword">case</span> <a href="lex.go.html#line-61" class="ident">itemVariable</a>, <a href="lex.go.html#line-56" class="ident">itemRightDelim</a>, <a href="lex.go.html#line-57" class="ident">itemRightParen</a>:</code></span>
+<span class="codeline" id="line-435"><code>					<span class="comment">// second initialized variable in a range pipeline</span></code></span>
+<span class="codeline" id="line-436"><code>					<span class="keyword">goto</span> <label for="r132" class="ident">decls</label></code></span>
+<span class="codeline" id="line-437"><code>				<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-438"><code>					<label for="r126" class="ident">t</label>.<a href="#line-160" class="ident">errorf</a>(<span class="lit-string">"range can only initialize variables"</span>)</code></span>
+<span class="codeline" id="line-439"><code>				}</code></span>
+<span class="codeline" id="line-440"><code>			}</code></span>
+<span class="codeline" id="line-441"><code>			<label for="r126" class="ident">t</label>.<a href="#line-160" class="ident">errorf</a>(<span class="lit-string">"too many declarations in %s"</span>, <label for="r128" class="ident">context</label>)</code></span>
+<span class="codeline" id="line-442"><code>		<span class="keyword">case</span> <label for="r134" class="ident">tokenAfterVariable</label>.<a href="lex.go.html#line-16" class="ident">typ</a> == <a href="lex.go.html#line-58" class="ident">itemSpace</a>:</code></span>
+<span class="codeline" id="line-443"><code>			<label for="r126" class="ident">t</label>.<a href="#line-93" class="ident">backup3</a>(<label for="r133" class="ident">v</label>, <label for="r134" class="ident">tokenAfterVariable</label>)</code></span>
+<span class="codeline" id="line-444"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-445"><code>			<label for="r126" class="ident">t</label>.<a href="#line-86" class="ident">backup2</a>(<label for="r133" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-446"><code>		}</code></span>
+<span class="codeline" id="line-447"><code>	}</code></span>
+<span class="codeline" id="line-448"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-449"><code>		<span class="keyword">switch</span> <label for="r136" class="ident">token</label> := <label for="r126" class="ident">t</label>.<a href="#line-110" class="ident">nextNonSpace</a>(); <label for="r136" class="ident">token</label>.<a href="lex.go.html#line-16" class="ident">typ</a> {</code></span>
+<span class="codeline" id="line-450"><code>		<span class="keyword">case</span> <label for="r129" class="ident">end</label>:</code></span>
+<span class="codeline" id="line-451"><code>			<span class="comment">// At this point, the pipeline is complete</span></code></span>
+<span class="codeline" id="line-452"><code>			<label for="r126" class="ident">t</label>.<a href="#line-464" class="ident">checkPipeline</a>(<label for="r130" class="ident">pipe</label>, <label for="r128" class="ident">context</label>)</code></span>
+<span class="codeline" id="line-453"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-454"><code>		<span class="keyword">case</span> <a href="lex.go.html#line-41" class="ident">itemBool</a>, <a href="lex.go.html#line-43" class="ident">itemCharConstant</a>, <a href="lex.go.html#line-45" class="ident">itemComplex</a>, <a href="lex.go.html#line-65" class="ident">itemDot</a>, <a href="lex.go.html#line-49" class="ident">itemField</a>, <a href="lex.go.html#line-50" class="ident">itemIdentifier</a>,</code></span>
+<span class="codeline" id="line-455"><code>			<a href="lex.go.html#line-53" class="ident">itemNumber</a>, <a href="lex.go.html#line-70" class="ident">itemNil</a>, <a href="lex.go.html#line-55" class="ident">itemRawString</a>, <a href="lex.go.html#line-59" class="ident">itemString</a>, <a href="lex.go.html#line-61" class="ident">itemVariable</a>, <a href="lex.go.html#line-52" class="ident">itemLeftParen</a>:</code></span>
+<span class="codeline" id="line-456"><code>			<label for="r126" class="ident">t</label>.<a href="#line-80" class="ident">backup</a>()</code></span>
+<span class="codeline" id="line-457"><code>			<label for="r130" class="ident">pipe</label>.<a href="node.go.html#line-200" class="ident">append</a>(<label for="r126" class="ident">t</label>.<a href="#line-620" class="ident">command</a>())</code></span>
+<span class="codeline" id="line-458"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-459"><code>			<label for="r126" class="ident">t</label>.<a href="#line-190" class="ident">unexpected</a>(<label for="r136" class="ident">token</label>, <label for="r128" class="ident">context</label>)</code></span>
+<span class="codeline" id="line-460"><code>		}</code></span>
+<span class="codeline" id="line-461"><code>	}</code></span>
+<span class="codeline" id="line-462"><code>}</code></span>
+<span class="codeline" id="line-463"><code></code></span>
+<span class="codeline" id="line-464"><code><span class="keyword">func</span> (<label for="r137" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r138" class="ident">checkPipeline</label>(<label for="r139" class="ident">pipe</label> *<a href="node.go.html#line-186" class="ident">PipeNode</a>, <label for="r140" class="ident">context</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-465"><code>	<span class="comment">// Reject empty pipelines</span></code></span>
+<span class="codeline" id="line-466"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r139" class="ident">pipe</label>.<a href="node.go.html#line-193" class="ident">Cmds</a>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-467"><code>		<label for="r137" class="ident">t</label>.<a href="#line-160" class="ident">errorf</a>(<span class="lit-string">"missing value for %s"</span>, <label for="r140" class="ident">context</label>)</code></span>
+<span class="codeline" id="line-468"><code>	}</code></span>
+<span class="codeline" id="line-469"><code>	<span class="comment">// Only the first command of a pipeline can start with a non executable operand</span></code></span>
+<span class="codeline" id="line-470"><code>	<span class="keyword">for</span> <label for="r141" class="ident">i</label>, <label for="r142" class="ident">c</label> := <span class="keyword">range</span> <label for="r139" class="ident">pipe</label>.<a href="node.go.html#line-193" class="ident">Cmds</a>[<span class="lit-number">1</span>:] {</code></span>
+<span class="codeline" id="line-471"><code>		<span class="keyword">switch</span> <label for="r142" class="ident">c</label>.<a href="node.go.html#line-293" class="ident">Args</a>[<span class="lit-number">0</span>].<a href="node.go.html#line-21" class="ident">Type</a>() {</code></span>
+<span class="codeline" id="line-472"><code>		<span class="keyword">case</span> <a href="node.go.html#line-55" class="ident">NodeBool</a>, <a href="node.go.html#line-58" class="ident">NodeDot</a>, <a href="node.go.html#line-65" class="ident">NodeNil</a>, <a href="node.go.html#line-66" class="ident">NodeNumber</a>, <a href="node.go.html#line-69" class="ident">NodeString</a>:</code></span>
+<span class="codeline" id="line-473"><code>			<span class="comment">// With A|B|C, pipeline stage 2 is B</span></code></span>
+<span class="codeline" id="line-474"><code>			<label for="r137" class="ident">t</label>.<a href="#line-160" class="ident">errorf</a>(<span class="lit-string">"non executable command in pipeline stage %d"</span>, <label for="r141" class="ident">i</label>+<span class="lit-number">2</span>)</code></span>
+<span class="codeline" id="line-475"><code>		}</code></span>
+<span class="codeline" id="line-476"><code>	}</code></span>
+<span class="codeline" id="line-477"><code>}</code></span>
+<span class="codeline" id="line-478"><code></code></span>
+<span class="codeline" id="line-479"><code><span class="keyword">func</span> (<label for="r143" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r144" class="ident">parseControl</label>(<label for="r145" class="ident">allowElseIf</label> <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r146" class="ident">context</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r147" class="ident">pos</label> <a href="node.go.html#line-40" class="ident">Pos</a>, <label for="r148" class="ident">line</label> <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r149" class="ident">pipe</label> *<a href="node.go.html#line-186" class="ident">PipeNode</a>, <label for="r150" class="ident">list</label>, <label for="r151" class="ident">elseList</label> *<a href="node.go.html#line-79" class="ident">ListNode</a>) {</code></span>
+<span class="codeline" id="line-480"><code>	<span class="keyword">defer</span> <label for="r143" class="ident">t</label>.<a href="#line-739" class="ident">popVars</a>(<a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r143" class="ident">t</label>.<a href="#line-31" class="ident">vars</a>))</code></span>
+<span class="codeline" id="line-481"><code>	<label for="r149" class="ident">pipe</label> = <label for="r143" class="ident">t</label>.<a href="#line-409" class="ident">pipeline</a>(<label for="r146" class="ident">context</label>, <a href="lex.go.html#line-56" class="ident">itemRightDelim</a>)</code></span>
+<span class="codeline" id="line-482"><code>	<span class="keyword">var</span> <label for="r152" class="ident">next</label> <a href="node.go.html#line-20" class="ident">Node</a></code></span>
+<span class="codeline" id="line-483"><code>	<label for="r150" class="ident">list</label>, <label for="r152" class="ident">next</label> = <label for="r143" class="ident">t</label>.<a href="#line-343" class="ident">itemList</a>()</code></span>
+<span class="codeline" id="line-484"><code>	<span class="keyword">switch</span> <label for="r152" class="ident">next</label>.<a href="node.go.html#line-21" class="ident">Type</a>() {</code></span>
+<span class="codeline" id="line-485"><code>	<span class="keyword">case</span> <a href="node.go.html#line-60" class="ident">nodeEnd</a>: <span class="comment">//done</span></code></span>
+<span class="codeline" id="line-486"><code>	<span class="keyword">case</span> <a href="node.go.html#line-59" class="ident">nodeElse</a>:</code></span>
+<span class="codeline" id="line-487"><code>		<span class="keyword">if</span> <label for="r145" class="ident">allowElseIf</label> {</code></span>
+<span class="codeline" id="line-488"><code>			<span class="comment">// Special case for "else if". If the "else" is followed immediately by an "if",</span></code></span>
+<span class="codeline" id="line-489"><code><span class="comment">			// the elseControl will have left the "if" token pending. Treat</span></code></span>
+<span class="codeline" id="line-490"><code><span class="comment">			//	{{if a}}_{{else if b}}_{{end}}</span></code></span>
+<span class="codeline" id="line-491"><code><span class="comment">			// as</span></code></span>
+<span class="codeline" id="line-492"><code><span class="comment">			//	{{if a}}_{{else}}{{if b}}_{{end}}{{end}}.</span></code></span>
+<span class="codeline" id="line-493"><code><span class="comment">			// To do this, parse the if as usual and stop at it {{end}}; the subsequent{{end}}</span></code></span>
+<span class="codeline" id="line-494"><code><span class="comment">			// is assumed. This technique works even for long if-else-if chains.</span></code></span>
+<span class="codeline" id="line-495"><code><span class="comment">			// TODO: Should we allow else-if in with and range?</span></code></span>
+<span class="codeline" id="line-496"><code>			<span class="keyword">if</span> <label for="r143" class="ident">t</label>.<a href="#line-100" class="ident">peek</a>().<a href="lex.go.html#line-16" class="ident">typ</a> == <a href="lex.go.html#line-69" class="ident">itemIf</a> {</code></span>
+<span class="codeline" id="line-497"><code>				<label for="r143" class="ident">t</label>.<a href="#line-70" class="ident">next</a>() <span class="comment">// Consume the "if" token.</span></code></span>
+<span class="codeline" id="line-498"><code>				<label for="r151" class="ident">elseList</label> = <label for="r143" class="ident">t</label>.<a href="node.go.html#line-86" class="ident">newList</a>(<label for="r152" class="ident">next</label>.<a href="node.go.html#line-27" class="ident">Position</a>())</code></span>
+<span class="codeline" id="line-499"><code>				<label for="r151" class="ident">elseList</label>.<a href="node.go.html#line-90" class="ident">append</a>(<label for="r143" class="ident">t</label>.<a href="#line-516" class="ident">ifControl</a>())</code></span>
+<span class="codeline" id="line-500"><code>				<span class="comment">// Do not consume the next item - only one {{end}} required.</span></code></span>
+<span class="codeline" id="line-501"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-502"><code>			}</code></span>
+<span class="codeline" id="line-503"><code>		}</code></span>
+<span class="codeline" id="line-504"><code>		<label for="r151" class="ident">elseList</label>, <label for="r152" class="ident">next</label> = <label for="r143" class="ident">t</label>.<a href="#line-343" class="ident">itemList</a>()</code></span>
+<span class="codeline" id="line-505"><code>		<span class="keyword">if</span> <label for="r152" class="ident">next</label>.<a href="node.go.html#line-21" class="ident">Type</a>() != <a href="node.go.html#line-60" class="ident">nodeEnd</a> {</code></span>
+<span class="codeline" id="line-506"><code>			<label for="r143" class="ident">t</label>.<a href="#line-160" class="ident">errorf</a>(<span class="lit-string">"expected end; found %s"</span>, <label for="r152" class="ident">next</label>)</code></span>
+<span class="codeline" id="line-507"><code>		}</code></span>
+<span class="codeline" id="line-508"><code>	}</code></span>
+<span class="codeline" id="line-509"><code>	<span class="keyword">return</span> <label for="r149" class="ident">pipe</label>.<a href="node.go.html#line-42" class="ident">Position</a>(), <label for="r149" class="ident">pipe</label>.<a href="node.go.html#line-190" class="ident">Line</a>, <label for="r149" class="ident">pipe</label>, <label for="r150" class="ident">list</label>, <label for="r151" class="ident">elseList</label></code></span>
+<span class="codeline" id="line-510"><code>}</code></span>
+<span class="codeline" id="line-511"><code></code></span>
+<span class="codeline" id="line-512"><code><span class="comment">// If:</span></code></span>
+<span class="codeline" id="line-513"><code><span class="comment">//	{{if pipeline}} itemList {{end}}</span></code></span>
+<span class="codeline" id="line-514"><code><span class="comment">//	{{if pipeline}} itemList {{else}} itemList {{end}}</span></code></span>
+<span class="codeline" id="line-515"><code><span class="comment">// If keyword is past.</span></code></span>
+<span class="codeline" id="line-516"><code><span class="keyword">func</span> (<label for="r153" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r154" class="ident">ifControl</label>() <a href="node.go.html#line-20" class="ident">Node</a> {</code></span>
+<span class="codeline" id="line-517"><code>	<span class="keyword">return</span> <label for="r153" class="ident">t</label>.<a href="node.go.html#line-902" class="ident">newIf</a>(<label for="r153" class="ident">t</label>.<a href="#line-479" class="ident">parseControl</a>(<a href="../../../../pkg/builtin.html#name-true" class="ident">true</a>, <span class="lit-string">"if"</span>))</code></span>
+<span class="codeline" id="line-518"><code>}</code></span>
+<span class="codeline" id="line-519"><code></code></span>
+<span class="codeline" id="line-520"><code><span class="comment">// Range:</span></code></span>
+<span class="codeline" id="line-521"><code><span class="comment">//	{{range pipeline}} itemList {{end}}</span></code></span>
+<span class="codeline" id="line-522"><code><span class="comment">//	{{range pipeline}} itemList {{else}} itemList {{end}}</span></code></span>
+<span class="codeline" id="line-523"><code><span class="comment">// Range keyword is past.</span></code></span>
+<span class="codeline" id="line-524"><code><span class="keyword">func</span> (<label for="r155" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r156" class="ident">rangeControl</label>() <a href="node.go.html#line-20" class="ident">Node</a> {</code></span>
+<span class="codeline" id="line-525"><code>	<span class="keyword">return</span> <label for="r155" class="ident">t</label>.<a href="node.go.html#line-915" class="ident">newRange</a>(<label for="r155" class="ident">t</label>.<a href="#line-479" class="ident">parseControl</a>(<a href="../../../../pkg/builtin.html#name-false" class="ident">false</a>, <span class="lit-string">"range"</span>))</code></span>
+<span class="codeline" id="line-526"><code>}</code></span>
+<span class="codeline" id="line-527"><code></code></span>
+<span class="codeline" id="line-528"><code><span class="comment">// With:</span></code></span>
+<span class="codeline" id="line-529"><code><span class="comment">//	{{with pipeline}} itemList {{end}}</span></code></span>
+<span class="codeline" id="line-530"><code><span class="comment">//	{{with pipeline}} itemList {{else}} itemList {{end}}</span></code></span>
+<span class="codeline" id="line-531"><code><span class="comment">// If keyword is past.</span></code></span>
+<span class="codeline" id="line-532"><code><span class="keyword">func</span> (<label for="r157" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r158" class="ident">withControl</label>() <a href="node.go.html#line-20" class="ident">Node</a> {</code></span>
+<span class="codeline" id="line-533"><code>	<span class="keyword">return</span> <label for="r157" class="ident">t</label>.<a href="node.go.html#line-928" class="ident">newWith</a>(<label for="r157" class="ident">t</label>.<a href="#line-479" class="ident">parseControl</a>(<a href="../../../../pkg/builtin.html#name-false" class="ident">false</a>, <span class="lit-string">"with"</span>))</code></span>
+<span class="codeline" id="line-534"><code>}</code></span>
+<span class="codeline" id="line-535"><code></code></span>
+<span class="codeline" id="line-536"><code><span class="comment">// End:</span></code></span>
+<span class="codeline" id="line-537"><code><span class="comment">//	{{end}}</span></code></span>
+<span class="codeline" id="line-538"><code><span class="comment">// End keyword is past.</span></code></span>
+<span class="codeline" id="line-539"><code><span class="keyword">func</span> (<label for="r159" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r160" class="ident">endControl</label>() <a href="node.go.html#line-20" class="ident">Node</a> {</code></span>
+<span class="codeline" id="line-540"><code>	<span class="keyword">return</span> <label for="r159" class="ident">t</label>.<a href="node.go.html#line-786" class="ident">newEnd</a>(<label for="r159" class="ident">t</label>.<a href="#line-172" class="ident">expect</a>(<a href="lex.go.html#line-56" class="ident">itemRightDelim</a>, <span class="lit-string">"end"</span>).<a href="lex.go.html#line-17" class="ident">pos</a>)</code></span>
+<span class="codeline" id="line-541"><code>}</code></span>
+<span class="codeline" id="line-542"><code></code></span>
+<span class="codeline" id="line-543"><code><span class="comment">// Else:</span></code></span>
+<span class="codeline" id="line-544"><code><span class="comment">//	{{else}}</span></code></span>
+<span class="codeline" id="line-545"><code><span class="comment">// Else keyword is past.</span></code></span>
+<span class="codeline" id="line-546"><code><span class="keyword">func</span> (<label for="r161" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r162" class="ident">elseControl</label>() <a href="node.go.html#line-20" class="ident">Node</a> {</code></span>
+<span class="codeline" id="line-547"><code>	<span class="comment">// Special case for "else if".</span></code></span>
+<span class="codeline" id="line-548"><code>	<label for="r163" class="ident">peek</label> := <label for="r161" class="ident">t</label>.<a href="#line-121" class="ident">peekNonSpace</a>()</code></span>
+<span class="codeline" id="line-549"><code>	<span class="keyword">if</span> <label for="r163" class="ident">peek</label>.<a href="lex.go.html#line-16" class="ident">typ</a> == <a href="lex.go.html#line-69" class="ident">itemIf</a> {</code></span>
+<span class="codeline" id="line-550"><code>		<span class="comment">// We see "{{else if ... " but in effect rewrite it to {{else}}{{if ... ".</span></code></span>
+<span class="codeline" id="line-551"><code>		<span class="keyword">return</span> <label for="r161" class="ident">t</label>.<a href="node.go.html#line-814" class="ident">newElse</a>(<label for="r163" class="ident">peek</label>.<a href="lex.go.html#line-17" class="ident">pos</a>, <label for="r163" class="ident">peek</label>.<a href="lex.go.html#line-19" class="ident">line</a>)</code></span>
+<span class="codeline" id="line-552"><code>	}</code></span>
+<span class="codeline" id="line-553"><code>	<label for="r164" class="ident">token</label> := <label for="r161" class="ident">t</label>.<a href="#line-172" class="ident">expect</a>(<a href="lex.go.html#line-56" class="ident">itemRightDelim</a>, <span class="lit-string">"else"</span>)</code></span>
+<span class="codeline" id="line-554"><code>	<span class="keyword">return</span> <label for="r161" class="ident">t</label>.<a href="node.go.html#line-814" class="ident">newElse</a>(<label for="r164" class="ident">token</label>.<a href="lex.go.html#line-17" class="ident">pos</a>, <label for="r164" class="ident">token</label>.<a href="lex.go.html#line-19" class="ident">line</a>)</code></span>
+<span class="codeline" id="line-555"><code>}</code></span>
+<span class="codeline" id="line-556"><code></code></span>
+<span class="codeline" id="line-557"><code><span class="comment">// Block:</span></code></span>
+<span class="codeline" id="line-558"><code><span class="comment">//	{{block stringValue pipeline}}</span></code></span>
+<span class="codeline" id="line-559"><code><span class="comment">// Block keyword is past.</span></code></span>
+<span class="codeline" id="line-560"><code><span class="comment">// The name must be something that can evaluate to a string.</span></code></span>
+<span class="codeline" id="line-561"><code><span class="comment">// The pipeline is mandatory.</span></code></span>
+<span class="codeline" id="line-562"><code><span class="keyword">func</span> (<label for="r165" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r166" class="ident">blockControl</label>() <a href="node.go.html#line-20" class="ident">Node</a> {</code></span>
+<span class="codeline" id="line-563"><code>	<span class="keyword">const</span> <label for="r167" class="ident">context</label> = <span class="lit-string">"block clause"</span></code></span>
+<span class="codeline" id="line-564"><code></code></span>
+<span class="codeline" id="line-565"><code>	<label for="r168" class="ident">token</label> := <label for="r165" class="ident">t</label>.<a href="#line-110" class="ident">nextNonSpace</a>()</code></span>
+<span class="codeline" id="line-566"><code>	<label for="r169" class="ident">name</label> := <label for="r165" class="ident">t</label>.<a href="#line-602" class="ident">parseTemplateName</a>(<label for="r168" class="ident">token</label>, <label for="r167" class="ident">context</label>)</code></span>
+<span class="codeline" id="line-567"><code>	<label for="r170" class="ident">pipe</label> := <label for="r165" class="ident">t</label>.<a href="#line-409" class="ident">pipeline</a>(<label for="r167" class="ident">context</label>, <a href="lex.go.html#line-56" class="ident">itemRightDelim</a>)</code></span>
+<span class="codeline" id="line-568"><code></code></span>
+<span class="codeline" id="line-569"><code>	<label for="r171" class="ident">block</label> := <a href="#line-130" class="ident">New</a>(<label for="r169" class="ident">name</label>) <span class="comment">// name will be updated once we know it.</span></code></span>
+<span class="codeline" id="line-570"><code>	<label for="r171" class="ident">block</label>.<a href="#line-25" class="ident">text</a> = <label for="r165" class="ident">t</label>.<a href="#line-25" class="ident">text</a></code></span>
+<span class="codeline" id="line-571"><code>	<label for="r171" class="ident">block</label>.<a href="#line-24" class="ident">Mode</a> = <label for="r165" class="ident">t</label>.<a href="#line-24" class="ident">Mode</a></code></span>
+<span class="codeline" id="line-572"><code>	<label for="r171" class="ident">block</label>.<a href="#line-22" class="ident">ParseName</a> = <label for="r165" class="ident">t</label>.<a href="#line-22" class="ident">ParseName</a></code></span>
+<span class="codeline" id="line-573"><code>	<label for="r171" class="ident">block</label>.<a href="#line-220" class="ident">startParse</a>(<label for="r165" class="ident">t</label>.<a href="#line-27" class="ident">funcs</a>, <label for="r165" class="ident">t</label>.<a href="#line-28" class="ident">lex</a>, <label for="r165" class="ident">t</label>.<a href="#line-32" class="ident">treeSet</a>)</code></span>
+<span class="codeline" id="line-574"><code>	<span class="keyword">var</span> <label for="r172" class="ident">end</label> <a href="node.go.html#line-20" class="ident">Node</a></code></span>
+<span class="codeline" id="line-575"><code>	<label for="r171" class="ident">block</label>.<a href="#line-23" class="ident">Root</a>, <label for="r172" class="ident">end</label> = <label for="r171" class="ident">block</label>.<a href="#line-343" class="ident">itemList</a>()</code></span>
+<span class="codeline" id="line-576"><code>	<span class="keyword">if</span> <label for="r172" class="ident">end</label>.<a href="node.go.html#line-21" class="ident">Type</a>() != <a href="node.go.html#line-60" class="ident">nodeEnd</a> {</code></span>
+<span class="codeline" id="line-577"><code>		<label for="r165" class="ident">t</label>.<a href="#line-160" class="ident">errorf</a>(<span class="lit-string">"unexpected %s in %s"</span>, <label for="r172" class="ident">end</label>, <label for="r167" class="ident">context</label>)</code></span>
+<span class="codeline" id="line-578"><code>	}</code></span>
+<span class="codeline" id="line-579"><code>	<label for="r171" class="ident">block</label>.<a href="#line-253" class="ident">add</a>()</code></span>
+<span class="codeline" id="line-580"><code>	<label for="r171" class="ident">block</label>.<a href="#line-229" class="ident">stopParse</a>()</code></span>
+<span class="codeline" id="line-581"><code></code></span>
+<span class="codeline" id="line-582"><code>	<span class="keyword">return</span> <label for="r165" class="ident">t</label>.<a href="node.go.html#line-946" class="ident">newTemplate</a>(<label for="r168" class="ident">token</label>.<a href="lex.go.html#line-17" class="ident">pos</a>, <label for="r168" class="ident">token</label>.<a href="lex.go.html#line-19" class="ident">line</a>, <label for="r169" class="ident">name</label>, <label for="r170" class="ident">pipe</label>)</code></span>
+<span class="codeline" id="line-583"><code>}</code></span>
+<span class="codeline" id="line-584"><code></code></span>
+<span class="codeline" id="line-585"><code><span class="comment">// Template:</span></code></span>
+<span class="codeline" id="line-586"><code><span class="comment">//	{{template stringValue pipeline}}</span></code></span>
+<span class="codeline" id="line-587"><code><span class="comment">// Template keyword is past. The name must be something that can evaluate</span></code></span>
+<span class="codeline" id="line-588"><code><span class="comment">// to a string.</span></code></span>
+<span class="codeline" id="line-589"><code><span class="keyword">func</span> (<label for="r173" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r174" class="ident">templateControl</label>() <a href="node.go.html#line-20" class="ident">Node</a> {</code></span>
+<span class="codeline" id="line-590"><code>	<span class="keyword">const</span> <label for="r175" class="ident">context</label> = <span class="lit-string">"template clause"</span></code></span>
+<span class="codeline" id="line-591"><code>	<label for="r176" class="ident">token</label> := <label for="r173" class="ident">t</label>.<a href="#line-110" class="ident">nextNonSpace</a>()</code></span>
+<span class="codeline" id="line-592"><code>	<label for="r177" class="ident">name</label> := <label for="r173" class="ident">t</label>.<a href="#line-602" class="ident">parseTemplateName</a>(<label for="r176" class="ident">token</label>, <label for="r175" class="ident">context</label>)</code></span>
+<span class="codeline" id="line-593"><code>	<span class="keyword">var</span> <label for="r178" class="ident">pipe</label> *<a href="node.go.html#line-186" class="ident">PipeNode</a></code></span>
+<span class="codeline" id="line-594"><code>	<span class="keyword">if</span> <label for="r173" class="ident">t</label>.<a href="#line-110" class="ident">nextNonSpace</a>().<a href="lex.go.html#line-16" class="ident">typ</a> != <a href="lex.go.html#line-56" class="ident">itemRightDelim</a> {</code></span>
+<span class="codeline" id="line-595"><code>		<label for="r173" class="ident">t</label>.<a href="#line-80" class="ident">backup</a>()</code></span>
+<span class="codeline" id="line-596"><code>		<span class="comment">// Do not pop variables; they persist until "end".</span></code></span>
+<span class="codeline" id="line-597"><code>		<label for="r178" class="ident">pipe</label> = <label for="r173" class="ident">t</label>.<a href="#line-409" class="ident">pipeline</a>(<label for="r175" class="ident">context</label>, <a href="lex.go.html#line-56" class="ident">itemRightDelim</a>)</code></span>
+<span class="codeline" id="line-598"><code>	}</code></span>
+<span class="codeline" id="line-599"><code>	<span class="keyword">return</span> <label for="r173" class="ident">t</label>.<a href="node.go.html#line-946" class="ident">newTemplate</a>(<label for="r176" class="ident">token</label>.<a href="lex.go.html#line-17" class="ident">pos</a>, <label for="r176" class="ident">token</label>.<a href="lex.go.html#line-19" class="ident">line</a>, <label for="r177" class="ident">name</label>, <label for="r178" class="ident">pipe</label>)</code></span>
+<span class="codeline" id="line-600"><code>}</code></span>
+<span class="codeline" id="line-601"><code></code></span>
+<span class="codeline" id="line-602"><code><span class="keyword">func</span> (<label for="r179" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r180" class="ident">parseTemplateName</label>(<label for="r181" class="ident">token</label> <a href="lex.go.html#line-15" class="ident">item</a>, <label for="r182" class="ident">context</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r183" class="ident">name</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-603"><code>	<span class="keyword">switch</span> <label for="r181" class="ident">token</label>.<a href="lex.go.html#line-16" class="ident">typ</a> {</code></span>
+<span class="codeline" id="line-604"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-59" class="ident">itemString</a>, <a href="lex.go.html#line-55" class="ident">itemRawString</a>:</code></span>
+<span class="codeline" id="line-605"><code>		<label for="r184" class="ident">s</label>, <label for="r185" class="ident">err</label> := <a href="../../../../pkg/strconv.html" class="ident i3">strconv</a>.<a href="../../../strconv/quote.go.html#line-368" class="ident">Unquote</a>(<label for="r181" class="ident">token</label>.<a href="lex.go.html#line-18" class="ident">val</a>)</code></span>
+<span class="codeline" id="line-606"><code>		<span class="keyword">if</span> <label for="r185" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-607"><code>			<label for="r179" class="ident">t</label>.<a href="#line-167" class="ident">error</a>(<label for="r185" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-608"><code>		}</code></span>
+<span class="codeline" id="line-609"><code>		<label for="r183" class="ident">name</label> = <label for="r184" class="ident">s</label></code></span>
+<span class="codeline" id="line-610"><code>	<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-611"><code>		<label for="r179" class="ident">t</label>.<a href="#line-190" class="ident">unexpected</a>(<label for="r181" class="ident">token</label>, <label for="r182" class="ident">context</label>)</code></span>
+<span class="codeline" id="line-612"><code>	}</code></span>
+<span class="codeline" id="line-613"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-614"><code>}</code></span>
+<span class="codeline" id="line-615"><code></code></span>
+<span class="codeline" id="line-616"><code><span class="comment">// command:</span></code></span>
+<span class="codeline" id="line-617"><code><span class="comment">//	operand (space operand)*</span></code></span>
+<span class="codeline" id="line-618"><code><span class="comment">// space-separated arguments up to a pipeline character or right delimiter.</span></code></span>
+<span class="codeline" id="line-619"><code><span class="comment">// we consume the pipe character but leave the right delim to terminate the action.</span></code></span>
+<span class="codeline" id="line-620"><code><span class="keyword">func</span> (<label for="r186" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r187" class="ident">command</label>() *<a href="node.go.html#line-289" class="ident">CommandNode</a> {</code></span>
+<span class="codeline" id="line-621"><code>	<label for="r188" class="ident">cmd</label> := <label for="r186" class="ident">t</label>.<a href="node.go.html#line-296" class="ident">newCommand</a>(<label for="r186" class="ident">t</label>.<a href="#line-121" class="ident">peekNonSpace</a>().<a href="lex.go.html#line-17" class="ident">pos</a>)</code></span>
+<span class="codeline" id="line-622"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-623"><code>		<label for="r186" class="ident">t</label>.<a href="#line-121" class="ident">peekNonSpace</a>() <span class="comment">// skip leading spaces.</span></code></span>
+<span class="codeline" id="line-624"><code>		<label for="r189" class="ident">operand</label> := <label for="r186" class="ident">t</label>.<a href="#line-651" class="ident">operand</a>()</code></span>
+<span class="codeline" id="line-625"><code>		<span class="keyword">if</span> <label for="r189" class="ident">operand</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-626"><code>			<label for="r188" class="ident">cmd</label>.<a href="node.go.html#line-300" class="ident">append</a>(<label for="r189" class="ident">operand</label>)</code></span>
+<span class="codeline" id="line-627"><code>		}</code></span>
+<span class="codeline" id="line-628"><code>		<span class="keyword">switch</span> <label for="r190" class="ident">token</label> := <label for="r186" class="ident">t</label>.<a href="#line-70" class="ident">next</a>(); <label for="r190" class="ident">token</label>.<a href="lex.go.html#line-16" class="ident">typ</a> {</code></span>
+<span class="codeline" id="line-629"><code>		<span class="keyword">case</span> <a href="lex.go.html#line-58" class="ident">itemSpace</a>:</code></span>
+<span class="codeline" id="line-630"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-631"><code>		<span class="keyword">case</span> <a href="lex.go.html#line-56" class="ident">itemRightDelim</a>, <a href="lex.go.html#line-57" class="ident">itemRightParen</a>:</code></span>
+<span class="codeline" id="line-632"><code>			<label for="r186" class="ident">t</label>.<a href="#line-80" class="ident">backup</a>()</code></span>
+<span class="codeline" id="line-633"><code>		<span class="keyword">case</span> <a href="lex.go.html#line-54" class="ident">itemPipe</a>:</code></span>
+<span class="codeline" id="line-634"><code>			<span class="comment">// nothing here; break loop below</span></code></span>
+<span class="codeline" id="line-635"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-636"><code>			<label for="r186" class="ident">t</label>.<a href="#line-190" class="ident">unexpected</a>(<label for="r190" class="ident">token</label>, <span class="lit-string">"operand"</span>)</code></span>
+<span class="codeline" id="line-637"><code>		}</code></span>
+<span class="codeline" id="line-638"><code>		<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-639"><code>	}</code></span>
+<span class="codeline" id="line-640"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r188" class="ident">cmd</label>.<a href="node.go.html#line-293" class="ident">Args</a>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-641"><code>		<label for="r186" class="ident">t</label>.<a href="#line-160" class="ident">errorf</a>(<span class="lit-string">"empty command"</span>)</code></span>
+<span class="codeline" id="line-642"><code>	}</code></span>
+<span class="codeline" id="line-643"><code>	<span class="keyword">return</span> <label for="r188" class="ident">cmd</label></code></span>
+<span class="codeline" id="line-644"><code>}</code></span>
+<span class="codeline" id="line-645"><code></code></span>
+<span class="codeline" id="line-646"><code><span class="comment">// operand:</span></code></span>
+<span class="codeline" id="line-647"><code><span class="comment">//	term .Field*</span></code></span>
+<span class="codeline" id="line-648"><code><span class="comment">// An operand is a space-separated component of a command,</span></code></span>
+<span class="codeline" id="line-649"><code><span class="comment">// a term possibly followed by field accesses.</span></code></span>
+<span class="codeline" id="line-650"><code><span class="comment">// A nil return means the next item is not an operand.</span></code></span>
+<span class="codeline" id="line-651"><code><span class="keyword">func</span> (<label for="r191" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r192" class="ident">operand</label>() <a href="node.go.html#line-20" class="ident">Node</a> {</code></span>
+<span class="codeline" id="line-652"><code>	<label for="r193" class="ident">node</label> := <label for="r191" class="ident">t</label>.<a href="#line-689" class="ident">term</a>()</code></span>
+<span class="codeline" id="line-653"><code>	<span class="keyword">if</span> <label for="r193" class="ident">node</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-654"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-655"><code>	}</code></span>
+<span class="codeline" id="line-656"><code>	<span class="keyword">if</span> <label for="r191" class="ident">t</label>.<a href="#line-100" class="ident">peek</a>().<a href="lex.go.html#line-16" class="ident">typ</a> == <a href="lex.go.html#line-49" class="ident">itemField</a> {</code></span>
+<span class="codeline" id="line-657"><code>		<label for="r194" class="ident">chain</label> := <label for="r191" class="ident">t</label>.<a href="node.go.html#line-535" class="ident">newChain</a>(<label for="r191" class="ident">t</label>.<a href="#line-100" class="ident">peek</a>().<a href="lex.go.html#line-17" class="ident">pos</a>, <label for="r193" class="ident">node</label>)</code></span>
+<span class="codeline" id="line-658"><code>		<span class="keyword">for</span> <label for="r191" class="ident">t</label>.<a href="#line-100" class="ident">peek</a>().<a href="lex.go.html#line-16" class="ident">typ</a> == <a href="lex.go.html#line-49" class="ident">itemField</a> {</code></span>
+<span class="codeline" id="line-659"><code>			<label for="r194" class="ident">chain</label>.<a href="node.go.html#line-540" class="ident">Add</a>(<label for="r191" class="ident">t</label>.<a href="#line-70" class="ident">next</a>().<a href="lex.go.html#line-18" class="ident">val</a>)</code></span>
+<span class="codeline" id="line-660"><code>		}</code></span>
+<span class="codeline" id="line-661"><code>		<span class="comment">// Compatibility with original API: If the term is of type NodeField</span></code></span>
+<span class="codeline" id="line-662"><code><span class="comment">		// or NodeVariable, just put more fields on the original.</span></code></span>
+<span class="codeline" id="line-663"><code><span class="comment">		// Otherwise, keep the Chain node.</span></code></span>
+<span class="codeline" id="line-664"><code><span class="comment">		// Obvious parsing errors involving literal values are detected here.</span></code></span>
+<span class="codeline" id="line-665"><code><span class="comment">		// More complex error cases will have to be handled at execution time.</span></code></span>
+<span class="codeline" id="line-666"><code>		<span class="keyword">switch</span> <label for="r193" class="ident">node</label>.<a href="node.go.html#line-21" class="ident">Type</a>() {</code></span>
+<span class="codeline" id="line-667"><code>		<span class="keyword">case</span> <a href="node.go.html#line-61" class="ident">NodeField</a>:</code></span>
+<span class="codeline" id="line-668"><code>			<label for="r193" class="ident">node</label> = <label for="r191" class="ident">t</label>.<a href="node.go.html#line-499" class="ident">newField</a>(<label for="r194" class="ident">chain</label>.<a href="node.go.html#line-42" class="ident">Position</a>(), <label for="r194" class="ident">chain</label>.<a href="node.go.html#line-551" class="ident">String</a>())</code></span>
+<span class="codeline" id="line-669"><code>		<span class="keyword">case</span> <a href="node.go.html#line-71" class="ident">NodeVariable</a>:</code></span>
+<span class="codeline" id="line-670"><code>			<label for="r193" class="ident">node</label> = <label for="r191" class="ident">t</label>.<a href="node.go.html#line-394" class="ident">newVariable</a>(<label for="r194" class="ident">chain</label>.<a href="node.go.html#line-42" class="ident">Position</a>(), <label for="r194" class="ident">chain</label>.<a href="node.go.html#line-551" class="ident">String</a>())</code></span>
+<span class="codeline" id="line-671"><code>		<span class="keyword">case</span> <a href="node.go.html#line-55" class="ident">NodeBool</a>, <a href="node.go.html#line-69" class="ident">NodeString</a>, <a href="node.go.html#line-66" class="ident">NodeNumber</a>, <a href="node.go.html#line-65" class="ident">NodeNil</a>, <a href="node.go.html#line-58" class="ident">NodeDot</a>:</code></span>
+<span class="codeline" id="line-672"><code>			<label for="r191" class="ident">t</label>.<a href="#line-160" class="ident">errorf</a>(<span class="lit-string">"unexpected . after term %q"</span>, <label for="r193" class="ident">node</label>.<a href="node.go.html#line-22" class="ident">String</a>())</code></span>
+<span class="codeline" id="line-673"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-674"><code>			<label for="r193" class="ident">node</label> = <label for="r194" class="ident">chain</label></code></span>
+<span class="codeline" id="line-675"><code>		}</code></span>
+<span class="codeline" id="line-676"><code>	}</code></span>
+<span class="codeline" id="line-677"><code>	<span class="keyword">return</span> <label for="r193" class="ident">node</label></code></span>
+<span class="codeline" id="line-678"><code>}</code></span>
+<span class="codeline" id="line-679"><code></code></span>
+<span class="codeline" id="line-680"><code><span class="comment">// term:</span></code></span>
+<span class="codeline" id="line-681"><code><span class="comment">//	literal (number, string, nil, boolean)</span></code></span>
+<span class="codeline" id="line-682"><code><span class="comment">//	function (identifier)</span></code></span>
+<span class="codeline" id="line-683"><code><span class="comment">//	.</span></code></span>
+<span class="codeline" id="line-684"><code><span class="comment">//	.Field</span></code></span>
+<span class="codeline" id="line-685"><code><span class="comment">//	$</span></code></span>
+<span class="codeline" id="line-686"><code><span class="comment">//	'(' pipeline ')'</span></code></span>
+<span class="codeline" id="line-687"><code><span class="comment">// A term is a simple "expression".</span></code></span>
+<span class="codeline" id="line-688"><code><span class="comment">// A nil return means the next item is not a term.</span></code></span>
+<span class="codeline" id="line-689"><code><span class="keyword">func</span> (<label for="r195" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r196" class="ident">term</label>() <a href="node.go.html#line-20" class="ident">Node</a> {</code></span>
+<span class="codeline" id="line-690"><code>	<span class="keyword">switch</span> <label for="r197" class="ident">token</label> := <label for="r195" class="ident">t</label>.<a href="#line-110" class="ident">nextNonSpace</a>(); <label for="r197" class="ident">token</label>.<a href="lex.go.html#line-16" class="ident">typ</a> {</code></span>
+<span class="codeline" id="line-691"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-50" class="ident">itemIdentifier</a>:</code></span>
+<span class="codeline" id="line-692"><code>		<span class="keyword">if</span> !<label for="r195" class="ident">t</label>.<a href="#line-726" class="ident">hasFunction</a>(<label for="r197" class="ident">token</label>.<a href="lex.go.html#line-18" class="ident">val</a>) {</code></span>
+<span class="codeline" id="line-693"><code>			<label for="r195" class="ident">t</label>.<a href="#line-160" class="ident">errorf</a>(<span class="lit-string">"function %q not defined"</span>, <label for="r197" class="ident">token</label>.<a href="lex.go.html#line-18" class="ident">val</a>)</code></span>
+<span class="codeline" id="line-694"><code>		}</code></span>
+<span class="codeline" id="line-695"><code>		<span class="keyword">return</span> <a href="node.go.html#line-349" class="ident">NewIdentifier</a>(<label for="r197" class="ident">token</label>.<a href="lex.go.html#line-18" class="ident">val</a>).<a href="node.go.html#line-364" class="ident">SetTree</a>(<label for="r195" class="ident">t</label>).<a href="node.go.html#line-356" class="ident">SetPos</a>(<label for="r197" class="ident">token</label>.<a href="lex.go.html#line-17" class="ident">pos</a>)</code></span>
+<span class="codeline" id="line-696"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-65" class="ident">itemDot</a>:</code></span>
+<span class="codeline" id="line-697"><code>		<span class="keyword">return</span> <label for="r195" class="ident">t</label>.<a href="node.go.html#line-428" class="ident">newDot</a>(<label for="r197" class="ident">token</label>.<a href="lex.go.html#line-17" class="ident">pos</a>)</code></span>
+<span class="codeline" id="line-698"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-70" class="ident">itemNil</a>:</code></span>
+<span class="codeline" id="line-699"><code>		<span class="keyword">return</span> <label for="r195" class="ident">t</label>.<a href="node.go.html#line-462" class="ident">newNil</a>(<label for="r197" class="ident">token</label>.<a href="lex.go.html#line-17" class="ident">pos</a>)</code></span>
+<span class="codeline" id="line-700"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-61" class="ident">itemVariable</a>:</code></span>
+<span class="codeline" id="line-701"><code>		<span class="keyword">return</span> <label for="r195" class="ident">t</label>.<a href="#line-745" class="ident">useVar</a>(<label for="r197" class="ident">token</label>.<a href="lex.go.html#line-17" class="ident">pos</a>, <label for="r197" class="ident">token</label>.<a href="lex.go.html#line-18" class="ident">val</a>)</code></span>
+<span class="codeline" id="line-702"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-49" class="ident">itemField</a>:</code></span>
+<span class="codeline" id="line-703"><code>		<span class="keyword">return</span> <label for="r195" class="ident">t</label>.<a href="node.go.html#line-499" class="ident">newField</a>(<label for="r197" class="ident">token</label>.<a href="lex.go.html#line-17" class="ident">pos</a>, <label for="r197" class="ident">token</label>.<a href="lex.go.html#line-18" class="ident">val</a>)</code></span>
+<span class="codeline" id="line-704"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-41" class="ident">itemBool</a>:</code></span>
+<span class="codeline" id="line-705"><code>		<span class="keyword">return</span> <label for="r195" class="ident">t</label>.<a href="node.go.html#line-587" class="ident">newBool</a>(<label for="r197" class="ident">token</label>.<a href="lex.go.html#line-17" class="ident">pos</a>, <label for="r197" class="ident">token</label>.<a href="lex.go.html#line-18" class="ident">val</a> == <span class="lit-string">"true"</span>)</code></span>
+<span class="codeline" id="line-706"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-43" class="ident">itemCharConstant</a>, <a href="lex.go.html#line-45" class="ident">itemComplex</a>, <a href="lex.go.html#line-53" class="ident">itemNumber</a>:</code></span>
+<span class="codeline" id="line-707"><code>		<label for="r198" class="ident">number</label>, <label for="r199" class="ident">err</label> := <label for="r195" class="ident">t</label>.<a href="node.go.html#line-628" class="ident">newNumber</a>(<label for="r197" class="ident">token</label>.<a href="lex.go.html#line-17" class="ident">pos</a>, <label for="r197" class="ident">token</label>.<a href="lex.go.html#line-18" class="ident">val</a>, <label for="r197" class="ident">token</label>.<a href="lex.go.html#line-16" class="ident">typ</a>)</code></span>
+<span class="codeline" id="line-708"><code>		<span class="keyword">if</span> <label for="r199" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-709"><code>			<label for="r195" class="ident">t</label>.<a href="#line-167" class="ident">error</a>(<label for="r199" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-710"><code>		}</code></span>
+<span class="codeline" id="line-711"><code>		<span class="keyword">return</span> <label for="r198" class="ident">number</label></code></span>
+<span class="codeline" id="line-712"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-52" class="ident">itemLeftParen</a>:</code></span>
+<span class="codeline" id="line-713"><code>		<span class="keyword">return</span> <label for="r195" class="ident">t</label>.<a href="#line-409" class="ident">pipeline</a>(<span class="lit-string">"parenthesized pipeline"</span>, <a href="lex.go.html#line-57" class="ident">itemRightParen</a>)</code></span>
+<span class="codeline" id="line-714"><code>	<span class="keyword">case</span> <a href="lex.go.html#line-59" class="ident">itemString</a>, <a href="lex.go.html#line-55" class="ident">itemRawString</a>:</code></span>
+<span class="codeline" id="line-715"><code>		<label for="r200" class="ident">s</label>, <label for="r201" class="ident">err</label> := <a href="../../../../pkg/strconv.html" class="ident i3">strconv</a>.<a href="../../../strconv/quote.go.html#line-368" class="ident">Unquote</a>(<label for="r197" class="ident">token</label>.<a href="lex.go.html#line-18" class="ident">val</a>)</code></span>
+<span class="codeline" id="line-716"><code>		<span class="keyword">if</span> <label for="r201" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-717"><code>			<label for="r195" class="ident">t</label>.<a href="#line-167" class="ident">error</a>(<label for="r201" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-718"><code>		}</code></span>
+<span class="codeline" id="line-719"><code>		<span class="keyword">return</span> <label for="r195" class="ident">t</label>.<a href="node.go.html#line-758" class="ident">newString</a>(<label for="r197" class="ident">token</label>.<a href="lex.go.html#line-17" class="ident">pos</a>, <label for="r197" class="ident">token</label>.<a href="lex.go.html#line-18" class="ident">val</a>, <label for="r200" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-720"><code>	}</code></span>
+<span class="codeline" id="line-721"><code>	<label for="r195" class="ident">t</label>.<a href="#line-80" class="ident">backup</a>()</code></span>
+<span class="codeline" id="line-722"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-723"><code>}</code></span>
+<span class="codeline" id="line-724"><code></code></span>
+<span class="codeline" id="line-725"><code><span class="comment">// hasFunction reports if a function name exists in the Tree's maps.</span></code></span>
+<span class="codeline" id="line-726"><code><span class="keyword">func</span> (<label for="r202" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r203" class="ident">hasFunction</label>(<label for="r204" class="ident">name</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-727"><code>	<span class="keyword">for</span> <label for="r205" class="ident">_</label>, <label for="r206" class="ident">funcMap</label> := <span class="keyword">range</span> <label for="r202" class="ident">t</label>.<a href="#line-27" class="ident">funcs</a> {</code></span>
+<span class="codeline" id="line-728"><code>		<span class="keyword">if</span> <label for="r206" class="ident">funcMap</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-729"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-730"><code>		}</code></span>
+<span class="codeline" id="line-731"><code>		<span class="keyword">if</span> <label for="r206" class="ident">funcMap</label>[<label for="r204" class="ident">name</label>] != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-732"><code>			<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-733"><code>		}</code></span>
+<span class="codeline" id="line-734"><code>	}</code></span>
+<span class="codeline" id="line-735"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-736"><code>}</code></span>
+<span class="codeline" id="line-737"><code></code></span>
+<span class="codeline" id="line-738"><code><span class="comment">// popVars trims the variable list to the specified length</span></code></span>
+<span class="codeline" id="line-739"><code><span class="keyword">func</span> (<label for="r207" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r208" class="ident">popVars</label>(<label for="r209" class="ident">n</label> <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-740"><code>	<label for="r207" class="ident">t</label>.<a href="#line-31" class="ident">vars</a> = <label for="r207" class="ident">t</label>.<a href="#line-31" class="ident">vars</a>[:<label for="r209" class="ident">n</label>]</code></span>
+<span class="codeline" id="line-741"><code>}</code></span>
+<span class="codeline" id="line-742"><code></code></span>
+<span class="codeline" id="line-743"><code><span class="comment">// useVar returns a node for a variable reference. It errors if the</span></code></span>
+<span class="codeline" id="line-744"><code><span class="comment">// variable is not defined.</span></code></span>
+<span class="codeline" id="line-745"><code><span class="keyword">func</span> (<label for="r210" class="ident">t</label> *<a href="#line-20" class="ident">Tree</a>) <label for="r211" class="ident">useVar</label>(<label for="r212" class="ident">pos</label> <a href="node.go.html#line-40" class="ident">Pos</a>, <label for="r213" class="ident">name</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="node.go.html#line-20" class="ident">Node</a> {</code></span>
+<span class="codeline" id="line-746"><code>	<label for="r214" class="ident">v</label> := <label for="r210" class="ident">t</label>.<a href="node.go.html#line-394" class="ident">newVariable</a>(<label for="r212" class="ident">pos</label>, <label for="r213" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-747"><code>	<span class="keyword">for</span> <label for="r215" class="ident">_</label>, <label for="r216" class="ident">varName</label> := <span class="keyword">range</span> <label for="r210" class="ident">t</label>.<a href="#line-31" class="ident">vars</a> {</code></span>
+<span class="codeline" id="line-748"><code>		<span class="keyword">if</span> <label for="r216" class="ident">varName</label> == <label for="r214" class="ident">v</label>.<a href="node.go.html#line-391" class="ident">Ident</a>[<span class="lit-number">0</span>] {</code></span>
+<span class="codeline" id="line-749"><code>			<span class="keyword">return</span> <label for="r214" class="ident">v</label></code></span>
+<span class="codeline" id="line-750"><code>		}</code></span>
+<span class="codeline" id="line-751"><code>	}</code></span>
+<span class="codeline" id="line-752"><code>	<label for="r210" class="ident">t</label>.<a href="#line-160" class="ident">errorf</a>(<span class="lit-string">"undefined variable %q"</span>, <label for="r214" class="ident">v</label>.<a href="node.go.html#line-391" class="ident">Ident</a>[<span class="lit-number">0</span>])</code></span>
+<span class="codeline" id="line-753"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-754"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

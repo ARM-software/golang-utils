@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: path_unix.go in package path/filepath</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	path_unix.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/path/filepath.html">path/filepath</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2010 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// +build aix darwin dragonfly freebsd js,wasm linux netbsd openbsd solaris</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> filepath</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"strings"</span></label></code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// IsAbs reports whether the path is absolute.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/path/filepath.html#name-IsAbs" class="ident">IsAbs</a></label>(<label for="r1" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-13"><code>	<span class="keyword">return</span> <a href="../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../strings/strings.go.html#line-444" class="ident">HasPrefix</a>(<label for="r1" class="ident">path</label>, <span class="lit-string">"/"</span>)</code></span>
+<span class="codeline" id="line-14"><code>}</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// volumeNameLen returns length of the leading volume name on Windows.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// It returns 0 elsewhere.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../../pkg/path/filepath.html#name-volumeNameLen" class="ident">volumeNameLen</a></label>(<label for="r3" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-19"><code>	<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-20"><code>}</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// HasPrefix exists for historical compatibility and should not be used.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// Deprecated: HasPrefix does not respect path boundaries and</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// does not ignore case when required.</span></code></span>
+<span class="codeline" id="line-26"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../pkg/path/filepath.html#name-HasPrefix" class="ident">HasPrefix</a></label>(<label for="r5" class="ident">p</label>, <label for="r6" class="ident">prefix</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-27"><code>	<span class="keyword">return</span> <a href="../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../strings/strings.go.html#line-444" class="ident">HasPrefix</a>(<label for="r5" class="ident">p</label>, <label for="r6" class="ident">prefix</label>)</code></span>
+<span class="codeline" id="line-28"><code>}</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../../pkg/path/filepath.html#name-splitList" class="ident">splitList</a></label>(<label for="r8" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) []<a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-31"><code>	<span class="keyword">if</span> <label for="r8" class="ident">path</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-32"><code>		<span class="keyword">return</span> []<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>{}</code></span>
+<span class="codeline" id="line-33"><code>	}</code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">return</span> <a href="../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../strings/strings.go.html#line-299" class="ident">Split</a>(<label for="r8" class="ident">path</label>, <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<a href="path.go.html#line-63" class="ident">ListSeparator</a>))</code></span>
+<span class="codeline" id="line-35"><code>}</code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code><span class="keyword">func</span> <label for="r9" class="ident"><a href="../../../pkg/path/filepath.html#name-abs" class="ident">abs</a></label>(<label for="r10" class="ident">path</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-38"><code>	<span class="keyword">return</span> <a href="path.go.html#line-247" class="ident">unixAbs</a>(<label for="r10" class="ident">path</label>)</code></span>
+<span class="codeline" id="line-39"><code>}</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="keyword">func</span> <label for="r11" class="ident"><a href="../../../pkg/path/filepath.html#name-join" class="ident">join</a></label>(<label for="r12" class="ident">elem</label> []<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-42"><code>	<span class="comment">// If there's a bug here, fix the logic in ./path_plan9.go too.</span></code></span>
+<span class="codeline" id="line-43"><code>	<span class="keyword">for</span> <label for="r13" class="ident">i</label>, <label for="r14" class="ident">e</label> := <span class="keyword">range</span> <label for="r12" class="ident">elem</label> {</code></span>
+<span class="codeline" id="line-44"><code>		<span class="keyword">if</span> <label for="r14" class="ident">e</label> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-45"><code>			<span class="keyword">return</span> <a href="path.go.html#line-89" class="ident">Clean</a>(<a href="../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../strings/strings.go.html#line-421" class="ident">Join</a>(<label for="r12" class="ident">elem</label>[<label for="r13" class="ident">i</label>:], <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<a href="path.go.html#line-62" class="ident">Separator</a>)))</code></span>
+<span class="codeline" id="line-46"><code>		}</code></span>
+<span class="codeline" id="line-47"><code>	}</code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">return</span> <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-49"><code>}</code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code><span class="keyword">func</span> <label for="r15" class="ident"><a href="../../../pkg/path/filepath.html#name-sameWord" class="ident">sameWord</a></label>(<label for="r16" class="ident">a</label>, <label for="r17" class="ident">b</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-52"><code>	<span class="keyword">return</span> <label for="r16" class="ident">a</label> == <label for="r17" class="ident">b</label></code></span>
+<span class="codeline" id="line-53"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

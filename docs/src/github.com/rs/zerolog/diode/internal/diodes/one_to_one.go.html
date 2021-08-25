@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: one_to_one.go in package github.com/rs/zerolog/diode/internal/diodes</title>
+<link href="../../../../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	one_to_one.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../../pkg/github.com/rs/zerolog/diode/internal/diodes.html">github.com/rs/zerolog/diode/internal/diodes</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> diodes</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"sync/atomic"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-6"><code>)</code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// GenericDataType is the data type the diodes operate on.</span></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/github.com/rs/zerolog/diode/internal/diodes.html#name-GenericDataType" class="ident">GenericDataType</a> <a href="../../../../../../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../../../../../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a></code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// Alerter is used to report how many values were overwritten since the</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// last write.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/github.com/rs/zerolog/diode/internal/diodes.html#name-Alerter" class="ident">Alerter</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-14"><code>	<a href="../../../../../../../imp/github.com/rs/zerolog/diode/internal/diodes.Alerter.html#name-Alert" class="ident">Alert</a>(missed <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>)</code></span>
+<span class="codeline" id="line-15"><code>}</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// AlertFunc type is an adapter to allow the use of ordinary functions as</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// Alert handlers.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/github.com/rs/zerolog/diode/internal/diodes.html#name-AlertFunc" class="ident">AlertFunc</a> <span class="keyword">func</span>(missed <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>)</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// Alert calls f(missed)</span></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">func</span> (<label for="r0" class="ident">f</label> <a href="#line-19" class="ident">AlertFunc</a>) <label for="r1" class="ident"><a href="../../../../../../../imp/github.com/rs/zerolog/diode/internal/diodes.AlertFunc.html#name-.Alert" class="ident">Alert</a></label>(<label for="r2" class="ident">missed</label> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-23"><code>	<label for="r0" class="ident">f</label>(<label for="r2" class="ident">missed</label>)</code></span>
+<span class="codeline" id="line-24"><code>}</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/github.com/rs/zerolog/diode/internal/diodes.html#name-bucket" class="ident">bucket</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-27"><code>	data <a href="#line-9" class="ident">GenericDataType</a></code></span>
+<span class="codeline" id="line-28"><code>	seq  <a href="../../../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a> <span class="comment">// seq is the recorded write index at the time of writing</span></code></span>
+<span class="codeline" id="line-29"><code>}</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// OneToOne diode is meant to be used by a single reader and a single writer.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// It is not thread safe if used otherwise.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/github.com/rs/zerolog/diode/internal/diodes.html#name-OneToOne" class="ident">OneToOne</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-34"><code>	writeIndex <a href="../../../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-35"><code>	readIndex  <a href="../../../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-36"><code>	buffer     []<a href="../../../../../../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../../../../../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a></code></span>
+<span class="codeline" id="line-37"><code>	alerter    <a href="#line-13" class="ident">Alerter</a></code></span>
+<span class="codeline" id="line-38"><code>}</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// NewOneToOne creates a new diode is meant to be used by a single reader and</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// a single writer. The alerter is invoked on the read's go-routine. It is</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// called when it notices that the writer go-routine has passed it and wrote</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// over data. A nil can be used to ignore alerts.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../../../../../../pkg/github.com/rs/zerolog/diode/internal/diodes.html#name-NewOneToOne" class="ident">NewOneToOne</a></label>(<label for="r4" class="ident">size</label> <a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r5" class="ident">alerter</label> <a href="#line-13" class="ident">Alerter</a>) *<a href="#line-33" class="ident">OneToOne</a> {</code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">if</span> <label for="r5" class="ident">alerter</label> == <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-46"><code>		<label for="r5" class="ident">alerter</label> = <a href="#line-19" class="ident">AlertFunc</a>(<span class="keyword">func</span>(<a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>) {})</code></span>
+<span class="codeline" id="line-47"><code>	}</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code>	<span class="keyword">return</span> &amp;<a href="#line-33" class="ident">OneToOne</a>{</code></span>
+<span class="codeline" id="line-50"><code>		<a href="#line-36" class="ident">buffer</a>:  <a href="../../../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../../../../../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r4" class="ident">size</label>),</code></span>
+<span class="codeline" id="line-51"><code>		<a href="#line-37" class="ident">alerter</a>: <label for="r5" class="ident">alerter</label>,</code></span>
+<span class="codeline" id="line-52"><code>	}</code></span>
+<span class="codeline" id="line-53"><code>}</code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// Set sets the data in the next slot of the ring buffer.</span></code></span>
+<span class="codeline" id="line-56"><code><span class="keyword">func</span> (<label for="r6" class="ident">d</label> *<a href="#line-33" class="ident">OneToOne</a>) <label for="r7" class="ident"><a href="../../../../../../../imp/github.com/rs/zerolog/diode/internal/diodes.OneToOne.html#name-.Set" class="ident">Set</a></label>(<label for="r8" class="ident">data</label> <a href="#line-9" class="ident">GenericDataType</a>) {</code></span>
+<span class="codeline" id="line-57"><code>	<label for="r9" class="ident">idx</label> := <label for="r6" class="ident">d</label>.<a href="#line-34" class="ident">writeIndex</a> % <a href="../../../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">d</label>.<a href="#line-36" class="ident">buffer</a>))</code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code>	<label for="r10" class="ident">newBucket</label> := &amp;<a href="#line-26" class="ident">bucket</a>{</code></span>
+<span class="codeline" id="line-60"><code>		<a href="#line-27" class="ident">data</a>: <label for="r8" class="ident">data</label>,</code></span>
+<span class="codeline" id="line-61"><code>		<a href="#line-28" class="ident">seq</a>:  <label for="r6" class="ident">d</label>.<a href="#line-34" class="ident">writeIndex</a>,</code></span>
+<span class="codeline" id="line-62"><code>	}</code></span>
+<span class="codeline" id="line-63"><code>	<label for="r6" class="ident">d</label>.<a href="#line-34" class="ident">writeIndex</a>++</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code>	<a href="../../../../../../../pkg/sync/atomic.html" class="ident i0">atomic</a>.<a href="../../../../../../sync/atomic/doc.go.html#line-144" class="ident">StorePointer</a>(&amp;<label for="r6" class="ident">d</label>.<a href="#line-36" class="ident">buffer</a>[<label for="r9" class="ident">idx</label>], <a href="../../../../../../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../../../../../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r10" class="ident">newBucket</label>))</code></span>
+<span class="codeline" id="line-66"><code>}</code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">// TryNext will attempt to read from the next slot of the ring buffer.</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// If there is no data available, it will return (nil, false).</span></code></span>
+<span class="codeline" id="line-70"><code><span class="keyword">func</span> (<label for="r11" class="ident">d</label> *<a href="#line-33" class="ident">OneToOne</a>) <label for="r12" class="ident"><a href="../../../../../../../imp/github.com/rs/zerolog/diode/internal/diodes.OneToOne.html#name-.TryNext" class="ident">TryNext</a></label>() (<label for="r13" class="ident">data</label> <a href="#line-9" class="ident">GenericDataType</a>, <label for="r14" class="ident">ok</label> <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-71"><code>	<span class="comment">// Read a value from the ring buffer based on the readIndex.</span></code></span>
+<span class="codeline" id="line-72"><code>	<label for="r15" class="ident">idx</label> := <label for="r11" class="ident">d</label>.<a href="#line-35" class="ident">readIndex</a> % <a href="../../../../../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r11" class="ident">d</label>.<a href="#line-36" class="ident">buffer</a>))</code></span>
+<span class="codeline" id="line-73"><code>	<label for="r16" class="ident">result</label> := (*<a href="#line-26" class="ident">bucket</a>)(<a href="../../../../../../../pkg/sync/atomic.html" class="ident i0">atomic</a>.<a href="../../../../../../sync/atomic/doc.go.html#line-71" class="ident">SwapPointer</a>(&amp;<label for="r11" class="ident">d</label>.<a href="#line-36" class="ident">buffer</a>[<label for="r15" class="ident">idx</label>], <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>))</code></span>
+<span class="codeline" id="line-74"><code></code></span>
+<span class="codeline" id="line-75"><code>	<span class="comment">// When the result is nil that means the writer has not had the</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">	// opportunity to write a value into the diode. This value must be ignored</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">	// and the read head must not increment.</span></code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">if</span> <label for="r16" class="ident">result</label> == <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-79"><code>		<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-80"><code>	}</code></span>
+<span class="codeline" id="line-81"><code></code></span>
+<span class="codeline" id="line-82"><code>	<span class="comment">// When the seq value is less than the current read index that means a</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">	// value was read from idx that was previously written but has since has</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">	// been dropped. This value must be ignored and the read head must not</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">	// increment.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">	// The simulation for this scenario assumes the fast forward occurred as</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">	// detailed below.</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">	// 5. The reader reads again getting seq 5. It then reads again expecting</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">	//    seq 6 but gets seq 2. This is a read of a stale value that was</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">	//    effectively "dropped" so the read fails and the read head stays put.</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">	//    `| 4 | 5 | 2 | 3 |` r: 7, w: 6</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-95"><code>	<span class="keyword">if</span> <label for="r16" class="ident">result</label>.<a href="#line-28" class="ident">seq</a> &lt; <label for="r11" class="ident">d</label>.<a href="#line-35" class="ident">readIndex</a> {</code></span>
+<span class="codeline" id="line-96"><code>		<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-97"><code>	}</code></span>
+<span class="codeline" id="line-98"><code></code></span>
+<span class="codeline" id="line-99"><code>	<span class="comment">// When the seq value is greater than the current read index that means a</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">	// value was read from idx that overwrote the value that was expected to</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">	// be at this idx. This happens when the writer has lapped the reader. The</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">	// reader needs to catch up to the writer so it moves its write head to</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">	// the new seq, effectively dropping the messages that were not read in</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">	// between the two values.</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">	// Here is a simulation of this scenario:</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">	// 1. Both the read and write heads start at 0.</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">	//    `| nil | nil | nil | nil |` r: 0, w: 0</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">	// 2. The writer fills the buffer.</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">	//    `| 0 | 1 | 2 | 3 |` r: 0, w: 4</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">	// 3. The writer laps the read head.</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">	//    `| 4 | 5 | 2 | 3 |` r: 0, w: 6</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">	// 4. The reader reads the first value, expecting a seq of 0 but reads 4,</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">	//    this forces the reader to fast forward to 5.</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">	//    `| 4 | 5 | 2 | 3 |` r: 5, w: 6</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-118"><code>	<span class="keyword">if</span> <label for="r16" class="ident">result</label>.<a href="#line-28" class="ident">seq</a> &gt; <label for="r11" class="ident">d</label>.<a href="#line-35" class="ident">readIndex</a> {</code></span>
+<span class="codeline" id="line-119"><code>		<label for="r17" class="ident">dropped</label> := <label for="r16" class="ident">result</label>.<a href="#line-28" class="ident">seq</a> - <label for="r11" class="ident">d</label>.<a href="#line-35" class="ident">readIndex</a></code></span>
+<span class="codeline" id="line-120"><code>		<label for="r11" class="ident">d</label>.<a href="#line-35" class="ident">readIndex</a> = <label for="r16" class="ident">result</label>.<a href="#line-28" class="ident">seq</a></code></span>
+<span class="codeline" id="line-121"><code>		<label for="r11" class="ident">d</label>.<a href="#line-37" class="ident">alerter</a>.<a href="#line-14" class="ident">Alert</a>(<a href="../../../../../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r17" class="ident">dropped</label>))</code></span>
+<span class="codeline" id="line-122"><code>	}</code></span>
+<span class="codeline" id="line-123"><code></code></span>
+<span class="codeline" id="line-124"><code>	<span class="comment">// Only increment read index if a regular read occurred (where seq was</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">	// equal to readIndex) or a value was read that caused a fast forward</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">	// (where seq was greater than readIndex).</span></code></span>
+<span class="codeline" id="line-127"><code>	<label for="r11" class="ident">d</label>.<a href="#line-35" class="ident">readIndex</a>++</code></span>
+<span class="codeline" id="line-128"><code>	<span class="keyword">return</span> <label for="r16" class="ident">result</label>.<a href="#line-27" class="ident">data</a>, <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-129"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

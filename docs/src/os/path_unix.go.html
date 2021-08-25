@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: path_unix.go in package os</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	path_unix.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/os.html">os</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// +build aix darwin dragonfly freebsd js,wasm linux netbsd openbsd solaris</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> os</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<a href="../../pkg/os.html#name-PathSeparator" class="ident">PathSeparator</a>     = <span class="lit-number">'/'</span> <span class="comment">// OS-specific path separator</span></code></span>
+<span class="codeline" id="line-11"><code>	<a href="../../pkg/os.html#name-PathListSeparator" class="ident">PathListSeparator</a> = <span class="lit-number">':'</span> <span class="comment">// OS-specific path list separator</span></code></span>
+<span class="codeline" id="line-12"><code>)</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// IsPathSeparator reports whether c is a directory separator character.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/os.html#name-IsPathSeparator" class="ident">IsPathSeparator</a></label>(<label for="r1" class="ident">c</label> <a href="../../pkg/builtin.html#name-uint8" class="ident">uint8</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-16"><code>	<span class="keyword">return</span> <a href="#line-10" class="ident">PathSeparator</a> == <label for="r1" class="ident">c</label></code></span>
+<span class="codeline" id="line-17"><code>}</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// basename removes trailing slashes and the leading directory name from path name.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../pkg/os.html#name-basename" class="ident">basename</a></label>(<label for="r3" class="ident">name</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-21"><code>	<label for="r4" class="ident">i</label> := <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r3" class="ident">name</label>) - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-22"><code>	<span class="comment">// Remove trailing slashes</span></code></span>
+<span class="codeline" id="line-23"><code>	<span class="keyword">for</span> ; <label for="r4" class="ident">i</label> &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r3" class="ident">name</label>[<label for="r4" class="ident">i</label>] == <span class="lit-number">'/'</span>; <label for="r4" class="ident">i</label>-- {</code></span>
+<span class="codeline" id="line-24"><code>		<label for="r3" class="ident">name</label> = <label for="r3" class="ident">name</label>[:<label for="r4" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-25"><code>	}</code></span>
+<span class="codeline" id="line-26"><code>	<span class="comment">// Remove leading directory name</span></code></span>
+<span class="codeline" id="line-27"><code>	<span class="keyword">for</span> <label for="r4" class="ident">i</label>--; <label for="r4" class="ident">i</label> &gt;= <span class="lit-number">0</span>; <label for="r4" class="ident">i</label>-- {</code></span>
+<span class="codeline" id="line-28"><code>		<span class="keyword">if</span> <label for="r3" class="ident">name</label>[<label for="r4" class="ident">i</label>] == <span class="lit-number">'/'</span> {</code></span>
+<span class="codeline" id="line-29"><code>			<label for="r3" class="ident">name</label> = <label for="r3" class="ident">name</label>[<label for="r4" class="ident">i</label>+<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-30"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-31"><code>		}</code></span>
+<span class="codeline" id="line-32"><code>	}</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">return</span> <label for="r3" class="ident">name</label></code></span>
+<span class="codeline" id="line-35"><code>}</code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// splitPath returns the base name and parent directory.</span></code></span>
+<span class="codeline" id="line-38"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../pkg/os.html#name-splitPath" class="ident">splitPath</a></label>(<label for="r6" class="ident">path</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-39"><code>	<span class="comment">// if no better parent is found, the path is relative from "here"</span></code></span>
+<span class="codeline" id="line-40"><code>	<label for="r7" class="ident">dirname</label> := <span class="lit-string">"."</span></code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code>	<span class="comment">// Remove all but one leading slash.</span></code></span>
+<span class="codeline" id="line-43"><code>	<span class="keyword">for</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">path</label>) &gt; <span class="lit-number">1</span> &amp;&amp; <label for="r6" class="ident">path</label>[<span class="lit-number">0</span>] == <span class="lit-number">'/'</span> &amp;&amp; <label for="r6" class="ident">path</label>[<span class="lit-number">1</span>] == <span class="lit-number">'/'</span> {</code></span>
+<span class="codeline" id="line-44"><code>		<label for="r6" class="ident">path</label> = <label for="r6" class="ident">path</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-45"><code>	}</code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code>	<label for="r8" class="ident">i</label> := <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r6" class="ident">path</label>) - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code>	<span class="comment">// Remove trailing slashes.</span></code></span>
+<span class="codeline" id="line-50"><code>	<span class="keyword">for</span> ; <label for="r8" class="ident">i</label> &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r6" class="ident">path</label>[<label for="r8" class="ident">i</label>] == <span class="lit-number">'/'</span>; <label for="r8" class="ident">i</label>-- {</code></span>
+<span class="codeline" id="line-51"><code>		<label for="r6" class="ident">path</label> = <label for="r6" class="ident">path</label>[:<label for="r8" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-52"><code>	}</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code>	<span class="comment">// if no slashes in path, base is path</span></code></span>
+<span class="codeline" id="line-55"><code>	<label for="r9" class="ident">basename</label> := <label for="r6" class="ident">path</label></code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code>	<span class="comment">// Remove leading directory path</span></code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">for</span> <label for="r8" class="ident">i</label>--; <label for="r8" class="ident">i</label> &gt;= <span class="lit-number">0</span>; <label for="r8" class="ident">i</label>-- {</code></span>
+<span class="codeline" id="line-59"><code>		<span class="keyword">if</span> <label for="r6" class="ident">path</label>[<label for="r8" class="ident">i</label>] == <span class="lit-number">'/'</span> {</code></span>
+<span class="codeline" id="line-60"><code>			<span class="keyword">if</span> <label for="r8" class="ident">i</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-61"><code>				<label for="r7" class="ident">dirname</label> = <label for="r6" class="ident">path</label>[:<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-62"><code>			} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-63"><code>				<label for="r7" class="ident">dirname</label> = <label for="r6" class="ident">path</label>[:<label for="r8" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-64"><code>			}</code></span>
+<span class="codeline" id="line-65"><code>			<label for="r9" class="ident">basename</label> = <label for="r6" class="ident">path</label>[<label for="r8" class="ident">i</label>+<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-66"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-67"><code>		}</code></span>
+<span class="codeline" id="line-68"><code>	}</code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">return</span> <label for="r7" class="ident">dirname</label>, <label for="r9" class="ident">basename</label></code></span>
+<span class="codeline" id="line-71"><code>}</code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code><span class="keyword">func</span> <label for="r10" class="ident"><a href="../../pkg/os.html#name-fixRootDirectory" class="ident">fixRootDirectory</a></label>(<label for="r11" class="ident">p</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-74"><code>	<span class="keyword">return</span> <label for="r11" class="ident">p</label></code></span>
+<span class="codeline" id="line-75"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

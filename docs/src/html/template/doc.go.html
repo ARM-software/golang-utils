@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: doc.go in package html/template</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	doc.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/html/template.html">html/template</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">Package template (html/template) implements data-driven templates for</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">generating HTML output safe against code injection. It provides the</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">same interface as package text/template and should be used instead of</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">text/template whenever the output is HTML.</span></code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">The documentation here focuses on the security features of the package.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">For information about how to program the templates themselves, see the</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">documentation for text/template.</span></code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">Introduction</span></code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">This package wraps package text/template so you can share its template API</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">to parse and execute HTML templates safely.</span></code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">  tmpl, err := template.New("name").Parse(...)</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">  // Error checking elided</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">  err = tmpl.Execute(out, data)</span></code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">If successful, tmpl will now be injection-safe. Otherwise, err is an error</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">defined in the docs for ErrorCode.</span></code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">HTML templates treat data values as plain text which should be encoded so they</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">can be safely embedded in an HTML document. The escaping is contextual, so</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">actions can appear within JavaScript, CSS, and URI contexts.</span></code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">The security model used by this package assumes that template authors are</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">trusted, while Execute's data parameter is not. More details are</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">provided below.</span></code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">Example</span></code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">  import "text/template"</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">  ...</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">  t, err := template.New("foo").Parse(`{{define "T"}}Hello, {{.}}!{{end}}`)</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">  err = t.ExecuteTemplate(out, "T", "&lt;script&gt;alert('you have been pwned')&lt;/script&gt;")</span></code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">produces</span></code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">  Hello, &lt;script&gt;alert('you have been pwned')&lt;/script&gt;!</span></code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">but the contextual autoescaping in html/template</span></code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">  import "html/template"</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">  ...</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">  t, err := template.New("foo").Parse(`{{define "T"}}Hello, {{.}}!{{end}}`)</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">  err = t.ExecuteTemplate(out, "T", "&lt;script&gt;alert('you have been pwned')&lt;/script&gt;")</span></code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">produces safe, escaped HTML output</span></code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">  Hello, &amp;lt;script&amp;gt;alert(&amp;#39;you have been pwned&amp;#39;)&amp;lt;/script&amp;gt;!</span></code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">Contexts</span></code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">This package understands HTML, CSS, JavaScript, and URIs. It adds sanitizing</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">functions to each simple action pipeline, so given the excerpt</span></code></span>
+<span class="codeline" id="line-62"><code></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">  &lt;a href="/search?q={{.}}"&gt;{{.}}&lt;/a&gt;</span></code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">At parse time each {{.}} is overwritten to add escaping functions as necessary.</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">In this case it becomes</span></code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">  &lt;a href="/search?q={{. | urlescaper | attrescaper}}"&gt;{{. | htmlescaper}}&lt;/a&gt;</span></code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">where urlescaper, attrescaper, and htmlescaper are aliases for internal escaping</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">functions.</span></code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">For these internal escaping functions, if an action pipeline evaluates to</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">a nil interface value, it is treated as though it were an empty string.</span></code></span>
+<span class="codeline" id="line-75"><code></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">Namespaced and data- attributes</span></code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">Attributes with a namespace are treated as if they had no namespace.</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">Given the excerpt</span></code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">  &lt;a my:href="{{.}}"&gt;&lt;/a&gt;</span></code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">At parse time the attribute will be treated as if it were just "href".</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">So at parse time the template becomes:</span></code></span>
+<span class="codeline" id="line-85"><code></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">  &lt;a my:href="{{. | urlescaper | attrescaper}}"&gt;&lt;/a&gt;</span></code></span>
+<span class="codeline" id="line-87"><code></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">Similarly to attributes with namespaces, attributes with a "data-" prefix are</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">treated as if they had no "data-" prefix. So given</span></code></span>
+<span class="codeline" id="line-90"><code></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">  &lt;a data-href="{{.}}"&gt;&lt;/a&gt;</span></code></span>
+<span class="codeline" id="line-92"><code></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">At parse time this becomes</span></code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">  &lt;a data-href="{{. | urlescaper | attrescaper}}"&gt;&lt;/a&gt;</span></code></span>
+<span class="codeline" id="line-96"><code></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">If an attribute has both a namespace and a "data-" prefix, only the namespace</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">will be removed when determining the context. For example</span></code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">  &lt;a my:data-href="{{.}}"&gt;&lt;/a&gt;</span></code></span>
+<span class="codeline" id="line-101"><code></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">This is handled as if "my:data-href" was just "data-href" and not "href" as</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">it would be if the "data-" prefix were to be ignored too. Thus at parse</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">time this becomes just</span></code></span>
+<span class="codeline" id="line-105"><code></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">  &lt;a my:data-href="{{. | attrescaper}}"&gt;&lt;/a&gt;</span></code></span>
+<span class="codeline" id="line-107"><code></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">As a special case, attributes with the namespace "xmlns" are always treated</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">as containing URLs. Given the excerpts</span></code></span>
+<span class="codeline" id="line-110"><code></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">  &lt;a xmlns:title="{{.}}"&gt;&lt;/a&gt;</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">  &lt;a xmlns:href="{{.}}"&gt;&lt;/a&gt;</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">  &lt;a xmlns:onclick="{{.}}"&gt;&lt;/a&gt;</span></code></span>
+<span class="codeline" id="line-114"><code></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">At parse time they become:</span></code></span>
+<span class="codeline" id="line-116"><code></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">  &lt;a xmlns:title="{{. | urlescaper | attrescaper}}"&gt;&lt;/a&gt;</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">  &lt;a xmlns:href="{{. | urlescaper | attrescaper}}"&gt;&lt;/a&gt;</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">  &lt;a xmlns:onclick="{{. | urlescaper | attrescaper}}"&gt;&lt;/a&gt;</span></code></span>
+<span class="codeline" id="line-120"><code></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">Errors</span></code></span>
+<span class="codeline" id="line-122"><code></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">See the documentation of ErrorCode for details.</span></code></span>
+<span class="codeline" id="line-124"><code></code></span>
+<span class="codeline" id="line-125"><code></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">A fuller picture</span></code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">The rest of this package comment may be skipped on first reading; it includes</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">details necessary to understand escaping contexts and error messages. Most users</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">will not need to understand these details.</span></code></span>
+<span class="codeline" id="line-131"><code></code></span>
+<span class="codeline" id="line-132"><code></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">Contexts</span></code></span>
+<span class="codeline" id="line-134"><code></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">Assuming {{.}} is `O'Reilly: How are &lt;i&gt;you&lt;/i&gt;?`, the table below shows</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">how {{.}} appears when used in the context to the left.</span></code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">  Context                          {{.}} After</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">  {{.}}                            O'Reilly: How are &amp;lt;i&amp;gt;you&amp;lt;/i&amp;gt;?</span></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">  &lt;a title='{{.}}'&gt;                O&amp;#39;Reilly: How are you?</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">  &lt;a href="/{{.}}"&gt;                O&amp;#39;Reilly: How are %3ci%3eyou%3c/i%3e?</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">  &lt;a href="?q={{.}}"&gt;              O&amp;#39;Reilly%3a%20How%20are%3ci%3e...%3f</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">  &lt;a onx='f("{{.}}")'&gt;             O\x27Reilly: How are \x3ci\x3eyou...?</span></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">  &lt;a onx='f({{.}})'&gt;               "O\x27Reilly: How are \x3ci\x3eyou...?"</span></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">  &lt;a onx='pattern = /{{.}}/;'&gt;     O\x27Reilly: How are \x3ci\x3eyou...\x3f</span></code></span>
+<span class="codeline" id="line-146"><code></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">If used in an unsafe context, then the value might be filtered out:</span></code></span>
+<span class="codeline" id="line-148"><code></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">  Context                          {{.}} After</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">  &lt;a href="{{.}}"&gt;                 #ZgotmplZ</span></code></span>
+<span class="codeline" id="line-151"><code></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">since "O'Reilly:" is not an allowed protocol like "http:".</span></code></span>
+<span class="codeline" id="line-153"><code></code></span>
+<span class="codeline" id="line-154"><code></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">If {{.}} is the innocuous word, `left`, then it can appear more widely,</span></code></span>
+<span class="codeline" id="line-156"><code></code></span>
+<span class="codeline" id="line-157"><code><span class="comment">  Context                              {{.}} After</span></code></span>
+<span class="codeline" id="line-158"><code><span class="comment">  {{.}}                                left</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">  &lt;a title='{{.}}'&gt;                    left</span></code></span>
+<span class="codeline" id="line-160"><code><span class="comment">  &lt;a href='{{.}}'&gt;                     left</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">  &lt;a href='/{{.}}'&gt;                    left</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">  &lt;a href='?dir={{.}}'&gt;                left</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">  &lt;a style="border-{{.}}: 4px"&gt;        left</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">  &lt;a style="align: {{.}}"&gt;             left</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">  &lt;a style="background: '{{.}}'&gt;       left</span></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">  &lt;a style="background: url('{{.}}')&gt;  left</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">  &lt;style&gt;p.{{.}} {color:red}&lt;/style&gt;   left</span></code></span>
+<span class="codeline" id="line-168"><code></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">Non-string values can be used in JavaScript contexts.</span></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">If {{.}} is</span></code></span>
+<span class="codeline" id="line-171"><code></code></span>
+<span class="codeline" id="line-172"><code><span class="comment">  struct{A,B string}{ "foo", "bar" }</span></code></span>
+<span class="codeline" id="line-173"><code></code></span>
+<span class="codeline" id="line-174"><code><span class="comment">in the escaped template</span></code></span>
+<span class="codeline" id="line-175"><code></code></span>
+<span class="codeline" id="line-176"><code><span class="comment">  &lt;script&gt;var pair = {{.}};&lt;/script&gt;</span></code></span>
+<span class="codeline" id="line-177"><code></code></span>
+<span class="codeline" id="line-178"><code><span class="comment">then the template output is</span></code></span>
+<span class="codeline" id="line-179"><code></code></span>
+<span class="codeline" id="line-180"><code><span class="comment">  &lt;script&gt;var pair = {"A": "foo", "B": "bar"};&lt;/script&gt;</span></code></span>
+<span class="codeline" id="line-181"><code></code></span>
+<span class="codeline" id="line-182"><code><span class="comment">See package json to understand how non-string content is marshaled for</span></code></span>
+<span class="codeline" id="line-183"><code><span class="comment">embedding in JavaScript contexts.</span></code></span>
+<span class="codeline" id="line-184"><code></code></span>
+<span class="codeline" id="line-185"><code></code></span>
+<span class="codeline" id="line-186"><code><span class="comment">Typed Strings</span></code></span>
+<span class="codeline" id="line-187"><code></code></span>
+<span class="codeline" id="line-188"><code><span class="comment">By default, this package assumes that all pipelines produce a plain text string.</span></code></span>
+<span class="codeline" id="line-189"><code><span class="comment">It adds escaping pipeline stages necessary to correctly and safely embed that</span></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">plain text string in the appropriate context.</span></code></span>
+<span class="codeline" id="line-191"><code></code></span>
+<span class="codeline" id="line-192"><code><span class="comment">When a data value is not plain text, you can make sure it is not over-escaped</span></code></span>
+<span class="codeline" id="line-193"><code><span class="comment">by marking it with its type.</span></code></span>
+<span class="codeline" id="line-194"><code></code></span>
+<span class="codeline" id="line-195"><code><span class="comment">Types HTML, JS, URL, and others from content.go can carry safe content that is</span></code></span>
+<span class="codeline" id="line-196"><code><span class="comment">exempted from escaping.</span></code></span>
+<span class="codeline" id="line-197"><code></code></span>
+<span class="codeline" id="line-198"><code><span class="comment">The template</span></code></span>
+<span class="codeline" id="line-199"><code></code></span>
+<span class="codeline" id="line-200"><code><span class="comment">  Hello, {{.}}!</span></code></span>
+<span class="codeline" id="line-201"><code></code></span>
+<span class="codeline" id="line-202"><code><span class="comment">can be invoked with</span></code></span>
+<span class="codeline" id="line-203"><code></code></span>
+<span class="codeline" id="line-204"><code><span class="comment">  tmpl.Execute(out, template.HTML(`&lt;b&gt;World&lt;/b&gt;`))</span></code></span>
+<span class="codeline" id="line-205"><code></code></span>
+<span class="codeline" id="line-206"><code><span class="comment">to produce</span></code></span>
+<span class="codeline" id="line-207"><code></code></span>
+<span class="codeline" id="line-208"><code><span class="comment">  Hello, &lt;b&gt;World&lt;/b&gt;!</span></code></span>
+<span class="codeline" id="line-209"><code></code></span>
+<span class="codeline" id="line-210"><code><span class="comment">instead of the</span></code></span>
+<span class="codeline" id="line-211"><code></code></span>
+<span class="codeline" id="line-212"><code><span class="comment">  Hello, &amp;lt;b&amp;gt;World&amp;lt;b&amp;gt;!</span></code></span>
+<span class="codeline" id="line-213"><code></code></span>
+<span class="codeline" id="line-214"><code><span class="comment">that would have been produced if {{.}} was a regular string.</span></code></span>
+<span class="codeline" id="line-215"><code></code></span>
+<span class="codeline" id="line-216"><code></code></span>
+<span class="codeline" id="line-217"><code><span class="comment">Security Model</span></code></span>
+<span class="codeline" id="line-218"><code></code></span>
+<span class="codeline" id="line-219"><code><span class="comment">https://rawgit.com/mikesamuel/sanitized-jquery-templates/trunk/safetemplate.html#problem_definition defines "safe" as used by this package.</span></code></span>
+<span class="codeline" id="line-220"><code></code></span>
+<span class="codeline" id="line-221"><code><span class="comment">This package assumes that template authors are trusted, that Execute's data</span></code></span>
+<span class="codeline" id="line-222"><code><span class="comment">parameter is not, and seeks to preserve the properties below in the face</span></code></span>
+<span class="codeline" id="line-223"><code><span class="comment">of untrusted data:</span></code></span>
+<span class="codeline" id="line-224"><code></code></span>
+<span class="codeline" id="line-225"><code><span class="comment">Structure Preservation Property:</span></code></span>
+<span class="codeline" id="line-226"><code><span class="comment">"... when a template author writes an HTML tag in a safe templating language,</span></code></span>
+<span class="codeline" id="line-227"><code><span class="comment">the browser will interpret the corresponding portion of the output as a tag</span></code></span>
+<span class="codeline" id="line-228"><code><span class="comment">regardless of the values of untrusted data, and similarly for other structures</span></code></span>
+<span class="codeline" id="line-229"><code><span class="comment">such as attribute boundaries and JS and CSS string boundaries."</span></code></span>
+<span class="codeline" id="line-230"><code></code></span>
+<span class="codeline" id="line-231"><code><span class="comment">Code Effect Property:</span></code></span>
+<span class="codeline" id="line-232"><code><span class="comment">"... only code specified by the template author should run as a result of</span></code></span>
+<span class="codeline" id="line-233"><code><span class="comment">injecting the template output into a page and all code specified by the</span></code></span>
+<span class="codeline" id="line-234"><code><span class="comment">template author should run as a result of the same."</span></code></span>
+<span class="codeline" id="line-235"><code></code></span>
+<span class="codeline" id="line-236"><code><span class="comment">Least Surprise Property:</span></code></span>
+<span class="codeline" id="line-237"><code><span class="comment">"A developer (or code reviewer) familiar with HTML, CSS, and JavaScript, who</span></code></span>
+<span class="codeline" id="line-238"><code><span class="comment">knows that contextual autoescaping happens should be able to look at a {{.}}</span></code></span>
+<span class="codeline" id="line-239"><code><span class="comment">and correctly infer what sanitization happens."</span></code></span>
+<span class="codeline" id="line-240"><code><span class="comment">*/</span></code></span></div><span class="codeline" id="line-241"><code><span class="keyword">package</span> template</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

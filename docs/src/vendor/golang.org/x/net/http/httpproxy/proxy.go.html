@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: proxy.go in package vendor/golang.org/x/net/http/httpproxy</title>
+<link href="../../../../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	proxy.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../../pkg/vendor/golang.org/x/net/http/httpproxy.html">vendor/golang.org/x/net/http/httpproxy</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6,
+input[id=i7]:checked ~pre .i7
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+<input id="i7" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2017 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package httpproxy provides support for HTTP proxy determination</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// based on environment variables, as provided by net/http's</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// ProxyFromEnvironment function.</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// The API is not subject to the Go 1 compatibility promise and may change at</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// any time.</span></code></span></div><span class="codeline" id="line-11"><code><span class="keyword">package</span> httpproxy</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-14"><code>	<label for="i0"><span class="lit-string i0">"errors"</span></label></code></span>
+<span class="codeline" id="line-15"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-16"><code>	<label for="i2"><span class="lit-string i2">"net"</span></label></code></span>
+<span class="codeline" id="line-17"><code>	<label for="i3"><span class="lit-string i3">"net/url"</span></label></code></span>
+<span class="codeline" id="line-18"><code>	<label for="i4"><span class="lit-string i4">"os"</span></label></code></span>
+<span class="codeline" id="line-19"><code>	<label for="i5"><span class="lit-string i5">"strings"</span></label></code></span>
+<span class="codeline" id="line-20"><code>	<label for="i6"><span class="lit-string i6">"unicode/utf8"</span></label></code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code>	<label for="i7"><span class="lit-string i7">"golang.org/x/net/idna"</span></label></code></span>
+<span class="codeline" id="line-23"><code>)</code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// Config holds configuration for HTTP proxy settings. See</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// FromEnvironment for details.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/vendor/golang.org/x/net/http/httpproxy.html#name-Config" class="ident">Config</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-28"><code>	<span class="comment">// HTTPProxy represents the value of the HTTP_PROXY or</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">	// http_proxy environment variable. It will be used as the proxy</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	// URL for HTTP requests unless overridden by NoProxy.</span></code></span>
+<span class="codeline" id="line-31"><code>	HTTPProxy <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code>	<span class="comment">// HTTPSProxy represents the HTTPS_PROXY or https_proxy</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	// environment variable. It will be used as the proxy URL for</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	// HTTPS requests unless overridden by NoProxy.</span></code></span>
+<span class="codeline" id="line-36"><code>	HTTPSProxy <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code>	<span class="comment">// NoProxy represents the NO_PROXY or no_proxy environment</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	// variable. It specifies a string that contains comma-separated values</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">	// specifying hosts that should be excluded from proxying. Each value is</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">	// represented by an IP address prefix (1.2.3.4), an IP address prefix in</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	// CIDR notation (1.2.3.4/8), a domain name, or a special DNS label (*).</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// An IP address prefix and domain name can also include a literal port</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	// number (1.2.3.4:80).</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	// A domain name matches that name and all subdomains. A domain name with</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	// a leading "." matches subdomains only. For example "foo.com" matches</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	// "foo.com" and "bar.foo.com"; ".y.com" matches "x.y.com" but not "y.com".</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	// A single asterisk (*) indicates that no proxying should be done.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	// A best effort is made to parse the string and errors are</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// ignored.</span></code></span>
+<span class="codeline" id="line-51"><code>	NoProxy <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code>	<span class="comment">// CGI holds whether the current process is running</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">	// as a CGI handler (FromEnvironment infers this from the</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	// presence of a REQUEST_METHOD environment variable).</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">	// When this is set, ProxyForURL will return an error</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">	// when HTTPProxy applies, because a client could be</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	// setting HTTP_PROXY maliciously. See https://golang.org/s/cgihttpproxy.</span></code></span>
+<span class="codeline" id="line-59"><code>	CGI <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-60"><code>}</code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">// config holds the parsed configuration for HTTP proxy settings.</span></code></span>
+<span class="codeline" id="line-63"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/vendor/golang.org/x/net/http/httpproxy.html#name-config" class="ident">config</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-64"><code>	<span class="comment">// Config represents the original configuration as defined above.</span></code></span>
+<span class="codeline" id="line-65"><code>	<a href="#line-27" class="ident">Config</a></code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code>	<span class="comment">// httpsProxy is the parsed URL of the HTTPSProxy if defined.</span></code></span>
+<span class="codeline" id="line-68"><code>	httpsProxy *<a href="../../../../../../../pkg/net/url.html" class="ident i3">url</a>.<a href="../../../../../../net/url/url.go.html#line-358" class="ident">URL</a></code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code>	<span class="comment">// httpProxy is the parsed URL of the HTTPProxy if defined.</span></code></span>
+<span class="codeline" id="line-71"><code>	httpProxy *<a href="../../../../../../../pkg/net/url.html" class="ident i3">url</a>.<a href="../../../../../../net/url/url.go.html#line-358" class="ident">URL</a></code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code>	<span class="comment">// ipMatchers represent all values in the NoProxy that are IP address</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">	// prefixes or an IP address in CIDR notation.</span></code></span>
+<span class="codeline" id="line-75"><code>	ipMatchers []<a href="#line-323" class="ident">matcher</a></code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code>	<span class="comment">// domainMatchers represent all values in the NoProxy that are a domain</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">	// name or hostname &amp; domain name</span></code></span>
+<span class="codeline" id="line-79"><code>	domainMatchers []<a href="#line-323" class="ident">matcher</a></code></span>
+<span class="codeline" id="line-80"><code>}</code></span>
+<span class="codeline" id="line-81"><code></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// FromEnvironment returns a Config instance populated from the</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// environment variables HTTP_PROXY, HTTPS_PROXY and NO_PROXY (or the</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// lowercase versions thereof). HTTPS_PROXY takes precedence over</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// HTTP_PROXY for https requests.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// The environment values may be either a complete URL or a</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">// "host[:port]", in which case the "http" scheme is assumed. An error</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">// is returned if the value is a different form.</span></code></span>
+<span class="codeline" id="line-90"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../../pkg/vendor/golang.org/x/net/http/httpproxy.html#name-FromEnvironment" class="ident">FromEnvironment</a></label>() *<a href="#line-27" class="ident">Config</a> {</code></span>
+<span class="codeline" id="line-91"><code>	<span class="keyword">return</span> &amp;<a href="#line-27" class="ident">Config</a>{</code></span>
+<span class="codeline" id="line-92"><code>		<a href="#line-31" class="ident">HTTPProxy</a>:  <a href="#line-99" class="ident">getEnvAny</a>(<span class="lit-string">"HTTP_PROXY"</span>, <span class="lit-string">"http_proxy"</span>),</code></span>
+<span class="codeline" id="line-93"><code>		<a href="#line-36" class="ident">HTTPSProxy</a>: <a href="#line-99" class="ident">getEnvAny</a>(<span class="lit-string">"HTTPS_PROXY"</span>, <span class="lit-string">"https_proxy"</span>),</code></span>
+<span class="codeline" id="line-94"><code>		<a href="#line-51" class="ident">NoProxy</a>:    <a href="#line-99" class="ident">getEnvAny</a>(<span class="lit-string">"NO_PROXY"</span>, <span class="lit-string">"no_proxy"</span>),</code></span>
+<span class="codeline" id="line-95"><code>		<a href="#line-59" class="ident">CGI</a>:        <a href="../../../../../../../pkg/os.html" class="ident i4">os</a>.<a href="../../../../../../os/env.go.html#line-101" class="ident">Getenv</a>(<span class="lit-string">"REQUEST_METHOD"</span>) != <span class="lit-string">""</span>,</code></span>
+<span class="codeline" id="line-96"><code>	}</code></span>
+<span class="codeline" id="line-97"><code>}</code></span>
+<span class="codeline" id="line-98"><code></code></span>
+<span class="codeline" id="line-99"><code><span class="keyword">func</span> <label for="r1" class="ident"><a href="../../../../../../../pkg/vendor/golang.org/x/net/http/httpproxy.html#name-getEnvAny" class="ident">getEnvAny</a></label>(<label for="r2" class="ident">names</label> ...<a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-100"><code>	<span class="keyword">for</span> <label for="r3" class="ident">_</label>, <label for="r4" class="ident">n</label> := <span class="keyword">range</span> <label for="r2" class="ident">names</label> {</code></span>
+<span class="codeline" id="line-101"><code>		<span class="keyword">if</span> <label for="r5" class="ident">val</label> := <a href="../../../../../../../pkg/os.html" class="ident i4">os</a>.<a href="../../../../../../os/env.go.html#line-101" class="ident">Getenv</a>(<label for="r4" class="ident">n</label>); <label for="r5" class="ident">val</label> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-102"><code>			<span class="keyword">return</span> <label for="r5" class="ident">val</label></code></span>
+<span class="codeline" id="line-103"><code>		}</code></span>
+<span class="codeline" id="line-104"><code>	}</code></span>
+<span class="codeline" id="line-105"><code>	<span class="keyword">return</span> <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-106"><code>}</code></span>
+<span class="codeline" id="line-107"><code></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">// ProxyFunc returns a function that determines the proxy URL to use for</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">// a given request URL. Changing the contents of cfg will not affect</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">// proxy functions created earlier.</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">// A nil URL and nil error are returned if no proxy is defined in the</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">// environment, or a proxy should not be used for the given request, as</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">// defined by NO_PROXY.</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">// As a special case, if req.URL.Host is "localhost" (with or without a</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">// port number), then a nil URL and nil error will be returned.</span></code></span>
+<span class="codeline" id="line-118"><code><span class="keyword">func</span> (<label for="r6" class="ident">cfg</label> *<a href="#line-27" class="ident">Config</a>) <label for="r7" class="ident">ProxyFunc</label>() <span class="keyword">func</span>(<label for="r8" class="ident">reqURL</label> *<a href="../../../../../../../pkg/net/url.html" class="ident i3">url</a>.<a href="../../../../../../net/url/url.go.html#line-358" class="ident">URL</a>) (*<a href="../../../../../../../pkg/net/url.html" class="ident i3">url</a>.<a href="../../../../../../net/url/url.go.html#line-358" class="ident">URL</a>, <a href="../../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-119"><code>	<span class="comment">// Preprocess the Config settings for more efficient evaluation.</span></code></span>
+<span class="codeline" id="line-120"><code>	<label for="r9" class="ident">cfg1</label> := &amp;<a href="#line-63" class="ident">config</a>{</code></span>
+<span class="codeline" id="line-121"><code>		<a href="#line-65" class="ident">Config</a>: *<label for="r6" class="ident">cfg</label>,</code></span>
+<span class="codeline" id="line-122"><code>	}</code></span>
+<span class="codeline" id="line-123"><code>	<label for="r9" class="ident">cfg1</label>.<a href="#line-208" class="ident">init</a>()</code></span>
+<span class="codeline" id="line-124"><code>	<span class="keyword">return</span> <label for="r9" class="ident">cfg1</label>.<a href="#line-127" class="ident">proxyForURL</a></code></span>
+<span class="codeline" id="line-125"><code>}</code></span>
+<span class="codeline" id="line-126"><code></code></span>
+<span class="codeline" id="line-127"><code><span class="keyword">func</span> (<label for="r10" class="ident">cfg</label> *<a href="#line-63" class="ident">config</a>) <label for="r11" class="ident">proxyForURL</label>(<label for="r12" class="ident">reqURL</label> *<a href="../../../../../../../pkg/net/url.html" class="ident i3">url</a>.<a href="../../../../../../net/url/url.go.html#line-358" class="ident">URL</a>) (*<a href="../../../../../../../pkg/net/url.html" class="ident i3">url</a>.<a href="../../../../../../net/url/url.go.html#line-358" class="ident">URL</a>, <a href="../../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-128"><code>	<span class="keyword">var</span> <label for="r13" class="ident">proxy</label> *<a href="../../../../../../../pkg/net/url.html" class="ident i3">url</a>.<a href="../../../../../../net/url/url.go.html#line-358" class="ident">URL</a></code></span>
+<span class="codeline" id="line-129"><code>	<span class="keyword">if</span> <label for="r12" class="ident">reqURL</label>.<a href="../../../../../../net/url/url.go.html#line-359" class="ident">Scheme</a> == <span class="lit-string">"https"</span> {</code></span>
+<span class="codeline" id="line-130"><code>		<label for="r13" class="ident">proxy</label> = <label for="r10" class="ident">cfg</label>.<a href="#line-68" class="ident">httpsProxy</a></code></span>
+<span class="codeline" id="line-131"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r12" class="ident">reqURL</label>.<a href="../../../../../../net/url/url.go.html#line-359" class="ident">Scheme</a> == <span class="lit-string">"http"</span> {</code></span>
+<span class="codeline" id="line-132"><code>		<label for="r13" class="ident">proxy</label> = <label for="r10" class="ident">cfg</label>.<a href="#line-71" class="ident">httpProxy</a></code></span>
+<span class="codeline" id="line-133"><code>		<span class="keyword">if</span> <label for="r13" class="ident">proxy</label> != <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r10" class="ident">cfg</label>.<a href="#line-59" class="ident">CGI</a> {</code></span>
+<span class="codeline" id="line-134"><code>			<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../../../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"refusing to use HTTP_PROXY value in CGI environment; see golang.org/s/cgihttpproxy"</span>)</code></span>
+<span class="codeline" id="line-135"><code>		}</code></span>
+<span class="codeline" id="line-136"><code>	}</code></span>
+<span class="codeline" id="line-137"><code>	<span class="keyword">if</span> <label for="r13" class="ident">proxy</label> == <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-138"><code>		<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-139"><code>	}</code></span>
+<span class="codeline" id="line-140"><code>	<span class="keyword">if</span> !<label for="r10" class="ident">cfg</label>.<a href="#line-173" class="ident">useProxy</a>(<a href="#line-281" class="ident">canonicalAddr</a>(<label for="r12" class="ident">reqURL</label>)) {</code></span>
+<span class="codeline" id="line-141"><code>		<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-142"><code>	}</code></span>
+<span class="codeline" id="line-143"><code></code></span>
+<span class="codeline" id="line-144"><code>	<span class="keyword">return</span> <label for="r13" class="ident">proxy</label>, <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-145"><code>}</code></span>
+<span class="codeline" id="line-146"><code></code></span>
+<span class="codeline" id="line-147"><code><span class="keyword">func</span> <label for="r14" class="ident"><a href="../../../../../../../pkg/vendor/golang.org/x/net/http/httpproxy.html#name-parseProxy" class="ident">parseProxy</a></label>(<label for="r15" class="ident">proxy</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (*<a href="../../../../../../../pkg/net/url.html" class="ident i3">url</a>.<a href="../../../../../../net/url/url.go.html#line-358" class="ident">URL</a>, <a href="../../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-148"><code>	<span class="keyword">if</span> <label for="r15" class="ident">proxy</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-149"><code>		<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-150"><code>	}</code></span>
+<span class="codeline" id="line-151"><code></code></span>
+<span class="codeline" id="line-152"><code>	<label for="r16" class="ident">proxyURL</label>, <label for="r17" class="ident">err</label> := <a href="../../../../../../../pkg/net/url.html" class="ident i3">url</a>.<a href="../../../../../../net/url/url.go.html#line-475" class="ident">Parse</a>(<label for="r15" class="ident">proxy</label>)</code></span>
+<span class="codeline" id="line-153"><code>	<span class="keyword">if</span> <label for="r17" class="ident">err</label> != <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> ||</code></span>
+<span class="codeline" id="line-154"><code>		(<label for="r16" class="ident">proxyURL</label>.<a href="../../../../../../net/url/url.go.html#line-359" class="ident">Scheme</a> != <span class="lit-string">"http"</span> &amp;&amp;</code></span>
+<span class="codeline" id="line-155"><code>			<label for="r16" class="ident">proxyURL</label>.<a href="../../../../../../net/url/url.go.html#line-359" class="ident">Scheme</a> != <span class="lit-string">"https"</span> &amp;&amp;</code></span>
+<span class="codeline" id="line-156"><code>			<label for="r16" class="ident">proxyURL</label>.<a href="../../../../../../net/url/url.go.html#line-359" class="ident">Scheme</a> != <span class="lit-string">"socks5"</span>) {</code></span>
+<span class="codeline" id="line-157"><code>		<span class="comment">// proxy was bogus. Try prepending "http://" to it and</span></code></span>
+<span class="codeline" id="line-158"><code><span class="comment">		// see if that parses correctly. If not, we fall</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">		// through and complain about the original one.</span></code></span>
+<span class="codeline" id="line-160"><code>		<span class="keyword">if</span> <label for="r18" class="ident">proxyURL</label>, <label for="r19" class="ident">err</label> := <a href="../../../../../../../pkg/net/url.html" class="ident i3">url</a>.<a href="../../../../../../net/url/url.go.html#line-475" class="ident">Parse</a>(<span class="lit-string">"http://"</span> + <label for="r15" class="ident">proxy</label>); <label for="r19" class="ident">err</label> == <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-161"><code>			<span class="keyword">return</span> <label for="r18" class="ident">proxyURL</label>, <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-162"><code>		}</code></span>
+<span class="codeline" id="line-163"><code>	}</code></span>
+<span class="codeline" id="line-164"><code>	<span class="keyword">if</span> <label for="r17" class="ident">err</label> != <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-165"><code>		<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../../../../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"invalid proxy address %q: %v"</span>, <label for="r15" class="ident">proxy</label>, <label for="r17" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-166"><code>	}</code></span>
+<span class="codeline" id="line-167"><code>	<span class="keyword">return</span> <label for="r16" class="ident">proxyURL</label>, <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-168"><code>}</code></span>
+<span class="codeline" id="line-169"><code></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">// useProxy reports whether requests to addr should use a proxy,</span></code></span>
+<span class="codeline" id="line-171"><code><span class="comment">// according to the NO_PROXY or no_proxy environment variable.</span></code></span>
+<span class="codeline" id="line-172"><code><span class="comment">// addr is always a canonicalAddr with a host and port.</span></code></span>
+<span class="codeline" id="line-173"><code><span class="keyword">func</span> (<label for="r20" class="ident">cfg</label> *<a href="#line-63" class="ident">config</a>) <label for="r21" class="ident">useProxy</label>(<label for="r22" class="ident">addr</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-174"><code>	<span class="keyword">if</span> <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r22" class="ident">addr</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-175"><code>		<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-176"><code>	}</code></span>
+<span class="codeline" id="line-177"><code>	<label for="r23" class="ident">host</label>, <label for="r24" class="ident">port</label>, <label for="r25" class="ident">err</label> := <a href="../../../../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../../../../net/ipsock.go.html#line-156" class="ident">SplitHostPort</a>(<label for="r22" class="ident">addr</label>)</code></span>
+<span class="codeline" id="line-178"><code>	<span class="keyword">if</span> <label for="r25" class="ident">err</label> != <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-179"><code>		<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-180"><code>	}</code></span>
+<span class="codeline" id="line-181"><code>	<span class="keyword">if</span> <label for="r23" class="ident">host</label> == <span class="lit-string">"localhost"</span> {</code></span>
+<span class="codeline" id="line-182"><code>		<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-183"><code>	}</code></span>
+<span class="codeline" id="line-184"><code>	<label for="r26" class="ident">ip</label> := <a href="../../../../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../../../../net/ip.go.html#line-678" class="ident">ParseIP</a>(<label for="r23" class="ident">host</label>)</code></span>
+<span class="codeline" id="line-185"><code>	<span class="keyword">if</span> <label for="r26" class="ident">ip</label> != <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-186"><code>		<span class="keyword">if</span> <label for="r26" class="ident">ip</label>.<a href="../../../../../../net/ip.go.html#line-121" class="ident">IsLoopback</a>() {</code></span>
+<span class="codeline" id="line-187"><code>			<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-188"><code>		}</code></span>
+<span class="codeline" id="line-189"><code>	}</code></span>
+<span class="codeline" id="line-190"><code></code></span>
+<span class="codeline" id="line-191"><code>	<label for="r22" class="ident">addr</label> = <a href="../../../../../../../pkg/strings.html" class="ident i5">strings</a>.<a href="../../../../../../strings/strings.go.html#line-580" class="ident">ToLower</a>(<a href="../../../../../../../pkg/strings.html" class="ident i5">strings</a>.<a href="../../../../../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<label for="r23" class="ident">host</label>))</code></span>
+<span class="codeline" id="line-192"><code></code></span>
+<span class="codeline" id="line-193"><code>	<span class="keyword">if</span> <label for="r26" class="ident">ip</label> != <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-194"><code>		<span class="keyword">for</span> <label for="r27" class="ident">_</label>, <label for="r28" class="ident">m</label> := <span class="keyword">range</span> <label for="r20" class="ident">cfg</label>.<a href="#line-75" class="ident">ipMatchers</a> {</code></span>
+<span class="codeline" id="line-195"><code>			<span class="keyword">if</span> <label for="r28" class="ident">m</label>.<a href="#line-326" class="ident">match</a>(<label for="r22" class="ident">addr</label>, <label for="r24" class="ident">port</label>, <label for="r26" class="ident">ip</label>) {</code></span>
+<span class="codeline" id="line-196"><code>				<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-197"><code>			}</code></span>
+<span class="codeline" id="line-198"><code>		}</code></span>
+<span class="codeline" id="line-199"><code>	}</code></span>
+<span class="codeline" id="line-200"><code>	<span class="keyword">for</span> <label for="r29" class="ident">_</label>, <label for="r30" class="ident">m</label> := <span class="keyword">range</span> <label for="r20" class="ident">cfg</label>.<a href="#line-79" class="ident">domainMatchers</a> {</code></span>
+<span class="codeline" id="line-201"><code>		<span class="keyword">if</span> <label for="r30" class="ident">m</label>.<a href="#line-326" class="ident">match</a>(<label for="r22" class="ident">addr</label>, <label for="r24" class="ident">port</label>, <label for="r26" class="ident">ip</label>) {</code></span>
+<span class="codeline" id="line-202"><code>			<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-203"><code>		}</code></span>
+<span class="codeline" id="line-204"><code>	}</code></span>
+<span class="codeline" id="line-205"><code>	<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-206"><code>}</code></span>
+<span class="codeline" id="line-207"><code></code></span>
+<span class="codeline" id="line-208"><code><span class="keyword">func</span> (<label for="r31" class="ident">c</label> *<a href="#line-63" class="ident">config</a>) <label for="r32" class="ident">init</label>() {</code></span>
+<span class="codeline" id="line-209"><code>	<span class="keyword">if</span> <label for="r33" class="ident">parsed</label>, <label for="r34" class="ident">err</label> := <a href="#line-147" class="ident">parseProxy</a>(<label for="r31" class="ident">c</label>.<a href="#line-31" class="ident">HTTPProxy</a>); <label for="r34" class="ident">err</label> == <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-210"><code>		<label for="r31" class="ident">c</label>.<a href="#line-71" class="ident">httpProxy</a> = <label for="r33" class="ident">parsed</label></code></span>
+<span class="codeline" id="line-211"><code>	}</code></span>
+<span class="codeline" id="line-212"><code>	<span class="keyword">if</span> <label for="r35" class="ident">parsed</label>, <label for="r36" class="ident">err</label> := <a href="#line-147" class="ident">parseProxy</a>(<label for="r31" class="ident">c</label>.<a href="#line-36" class="ident">HTTPSProxy</a>); <label for="r36" class="ident">err</label> == <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-213"><code>		<label for="r31" class="ident">c</label>.<a href="#line-68" class="ident">httpsProxy</a> = <label for="r35" class="ident">parsed</label></code></span>
+<span class="codeline" id="line-214"><code>	}</code></span>
+<span class="codeline" id="line-215"><code></code></span>
+<span class="codeline" id="line-216"><code>	<span class="keyword">for</span> <label for="r37" class="ident">_</label>, <label for="r38" class="ident">p</label> := <span class="keyword">range</span> <a href="../../../../../../../pkg/strings.html" class="ident i5">strings</a>.<a href="../../../../../../strings/strings.go.html#line-299" class="ident">Split</a>(<label for="r31" class="ident">c</label>.<a href="#line-51" class="ident">NoProxy</a>, <span class="lit-string">","</span>) {</code></span>
+<span class="codeline" id="line-217"><code>		<label for="r38" class="ident">p</label> = <a href="../../../../../../../pkg/strings.html" class="ident i5">strings</a>.<a href="../../../../../../strings/strings.go.html#line-580" class="ident">ToLower</a>(<a href="../../../../../../../pkg/strings.html" class="ident i5">strings</a>.<a href="../../../../../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<label for="r38" class="ident">p</label>))</code></span>
+<span class="codeline" id="line-218"><code>		<span class="keyword">if</span> <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r38" class="ident">p</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-219"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-220"><code>		}</code></span>
+<span class="codeline" id="line-221"><code></code></span>
+<span class="codeline" id="line-222"><code>		<span class="keyword">if</span> <label for="r38" class="ident">p</label> == <span class="lit-string">"*"</span> {</code></span>
+<span class="codeline" id="line-223"><code>			<label for="r31" class="ident">c</label>.<a href="#line-75" class="ident">ipMatchers</a> = []<a href="#line-323" class="ident">matcher</a>{<a href="#line-330" class="ident">allMatch</a>{}}</code></span>
+<span class="codeline" id="line-224"><code>			<label for="r31" class="ident">c</label>.<a href="#line-79" class="ident">domainMatchers</a> = []<a href="#line-323" class="ident">matcher</a>{<a href="#line-330" class="ident">allMatch</a>{}}</code></span>
+<span class="codeline" id="line-225"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-226"><code>		}</code></span>
+<span class="codeline" id="line-227"><code></code></span>
+<span class="codeline" id="line-228"><code>		<span class="comment">// IPv4/CIDR, IPv6/CIDR</span></code></span>
+<span class="codeline" id="line-229"><code>		<span class="keyword">if</span> <label for="r39" class="ident">_</label>, <label for="r40" class="ident">pnet</label>, <label for="r41" class="ident">err</label> := <a href="../../../../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../../../../net/ip.go.html#line-712" class="ident">ParseCIDR</a>(<label for="r38" class="ident">p</label>); <label for="r41" class="ident">err</label> == <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-230"><code>			<label for="r31" class="ident">c</label>.<a href="#line-75" class="ident">ipMatchers</a> = <a href="../../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r31" class="ident">c</label>.<a href="#line-75" class="ident">ipMatchers</a>, <a href="#line-336" class="ident">cidrMatch</a>{<a href="#line-337" class="ident">cidr</a>: <label for="r40" class="ident">pnet</label>})</code></span>
+<span class="codeline" id="line-231"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-232"><code>		}</code></span>
+<span class="codeline" id="line-233"><code></code></span>
+<span class="codeline" id="line-234"><code>		<span class="comment">// IPv4:port, [IPv6]:port</span></code></span>
+<span class="codeline" id="line-235"><code>		<label for="r42" class="ident">phost</label>, <label for="r43" class="ident">pport</label>, <label for="r44" class="ident">err</label> := <a href="../../../../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../../../../net/ipsock.go.html#line-156" class="ident">SplitHostPort</a>(<label for="r38" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-236"><code>		<span class="keyword">if</span> <label for="r44" class="ident">err</label> == <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-237"><code>			<span class="keyword">if</span> <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r42" class="ident">phost</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-238"><code>				<span class="comment">// There is no host part, likely the entry is malformed; ignore.</span></code></span>
+<span class="codeline" id="line-239"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-240"><code>			}</code></span>
+<span class="codeline" id="line-241"><code>			<span class="keyword">if</span> <label for="r42" class="ident">phost</label>[<span class="lit-number">0</span>] == <span class="lit-number">'['</span> &amp;&amp; <label for="r42" class="ident">phost</label>[<a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r42" class="ident">phost</label>)-<span class="lit-number">1</span>] == <span class="lit-number">']'</span> {</code></span>
+<span class="codeline" id="line-242"><code>				<label for="r42" class="ident">phost</label> = <label for="r42" class="ident">phost</label>[<span class="lit-number">1</span> : <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r42" class="ident">phost</label>)-<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-243"><code>			}</code></span>
+<span class="codeline" id="line-244"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-245"><code>			<label for="r42" class="ident">phost</label> = <label for="r38" class="ident">p</label></code></span>
+<span class="codeline" id="line-246"><code>		}</code></span>
+<span class="codeline" id="line-247"><code>		<span class="comment">// IPv4, IPv6</span></code></span>
+<span class="codeline" id="line-248"><code>		<span class="keyword">if</span> <label for="r45" class="ident">pip</label> := <a href="../../../../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../../../../net/ip.go.html#line-678" class="ident">ParseIP</a>(<label for="r42" class="ident">phost</label>); <label for="r45" class="ident">pip</label> != <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-249"><code>			<label for="r31" class="ident">c</label>.<a href="#line-75" class="ident">ipMatchers</a> = <a href="../../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r31" class="ident">c</label>.<a href="#line-75" class="ident">ipMatchers</a>, <a href="#line-344" class="ident">ipMatch</a>{<a href="#line-345" class="ident">ip</a>: <label for="r45" class="ident">pip</label>, <a href="#line-346" class="ident">port</a>: <label for="r43" class="ident">pport</label>})</code></span>
+<span class="codeline" id="line-250"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-251"><code>		}</code></span>
+<span class="codeline" id="line-252"><code></code></span>
+<span class="codeline" id="line-253"><code>		<span class="keyword">if</span> <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r42" class="ident">phost</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-254"><code>			<span class="comment">// There is no host part, likely the entry is malformed; ignore.</span></code></span>
+<span class="codeline" id="line-255"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-256"><code>		}</code></span>
+<span class="codeline" id="line-257"><code></code></span>
+<span class="codeline" id="line-258"><code>		<span class="comment">// domain.com or domain.com:80</span></code></span>
+<span class="codeline" id="line-259"><code><span class="comment">		// foo.com matches bar.foo.com</span></code></span>
+<span class="codeline" id="line-260"><code><span class="comment">		// .domain.com or .domain.com:port</span></code></span>
+<span class="codeline" id="line-261"><code><span class="comment">		// *.domain.com or *.domain.com:port</span></code></span>
+<span class="codeline" id="line-262"><code>		<span class="keyword">if</span> <a href="../../../../../../../pkg/strings.html" class="ident i5">strings</a>.<a href="../../../../../../strings/strings.go.html#line-444" class="ident">HasPrefix</a>(<label for="r42" class="ident">phost</label>, <span class="lit-string">"*."</span>) {</code></span>
+<span class="codeline" id="line-263"><code>			<label for="r42" class="ident">phost</label> = <label for="r42" class="ident">phost</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-264"><code>		}</code></span>
+<span class="codeline" id="line-265"><code>		<label for="r46" class="ident">matchHost</label> := <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-266"><code>		<span class="keyword">if</span> <label for="r42" class="ident">phost</label>[<span class="lit-number">0</span>] != <span class="lit-number">'.'</span> {</code></span>
+<span class="codeline" id="line-267"><code>			<label for="r46" class="ident">matchHost</label> = <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-268"><code>			<label for="r42" class="ident">phost</label> = <span class="lit-string">"."</span> + <label for="r42" class="ident">phost</label></code></span>
+<span class="codeline" id="line-269"><code>		}</code></span>
+<span class="codeline" id="line-270"><code>		<label for="r31" class="ident">c</label>.<a href="#line-79" class="ident">domainMatchers</a> = <a href="../../../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r31" class="ident">c</label>.<a href="#line-79" class="ident">domainMatchers</a>, <a href="#line-356" class="ident">domainMatch</a>{<a href="#line-357" class="ident">host</a>: <label for="r42" class="ident">phost</label>, <a href="#line-358" class="ident">port</a>: <label for="r43" class="ident">pport</label>, <a href="#line-360" class="ident">matchHost</a>: <label for="r46" class="ident">matchHost</label>})</code></span>
+<span class="codeline" id="line-271"><code>	}</code></span>
+<span class="codeline" id="line-272"><code>}</code></span>
+<span class="codeline" id="line-273"><code></code></span>
+<span class="codeline" id="line-274"><code><span class="keyword">var</span> <a href="../../../../../../../pkg/vendor/golang.org/x/net/http/httpproxy.html#name-portMap" class="ident">portMap</a> = <span class="keyword">map</span>[<a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>{</code></span>
+<span class="codeline" id="line-275"><code>	<span class="lit-string">"http"</span>:   <span class="lit-string">"80"</span>,</code></span>
+<span class="codeline" id="line-276"><code>	<span class="lit-string">"https"</span>:  <span class="lit-string">"443"</span>,</code></span>
+<span class="codeline" id="line-277"><code>	<span class="lit-string">"socks5"</span>: <span class="lit-string">"1080"</span>,</code></span>
+<span class="codeline" id="line-278"><code>}</code></span>
+<span class="codeline" id="line-279"><code></code></span>
+<span class="codeline" id="line-280"><code><span class="comment">// canonicalAddr returns url.Host but always with a ":port" suffix</span></code></span>
+<span class="codeline" id="line-281"><code><span class="keyword">func</span> <label for="r47" class="ident"><a href="../../../../../../../pkg/vendor/golang.org/x/net/http/httpproxy.html#name-canonicalAddr" class="ident">canonicalAddr</a></label>(<label for="r48" class="ident">url</label> *<a href="../../../../../../../pkg/net/url.html" class="ident i3">url</a>.<a href="../../../../../../net/url/url.go.html#line-358" class="ident">URL</a>) <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-282"><code>	<label for="r49" class="ident">addr</label> := <label for="r48" class="ident">url</label>.<a href="../../../../../../net/url/url.go.html#line-1138" class="ident">Hostname</a>()</code></span>
+<span class="codeline" id="line-283"><code>	<span class="keyword">if</span> <label for="r50" class="ident">v</label>, <label for="r51" class="ident">err</label> := <a href="#line-297" class="ident">idnaASCII</a>(<label for="r49" class="ident">addr</label>); <label for="r51" class="ident">err</label> == <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-284"><code>		<label for="r49" class="ident">addr</label> = <label for="r50" class="ident">v</label></code></span>
+<span class="codeline" id="line-285"><code>	}</code></span>
+<span class="codeline" id="line-286"><code>	<label for="r52" class="ident">port</label> := <label for="r48" class="ident">url</label>.<a href="../../../../../../net/url/url.go.html#line-1146" class="ident">Port</a>()</code></span>
+<span class="codeline" id="line-287"><code>	<span class="keyword">if</span> <label for="r52" class="ident">port</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-288"><code>		<label for="r52" class="ident">port</label> = <a href="#line-274" class="ident">portMap</a>[<label for="r48" class="ident">url</label>.<a href="../../../../../../net/url/url.go.html#line-359" class="ident">Scheme</a>]</code></span>
+<span class="codeline" id="line-289"><code>	}</code></span>
+<span class="codeline" id="line-290"><code>	<span class="keyword">return</span> <a href="../../../../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../../../../net/ipsock.go.html#line-227" class="ident">JoinHostPort</a>(<label for="r49" class="ident">addr</label>, <label for="r52" class="ident">port</label>)</code></span>
+<span class="codeline" id="line-291"><code>}</code></span>
+<span class="codeline" id="line-292"><code></code></span>
+<span class="codeline" id="line-293"><code><span class="comment">// Given a string of the form "host", "host:port", or "[ipv6::address]:port",</span></code></span>
+<span class="codeline" id="line-294"><code><span class="comment">// return true if the string includes a port.</span></code></span>
+<span class="codeline" id="line-295"><code><span class="keyword">func</span> <label for="r53" class="ident"><a href="../../../../../../../pkg/vendor/golang.org/x/net/http/httpproxy.html#name-hasPort" class="ident">hasPort</a></label>(<label for="r54" class="ident">s</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> { <span class="keyword">return</span> <a href="../../../../../../../pkg/strings.html" class="ident i5">strings</a>.<a href="../../../../../../strings/strings.go.html#line-76" class="ident">LastIndex</a>(<label for="r54" class="ident">s</label>, <span class="lit-string">":"</span>) &gt; <a href="../../../../../../../pkg/strings.html" class="ident i5">strings</a>.<a href="../../../../../../strings/strings.go.html#line-76" class="ident">LastIndex</a>(<label for="r54" class="ident">s</label>, <span class="lit-string">"]"</span>) }</code></span>
+<span class="codeline" id="line-296"><code></code></span>
+<span class="codeline" id="line-297"><code><span class="keyword">func</span> <label for="r55" class="ident"><a href="../../../../../../../pkg/vendor/golang.org/x/net/http/httpproxy.html#name-idnaASCII" class="ident">idnaASCII</a></label>(<label for="r56" class="ident">v</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-298"><code>	<span class="comment">// TODO: Consider removing this check after verifying performance is okay.</span></code></span>
+<span class="codeline" id="line-299"><code><span class="comment">	// Right now punycode verification, length checks, context checks, and the</span></code></span>
+<span class="codeline" id="line-300"><code><span class="comment">	// permissible character tests are all omitted. It also prevents the ToASCII</span></code></span>
+<span class="codeline" id="line-301"><code><span class="comment">	// call from salvaging an invalid IDN, when possible. As a result it may be</span></code></span>
+<span class="codeline" id="line-302"><code><span class="comment">	// possible to have two IDNs that appear identical to the user where the</span></code></span>
+<span class="codeline" id="line-303"><code><span class="comment">	// ASCII-only version causes an error downstream whereas the non-ASCII</span></code></span>
+<span class="codeline" id="line-304"><code><span class="comment">	// version does not.</span></code></span>
+<span class="codeline" id="line-305"><code><span class="comment">	// Note that for correct ASCII IDNs ToASCII will only do considerably more</span></code></span>
+<span class="codeline" id="line-306"><code><span class="comment">	// work, but it will not cause an allocation.</span></code></span>
+<span class="codeline" id="line-307"><code>	<span class="keyword">if</span> <a href="#line-313" class="ident">isASCII</a>(<label for="r56" class="ident">v</label>) {</code></span>
+<span class="codeline" id="line-308"><code>		<span class="keyword">return</span> <label for="r56" class="ident">v</label>, <a href="../../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-309"><code>	}</code></span>
+<span class="codeline" id="line-310"><code>	<span class="keyword">return</span> <a href="../../../../../../../pkg/vendor/golang.org/x/net/idna.html" class="ident i0">idna</a>.<a href="../../idna/idna10.0.0.go.html#line-244" class="ident">Lookup</a>.<a href="../../idna/idna10.0.0.go.html#line-201" class="ident">ToASCII</a>(<label for="r56" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-311"><code>}</code></span>
+<span class="codeline" id="line-312"><code></code></span>
+<span class="codeline" id="line-313"><code><span class="keyword">func</span> <label for="r57" class="ident"><a href="../../../../../../../pkg/vendor/golang.org/x/net/http/httpproxy.html#name-isASCII" class="ident">isASCII</a></label>(<label for="r58" class="ident">s</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-314"><code>	<span class="keyword">for</span> <label for="r59" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r59" class="ident">i</label> &lt; <a href="../../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r58" class="ident">s</label>); <label for="r59" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-315"><code>		<span class="keyword">if</span> <label for="r58" class="ident">s</label>[<label for="r59" class="ident">i</label>] &gt;= <a href="../../../../../../../pkg/unicode/utf8.html" class="ident i6">utf8</a>.<a href="../../../../../../unicode/utf8/utf8.go.html#line-17" class="ident">RuneSelf</a> {</code></span>
+<span class="codeline" id="line-316"><code>			<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-317"><code>		}</code></span>
+<span class="codeline" id="line-318"><code>	}</code></span>
+<span class="codeline" id="line-319"><code>	<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-320"><code>}</code></span>
+<span class="codeline" id="line-321"><code></code></span>
+<span class="codeline" id="line-322"><code><span class="comment">// matcher represents the matching rule for a given value in the NO_PROXY list</span></code></span>
+<span class="codeline" id="line-323"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/vendor/golang.org/x/net/http/httpproxy.html#name-matcher" class="ident">matcher</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-324"><code>	<span class="comment">// match returns true if the host and optional port or ip and optional port</span></code></span>
+<span class="codeline" id="line-325"><code><span class="comment">	// are allowed</span></code></span>
+<span class="codeline" id="line-326"><code>	<a href="../../../../../../../imp/vendor/golang.org/x/net/http/httpproxy.matcher*afddf.html#name-vendor/golang.org/x/net/http/httpproxy.match" class="ident">match</a>(host, port <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, ip <a href="../../../../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../../../../net/ip.go.html#line-32" class="ident">IP</a>) <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-327"><code>}</code></span>
+<span class="codeline" id="line-328"><code></code></span>
+<span class="codeline" id="line-329"><code><span class="comment">// allMatch matches on all possible inputs</span></code></span>
+<span class="codeline" id="line-330"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/vendor/golang.org/x/net/http/httpproxy.html#name-allMatch" class="ident">allMatch</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-331"><code></code></span>
+<span class="codeline" id="line-332"><code><span class="keyword">func</span> (<label for="r60" class="ident">a</label> <a href="#line-330" class="ident">allMatch</a>) <label for="r61" class="ident"><a href="../../../../../../../imp/vendor/golang.org/x/net/http/httpproxy.allMatch*d65d0.html#name-match" class="ident">match</a></label>(<label for="r62" class="ident">host</label>, <label for="r63" class="ident">port</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r64" class="ident">ip</label> <a href="../../../../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../../../../net/ip.go.html#line-32" class="ident">IP</a>) <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-333"><code>	<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-334"><code>}</code></span>
+<span class="codeline" id="line-335"><code></code></span>
+<span class="codeline" id="line-336"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/vendor/golang.org/x/net/http/httpproxy.html#name-cidrMatch" class="ident">cidrMatch</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-337"><code>	cidr *<a href="../../../../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../../../../net/ip.go.html#line-41" class="ident">IPNet</a></code></span>
+<span class="codeline" id="line-338"><code>}</code></span>
+<span class="codeline" id="line-339"><code></code></span>
+<span class="codeline" id="line-340"><code><span class="keyword">func</span> (<label for="r65" class="ident">m</label> <a href="#line-336" class="ident">cidrMatch</a>) <label for="r66" class="ident"><a href="../../../../../../../imp/vendor/golang.org/x/net/http/httpproxy.cidrMatch*aee7b.html#name-match" class="ident">match</a></label>(<label for="r67" class="ident">host</label>, <label for="r68" class="ident">port</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r69" class="ident">ip</label> <a href="../../../../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../../../../net/ip.go.html#line-32" class="ident">IP</a>) <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-341"><code>	<span class="keyword">return</span> <label for="r65" class="ident">m</label>.<a href="#line-337" class="ident">cidr</a>.<a href="../../../../../../net/ip.go.html#line-499" class="ident">Contains</a>(<label for="r69" class="ident">ip</label>)</code></span>
+<span class="codeline" id="line-342"><code>}</code></span>
+<span class="codeline" id="line-343"><code></code></span>
+<span class="codeline" id="line-344"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/vendor/golang.org/x/net/http/httpproxy.html#name-ipMatch" class="ident">ipMatch</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-345"><code>	ip   <a href="../../../../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../../../../net/ip.go.html#line-32" class="ident">IP</a></code></span>
+<span class="codeline" id="line-346"><code>	port <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-347"><code>}</code></span>
+<span class="codeline" id="line-348"><code></code></span>
+<span class="codeline" id="line-349"><code><span class="keyword">func</span> (<label for="r70" class="ident">m</label> <a href="#line-344" class="ident">ipMatch</a>) <label for="r71" class="ident"><a href="../../../../../../../imp/vendor/golang.org/x/net/http/httpproxy.ipMatch*3d713.html#name-match" class="ident">match</a></label>(<label for="r72" class="ident">host</label>, <label for="r73" class="ident">port</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r74" class="ident">ip</label> <a href="../../../../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../../../../net/ip.go.html#line-32" class="ident">IP</a>) <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-350"><code>	<span class="keyword">if</span> <label for="r70" class="ident">m</label>.<a href="#line-345" class="ident">ip</a>.<a href="../../../../../../net/ip.go.html#line-410" class="ident">Equal</a>(<label for="r74" class="ident">ip</label>) {</code></span>
+<span class="codeline" id="line-351"><code>		<span class="keyword">return</span> <label for="r70" class="ident">m</label>.<a href="#line-346" class="ident">port</a> == <span class="lit-string">""</span> || <label for="r70" class="ident">m</label>.<a href="#line-346" class="ident">port</a> == <label for="r73" class="ident">port</label></code></span>
+<span class="codeline" id="line-352"><code>	}</code></span>
+<span class="codeline" id="line-353"><code>	<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-354"><code>}</code></span>
+<span class="codeline" id="line-355"><code></code></span>
+<span class="codeline" id="line-356"><code><span class="keyword">type</span> <a href="../../../../../../../pkg/vendor/golang.org/x/net/http/httpproxy.html#name-domainMatch" class="ident">domainMatch</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-357"><code>	host <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-358"><code>	port <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-359"><code></code></span>
+<span class="codeline" id="line-360"><code>	matchHost <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-361"><code>}</code></span>
+<span class="codeline" id="line-362"><code></code></span>
+<span class="codeline" id="line-363"><code><span class="keyword">func</span> (<label for="r75" class="ident">m</label> <a href="#line-356" class="ident">domainMatch</a>) <label for="r76" class="ident"><a href="../../../../../../../imp/vendor/golang.org/x/net/http/httpproxy.domainMatch*62273.html#name-match" class="ident">match</a></label>(<label for="r77" class="ident">host</label>, <label for="r78" class="ident">port</label> <a href="../../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r79" class="ident">ip</label> <a href="../../../../../../../pkg/net.html" class="ident i2">net</a>.<a href="../../../../../../net/ip.go.html#line-32" class="ident">IP</a>) <a href="../../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-364"><code>	<span class="keyword">if</span> <a href="../../../../../../../pkg/strings.html" class="ident i5">strings</a>.<a href="../../../../../../strings/strings.go.html#line-449" class="ident">HasSuffix</a>(<label for="r77" class="ident">host</label>, <label for="r75" class="ident">m</label>.<a href="#line-357" class="ident">host</a>) || (<label for="r75" class="ident">m</label>.<a href="#line-360" class="ident">matchHost</a> &amp;&amp; <label for="r77" class="ident">host</label> == <label for="r75" class="ident">m</label>.<a href="#line-357" class="ident">host</a>[<span class="lit-number">1</span>:]) {</code></span>
+<span class="codeline" id="line-365"><code>		<span class="keyword">return</span> <label for="r75" class="ident">m</label>.<a href="#line-358" class="ident">port</a> == <span class="lit-string">""</span> || <label for="r75" class="ident">m</label>.<a href="#line-358" class="ident">port</a> == <label for="r78" class="ident">port</label></code></span>
+<span class="codeline" id="line-366"><code>	}</code></span>
+<span class="codeline" id="line-367"><code>	<span class="keyword">return</span> <a href="../../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-368"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

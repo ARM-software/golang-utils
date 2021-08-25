@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: yamlh.go in package gopkg.in/yaml.v2</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	yamlh.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/gopkg.in/yaml.v2.html">gopkg.in/yaml.v2</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> yaml</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"fmt"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"io"</span></label></code></span>
+<span class="codeline" id="line-6"><code>)</code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// The version directive data.</span></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_version_directive_t" class="ident">yaml_version_directive_t</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-10"><code>	major <a href="../../../pkg/builtin.html#name-int8" class="ident">int8</a> <span class="comment">// The major version number.</span></code></span>
+<span class="codeline" id="line-11"><code>	minor <a href="../../../pkg/builtin.html#name-int8" class="ident">int8</a> <span class="comment">// The minor version number.</span></code></span>
+<span class="codeline" id="line-12"><code>}</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// The tag directive data.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_tag_directive_t" class="ident">yaml_tag_directive_t</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-16"><code>	handle []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> <span class="comment">// The tag handle.</span></code></span>
+<span class="codeline" id="line-17"><code>	prefix []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> <span class="comment">// The tag prefix.</span></code></span>
+<span class="codeline" id="line-18"><code>}</code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_encoding_t" class="ident">yaml_encoding_t</a> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// The stream encoding.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-24"><code>	<span class="comment">// Let the parser choose the encoding.</span></code></span>
+<span class="codeline" id="line-25"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_ANY_ENCODING" class="ident">yaml_ANY_ENCODING</a> <a href="#line-20" class="ident">yaml_encoding_t</a> = <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_UTF8_ENCODING" class="ident">yaml_UTF8_ENCODING</a>    <span class="comment">// The default UTF-8 encoding.</span></code></span>
+<span class="codeline" id="line-28"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_UTF16LE_ENCODING" class="ident">yaml_UTF16LE_ENCODING</a> <span class="comment">// The UTF-16-LE encoding with BOM.</span></code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_UTF16BE_ENCODING" class="ident">yaml_UTF16BE_ENCODING</a> <span class="comment">// The UTF-16-BE encoding with BOM.</span></code></span>
+<span class="codeline" id="line-30"><code>)</code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_break_t" class="ident">yaml_break_t</a> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// Line break types.</span></code></span>
+<span class="codeline" id="line-35"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-36"><code>	<span class="comment">// Let the parser choose the break type.</span></code></span>
+<span class="codeline" id="line-37"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_ANY_BREAK" class="ident">yaml_ANY_BREAK</a> <a href="#line-32" class="ident">yaml_break_t</a> = <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_CR_BREAK" class="ident">yaml_CR_BREAK</a>   <span class="comment">// Use CR for line breaks (Mac style).</span></code></span>
+<span class="codeline" id="line-40"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_LN_BREAK" class="ident">yaml_LN_BREAK</a>   <span class="comment">// Use LN for line breaks (Unix style).</span></code></span>
+<span class="codeline" id="line-41"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_CRLN_BREAK" class="ident">yaml_CRLN_BREAK</a> <span class="comment">// Use CR LN for line breaks (DOS style).</span></code></span>
+<span class="codeline" id="line-42"><code>)</code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_error_type_t" class="ident">yaml_error_type_t</a> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// Many bad things could happen with the parser and emitter.</span></code></span>
+<span class="codeline" id="line-47"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-48"><code>	<span class="comment">// No error is produced.</span></code></span>
+<span class="codeline" id="line-49"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_NO_ERROR" class="ident">yaml_NO_ERROR</a> <a href="#line-44" class="ident">yaml_error_type_t</a> = <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_MEMORY_ERROR" class="ident">yaml_MEMORY_ERROR</a>   <span class="comment">// Cannot allocate or reallocate a block of memory.</span></code></span>
+<span class="codeline" id="line-52"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_READER_ERROR" class="ident">yaml_READER_ERROR</a>   <span class="comment">// Cannot read or decode the input stream.</span></code></span>
+<span class="codeline" id="line-53"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_SCANNER_ERROR" class="ident">yaml_SCANNER_ERROR</a>  <span class="comment">// Cannot scan the input stream.</span></code></span>
+<span class="codeline" id="line-54"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSER_ERROR" class="ident">yaml_PARSER_ERROR</a>   <span class="comment">// Cannot parse the input stream.</span></code></span>
+<span class="codeline" id="line-55"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_COMPOSER_ERROR" class="ident">yaml_COMPOSER_ERROR</a> <span class="comment">// Cannot compose a YAML document.</span></code></span>
+<span class="codeline" id="line-56"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_WRITER_ERROR" class="ident">yaml_WRITER_ERROR</a>   <span class="comment">// Cannot write to the output stream.</span></code></span>
+<span class="codeline" id="line-57"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMITTER_ERROR" class="ident">yaml_EMITTER_ERROR</a>  <span class="comment">// Cannot emit a YAML stream.</span></code></span>
+<span class="codeline" id="line-58"><code>)</code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// The pointer position.</span></code></span>
+<span class="codeline" id="line-61"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_mark_t" class="ident">yaml_mark_t</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-62"><code>	index  <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// The position index.</span></code></span>
+<span class="codeline" id="line-63"><code>	line   <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// The position line.</span></code></span>
+<span class="codeline" id="line-64"><code>	column <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// The position column.</span></code></span>
+<span class="codeline" id="line-65"><code>}</code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// Node Styles</span></code></span>
+<span class="codeline" id="line-68"><code></code></span>
+<span class="codeline" id="line-69"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_style_t" class="ident">yaml_style_t</a> <a href="../../../pkg/builtin.html#name-int8" class="ident">int8</a></code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_scalar_style_t" class="ident">yaml_scalar_style_t</a> <a href="#line-69" class="ident">yaml_style_t</a></code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// Scalar styles.</span></code></span>
+<span class="codeline" id="line-74"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-75"><code>	<span class="comment">// Let the emitter choose the style.</span></code></span>
+<span class="codeline" id="line-76"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_ANY_SCALAR_STYLE" class="ident">yaml_ANY_SCALAR_STYLE</a> <a href="#line-71" class="ident">yaml_scalar_style_t</a> = <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PLAIN_SCALAR_STYLE" class="ident">yaml_PLAIN_SCALAR_STYLE</a>         <span class="comment">// The plain scalar style.</span></code></span>
+<span class="codeline" id="line-79"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_SINGLE_QUOTED_SCALAR_STYLE" class="ident">yaml_SINGLE_QUOTED_SCALAR_STYLE</a> <span class="comment">// The single-quoted scalar style.</span></code></span>
+<span class="codeline" id="line-80"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_DOUBLE_QUOTED_SCALAR_STYLE" class="ident">yaml_DOUBLE_QUOTED_SCALAR_STYLE</a> <span class="comment">// The double-quoted scalar style.</span></code></span>
+<span class="codeline" id="line-81"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_LITERAL_SCALAR_STYLE" class="ident">yaml_LITERAL_SCALAR_STYLE</a>       <span class="comment">// The literal scalar style.</span></code></span>
+<span class="codeline" id="line-82"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_FOLDED_SCALAR_STYLE" class="ident">yaml_FOLDED_SCALAR_STYLE</a>        <span class="comment">// The folded scalar style.</span></code></span>
+<span class="codeline" id="line-83"><code>)</code></span>
+<span class="codeline" id="line-84"><code></code></span>
+<span class="codeline" id="line-85"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_sequence_style_t" class="ident">yaml_sequence_style_t</a> <a href="#line-69" class="ident">yaml_style_t</a></code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// Sequence styles.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-89"><code>	<span class="comment">// Let the emitter choose the style.</span></code></span>
+<span class="codeline" id="line-90"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_ANY_SEQUENCE_STYLE" class="ident">yaml_ANY_SEQUENCE_STYLE</a> <a href="#line-85" class="ident">yaml_sequence_style_t</a> = <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-91"><code></code></span>
+<span class="codeline" id="line-92"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_BLOCK_SEQUENCE_STYLE" class="ident">yaml_BLOCK_SEQUENCE_STYLE</a> <span class="comment">// The block sequence style.</span></code></span>
+<span class="codeline" id="line-93"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_FLOW_SEQUENCE_STYLE" class="ident">yaml_FLOW_SEQUENCE_STYLE</a>  <span class="comment">// The flow sequence style.</span></code></span>
+<span class="codeline" id="line-94"><code>)</code></span>
+<span class="codeline" id="line-95"><code></code></span>
+<span class="codeline" id="line-96"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_mapping_style_t" class="ident">yaml_mapping_style_t</a> <a href="#line-69" class="ident">yaml_style_t</a></code></span>
+<span class="codeline" id="line-97"><code></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">// Mapping styles.</span></code></span>
+<span class="codeline" id="line-99"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-100"><code>	<span class="comment">// Let the emitter choose the style.</span></code></span>
+<span class="codeline" id="line-101"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_ANY_MAPPING_STYLE" class="ident">yaml_ANY_MAPPING_STYLE</a> <a href="#line-96" class="ident">yaml_mapping_style_t</a> = <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_BLOCK_MAPPING_STYLE" class="ident">yaml_BLOCK_MAPPING_STYLE</a> <span class="comment">// The block mapping style.</span></code></span>
+<span class="codeline" id="line-104"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_FLOW_MAPPING_STYLE" class="ident">yaml_FLOW_MAPPING_STYLE</a>  <span class="comment">// The flow mapping style.</span></code></span>
+<span class="codeline" id="line-105"><code>)</code></span>
+<span class="codeline" id="line-106"><code></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">// Tokens</span></code></span>
+<span class="codeline" id="line-108"><code></code></span>
+<span class="codeline" id="line-109"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_token_type_t" class="ident">yaml_token_type_t</a> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-110"><code></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">// Token types.</span></code></span>
+<span class="codeline" id="line-112"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-113"><code>	<span class="comment">// An empty token.</span></code></span>
+<span class="codeline" id="line-114"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_NO_TOKEN" class="ident">yaml_NO_TOKEN</a> <a href="#line-109" class="ident">yaml_token_type_t</a> = <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-115"><code></code></span>
+<span class="codeline" id="line-116"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_STREAM_START_TOKEN" class="ident">yaml_STREAM_START_TOKEN</a> <span class="comment">// A STREAM-START token.</span></code></span>
+<span class="codeline" id="line-117"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_STREAM_END_TOKEN" class="ident">yaml_STREAM_END_TOKEN</a>   <span class="comment">// A STREAM-END token.</span></code></span>
+<span class="codeline" id="line-118"><code></code></span>
+<span class="codeline" id="line-119"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_VERSION_DIRECTIVE_TOKEN" class="ident">yaml_VERSION_DIRECTIVE_TOKEN</a> <span class="comment">// A VERSION-DIRECTIVE token.</span></code></span>
+<span class="codeline" id="line-120"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_TAG_DIRECTIVE_TOKEN" class="ident">yaml_TAG_DIRECTIVE_TOKEN</a>     <span class="comment">// A TAG-DIRECTIVE token.</span></code></span>
+<span class="codeline" id="line-121"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_DOCUMENT_START_TOKEN" class="ident">yaml_DOCUMENT_START_TOKEN</a>    <span class="comment">// A DOCUMENT-START token.</span></code></span>
+<span class="codeline" id="line-122"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_DOCUMENT_END_TOKEN" class="ident">yaml_DOCUMENT_END_TOKEN</a>      <span class="comment">// A DOCUMENT-END token.</span></code></span>
+<span class="codeline" id="line-123"><code></code></span>
+<span class="codeline" id="line-124"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_BLOCK_SEQUENCE_START_TOKEN" class="ident">yaml_BLOCK_SEQUENCE_START_TOKEN</a> <span class="comment">// A BLOCK-SEQUENCE-START token.</span></code></span>
+<span class="codeline" id="line-125"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_BLOCK_MAPPING_START_TOKEN" class="ident">yaml_BLOCK_MAPPING_START_TOKEN</a>  <span class="comment">// A BLOCK-SEQUENCE-END token.</span></code></span>
+<span class="codeline" id="line-126"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_BLOCK_END_TOKEN" class="ident">yaml_BLOCK_END_TOKEN</a>            <span class="comment">// A BLOCK-END token.</span></code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_FLOW_SEQUENCE_START_TOKEN" class="ident">yaml_FLOW_SEQUENCE_START_TOKEN</a> <span class="comment">// A FLOW-SEQUENCE-START token.</span></code></span>
+<span class="codeline" id="line-129"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_FLOW_SEQUENCE_END_TOKEN" class="ident">yaml_FLOW_SEQUENCE_END_TOKEN</a>   <span class="comment">// A FLOW-SEQUENCE-END token.</span></code></span>
+<span class="codeline" id="line-130"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_FLOW_MAPPING_START_TOKEN" class="ident">yaml_FLOW_MAPPING_START_TOKEN</a>  <span class="comment">// A FLOW-MAPPING-START token.</span></code></span>
+<span class="codeline" id="line-131"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_FLOW_MAPPING_END_TOKEN" class="ident">yaml_FLOW_MAPPING_END_TOKEN</a>    <span class="comment">// A FLOW-MAPPING-END token.</span></code></span>
+<span class="codeline" id="line-132"><code></code></span>
+<span class="codeline" id="line-133"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_BLOCK_ENTRY_TOKEN" class="ident">yaml_BLOCK_ENTRY_TOKEN</a> <span class="comment">// A BLOCK-ENTRY token.</span></code></span>
+<span class="codeline" id="line-134"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_FLOW_ENTRY_TOKEN" class="ident">yaml_FLOW_ENTRY_TOKEN</a>  <span class="comment">// A FLOW-ENTRY token.</span></code></span>
+<span class="codeline" id="line-135"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_KEY_TOKEN" class="ident">yaml_KEY_TOKEN</a>         <span class="comment">// A KEY token.</span></code></span>
+<span class="codeline" id="line-136"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_VALUE_TOKEN" class="ident">yaml_VALUE_TOKEN</a>       <span class="comment">// A VALUE token.</span></code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_ALIAS_TOKEN" class="ident">yaml_ALIAS_TOKEN</a>  <span class="comment">// An ALIAS token.</span></code></span>
+<span class="codeline" id="line-139"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_ANCHOR_TOKEN" class="ident">yaml_ANCHOR_TOKEN</a> <span class="comment">// An ANCHOR token.</span></code></span>
+<span class="codeline" id="line-140"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_TAG_TOKEN" class="ident">yaml_TAG_TOKEN</a>    <span class="comment">// A TAG token.</span></code></span>
+<span class="codeline" id="line-141"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_SCALAR_TOKEN" class="ident">yaml_SCALAR_TOKEN</a> <span class="comment">// A SCALAR token.</span></code></span>
+<span class="codeline" id="line-142"><code>)</code></span>
+<span class="codeline" id="line-143"><code></code></span>
+<span class="codeline" id="line-144"><code><span class="keyword">func</span> (<label for="r0" class="ident">tt</label> <a href="#line-109" class="ident">yaml_token_type_t</a>) <label for="r1" class="ident"><a href="../../../imp/gopkg.in/yaml.v2.yaml_token_type_t*bd04f.html#name-.String" class="ident">String</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-145"><code>	<span class="keyword">switch</span> <label for="r0" class="ident">tt</label> {</code></span>
+<span class="codeline" id="line-146"><code>	<span class="keyword">case</span> <a href="#line-114" class="ident">yaml_NO_TOKEN</a>:</code></span>
+<span class="codeline" id="line-147"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_NO_TOKEN"</span></code></span>
+<span class="codeline" id="line-148"><code>	<span class="keyword">case</span> <a href="#line-116" class="ident">yaml_STREAM_START_TOKEN</a>:</code></span>
+<span class="codeline" id="line-149"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_STREAM_START_TOKEN"</span></code></span>
+<span class="codeline" id="line-150"><code>	<span class="keyword">case</span> <a href="#line-117" class="ident">yaml_STREAM_END_TOKEN</a>:</code></span>
+<span class="codeline" id="line-151"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_STREAM_END_TOKEN"</span></code></span>
+<span class="codeline" id="line-152"><code>	<span class="keyword">case</span> <a href="#line-119" class="ident">yaml_VERSION_DIRECTIVE_TOKEN</a>:</code></span>
+<span class="codeline" id="line-153"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_VERSION_DIRECTIVE_TOKEN"</span></code></span>
+<span class="codeline" id="line-154"><code>	<span class="keyword">case</span> <a href="#line-120" class="ident">yaml_TAG_DIRECTIVE_TOKEN</a>:</code></span>
+<span class="codeline" id="line-155"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_TAG_DIRECTIVE_TOKEN"</span></code></span>
+<span class="codeline" id="line-156"><code>	<span class="keyword">case</span> <a href="#line-121" class="ident">yaml_DOCUMENT_START_TOKEN</a>:</code></span>
+<span class="codeline" id="line-157"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_DOCUMENT_START_TOKEN"</span></code></span>
+<span class="codeline" id="line-158"><code>	<span class="keyword">case</span> <a href="#line-122" class="ident">yaml_DOCUMENT_END_TOKEN</a>:</code></span>
+<span class="codeline" id="line-159"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_DOCUMENT_END_TOKEN"</span></code></span>
+<span class="codeline" id="line-160"><code>	<span class="keyword">case</span> <a href="#line-124" class="ident">yaml_BLOCK_SEQUENCE_START_TOKEN</a>:</code></span>
+<span class="codeline" id="line-161"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_BLOCK_SEQUENCE_START_TOKEN"</span></code></span>
+<span class="codeline" id="line-162"><code>	<span class="keyword">case</span> <a href="#line-125" class="ident">yaml_BLOCK_MAPPING_START_TOKEN</a>:</code></span>
+<span class="codeline" id="line-163"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_BLOCK_MAPPING_START_TOKEN"</span></code></span>
+<span class="codeline" id="line-164"><code>	<span class="keyword">case</span> <a href="#line-126" class="ident">yaml_BLOCK_END_TOKEN</a>:</code></span>
+<span class="codeline" id="line-165"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_BLOCK_END_TOKEN"</span></code></span>
+<span class="codeline" id="line-166"><code>	<span class="keyword">case</span> <a href="#line-128" class="ident">yaml_FLOW_SEQUENCE_START_TOKEN</a>:</code></span>
+<span class="codeline" id="line-167"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_FLOW_SEQUENCE_START_TOKEN"</span></code></span>
+<span class="codeline" id="line-168"><code>	<span class="keyword">case</span> <a href="#line-129" class="ident">yaml_FLOW_SEQUENCE_END_TOKEN</a>:</code></span>
+<span class="codeline" id="line-169"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_FLOW_SEQUENCE_END_TOKEN"</span></code></span>
+<span class="codeline" id="line-170"><code>	<span class="keyword">case</span> <a href="#line-130" class="ident">yaml_FLOW_MAPPING_START_TOKEN</a>:</code></span>
+<span class="codeline" id="line-171"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_FLOW_MAPPING_START_TOKEN"</span></code></span>
+<span class="codeline" id="line-172"><code>	<span class="keyword">case</span> <a href="#line-131" class="ident">yaml_FLOW_MAPPING_END_TOKEN</a>:</code></span>
+<span class="codeline" id="line-173"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_FLOW_MAPPING_END_TOKEN"</span></code></span>
+<span class="codeline" id="line-174"><code>	<span class="keyword">case</span> <a href="#line-133" class="ident">yaml_BLOCK_ENTRY_TOKEN</a>:</code></span>
+<span class="codeline" id="line-175"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_BLOCK_ENTRY_TOKEN"</span></code></span>
+<span class="codeline" id="line-176"><code>	<span class="keyword">case</span> <a href="#line-134" class="ident">yaml_FLOW_ENTRY_TOKEN</a>:</code></span>
+<span class="codeline" id="line-177"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_FLOW_ENTRY_TOKEN"</span></code></span>
+<span class="codeline" id="line-178"><code>	<span class="keyword">case</span> <a href="#line-135" class="ident">yaml_KEY_TOKEN</a>:</code></span>
+<span class="codeline" id="line-179"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_KEY_TOKEN"</span></code></span>
+<span class="codeline" id="line-180"><code>	<span class="keyword">case</span> <a href="#line-136" class="ident">yaml_VALUE_TOKEN</a>:</code></span>
+<span class="codeline" id="line-181"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_VALUE_TOKEN"</span></code></span>
+<span class="codeline" id="line-182"><code>	<span class="keyword">case</span> <a href="#line-138" class="ident">yaml_ALIAS_TOKEN</a>:</code></span>
+<span class="codeline" id="line-183"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_ALIAS_TOKEN"</span></code></span>
+<span class="codeline" id="line-184"><code>	<span class="keyword">case</span> <a href="#line-139" class="ident">yaml_ANCHOR_TOKEN</a>:</code></span>
+<span class="codeline" id="line-185"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_ANCHOR_TOKEN"</span></code></span>
+<span class="codeline" id="line-186"><code>	<span class="keyword">case</span> <a href="#line-140" class="ident">yaml_TAG_TOKEN</a>:</code></span>
+<span class="codeline" id="line-187"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_TAG_TOKEN"</span></code></span>
+<span class="codeline" id="line-188"><code>	<span class="keyword">case</span> <a href="#line-141" class="ident">yaml_SCALAR_TOKEN</a>:</code></span>
+<span class="codeline" id="line-189"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_SCALAR_TOKEN"</span></code></span>
+<span class="codeline" id="line-190"><code>	}</code></span>
+<span class="codeline" id="line-191"><code>	<span class="keyword">return</span> <span class="lit-string">"&lt;unknown token&gt;"</span></code></span>
+<span class="codeline" id="line-192"><code>}</code></span>
+<span class="codeline" id="line-193"><code></code></span>
+<span class="codeline" id="line-194"><code><span class="comment">// The token structure.</span></code></span>
+<span class="codeline" id="line-195"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_token_t" class="ident">yaml_token_t</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-196"><code>	<span class="comment">// The token type.</span></code></span>
+<span class="codeline" id="line-197"><code>	typ <a href="#line-109" class="ident">yaml_token_type_t</a></code></span>
+<span class="codeline" id="line-198"><code></code></span>
+<span class="codeline" id="line-199"><code>	<span class="comment">// The start/end of the token.</span></code></span>
+<span class="codeline" id="line-200"><code>	start_mark, end_mark <a href="#line-61" class="ident">yaml_mark_t</a></code></span>
+<span class="codeline" id="line-201"><code></code></span>
+<span class="codeline" id="line-202"><code>	<span class="comment">// The stream encoding (for yaml_STREAM_START_TOKEN).</span></code></span>
+<span class="codeline" id="line-203"><code>	encoding <a href="#line-20" class="ident">yaml_encoding_t</a></code></span>
+<span class="codeline" id="line-204"><code></code></span>
+<span class="codeline" id="line-205"><code>	<span class="comment">// The alias/anchor/scalar value or tag/tag directive handle</span></code></span>
+<span class="codeline" id="line-206"><code><span class="comment">	// (for yaml_ALIAS_TOKEN, yaml_ANCHOR_TOKEN, yaml_SCALAR_TOKEN, yaml_TAG_TOKEN, yaml_TAG_DIRECTIVE_TOKEN).</span></code></span>
+<span class="codeline" id="line-207"><code>	value []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-208"><code></code></span>
+<span class="codeline" id="line-209"><code>	<span class="comment">// The tag suffix (for yaml_TAG_TOKEN).</span></code></span>
+<span class="codeline" id="line-210"><code>	suffix []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-211"><code></code></span>
+<span class="codeline" id="line-212"><code>	<span class="comment">// The tag directive prefix (for yaml_TAG_DIRECTIVE_TOKEN).</span></code></span>
+<span class="codeline" id="line-213"><code>	prefix []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-214"><code></code></span>
+<span class="codeline" id="line-215"><code>	<span class="comment">// The scalar style (for yaml_SCALAR_TOKEN).</span></code></span>
+<span class="codeline" id="line-216"><code>	style <a href="#line-71" class="ident">yaml_scalar_style_t</a></code></span>
+<span class="codeline" id="line-217"><code></code></span>
+<span class="codeline" id="line-218"><code>	<span class="comment">// The version directive major/minor (for yaml_VERSION_DIRECTIVE_TOKEN).</span></code></span>
+<span class="codeline" id="line-219"><code>	major, minor <a href="../../../pkg/builtin.html#name-int8" class="ident">int8</a></code></span>
+<span class="codeline" id="line-220"><code>}</code></span>
+<span class="codeline" id="line-221"><code></code></span>
+<span class="codeline" id="line-222"><code><span class="comment">// Events</span></code></span>
+<span class="codeline" id="line-223"><code></code></span>
+<span class="codeline" id="line-224"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_event_type_t" class="ident">yaml_event_type_t</a> <a href="../../../pkg/builtin.html#name-int8" class="ident">int8</a></code></span>
+<span class="codeline" id="line-225"><code></code></span>
+<span class="codeline" id="line-226"><code><span class="comment">// Event types.</span></code></span>
+<span class="codeline" id="line-227"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-228"><code>	<span class="comment">// An empty event.</span></code></span>
+<span class="codeline" id="line-229"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_NO_EVENT" class="ident">yaml_NO_EVENT</a> <a href="#line-224" class="ident">yaml_event_type_t</a> = <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-230"><code></code></span>
+<span class="codeline" id="line-231"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_STREAM_START_EVENT" class="ident">yaml_STREAM_START_EVENT</a>   <span class="comment">// A STREAM-START event.</span></code></span>
+<span class="codeline" id="line-232"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_STREAM_END_EVENT" class="ident">yaml_STREAM_END_EVENT</a>     <span class="comment">// A STREAM-END event.</span></code></span>
+<span class="codeline" id="line-233"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_DOCUMENT_START_EVENT" class="ident">yaml_DOCUMENT_START_EVENT</a> <span class="comment">// A DOCUMENT-START event.</span></code></span>
+<span class="codeline" id="line-234"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_DOCUMENT_END_EVENT" class="ident">yaml_DOCUMENT_END_EVENT</a>   <span class="comment">// A DOCUMENT-END event.</span></code></span>
+<span class="codeline" id="line-235"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_ALIAS_EVENT" class="ident">yaml_ALIAS_EVENT</a>          <span class="comment">// An ALIAS event.</span></code></span>
+<span class="codeline" id="line-236"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_SCALAR_EVENT" class="ident">yaml_SCALAR_EVENT</a>         <span class="comment">// A SCALAR event.</span></code></span>
+<span class="codeline" id="line-237"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_SEQUENCE_START_EVENT" class="ident">yaml_SEQUENCE_START_EVENT</a> <span class="comment">// A SEQUENCE-START event.</span></code></span>
+<span class="codeline" id="line-238"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_SEQUENCE_END_EVENT" class="ident">yaml_SEQUENCE_END_EVENT</a>   <span class="comment">// A SEQUENCE-END event.</span></code></span>
+<span class="codeline" id="line-239"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_MAPPING_START_EVENT" class="ident">yaml_MAPPING_START_EVENT</a>  <span class="comment">// A MAPPING-START event.</span></code></span>
+<span class="codeline" id="line-240"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_MAPPING_END_EVENT" class="ident">yaml_MAPPING_END_EVENT</a>    <span class="comment">// A MAPPING-END event.</span></code></span>
+<span class="codeline" id="line-241"><code>)</code></span>
+<span class="codeline" id="line-242"><code></code></span>
+<span class="codeline" id="line-243"><code><span class="keyword">var</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-eventStrings" class="ident">eventStrings</a> = []<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>{</code></span>
+<span class="codeline" id="line-244"><code>	<a href="#line-229" class="ident">yaml_NO_EVENT</a>:             <span class="lit-string">"none"</span>,</code></span>
+<span class="codeline" id="line-245"><code>	<a href="#line-231" class="ident">yaml_STREAM_START_EVENT</a>:   <span class="lit-string">"stream start"</span>,</code></span>
+<span class="codeline" id="line-246"><code>	<a href="#line-232" class="ident">yaml_STREAM_END_EVENT</a>:     <span class="lit-string">"stream end"</span>,</code></span>
+<span class="codeline" id="line-247"><code>	<a href="#line-233" class="ident">yaml_DOCUMENT_START_EVENT</a>: <span class="lit-string">"document start"</span>,</code></span>
+<span class="codeline" id="line-248"><code>	<a href="#line-234" class="ident">yaml_DOCUMENT_END_EVENT</a>:   <span class="lit-string">"document end"</span>,</code></span>
+<span class="codeline" id="line-249"><code>	<a href="#line-235" class="ident">yaml_ALIAS_EVENT</a>:          <span class="lit-string">"alias"</span>,</code></span>
+<span class="codeline" id="line-250"><code>	<a href="#line-236" class="ident">yaml_SCALAR_EVENT</a>:         <span class="lit-string">"scalar"</span>,</code></span>
+<span class="codeline" id="line-251"><code>	<a href="#line-237" class="ident">yaml_SEQUENCE_START_EVENT</a>: <span class="lit-string">"sequence start"</span>,</code></span>
+<span class="codeline" id="line-252"><code>	<a href="#line-238" class="ident">yaml_SEQUENCE_END_EVENT</a>:   <span class="lit-string">"sequence end"</span>,</code></span>
+<span class="codeline" id="line-253"><code>	<a href="#line-239" class="ident">yaml_MAPPING_START_EVENT</a>:  <span class="lit-string">"mapping start"</span>,</code></span>
+<span class="codeline" id="line-254"><code>	<a href="#line-240" class="ident">yaml_MAPPING_END_EVENT</a>:    <span class="lit-string">"mapping end"</span>,</code></span>
+<span class="codeline" id="line-255"><code>}</code></span>
+<span class="codeline" id="line-256"><code></code></span>
+<span class="codeline" id="line-257"><code><span class="keyword">func</span> (<label for="r2" class="ident">e</label> <a href="#line-224" class="ident">yaml_event_type_t</a>) <label for="r3" class="ident"><a href="../../../imp/gopkg.in/yaml.v2.yaml_event_type_t*85fc5.html#name-.String" class="ident">String</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-258"><code>	<span class="keyword">if</span> <label for="r2" class="ident">e</label> &lt; <span class="lit-number">0</span> || <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r2" class="ident">e</label>) &gt;= <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-243" class="ident">eventStrings</a>) {</code></span>
+<span class="codeline" id="line-259"><code>		<span class="keyword">return</span> <a href="../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(<span class="lit-string">"unknown event %d"</span>, <label for="r2" class="ident">e</label>)</code></span>
+<span class="codeline" id="line-260"><code>	}</code></span>
+<span class="codeline" id="line-261"><code>	<span class="keyword">return</span> <a href="#line-243" class="ident">eventStrings</a>[<label for="r2" class="ident">e</label>]</code></span>
+<span class="codeline" id="line-262"><code>}</code></span>
+<span class="codeline" id="line-263"><code></code></span>
+<span class="codeline" id="line-264"><code><span class="comment">// The event structure.</span></code></span>
+<span class="codeline" id="line-265"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_event_t" class="ident">yaml_event_t</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-266"><code></code></span>
+<span class="codeline" id="line-267"><code>	<span class="comment">// The event type.</span></code></span>
+<span class="codeline" id="line-268"><code>	typ <a href="#line-224" class="ident">yaml_event_type_t</a></code></span>
+<span class="codeline" id="line-269"><code></code></span>
+<span class="codeline" id="line-270"><code>	<span class="comment">// The start and end of the event.</span></code></span>
+<span class="codeline" id="line-271"><code>	start_mark, end_mark <a href="#line-61" class="ident">yaml_mark_t</a></code></span>
+<span class="codeline" id="line-272"><code></code></span>
+<span class="codeline" id="line-273"><code>	<span class="comment">// The document encoding (for yaml_STREAM_START_EVENT).</span></code></span>
+<span class="codeline" id="line-274"><code>	encoding <a href="#line-20" class="ident">yaml_encoding_t</a></code></span>
+<span class="codeline" id="line-275"><code></code></span>
+<span class="codeline" id="line-276"><code>	<span class="comment">// The version directive (for yaml_DOCUMENT_START_EVENT).</span></code></span>
+<span class="codeline" id="line-277"><code>	version_directive *<a href="#line-9" class="ident">yaml_version_directive_t</a></code></span>
+<span class="codeline" id="line-278"><code></code></span>
+<span class="codeline" id="line-279"><code>	<span class="comment">// The list of tag directives (for yaml_DOCUMENT_START_EVENT).</span></code></span>
+<span class="codeline" id="line-280"><code>	tag_directives []<a href="#line-15" class="ident">yaml_tag_directive_t</a></code></span>
+<span class="codeline" id="line-281"><code></code></span>
+<span class="codeline" id="line-282"><code>	<span class="comment">// The anchor (for yaml_SCALAR_EVENT, yaml_SEQUENCE_START_EVENT, yaml_MAPPING_START_EVENT, yaml_ALIAS_EVENT).</span></code></span>
+<span class="codeline" id="line-283"><code>	anchor []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-284"><code></code></span>
+<span class="codeline" id="line-285"><code>	<span class="comment">// The tag (for yaml_SCALAR_EVENT, yaml_SEQUENCE_START_EVENT, yaml_MAPPING_START_EVENT).</span></code></span>
+<span class="codeline" id="line-286"><code>	tag []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-287"><code></code></span>
+<span class="codeline" id="line-288"><code>	<span class="comment">// The scalar value (for yaml_SCALAR_EVENT).</span></code></span>
+<span class="codeline" id="line-289"><code>	value []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-290"><code></code></span>
+<span class="codeline" id="line-291"><code>	<span class="comment">// Is the document start/end indicator implicit, or the tag optional?</span></code></span>
+<span class="codeline" id="line-292"><code><span class="comment">	// (for yaml_DOCUMENT_START_EVENT, yaml_DOCUMENT_END_EVENT, yaml_SEQUENCE_START_EVENT, yaml_MAPPING_START_EVENT, yaml_SCALAR_EVENT).</span></code></span>
+<span class="codeline" id="line-293"><code>	implicit <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-294"><code></code></span>
+<span class="codeline" id="line-295"><code>	<span class="comment">// Is the tag optional for any non-plain style? (for yaml_SCALAR_EVENT).</span></code></span>
+<span class="codeline" id="line-296"><code>	quoted_implicit <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-297"><code></code></span>
+<span class="codeline" id="line-298"><code>	<span class="comment">// The style (for yaml_SCALAR_EVENT, yaml_SEQUENCE_START_EVENT, yaml_MAPPING_START_EVENT).</span></code></span>
+<span class="codeline" id="line-299"><code>	style <a href="#line-69" class="ident">yaml_style_t</a></code></span>
+<span class="codeline" id="line-300"><code>}</code></span>
+<span class="codeline" id="line-301"><code></code></span>
+<span class="codeline" id="line-302"><code><span class="keyword">func</span> (<label for="r4" class="ident">e</label> *<a href="#line-265" class="ident">yaml_event_t</a>) <label for="r5" class="ident">scalar_style</label>() <a href="#line-71" class="ident">yaml_scalar_style_t</a>     { <span class="keyword">return</span> <a href="#line-71" class="ident">yaml_scalar_style_t</a>(<label for="r4" class="ident">e</label>.<a href="#line-299" class="ident">style</a>) }</code></span>
+<span class="codeline" id="line-303"><code><span class="keyword">func</span> (<label for="r6" class="ident">e</label> *<a href="#line-265" class="ident">yaml_event_t</a>) <label for="r7" class="ident">sequence_style</label>() <a href="#line-85" class="ident">yaml_sequence_style_t</a> { <span class="keyword">return</span> <a href="#line-85" class="ident">yaml_sequence_style_t</a>(<label for="r6" class="ident">e</label>.<a href="#line-299" class="ident">style</a>) }</code></span>
+<span class="codeline" id="line-304"><code><span class="keyword">func</span> (<label for="r8" class="ident">e</label> *<a href="#line-265" class="ident">yaml_event_t</a>) <label for="r9" class="ident">mapping_style</label>() <a href="#line-96" class="ident">yaml_mapping_style_t</a>   { <span class="keyword">return</span> <a href="#line-96" class="ident">yaml_mapping_style_t</a>(<label for="r8" class="ident">e</label>.<a href="#line-299" class="ident">style</a>) }</code></span>
+<span class="codeline" id="line-305"><code></code></span>
+<span class="codeline" id="line-306"><code><span class="comment">// Nodes</span></code></span>
+<span class="codeline" id="line-307"><code></code></span>
+<span class="codeline" id="line-308"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-309"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_NULL_TAG" class="ident">yaml_NULL_TAG</a>      = <span class="lit-string">"tag:yaml.org,2002:null"</span>      <span class="comment">// The tag !!null with the only possible value: null.</span></code></span>
+<span class="codeline" id="line-310"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_BOOL_TAG" class="ident">yaml_BOOL_TAG</a>      = <span class="lit-string">"tag:yaml.org,2002:bool"</span>      <span class="comment">// The tag !!bool with the values: true and false.</span></code></span>
+<span class="codeline" id="line-311"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_STR_TAG" class="ident">yaml_STR_TAG</a>       = <span class="lit-string">"tag:yaml.org,2002:str"</span>       <span class="comment">// The tag !!str for string values.</span></code></span>
+<span class="codeline" id="line-312"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_INT_TAG" class="ident">yaml_INT_TAG</a>       = <span class="lit-string">"tag:yaml.org,2002:int"</span>       <span class="comment">// The tag !!int for integer values.</span></code></span>
+<span class="codeline" id="line-313"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_FLOAT_TAG" class="ident">yaml_FLOAT_TAG</a>     = <span class="lit-string">"tag:yaml.org,2002:float"</span>     <span class="comment">// The tag !!float for float values.</span></code></span>
+<span class="codeline" id="line-314"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_TIMESTAMP_TAG" class="ident">yaml_TIMESTAMP_TAG</a> = <span class="lit-string">"tag:yaml.org,2002:timestamp"</span> <span class="comment">// The tag !!timestamp for date and time values.</span></code></span>
+<span class="codeline" id="line-315"><code></code></span>
+<span class="codeline" id="line-316"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_SEQ_TAG" class="ident">yaml_SEQ_TAG</a> = <span class="lit-string">"tag:yaml.org,2002:seq"</span> <span class="comment">// The tag !!seq is used to denote sequences.</span></code></span>
+<span class="codeline" id="line-317"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_MAP_TAG" class="ident">yaml_MAP_TAG</a> = <span class="lit-string">"tag:yaml.org,2002:map"</span> <span class="comment">// The tag !!map is used to denote mapping.</span></code></span>
+<span class="codeline" id="line-318"><code></code></span>
+<span class="codeline" id="line-319"><code>	<span class="comment">// Not in original libyaml.</span></code></span>
+<span class="codeline" id="line-320"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_BINARY_TAG" class="ident">yaml_BINARY_TAG</a> = <span class="lit-string">"tag:yaml.org,2002:binary"</span></code></span>
+<span class="codeline" id="line-321"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_MERGE_TAG" class="ident">yaml_MERGE_TAG</a>  = <span class="lit-string">"tag:yaml.org,2002:merge"</span></code></span>
+<span class="codeline" id="line-322"><code></code></span>
+<span class="codeline" id="line-323"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_DEFAULT_SCALAR_TAG" class="ident">yaml_DEFAULT_SCALAR_TAG</a>   = <a href="#line-311" class="ident">yaml_STR_TAG</a> <span class="comment">// The default scalar tag is !!str.</span></code></span>
+<span class="codeline" id="line-324"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_DEFAULT_SEQUENCE_TAG" class="ident">yaml_DEFAULT_SEQUENCE_TAG</a> = <a href="#line-316" class="ident">yaml_SEQ_TAG</a> <span class="comment">// The default sequence tag is !!seq.</span></code></span>
+<span class="codeline" id="line-325"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_DEFAULT_MAPPING_TAG" class="ident">yaml_DEFAULT_MAPPING_TAG</a>  = <a href="#line-317" class="ident">yaml_MAP_TAG</a> <span class="comment">// The default mapping tag is !!map.</span></code></span>
+<span class="codeline" id="line-326"><code>)</code></span>
+<span class="codeline" id="line-327"><code></code></span>
+<span class="codeline" id="line-328"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_node_type_t" class="ident">yaml_node_type_t</a> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-329"><code></code></span>
+<span class="codeline" id="line-330"><code><span class="comment">// Node types.</span></code></span>
+<span class="codeline" id="line-331"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-332"><code>	<span class="comment">// An empty node.</span></code></span>
+<span class="codeline" id="line-333"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_NO_NODE" class="ident">yaml_NO_NODE</a> <a href="#line-328" class="ident">yaml_node_type_t</a> = <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-334"><code></code></span>
+<span class="codeline" id="line-335"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_SCALAR_NODE" class="ident">yaml_SCALAR_NODE</a>   <span class="comment">// A scalar node.</span></code></span>
+<span class="codeline" id="line-336"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_SEQUENCE_NODE" class="ident">yaml_SEQUENCE_NODE</a> <span class="comment">// A sequence node.</span></code></span>
+<span class="codeline" id="line-337"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_MAPPING_NODE" class="ident">yaml_MAPPING_NODE</a>  <span class="comment">// A mapping node.</span></code></span>
+<span class="codeline" id="line-338"><code>)</code></span>
+<span class="codeline" id="line-339"><code></code></span>
+<span class="codeline" id="line-340"><code><span class="comment">// An element of a sequence node.</span></code></span>
+<span class="codeline" id="line-341"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_node_item_t" class="ident">yaml_node_item_t</a> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-342"><code></code></span>
+<span class="codeline" id="line-343"><code><span class="comment">// An element of a mapping node.</span></code></span>
+<span class="codeline" id="line-344"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_node_pair_t" class="ident">yaml_node_pair_t</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-345"><code>	key   <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// The key of the element.</span></code></span>
+<span class="codeline" id="line-346"><code>	value <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// The value of the element.</span></code></span>
+<span class="codeline" id="line-347"><code>}</code></span>
+<span class="codeline" id="line-348"><code></code></span>
+<span class="codeline" id="line-349"><code><span class="comment">// The node structure.</span></code></span>
+<span class="codeline" id="line-350"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_node_t" class="ident">yaml_node_t</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-351"><code>	typ <a href="#line-328" class="ident">yaml_node_type_t</a> <span class="comment">// The node type.</span></code></span>
+<span class="codeline" id="line-352"><code>	tag []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>           <span class="comment">// The node tag.</span></code></span>
+<span class="codeline" id="line-353"><code></code></span>
+<span class="codeline" id="line-354"><code>	<span class="comment">// The node data.</span></code></span>
+<span class="codeline" id="line-355"><code></code></span>
+<span class="codeline" id="line-356"><code>	<span class="comment">// The scalar parameters (for yaml_SCALAR_NODE).</span></code></span>
+<span class="codeline" id="line-357"><code>	scalar <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-358"><code>		value  []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>              <span class="comment">// The scalar value.</span></code></span>
+<span class="codeline" id="line-359"><code>		length <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>                 <span class="comment">// The length of the scalar value.</span></code></span>
+<span class="codeline" id="line-360"><code>		style  <a href="#line-71" class="ident">yaml_scalar_style_t</a> <span class="comment">// The scalar style.</span></code></span>
+<span class="codeline" id="line-361"><code>	}</code></span>
+<span class="codeline" id="line-362"><code></code></span>
+<span class="codeline" id="line-363"><code>	<span class="comment">// The sequence parameters (for YAML_SEQUENCE_NODE).</span></code></span>
+<span class="codeline" id="line-364"><code>	sequence <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-365"><code>		items_data []<a href="#line-341" class="ident">yaml_node_item_t</a>    <span class="comment">// The stack of sequence items.</span></code></span>
+<span class="codeline" id="line-366"><code>		style      <a href="#line-85" class="ident">yaml_sequence_style_t</a> <span class="comment">// The sequence style.</span></code></span>
+<span class="codeline" id="line-367"><code>	}</code></span>
+<span class="codeline" id="line-368"><code></code></span>
+<span class="codeline" id="line-369"><code>	<span class="comment">// The mapping parameters (for yaml_MAPPING_NODE).</span></code></span>
+<span class="codeline" id="line-370"><code>	mapping <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-371"><code>		pairs_data  []<a href="#line-344" class="ident">yaml_node_pair_t</a>   <span class="comment">// The stack of mapping pairs (key, value).</span></code></span>
+<span class="codeline" id="line-372"><code>		pairs_start *<a href="#line-344" class="ident">yaml_node_pair_t</a>    <span class="comment">// The beginning of the stack.</span></code></span>
+<span class="codeline" id="line-373"><code>		pairs_end   *<a href="#line-344" class="ident">yaml_node_pair_t</a>    <span class="comment">// The end of the stack.</span></code></span>
+<span class="codeline" id="line-374"><code>		pairs_top   *<a href="#line-344" class="ident">yaml_node_pair_t</a>    <span class="comment">// The top of the stack.</span></code></span>
+<span class="codeline" id="line-375"><code>		style       <a href="#line-96" class="ident">yaml_mapping_style_t</a> <span class="comment">// The mapping style.</span></code></span>
+<span class="codeline" id="line-376"><code>	}</code></span>
+<span class="codeline" id="line-377"><code></code></span>
+<span class="codeline" id="line-378"><code>	start_mark <a href="#line-61" class="ident">yaml_mark_t</a> <span class="comment">// The beginning of the node.</span></code></span>
+<span class="codeline" id="line-379"><code>	end_mark   <a href="#line-61" class="ident">yaml_mark_t</a> <span class="comment">// The end of the node.</span></code></span>
+<span class="codeline" id="line-380"><code></code></span>
+<span class="codeline" id="line-381"><code>}</code></span>
+<span class="codeline" id="line-382"><code></code></span>
+<span class="codeline" id="line-383"><code><span class="comment">// The document structure.</span></code></span>
+<span class="codeline" id="line-384"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_document_t" class="ident">yaml_document_t</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-385"><code></code></span>
+<span class="codeline" id="line-386"><code>	<span class="comment">// The document nodes.</span></code></span>
+<span class="codeline" id="line-387"><code>	nodes []<a href="#line-350" class="ident">yaml_node_t</a></code></span>
+<span class="codeline" id="line-388"><code></code></span>
+<span class="codeline" id="line-389"><code>	<span class="comment">// The version directive.</span></code></span>
+<span class="codeline" id="line-390"><code>	version_directive *<a href="#line-9" class="ident">yaml_version_directive_t</a></code></span>
+<span class="codeline" id="line-391"><code></code></span>
+<span class="codeline" id="line-392"><code>	<span class="comment">// The list of tag directives.</span></code></span>
+<span class="codeline" id="line-393"><code>	tag_directives_data  []<a href="#line-15" class="ident">yaml_tag_directive_t</a></code></span>
+<span class="codeline" id="line-394"><code>	tag_directives_start <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// The beginning of the tag directives list.</span></code></span>
+<span class="codeline" id="line-395"><code>	tag_directives_end   <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// The end of the tag directives list.</span></code></span>
+<span class="codeline" id="line-396"><code></code></span>
+<span class="codeline" id="line-397"><code>	start_implicit <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// Is the document start indicator implicit?</span></code></span>
+<span class="codeline" id="line-398"><code>	end_implicit   <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// Is the document end indicator implicit?</span></code></span>
+<span class="codeline" id="line-399"><code></code></span>
+<span class="codeline" id="line-400"><code>	<span class="comment">// The start/end of the document.</span></code></span>
+<span class="codeline" id="line-401"><code>	start_mark, end_mark <a href="#line-61" class="ident">yaml_mark_t</a></code></span>
+<span class="codeline" id="line-402"><code>}</code></span>
+<span class="codeline" id="line-403"><code></code></span>
+<span class="codeline" id="line-404"><code><span class="comment">// The prototype of a read handler.</span></code></span>
+<span class="codeline" id="line-405"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-406"><code><span class="comment">// The read handler is called when the parser needs to read more bytes from the</span></code></span>
+<span class="codeline" id="line-407"><code><span class="comment">// source. The handler should write not more than size bytes to the buffer.</span></code></span>
+<span class="codeline" id="line-408"><code><span class="comment">// The number of written bytes should be set to the size_read variable.</span></code></span>
+<span class="codeline" id="line-409"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-410"><code><span class="comment">// [in,out]   data        A pointer to an application data specified by</span></code></span>
+<span class="codeline" id="line-411"><code><span class="comment">//                        yaml_parser_set_input().</span></code></span>
+<span class="codeline" id="line-412"><code><span class="comment">// [out]      buffer      The buffer to write the data from the source.</span></code></span>
+<span class="codeline" id="line-413"><code><span class="comment">// [in]       size        The size of the buffer.</span></code></span>
+<span class="codeline" id="line-414"><code><span class="comment">// [out]      size_read   The actual number of bytes read from the source.</span></code></span>
+<span class="codeline" id="line-415"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-416"><code><span class="comment">// On success, the handler should return 1.  If the handler failed,</span></code></span>
+<span class="codeline" id="line-417"><code><span class="comment">// the returned value should be 0. On EOF, the handler should set the</span></code></span>
+<span class="codeline" id="line-418"><code><span class="comment">// size_read to 0 and return 1.</span></code></span>
+<span class="codeline" id="line-419"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_read_handler_t" class="ident">yaml_read_handler_t</a> <span class="keyword">func</span>(parser *<a href="#line-525" class="ident">yaml_parser_t</a>, buffer []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (n <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, err <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-420"><code></code></span>
+<span class="codeline" id="line-421"><code><span class="comment">// This structure holds information about a potential simple key.</span></code></span>
+<span class="codeline" id="line-422"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_simple_key_t" class="ident">yaml_simple_key_t</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-423"><code>	possible     <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>        <span class="comment">// Is a simple key possible?</span></code></span>
+<span class="codeline" id="line-424"><code>	required     <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>        <span class="comment">// Is a simple key required?</span></code></span>
+<span class="codeline" id="line-425"><code>	token_number <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>         <span class="comment">// The number of the token.</span></code></span>
+<span class="codeline" id="line-426"><code>	mark         <a href="#line-61" class="ident">yaml_mark_t</a> <span class="comment">// The position mark.</span></code></span>
+<span class="codeline" id="line-427"><code>}</code></span>
+<span class="codeline" id="line-428"><code></code></span>
+<span class="codeline" id="line-429"><code><span class="comment">// The states of the parser.</span></code></span>
+<span class="codeline" id="line-430"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_parser_state_t" class="ident">yaml_parser_state_t</a> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-431"><code></code></span>
+<span class="codeline" id="line-432"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-433"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_STREAM_START_STATE" class="ident">yaml_PARSE_STREAM_START_STATE</a> <a href="#line-430" class="ident">yaml_parser_state_t</a> = <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-434"><code></code></span>
+<span class="codeline" id="line-435"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_IMPLICIT_DOCUMENT_START_STATE" class="ident">yaml_PARSE_IMPLICIT_DOCUMENT_START_STATE</a>           <span class="comment">// Expect the beginning of an implicit document.</span></code></span>
+<span class="codeline" id="line-436"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_DOCUMENT_START_STATE" class="ident">yaml_PARSE_DOCUMENT_START_STATE</a>                    <span class="comment">// Expect DOCUMENT-START.</span></code></span>
+<span class="codeline" id="line-437"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_DOCUMENT_CONTENT_STATE" class="ident">yaml_PARSE_DOCUMENT_CONTENT_STATE</a>                  <span class="comment">// Expect the content of a document.</span></code></span>
+<span class="codeline" id="line-438"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_DOCUMENT_END_STATE" class="ident">yaml_PARSE_DOCUMENT_END_STATE</a>                      <span class="comment">// Expect DOCUMENT-END.</span></code></span>
+<span class="codeline" id="line-439"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_BLOCK_NODE_STATE" class="ident">yaml_PARSE_BLOCK_NODE_STATE</a>                        <span class="comment">// Expect a block node.</span></code></span>
+<span class="codeline" id="line-440"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_BLOCK_NODE_OR_INDENTLESS_SEQUENCE_STATE" class="ident">yaml_PARSE_BLOCK_NODE_OR_INDENTLESS_SEQUENCE_STATE</a> <span class="comment">// Expect a block node or indentless sequence.</span></code></span>
+<span class="codeline" id="line-441"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_FLOW_NODE_STATE" class="ident">yaml_PARSE_FLOW_NODE_STATE</a>                         <span class="comment">// Expect a flow node.</span></code></span>
+<span class="codeline" id="line-442"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_BLOCK_SEQUENCE_FIRST_ENTRY_STATE" class="ident">yaml_PARSE_BLOCK_SEQUENCE_FIRST_ENTRY_STATE</a>        <span class="comment">// Expect the first entry of a block sequence.</span></code></span>
+<span class="codeline" id="line-443"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_BLOCK_SEQUENCE_ENTRY_STATE" class="ident">yaml_PARSE_BLOCK_SEQUENCE_ENTRY_STATE</a>              <span class="comment">// Expect an entry of a block sequence.</span></code></span>
+<span class="codeline" id="line-444"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_INDENTLESS_SEQUENCE_ENTRY_STATE" class="ident">yaml_PARSE_INDENTLESS_SEQUENCE_ENTRY_STATE</a>         <span class="comment">// Expect an entry of an indentless sequence.</span></code></span>
+<span class="codeline" id="line-445"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_BLOCK_MAPPING_FIRST_KEY_STATE" class="ident">yaml_PARSE_BLOCK_MAPPING_FIRST_KEY_STATE</a>           <span class="comment">// Expect the first key of a block mapping.</span></code></span>
+<span class="codeline" id="line-446"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_BLOCK_MAPPING_KEY_STATE" class="ident">yaml_PARSE_BLOCK_MAPPING_KEY_STATE</a>                 <span class="comment">// Expect a block mapping key.</span></code></span>
+<span class="codeline" id="line-447"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_BLOCK_MAPPING_VALUE_STATE" class="ident">yaml_PARSE_BLOCK_MAPPING_VALUE_STATE</a>               <span class="comment">// Expect a block mapping value.</span></code></span>
+<span class="codeline" id="line-448"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_FLOW_SEQUENCE_FIRST_ENTRY_STATE" class="ident">yaml_PARSE_FLOW_SEQUENCE_FIRST_ENTRY_STATE</a>         <span class="comment">// Expect the first entry of a flow sequence.</span></code></span>
+<span class="codeline" id="line-449"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_FLOW_SEQUENCE_ENTRY_STATE" class="ident">yaml_PARSE_FLOW_SEQUENCE_ENTRY_STATE</a>               <span class="comment">// Expect an entry of a flow sequence.</span></code></span>
+<span class="codeline" id="line-450"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_KEY_STATE" class="ident">yaml_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_KEY_STATE</a>   <span class="comment">// Expect a key of an ordered mapping.</span></code></span>
+<span class="codeline" id="line-451"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_VALUE_STATE" class="ident">yaml_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_VALUE_STATE</a> <span class="comment">// Expect a value of an ordered mapping.</span></code></span>
+<span class="codeline" id="line-452"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_END_STATE" class="ident">yaml_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_END_STATE</a>   <span class="comment">// Expect the and of an ordered mapping entry.</span></code></span>
+<span class="codeline" id="line-453"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_FLOW_MAPPING_FIRST_KEY_STATE" class="ident">yaml_PARSE_FLOW_MAPPING_FIRST_KEY_STATE</a>            <span class="comment">// Expect the first key of a flow mapping.</span></code></span>
+<span class="codeline" id="line-454"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_FLOW_MAPPING_KEY_STATE" class="ident">yaml_PARSE_FLOW_MAPPING_KEY_STATE</a>                  <span class="comment">// Expect a key of a flow mapping.</span></code></span>
+<span class="codeline" id="line-455"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_FLOW_MAPPING_VALUE_STATE" class="ident">yaml_PARSE_FLOW_MAPPING_VALUE_STATE</a>                <span class="comment">// Expect a value of a flow mapping.</span></code></span>
+<span class="codeline" id="line-456"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_FLOW_MAPPING_EMPTY_VALUE_STATE" class="ident">yaml_PARSE_FLOW_MAPPING_EMPTY_VALUE_STATE</a>          <span class="comment">// Expect an empty value of a flow mapping.</span></code></span>
+<span class="codeline" id="line-457"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_PARSE_END_STATE" class="ident">yaml_PARSE_END_STATE</a>                               <span class="comment">// Expect nothing.</span></code></span>
+<span class="codeline" id="line-458"><code>)</code></span>
+<span class="codeline" id="line-459"><code></code></span>
+<span class="codeline" id="line-460"><code><span class="keyword">func</span> (<label for="r10" class="ident">ps</label> <a href="#line-430" class="ident">yaml_parser_state_t</a>) <label for="r11" class="ident"><a href="../../../imp/gopkg.in/yaml.v2.yaml_parser_state_t*95d27.html#name-.String" class="ident">String</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-461"><code>	<span class="keyword">switch</span> <label for="r10" class="ident">ps</label> {</code></span>
+<span class="codeline" id="line-462"><code>	<span class="keyword">case</span> <a href="#line-433" class="ident">yaml_PARSE_STREAM_START_STATE</a>:</code></span>
+<span class="codeline" id="line-463"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_STREAM_START_STATE"</span></code></span>
+<span class="codeline" id="line-464"><code>	<span class="keyword">case</span> <a href="#line-435" class="ident">yaml_PARSE_IMPLICIT_DOCUMENT_START_STATE</a>:</code></span>
+<span class="codeline" id="line-465"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_IMPLICIT_DOCUMENT_START_STATE"</span></code></span>
+<span class="codeline" id="line-466"><code>	<span class="keyword">case</span> <a href="#line-436" class="ident">yaml_PARSE_DOCUMENT_START_STATE</a>:</code></span>
+<span class="codeline" id="line-467"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_DOCUMENT_START_STATE"</span></code></span>
+<span class="codeline" id="line-468"><code>	<span class="keyword">case</span> <a href="#line-437" class="ident">yaml_PARSE_DOCUMENT_CONTENT_STATE</a>:</code></span>
+<span class="codeline" id="line-469"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_DOCUMENT_CONTENT_STATE"</span></code></span>
+<span class="codeline" id="line-470"><code>	<span class="keyword">case</span> <a href="#line-438" class="ident">yaml_PARSE_DOCUMENT_END_STATE</a>:</code></span>
+<span class="codeline" id="line-471"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_DOCUMENT_END_STATE"</span></code></span>
+<span class="codeline" id="line-472"><code>	<span class="keyword">case</span> <a href="#line-439" class="ident">yaml_PARSE_BLOCK_NODE_STATE</a>:</code></span>
+<span class="codeline" id="line-473"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_BLOCK_NODE_STATE"</span></code></span>
+<span class="codeline" id="line-474"><code>	<span class="keyword">case</span> <a href="#line-440" class="ident">yaml_PARSE_BLOCK_NODE_OR_INDENTLESS_SEQUENCE_STATE</a>:</code></span>
+<span class="codeline" id="line-475"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_BLOCK_NODE_OR_INDENTLESS_SEQUENCE_STATE"</span></code></span>
+<span class="codeline" id="line-476"><code>	<span class="keyword">case</span> <a href="#line-441" class="ident">yaml_PARSE_FLOW_NODE_STATE</a>:</code></span>
+<span class="codeline" id="line-477"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_FLOW_NODE_STATE"</span></code></span>
+<span class="codeline" id="line-478"><code>	<span class="keyword">case</span> <a href="#line-442" class="ident">yaml_PARSE_BLOCK_SEQUENCE_FIRST_ENTRY_STATE</a>:</code></span>
+<span class="codeline" id="line-479"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_BLOCK_SEQUENCE_FIRST_ENTRY_STATE"</span></code></span>
+<span class="codeline" id="line-480"><code>	<span class="keyword">case</span> <a href="#line-443" class="ident">yaml_PARSE_BLOCK_SEQUENCE_ENTRY_STATE</a>:</code></span>
+<span class="codeline" id="line-481"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_BLOCK_SEQUENCE_ENTRY_STATE"</span></code></span>
+<span class="codeline" id="line-482"><code>	<span class="keyword">case</span> <a href="#line-444" class="ident">yaml_PARSE_INDENTLESS_SEQUENCE_ENTRY_STATE</a>:</code></span>
+<span class="codeline" id="line-483"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_INDENTLESS_SEQUENCE_ENTRY_STATE"</span></code></span>
+<span class="codeline" id="line-484"><code>	<span class="keyword">case</span> <a href="#line-445" class="ident">yaml_PARSE_BLOCK_MAPPING_FIRST_KEY_STATE</a>:</code></span>
+<span class="codeline" id="line-485"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_BLOCK_MAPPING_FIRST_KEY_STATE"</span></code></span>
+<span class="codeline" id="line-486"><code>	<span class="keyword">case</span> <a href="#line-446" class="ident">yaml_PARSE_BLOCK_MAPPING_KEY_STATE</a>:</code></span>
+<span class="codeline" id="line-487"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_BLOCK_MAPPING_KEY_STATE"</span></code></span>
+<span class="codeline" id="line-488"><code>	<span class="keyword">case</span> <a href="#line-447" class="ident">yaml_PARSE_BLOCK_MAPPING_VALUE_STATE</a>:</code></span>
+<span class="codeline" id="line-489"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_BLOCK_MAPPING_VALUE_STATE"</span></code></span>
+<span class="codeline" id="line-490"><code>	<span class="keyword">case</span> <a href="#line-448" class="ident">yaml_PARSE_FLOW_SEQUENCE_FIRST_ENTRY_STATE</a>:</code></span>
+<span class="codeline" id="line-491"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_FLOW_SEQUENCE_FIRST_ENTRY_STATE"</span></code></span>
+<span class="codeline" id="line-492"><code>	<span class="keyword">case</span> <a href="#line-449" class="ident">yaml_PARSE_FLOW_SEQUENCE_ENTRY_STATE</a>:</code></span>
+<span class="codeline" id="line-493"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_FLOW_SEQUENCE_ENTRY_STATE"</span></code></span>
+<span class="codeline" id="line-494"><code>	<span class="keyword">case</span> <a href="#line-450" class="ident">yaml_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_KEY_STATE</a>:</code></span>
+<span class="codeline" id="line-495"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_KEY_STATE"</span></code></span>
+<span class="codeline" id="line-496"><code>	<span class="keyword">case</span> <a href="#line-451" class="ident">yaml_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_VALUE_STATE</a>:</code></span>
+<span class="codeline" id="line-497"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_VALUE_STATE"</span></code></span>
+<span class="codeline" id="line-498"><code>	<span class="keyword">case</span> <a href="#line-452" class="ident">yaml_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_END_STATE</a>:</code></span>
+<span class="codeline" id="line-499"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_FLOW_SEQUENCE_ENTRY_MAPPING_END_STATE"</span></code></span>
+<span class="codeline" id="line-500"><code>	<span class="keyword">case</span> <a href="#line-453" class="ident">yaml_PARSE_FLOW_MAPPING_FIRST_KEY_STATE</a>:</code></span>
+<span class="codeline" id="line-501"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_FLOW_MAPPING_FIRST_KEY_STATE"</span></code></span>
+<span class="codeline" id="line-502"><code>	<span class="keyword">case</span> <a href="#line-454" class="ident">yaml_PARSE_FLOW_MAPPING_KEY_STATE</a>:</code></span>
+<span class="codeline" id="line-503"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_FLOW_MAPPING_KEY_STATE"</span></code></span>
+<span class="codeline" id="line-504"><code>	<span class="keyword">case</span> <a href="#line-455" class="ident">yaml_PARSE_FLOW_MAPPING_VALUE_STATE</a>:</code></span>
+<span class="codeline" id="line-505"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_FLOW_MAPPING_VALUE_STATE"</span></code></span>
+<span class="codeline" id="line-506"><code>	<span class="keyword">case</span> <a href="#line-456" class="ident">yaml_PARSE_FLOW_MAPPING_EMPTY_VALUE_STATE</a>:</code></span>
+<span class="codeline" id="line-507"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_FLOW_MAPPING_EMPTY_VALUE_STATE"</span></code></span>
+<span class="codeline" id="line-508"><code>	<span class="keyword">case</span> <a href="#line-457" class="ident">yaml_PARSE_END_STATE</a>:</code></span>
+<span class="codeline" id="line-509"><code>		<span class="keyword">return</span> <span class="lit-string">"yaml_PARSE_END_STATE"</span></code></span>
+<span class="codeline" id="line-510"><code>	}</code></span>
+<span class="codeline" id="line-511"><code>	<span class="keyword">return</span> <span class="lit-string">"&lt;unknown parser state&gt;"</span></code></span>
+<span class="codeline" id="line-512"><code>}</code></span>
+<span class="codeline" id="line-513"><code></code></span>
+<span class="codeline" id="line-514"><code><span class="comment">// This structure holds aliases data.</span></code></span>
+<span class="codeline" id="line-515"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_alias_data_t" class="ident">yaml_alias_data_t</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-516"><code>	anchor []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>      <span class="comment">// The anchor.</span></code></span>
+<span class="codeline" id="line-517"><code>	index  <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>         <span class="comment">// The node id.</span></code></span>
+<span class="codeline" id="line-518"><code>	mark   <a href="#line-61" class="ident">yaml_mark_t</a> <span class="comment">// The anchor mark.</span></code></span>
+<span class="codeline" id="line-519"><code>}</code></span>
+<span class="codeline" id="line-520"><code></code></span>
+<span class="codeline" id="line-521"><code><span class="comment">// The parser structure.</span></code></span>
+<span class="codeline" id="line-522"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-523"><code><span class="comment">// All members are internal. Manage the structure using the</span></code></span>
+<span class="codeline" id="line-524"><code><span class="comment">// yaml_parser_ family of functions.</span></code></span>
+<span class="codeline" id="line-525"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_parser_t" class="ident">yaml_parser_t</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-526"><code></code></span>
+<span class="codeline" id="line-527"><code>	<span class="comment">// Error handling</span></code></span>
+<span class="codeline" id="line-528"><code></code></span>
+<span class="codeline" id="line-529"><code>	error <a href="#line-44" class="ident">yaml_error_type_t</a> <span class="comment">// Error type.</span></code></span>
+<span class="codeline" id="line-530"><code></code></span>
+<span class="codeline" id="line-531"><code>	problem <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// Error description.</span></code></span>
+<span class="codeline" id="line-532"><code></code></span>
+<span class="codeline" id="line-533"><code>	<span class="comment">// The byte about which the problem occurred.</span></code></span>
+<span class="codeline" id="line-534"><code>	problem_offset <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-535"><code>	problem_value  <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-536"><code>	problem_mark   <a href="#line-61" class="ident">yaml_mark_t</a></code></span>
+<span class="codeline" id="line-537"><code></code></span>
+<span class="codeline" id="line-538"><code>	<span class="comment">// The error context.</span></code></span>
+<span class="codeline" id="line-539"><code>	context      <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-540"><code>	context_mark <a href="#line-61" class="ident">yaml_mark_t</a></code></span>
+<span class="codeline" id="line-541"><code></code></span>
+<span class="codeline" id="line-542"><code>	<span class="comment">// Reader stuff</span></code></span>
+<span class="codeline" id="line-543"><code></code></span>
+<span class="codeline" id="line-544"><code>	read_handler <a href="#line-419" class="ident">yaml_read_handler_t</a> <span class="comment">// Read handler.</span></code></span>
+<span class="codeline" id="line-545"><code></code></span>
+<span class="codeline" id="line-546"><code>	input_reader <a href="../../../pkg/io.html" class="ident i1">io</a>.<a href="../../io/io.go.html#line-83" class="ident">Reader</a> <span class="comment">// File input data.</span></code></span>
+<span class="codeline" id="line-547"><code>	input        []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>    <span class="comment">// String input data.</span></code></span>
+<span class="codeline" id="line-548"><code>	input_pos    <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-549"><code></code></span>
+<span class="codeline" id="line-550"><code>	eof <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// EOF flag</span></code></span>
+<span class="codeline" id="line-551"><code></code></span>
+<span class="codeline" id="line-552"><code>	buffer     []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> <span class="comment">// The working buffer.</span></code></span>
+<span class="codeline" id="line-553"><code>	buffer_pos <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>    <span class="comment">// The current position of the buffer.</span></code></span>
+<span class="codeline" id="line-554"><code></code></span>
+<span class="codeline" id="line-555"><code>	unread <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// The number of unread characters in the buffer.</span></code></span>
+<span class="codeline" id="line-556"><code></code></span>
+<span class="codeline" id="line-557"><code>	raw_buffer     []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> <span class="comment">// The raw buffer.</span></code></span>
+<span class="codeline" id="line-558"><code>	raw_buffer_pos <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>    <span class="comment">// The current position of the buffer.</span></code></span>
+<span class="codeline" id="line-559"><code></code></span>
+<span class="codeline" id="line-560"><code>	encoding <a href="#line-20" class="ident">yaml_encoding_t</a> <span class="comment">// The input encoding.</span></code></span>
+<span class="codeline" id="line-561"><code></code></span>
+<span class="codeline" id="line-562"><code>	offset <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>         <span class="comment">// The offset of the current position (in bytes).</span></code></span>
+<span class="codeline" id="line-563"><code>	mark   <a href="#line-61" class="ident">yaml_mark_t</a> <span class="comment">// The mark of the current position.</span></code></span>
+<span class="codeline" id="line-564"><code></code></span>
+<span class="codeline" id="line-565"><code>	<span class="comment">// Scanner stuff</span></code></span>
+<span class="codeline" id="line-566"><code></code></span>
+<span class="codeline" id="line-567"><code>	stream_start_produced <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// Have we started to scan the input stream?</span></code></span>
+<span class="codeline" id="line-568"><code>	stream_end_produced   <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// Have we reached the end of the input stream?</span></code></span>
+<span class="codeline" id="line-569"><code></code></span>
+<span class="codeline" id="line-570"><code>	flow_level <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// The number of unclosed '[' and '{' indicators.</span></code></span>
+<span class="codeline" id="line-571"><code></code></span>
+<span class="codeline" id="line-572"><code>	tokens          []<a href="#line-195" class="ident">yaml_token_t</a> <span class="comment">// The tokens queue.</span></code></span>
+<span class="codeline" id="line-573"><code>	tokens_head     <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>            <span class="comment">// The head of the tokens queue.</span></code></span>
+<span class="codeline" id="line-574"><code>	tokens_parsed   <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>            <span class="comment">// The number of tokens fetched from the queue.</span></code></span>
+<span class="codeline" id="line-575"><code>	token_available <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>           <span class="comment">// Does the tokens queue contain a token ready for dequeueing.</span></code></span>
+<span class="codeline" id="line-576"><code></code></span>
+<span class="codeline" id="line-577"><code>	indent  <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>   <span class="comment">// The current indentation level.</span></code></span>
+<span class="codeline" id="line-578"><code>	indents []<a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// The indentation levels stack.</span></code></span>
+<span class="codeline" id="line-579"><code></code></span>
+<span class="codeline" id="line-580"><code>	simple_key_allowed <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>                <span class="comment">// May a simple key occur at the current position?</span></code></span>
+<span class="codeline" id="line-581"><code>	simple_keys        []<a href="#line-422" class="ident">yaml_simple_key_t</a> <span class="comment">// The stack of simple keys.</span></code></span>
+<span class="codeline" id="line-582"><code>	simple_keys_by_tok <span class="keyword">map</span>[<a href="../../../pkg/builtin.html#name-int" class="ident">int</a>]<a href="../../../pkg/builtin.html#name-int" class="ident">int</a>         <span class="comment">// possible simple_key indexes indexed by token_number</span></code></span>
+<span class="codeline" id="line-583"><code></code></span>
+<span class="codeline" id="line-584"><code>	<span class="comment">// Parser stuff</span></code></span>
+<span class="codeline" id="line-585"><code></code></span>
+<span class="codeline" id="line-586"><code>	state          <a href="#line-430" class="ident">yaml_parser_state_t</a>    <span class="comment">// The current parser state.</span></code></span>
+<span class="codeline" id="line-587"><code>	states         []<a href="#line-430" class="ident">yaml_parser_state_t</a>  <span class="comment">// The parser states stack.</span></code></span>
+<span class="codeline" id="line-588"><code>	marks          []<a href="#line-61" class="ident">yaml_mark_t</a>          <span class="comment">// The stack of marks.</span></code></span>
+<span class="codeline" id="line-589"><code>	tag_directives []<a href="#line-15" class="ident">yaml_tag_directive_t</a> <span class="comment">// The list of TAG directives.</span></code></span>
+<span class="codeline" id="line-590"><code></code></span>
+<span class="codeline" id="line-591"><code>	<span class="comment">// Dumper stuff</span></code></span>
+<span class="codeline" id="line-592"><code></code></span>
+<span class="codeline" id="line-593"><code>	aliases []<a href="#line-515" class="ident">yaml_alias_data_t</a> <span class="comment">// The alias data.</span></code></span>
+<span class="codeline" id="line-594"><code></code></span>
+<span class="codeline" id="line-595"><code>	document *<a href="#line-384" class="ident">yaml_document_t</a> <span class="comment">// The currently parsed document.</span></code></span>
+<span class="codeline" id="line-596"><code>}</code></span>
+<span class="codeline" id="line-597"><code></code></span>
+<span class="codeline" id="line-598"><code><span class="comment">// Emitter Definitions</span></code></span>
+<span class="codeline" id="line-599"><code></code></span>
+<span class="codeline" id="line-600"><code><span class="comment">// The prototype of a write handler.</span></code></span>
+<span class="codeline" id="line-601"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-602"><code><span class="comment">// The write handler is called when the emitter needs to flush the accumulated</span></code></span>
+<span class="codeline" id="line-603"><code><span class="comment">// characters to the output.  The handler should write @a size bytes of the</span></code></span>
+<span class="codeline" id="line-604"><code><span class="comment">// @a buffer to the output.</span></code></span>
+<span class="codeline" id="line-605"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-606"><code><span class="comment">// @param[in,out]   data        A pointer to an application data specified by</span></code></span>
+<span class="codeline" id="line-607"><code><span class="comment">//                              yaml_emitter_set_output().</span></code></span>
+<span class="codeline" id="line-608"><code><span class="comment">// @param[in]       buffer      The buffer with bytes to be written.</span></code></span>
+<span class="codeline" id="line-609"><code><span class="comment">// @param[in]       size        The size of the buffer.</span></code></span>
+<span class="codeline" id="line-610"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-611"><code><span class="comment">// @returns On success, the handler should return @c 1.  If the handler failed,</span></code></span>
+<span class="codeline" id="line-612"><code><span class="comment">// the returned value should be @c 0.</span></code></span>
+<span class="codeline" id="line-613"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-614"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_write_handler_t" class="ident">yaml_write_handler_t</a> <span class="keyword">func</span>(emitter *<a href="#line-646" class="ident">yaml_emitter_t</a>, buffer []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-615"><code></code></span>
+<span class="codeline" id="line-616"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_emitter_state_t" class="ident">yaml_emitter_state_t</a> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-617"><code></code></span>
+<span class="codeline" id="line-618"><code><span class="comment">// The emitter states.</span></code></span>
+<span class="codeline" id="line-619"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-620"><code>	<span class="comment">// Expect STREAM-START.</span></code></span>
+<span class="codeline" id="line-621"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_STREAM_START_STATE" class="ident">yaml_EMIT_STREAM_START_STATE</a> <a href="#line-616" class="ident">yaml_emitter_state_t</a> = <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-622"><code></code></span>
+<span class="codeline" id="line-623"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_FIRST_DOCUMENT_START_STATE" class="ident">yaml_EMIT_FIRST_DOCUMENT_START_STATE</a>       <span class="comment">// Expect the first DOCUMENT-START or STREAM-END.</span></code></span>
+<span class="codeline" id="line-624"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_DOCUMENT_START_STATE" class="ident">yaml_EMIT_DOCUMENT_START_STATE</a>             <span class="comment">// Expect DOCUMENT-START or STREAM-END.</span></code></span>
+<span class="codeline" id="line-625"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_DOCUMENT_CONTENT_STATE" class="ident">yaml_EMIT_DOCUMENT_CONTENT_STATE</a>           <span class="comment">// Expect the content of a document.</span></code></span>
+<span class="codeline" id="line-626"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_DOCUMENT_END_STATE" class="ident">yaml_EMIT_DOCUMENT_END_STATE</a>               <span class="comment">// Expect DOCUMENT-END.</span></code></span>
+<span class="codeline" id="line-627"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_FLOW_SEQUENCE_FIRST_ITEM_STATE" class="ident">yaml_EMIT_FLOW_SEQUENCE_FIRST_ITEM_STATE</a>   <span class="comment">// Expect the first item of a flow sequence.</span></code></span>
+<span class="codeline" id="line-628"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_FLOW_SEQUENCE_ITEM_STATE" class="ident">yaml_EMIT_FLOW_SEQUENCE_ITEM_STATE</a>         <span class="comment">// Expect an item of a flow sequence.</span></code></span>
+<span class="codeline" id="line-629"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_FLOW_MAPPING_FIRST_KEY_STATE" class="ident">yaml_EMIT_FLOW_MAPPING_FIRST_KEY_STATE</a>     <span class="comment">// Expect the first key of a flow mapping.</span></code></span>
+<span class="codeline" id="line-630"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_FLOW_MAPPING_KEY_STATE" class="ident">yaml_EMIT_FLOW_MAPPING_KEY_STATE</a>           <span class="comment">// Expect a key of a flow mapping.</span></code></span>
+<span class="codeline" id="line-631"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_FLOW_MAPPING_SIMPLE_VALUE_STATE" class="ident">yaml_EMIT_FLOW_MAPPING_SIMPLE_VALUE_STATE</a>  <span class="comment">// Expect a value for a simple key of a flow mapping.</span></code></span>
+<span class="codeline" id="line-632"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_FLOW_MAPPING_VALUE_STATE" class="ident">yaml_EMIT_FLOW_MAPPING_VALUE_STATE</a>         <span class="comment">// Expect a value of a flow mapping.</span></code></span>
+<span class="codeline" id="line-633"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_BLOCK_SEQUENCE_FIRST_ITEM_STATE" class="ident">yaml_EMIT_BLOCK_SEQUENCE_FIRST_ITEM_STATE</a>  <span class="comment">// Expect the first item of a block sequence.</span></code></span>
+<span class="codeline" id="line-634"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_BLOCK_SEQUENCE_ITEM_STATE" class="ident">yaml_EMIT_BLOCK_SEQUENCE_ITEM_STATE</a>        <span class="comment">// Expect an item of a block sequence.</span></code></span>
+<span class="codeline" id="line-635"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_BLOCK_MAPPING_FIRST_KEY_STATE" class="ident">yaml_EMIT_BLOCK_MAPPING_FIRST_KEY_STATE</a>    <span class="comment">// Expect the first key of a block mapping.</span></code></span>
+<span class="codeline" id="line-636"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_BLOCK_MAPPING_KEY_STATE" class="ident">yaml_EMIT_BLOCK_MAPPING_KEY_STATE</a>          <span class="comment">// Expect the key of a block mapping.</span></code></span>
+<span class="codeline" id="line-637"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_BLOCK_MAPPING_SIMPLE_VALUE_STATE" class="ident">yaml_EMIT_BLOCK_MAPPING_SIMPLE_VALUE_STATE</a> <span class="comment">// Expect a value for a simple key of a block mapping.</span></code></span>
+<span class="codeline" id="line-638"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_BLOCK_MAPPING_VALUE_STATE" class="ident">yaml_EMIT_BLOCK_MAPPING_VALUE_STATE</a>        <span class="comment">// Expect a value of a block mapping.</span></code></span>
+<span class="codeline" id="line-639"><code>	<a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_EMIT_END_STATE" class="ident">yaml_EMIT_END_STATE</a>                        <span class="comment">// Expect nothing.</span></code></span>
+<span class="codeline" id="line-640"><code>)</code></span>
+<span class="codeline" id="line-641"><code></code></span>
+<span class="codeline" id="line-642"><code><span class="comment">// The emitter structure.</span></code></span>
+<span class="codeline" id="line-643"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-644"><code><span class="comment">// All members are internal.  Manage the structure using the @c yaml_emitter_</span></code></span>
+<span class="codeline" id="line-645"><code><span class="comment">// family of functions.</span></code></span>
+<span class="codeline" id="line-646"><code><span class="keyword">type</span> <a href="../../../pkg/gopkg.in/yaml.v2.html#name-yaml_emitter_t" class="ident">yaml_emitter_t</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-647"><code></code></span>
+<span class="codeline" id="line-648"><code>	<span class="comment">// Error handling</span></code></span>
+<span class="codeline" id="line-649"><code></code></span>
+<span class="codeline" id="line-650"><code>	error   <a href="#line-44" class="ident">yaml_error_type_t</a> <span class="comment">// Error type.</span></code></span>
+<span class="codeline" id="line-651"><code>	problem <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>            <span class="comment">// Error description.</span></code></span>
+<span class="codeline" id="line-652"><code></code></span>
+<span class="codeline" id="line-653"><code>	<span class="comment">// Writer stuff</span></code></span>
+<span class="codeline" id="line-654"><code></code></span>
+<span class="codeline" id="line-655"><code>	write_handler <a href="#line-614" class="ident">yaml_write_handler_t</a> <span class="comment">// Write handler.</span></code></span>
+<span class="codeline" id="line-656"><code></code></span>
+<span class="codeline" id="line-657"><code>	output_buffer *[]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>   <span class="comment">// String output data.</span></code></span>
+<span class="codeline" id="line-658"><code>	output_writer <a href="../../../pkg/io.html" class="ident i1">io</a>.<a href="../../io/io.go.html#line-96" class="ident">Writer</a> <span class="comment">// File output data.</span></code></span>
+<span class="codeline" id="line-659"><code></code></span>
+<span class="codeline" id="line-660"><code>	buffer     []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> <span class="comment">// The working buffer.</span></code></span>
+<span class="codeline" id="line-661"><code>	buffer_pos <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>    <span class="comment">// The current position of the buffer.</span></code></span>
+<span class="codeline" id="line-662"><code></code></span>
+<span class="codeline" id="line-663"><code>	raw_buffer     []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> <span class="comment">// The raw buffer.</span></code></span>
+<span class="codeline" id="line-664"><code>	raw_buffer_pos <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>    <span class="comment">// The current position of the buffer.</span></code></span>
+<span class="codeline" id="line-665"><code></code></span>
+<span class="codeline" id="line-666"><code>	encoding <a href="#line-20" class="ident">yaml_encoding_t</a> <span class="comment">// The stream encoding.</span></code></span>
+<span class="codeline" id="line-667"><code></code></span>
+<span class="codeline" id="line-668"><code>	<span class="comment">// Emitter stuff</span></code></span>
+<span class="codeline" id="line-669"><code></code></span>
+<span class="codeline" id="line-670"><code>	canonical   <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>         <span class="comment">// If the output is in the canonical style?</span></code></span>
+<span class="codeline" id="line-671"><code>	best_indent <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>          <span class="comment">// The number of indentation spaces.</span></code></span>
+<span class="codeline" id="line-672"><code>	best_width  <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>          <span class="comment">// The preferred width of the output lines.</span></code></span>
+<span class="codeline" id="line-673"><code>	unicode     <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>         <span class="comment">// Allow unescaped non-ASCII characters?</span></code></span>
+<span class="codeline" id="line-674"><code>	line_break  <a href="#line-32" class="ident">yaml_break_t</a> <span class="comment">// The preferred line break.</span></code></span>
+<span class="codeline" id="line-675"><code></code></span>
+<span class="codeline" id="line-676"><code>	state  <a href="#line-616" class="ident">yaml_emitter_state_t</a>   <span class="comment">// The current emitter state.</span></code></span>
+<span class="codeline" id="line-677"><code>	states []<a href="#line-616" class="ident">yaml_emitter_state_t</a> <span class="comment">// The stack of states.</span></code></span>
+<span class="codeline" id="line-678"><code></code></span>
+<span class="codeline" id="line-679"><code>	events      []<a href="#line-265" class="ident">yaml_event_t</a> <span class="comment">// The event queue.</span></code></span>
+<span class="codeline" id="line-680"><code>	events_head <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>            <span class="comment">// The head of the event queue.</span></code></span>
+<span class="codeline" id="line-681"><code></code></span>
+<span class="codeline" id="line-682"><code>	indents []<a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// The stack of indentation levels.</span></code></span>
+<span class="codeline" id="line-683"><code></code></span>
+<span class="codeline" id="line-684"><code>	tag_directives []<a href="#line-15" class="ident">yaml_tag_directive_t</a> <span class="comment">// The list of tag directives.</span></code></span>
+<span class="codeline" id="line-685"><code></code></span>
+<span class="codeline" id="line-686"><code>	indent <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// The current indentation level.</span></code></span>
+<span class="codeline" id="line-687"><code></code></span>
+<span class="codeline" id="line-688"><code>	flow_level <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// The current flow level.</span></code></span>
+<span class="codeline" id="line-689"><code></code></span>
+<span class="codeline" id="line-690"><code>	root_context       <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// Is it the document root context?</span></code></span>
+<span class="codeline" id="line-691"><code>	sequence_context   <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// Is it a sequence context?</span></code></span>
+<span class="codeline" id="line-692"><code>	mapping_context    <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// Is it a mapping context?</span></code></span>
+<span class="codeline" id="line-693"><code>	simple_key_context <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// Is it a simple mapping key context?</span></code></span>
+<span class="codeline" id="line-694"><code></code></span>
+<span class="codeline" id="line-695"><code>	line       <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>  <span class="comment">// The current line.</span></code></span>
+<span class="codeline" id="line-696"><code>	column     <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>  <span class="comment">// The current column.</span></code></span>
+<span class="codeline" id="line-697"><code>	whitespace <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// If the last character was a whitespace?</span></code></span>
+<span class="codeline" id="line-698"><code>	indention  <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// If the last character was an indentation character (' ', '-', '?', ':')?</span></code></span>
+<span class="codeline" id="line-699"><code>	open_ended <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// If an explicit document end is required?</span></code></span>
+<span class="codeline" id="line-700"><code></code></span>
+<span class="codeline" id="line-701"><code>	<span class="comment">// Anchor analysis.</span></code></span>
+<span class="codeline" id="line-702"><code>	anchor_data <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-703"><code>		anchor []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> <span class="comment">// The anchor value.</span></code></span>
+<span class="codeline" id="line-704"><code>		alias  <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>   <span class="comment">// Is it an alias?</span></code></span>
+<span class="codeline" id="line-705"><code>	}</code></span>
+<span class="codeline" id="line-706"><code></code></span>
+<span class="codeline" id="line-707"><code>	<span class="comment">// Tag analysis.</span></code></span>
+<span class="codeline" id="line-708"><code>	tag_data <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-709"><code>		handle []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> <span class="comment">// The tag handle.</span></code></span>
+<span class="codeline" id="line-710"><code>		suffix []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> <span class="comment">// The tag suffix.</span></code></span>
+<span class="codeline" id="line-711"><code>	}</code></span>
+<span class="codeline" id="line-712"><code></code></span>
+<span class="codeline" id="line-713"><code>	<span class="comment">// Scalar analysis.</span></code></span>
+<span class="codeline" id="line-714"><code>	scalar_data <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-715"><code>		value                 []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>              <span class="comment">// The scalar value.</span></code></span>
+<span class="codeline" id="line-716"><code>		multiline             <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>                <span class="comment">// Does the scalar contain line breaks?</span></code></span>
+<span class="codeline" id="line-717"><code>		flow_plain_allowed    <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>                <span class="comment">// Can the scalar be expessed in the flow plain style?</span></code></span>
+<span class="codeline" id="line-718"><code>		block_plain_allowed   <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>                <span class="comment">// Can the scalar be expressed in the block plain style?</span></code></span>
+<span class="codeline" id="line-719"><code>		single_quoted_allowed <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>                <span class="comment">// Can the scalar be expressed in the single quoted style?</span></code></span>
+<span class="codeline" id="line-720"><code>		block_allowed         <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>                <span class="comment">// Can the scalar be expressed in the literal or folded styles?</span></code></span>
+<span class="codeline" id="line-721"><code>		style                 <a href="#line-71" class="ident">yaml_scalar_style_t</a> <span class="comment">// The output style.</span></code></span>
+<span class="codeline" id="line-722"><code>	}</code></span>
+<span class="codeline" id="line-723"><code></code></span>
+<span class="codeline" id="line-724"><code>	<span class="comment">// Dumper stuff</span></code></span>
+<span class="codeline" id="line-725"><code></code></span>
+<span class="codeline" id="line-726"><code>	opened <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// If the stream was already opened?</span></code></span>
+<span class="codeline" id="line-727"><code>	closed <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// If the stream was already closed?</span></code></span>
+<span class="codeline" id="line-728"><code></code></span>
+<span class="codeline" id="line-729"><code>	<span class="comment">// The information associated with the document nodes.</span></code></span>
+<span class="codeline" id="line-730"><code>	anchors *<span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-731"><code>		references <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>  <span class="comment">// The number of references.</span></code></span>
+<span class="codeline" id="line-732"><code>		anchor     <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>  <span class="comment">// The anchor id.</span></code></span>
+<span class="codeline" id="line-733"><code>		serialized <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="comment">// If the node has been emitted?</span></code></span>
+<span class="codeline" id="line-734"><code>	}</code></span>
+<span class="codeline" id="line-735"><code></code></span>
+<span class="codeline" id="line-736"><code>	last_anchor_id <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="comment">// The last assigned anchor id.</span></code></span>
+<span class="codeline" id="line-737"><code></code></span>
+<span class="codeline" id="line-738"><code>	document *<a href="#line-384" class="ident">yaml_document_t</a> <span class="comment">// The currently emitted document.</span></code></span>
+<span class="codeline" id="line-739"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: cgo_sigaction.go in package runtime</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	cgo_sigaction.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2016 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// Support for memory sanitizer. See runtime/cgo/sigaction.go.</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// +build linux,amd64 freebsd,amd64 linux,arm64</span></code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// _cgo_sigaction is filled in by runtime/cgo when it is linked into the</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// program, so it is only non-nil when using cgo.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">//go:linkname _cgo_sigaction _cgo_sigaction</span></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-_cgo_sigaction" class="ident">_cgo_sigaction</a> <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a></code></span>
+<span class="codeline" id="line-17"><code></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//go:nowritebarrierrec</span></code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-sigaction" class="ident">sigaction</a></label>(<label for="r1" class="ident">sig</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r2" class="ident">new</label>, <label for="r3" class="ident">old</label> *<a href="defs_linux_amd64.go.html#line-117" class="ident">sigactiont</a>) {</code></span>
+<span class="codeline" id="line-21"><code>	<span class="comment">// racewalk.go avoids adding sanitizing instrumentation to package runtime,</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">	// but we might be calling into instrumented C functions here,</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	// so we need the pointer parameters to be properly marked.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">	// Mark the input as having been written before the call</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">	// and the output as read after.</span></code></span>
+<span class="codeline" id="line-27"><code>	<span class="keyword">if</span> <a href="msan0.go.html#line-15" class="ident">msanenabled</a> &amp;&amp; <label for="r2" class="ident">new</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-28"><code>		<a href="msan0.go.html#line-20" class="ident">msanwrite</a>(<a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r2" class="ident">new</label>), <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(*<label for="r2" class="ident">new</label>))</code></span>
+<span class="codeline" id="line-29"><code>	}</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code>	<span class="keyword">if</span> <a href="#line-16" class="ident">_cgo_sigaction</a> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> || <a href="proc.go.html#line-3931" class="ident">inForkedChild</a> {</code></span>
+<span class="codeline" id="line-32"><code>		<a href="os_linux.go.html#line-472" class="ident">sysSigaction</a>(<label for="r1" class="ident">sig</label>, <label for="r2" class="ident">new</label>, <label for="r3" class="ident">old</label>)</code></span>
+<span class="codeline" id="line-33"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-34"><code>		<span class="comment">// We need to call _cgo_sigaction, which means we need a big enough stack</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">		// for C.  To complicate matters, we may be in libpreinit (before the</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">		// runtime has been initialized) or in an asynchronous signal handler (with</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">		// the current thread in transition between goroutines, or with the g0</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">		// system stack already in use).</span></code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code>		<span class="keyword">var</span> <label for="r4" class="ident">ret</label> <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code>		<span class="keyword">var</span> <label for="r5" class="ident">g</label> *<a href="runtime2.go.html#line-404" class="ident">g</a></code></span>
+<span class="codeline" id="line-43"><code>		<span class="keyword">if</span> <a href="proc.go.html#line-106" class="ident">mainStarted</a> {</code></span>
+<span class="codeline" id="line-44"><code>			<label for="r5" class="ident">g</label> = <a href="stubs.go.html#line-18" class="ident">getg</a>()</code></span>
+<span class="codeline" id="line-45"><code>		}</code></span>
+<span class="codeline" id="line-46"><code>		<label for="r6" class="ident">sp</label> := <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r1" class="ident">sig</label>))</code></span>
+<span class="codeline" id="line-47"><code>		<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-48"><code>		<span class="keyword">case</span> <label for="r5" class="ident">g</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>:</code></span>
+<span class="codeline" id="line-49"><code>			<span class="comment">// No g: we're on a C stack or a signal stack.</span></code></span>
+<span class="codeline" id="line-50"><code>			<label for="r4" class="ident">ret</label> = <a href="#line-87" class="ident">callCgoSigaction</a>(<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r1" class="ident">sig</label>), <label for="r2" class="ident">new</label>, <label for="r3" class="ident">old</label>)</code></span>
+<span class="codeline" id="line-51"><code>		<span class="keyword">case</span> <label for="r6" class="ident">sp</label> &lt; <label for="r5" class="ident">g</label>.<a href="runtime2.go.html#line-412" class="ident">stack</a>.<a href="runtime2.go.html#line-394" class="ident">lo</a> || <label for="r6" class="ident">sp</label> &gt;= <label for="r5" class="ident">g</label>.<a href="runtime2.go.html#line-412" class="ident">stack</a>.<a href="runtime2.go.html#line-395" class="ident">hi</a>:</code></span>
+<span class="codeline" id="line-52"><code>			<span class="comment">// We're no longer on g's stack, so we must be handling a signal.  It's</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">			// possible that we interrupted the thread during a transition between g</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">			// and g0, so we should stay on the current stack to avoid corrupting g0.</span></code></span>
+<span class="codeline" id="line-55"><code>			<label for="r4" class="ident">ret</label> = <a href="#line-87" class="ident">callCgoSigaction</a>(<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r1" class="ident">sig</label>), <label for="r2" class="ident">new</label>, <label for="r3" class="ident">old</label>)</code></span>
+<span class="codeline" id="line-56"><code>		<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-57"><code>			<span class="comment">// We're running on g's stack, so either we're not in a signal handler or</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">			// the signal handler has set the correct g.  If we're on gsignal or g0,</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">			// systemstack will make the call directly; otherwise, it will switch to</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">			// g0 to ensure we have enough room to call a libc function.</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">			//</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">			// The function literal that we pass to systemstack is not nosplit, but</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">			// that's ok: we'll be running on a fresh, clean system stack so the stack</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">			// check will always succeed anyway.</span></code></span>
+<span class="codeline" id="line-65"><code>			<a href="stubs.go.html#line-54" class="ident">systemstack</a>(<span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-66"><code>				<label for="r4" class="ident">ret</label> = <a href="#line-87" class="ident">callCgoSigaction</a>(<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r1" class="ident">sig</label>), <label for="r2" class="ident">new</label>, <label for="r3" class="ident">old</label>)</code></span>
+<span class="codeline" id="line-67"><code>			})</code></span>
+<span class="codeline" id="line-68"><code>		}</code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code>		<span class="keyword">const</span> <label for="r7" class="ident">EINVAL</label> = <span class="lit-number">22</span></code></span>
+<span class="codeline" id="line-71"><code>		<span class="keyword">if</span> <label for="r4" class="ident">ret</label> == <label for="r7" class="ident">EINVAL</label> {</code></span>
+<span class="codeline" id="line-72"><code>			<span class="comment">// libc reserves certain signals — normally 32-33 — for pthreads, and</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">			// returns EINVAL for sigaction calls on those signals.  If we get EINVAL,</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">			// fall back to making the syscall directly.</span></code></span>
+<span class="codeline" id="line-75"><code>			<a href="os_linux.go.html#line-472" class="ident">sysSigaction</a>(<label for="r1" class="ident">sig</label>, <label for="r2" class="ident">new</label>, <label for="r3" class="ident">old</label>)</code></span>
+<span class="codeline" id="line-76"><code>		}</code></span>
+<span class="codeline" id="line-77"><code>	}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code>	<span class="keyword">if</span> <a href="msan0.go.html#line-15" class="ident">msanenabled</a> &amp;&amp; <label for="r3" class="ident">old</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-80"><code>		<a href="msan0.go.html#line-19" class="ident">msanread</a>(<a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r3" class="ident">old</label>), <a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(*<label for="r3" class="ident">old</label>))</code></span>
+<span class="codeline" id="line-81"><code>	}</code></span>
+<span class="codeline" id="line-82"><code>}</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// callCgoSigaction calls the sigaction function in the runtime/cgo package</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// using the GCC calling convention. It is implemented in assembly.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">//go:noescape</span></code></span>
+<span class="codeline" id="line-87"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../pkg/runtime.html#name-callCgoSigaction" class="ident">callCgoSigaction</a></label>(<label for="r9" class="ident">sig</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r10" class="ident">new</label>, <label for="r11" class="ident">old</label> *<a href="defs_linux_amd64.go.html#line-117" class="ident">sigactiont</a>) <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

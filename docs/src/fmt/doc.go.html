@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: doc.go in package fmt</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	doc.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/fmt.html">fmt</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">	Package fmt implements formatted I/O with functions analogous</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">	to C's printf and scanf.  The format 'verbs' are derived from C's but</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">	are simpler.</span></code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">	Printing</span></code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">	The verbs:</span></code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">	General:</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">		%v	the value in a default format</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">			when printing structs, the plus flag (%+v) adds field names</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">		%#v	a Go-syntax representation of the value</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">		%T	a Go-syntax representation of the type of the value</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">		%%	a literal percent sign; consumes no value</span></code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">	Boolean:</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">		%t	the word true or false</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">	Integer:</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">		%b	base 2</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">		%c	the character represented by the corresponding Unicode code point</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">		%d	base 10</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">		%o	base 8</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">		%O	base 8 with 0o prefix</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">		%q	a single-quoted character literal safely escaped with Go syntax.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">		%x	base 16, with lower-case letters for a-f</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">		%X	base 16, with upper-case letters for A-F</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">		%U	Unicode format: U+1234; same as "U+%04X"</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	Floating-point and complex constituents:</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">		%b	decimalless scientific notation with exponent a power of two,</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">			in the manner of strconv.FormatFloat with the 'b' format,</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">			e.g. -123456p-78</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">		%e	scientific notation, e.g. -1.234456e+78</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">		%E	scientific notation, e.g. -1.234456E+78</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">		%f	decimal point but no exponent, e.g. 123.456</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">		%F	synonym for %f</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">		%g	%e for large exponents, %f otherwise. Precision is discussed below.</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">		%G	%E for large exponents, %F otherwise</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">		%x	hexadecimal notation (with decimal power of two exponent), e.g. -0x1.23abcp+20</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">		%X	upper-case hexadecimal notation, e.g. -0X1.23ABCP+20</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	String and slice of bytes (treated equivalently with these verbs):</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">		%s	the uninterpreted bytes of the string or slice</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">		%q	a double-quoted string safely escaped with Go syntax</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">		%x	base 16, lower-case, two characters per byte</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">		%X	base 16, upper-case, two characters per byte</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	Slice:</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">		%p	address of 0th element in base 16 notation, with leading 0x</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">	Pointer:</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">		%p	base 16 notation, with leading 0x</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">		The %b, %d, %o, %x and %X verbs also work with pointers,</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">		formatting the value exactly as if it were an integer.</span></code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">	The default format for %v is:</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">		bool:                    %t</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">		int, int8 etc.:          %d</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">		uint, uint8 etc.:        %d, %#x if printed with %#v</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">		float32, complex64, etc: %g</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">		string:                  %s</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">		chan:                    %p</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">		pointer:                 %p</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">	For compound objects, the elements are printed using these rules, recursively,</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">	laid out like this:</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">		struct:             {field0 field1 ...}</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">		array, slice:       [elem0 elem1 ...]</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">		maps:               map[key1:value1 key2:value2 ...]</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">		pointer to above:   &amp;{}, &amp;[], &amp;map[]</span></code></span>
+<span class="codeline" id="line-72"><code></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">	Width is specified by an optional decimal number immediately preceding the verb.</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">	If absent, the width is whatever is necessary to represent the value.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">	Precision is specified after the (optional) width by a period followed by a</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">	decimal number. If no period is present, a default precision is used.</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">	A period with no following number specifies a precision of zero.</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">	Examples:</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">		%f     default width, default precision</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">		%9f    width 9, default precision</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">		%.2f   default width, precision 2</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">		%9.2f  width 9, precision 2</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">		%9.f   width 9, precision 0</span></code></span>
+<span class="codeline" id="line-84"><code></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">	Width and precision are measured in units of Unicode code points,</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">	that is, runes. (This differs from C's printf where the</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">	units are always measured in bytes.) Either or both of the flags</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">	may be replaced with the character '*', causing their values to be</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">	obtained from the next operand (preceding the one to format),</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">	which must be of type int.</span></code></span>
+<span class="codeline" id="line-91"><code></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">	For most values, width is the minimum number of runes to output,</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">	padding the formatted form with spaces if necessary.</span></code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">	For strings, byte slices and byte arrays, however, precision</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">	limits the length of the input to be formatted (not the size of</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">	the output), truncating if necessary. Normally it is measured in</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">	runes, but for these types when formatted with the %x or %X format</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">	it is measured in bytes.</span></code></span>
+<span class="codeline" id="line-100"><code></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">	For floating-point values, width sets the minimum width of the field and</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">	precision sets the number of places after the decimal, if appropriate,</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">	except that for %g/%G precision sets the maximum number of significant</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">	digits (trailing zeros are removed). For example, given 12.345 the format</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">	%6.3f prints 12.345 while %.3g prints 12.3. The default precision for %e, %f</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">	and %#g is 6; for %g it is the smallest number of digits necessary to identify</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">	the value uniquely.</span></code></span>
+<span class="codeline" id="line-108"><code></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">	For complex numbers, the width and precision apply to the two</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">	components independently and the result is parenthesized, so %f applied</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">	to 1.2+3.4i produces (1.200000+3.400000i).</span></code></span>
+<span class="codeline" id="line-112"><code></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">	Other flags:</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">		+	always print a sign for numeric values;</span></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">			guarantee ASCII-only output for %q (%+q)</span></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">		-	pad with spaces on the right rather than the left (left-justify the field)</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">		#	alternate format: add leading 0b for binary (%#b), 0 for octal (%#o),</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">			0x or 0X for hex (%#x or %#X); suppress 0x for %p (%#p);</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">			for %q, print a raw (backquoted) string if strconv.CanBackquote</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">			returns true;</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">			always print a decimal point for %e, %E, %f, %F, %g and %G;</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">			do not remove trailing zeros for %g and %G;</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">			write e.g. U+0078 'x' if the character is printable for %U (%#U).</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">		' '	(space) leave a space for elided sign in numbers (% d);</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">			put spaces between bytes printing strings or slices in hex (% x, % X)</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">		0	pad with leading zeros rather than spaces;</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">			for numbers, this moves the padding after the sign</span></code></span>
+<span class="codeline" id="line-128"><code></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">	Flags are ignored by verbs that do not expect them.</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">	For example there is no alternate decimal format, so %#d and %d</span></code></span>
+<span class="codeline" id="line-131"><code><span class="comment">	behave identically.</span></code></span>
+<span class="codeline" id="line-132"><code></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">	For each Printf-like function, there is also a Print function</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">	that takes no format and is equivalent to saying %v for every</span></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">	operand.  Another variant Println inserts blanks between</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">	operands and appends a newline.</span></code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">	Regardless of the verb, if an operand is an interface value,</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">	the internal concrete value is used, not the interface itself.</span></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">	Thus:</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">		var i interface{} = 23</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">		fmt.Printf("%v\n", i)</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">	will print 23.</span></code></span>
+<span class="codeline" id="line-144"><code></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">	Except when printed using the verbs %T and %p, special</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">	formatting considerations apply for operands that implement</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">	certain interfaces. In order of application:</span></code></span>
+<span class="codeline" id="line-148"><code></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">	1. If the operand is a reflect.Value, the operand is replaced by the</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">	concrete value that it holds, and printing continues with the next rule.</span></code></span>
+<span class="codeline" id="line-151"><code></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">	2. If an operand implements the Formatter interface, it will</span></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">	be invoked. In this case the interpretation of verbs and flags is</span></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">	controlled by that implementation.</span></code></span>
+<span class="codeline" id="line-155"><code></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">	3. If the %v verb is used with the # flag (%#v) and the operand</span></code></span>
+<span class="codeline" id="line-157"><code><span class="comment">	implements the GoStringer interface, that will be invoked.</span></code></span>
+<span class="codeline" id="line-158"><code></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">	If the format (which is implicitly %v for Println etc.) is valid</span></code></span>
+<span class="codeline" id="line-160"><code><span class="comment">	for a string (%s %q %v %x %X), the following two rules apply:</span></code></span>
+<span class="codeline" id="line-161"><code></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">	4. If an operand implements the error interface, the Error method</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">	will be invoked to convert the object to a string, which will then</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">	be formatted as required by the verb (if any).</span></code></span>
+<span class="codeline" id="line-165"><code></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">	5. If an operand implements method String() string, that method</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">	will be invoked to convert the object to a string, which will then</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">	be formatted as required by the verb (if any).</span></code></span>
+<span class="codeline" id="line-169"><code></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">	For compound operands such as slices and structs, the format</span></code></span>
+<span class="codeline" id="line-171"><code><span class="comment">	applies to the elements of each operand, recursively, not to the</span></code></span>
+<span class="codeline" id="line-172"><code><span class="comment">	operand as a whole. Thus %q will quote each element of a slice</span></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">	of strings, and %6.2f will control formatting for each element</span></code></span>
+<span class="codeline" id="line-174"><code><span class="comment">	of a floating-point array.</span></code></span>
+<span class="codeline" id="line-175"><code></code></span>
+<span class="codeline" id="line-176"><code><span class="comment">	However, when printing a byte slice with a string-like verb</span></code></span>
+<span class="codeline" id="line-177"><code><span class="comment">	(%s %q %x %X), it is treated identically to a string, as a single item.</span></code></span>
+<span class="codeline" id="line-178"><code></code></span>
+<span class="codeline" id="line-179"><code><span class="comment">	To avoid recursion in cases such as</span></code></span>
+<span class="codeline" id="line-180"><code><span class="comment">		type X string</span></code></span>
+<span class="codeline" id="line-181"><code><span class="comment">		func (x X) String() string { return Sprintf("&lt;%s&gt;", x) }</span></code></span>
+<span class="codeline" id="line-182"><code><span class="comment">	convert the value before recurring:</span></code></span>
+<span class="codeline" id="line-183"><code><span class="comment">		func (x X) String() string { return Sprintf("&lt;%s&gt;", string(x)) }</span></code></span>
+<span class="codeline" id="line-184"><code><span class="comment">	Infinite recursion can also be triggered by self-referential data</span></code></span>
+<span class="codeline" id="line-185"><code><span class="comment">	structures, such as a slice that contains itself as an element, if</span></code></span>
+<span class="codeline" id="line-186"><code><span class="comment">	that type has a String method. Such pathologies are rare, however,</span></code></span>
+<span class="codeline" id="line-187"><code><span class="comment">	and the package does not protect against them.</span></code></span>
+<span class="codeline" id="line-188"><code></code></span>
+<span class="codeline" id="line-189"><code><span class="comment">	When printing a struct, fmt cannot and therefore does not invoke</span></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">	formatting methods such as Error or String on unexported fields.</span></code></span>
+<span class="codeline" id="line-191"><code></code></span>
+<span class="codeline" id="line-192"><code><span class="comment">	Explicit argument indexes:</span></code></span>
+<span class="codeline" id="line-193"><code></code></span>
+<span class="codeline" id="line-194"><code><span class="comment">	In Printf, Sprintf, and Fprintf, the default behavior is for each</span></code></span>
+<span class="codeline" id="line-195"><code><span class="comment">	formatting verb to format successive arguments passed in the call.</span></code></span>
+<span class="codeline" id="line-196"><code><span class="comment">	However, the notation [n] immediately before the verb indicates that the</span></code></span>
+<span class="codeline" id="line-197"><code><span class="comment">	nth one-indexed argument is to be formatted instead. The same notation</span></code></span>
+<span class="codeline" id="line-198"><code><span class="comment">	before a '*' for a width or precision selects the argument index holding</span></code></span>
+<span class="codeline" id="line-199"><code><span class="comment">	the value. After processing a bracketed expression [n], subsequent verbs</span></code></span>
+<span class="codeline" id="line-200"><code><span class="comment">	will use arguments n+1, n+2, etc. unless otherwise directed.</span></code></span>
+<span class="codeline" id="line-201"><code></code></span>
+<span class="codeline" id="line-202"><code><span class="comment">	For example,</span></code></span>
+<span class="codeline" id="line-203"><code><span class="comment">		fmt.Sprintf("%[2]d %[1]d\n", 11, 22)</span></code></span>
+<span class="codeline" id="line-204"><code><span class="comment">	will yield "22 11", while</span></code></span>
+<span class="codeline" id="line-205"><code><span class="comment">		fmt.Sprintf("%[3]*.[2]*[1]f", 12.0, 2, 6)</span></code></span>
+<span class="codeline" id="line-206"><code><span class="comment">	equivalent to</span></code></span>
+<span class="codeline" id="line-207"><code><span class="comment">		fmt.Sprintf("%6.2f", 12.0)</span></code></span>
+<span class="codeline" id="line-208"><code><span class="comment">	will yield " 12.00". Because an explicit index affects subsequent verbs,</span></code></span>
+<span class="codeline" id="line-209"><code><span class="comment">	this notation can be used to print the same values multiple times</span></code></span>
+<span class="codeline" id="line-210"><code><span class="comment">	by resetting the index for the first argument to be repeated:</span></code></span>
+<span class="codeline" id="line-211"><code><span class="comment">		fmt.Sprintf("%d %d %#[1]x %#x", 16, 17)</span></code></span>
+<span class="codeline" id="line-212"><code><span class="comment">	will yield "16 17 0x10 0x11".</span></code></span>
+<span class="codeline" id="line-213"><code></code></span>
+<span class="codeline" id="line-214"><code><span class="comment">	Format errors:</span></code></span>
+<span class="codeline" id="line-215"><code></code></span>
+<span class="codeline" id="line-216"><code><span class="comment">	If an invalid argument is given for a verb, such as providing</span></code></span>
+<span class="codeline" id="line-217"><code><span class="comment">	a string to %d, the generated string will contain a</span></code></span>
+<span class="codeline" id="line-218"><code><span class="comment">	description of the problem, as in these examples:</span></code></span>
+<span class="codeline" id="line-219"><code></code></span>
+<span class="codeline" id="line-220"><code><span class="comment">		Wrong type or unknown verb: %!verb(type=value)</span></code></span>
+<span class="codeline" id="line-221"><code><span class="comment">			Printf("%d", "hi"):        %!d(string=hi)</span></code></span>
+<span class="codeline" id="line-222"><code><span class="comment">		Too many arguments: %!(EXTRA type=value)</span></code></span>
+<span class="codeline" id="line-223"><code><span class="comment">			Printf("hi", "guys"):      hi%!(EXTRA string=guys)</span></code></span>
+<span class="codeline" id="line-224"><code><span class="comment">		Too few arguments: %!verb(MISSING)</span></code></span>
+<span class="codeline" id="line-225"><code><span class="comment">			Printf("hi%d"):            hi%!d(MISSING)</span></code></span>
+<span class="codeline" id="line-226"><code><span class="comment">		Non-int for width or precision: %!(BADWIDTH) or %!(BADPREC)</span></code></span>
+<span class="codeline" id="line-227"><code><span class="comment">			Printf("%*s", 4.5, "hi"):  %!(BADWIDTH)hi</span></code></span>
+<span class="codeline" id="line-228"><code><span class="comment">			Printf("%.*s", 4.5, "hi"): %!(BADPREC)hi</span></code></span>
+<span class="codeline" id="line-229"><code><span class="comment">		Invalid or invalid use of argument index: %!(BADINDEX)</span></code></span>
+<span class="codeline" id="line-230"><code><span class="comment">			Printf("%*[2]d", 7):       %!d(BADINDEX)</span></code></span>
+<span class="codeline" id="line-231"><code><span class="comment">			Printf("%.[2]d", 7):       %!d(BADINDEX)</span></code></span>
+<span class="codeline" id="line-232"><code></code></span>
+<span class="codeline" id="line-233"><code><span class="comment">	All errors begin with the string "%!" followed sometimes</span></code></span>
+<span class="codeline" id="line-234"><code><span class="comment">	by a single character (the verb) and end with a parenthesized</span></code></span>
+<span class="codeline" id="line-235"><code><span class="comment">	description.</span></code></span>
+<span class="codeline" id="line-236"><code></code></span>
+<span class="codeline" id="line-237"><code><span class="comment">	If an Error or String method triggers a panic when called by a</span></code></span>
+<span class="codeline" id="line-238"><code><span class="comment">	print routine, the fmt package reformats the error message</span></code></span>
+<span class="codeline" id="line-239"><code><span class="comment">	from the panic, decorating it with an indication that it came</span></code></span>
+<span class="codeline" id="line-240"><code><span class="comment">	through the fmt package.  For example, if a String method</span></code></span>
+<span class="codeline" id="line-241"><code><span class="comment">	calls panic("bad"), the resulting formatted message will look</span></code></span>
+<span class="codeline" id="line-242"><code><span class="comment">	like</span></code></span>
+<span class="codeline" id="line-243"><code><span class="comment">		%!s(PANIC=bad)</span></code></span>
+<span class="codeline" id="line-244"><code></code></span>
+<span class="codeline" id="line-245"><code><span class="comment">	The %!s just shows the print verb in use when the failure</span></code></span>
+<span class="codeline" id="line-246"><code><span class="comment">	occurred. If the panic is caused by a nil receiver to an Error</span></code></span>
+<span class="codeline" id="line-247"><code><span class="comment">	or String method, however, the output is the undecorated</span></code></span>
+<span class="codeline" id="line-248"><code><span class="comment">	string, "&lt;nil&gt;".</span></code></span>
+<span class="codeline" id="line-249"><code></code></span>
+<span class="codeline" id="line-250"><code><span class="comment">	Scanning</span></code></span>
+<span class="codeline" id="line-251"><code></code></span>
+<span class="codeline" id="line-252"><code><span class="comment">	An analogous set of functions scans formatted text to yield</span></code></span>
+<span class="codeline" id="line-253"><code><span class="comment">	values.  Scan, Scanf and Scanln read from os.Stdin; Fscan,</span></code></span>
+<span class="codeline" id="line-254"><code><span class="comment">	Fscanf and Fscanln read from a specified io.Reader; Sscan,</span></code></span>
+<span class="codeline" id="line-255"><code><span class="comment">	Sscanf and Sscanln read from an argument string.</span></code></span>
+<span class="codeline" id="line-256"><code></code></span>
+<span class="codeline" id="line-257"><code><span class="comment">	Scan, Fscan, Sscan treat newlines in the input as spaces.</span></code></span>
+<span class="codeline" id="line-258"><code></code></span>
+<span class="codeline" id="line-259"><code><span class="comment">	Scanln, Fscanln and Sscanln stop scanning at a newline and</span></code></span>
+<span class="codeline" id="line-260"><code><span class="comment">	require that the items be followed by a newline or EOF.</span></code></span>
+<span class="codeline" id="line-261"><code></code></span>
+<span class="codeline" id="line-262"><code><span class="comment">	Scanf, Fscanf, and Sscanf parse the arguments according to a</span></code></span>
+<span class="codeline" id="line-263"><code><span class="comment">	format string, analogous to that of Printf. In the text that</span></code></span>
+<span class="codeline" id="line-264"><code><span class="comment">	follows, 'space' means any Unicode whitespace character</span></code></span>
+<span class="codeline" id="line-265"><code><span class="comment">	except newline.</span></code></span>
+<span class="codeline" id="line-266"><code></code></span>
+<span class="codeline" id="line-267"><code><span class="comment">	In the format string, a verb introduced by the % character</span></code></span>
+<span class="codeline" id="line-268"><code><span class="comment">	consumes and parses input; these verbs are described in more</span></code></span>
+<span class="codeline" id="line-269"><code><span class="comment">	detail below. A character other than %, space, or newline in</span></code></span>
+<span class="codeline" id="line-270"><code><span class="comment">	the format consumes exactly that input character, which must</span></code></span>
+<span class="codeline" id="line-271"><code><span class="comment">	be present. A newline with zero or more spaces before it in</span></code></span>
+<span class="codeline" id="line-272"><code><span class="comment">	the format string consumes zero or more spaces in the input</span></code></span>
+<span class="codeline" id="line-273"><code><span class="comment">	followed by a single newline or the end of the input. A space</span></code></span>
+<span class="codeline" id="line-274"><code><span class="comment">	following a newline in the format string consumes zero or more</span></code></span>
+<span class="codeline" id="line-275"><code><span class="comment">	spaces in the input. Otherwise, any run of one or more spaces</span></code></span>
+<span class="codeline" id="line-276"><code><span class="comment">	in the format string consumes as many spaces as possible in</span></code></span>
+<span class="codeline" id="line-277"><code><span class="comment">	the input. Unless the run of spaces in the format string</span></code></span>
+<span class="codeline" id="line-278"><code><span class="comment">	appears adjacent to a newline, the run must consume at least</span></code></span>
+<span class="codeline" id="line-279"><code><span class="comment">	one space from the input or find the end of the input.</span></code></span>
+<span class="codeline" id="line-280"><code></code></span>
+<span class="codeline" id="line-281"><code><span class="comment">	The handling of spaces and newlines differs from that of C's</span></code></span>
+<span class="codeline" id="line-282"><code><span class="comment">	scanf family: in C, newlines are treated as any other space,</span></code></span>
+<span class="codeline" id="line-283"><code><span class="comment">	and it is never an error when a run of spaces in the format</span></code></span>
+<span class="codeline" id="line-284"><code><span class="comment">	string finds no spaces to consume in the input.</span></code></span>
+<span class="codeline" id="line-285"><code></code></span>
+<span class="codeline" id="line-286"><code><span class="comment">	The verbs behave analogously to those of Printf.</span></code></span>
+<span class="codeline" id="line-287"><code><span class="comment">	For example, %x will scan an integer as a hexadecimal number,</span></code></span>
+<span class="codeline" id="line-288"><code><span class="comment">	and %v will scan the default representation format for the value.</span></code></span>
+<span class="codeline" id="line-289"><code><span class="comment">	The Printf verbs %p and %T and the flags # and + are not implemented.</span></code></span>
+<span class="codeline" id="line-290"><code><span class="comment">	For floating-point and complex values, all valid formatting verbs</span></code></span>
+<span class="codeline" id="line-291"><code><span class="comment">	(%b %e %E %f %F %g %G %x %X and %v) are equivalent and accept</span></code></span>
+<span class="codeline" id="line-292"><code><span class="comment">	both decimal and hexadecimal notation (for example: "2.3e+7", "0x4.5p-8")</span></code></span>
+<span class="codeline" id="line-293"><code><span class="comment">	and digit-separating underscores (for example: "3.14159_26535_89793").</span></code></span>
+<span class="codeline" id="line-294"><code></code></span>
+<span class="codeline" id="line-295"><code><span class="comment">	Input processed by verbs is implicitly space-delimited: the</span></code></span>
+<span class="codeline" id="line-296"><code><span class="comment">	implementation of every verb except %c starts by discarding</span></code></span>
+<span class="codeline" id="line-297"><code><span class="comment">	leading spaces from the remaining input, and the %s verb</span></code></span>
+<span class="codeline" id="line-298"><code><span class="comment">	(and %v reading into a string) stops consuming input at the first</span></code></span>
+<span class="codeline" id="line-299"><code><span class="comment">	space or newline character.</span></code></span>
+<span class="codeline" id="line-300"><code></code></span>
+<span class="codeline" id="line-301"><code><span class="comment">	The familiar base-setting prefixes 0b (binary), 0o and 0 (octal),</span></code></span>
+<span class="codeline" id="line-302"><code><span class="comment">	and 0x (hexadecimal) are accepted when scanning integers</span></code></span>
+<span class="codeline" id="line-303"><code><span class="comment">	without a format or with the %v verb, as are digit-separating</span></code></span>
+<span class="codeline" id="line-304"><code><span class="comment">	underscores.</span></code></span>
+<span class="codeline" id="line-305"><code></code></span>
+<span class="codeline" id="line-306"><code><span class="comment">	Width is interpreted in the input text but there is no</span></code></span>
+<span class="codeline" id="line-307"><code><span class="comment">	syntax for scanning with a precision (no %5.2f, just %5f).</span></code></span>
+<span class="codeline" id="line-308"><code><span class="comment">	If width is provided, it applies after leading spaces are</span></code></span>
+<span class="codeline" id="line-309"><code><span class="comment">	trimmed and specifies the maximum number of runes to read</span></code></span>
+<span class="codeline" id="line-310"><code><span class="comment">	to satisfy the verb. For example,</span></code></span>
+<span class="codeline" id="line-311"><code><span class="comment">	   Sscanf(" 1234567 ", "%5s%d", &amp;s, &amp;i)</span></code></span>
+<span class="codeline" id="line-312"><code><span class="comment">	will set s to "12345" and i to 67 while</span></code></span>
+<span class="codeline" id="line-313"><code><span class="comment">	   Sscanf(" 12 34 567 ", "%5s%d", &amp;s, &amp;i)</span></code></span>
+<span class="codeline" id="line-314"><code><span class="comment">	will set s to "12" and i to 34.</span></code></span>
+<span class="codeline" id="line-315"><code></code></span>
+<span class="codeline" id="line-316"><code><span class="comment">	In all the scanning functions, a carriage return followed</span></code></span>
+<span class="codeline" id="line-317"><code><span class="comment">	immediately by a newline is treated as a plain newline</span></code></span>
+<span class="codeline" id="line-318"><code><span class="comment">	(\r\n means the same as \n).</span></code></span>
+<span class="codeline" id="line-319"><code></code></span>
+<span class="codeline" id="line-320"><code><span class="comment">	In all the scanning functions, if an operand implements method</span></code></span>
+<span class="codeline" id="line-321"><code><span class="comment">	Scan (that is, it implements the Scanner interface) that</span></code></span>
+<span class="codeline" id="line-322"><code><span class="comment">	method will be used to scan the text for that operand.  Also,</span></code></span>
+<span class="codeline" id="line-323"><code><span class="comment">	if the number of arguments scanned is less than the number of</span></code></span>
+<span class="codeline" id="line-324"><code><span class="comment">	arguments provided, an error is returned.</span></code></span>
+<span class="codeline" id="line-325"><code></code></span>
+<span class="codeline" id="line-326"><code><span class="comment">	All arguments to be scanned must be either pointers to basic</span></code></span>
+<span class="codeline" id="line-327"><code><span class="comment">	types or implementations of the Scanner interface.</span></code></span>
+<span class="codeline" id="line-328"><code></code></span>
+<span class="codeline" id="line-329"><code><span class="comment">	Like Scanf and Fscanf, Sscanf need not consume its entire input.</span></code></span>
+<span class="codeline" id="line-330"><code><span class="comment">	There is no way to recover how much of the input string Sscanf used.</span></code></span>
+<span class="codeline" id="line-331"><code></code></span>
+<span class="codeline" id="line-332"><code><span class="comment">	Note: Fscan etc. can read one character (rune) past the input</span></code></span>
+<span class="codeline" id="line-333"><code><span class="comment">	they return, which means that a loop calling a scan routine</span></code></span>
+<span class="codeline" id="line-334"><code><span class="comment">	may skip some of the input.  This is usually a problem only</span></code></span>
+<span class="codeline" id="line-335"><code><span class="comment">	when there is no space between input values.  If the reader</span></code></span>
+<span class="codeline" id="line-336"><code><span class="comment">	provided to Fscan implements ReadRune, that method will be used</span></code></span>
+<span class="codeline" id="line-337"><code><span class="comment">	to read characters.  If the reader also implements UnreadRune,</span></code></span>
+<span class="codeline" id="line-338"><code><span class="comment">	that method will be used to save the character and successive</span></code></span>
+<span class="codeline" id="line-339"><code><span class="comment">	calls will not lose data.  To attach ReadRune and UnreadRune</span></code></span>
+<span class="codeline" id="line-340"><code><span class="comment">	methods to a reader without that capability, use</span></code></span>
+<span class="codeline" id="line-341"><code><span class="comment">	bufio.NewReader.</span></code></span>
+<span class="codeline" id="line-342"><code><span class="comment">*/</span></code></span></div><span class="codeline" id="line-343"><code><span class="keyword">package</span> fmt</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

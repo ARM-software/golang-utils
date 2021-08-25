@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: cpu_x86.go in package vendor/golang.org/x/sys/cpu</title>
+<link href="../../../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	cpu_x86.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/vendor/golang.org/x/sys/cpu.html">vendor/golang.org/x/sys/cpu</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2018 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// +build 386 amd64 amd64p32</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> cpu</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"runtime"</span></label></code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">const</span> <a href="../../../../../../pkg/vendor/golang.org/x/sys/cpu.html#name-cacheLineSize" class="ident">cacheLineSize</a> = <span class="lit-number">64</span></code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/vendor/golang.org/x/sys/cpu.html#name-initOptions" class="ident">initOptions</a></label>() {</code></span>
+<span class="codeline" id="line-14"><code>	<a href="cpu.go.html#line-208" class="ident">options</a> = []<a href="cpu.go.html#line-211" class="ident">option</a>{</code></span>
+<span class="codeline" id="line-15"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"adx"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-34" class="ident">HasADX</a>},</code></span>
+<span class="codeline" id="line-16"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"aes"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-33" class="ident">HasAES</a>},</code></span>
+<span class="codeline" id="line-17"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-35" class="ident">HasAVX</a>},</code></span>
+<span class="codeline" id="line-18"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx2"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-36" class="ident">HasAVX2</a>},</code></span>
+<span class="codeline" id="line-19"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-37" class="ident">HasAVX512</a>},</code></span>
+<span class="codeline" id="line-20"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512f"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-38" class="ident">HasAVX512F</a>},</code></span>
+<span class="codeline" id="line-21"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512cd"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-39" class="ident">HasAVX512CD</a>},</code></span>
+<span class="codeline" id="line-22"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512er"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-40" class="ident">HasAVX512ER</a>},</code></span>
+<span class="codeline" id="line-23"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512pf"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-41" class="ident">HasAVX512PF</a>},</code></span>
+<span class="codeline" id="line-24"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512vl"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-42" class="ident">HasAVX512VL</a>},</code></span>
+<span class="codeline" id="line-25"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512bw"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-43" class="ident">HasAVX512BW</a>},</code></span>
+<span class="codeline" id="line-26"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512dq"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-44" class="ident">HasAVX512DQ</a>},</code></span>
+<span class="codeline" id="line-27"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512ifma"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-45" class="ident">HasAVX512IFMA</a>},</code></span>
+<span class="codeline" id="line-28"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512vbmi"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-46" class="ident">HasAVX512VBMI</a>},</code></span>
+<span class="codeline" id="line-29"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512vnniw"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-47" class="ident">HasAVX5124VNNIW</a>},</code></span>
+<span class="codeline" id="line-30"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx5124fmaps"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-48" class="ident">HasAVX5124FMAPS</a>},</code></span>
+<span class="codeline" id="line-31"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512vpopcntdq"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-49" class="ident">HasAVX512VPOPCNTDQ</a>},</code></span>
+<span class="codeline" id="line-32"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512vpclmulqdq"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-50" class="ident">HasAVX512VPCLMULQDQ</a>},</code></span>
+<span class="codeline" id="line-33"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512vnni"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-51" class="ident">HasAVX512VNNI</a>},</code></span>
+<span class="codeline" id="line-34"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512gfni"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-52" class="ident">HasAVX512GFNI</a>},</code></span>
+<span class="codeline" id="line-35"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512vaes"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-53" class="ident">HasAVX512VAES</a>},</code></span>
+<span class="codeline" id="line-36"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512vbmi2"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-54" class="ident">HasAVX512VBMI2</a>},</code></span>
+<span class="codeline" id="line-37"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512bitalg"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-55" class="ident">HasAVX512BITALG</a>},</code></span>
+<span class="codeline" id="line-38"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"avx512bf16"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-56" class="ident">HasAVX512BF16</a>},</code></span>
+<span class="codeline" id="line-39"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"bmi1"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-57" class="ident">HasBMI1</a>},</code></span>
+<span class="codeline" id="line-40"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"bmi2"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-58" class="ident">HasBMI2</a>},</code></span>
+<span class="codeline" id="line-41"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"erms"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-59" class="ident">HasERMS</a>},</code></span>
+<span class="codeline" id="line-42"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"fma"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-60" class="ident">HasFMA</a>},</code></span>
+<span class="codeline" id="line-43"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"osxsave"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-61" class="ident">HasOSXSAVE</a>},</code></span>
+<span class="codeline" id="line-44"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"pclmulqdq"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-62" class="ident">HasPCLMULQDQ</a>},</code></span>
+<span class="codeline" id="line-45"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"popcnt"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-63" class="ident">HasPOPCNT</a>},</code></span>
+<span class="codeline" id="line-46"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"rdrand"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-64" class="ident">HasRDRAND</a>},</code></span>
+<span class="codeline" id="line-47"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"rdseed"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-65" class="ident">HasRDSEED</a>},</code></span>
+<span class="codeline" id="line-48"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"sse3"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-67" class="ident">HasSSE3</a>},</code></span>
+<span class="codeline" id="line-49"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"sse41"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-69" class="ident">HasSSE41</a>},</code></span>
+<span class="codeline" id="line-50"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"sse42"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-70" class="ident">HasSSE42</a>},</code></span>
+<span class="codeline" id="line-51"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"ssse3"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-68" class="ident">HasSSSE3</a>},</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code>		<span class="comment">// These capabilities should always be enabled on amd64:</span></code></span>
+<span class="codeline" id="line-54"><code>		{<a href="cpu.go.html#line-212" class="ident">Name</a>: <span class="lit-string">"sse2"</span>, <a href="cpu.go.html#line-213" class="ident">Feature</a>: &amp;<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-66" class="ident">HasSSE2</a>, <a href="cpu.go.html#line-216" class="ident">Required</a>: <a href="../../../../../../pkg/runtime.html" class="ident i0">runtime</a>.<a href="../../../../../runtime/extern.go.html#line-257" class="ident">GOARCH</a> == <span class="lit-string">"amd64"</span>},</code></span>
+<span class="codeline" id="line-55"><code>	}</code></span>
+<span class="codeline" id="line-56"><code>}</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">func</span> <label for="r1" class="ident"><a href="../../../../../../pkg/vendor/golang.org/x/sys/cpu.html#name-archInit" class="ident">archInit</a></label>() {</code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code>	<a href="cpu.go.html#line-19" class="ident">Initialized</a> = <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code>	<label for="r2" class="ident">maxID</label>, <label for="r3" class="ident">_</label>, <label for="r4" class="ident">_</label>, <label for="r5" class="ident">_</label> := <a href="cpu_gc_x86.go.html#line-12" class="ident">cpuid</a>(<span class="lit-number">0</span>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code>	<span class="keyword">if</span> <label for="r2" class="ident">maxID</label> &lt; <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-65"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-66"><code>	}</code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code>	<label for="r6" class="ident">_</label>, <label for="r7" class="ident">_</label>, <label for="r8" class="ident">ecx1</label>, <label for="r9" class="ident">edx1</label> := <a href="cpu_gc_x86.go.html#line-12" class="ident">cpuid</a>(<span class="lit-number">1</span>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-69"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-66" class="ident">HasSSE2</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">26</span>, <label for="r9" class="ident">edx1</label>)</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-67" class="ident">HasSSE3</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">0</span>, <label for="r8" class="ident">ecx1</label>)</code></span>
+<span class="codeline" id="line-72"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-62" class="ident">HasPCLMULQDQ</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">1</span>, <label for="r8" class="ident">ecx1</label>)</code></span>
+<span class="codeline" id="line-73"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-68" class="ident">HasSSSE3</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">9</span>, <label for="r8" class="ident">ecx1</label>)</code></span>
+<span class="codeline" id="line-74"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-60" class="ident">HasFMA</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">12</span>, <label for="r8" class="ident">ecx1</label>)</code></span>
+<span class="codeline" id="line-75"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-69" class="ident">HasSSE41</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">19</span>, <label for="r8" class="ident">ecx1</label>)</code></span>
+<span class="codeline" id="line-76"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-70" class="ident">HasSSE42</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">20</span>, <label for="r8" class="ident">ecx1</label>)</code></span>
+<span class="codeline" id="line-77"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-63" class="ident">HasPOPCNT</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">23</span>, <label for="r8" class="ident">ecx1</label>)</code></span>
+<span class="codeline" id="line-78"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-33" class="ident">HasAES</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">25</span>, <label for="r8" class="ident">ecx1</label>)</code></span>
+<span class="codeline" id="line-79"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-61" class="ident">HasOSXSAVE</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">27</span>, <label for="r8" class="ident">ecx1</label>)</code></span>
+<span class="codeline" id="line-80"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-64" class="ident">HasRDRAND</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">30</span>, <label for="r8" class="ident">ecx1</label>)</code></span>
+<span class="codeline" id="line-81"><code></code></span>
+<span class="codeline" id="line-82"><code>	<span class="keyword">var</span> <label for="r10" class="ident">osSupportsAVX</label>, <label for="r11" class="ident">osSupportsAVX512</label> <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-83"><code>	<span class="comment">// For XGETBV, OSXSAVE bit is required and sufficient.</span></code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">if</span> <a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-61" class="ident">HasOSXSAVE</a> {</code></span>
+<span class="codeline" id="line-85"><code>		<label for="r12" class="ident">eax</label>, <label for="r13" class="ident">_</label> := <a href="cpu_gc_x86.go.html#line-16" class="ident">xgetbv</a>()</code></span>
+<span class="codeline" id="line-86"><code>		<span class="comment">// Check if XMM and YMM registers have OS support.</span></code></span>
+<span class="codeline" id="line-87"><code>		<label for="r10" class="ident">osSupportsAVX</label> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">1</span>, <label for="r12" class="ident">eax</label>) &amp;&amp; <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">2</span>, <label for="r12" class="ident">eax</label>)</code></span>
+<span class="codeline" id="line-88"><code></code></span>
+<span class="codeline" id="line-89"><code>		<span class="comment">// Check if OPMASK and ZMM registers have OS support.</span></code></span>
+<span class="codeline" id="line-90"><code>		<label for="r11" class="ident">osSupportsAVX512</label> = <label for="r10" class="ident">osSupportsAVX</label> &amp;&amp; <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">5</span>, <label for="r12" class="ident">eax</label>) &amp;&amp; <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">6</span>, <label for="r12" class="ident">eax</label>) &amp;&amp; <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">7</span>, <label for="r12" class="ident">eax</label>)</code></span>
+<span class="codeline" id="line-91"><code>	}</code></span>
+<span class="codeline" id="line-92"><code></code></span>
+<span class="codeline" id="line-93"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-35" class="ident">HasAVX</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">28</span>, <label for="r8" class="ident">ecx1</label>) &amp;&amp; <label for="r10" class="ident">osSupportsAVX</label></code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code>	<span class="keyword">if</span> <label for="r2" class="ident">maxID</label> &lt; <span class="lit-number">7</span> {</code></span>
+<span class="codeline" id="line-96"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-97"><code>	}</code></span>
+<span class="codeline" id="line-98"><code></code></span>
+<span class="codeline" id="line-99"><code>	<label for="r14" class="ident">_</label>, <label for="r15" class="ident">ebx7</label>, <label for="r16" class="ident">ecx7</label>, <label for="r17" class="ident">edx7</label> := <a href="cpu_gc_x86.go.html#line-12" class="ident">cpuid</a>(<span class="lit-number">7</span>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-100"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-57" class="ident">HasBMI1</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">3</span>, <label for="r15" class="ident">ebx7</label>)</code></span>
+<span class="codeline" id="line-101"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-36" class="ident">HasAVX2</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">5</span>, <label for="r15" class="ident">ebx7</label>) &amp;&amp; <label for="r10" class="ident">osSupportsAVX</label></code></span>
+<span class="codeline" id="line-102"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-58" class="ident">HasBMI2</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">8</span>, <label for="r15" class="ident">ebx7</label>)</code></span>
+<span class="codeline" id="line-103"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-59" class="ident">HasERMS</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">9</span>, <label for="r15" class="ident">ebx7</label>)</code></span>
+<span class="codeline" id="line-104"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-65" class="ident">HasRDSEED</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">18</span>, <label for="r15" class="ident">ebx7</label>)</code></span>
+<span class="codeline" id="line-105"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-34" class="ident">HasADX</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">19</span>, <label for="r15" class="ident">ebx7</label>)</code></span>
+<span class="codeline" id="line-106"><code></code></span>
+<span class="codeline" id="line-107"><code>	<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-37" class="ident">HasAVX512</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">16</span>, <label for="r15" class="ident">ebx7</label>) &amp;&amp; <label for="r11" class="ident">osSupportsAVX512</label> <span class="comment">// Because avx-512 foundation is the core required extension</span></code></span>
+<span class="codeline" id="line-108"><code>	<span class="keyword">if</span> <a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-37" class="ident">HasAVX512</a> {</code></span>
+<span class="codeline" id="line-109"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-38" class="ident">HasAVX512F</a> = <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-110"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-39" class="ident">HasAVX512CD</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">28</span>, <label for="r15" class="ident">ebx7</label>)</code></span>
+<span class="codeline" id="line-111"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-40" class="ident">HasAVX512ER</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">27</span>, <label for="r15" class="ident">ebx7</label>)</code></span>
+<span class="codeline" id="line-112"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-41" class="ident">HasAVX512PF</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">26</span>, <label for="r15" class="ident">ebx7</label>)</code></span>
+<span class="codeline" id="line-113"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-42" class="ident">HasAVX512VL</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">31</span>, <label for="r15" class="ident">ebx7</label>)</code></span>
+<span class="codeline" id="line-114"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-43" class="ident">HasAVX512BW</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">30</span>, <label for="r15" class="ident">ebx7</label>)</code></span>
+<span class="codeline" id="line-115"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-44" class="ident">HasAVX512DQ</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">17</span>, <label for="r15" class="ident">ebx7</label>)</code></span>
+<span class="codeline" id="line-116"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-45" class="ident">HasAVX512IFMA</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">21</span>, <label for="r15" class="ident">ebx7</label>)</code></span>
+<span class="codeline" id="line-117"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-46" class="ident">HasAVX512VBMI</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">1</span>, <label for="r16" class="ident">ecx7</label>)</code></span>
+<span class="codeline" id="line-118"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-47" class="ident">HasAVX5124VNNIW</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">2</span>, <label for="r17" class="ident">edx7</label>)</code></span>
+<span class="codeline" id="line-119"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-48" class="ident">HasAVX5124FMAPS</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">3</span>, <label for="r17" class="ident">edx7</label>)</code></span>
+<span class="codeline" id="line-120"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-49" class="ident">HasAVX512VPOPCNTDQ</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">14</span>, <label for="r16" class="ident">ecx7</label>)</code></span>
+<span class="codeline" id="line-121"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-50" class="ident">HasAVX512VPCLMULQDQ</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">10</span>, <label for="r16" class="ident">ecx7</label>)</code></span>
+<span class="codeline" id="line-122"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-51" class="ident">HasAVX512VNNI</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">11</span>, <label for="r16" class="ident">ecx7</label>)</code></span>
+<span class="codeline" id="line-123"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-52" class="ident">HasAVX512GFNI</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">8</span>, <label for="r16" class="ident">ecx7</label>)</code></span>
+<span class="codeline" id="line-124"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-53" class="ident">HasAVX512VAES</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">9</span>, <label for="r16" class="ident">ecx7</label>)</code></span>
+<span class="codeline" id="line-125"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-54" class="ident">HasAVX512VBMI2</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">6</span>, <label for="r16" class="ident">ecx7</label>)</code></span>
+<span class="codeline" id="line-126"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-55" class="ident">HasAVX512BITALG</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">12</span>, <label for="r16" class="ident">ecx7</label>)</code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code>		<label for="r18" class="ident">eax71</label>, <label for="r19" class="ident">_</label>, <label for="r20" class="ident">_</label>, <label for="r21" class="ident">_</label> := <a href="cpu_gc_x86.go.html#line-12" class="ident">cpuid</a>(<span class="lit-number">7</span>, <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-129"><code>		<a href="cpu.go.html#line-31" class="ident">X86</a>.<a href="cpu.go.html#line-56" class="ident">HasAVX512BF16</a> = <a href="#line-133" class="ident">isSet</a>(<span class="lit-number">5</span>, <label for="r18" class="ident">eax71</label>)</code></span>
+<span class="codeline" id="line-130"><code>	}</code></span>
+<span class="codeline" id="line-131"><code>}</code></span>
+<span class="codeline" id="line-132"><code></code></span>
+<span class="codeline" id="line-133"><code><span class="keyword">func</span> <label for="r22" class="ident"><a href="../../../../../../pkg/vendor/golang.org/x/sys/cpu.html#name-isSet" class="ident">isSet</a></label>(<label for="r23" class="ident">bitpos</label> <a href="../../../../../../pkg/builtin.html#name-uint" class="ident">uint</a>, <label for="r24" class="ident">value</label> <a href="../../../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-134"><code>	<span class="keyword">return</span> <label for="r24" class="ident">value</label>&amp;(<span class="lit-number">1</span>&lt;&lt;<label for="r23" class="ident">bitpos</label>) != <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-135"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

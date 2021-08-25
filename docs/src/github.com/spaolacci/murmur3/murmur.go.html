@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: murmur.go in package github.com/spaolacci/murmur3</title>
+<link href="../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	murmur.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/github.com/spaolacci/murmur3.html">github.com/spaolacci/murmur3</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2013, Sébastien Paolacci. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">Package murmur3 implements Austin Appleby's non-cryptographic MurmurHash3.</span></code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> Reference implementation:</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">    http://code.google.com/p/smhasher/wiki/MurmurHash3</span></code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> History, characteristics and (legacy) perfs:</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">    https://sites.google.com/site/murmurhash/</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">    https://sites.google.com/site/murmurhash/statistics</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">*/</span></code></span></div><span class="codeline" id="line-15"><code><span class="keyword">package</span> murmur3</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/spaolacci/murmur3.html#name-bmixer" class="ident">bmixer</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-18"><code>	<a href="../../../../imp/github.com/spaolacci/murmur3.bmixer*97af6.html#name-github.com/spaolacci/murmur3.bmix" class="ident">bmix</a>(p []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (tail []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>)</code></span>
+<span class="codeline" id="line-19"><code>	<a href="../../../../imp/github.com/spaolacci/murmur3.bmixer*97af6.html#name-Size" class="ident">Size</a>() (n <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>)</code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../../../imp/github.com/spaolacci/murmur3.bmixer*97af6.html#name-github.com/spaolacci/murmur3.reset" class="ident">reset</a>()</code></span>
+<span class="codeline" id="line-21"><code>}</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/spaolacci/murmur3.html#name-digest" class="ident">digest</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-24"><code>	clen <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>      <span class="comment">// Digested input cumulative length.</span></code></span>
+<span class="codeline" id="line-25"><code>	tail []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>   <span class="comment">// 0 to Size()-1 bytes view of `buf'.</span></code></span>
+<span class="codeline" id="line-26"><code>	buf  [<span class="lit-number">16</span>]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a> <span class="comment">// Expected (but not required) to be Size() large.</span></code></span>
+<span class="codeline" id="line-27"><code>	seed <a href="../../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>   <span class="comment">// Seed for initializing the hash.</span></code></span>
+<span class="codeline" id="line-28"><code>	<a href="#line-17" class="ident">bmixer</a></code></span>
+<span class="codeline" id="line-29"><code>}</code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">func</span> (<label for="r0" class="ident">d</label> *<a href="#line-23" class="ident">digest</a>) <label for="r1" class="ident">BlockSize</label>() <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a> { <span class="keyword">return</span> <span class="lit-number">1</span> }</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">func</span> (<label for="r2" class="ident">d</label> *<a href="#line-23" class="ident">digest</a>) <label for="r3" class="ident"><a href="../../../../imp/github.com/spaolacci/murmur3.digest*0bf47.html#name-.Write" class="ident">Write</a></label>(<label for="r4" class="ident">p</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r5" class="ident">n</label> <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r6" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-34"><code>	<label for="r5" class="ident">n</label> = <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r4" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-35"><code>	<label for="r2" class="ident">d</label>.<a href="#line-24" class="ident">clen</a> += <label for="r5" class="ident">n</label></code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">d</label>.<a href="#line-25" class="ident">tail</a>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-38"><code>		<span class="comment">// Stick back pending bytes.</span></code></span>
+<span class="codeline" id="line-39"><code>		<label for="r7" class="ident">nfree</label> := <label for="r2" class="ident">d</label>.<a href="#line-19" class="ident">Size</a>() - <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">d</label>.<a href="#line-25" class="ident">tail</a>) <span class="comment">// nfree ∈ [1, d.Size()-1].</span></code></span>
+<span class="codeline" id="line-40"><code>		<span class="keyword">if</span> <label for="r7" class="ident">nfree</label> &lt; <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r4" class="ident">p</label>) {</code></span>
+<span class="codeline" id="line-41"><code>			<span class="comment">// One full block can be formed.</span></code></span>
+<span class="codeline" id="line-42"><code>			<label for="r8" class="ident">block</label> := <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r2" class="ident">d</label>.<a href="#line-25" class="ident">tail</a>, <label for="r4" class="ident">p</label>[:<label for="r7" class="ident">nfree</label>]...)</code></span>
+<span class="codeline" id="line-43"><code>			<label for="r4" class="ident">p</label> = <label for="r4" class="ident">p</label>[<label for="r7" class="ident">nfree</label>:]</code></span>
+<span class="codeline" id="line-44"><code>			_ = <label for="r2" class="ident">d</label>.<a href="#line-18" class="ident">bmix</a>(<label for="r8" class="ident">block</label>) <span class="comment">// No tail.</span></code></span>
+<span class="codeline" id="line-45"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-46"><code>			<span class="comment">// Tail's buf is large enough to prevent reallocs.</span></code></span>
+<span class="codeline" id="line-47"><code>			<label for="r4" class="ident">p</label> = <a href="../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r2" class="ident">d</label>.<a href="#line-25" class="ident">tail</a>, <label for="r4" class="ident">p</label>...)</code></span>
+<span class="codeline" id="line-48"><code>		}</code></span>
+<span class="codeline" id="line-49"><code>	}</code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code>	<label for="r2" class="ident">d</label>.<a href="#line-25" class="ident">tail</a> = <label for="r2" class="ident">d</label>.<a href="#line-18" class="ident">bmix</a>(<label for="r4" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code>	<span class="comment">// Keep own copy of the 0 to Size()-1 pending bytes.</span></code></span>
+<span class="codeline" id="line-54"><code>	<label for="r9" class="ident">nn</label> := <a href="../../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r2" class="ident">d</label>.<a href="#line-26" class="ident">buf</a>[:], <label for="r2" class="ident">d</label>.<a href="#line-25" class="ident">tail</a>)</code></span>
+<span class="codeline" id="line-55"><code>	<label for="r2" class="ident">d</label>.<a href="#line-25" class="ident">tail</a> = <label for="r2" class="ident">d</label>.<a href="#line-26" class="ident">buf</a>[:<label for="r9" class="ident">nn</label>]</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code>	<span class="keyword">return</span> <label for="r5" class="ident">n</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-58"><code>}</code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code><span class="keyword">func</span> (<label for="r10" class="ident">d</label> *<a href="#line-23" class="ident">digest</a>) <label for="r11" class="ident">Reset</label>() {</code></span>
+<span class="codeline" id="line-61"><code>	<label for="r10" class="ident">d</label>.<a href="#line-24" class="ident">clen</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-62"><code>	<label for="r10" class="ident">d</label>.<a href="#line-25" class="ident">tail</a> = <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-63"><code>	<label for="r10" class="ident">d</label>.<a href="#line-28" class="ident">bmixer</a>.<a href="#line-20" class="ident">reset</a>()</code></span>
+<span class="codeline" id="line-64"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

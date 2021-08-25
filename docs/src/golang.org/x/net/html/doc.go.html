@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: doc.go in package golang.org/x/net/html</title>
+<link href="../../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	doc.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/golang.org/x/net/html.html">golang.org/x/net/html</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2010 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">Package html implements an HTML5-compliant tokenizer and parser.</span></code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">Tokenization is done by creating a Tokenizer for an io.Reader r. It is the</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">caller's responsibility to ensure that r provides UTF-8 encoded HTML.</span></code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">	z := html.NewTokenizer(r)</span></code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">Given a Tokenizer z, the HTML is tokenized by repeatedly calling z.Next(),</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">which parses the next token and returns its type, or an error:</span></code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">	for {</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">		tt := z.Next()</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">		if tt == html.ErrorToken {</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">			// ...</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">			return ...</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">		}</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">		// Process the current token.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">	}</span></code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">There are two APIs for retrieving the current token. The high-level API is to</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">call Token; the low-level API is to call Text or TagName / TagAttr. Both APIs</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">allow optionally calling Raw after Next but before Token, Text, TagName, or</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">TagAttr. In EBNF notation, the valid call sequence per token is:</span></code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	Next {Raw} [ Token | Text | TagName {TagAttr} ]</span></code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">Token returns an independent data structure that completely describes a token.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">Entities (such as "&amp;lt;") are unescaped, tag names and attribute keys are</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">lower-cased, and attributes are collected into a []Attribute. For example:</span></code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	for {</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">		if z.Next() == html.ErrorToken {</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">			// Returning io.EOF indicates success.</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">			return z.Err()</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">		}</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">		emitToken(z.Token())</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	}</span></code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">The low-level API performs fewer allocations and copies, but the contents of</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">the []byte values returned by Text, TagName and TagAttr may change on the next</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">call to Next. For example, to extract an HTML page's anchor text:</span></code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">	depth := 0</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">	for {</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">		tt := z.Next()</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">		switch tt {</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">		case html.ErrorToken:</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">			return z.Err()</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">		case html.TextToken:</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">			if depth &gt; 0 {</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">				// emitBytes should copy the []byte it receives,</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">				// if it doesn't process it immediately.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">				emitBytes(z.Text())</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">			}</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">		case html.StartTagToken, html.EndTagToken:</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">			tn, _ := z.TagName()</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">			if len(tn) == 1 &amp;&amp; tn[0] == 'a' {</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">				if tt == html.StartTagToken {</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">					depth++</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">				} else {</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">					depth--</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">				}</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">			}</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">		}</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">	}</span></code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">Parsing is done by calling Parse with an io.Reader, which returns the root of</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">the parse tree (the document element) as a *Node. It is the caller's</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">responsibility to ensure that the Reader provides UTF-8 encoded HTML. For</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">example, to process each anchor node in depth-first order:</span></code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">	doc, err := html.Parse(r)</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">	if err != nil {</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">		// ...</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">	}</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">	var f func(*html.Node)</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">	f = func(n *html.Node) {</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">		if n.Type == html.ElementNode &amp;&amp; n.Data == "a" {</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">			// Do something with n...</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">		}</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">		for c := n.FirstChild; c != nil; c = c.NextSibling {</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">			f(c)</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">		}</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">	}</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">	f(doc)</span></code></span>
+<span class="codeline" id="line-91"><code></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">The relevant specifications include:</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">https://html.spec.whatwg.org/multipage/syntax.html and</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">https://html.spec.whatwg.org/multipage/syntax.html#tokenization</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">*/</span></code></span></div><span class="codeline" id="line-96"><code><span class="keyword">package</span> html <span class="comment">// import "golang.org/x/net/html"</span></code></span>
+<span class="codeline" id="line-97"><code></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">// The tokenization algorithm implemented by this package is not a line-by-line</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">// transliteration of the relatively verbose state-machine in the WHATWG</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">// specification. A more direct approach is used instead, where the program</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// counter implies the state, such as whether it is tokenizing a tag or a text</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// node. Specification compliance is verified by checking expected and actual</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">// outputs over a test suite rather than aiming for algorithmic fidelity.</span></code></span>
+<span class="codeline" id="line-104"><code></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// TODO(nigeltao): Does a DOM API belong in this package or a separate one?</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">// TODO(nigeltao): How does parsing interact with a JavaScript engine?</span></code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

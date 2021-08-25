@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: os_linux.go in package runtime</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	os_linux.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104],
+input[id=r105]:checked ~pre label[for=r105],
+input[id=r106]:checked ~pre label[for=r106],
+input[id=r107]:checked ~pre label[for=r107],
+input[id=r108]:checked ~pre label[for=r108],
+input[id=r109]:checked ~pre label[for=r109],
+input[id=r110]:checked ~pre label[for=r110],
+input[id=r111]:checked ~pre label[for=r111],
+input[id=r112]:checked ~pre label[for=r112],
+input[id=r113]:checked ~pre label[for=r113],
+input[id=r114]:checked ~pre label[for=r114],
+input[id=r115]:checked ~pre label[for=r115],
+input[id=r116]:checked ~pre label[for=r116],
+input[id=r117]:checked ~pre label[for=r117],
+input[id=r118]:checked ~pre label[for=r118],
+input[id=r119]:checked ~pre label[for=r119],
+input[id=r120]:checked ~pre label[for=r120],
+input[id=r121]:checked ~pre label[for=r121],
+input[id=r122]:checked ~pre label[for=r122],
+input[id=r123]:checked ~pre label[for=r123],
+input[id=r124]:checked ~pre label[for=r124],
+input[id=r125]:checked ~pre label[for=r125],
+input[id=r126]:checked ~pre label[for=r126],
+input[id=r127]:checked ~pre label[for=r127],
+input[id=r128]:checked ~pre label[for=r128],
+input[id=r129]:checked ~pre label[for=r129],
+input[id=r130]:checked ~pre label[for=r130],
+input[id=r131]:checked ~pre label[for=r131],
+input[id=r132]:checked ~pre label[for=r132],
+input[id=r133]:checked ~pre label[for=r133],
+input[id=r134]:checked ~pre label[for=r134],
+input[id=r135]:checked ~pre label[for=r135],
+input[id=r136]:checked ~pre label[for=r136],
+input[id=r137]:checked ~pre label[for=r137],
+input[id=r138]:checked ~pre label[for=r138],
+input[id=r139]:checked ~pre label[for=r139],
+input[id=r140]:checked ~pre label[for=r140],
+input[id=r141]:checked ~pre label[for=r141],
+input[id=r142]:checked ~pre label[for=r142],
+input[id=r143]:checked ~pre label[for=r143],
+input[id=r144]:checked ~pre label[for=r144],
+input[id=r145]:checked ~pre label[for=r145],
+input[id=r146]:checked ~pre label[for=r146],
+input[id=r147]:checked ~pre label[for=r147],
+input[id=r148]:checked ~pre label[for=r148],
+input[id=r149]:checked ~pre label[for=r149],
+input[id=r150]:checked ~pre label[for=r150],
+input[id=r151]:checked ~pre label[for=r151],
+input[id=r152]:checked ~pre label[for=r152],
+input[id=r153]:checked ~pre label[for=r153],
+input[id=r154]:checked ~pre label[for=r154],
+input[id=r155]:checked ~pre label[for=r155],
+input[id=r156]:checked ~pre label[for=r156]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="r105" type="radio" name="g"/>
+<input id="r106" type="radio" name="g"/>
+<input id="r107" type="radio" name="g"/>
+<input id="r108" type="radio" name="g"/>
+<input id="r109" type="radio" name="g"/>
+<input id="r110" type="radio" name="g"/>
+<input id="r111" type="radio" name="g"/>
+<input id="r112" type="radio" name="g"/>
+<input id="r113" type="radio" name="g"/>
+<input id="r114" type="radio" name="g"/>
+<input id="r115" type="radio" name="g"/>
+<input id="r116" type="radio" name="g"/>
+<input id="r117" type="radio" name="g"/>
+<input id="r118" type="radio" name="g"/>
+<input id="r119" type="radio" name="g"/>
+<input id="r120" type="radio" name="g"/>
+<input id="r121" type="radio" name="g"/>
+<input id="r122" type="radio" name="g"/>
+<input id="r123" type="radio" name="g"/>
+<input id="r124" type="radio" name="g"/>
+<input id="r125" type="radio" name="g"/>
+<input id="r126" type="radio" name="g"/>
+<input id="r127" type="radio" name="g"/>
+<input id="r128" type="radio" name="g"/>
+<input id="r129" type="radio" name="g"/>
+<input id="r130" type="radio" name="g"/>
+<input id="r131" type="radio" name="g"/>
+<input id="r132" type="radio" name="g"/>
+<input id="r133" type="radio" name="g"/>
+<input id="r134" type="radio" name="g"/>
+<input id="r135" type="radio" name="g"/>
+<input id="r136" type="radio" name="g"/>
+<input id="r137" type="radio" name="g"/>
+<input id="r138" type="radio" name="g"/>
+<input id="r139" type="radio" name="g"/>
+<input id="r140" type="radio" name="g"/>
+<input id="r141" type="radio" name="g"/>
+<input id="r142" type="radio" name="g"/>
+<input id="r143" type="radio" name="g"/>
+<input id="r144" type="radio" name="g"/>
+<input id="r145" type="radio" name="g"/>
+<input id="r146" type="radio" name="g"/>
+<input id="r147" type="radio" name="g"/>
+<input id="r148" type="radio" name="g"/>
+<input id="r149" type="radio" name="g"/>
+<input id="r150" type="radio" name="g"/>
+<input id="r151" type="radio" name="g"/>
+<input id="r152" type="radio" name="g"/>
+<input id="r153" type="radio" name="g"/>
+<input id="r154" type="radio" name="g"/>
+<input id="r155" type="radio" name="g"/>
+<input id="r156" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"runtime/internal/sys"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-10"><code>)</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-mOS" class="ident">mOS</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">//go:noescape</span></code></span>
+<span class="codeline" id="line-15"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-futex" class="ident">futex</a></label>(<label for="r1" class="ident">addr</label> <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r2" class="ident">op</label> <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>, <label for="r3" class="ident">val</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r4" class="ident">ts</label>, <label for="r5" class="ident">addr2</label> <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r6" class="ident">val3</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// Linux futex.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//	futexsleep(uint32 *addr, uint32 val)</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">//	futexwakeup(uint32 *addr)</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// Futexsleep atomically checks if *addr == val and if so, sleeps on addr.</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// Futexwakeup wakes up threads sleeping on addr.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// Futexsleep is allowed to wake up spuriously.</span></code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-27"><code>	<a href="../../pkg/runtime.html#name-_FUTEX_PRIVATE_FLAG" class="ident">_FUTEX_PRIVATE_FLAG</a> = <span class="lit-number">128</span></code></span>
+<span class="codeline" id="line-28"><code>	<a href="../../pkg/runtime.html#name-_FUTEX_WAIT_PRIVATE" class="ident">_FUTEX_WAIT_PRIVATE</a> = <span class="lit-number">0</span> | <a href="#line-27" class="ident">_FUTEX_PRIVATE_FLAG</a></code></span>
+<span class="codeline" id="line-29"><code>	<a href="../../pkg/runtime.html#name-_FUTEX_WAKE_PRIVATE" class="ident">_FUTEX_WAKE_PRIVATE</a> = <span class="lit-number">1</span> | <a href="#line-27" class="ident">_FUTEX_PRIVATE_FLAG</a></code></span>
+<span class="codeline" id="line-30"><code>)</code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// Atomically,</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">//	if(*addr == val) sleep</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// Might be woken up spuriously; that's allowed.</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// Don't sleep longer than ns; ns &lt; 0 means forever.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-37"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../pkg/runtime.html#name-futexsleep" class="ident">futexsleep</a></label>(<label for="r8" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r9" class="ident">val</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r10" class="ident">ns</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) {</code></span>
+<span class="codeline" id="line-38"><code>	<span class="comment">// Some Linux kernels have a bug where futex of</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	// FUTEX_WAIT returns an internal error code</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">	// as an errno. Libpthread ignores the return value</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">	// here, and so can we: as it says a few lines up,</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	// spurious wakeups are allowed.</span></code></span>
+<span class="codeline" id="line-43"><code>	<span class="keyword">if</span> <label for="r10" class="ident">ns</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-44"><code>		<a href="#line-15" class="ident">futex</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r8" class="ident">addr</label>), <a href="#line-28" class="ident">_FUTEX_WAIT_PRIVATE</a>, <label for="r9" class="ident">val</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-45"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-46"><code>	}</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">var</span> <label for="r11" class="ident">ts</label> <a href="defs_linux_amd64.go.html#line-97" class="ident">timespec</a></code></span>
+<span class="codeline" id="line-49"><code>	<label for="r11" class="ident">ts</label>.<a href="defs_linux_amd64.go.html#line-103" class="ident">setNsec</a>(<label for="r10" class="ident">ns</label>)</code></span>
+<span class="codeline" id="line-50"><code>	<a href="#line-15" class="ident">futex</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r8" class="ident">addr</label>), <a href="#line-28" class="ident">_FUTEX_WAIT_PRIVATE</a>, <label for="r9" class="ident">val</label>, <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r11" class="ident">ts</label>), <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-51"><code>}</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// If any procs are sleeping on addr, wake up at most cnt.</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-55"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../pkg/runtime.html#name-futexwakeup" class="ident">futexwakeup</a></label>(<label for="r13" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r14" class="ident">cnt</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
+<span class="codeline" id="line-56"><code>	<label for="r15" class="ident">ret</label> := <a href="#line-15" class="ident">futex</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r13" class="ident">addr</label>), <a href="#line-29" class="ident">_FUTEX_WAKE_PRIVATE</a>, <label for="r14" class="ident">cnt</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-57"><code>	<span class="keyword">if</span> <label for="r15" class="ident">ret</label> &gt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-58"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-59"><code>	}</code></span>
+<span class="codeline" id="line-60"><code></code></span>
+<span class="codeline" id="line-61"><code>	<span class="comment">// I don't know that futex wakeup can return</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	// EAGAIN or EINTR, but if it does, it would be</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">	// safe to loop and call futex again.</span></code></span>
+<span class="codeline" id="line-64"><code>	<a href="stubs.go.html#line-54" class="ident">systemstack</a>(<span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-65"><code>		<a href="../../pkg/builtin.html#name-print" class="ident">print</a>(<span class="lit-string">"futexwakeup addr="</span>, <label for="r13" class="ident">addr</label>, <span class="lit-string">" returned "</span>, <label for="r15" class="ident">ret</label>, <span class="lit-string">"\n"</span>)</code></span>
+<span class="codeline" id="line-66"><code>	})</code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code>	*(*<a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>)(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<span class="lit-number">0x1006</span>))) = <span class="lit-number">0x1006</span></code></span>
+<span class="codeline" id="line-69"><code>}</code></span>
+<span class="codeline" id="line-70"><code></code></span>
+<span class="codeline" id="line-71"><code><span class="keyword">func</span> <label for="r16" class="ident"><a href="../../pkg/runtime.html#name-getproccount" class="ident">getproccount</a></label>() <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a> {</code></span>
+<span class="codeline" id="line-72"><code>	<span class="comment">// This buffer is huge (8 kB) but we are on the system stack</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">	// and there should be plenty of space (64 kB).</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">	// Also this is a leaf, so we're not holding up the memory for long.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">	// See golang.org/issue/11823.</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">	// The suggested behavior here is to keep trying with ever-larger</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">	// buffers, but we don't have a dynamic memory allocator at the</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">	// moment, so that's a bit tricky and seems like overkill.</span></code></span>
+<span class="codeline" id="line-79"><code>	<span class="keyword">const</span> <label for="r17" class="ident">maxCPUs</label> = <span class="lit-number">64</span> * <span class="lit-number">1024</span></code></span>
+<span class="codeline" id="line-80"><code>	<span class="keyword">var</span> <label for="r18" class="ident">buf</label> [<label for="r17" class="ident">maxCPUs</label> / <span class="lit-number">8</span>]<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-81"><code>	<label for="r19" class="ident">r</label> := <a href="#line-410" class="ident">sched_getaffinity</a>(<span class="lit-number">0</span>, <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(<label for="r18" class="ident">buf</label>), &amp;<label for="r18" class="ident">buf</label>[<span class="lit-number">0</span>])</code></span>
+<span class="codeline" id="line-82"><code>	<span class="keyword">if</span> <label for="r19" class="ident">r</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-83"><code>		<span class="keyword">return</span> <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-84"><code>	}</code></span>
+<span class="codeline" id="line-85"><code>	<label for="r20" class="ident">n</label> := <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-86"><code>	<span class="keyword">for</span> <label for="r21" class="ident">_</label>, <label for="r22" class="ident">v</label> := <span class="keyword">range</span> <label for="r18" class="ident">buf</label>[:<label for="r19" class="ident">r</label>] {</code></span>
+<span class="codeline" id="line-87"><code>		<span class="keyword">for</span> <label for="r22" class="ident">v</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-88"><code>			<label for="r20" class="ident">n</label> += <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r22" class="ident">v</label> &amp; <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-89"><code>			<label for="r22" class="ident">v</label> &gt;&gt;= <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-90"><code>		}</code></span>
+<span class="codeline" id="line-91"><code>	}</code></span>
+<span class="codeline" id="line-92"><code>	<span class="keyword">if</span> <label for="r20" class="ident">n</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-93"><code>		<label for="r20" class="ident">n</label> = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-94"><code>	}</code></span>
+<span class="codeline" id="line-95"><code>	<span class="keyword">return</span> <label for="r20" class="ident">n</label></code></span>
+<span class="codeline" id="line-96"><code>}</code></span>
+<span class="codeline" id="line-97"><code></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">// Clone, the Linux rfork.</span></code></span>
+<span class="codeline" id="line-99"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-100"><code>	<a href="../../pkg/runtime.html#name-_CLONE_VM" class="ident">_CLONE_VM</a>             = <span class="lit-number">0x100</span></code></span>
+<span class="codeline" id="line-101"><code>	<a href="../../pkg/runtime.html#name-_CLONE_FS" class="ident">_CLONE_FS</a>             = <span class="lit-number">0x200</span></code></span>
+<span class="codeline" id="line-102"><code>	<a href="../../pkg/runtime.html#name-_CLONE_FILES" class="ident">_CLONE_FILES</a>          = <span class="lit-number">0x400</span></code></span>
+<span class="codeline" id="line-103"><code>	<a href="../../pkg/runtime.html#name-_CLONE_SIGHAND" class="ident">_CLONE_SIGHAND</a>        = <span class="lit-number">0x800</span></code></span>
+<span class="codeline" id="line-104"><code>	<a href="../../pkg/runtime.html#name-_CLONE_PTRACE" class="ident">_CLONE_PTRACE</a>         = <span class="lit-number">0x2000</span></code></span>
+<span class="codeline" id="line-105"><code>	<a href="../../pkg/runtime.html#name-_CLONE_VFORK" class="ident">_CLONE_VFORK</a>          = <span class="lit-number">0x4000</span></code></span>
+<span class="codeline" id="line-106"><code>	<a href="../../pkg/runtime.html#name-_CLONE_PARENT" class="ident">_CLONE_PARENT</a>         = <span class="lit-number">0x8000</span></code></span>
+<span class="codeline" id="line-107"><code>	<a href="../../pkg/runtime.html#name-_CLONE_THREAD" class="ident">_CLONE_THREAD</a>         = <span class="lit-number">0x10000</span></code></span>
+<span class="codeline" id="line-108"><code>	<a href="../../pkg/runtime.html#name-_CLONE_NEWNS" class="ident">_CLONE_NEWNS</a>          = <span class="lit-number">0x20000</span></code></span>
+<span class="codeline" id="line-109"><code>	<a href="../../pkg/runtime.html#name-_CLONE_SYSVSEM" class="ident">_CLONE_SYSVSEM</a>        = <span class="lit-number">0x40000</span></code></span>
+<span class="codeline" id="line-110"><code>	<a href="../../pkg/runtime.html#name-_CLONE_SETTLS" class="ident">_CLONE_SETTLS</a>         = <span class="lit-number">0x80000</span></code></span>
+<span class="codeline" id="line-111"><code>	<a href="../../pkg/runtime.html#name-_CLONE_PARENT_SETTID" class="ident">_CLONE_PARENT_SETTID</a>  = <span class="lit-number">0x100000</span></code></span>
+<span class="codeline" id="line-112"><code>	<a href="../../pkg/runtime.html#name-_CLONE_CHILD_CLEARTID" class="ident">_CLONE_CHILD_CLEARTID</a> = <span class="lit-number">0x200000</span></code></span>
+<span class="codeline" id="line-113"><code>	<a href="../../pkg/runtime.html#name-_CLONE_UNTRACED" class="ident">_CLONE_UNTRACED</a>       = <span class="lit-number">0x800000</span></code></span>
+<span class="codeline" id="line-114"><code>	<a href="../../pkg/runtime.html#name-_CLONE_CHILD_SETTID" class="ident">_CLONE_CHILD_SETTID</a>   = <span class="lit-number">0x1000000</span></code></span>
+<span class="codeline" id="line-115"><code>	<a href="../../pkg/runtime.html#name-_CLONE_STOPPED" class="ident">_CLONE_STOPPED</a>        = <span class="lit-number">0x2000000</span></code></span>
+<span class="codeline" id="line-116"><code>	<a href="../../pkg/runtime.html#name-_CLONE_NEWUTS" class="ident">_CLONE_NEWUTS</a>         = <span class="lit-number">0x4000000</span></code></span>
+<span class="codeline" id="line-117"><code>	<a href="../../pkg/runtime.html#name-_CLONE_NEWIPC" class="ident">_CLONE_NEWIPC</a>         = <span class="lit-number">0x8000000</span></code></span>
+<span class="codeline" id="line-118"><code></code></span>
+<span class="codeline" id="line-119"><code>	<span class="comment">// As of QEMU 2.8.0 (5ea2fc84d), user emulation requires all six of these</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">	// flags to be set when creating a thread; attempts to share the other</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">	// five but leave SYSVSEM unshared will fail with -EINVAL.</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">	//</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">	// In non-QEMU environments CLONE_SYSVSEM is inconsequential as we do not</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">	// use System V semaphores.</span></code></span>
+<span class="codeline" id="line-125"><code></code></span>
+<span class="codeline" id="line-126"><code>	<a href="../../pkg/runtime.html#name-cloneFlags" class="ident">cloneFlags</a> = <a href="#line-100" class="ident">_CLONE_VM</a> | <span class="comment">/* share memory */</span></code></span>
+<span class="codeline" id="line-127"><code>		<a href="#line-101" class="ident">_CLONE_FS</a> | <span class="comment">/* share cwd, etc */</span></code></span>
+<span class="codeline" id="line-128"><code>		<a href="#line-102" class="ident">_CLONE_FILES</a> | <span class="comment">/* share fd table */</span></code></span>
+<span class="codeline" id="line-129"><code>		<a href="#line-103" class="ident">_CLONE_SIGHAND</a> | <span class="comment">/* share sig handler table */</span></code></span>
+<span class="codeline" id="line-130"><code>		<a href="#line-109" class="ident">_CLONE_SYSVSEM</a> | <span class="comment">/* share SysV semaphore undo lists (see issue #20763) */</span></code></span>
+<span class="codeline" id="line-131"><code>		<a href="#line-107" class="ident">_CLONE_THREAD</a> <span class="comment">/* revisit - okay for now */</span></code></span>
+<span class="codeline" id="line-132"><code>)</code></span>
+<span class="codeline" id="line-133"><code></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">//go:noescape</span></code></span>
+<span class="codeline" id="line-135"><code><span class="keyword">func</span> <label for="r23" class="ident"><a href="../../pkg/runtime.html#name-clone" class="ident">clone</a></label>(<label for="r24" class="ident">flags</label> <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>, <label for="r25" class="ident">stk</label>, <label for="r26" class="ident">mp</label>, <label for="r27" class="ident">gp</label>, <label for="r28" class="ident">fn</label> <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-136"><code></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">// May run with m.p==nil, so write barriers are not allowed.</span></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">//go:nowritebarrier</span></code></span>
+<span class="codeline" id="line-139"><code><span class="keyword">func</span> <label for="r29" class="ident"><a href="../../pkg/runtime.html#name-newosproc" class="ident">newosproc</a></label>(<label for="r30" class="ident">mp</label> *<a href="runtime2.go.html#line-486" class="ident">m</a>) {</code></span>
+<span class="codeline" id="line-140"><code>	<label for="r31" class="ident">stk</label> := <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r30" class="ident">mp</label>.<a href="runtime2.go.html#line-487" class="ident">g0</a>.<a href="runtime2.go.html#line-412" class="ident">stack</a>.<a href="runtime2.go.html#line-395" class="ident">hi</a>)</code></span>
+<span class="codeline" id="line-141"><code>	<span class="comment">/*</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">	 * note: strace gets confused if we use CLONE_PTRACE here.</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">	 */</span></code></span>
+<span class="codeline" id="line-144"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-false" class="ident">false</a> {</code></span>
+<span class="codeline" id="line-145"><code>		<a href="../../pkg/builtin.html#name-print" class="ident">print</a>(<span class="lit-string">"newosproc stk="</span>, <label for="r31" class="ident">stk</label>, <span class="lit-string">" m="</span>, <label for="r30" class="ident">mp</label>, <span class="lit-string">" g="</span>, <label for="r30" class="ident">mp</label>.<a href="runtime2.go.html#line-487" class="ident">g0</a>, <span class="lit-string">" clone="</span>, <a href="proc.go.html#line-447" class="ident">funcPC</a>(<a href="#line-135" class="ident">clone</a>), <span class="lit-string">" id="</span>, <label for="r30" class="ident">mp</label>.<a href="runtime2.go.html#line-503" class="ident">id</a>, <span class="lit-string">" ostk="</span>, &amp;<label for="r30" class="ident">mp</label>, <span class="lit-string">"\n"</span>)</code></span>
+<span class="codeline" id="line-146"><code>	}</code></span>
+<span class="codeline" id="line-147"><code></code></span>
+<span class="codeline" id="line-148"><code>	<span class="comment">// Disable signals during clone, so that the new thread starts</span></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">	// with signals disabled. It will enable them in minit.</span></code></span>
+<span class="codeline" id="line-150"><code>	<span class="keyword">var</span> <label for="r32" class="ident">oset</label> <a href="os_linux_generic.go.html#line-27" class="ident">sigset</a></code></span>
+<span class="codeline" id="line-151"><code>	<a href="#line-402" class="ident">sigprocmask</a>(<a href="os_linux_generic.go.html#line-21" class="ident">_SIG_SETMASK</a>, &amp;<a href="os_linux_generic.go.html#line-29" class="ident">sigset_all</a>, &amp;<label for="r32" class="ident">oset</label>)</code></span>
+<span class="codeline" id="line-152"><code>	<label for="r33" class="ident">ret</label> := <a href="#line-135" class="ident">clone</a>(<a href="#line-126" class="ident">cloneFlags</a>, <label for="r31" class="ident">stk</label>, <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r30" class="ident">mp</label>), <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r30" class="ident">mp</label>.<a href="runtime2.go.html#line-487" class="ident">g0</a>), <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<a href="proc.go.html#line-447" class="ident">funcPC</a>(<a href="proc.go.html#line-1246" class="ident">mstart</a>)))</code></span>
+<span class="codeline" id="line-153"><code>	<a href="#line-402" class="ident">sigprocmask</a>(<a href="os_linux_generic.go.html#line-21" class="ident">_SIG_SETMASK</a>, &amp;<label for="r32" class="ident">oset</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-154"><code></code></span>
+<span class="codeline" id="line-155"><code>	<span class="keyword">if</span> <label for="r33" class="ident">ret</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-156"><code>		<a href="../../pkg/builtin.html#name-print" class="ident">print</a>(<span class="lit-string">"runtime: failed to create new OS thread (have "</span>, <a href="proc.go.html#line-4397" class="ident">mcount</a>(), <span class="lit-string">" already; errno="</span>, -<label for="r33" class="ident">ret</label>, <span class="lit-string">")\n"</span>)</code></span>
+<span class="codeline" id="line-157"><code>		<span class="keyword">if</span> <label for="r33" class="ident">ret</label> == -<a href="defs_linux_amd64.go.html#line-8" class="ident">_EAGAIN</a> {</code></span>
+<span class="codeline" id="line-158"><code>			<a href="../../pkg/builtin.html#name-println" class="ident">println</a>(<span class="lit-string">"runtime: may need to increase max user processes (ulimit -u)"</span>)</code></span>
+<span class="codeline" id="line-159"><code>		}</code></span>
+<span class="codeline" id="line-160"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"newosproc"</span>)</code></span>
+<span class="codeline" id="line-161"><code>	}</code></span>
+<span class="codeline" id="line-162"><code>}</code></span>
+<span class="codeline" id="line-163"><code></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">// Version of newosproc that doesn't require a valid G.</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-166"><code><span class="keyword">func</span> <label for="r34" class="ident"><a href="../../pkg/runtime.html#name-newosproc0" class="ident">newosproc0</a></label>(<label for="r35" class="ident">stacksize</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r36" class="ident">fn</label> <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) {</code></span>
+<span class="codeline" id="line-167"><code>	<label for="r37" class="ident">stack</label> := <a href="mem_linux.go.html#line-20" class="ident">sysAlloc</a>(<label for="r35" class="ident">stacksize</label>, &amp;<a href="mstats.go.html#line-170" class="ident">memstats</a>.<a href="mstats.go.html#line-45" class="ident">stacks_sys</a>)</code></span>
+<span class="codeline" id="line-168"><code>	<span class="keyword">if</span> <label for="r37" class="ident">stack</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-169"><code>		<a href="time_nofake.go.html#line-29" class="ident">write</a>(<span class="lit-number">2</span>, <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<a href="#line-179" class="ident">failallocatestack</a>[<span class="lit-number">0</span>]), <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-179" class="ident">failallocatestack</a>)))</code></span>
+<span class="codeline" id="line-170"><code>		<a href="stubs2.go.html#line-23" class="ident">exit</a>(<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-171"><code>	}</code></span>
+<span class="codeline" id="line-172"><code>	<label for="r38" class="ident">ret</label> := <a href="#line-135" class="ident">clone</a>(<a href="#line-126" class="ident">cloneFlags</a>, <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r37" class="ident">stack</label>)+<label for="r35" class="ident">stacksize</label>), <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r36" class="ident">fn</label>)</code></span>
+<span class="codeline" id="line-173"><code>	<span class="keyword">if</span> <label for="r38" class="ident">ret</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-174"><code>		<a href="time_nofake.go.html#line-29" class="ident">write</a>(<span class="lit-number">2</span>, <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<a href="#line-180" class="ident">failthreadcreate</a>[<span class="lit-number">0</span>]), <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-180" class="ident">failthreadcreate</a>)))</code></span>
+<span class="codeline" id="line-175"><code>		<a href="stubs2.go.html#line-23" class="ident">exit</a>(<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-176"><code>	}</code></span>
+<span class="codeline" id="line-177"><code>}</code></span>
+<span class="codeline" id="line-178"><code></code></span>
+<span class="codeline" id="line-179"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-failallocatestack" class="ident">failallocatestack</a> = []<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>(<span class="lit-string">"runtime: failed to allocate stack for the new OS thread\n"</span>)</code></span>
+<span class="codeline" id="line-180"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-failthreadcreate" class="ident">failthreadcreate</a> = []<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>(<span class="lit-string">"runtime: failed to create new OS thread\n"</span>)</code></span>
+<span class="codeline" id="line-181"><code></code></span>
+<span class="codeline" id="line-182"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-183"><code>	<a href="../../pkg/runtime.html#name-_AT_NULL" class="ident">_AT_NULL</a>   = <span class="lit-number">0</span>  <span class="comment">// End of vector</span></code></span>
+<span class="codeline" id="line-184"><code>	<a href="../../pkg/runtime.html#name-_AT_PAGESZ" class="ident">_AT_PAGESZ</a> = <span class="lit-number">6</span>  <span class="comment">// System physical page size</span></code></span>
+<span class="codeline" id="line-185"><code>	<a href="../../pkg/runtime.html#name-_AT_HWCAP" class="ident">_AT_HWCAP</a>  = <span class="lit-number">16</span> <span class="comment">// hardware capability bit vector</span></code></span>
+<span class="codeline" id="line-186"><code>	<a href="../../pkg/runtime.html#name-_AT_RANDOM" class="ident">_AT_RANDOM</a> = <span class="lit-number">25</span> <span class="comment">// introduced in 2.6.29</span></code></span>
+<span class="codeline" id="line-187"><code>	<a href="../../pkg/runtime.html#name-_AT_HWCAP2" class="ident">_AT_HWCAP2</a> = <span class="lit-number">26</span> <span class="comment">// hardware capability bit vector 2</span></code></span>
+<span class="codeline" id="line-188"><code>)</code></span>
+<span class="codeline" id="line-189"><code></code></span>
+<span class="codeline" id="line-190"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-procAuxv" class="ident">procAuxv</a> = []<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>(<span class="lit-string">"/proc/self/auxv\x00"</span>)</code></span>
+<span class="codeline" id="line-191"><code></code></span>
+<span class="codeline" id="line-192"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-addrspace_vec" class="ident">addrspace_vec</a> [<span class="lit-number">1</span>]<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-193"><code></code></span>
+<span class="codeline" id="line-194"><code><span class="keyword">func</span> <label for="r39" class="ident"><a href="../../pkg/runtime.html#name-mincore" class="ident">mincore</a></label>(<label for="r40" class="ident">addr</label> <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r41" class="ident">n</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r42" class="ident">dst</label> *<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-195"><code></code></span>
+<span class="codeline" id="line-196"><code><span class="keyword">func</span> <label for="r43" class="ident"><a href="../../pkg/runtime.html#name-sysargs" class="ident">sysargs</a></label>(<label for="r44" class="ident">argc</label> <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>, <label for="r45" class="ident">argv</label> **<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>) {</code></span>
+<span class="codeline" id="line-197"><code>	<label for="r46" class="ident">n</label> := <label for="r44" class="ident">argc</label> + <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-198"><code></code></span>
+<span class="codeline" id="line-199"><code>	<span class="comment">// skip over argv, envp to get to auxv</span></code></span>
+<span class="codeline" id="line-200"><code>	<span class="keyword">for</span> <a href="runtime1.go.html#line-57" class="ident">argv_index</a>(<label for="r45" class="ident">argv</label>, <label for="r46" class="ident">n</label>) != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-201"><code>		<label for="r46" class="ident">n</label>++</code></span>
+<span class="codeline" id="line-202"><code>	}</code></span>
+<span class="codeline" id="line-203"><code></code></span>
+<span class="codeline" id="line-204"><code>	<span class="comment">// skip NULL separator</span></code></span>
+<span class="codeline" id="line-205"><code>	<label for="r46" class="ident">n</label>++</code></span>
+<span class="codeline" id="line-206"><code></code></span>
+<span class="codeline" id="line-207"><code>	<span class="comment">// now argv+n is auxv</span></code></span>
+<span class="codeline" id="line-208"><code>	<label for="r47" class="ident">auxv</label> := (*[<span class="lit-number">1</span> &lt;&lt; <span class="lit-number">28</span>]<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>)(<a href="stubs.go.html#line-11" class="ident">add</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r45" class="ident">argv</label>), <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r46" class="ident">n</label>)*<a href="../../pkg/runtime/internal/sys.html" class="ident i0">sys</a>.<a href="internal/sys/stubs.go.html#line-9" class="ident">PtrSize</a>))</code></span>
+<span class="codeline" id="line-209"><code>	<span class="keyword">if</span> <a href="#line-255" class="ident">sysauxv</a>(<label for="r47" class="ident">auxv</label>[:]) != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-210"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-211"><code>	}</code></span>
+<span class="codeline" id="line-212"><code>	<span class="comment">// In some situations we don't get a loader-provided</span></code></span>
+<span class="codeline" id="line-213"><code><span class="comment">	// auxv, such as when loaded as a library on Android.</span></code></span>
+<span class="codeline" id="line-214"><code><span class="comment">	// Fall back to /proc/self/auxv.</span></code></span>
+<span class="codeline" id="line-215"><code>	<label for="r48" class="ident">fd</label> := <a href="stubs2.go.html#line-32" class="ident">open</a>(&amp;<a href="#line-190" class="ident">procAuxv</a>[<span class="lit-number">0</span>], <span class="lit-number">0</span> <span class="comment">/* O_RDONLY */</span>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-216"><code>	<span class="keyword">if</span> <label for="r48" class="ident">fd</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-217"><code>		<span class="comment">// On Android, /proc/self/auxv might be unreadable (issue 9229), so we fallback to</span></code></span>
+<span class="codeline" id="line-218"><code><span class="comment">		// try using mincore to detect the physical page size.</span></code></span>
+<span class="codeline" id="line-219"><code><span class="comment">		// mincore should return EINVAL when address is not a multiple of system page size.</span></code></span>
+<span class="codeline" id="line-220"><code>		<span class="keyword">const</span> <label for="r49" class="ident">size</label> = <span class="lit-number">256</span> &lt;&lt; <span class="lit-number">10</span> <span class="comment">// size of memory region to allocate</span></code></span>
+<span class="codeline" id="line-221"><code>		<label for="r50" class="ident">p</label>, <label for="r51" class="ident">err</label> := <a href="cgo_mmap.go.html#line-28" class="ident">mmap</a>(<a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r49" class="ident">size</label>, <a href="defs_linux_amd64.go.html#line-13" class="ident">_PROT_READ</a>|<a href="defs_linux_amd64.go.html#line-14" class="ident">_PROT_WRITE</a>, <a href="defs_linux_amd64.go.html#line-17" class="ident">_MAP_ANON</a>|<a href="defs_linux_amd64.go.html#line-18" class="ident">_MAP_PRIVATE</a>, -<span class="lit-number">1</span>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-222"><code>		<span class="keyword">if</span> <label for="r51" class="ident">err</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-223"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-224"><code>		}</code></span>
+<span class="codeline" id="line-225"><code>		<span class="keyword">var</span> <label for="r52" class="ident">n</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a></code></span>
+<span class="codeline" id="line-226"><code>		<span class="keyword">for</span> <label for="r52" class="ident">n</label> = <span class="lit-number">4</span> &lt;&lt; <span class="lit-number">10</span>; <label for="r52" class="ident">n</label> &lt; <label for="r49" class="ident">size</label>; <label for="r52" class="ident">n</label> &lt;&lt;= <span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-227"><code>			<label for="r53" class="ident">err</label> := <a href="#line-194" class="ident">mincore</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r50" class="ident">p</label>)+<label for="r52" class="ident">n</label>), <span class="lit-number">1</span>, &amp;<a href="#line-192" class="ident">addrspace_vec</a>[<span class="lit-number">0</span>])</code></span>
+<span class="codeline" id="line-228"><code>			<span class="keyword">if</span> <label for="r53" class="ident">err</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-229"><code>				<a href="malloc.go.html#line-329" class="ident">physPageSize</a> = <label for="r52" class="ident">n</label></code></span>
+<span class="codeline" id="line-230"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-231"><code>			}</code></span>
+<span class="codeline" id="line-232"><code>		}</code></span>
+<span class="codeline" id="line-233"><code>		<span class="keyword">if</span> <a href="malloc.go.html#line-329" class="ident">physPageSize</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-234"><code>			<a href="malloc.go.html#line-329" class="ident">physPageSize</a> = <label for="r49" class="ident">size</label></code></span>
+<span class="codeline" id="line-235"><code>		}</code></span>
+<span class="codeline" id="line-236"><code>		<a href="cgo_mmap.go.html#line-47" class="ident">munmap</a>(<label for="r50" class="ident">p</label>, <label for="r49" class="ident">size</label>)</code></span>
+<span class="codeline" id="line-237"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-238"><code>	}</code></span>
+<span class="codeline" id="line-239"><code>	<span class="keyword">var</span> <label for="r54" class="ident">buf</label> [<span class="lit-number">128</span>]<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a></code></span>
+<span class="codeline" id="line-240"><code>	<label for="r46" class="ident">n</label> = <a href="stubs2.go.html#line-19" class="ident">read</a>(<label for="r48" class="ident">fd</label>, <a href="stubs.go.html#line-157" class="ident">noescape</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r54" class="ident">buf</label>[<span class="lit-number">0</span>])), <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(<label for="r54" class="ident">buf</label>)))</code></span>
+<span class="codeline" id="line-241"><code>	<a href="stubs2.go.html#line-21" class="ident">closefd</a>(<label for="r48" class="ident">fd</label>)</code></span>
+<span class="codeline" id="line-242"><code>	<span class="keyword">if</span> <label for="r46" class="ident">n</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-243"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-244"><code>	}</code></span>
+<span class="codeline" id="line-245"><code>	<span class="comment">// Make sure buf is terminated, even if we didn't read</span></code></span>
+<span class="codeline" id="line-246"><code><span class="comment">	// the whole file.</span></code></span>
+<span class="codeline" id="line-247"><code>	<label for="r54" class="ident">buf</label>[<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r54" class="ident">buf</label>)-<span class="lit-number">2</span>] = <a href="#line-183" class="ident">_AT_NULL</a></code></span>
+<span class="codeline" id="line-248"><code>	<a href="#line-255" class="ident">sysauxv</a>(<label for="r54" class="ident">buf</label>[:])</code></span>
+<span class="codeline" id="line-249"><code>}</code></span>
+<span class="codeline" id="line-250"><code></code></span>
+<span class="codeline" id="line-251"><code><span class="comment">// startupRandomData holds random bytes initialized at startup. These come from</span></code></span>
+<span class="codeline" id="line-252"><code><span class="comment">// the ELF AT_RANDOM auxiliary vector.</span></code></span>
+<span class="codeline" id="line-253"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-startupRandomData" class="ident">startupRandomData</a> []<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-254"><code></code></span>
+<span class="codeline" id="line-255"><code><span class="keyword">func</span> <label for="r55" class="ident"><a href="../../pkg/runtime.html#name-sysauxv" class="ident">sysauxv</a></label>(<label for="r56" class="ident">auxv</label> []<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) <a href="../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-256"><code>	<span class="keyword">var</span> <label for="r57" class="ident">i</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-257"><code>	<span class="keyword">for</span> ; <label for="r56" class="ident">auxv</label>[<label for="r57" class="ident">i</label>] != <a href="#line-183" class="ident">_AT_NULL</a>; <label for="r57" class="ident">i</label> += <span class="lit-number">2</span> {</code></span>
+<span class="codeline" id="line-258"><code>		<label for="r58" class="ident">tag</label>, <label for="r59" class="ident">val</label> := <label for="r56" class="ident">auxv</label>[<label for="r57" class="ident">i</label>], <label for="r56" class="ident">auxv</label>[<label for="r57" class="ident">i</label>+<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-259"><code>		<span class="keyword">switch</span> <label for="r58" class="ident">tag</label> {</code></span>
+<span class="codeline" id="line-260"><code>		<span class="keyword">case</span> <a href="#line-186" class="ident">_AT_RANDOM</a>:</code></span>
+<span class="codeline" id="line-261"><code>			<span class="comment">// The kernel provides a pointer to 16-bytes</span></code></span>
+<span class="codeline" id="line-262"><code><span class="comment">			// worth of random data.</span></code></span>
+<span class="codeline" id="line-263"><code>			<a href="#line-253" class="ident">startupRandomData</a> = (*[<span class="lit-number">16</span>]<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>)(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r59" class="ident">val</label>))[:]</code></span>
+<span class="codeline" id="line-264"><code></code></span>
+<span class="codeline" id="line-265"><code>		<span class="keyword">case</span> <a href="#line-184" class="ident">_AT_PAGESZ</a>:</code></span>
+<span class="codeline" id="line-266"><code>			<a href="malloc.go.html#line-329" class="ident">physPageSize</a> = <label for="r59" class="ident">val</label></code></span>
+<span class="codeline" id="line-267"><code>		}</code></span>
+<span class="codeline" id="line-268"><code></code></span>
+<span class="codeline" id="line-269"><code>		<a href="os_linux_noauxv.go.html#line-10" class="ident">archauxv</a>(<label for="r58" class="ident">tag</label>, <label for="r59" class="ident">val</label>)</code></span>
+<span class="codeline" id="line-270"><code>		<a href="vdso_linux.go.html#line-267" class="ident">vdsoauxv</a>(<label for="r58" class="ident">tag</label>, <label for="r59" class="ident">val</label>)</code></span>
+<span class="codeline" id="line-271"><code>	}</code></span>
+<span class="codeline" id="line-272"><code>	<span class="keyword">return</span> <label for="r57" class="ident">i</label> / <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-273"><code>}</code></span>
+<span class="codeline" id="line-274"><code></code></span>
+<span class="codeline" id="line-275"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-sysTHPSizePath" class="ident">sysTHPSizePath</a> = []<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>(<span class="lit-string">"/sys/kernel/mm/transparent_hugepage/hpage_pmd_size\x00"</span>)</code></span>
+<span class="codeline" id="line-276"><code></code></span>
+<span class="codeline" id="line-277"><code><span class="keyword">func</span> <label for="r60" class="ident"><a href="../../pkg/runtime.html#name-getHugePageSize" class="ident">getHugePageSize</a></label>() <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a> {</code></span>
+<span class="codeline" id="line-278"><code>	<span class="keyword">var</span> <label for="r61" class="ident">numbuf</label> [<span class="lit-number">20</span>]<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-279"><code>	<label for="r62" class="ident">fd</label> := <a href="stubs2.go.html#line-32" class="ident">open</a>(&amp;<a href="#line-275" class="ident">sysTHPSizePath</a>[<span class="lit-number">0</span>], <span class="lit-number">0</span> <span class="comment">/* O_RDONLY */</span>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-280"><code>	<span class="keyword">if</span> <label for="r62" class="ident">fd</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-281"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-282"><code>	}</code></span>
+<span class="codeline" id="line-283"><code>	<label for="r63" class="ident">ptr</label> := <a href="stubs.go.html#line-157" class="ident">noescape</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r61" class="ident">numbuf</label>[<span class="lit-number">0</span>]))</code></span>
+<span class="codeline" id="line-284"><code>	<label for="r64" class="ident">n</label> := <a href="stubs2.go.html#line-19" class="ident">read</a>(<label for="r62" class="ident">fd</label>, <label for="r63" class="ident">ptr</label>, <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r61" class="ident">numbuf</label>)))</code></span>
+<span class="codeline" id="line-285"><code>	<a href="stubs2.go.html#line-21" class="ident">closefd</a>(<label for="r62" class="ident">fd</label>)</code></span>
+<span class="codeline" id="line-286"><code>	<span class="keyword">if</span> <label for="r64" class="ident">n</label> &lt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-287"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-288"><code>	}</code></span>
+<span class="codeline" id="line-289"><code>	<label for="r64" class="ident">n</label>-- <span class="comment">// remove trailing newline</span></code></span>
+<span class="codeline" id="line-290"><code>	<label for="r65" class="ident">v</label>, <label for="r66" class="ident">ok</label> := <a href="string.go.html#line-350" class="ident">atoi</a>(<a href="string.go.html#line-150" class="ident">slicebytetostringtmp</a>((*<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>)(<label for="r63" class="ident">ptr</label>), <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r64" class="ident">n</label>)))</code></span>
+<span class="codeline" id="line-291"><code>	<span class="keyword">if</span> !<label for="r66" class="ident">ok</label> || <label for="r65" class="ident">v</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-292"><code>		<label for="r65" class="ident">v</label> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-293"><code>	}</code></span>
+<span class="codeline" id="line-294"><code>	<span class="keyword">if</span> <label for="r65" class="ident">v</label>&amp;(<label for="r65" class="ident">v</label>-<span class="lit-number">1</span>) != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-295"><code>		<span class="comment">// v is not a power of 2</span></code></span>
+<span class="codeline" id="line-296"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-297"><code>	}</code></span>
+<span class="codeline" id="line-298"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r65" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-299"><code>}</code></span>
+<span class="codeline" id="line-300"><code></code></span>
+<span class="codeline" id="line-301"><code><span class="keyword">func</span> <label for="r67" class="ident"><a href="../../pkg/runtime.html#name-osinit" class="ident">osinit</a></label>() {</code></span>
+<span class="codeline" id="line-302"><code>	<a href="runtime2.go.html#line-1054" class="ident">ncpu</a> = <a href="#line-71" class="ident">getproccount</a>()</code></span>
+<span class="codeline" id="line-303"><code>	<a href="malloc.go.html#line-344" class="ident">physHugePageSize</a> = <a href="#line-277" class="ident">getHugePageSize</a>()</code></span>
+<span class="codeline" id="line-304"><code>	<span class="keyword">if</span> <a href="cgo.go.html#line-32" class="ident">iscgo</a> {</code></span>
+<span class="codeline" id="line-305"><code>		<span class="comment">// #42494 glibc and musl reserve some signals for</span></code></span>
+<span class="codeline" id="line-306"><code><span class="comment">		// internal use and require they not be blocked by</span></code></span>
+<span class="codeline" id="line-307"><code><span class="comment">		// the rest of a normal C runtime. When the go runtime</span></code></span>
+<span class="codeline" id="line-308"><code><span class="comment">		// blocks...unblocks signals, temporarily, the blocked</span></code></span>
+<span class="codeline" id="line-309"><code><span class="comment">		// interval of time is generally very short. As such,</span></code></span>
+<span class="codeline" id="line-310"><code><span class="comment">		// these expectations of *libc code are mostly met by</span></code></span>
+<span class="codeline" id="line-311"><code><span class="comment">		// the combined go+cgo system of threads. However,</span></code></span>
+<span class="codeline" id="line-312"><code><span class="comment">		// when go causes a thread to exit, via a return from</span></code></span>
+<span class="codeline" id="line-313"><code><span class="comment">		// mstart(), the combined runtime can deadlock if</span></code></span>
+<span class="codeline" id="line-314"><code><span class="comment">		// these signals are blocked. Thus, don't block these</span></code></span>
+<span class="codeline" id="line-315"><code><span class="comment">		// signals when exiting threads.</span></code></span>
+<span class="codeline" id="line-316"><code><span class="comment">		// - glibc: SIGCANCEL (32), SIGSETXID (33)</span></code></span>
+<span class="codeline" id="line-317"><code><span class="comment">		// - musl: SIGTIMER (32), SIGCANCEL (33), SIGSYNCCALL (34)</span></code></span>
+<span class="codeline" id="line-318"><code>		<a href="os_linux_generic.go.html#line-37" class="ident">sigdelset</a>(&amp;<a href="signal_unix.go.html#line-1053" class="ident">sigsetAllExiting</a>, <span class="lit-number">32</span>)</code></span>
+<span class="codeline" id="line-319"><code>		<a href="os_linux_generic.go.html#line-37" class="ident">sigdelset</a>(&amp;<a href="signal_unix.go.html#line-1053" class="ident">sigsetAllExiting</a>, <span class="lit-number">33</span>)</code></span>
+<span class="codeline" id="line-320"><code>		<a href="os_linux_generic.go.html#line-37" class="ident">sigdelset</a>(&amp;<a href="signal_unix.go.html#line-1053" class="ident">sigsetAllExiting</a>, <span class="lit-number">34</span>)</code></span>
+<span class="codeline" id="line-321"><code>	}</code></span>
+<span class="codeline" id="line-322"><code>	<a href="os_linux_x86.go.html#line-10" class="ident">osArchInit</a>()</code></span>
+<span class="codeline" id="line-323"><code>}</code></span>
+<span class="codeline" id="line-324"><code></code></span>
+<span class="codeline" id="line-325"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-urandom_dev" class="ident">urandom_dev</a> = []<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>(<span class="lit-string">"/dev/urandom\x00"</span>)</code></span>
+<span class="codeline" id="line-326"><code></code></span>
+<span class="codeline" id="line-327"><code><span class="keyword">func</span> <label for="r68" class="ident"><a href="../../pkg/runtime.html#name-getRandomData" class="ident">getRandomData</a></label>(<label for="r69" class="ident">r</label> []<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>) {</code></span>
+<span class="codeline" id="line-328"><code>	<span class="keyword">if</span> <a href="#line-253" class="ident">startupRandomData</a> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-329"><code>		<label for="r70" class="ident">n</label> := <a href="../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r69" class="ident">r</label>, <a href="#line-253" class="ident">startupRandomData</a>)</code></span>
+<span class="codeline" id="line-330"><code>		<a href="runtime2.go.html#line-877" class="ident">extendRandom</a>(<label for="r69" class="ident">r</label>, <label for="r70" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-331"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-332"><code>	}</code></span>
+<span class="codeline" id="line-333"><code>	<label for="r71" class="ident">fd</label> := <a href="stubs2.go.html#line-32" class="ident">open</a>(&amp;<a href="#line-325" class="ident">urandom_dev</a>[<span class="lit-number">0</span>], <span class="lit-number">0</span> <span class="comment">/* O_RDONLY */</span>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-334"><code>	<label for="r72" class="ident">n</label> := <a href="stubs2.go.html#line-19" class="ident">read</a>(<label for="r71" class="ident">fd</label>, <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r69" class="ident">r</label>[<span class="lit-number">0</span>]), <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r69" class="ident">r</label>)))</code></span>
+<span class="codeline" id="line-335"><code>	<a href="stubs2.go.html#line-21" class="ident">closefd</a>(<label for="r71" class="ident">fd</label>)</code></span>
+<span class="codeline" id="line-336"><code>	<a href="runtime2.go.html#line-877" class="ident">extendRandom</a>(<label for="r69" class="ident">r</label>, <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r72" class="ident">n</label>))</code></span>
+<span class="codeline" id="line-337"><code>}</code></span>
+<span class="codeline" id="line-338"><code></code></span>
+<span class="codeline" id="line-339"><code><span class="keyword">func</span> <label for="r73" class="ident"><a href="../../pkg/runtime.html#name-goenvs" class="ident">goenvs</a></label>() {</code></span>
+<span class="codeline" id="line-340"><code>	<a href="runtime1.go.html#line-77" class="ident">goenvs_unix</a>()</code></span>
+<span class="codeline" id="line-341"><code>}</code></span>
+<span class="codeline" id="line-342"><code></code></span>
+<span class="codeline" id="line-343"><code><span class="comment">// Called to do synchronous initialization of Go code built with</span></code></span>
+<span class="codeline" id="line-344"><code><span class="comment">// -buildmode=c-archive or -buildmode=c-shared.</span></code></span>
+<span class="codeline" id="line-345"><code><span class="comment">// None of the Go runtime is initialized.</span></code></span>
+<span class="codeline" id="line-346"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-347"><code><span class="comment">//go:nowritebarrierrec</span></code></span>
+<span class="codeline" id="line-348"><code><span class="keyword">func</span> <label for="r74" class="ident"><a href="../../pkg/runtime.html#name-libpreinit" class="ident">libpreinit</a></label>() {</code></span>
+<span class="codeline" id="line-349"><code>	<a href="signal_unix.go.html#line-111" class="ident">initsig</a>(<a href="../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-350"><code>}</code></span>
+<span class="codeline" id="line-351"><code></code></span>
+<span class="codeline" id="line-352"><code><span class="comment">// Called to initialize a new m (including the bootstrap m).</span></code></span>
+<span class="codeline" id="line-353"><code><span class="comment">// Called on the parent thread (main thread in case of bootstrap), can allocate memory.</span></code></span>
+<span class="codeline" id="line-354"><code><span class="keyword">func</span> <label for="r75" class="ident"><a href="../../pkg/runtime.html#name-mpreinit" class="ident">mpreinit</a></label>(<label for="r76" class="ident">mp</label> *<a href="runtime2.go.html#line-486" class="ident">m</a>) {</code></span>
+<span class="codeline" id="line-355"><code>	<label for="r76" class="ident">mp</label>.<a href="runtime2.go.html#line-493" class="ident">gsignal</a> = <a href="proc.go.html#line-3987" class="ident">malg</a>(<span class="lit-number">32</span> * <span class="lit-number">1024</span>) <span class="comment">// Linux wants &gt;= 2K</span></code></span>
+<span class="codeline" id="line-356"><code>	<label for="r76" class="ident">mp</label>.<a href="runtime2.go.html#line-493" class="ident">gsignal</a>.<a href="runtime2.go.html#line-418" class="ident">m</a> = <label for="r76" class="ident">mp</label></code></span>
+<span class="codeline" id="line-357"><code>}</code></span>
+<span class="codeline" id="line-358"><code></code></span>
+<span class="codeline" id="line-359"><code><span class="keyword">func</span> <label for="r77" class="ident"><a href="../../pkg/runtime.html#name-gettid" class="ident">gettid</a></label>() <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-360"><code></code></span>
+<span class="codeline" id="line-361"><code><span class="comment">// Called to initialize a new m (including the bootstrap m).</span></code></span>
+<span class="codeline" id="line-362"><code><span class="comment">// Called on the new thread, cannot allocate memory.</span></code></span>
+<span class="codeline" id="line-363"><code><span class="keyword">func</span> <label for="r78" class="ident"><a href="../../pkg/runtime.html#name-minit" class="ident">minit</a></label>() {</code></span>
+<span class="codeline" id="line-364"><code>	<a href="signal_unix.go.html#line-1086" class="ident">minitSignals</a>()</code></span>
+<span class="codeline" id="line-365"><code></code></span>
+<span class="codeline" id="line-366"><code>	<span class="comment">// Cgo-created threads and the bootstrap m are missing a</span></code></span>
+<span class="codeline" id="line-367"><code><span class="comment">	// procid. We need this for asynchronous preemption and it's</span></code></span>
+<span class="codeline" id="line-368"><code><span class="comment">	// useful in debuggers.</span></code></span>
+<span class="codeline" id="line-369"><code>	<a href="stubs.go.html#line-18" class="ident">getg</a>().<a href="runtime2.go.html#line-418" class="ident">m</a>.<a href="runtime2.go.html#line-492" class="ident">procid</a> = <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="#line-359" class="ident">gettid</a>())</code></span>
+<span class="codeline" id="line-370"><code>}</code></span>
+<span class="codeline" id="line-371"><code></code></span>
+<span class="codeline" id="line-372"><code><span class="comment">// Called from dropm to undo the effect of an minit.</span></code></span>
+<span class="codeline" id="line-373"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-374"><code><span class="keyword">func</span> <label for="r79" class="ident"><a href="../../pkg/runtime.html#name-unminit" class="ident">unminit</a></label>() {</code></span>
+<span class="codeline" id="line-375"><code>	<a href="signal_unix.go.html#line-1135" class="ident">unminitSignals</a>()</code></span>
+<span class="codeline" id="line-376"><code>}</code></span>
+<span class="codeline" id="line-377"><code></code></span>
+<span class="codeline" id="line-378"><code><span class="comment">// Called from exitm, but not from drop, to undo the effect of thread-owned</span></code></span>
+<span class="codeline" id="line-379"><code><span class="comment">// resources in minit, semacreate, or elsewhere. Do not take locks after calling this.</span></code></span>
+<span class="codeline" id="line-380"><code><span class="keyword">func</span> <label for="r80" class="ident"><a href="../../pkg/runtime.html#name-mdestroy" class="ident">mdestroy</a></label>(<label for="r81" class="ident">mp</label> *<a href="runtime2.go.html#line-486" class="ident">m</a>) {</code></span>
+<span class="codeline" id="line-381"><code>}</code></span>
+<span class="codeline" id="line-382"><code></code></span>
+<span class="codeline" id="line-383"><code><span class="comment">//#ifdef GOARCH_386</span></code></span>
+<span class="codeline" id="line-384"><code><span class="comment">//#define sa_handler k_sa_handler</span></code></span>
+<span class="codeline" id="line-385"><code><span class="comment">//#endif</span></code></span>
+<span class="codeline" id="line-386"><code></code></span>
+<span class="codeline" id="line-387"><code><span class="keyword">func</span> <label for="r82" class="ident"><a href="../../pkg/runtime.html#name-sigreturn" class="ident">sigreturn</a></label>()</code></span>
+<span class="codeline" id="line-388"><code><span class="keyword">func</span> <label for="r83" class="ident"><a href="../../pkg/runtime.html#name-sigtramp" class="ident">sigtramp</a></label>(<label for="r84" class="ident">sig</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r85" class="ident">info</label> *<a href="defs_linux_amd64.go.html#line-124" class="ident">siginfo</a>, <label for="r86" class="ident">ctx</label> <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>)</code></span>
+<span class="codeline" id="line-389"><code><span class="keyword">func</span> <label for="r87" class="ident"><a href="../../pkg/runtime.html#name-cgoSigtramp" class="ident">cgoSigtramp</a></label>()</code></span>
+<span class="codeline" id="line-390"><code></code></span>
+<span class="codeline" id="line-391"><code><span class="comment">//go:noescape</span></code></span>
+<span class="codeline" id="line-392"><code><span class="keyword">func</span> <label for="r88" class="ident"><a href="../../pkg/runtime.html#name-sigaltstack" class="ident">sigaltstack</a></label>(<label for="r89" class="ident">new</label>, <label for="r90" class="ident">old</label> *<a href="defs_linux_amd64.go.html#line-208" class="ident">stackt</a>)</code></span>
+<span class="codeline" id="line-393"><code></code></span>
+<span class="codeline" id="line-394"><code><span class="comment">//go:noescape</span></code></span>
+<span class="codeline" id="line-395"><code><span class="keyword">func</span> <label for="r91" class="ident"><a href="../../pkg/runtime.html#name-setitimer" class="ident">setitimer</a></label>(<label for="r92" class="ident">mode</label> <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>, <label for="r93" class="ident">new</label>, <label for="r94" class="ident">old</label> *<a href="defs_linux_amd64.go.html#line-132" class="ident">itimerval</a>)</code></span>
+<span class="codeline" id="line-396"><code></code></span>
+<span class="codeline" id="line-397"><code><span class="comment">//go:noescape</span></code></span>
+<span class="codeline" id="line-398"><code><span class="keyword">func</span> <label for="r95" class="ident"><a href="../../pkg/runtime.html#name-rtsigprocmask" class="ident">rtsigprocmask</a></label>(<label for="r96" class="ident">how</label> <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>, <label for="r97" class="ident">new</label>, <label for="r98" class="ident">old</label> *<a href="os_linux_generic.go.html#line-27" class="ident">sigset</a>, <label for="r99" class="ident">size</label> <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>)</code></span>
+<span class="codeline" id="line-399"><code></code></span>
+<span class="codeline" id="line-400"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-401"><code><span class="comment">//go:nowritebarrierrec</span></code></span>
+<span class="codeline" id="line-402"><code><span class="keyword">func</span> <label for="r100" class="ident"><a href="../../pkg/runtime.html#name-sigprocmask" class="ident">sigprocmask</a></label>(<label for="r101" class="ident">how</label> <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>, <label for="r102" class="ident">new</label>, <label for="r103" class="ident">old</label> *<a href="os_linux_generic.go.html#line-27" class="ident">sigset</a>) {</code></span>
+<span class="codeline" id="line-403"><code>	<a href="#line-398" class="ident">rtsigprocmask</a>(<label for="r101" class="ident">how</label>, <label for="r102" class="ident">new</label>, <label for="r103" class="ident">old</label>, <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(*<label for="r102" class="ident">new</label>)))</code></span>
+<span class="codeline" id="line-404"><code>}</code></span>
+<span class="codeline" id="line-405"><code></code></span>
+<span class="codeline" id="line-406"><code><span class="keyword">func</span> <label for="r104" class="ident"><a href="../../pkg/runtime.html#name-raise" class="ident">raise</a></label>(<label for="r105" class="ident">sig</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>)</code></span>
+<span class="codeline" id="line-407"><code><span class="keyword">func</span> <label for="r106" class="ident"><a href="../../pkg/runtime.html#name-raiseproc" class="ident">raiseproc</a></label>(<label for="r107" class="ident">sig</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>)</code></span>
+<span class="codeline" id="line-408"><code></code></span>
+<span class="codeline" id="line-409"><code><span class="comment">//go:noescape</span></code></span>
+<span class="codeline" id="line-410"><code><span class="keyword">func</span> <label for="r108" class="ident"><a href="../../pkg/runtime.html#name-sched_getaffinity" class="ident">sched_getaffinity</a></label>(<label for="r109" class="ident">pid</label>, <label for="r110" class="ident">len</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r111" class="ident">buf</label> *<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-411"><code><span class="keyword">func</span> <label for="r112" class="ident"><a href="../../pkg/runtime.html#name-osyield" class="ident">osyield</a></label>()</code></span>
+<span class="codeline" id="line-412"><code></code></span>
+<span class="codeline" id="line-413"><code><span class="keyword">func</span> <label for="r113" class="ident"><a href="../../pkg/runtime.html#name-pipe" class="ident">pipe</a></label>() (<label for="r114" class="ident">r</label>, <label for="r115" class="ident">w</label> <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>, <label for="r116" class="ident">errno</label> <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>)</code></span>
+<span class="codeline" id="line-414"><code><span class="keyword">func</span> <label for="r117" class="ident"><a href="../../pkg/runtime.html#name-pipe2" class="ident">pipe2</a></label>(<label for="r118" class="ident">flags</label> <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>) (<label for="r119" class="ident">r</label>, <label for="r120" class="ident">w</label> <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>, <label for="r121" class="ident">errno</label> <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>)</code></span>
+<span class="codeline" id="line-415"><code><span class="keyword">func</span> <label for="r122" class="ident"><a href="../../pkg/runtime.html#name-setNonblock" class="ident">setNonblock</a></label>(<label for="r123" class="ident">fd</label> <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>)</code></span>
+<span class="codeline" id="line-416"><code></code></span>
+<span class="codeline" id="line-417"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-418"><code><span class="comment">//go:nowritebarrierrec</span></code></span>
+<span class="codeline" id="line-419"><code><span class="keyword">func</span> <label for="r124" class="ident"><a href="../../pkg/runtime.html#name-setsig" class="ident">setsig</a></label>(<label for="r125" class="ident">i</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r126" class="ident">fn</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-420"><code>	<span class="keyword">var</span> <label for="r127" class="ident">sa</label> <a href="defs_linux_amd64.go.html#line-117" class="ident">sigactiont</a></code></span>
+<span class="codeline" id="line-421"><code>	<label for="r127" class="ident">sa</label>.<a href="defs_linux_amd64.go.html#line-119" class="ident">sa_flags</a> = <a href="defs_linux_amd64.go.html#line-29" class="ident">_SA_SIGINFO</a> | <a href="defs_linux_amd64.go.html#line-27" class="ident">_SA_ONSTACK</a> | <a href="defs_linux_amd64.go.html#line-28" class="ident">_SA_RESTORER</a> | <a href="defs_linux_amd64.go.html#line-26" class="ident">_SA_RESTART</a></code></span>
+<span class="codeline" id="line-422"><code>	<a href="os_linux_generic.go.html#line-42" class="ident">sigfillset</a>(&amp;<label for="r127" class="ident">sa</label>.<a href="defs_linux_amd64.go.html#line-121" class="ident">sa_mask</a>)</code></span>
+<span class="codeline" id="line-423"><code>	<span class="comment">// Although Linux manpage says "sa_restorer element is obsolete and</span></code></span>
+<span class="codeline" id="line-424"><code><span class="comment">	// should not be used". x86_64 kernel requires it. Only use it on</span></code></span>
+<span class="codeline" id="line-425"><code><span class="comment">	// x86.</span></code></span>
+<span class="codeline" id="line-426"><code>	<span class="keyword">if</span> <a href="extern.go.html#line-257" class="ident">GOARCH</a> == <span class="lit-string">"386"</span> || <a href="extern.go.html#line-257" class="ident">GOARCH</a> == <span class="lit-string">"amd64"</span> {</code></span>
+<span class="codeline" id="line-427"><code>		<label for="r127" class="ident">sa</label>.<a href="defs_linux_amd64.go.html#line-120" class="ident">sa_restorer</a> = <a href="proc.go.html#line-447" class="ident">funcPC</a>(<a href="#line-387" class="ident">sigreturn</a>)</code></span>
+<span class="codeline" id="line-428"><code>	}</code></span>
+<span class="codeline" id="line-429"><code>	<span class="keyword">if</span> <label for="r126" class="ident">fn</label> == <a href="proc.go.html#line-447" class="ident">funcPC</a>(<a href="signal_unix.go.html#line-536" class="ident">sighandler</a>) {</code></span>
+<span class="codeline" id="line-430"><code>		<span class="keyword">if</span> <a href="cgo.go.html#line-32" class="ident">iscgo</a> {</code></span>
+<span class="codeline" id="line-431"><code>			<label for="r126" class="ident">fn</label> = <a href="proc.go.html#line-447" class="ident">funcPC</a>(<a href="#line-389" class="ident">cgoSigtramp</a>)</code></span>
+<span class="codeline" id="line-432"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-433"><code>			<label for="r126" class="ident">fn</label> = <a href="proc.go.html#line-447" class="ident">funcPC</a>(<a href="#line-388" class="ident">sigtramp</a>)</code></span>
+<span class="codeline" id="line-434"><code>		}</code></span>
+<span class="codeline" id="line-435"><code>	}</code></span>
+<span class="codeline" id="line-436"><code>	<label for="r127" class="ident">sa</label>.<a href="defs_linux_amd64.go.html#line-118" class="ident">sa_handler</a> = <label for="r126" class="ident">fn</label></code></span>
+<span class="codeline" id="line-437"><code>	<a href="cgo_sigaction.go.html#line-20" class="ident">sigaction</a>(<label for="r125" class="ident">i</label>, &amp;<label for="r127" class="ident">sa</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-438"><code>}</code></span>
+<span class="codeline" id="line-439"><code></code></span>
+<span class="codeline" id="line-440"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-441"><code><span class="comment">//go:nowritebarrierrec</span></code></span>
+<span class="codeline" id="line-442"><code><span class="keyword">func</span> <label for="r128" class="ident"><a href="../../pkg/runtime.html#name-setsigstack" class="ident">setsigstack</a></label>(<label for="r129" class="ident">i</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
+<span class="codeline" id="line-443"><code>	<span class="keyword">var</span> <label for="r130" class="ident">sa</label> <a href="defs_linux_amd64.go.html#line-117" class="ident">sigactiont</a></code></span>
+<span class="codeline" id="line-444"><code>	<a href="cgo_sigaction.go.html#line-20" class="ident">sigaction</a>(<label for="r129" class="ident">i</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<label for="r130" class="ident">sa</label>)</code></span>
+<span class="codeline" id="line-445"><code>	<span class="keyword">if</span> <label for="r130" class="ident">sa</label>.<a href="defs_linux_amd64.go.html#line-119" class="ident">sa_flags</a>&amp;<a href="defs_linux_amd64.go.html#line-27" class="ident">_SA_ONSTACK</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-446"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-447"><code>	}</code></span>
+<span class="codeline" id="line-448"><code>	<label for="r130" class="ident">sa</label>.<a href="defs_linux_amd64.go.html#line-119" class="ident">sa_flags</a> |= <a href="defs_linux_amd64.go.html#line-27" class="ident">_SA_ONSTACK</a></code></span>
+<span class="codeline" id="line-449"><code>	<a href="cgo_sigaction.go.html#line-20" class="ident">sigaction</a>(<label for="r129" class="ident">i</label>, &amp;<label for="r130" class="ident">sa</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-450"><code>}</code></span>
+<span class="codeline" id="line-451"><code></code></span>
+<span class="codeline" id="line-452"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-453"><code><span class="comment">//go:nowritebarrierrec</span></code></span>
+<span class="codeline" id="line-454"><code><span class="keyword">func</span> <label for="r131" class="ident"><a href="../../pkg/runtime.html#name-getsig" class="ident">getsig</a></label>(<label for="r132" class="ident">i</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a> {</code></span>
+<span class="codeline" id="line-455"><code>	<span class="keyword">var</span> <label for="r133" class="ident">sa</label> <a href="defs_linux_amd64.go.html#line-117" class="ident">sigactiont</a></code></span>
+<span class="codeline" id="line-456"><code>	<a href="cgo_sigaction.go.html#line-20" class="ident">sigaction</a>(<label for="r132" class="ident">i</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<label for="r133" class="ident">sa</label>)</code></span>
+<span class="codeline" id="line-457"><code>	<span class="keyword">return</span> <label for="r133" class="ident">sa</label>.<a href="defs_linux_amd64.go.html#line-118" class="ident">sa_handler</a></code></span>
+<span class="codeline" id="line-458"><code>}</code></span>
+<span class="codeline" id="line-459"><code></code></span>
+<span class="codeline" id="line-460"><code><span class="comment">// setSignaltstackSP sets the ss_sp field of a stackt.</span></code></span>
+<span class="codeline" id="line-461"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-462"><code><span class="keyword">func</span> <label for="r134" class="ident"><a href="../../pkg/runtime.html#name-setSignalstackSP" class="ident">setSignalstackSP</a></label>(<label for="r135" class="ident">s</label> *<a href="defs_linux_amd64.go.html#line-208" class="ident">stackt</a>, <label for="r136" class="ident">sp</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-463"><code>	*(*<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>)(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r135" class="ident">s</label>.<a href="defs_linux_amd64.go.html#line-209" class="ident">ss_sp</a>)) = <label for="r136" class="ident">sp</label></code></span>
+<span class="codeline" id="line-464"><code>}</code></span>
+<span class="codeline" id="line-465"><code></code></span>
+<span class="codeline" id="line-466"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-467"><code><span class="keyword">func</span> (<label for="r137" class="ident">c</label> *<a href="signal_linux_amd64.go.html#line-12" class="ident">sigctxt</a>) <label for="r138" class="ident">fixsigcode</label>(<label for="r139" class="ident">sig</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
+<span class="codeline" id="line-468"><code>}</code></span>
+<span class="codeline" id="line-469"><code></code></span>
+<span class="codeline" id="line-470"><code><span class="comment">// sysSigaction calls the rt_sigaction system call.</span></code></span>
+<span class="codeline" id="line-471"><code><span class="comment">//go:nosplit</span></code></span>
+<span class="codeline" id="line-472"><code><span class="keyword">func</span> <label for="r140" class="ident"><a href="../../pkg/runtime.html#name-sysSigaction" class="ident">sysSigaction</a></label>(<label for="r141" class="ident">sig</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r142" class="ident">new</label>, <label for="r143" class="ident">old</label> *<a href="defs_linux_amd64.go.html#line-117" class="ident">sigactiont</a>) {</code></span>
+<span class="codeline" id="line-473"><code>	<span class="keyword">if</span> <a href="#line-496" class="ident">rt_sigaction</a>(<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r141" class="ident">sig</label>), <label for="r142" class="ident">new</label>, <label for="r143" class="ident">old</label>, <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(<a href="defs_linux_amd64.go.html#line-117" class="ident">sigactiont</a>{}.<a href="defs_linux_amd64.go.html#line-121" class="ident">sa_mask</a>)) != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-474"><code>		<span class="comment">// Workaround for bugs in QEMU user mode emulation.</span></code></span>
+<span class="codeline" id="line-475"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-476"><code><span class="comment">		// QEMU turns calls to the sigaction system call into</span></code></span>
+<span class="codeline" id="line-477"><code><span class="comment">		// calls to the C library sigaction call; the C</span></code></span>
+<span class="codeline" id="line-478"><code><span class="comment">		// library call rejects attempts to call sigaction for</span></code></span>
+<span class="codeline" id="line-479"><code><span class="comment">		// SIGCANCEL (32) or SIGSETXID (33).</span></code></span>
+<span class="codeline" id="line-480"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-481"><code><span class="comment">		// QEMU rejects calling sigaction on SIGRTMAX (64).</span></code></span>
+<span class="codeline" id="line-482"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-483"><code><span class="comment">		// Just ignore the error in these case. There isn't</span></code></span>
+<span class="codeline" id="line-484"><code><span class="comment">		// anything we can do about it anyhow.</span></code></span>
+<span class="codeline" id="line-485"><code>		<span class="keyword">if</span> <label for="r141" class="ident">sig</label> != <span class="lit-number">32</span> &amp;&amp; <label for="r141" class="ident">sig</label> != <span class="lit-number">33</span> &amp;&amp; <label for="r141" class="ident">sig</label> != <span class="lit-number">64</span> {</code></span>
+<span class="codeline" id="line-486"><code>			<span class="comment">// Use system stack to avoid split stack overflow on ppc64/ppc64le.</span></code></span>
+<span class="codeline" id="line-487"><code>			<a href="stubs.go.html#line-54" class="ident">systemstack</a>(<span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-488"><code>				<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"sigaction failed"</span>)</code></span>
+<span class="codeline" id="line-489"><code>			})</code></span>
+<span class="codeline" id="line-490"><code>		}</code></span>
+<span class="codeline" id="line-491"><code>	}</code></span>
+<span class="codeline" id="line-492"><code>}</code></span>
+<span class="codeline" id="line-493"><code></code></span>
+<span class="codeline" id="line-494"><code><span class="comment">// rt_sigaction is implemented in assembly.</span></code></span>
+<span class="codeline" id="line-495"><code><span class="comment">//go:noescape</span></code></span>
+<span class="codeline" id="line-496"><code><span class="keyword">func</span> <label for="r144" class="ident"><a href="../../pkg/runtime.html#name-rt_sigaction" class="ident">rt_sigaction</a></label>(<label for="r145" class="ident">sig</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r146" class="ident">new</label>, <label for="r147" class="ident">old</label> *<a href="defs_linux_amd64.go.html#line-117" class="ident">sigactiont</a>, <label for="r148" class="ident">size</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a></code></span>
+<span class="codeline" id="line-497"><code></code></span>
+<span class="codeline" id="line-498"><code><span class="keyword">func</span> <label for="r149" class="ident"><a href="../../pkg/runtime.html#name-getpid" class="ident">getpid</a></label>() <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-499"><code><span class="keyword">func</span> <label for="r150" class="ident"><a href="../../pkg/runtime.html#name-tgkill" class="ident">tgkill</a></label>(<label for="r151" class="ident">tgid</label>, <label for="r152" class="ident">tid</label>, <label for="r153" class="ident">sig</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>)</code></span>
+<span class="codeline" id="line-500"><code></code></span>
+<span class="codeline" id="line-501"><code><span class="comment">// signalM sends a signal to mp.</span></code></span>
+<span class="codeline" id="line-502"><code><span class="keyword">func</span> <label for="r154" class="ident"><a href="../../pkg/runtime.html#name-signalM" class="ident">signalM</a></label>(<label for="r155" class="ident">mp</label> *<a href="runtime2.go.html#line-486" class="ident">m</a>, <label for="r156" class="ident">sig</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-503"><code>	<a href="#line-499" class="ident">tgkill</a>(<a href="#line-498" class="ident">getpid</a>(), <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r155" class="ident">mp</label>.<a href="runtime2.go.html#line-492" class="ident">procid</a>), <label for="r156" class="ident">sig</label>)</code></span>
+<span class="codeline" id="line-504"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

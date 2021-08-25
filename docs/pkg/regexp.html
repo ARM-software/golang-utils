@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: regexp</title>
+<link href="../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>regexp</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../index.html#pkg-regexp">regexp</a><i> (on <a href="https://pkg.go.dev/regexp" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../dep/regexp.html">9 packages</a>, and imported by <a href="../dep/regexp.html#imported-by">10 packages</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<span class="nodocs">      <a href="../src/regexp/backtrack.go.html">backtrack.go</a></span>
+	<span class="nodocs">      <a href="../src/regexp/exec.go.html">exec.go</a></span>
+	<span class="nodocs">      <a href="../src/regexp/onepass.go.html">onepass.go</a></span>
+	<input type='checkbox' checked class="fold" id="file-3-fold-content"><label for="file-3-fold-content">   <a href="../src/regexp/regexp.go.html#doc">d➜</a> <a href="../src/regexp/regexp.go.html">regexp.go</a></label><span id='file-3-fold-content-items' class="fold-items">
+		Package regexp implements regular expression search.
+
+		The syntax of the regular expressions accepted is the same
+		general syntax used by Perl, Python, and other languages.
+		More precisely, it is the syntax accepted by RE2 and described at
+		https://golang.org/s/re2syntax, except for \C.
+		For an overview of the syntax, run
+		  go doc regexp/syntax
+
+		The regexp implementation provided by this package is
+		guaranteed to run in time linear in the size of the input.
+		(This is a property not guaranteed by most open source
+		implementations of regular expressions.) For more information
+		about this property, see
+			https://swtch.com/~rsc/regexp/regexp1.html
+		or any book about automata theory.
+
+		All characters are UTF-8-encoded code points.
+
+		There are 16 methods of Regexp that match a regular expression and identify
+		the matched text. Their names are matched by this regular expression:
+
+			Find(All)?(String)?(Submatch)?(Index)?
+
+		If 'All' is present, the routine matches successive non-overlapping
+		matches of the entire expression. Empty matches abutting a preceding
+		match are ignored. The return value is a slice containing the successive
+		return values of the corresponding non-'All' routine. These routines take
+		an extra integer argument, n. If n &gt;= 0, the function returns at most n
+		matches/submatches; otherwise, it returns all of them.
+
+		If 'String' is present, the argument is a string; otherwise it is a slice
+		of bytes; return values are adjusted as appropriate.
+
+		If 'Submatch' is present, the return value is a slice identifying the
+		successive submatches of the expression. Submatches are matches of
+		parenthesized subexpressions (also known as capturing groups) within the
+		regular expression, numbered from left to right in order of opening
+		parenthesis. Submatch 0 is the match of the entire expression, submatch 1
+		the match of the first parenthesized subexpression, and so on.
+
+		If 'Index' is present, matches and submatches are identified by byte index
+		pairs within the input string: result[2*n:2*n+1] identifies the indexes of
+		the nth submatch. The pair for n==0 identifies the match of the entire
+		expression. If 'Index' is not present, the match is identified by the text
+		of the match/submatch. If an index is negative or text is nil, it means that
+		subexpression did not match any string in the input. For 'String' versions
+		an empty string means either no match or an empty match.
+
+		There is also a subset of the methods that can be applied to text read
+		from a RuneReader:
+
+			MatchReader, FindReaderIndex, FindReaderSubmatchIndex
+
+		This set may grow. Note that regular expression matches may need to
+		examine text beyond the text returned by a match, so the methods that
+		match text from a RuneReader may read arbitrarily far into the input
+		before returning.
+
+		(There are a few other methods that do not match this pattern.)</span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content"></label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			// Compile the expression once, usually at init time.
+			// Use raw strings to avoid having to quote the backslashes.
+			var validID = regexp.MustCompile(`^[a-z]+\[[0-9]+\]$`)
+		
+			fmt.Println(validID.MatchString("adam[23]"))
+			fmt.Println(validID.MatchString("eve[7]"))
+			fmt.Println(validID.MatchString("Job[48]"))
+			fmt.Println(validID.MatchString("snakey"))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-1-fold-content"><label for="example-1-fold-content">Match</label><span id='example-1-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			matched, err := regexp.Match(`foo.*`, []byte(`seafood`))
+			fmt.Println(matched, err)
+			matched, err = regexp.Match(`bar.*`, []byte(`seafood`))
+			fmt.Println(matched, err)
+			matched, err = regexp.Match(`a(b`, []byte(`seafood`))
+			fmt.Println(matched, err)
+		
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-2-fold-content"><label for="example-2-fold-content">MatchString</label><span id='example-2-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			matched, err := regexp.MatchString(`foo.*`, "seafood")
+			fmt.Println(matched, err)
+			matched, err = regexp.MatchString(`bar.*`, "seafood")
+			fmt.Println(matched, err)
+			matched, err = regexp.MatchString(`a(b`, "seafood")
+			fmt.Println(matched, err)
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-3-fold-content"><label for="example-3-fold-content">QuoteMeta</label><span id='example-3-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			fmt.Println(regexp.QuoteMeta(`Escaping symbols like: .+*?()|[]{}^$`))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-4-fold-content"><label for="example-4-fold-content">Regexp_Expand</label><span id='example-4-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			content := []byte(`
+			# comment line
+			option1: value1
+			option2: value2
+		
+			# another comment line
+			option3: value3
+		`)
+		
+			// Regex pattern captures "key: value" pair from the content.
+			pattern := regexp.MustCompile(`(?m)(?P<key>\w+):\s+(?P<value>\w+)$`)
+		
+			// Template to convert "key: value" to "key=value" by
+			// referencing the values captured by the regex pattern.
+			template := []byte("$key=$value\n")
+		
+			result := []byte{}
+		
+			// For each match of the regex in the content.
+			for _, submatches := range pattern.FindAllSubmatchIndex(content, -1) {
+				// Apply the captured submatches to the template and append the output
+				// to the result.
+				result = pattern.Expand(result, template, content, submatches)
+			}
+			fmt.Println(string(result))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-5-fold-content"><label for="example-5-fold-content">Regexp_ExpandString</label><span id='example-5-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			content := `
+			# comment line
+			option1: value1
+			option2: value2
+		
+			# another comment line
+			option3: value3
+		`
+		
+			// Regex pattern captures "key: value" pair from the content.
+			pattern := regexp.MustCompile(`(?m)(?P<key>\w+):\s+(?P<value>\w+)$`)
+		
+			// Template to convert "key: value" to "key=value" by
+			// referencing the values captured by the regex pattern.
+			template := "$key=$value\n"
+		
+			result := []byte{}
+		
+			// For each match of the regex in the content.
+			for _, submatches := range pattern.FindAllStringSubmatchIndex(content, -1) {
+				// Apply the captured submatches to the template and append the output
+				// to the result.
+				result = pattern.ExpandString(result, template, content, submatches)
+			}
+			fmt.Println(string(result))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-6-fold-content"><label for="example-6-fold-content">Regexp_Find</label><span id='example-6-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`foo.?`)
+			fmt.Printf("%q\n", re.Find([]byte(`seafood fool`)))
+		
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-7-fold-content"><label for="example-7-fold-content">Regexp_FindAll</label><span id='example-7-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`foo.?`)
+			fmt.Printf("%q\n", re.FindAll([]byte(`seafood fool`), -1))
+		
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-8-fold-content"><label for="example-8-fold-content">Regexp_FindAllIndex</label><span id='example-8-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			content := []byte("London")
+			re := regexp.MustCompile(`o.`)
+			fmt.Println(re.FindAllIndex(content, 1))
+			fmt.Println(re.FindAllIndex(content, -1))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-9-fold-content"><label for="example-9-fold-content">Regexp_FindAllString</label><span id='example-9-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`a.`)
+			fmt.Println(re.FindAllString("paranormal", -1))
+			fmt.Println(re.FindAllString("paranormal", 2))
+			fmt.Println(re.FindAllString("graal", -1))
+			fmt.Println(re.FindAllString("none", -1))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-10-fold-content"><label for="example-10-fold-content">Regexp_FindAllStringSubmatch</label><span id='example-10-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`a(x*)b`)
+			fmt.Printf("%q\n", re.FindAllStringSubmatch("-ab-", -1))
+			fmt.Printf("%q\n", re.FindAllStringSubmatch("-axxb-", -1))
+			fmt.Printf("%q\n", re.FindAllStringSubmatch("-ab-axb-", -1))
+			fmt.Printf("%q\n", re.FindAllStringSubmatch("-axxb-ab-", -1))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-11-fold-content"><label for="example-11-fold-content">Regexp_FindAllStringSubmatchIndex</label><span id='example-11-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`a(x*)b`)
+			// Indices:
+			//    01234567   012345678
+			//    -ab-axb-   -axxb-ab-
+			fmt.Println(re.FindAllStringSubmatchIndex("-ab-", -1))
+			fmt.Println(re.FindAllStringSubmatchIndex("-axxb-", -1))
+			fmt.Println(re.FindAllStringSubmatchIndex("-ab-axb-", -1))
+			fmt.Println(re.FindAllStringSubmatchIndex("-axxb-ab-", -1))
+			fmt.Println(re.FindAllStringSubmatchIndex("-foo-", -1))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-12-fold-content"><label for="example-12-fold-content">Regexp_FindAllSubmatch</label><span id='example-12-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`foo(.?)`)
+			fmt.Printf("%q\n", re.FindAllSubmatch([]byte(`seafood fool`), -1))
+		
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-13-fold-content"><label for="example-13-fold-content">Regexp_FindAllSubmatchIndex</label><span id='example-13-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			content := []byte(`
+			# comment line
+			option1: value1
+			option2: value2
+		`)
+			// Regex pattern captures "key: value" pair from the content.
+			pattern := regexp.MustCompile(`(?m)(?P<key>\w+):\s+(?P<value>\w+)$`)
+			allIndexes := pattern.FindAllSubmatchIndex(content, -1)
+			for _, loc := range allIndexes {
+				fmt.Println(loc)
+				fmt.Println(string(content[loc[0]:loc[1]]))
+				fmt.Println(string(content[loc[2]:loc[3]]))
+				fmt.Println(string(content[loc[4]:loc[5]]))
+			}
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-14-fold-content"><label for="example-14-fold-content">Regexp_FindIndex</label><span id='example-14-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			content := []byte(`
+			# comment line
+			option1: value1
+			option2: value2
+		`)
+			// Regex pattern captures "key: value" pair from the content.
+			pattern := regexp.MustCompile(`(?m)(?P<key>\w+):\s+(?P<value>\w+)$`)
+		
+			loc := pattern.FindIndex(content)
+			fmt.Println(loc)
+			fmt.Println(string(content[loc[0]:loc[1]]))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-15-fold-content"><label for="example-15-fold-content">Regexp_FindString</label><span id='example-15-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`foo.?`)
+			fmt.Printf("%q\n", re.FindString("seafood fool"))
+			fmt.Printf("%q\n", re.FindString("meat"))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-16-fold-content"><label for="example-16-fold-content">Regexp_FindStringIndex</label><span id='example-16-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`ab?`)
+			fmt.Println(re.FindStringIndex("tablett"))
+			fmt.Println(re.FindStringIndex("foo") == nil)
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-17-fold-content"><label for="example-17-fold-content">Regexp_FindStringSubmatch</label><span id='example-17-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`a(x*)b(y|z)c`)
+			fmt.Printf("%q\n", re.FindStringSubmatch("-axxxbyc-"))
+			fmt.Printf("%q\n", re.FindStringSubmatch("-abzc-"))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-18-fold-content"><label for="example-18-fold-content">Regexp_FindSubmatch</label><span id='example-18-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`foo(.?)`)
+			fmt.Printf("%q\n", re.FindSubmatch([]byte(`seafood fool`)))
+		
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-19-fold-content"><label for="example-19-fold-content">Regexp_FindSubmatchIndex</label><span id='example-19-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`a(x*)b`)
+			// Indices:
+			//    01234567   012345678
+			//    -ab-axb-   -axxb-ab-
+			fmt.Println(re.FindSubmatchIndex([]byte("-ab-")))
+			fmt.Println(re.FindSubmatchIndex([]byte("-axxb-")))
+			fmt.Println(re.FindSubmatchIndex([]byte("-ab-axb-")))
+			fmt.Println(re.FindSubmatchIndex([]byte("-axxb-ab-")))
+			fmt.Println(re.FindSubmatchIndex([]byte("-foo-")))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-20-fold-content"><label for="example-20-fold-content">Regexp_Longest</label><span id='example-20-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`a(|b)`)
+			fmt.Println(re.FindString("ab"))
+			re.Longest()
+			fmt.Println(re.FindString("ab"))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-21-fold-content"><label for="example-21-fold-content">Regexp_Match</label><span id='example-21-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`foo.?`)
+			fmt.Println(re.Match([]byte(`seafood fool`)))
+			fmt.Println(re.Match([]byte(`something else`)))
+		
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-22-fold-content"><label for="example-22-fold-content">Regexp_MatchString</label><span id='example-22-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`(gopher){2}`)
+			fmt.Println(re.MatchString("gopher"))
+			fmt.Println(re.MatchString("gophergopher"))
+			fmt.Println(re.MatchString("gophergophergopher"))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-23-fold-content"><label for="example-23-fold-content">Regexp_NumSubexp</label><span id='example-23-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re0 := regexp.MustCompile(`a.`)
+			fmt.Printf("%d\n", re0.NumSubexp())
+		
+			re := regexp.MustCompile(`(.*)((a)b)(.*)a`)
+			fmt.Println(re.NumSubexp())
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-24-fold-content"><label for="example-24-fold-content">Regexp_ReplaceAll</label><span id='example-24-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`a(x*)b`)
+			fmt.Printf("%s\n", re.ReplaceAll([]byte("-ab-axxb-"), []byte("T")))
+			fmt.Printf("%s\n", re.ReplaceAll([]byte("-ab-axxb-"), []byte("$1")))
+			fmt.Printf("%s\n", re.ReplaceAll([]byte("-ab-axxb-"), []byte("$1W")))
+			fmt.Printf("%s\n", re.ReplaceAll([]byte("-ab-axxb-"), []byte("${1}W")))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-25-fold-content"><label for="example-25-fold-content">Regexp_ReplaceAllLiteralString</label><span id='example-25-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`a(x*)b`)
+			fmt.Println(re.ReplaceAllLiteralString("-ab-axxb-", "T"))
+			fmt.Println(re.ReplaceAllLiteralString("-ab-axxb-", "$1"))
+			fmt.Println(re.ReplaceAllLiteralString("-ab-axxb-", "${1}"))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-26-fold-content"><label for="example-26-fold-content">Regexp_ReplaceAllString</label><span id='example-26-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`a(x*)b`)
+			fmt.Println(re.ReplaceAllString("-ab-axxb-", "T"))
+			fmt.Println(re.ReplaceAllString("-ab-axxb-", "$1"))
+			fmt.Println(re.ReplaceAllString("-ab-axxb-", "$1W"))
+			fmt.Println(re.ReplaceAllString("-ab-axxb-", "${1}W"))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-27-fold-content"><label for="example-27-fold-content">Regexp_ReplaceAllStringFunc</label><span id='example-27-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+			"strings"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`[^aeiou]`)
+			fmt.Println(re.ReplaceAllStringFunc("seafood fool", strings.ToUpper))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-28-fold-content"><label for="example-28-fold-content">Regexp_Split</label><span id='example-28-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			a := regexp.MustCompile(`a`)
+			fmt.Println(a.Split("banana", -1))
+			fmt.Println(a.Split("banana", 0))
+			fmt.Println(a.Split("banana", 1))
+			fmt.Println(a.Split("banana", 2))
+			zp := regexp.MustCompile(`z+`)
+			fmt.Println(zp.Split("pizza", -1))
+			fmt.Println(zp.Split("pizza", 0))
+			fmt.Println(zp.Split("pizza", 1))
+			fmt.Println(zp.Split("pizza", 2))
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-29-fold-content"><label for="example-29-fold-content">Regexp_SubexpIndex</label><span id='example-29-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`(?P<first>[a-zA-Z]+) (?P<last>[a-zA-Z]+)`)
+			fmt.Println(re.MatchString("Alan Turing"))
+			matches := re.FindStringSubmatch("Alan Turing")
+			lastIndex := re.SubexpIndex("last")
+			fmt.Printf("last => %d\n", lastIndex)
+			fmt.Println(matches[lastIndex])
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-30-fold-content"><label for="example-30-fold-content">Regexp_SubexpNames</label><span id='example-30-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"regexp"
+		)
+		
+		func main() {
+			re := regexp.MustCompile(`(?P<first>[a-zA-Z]+) (?P<last>[a-zA-Z]+)`)
+			fmt.Println(re.MatchString("Alan Turing"))
+			fmt.Printf("%q\n", re.SubexpNames())
+			reversed := fmt.Sprintf("${%s} ${%s}", re.SubexpNames()[2], re.SubexpNames()[1])
+			fmt.Println(reversed)
+			fmt.Println(re.ReplaceAllString("Alan Turing", reversed))
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 18, in which 1 are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-Regexp" data-popularity="3120">	<input type='checkbox' class="fold" id="Regexp-fold-content"><label for="Regexp-fold-content"> type <a href="../src/regexp/regexp.go.html#line-82">Regexp</a> <i>(struct)</i></label><span id='Regexp-fold-content-docs' class="fold-docs">
+		Regexp is the representation of a compiled regular expression.
+		A Regexp is safe for concurrent use by multiple goroutines,
+		except for configuration methods, such as Longest.
+
+		<input type='checkbox' class="fold" id="Regexp-fold-fields"><label for="Regexp-fold-fields">Fields (<i>total 16, none are exported</i>)</label><span id='Regexp-fold-fields-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Regexp-showhide-fields"><i><label for="Regexp-showhide-fields" class="show-inline">/* 16 unexporteds ... */</label><label for="Regexp-showhide-fields" class="hide-inline">/* 16 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-cond"><label for="Regexp-fold-field-cond"><a href="../src/regexp/regexp.go.html#line-96">cond</a> <i><a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-EmptyOp">EmptyOp</a></i></label><span id='Regexp-fold-field-cond-docs' class="fold-docs">
+				// empty-width conditions required at start of match
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-expr"><label for="Regexp-fold-field-expr"><a href="../src/regexp/regexp.go.html#line-83">expr</a> <i><a href="builtin.html#name-string">string</a></i></label><span id='Regexp-fold-field-expr-docs' class="fold-docs">
+				// as passed to Compile
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-longest"><label for="Regexp-fold-field-longest"><a href="../src/regexp/regexp.go.html#line-101">longest</a> <i><a href="builtin.html#name-bool">bool</a></i></label><span id='Regexp-fold-field-longest-docs' class="fold-docs">
+				This field can be modified by the Longest method,
+				but it is otherwise read-only.
+				// whether regexp prefers leftmost-longest match
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-matchcap"><label for="Regexp-fold-field-matchcap"><a href="../src/regexp/regexp.go.html#line-94">matchcap</a> <i><a href="builtin.html#name-int">int</a></i></label><span id='Regexp-fold-field-matchcap-docs' class="fold-docs">
+				// size of recorded match lengths
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/regexp.go.html#line-87">maxBitStateLen</a> <i><a href="builtin.html#name-int">int</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-minInputLen"><label for="Regexp-fold-field-minInputLen"><a href="../src/regexp/regexp.go.html#line-97">minInputLen</a> <i><a href="builtin.html#name-int">int</a></i></label><span id='Regexp-fold-field-minInputLen-docs' class="fold-docs">
+				// minimum length of the input in bytes
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-mpool"><label for="Regexp-fold-field-mpool"><a href="../src/regexp/regexp.go.html#line-93">mpool</a> <i><a href="builtin.html#name-int">int</a></i></label><span id='Regexp-fold-field-mpool-docs' class="fold-docs">
+				// pool for machines
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/regexp.go.html#line-86">numSubexp</a> <i><a href="builtin.html#name-int">int</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-onepass"><label for="Regexp-fold-field-onepass"><a href="../src/regexp/regexp.go.html#line-85">onepass</a> <i>*<a href="#name-onePassProg">onePassProg</a></i></label><span id='Regexp-fold-field-onepass-docs' class="fold-docs">
+				// onepass program or nil
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-prefix"><label for="Regexp-fold-field-prefix"><a href="../src/regexp/regexp.go.html#line-89">prefix</a> <i><a href="builtin.html#name-string">string</a></i></label><span id='Regexp-fold-field-prefix-docs' class="fold-docs">
+				// required prefix in unanchored matches
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-prefixBytes"><label for="Regexp-fold-field-prefixBytes"><a href="../src/regexp/regexp.go.html#line-90">prefixBytes</a> <i>[]<a href="builtin.html#name-byte">byte</a></i></label><span id='Regexp-fold-field-prefixBytes-docs' class="fold-docs">
+				// prefix, as a []byte
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-prefixComplete"><label for="Regexp-fold-field-prefixComplete"><a href="../src/regexp/regexp.go.html#line-95">prefixComplete</a> <i><a href="builtin.html#name-bool">bool</a></i></label><span id='Regexp-fold-field-prefixComplete-docs' class="fold-docs">
+				// prefix is the entire regexp
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-prefixEnd"><label for="Regexp-fold-field-prefixEnd"><a href="../src/regexp/regexp.go.html#line-92">prefixEnd</a> <i><a href="builtin.html#name-uint32">uint32</a></i></label><span id='Regexp-fold-field-prefixEnd-docs' class="fold-docs">
+				// pc for last rune in prefix
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-prefixRune"><label for="Regexp-fold-field-prefixRune"><a href="../src/regexp/regexp.go.html#line-91">prefixRune</a> <i><a href="builtin.html#name-rune">rune</a></i></label><span id='Regexp-fold-field-prefixRune-docs' class="fold-docs">
+				// first rune in prefix
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-field-prog"><label for="Regexp-fold-field-prog"><a href="../src/regexp/regexp.go.html#line-84">prog</a> <i>*<a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Prog">Prog</a></i></label><span id='Regexp-fold-field-prog-docs' class="fold-docs">
+				// compiled program
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/regexp.go.html#line-88">subexpNames</a> <i>[]<a href="builtin.html#name-string">string</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="Regexp-fold-methods"><label for="Regexp-fold-methods">Methods (<i>total 48, in which 37 are exported</i>)</label><span id='Regexp-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-Copy"><label for="Regexp-fold-method-Copy">(*T) <a href="../src/regexp/regexp.go.html#line-117">Copy</a>() *<b>Regexp</b></label><span id='Regexp-fold-method-Copy-docs' class="fold-docs">
+				Copy returns a new Regexp object copied from re.
+				Calling Longest on one copy does not affect another.
+
+				Deprecated: In earlier releases, when using a Regexp in multiple goroutines,
+				giving each goroutine its own copy helped to avoid lock contention.
+				As of Go 1.12, using Copy is no longer necessary to avoid lock contention.
+				Copy may still be appropriate if the reason for its use is to make
+				two copies with different Longest settings.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-Expand"><label for="Regexp-fold-method-Expand">(*T) <a href="../src/regexp/regexp.go.html#line-912">Expand</a>(dst []<a href="builtin.html#name-byte">byte</a>, template []<a href="builtin.html#name-byte">byte</a>, src []<a href="builtin.html#name-byte">byte</a>, match []<a href="builtin.html#name-int">int</a>) []<a href="builtin.html#name-byte">byte</a></label><span id='Regexp-fold-method-Expand-docs' class="fold-docs">
+				Expand appends template to dst and returns the result; during the
+				append, Expand replaces variables in the template with corresponding
+				matches drawn from src. The match slice should have been returned by
+				FindSubmatchIndex.
+
+				In the template, a variable is denoted by a substring of the form
+				$name or ${name}, where name is a non-empty sequence of letters,
+				digits, and underscores. A purely numeric name like $1 refers to
+				the submatch with the corresponding index; other names refer to
+				capturing parentheses named with the (?P&lt;name&gt;...) syntax. A
+				reference to an out of range or unmatched index or a name that is not
+				present in the regular expression is replaced with an empty slice.
+
+				In the $name form, name is taken to be as long as possible: $1x is
+				equivalent to ${1x}, not ${1}x, and, $10 is equivalent to ${10}, not ${1}0.
+
+				To insert a literal $ in the output, use $$ in the template.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-ExpandString"><label for="Regexp-fold-method-ExpandString">(*T) <a href="../src/regexp/regexp.go.html#line-919">ExpandString</a>(dst []<a href="builtin.html#name-byte">byte</a>, template <a href="builtin.html#name-string">string</a>, src <a href="builtin.html#name-string">string</a>, match []<a href="builtin.html#name-int">int</a>) []<a href="builtin.html#name-byte">byte</a></label><span id='Regexp-fold-method-ExpandString-docs' class="fold-docs">
+				ExpandString is like Expand but the template and source are strings.
+				It appends to and returns a byte slice in order to give the calling
+				code control over allocation.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-Find"><label for="Regexp-fold-method-Find">(*T) <a href="../src/regexp/regexp.go.html#line-815">Find</a>(b []<a href="builtin.html#name-byte">byte</a>) []<a href="builtin.html#name-byte">byte</a></label><span id='Regexp-fold-method-Find-docs' class="fold-docs">
+				Find returns a slice holding the text of the leftmost match in b of the regular expression.
+				A return value of nil indicates no match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-FindAll"><label for="Regexp-fold-method-FindAll">(*T) <a href="../src/regexp/regexp.go.html#line-1076">FindAll</a>(b []<a href="builtin.html#name-byte">byte</a>, n <a href="builtin.html#name-int">int</a>) [][]<a href="builtin.html#name-byte">byte</a></label><span id='Regexp-fold-method-FindAll-docs' class="fold-docs">
+				FindAll is the 'All' version of Find; it returns a slice of all successive
+				matches of the expression, as defined by the 'All' description in the
+				package comment.
+				A return value of nil indicates no match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-FindAllIndex"><label for="Regexp-fold-method-FindAllIndex">(*T) <a href="../src/regexp/regexp.go.html#line-1094">FindAllIndex</a>(b []<a href="builtin.html#name-byte">byte</a>, n <a href="builtin.html#name-int">int</a>) [][]<a href="builtin.html#name-int">int</a></label><span id='Regexp-fold-method-FindAllIndex-docs' class="fold-docs">
+				FindAllIndex is the 'All' version of FindIndex; it returns a slice of all
+				successive matches of the expression, as defined by the 'All' description
+				in the package comment.
+				A return value of nil indicates no match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-FindAllString"><label for="Regexp-fold-method-FindAllString">(*T) <a href="../src/regexp/regexp.go.html#line-1112">FindAllString</a>(s <a href="builtin.html#name-string">string</a>, n <a href="builtin.html#name-int">int</a>) []<a href="builtin.html#name-string">string</a></label><span id='Regexp-fold-method-FindAllString-docs' class="fold-docs">
+				FindAllString is the 'All' version of FindString; it returns a slice of all
+				successive matches of the expression, as defined by the 'All' description
+				in the package comment.
+				A return value of nil indicates no match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-FindAllStringIndex"><label for="Regexp-fold-method-FindAllStringIndex">(*T) <a href="../src/regexp/regexp.go.html#line-1130">FindAllStringIndex</a>(s <a href="builtin.html#name-string">string</a>, n <a href="builtin.html#name-int">int</a>) [][]<a href="builtin.html#name-int">int</a></label><span id='Regexp-fold-method-FindAllStringIndex-docs' class="fold-docs">
+				FindAllStringIndex is the 'All' version of FindStringIndex; it returns a
+				slice of all successive matches of the expression, as defined by the 'All'
+				description in the package comment.
+				A return value of nil indicates no match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-FindAllStringSubmatch"><label for="Regexp-fold-method-FindAllStringSubmatch">(*T) <a href="../src/regexp/regexp.go.html#line-1190">FindAllStringSubmatch</a>(s <a href="builtin.html#name-string">string</a>, n <a href="builtin.html#name-int">int</a>) [][]<a href="builtin.html#name-string">string</a></label><span id='Regexp-fold-method-FindAllStringSubmatch-docs' class="fold-docs">
+				FindAllStringSubmatch is the 'All' version of FindStringSubmatch; it
+				returns a slice of all successive matches of the expression, as defined by
+				the 'All' description in the package comment.
+				A return value of nil indicates no match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-FindAllStringSubmatchIndex"><label for="Regexp-fold-method-FindAllStringSubmatchIndex">(*T) <a href="../src/regexp/regexp.go.html#line-1215">FindAllStringSubmatchIndex</a>(s <a href="builtin.html#name-string">string</a>, n <a href="builtin.html#name-int">int</a>) [][]<a href="builtin.html#name-int">int</a></label><span id='Regexp-fold-method-FindAllStringSubmatchIndex-docs' class="fold-docs">
+				FindAllStringSubmatchIndex is the 'All' version of
+				FindStringSubmatchIndex; it returns a slice of all successive matches of
+				the expression, as defined by the 'All' description in the package
+				comment.
+				A return value of nil indicates no match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-FindAllSubmatch"><label for="Regexp-fold-method-FindAllSubmatch">(*T) <a href="../src/regexp/regexp.go.html#line-1148">FindAllSubmatch</a>(b []<a href="builtin.html#name-byte">byte</a>, n <a href="builtin.html#name-int">int</a>) [][][]<a href="builtin.html#name-byte">byte</a></label><span id='Regexp-fold-method-FindAllSubmatch-docs' class="fold-docs">
+				FindAllSubmatch is the 'All' version of FindSubmatch; it returns a slice
+				of all successive matches of the expression, as defined by the 'All'
+				description in the package comment.
+				A return value of nil indicates no match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-FindAllSubmatchIndex"><label for="Regexp-fold-method-FindAllSubmatchIndex">(*T) <a href="../src/regexp/regexp.go.html#line-1172">FindAllSubmatchIndex</a>(b []<a href="builtin.html#name-byte">byte</a>, n <a href="builtin.html#name-int">int</a>) [][]<a href="builtin.html#name-int">int</a></label><span id='Regexp-fold-method-FindAllSubmatchIndex-docs' class="fold-docs">
+				FindAllSubmatchIndex is the 'All' version of FindSubmatchIndex; it returns
+				a slice of all successive matches of the expression, as defined by the
+				'All' description in the package comment.
+				A return value of nil indicates no match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-FindIndex"><label for="Regexp-fold-method-FindIndex">(*T) <a href="../src/regexp/regexp.go.html#line-828">FindIndex</a>(b []<a href="builtin.html#name-byte">byte</a>) (loc []<a href="builtin.html#name-int">int</a>)</label><span id='Regexp-fold-method-FindIndex-docs' class="fold-docs">
+				FindIndex returns a two-element slice of integers defining the location of
+				the leftmost match in b of the regular expression. The match itself is at
+				b[loc[0]:loc[1]].
+				A return value of nil indicates no match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-FindReaderIndex"><label for="Regexp-fold-method-FindReaderIndex">(*T) <a href="../src/regexp/regexp.go.html#line-867">FindReaderIndex</a>(r <a href="io.html">io</a>.<a href="io.html#name-RuneReader">RuneReader</a>) (loc []<a href="builtin.html#name-int">int</a>)</label><span id='Regexp-fold-method-FindReaderIndex-docs' class="fold-docs">
+				FindReaderIndex returns a two-element slice of integers defining the
+				location of the leftmost match of the regular expression in text read from
+				the RuneReader. The match text was found in the input stream at
+				byte offset loc[0] through loc[1]-1.
+				A return value of nil indicates no match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-FindReaderSubmatchIndex"><label for="Regexp-fold-method-FindReaderSubmatchIndex">(*T) <a href="../src/regexp/regexp.go.html#line-1066">FindReaderSubmatchIndex</a>(r <a href="io.html">io</a>.<a href="io.html#name-RuneReader">RuneReader</a>) []<a href="builtin.html#name-int">int</a></label><span id='Regexp-fold-method-FindReaderSubmatchIndex-docs' class="fold-docs">
+				FindReaderSubmatchIndex returns a slice holding the index pairs
+				identifying the leftmost match of the regular expression of text read by
+				the RuneReader, and the matches, if any, of its subexpressions, as defined
+				by the 'Submatch' and 'Index' descriptions in the package comment. A
+				return value of nil indicates no match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-FindString"><label for="Regexp-fold-method-FindString">(*T) <a href="../src/regexp/regexp.go.html#line-841">FindString</a>(s <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-string">string</a></label><span id='Regexp-fold-method-FindString-docs' class="fold-docs">
+				FindString returns a string holding the text of the leftmost match in s of the regular
+				expression. If there is no match, the return value is an empty string,
+				but it will also be empty if the regular expression successfully matches
+				an empty string. Use FindStringIndex or FindStringSubmatch if it is
+				necessary to distinguish these cases.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-FindStringIndex"><label for="Regexp-fold-method-FindStringIndex">(*T) <a href="../src/regexp/regexp.go.html#line-854">FindStringIndex</a>(s <a href="builtin.html#name-string">string</a>) (loc []<a href="builtin.html#name-int">int</a>)</label><span id='Regexp-fold-method-FindStringIndex-docs' class="fold-docs">
+				FindStringIndex returns a two-element slice of integers defining the
+				location of the leftmost match in s of the regular expression. The match
+				itself is at s[loc[0]:loc[1]].
+				A return value of nil indicates no match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-FindStringSubmatch"><label for="Regexp-fold-method-FindStringSubmatch">(*T) <a href="../src/regexp/regexp.go.html#line-1037">FindStringSubmatch</a>(s <a href="builtin.html#name-string">string</a>) []<a href="builtin.html#name-string">string</a></label><span id='Regexp-fold-method-FindStringSubmatch-docs' class="fold-docs">
+				FindStringSubmatch returns a slice of strings holding the text of the
+				leftmost match of the regular expression in s and the matches, if any, of
+				its subexpressions, as defined by the 'Submatch' description in the
+				package comment.
+				A return value of nil indicates no match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-FindStringSubmatchIndex"><label for="Regexp-fold-method-FindStringSubmatchIndex">(*T) <a href="../src/regexp/regexp.go.html#line-1057">FindStringSubmatchIndex</a>(s <a href="builtin.html#name-string">string</a>) []<a href="builtin.html#name-int">int</a></label><span id='Regexp-fold-method-FindStringSubmatchIndex-docs' class="fold-docs">
+				FindStringSubmatchIndex returns a slice holding the index pairs
+				identifying the leftmost match of the regular expression in s and the
+				matches, if any, of its subexpressions, as defined by the 'Submatch' and
+				'Index' descriptions in the package comment.
+				A return value of nil indicates no match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-FindSubmatch"><label for="Regexp-fold-method-FindSubmatch">(*T) <a href="../src/regexp/regexp.go.html#line-880">FindSubmatch</a>(b []<a href="builtin.html#name-byte">byte</a>) [][]<a href="builtin.html#name-byte">byte</a></label><span id='Regexp-fold-method-FindSubmatch-docs' class="fold-docs">
+				FindSubmatch returns a slice of slices holding the text of the leftmost
+				match of the regular expression in b and the matches, if any, of its
+				subexpressions, as defined by the 'Submatch' descriptions in the package
+				comment.
+				A return value of nil indicates no match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-FindSubmatchIndex"><label for="Regexp-fold-method-FindSubmatchIndex">(*T) <a href="../src/regexp/regexp.go.html#line-1028">FindSubmatchIndex</a>(b []<a href="builtin.html#name-byte">byte</a>) []<a href="builtin.html#name-int">int</a></label><span id='Regexp-fold-method-FindSubmatchIndex-docs' class="fold-docs">
+				FindSubmatchIndex returns a slice holding the index pairs identifying the
+				leftmost match of the regular expression in b and the matches, if any, of
+				its subexpressions, as defined by the 'Submatch' and 'Index' descriptions
+				in the package comment.
+				A return value of nil indicates no match.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-LiteralPrefix"><label for="Regexp-fold-method-LiteralPrefix">(*T) <a href="../src/regexp/regexp.go.html#line-512">LiteralPrefix</a>() (prefix <a href="builtin.html#name-string">string</a>, complete <a href="builtin.html#name-bool">bool</a>)</label><span id='Regexp-fold-method-LiteralPrefix-docs' class="fold-docs">
+				LiteralPrefix returns a literal string that must begin any match
+				of the regular expression re. It returns the boolean true if the
+				literal string comprises the entire regular expression.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-Longest"><label for="Regexp-fold-method-Longest">(*T) <a href="../src/regexp/regexp.go.html#line-165">Longest</a>()</label><span id='Regexp-fold-method-Longest-docs' class="fold-docs">
+				Longest makes future searches prefer the leftmost-longest match.
+				That is, when matching against text, the regexp returns a match that
+				begins as early as possible in the input (leftmost), and among those
+				it chooses a match that is as long as possible.
+				This method modifies the Regexp and may not be called concurrently
+				with any other methods.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-Match"><label for="Regexp-fold-method-Match">(*T) <a href="../src/regexp/regexp.go.html#line-530">Match</a>(b []<a href="builtin.html#name-byte">byte</a>) <a href="builtin.html#name-bool">bool</a></label><span id='Regexp-fold-method-Match-docs' class="fold-docs">
+				Match reports whether the byte slice b
+				contains any match of the regular expression re.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-MatchReader"><label for="Regexp-fold-method-MatchReader">(*T) <a href="../src/regexp/regexp.go.html#line-518">MatchReader</a>(r <a href="io.html">io</a>.<a href="io.html#name-RuneReader">RuneReader</a>) <a href="builtin.html#name-bool">bool</a></label><span id='Regexp-fold-method-MatchReader-docs' class="fold-docs">
+				MatchReader reports whether the text returned by the RuneReader
+				contains any match of the regular expression re.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-MatchString"><label for="Regexp-fold-method-MatchString">(*T) <a href="../src/regexp/regexp.go.html#line-524">MatchString</a>(s <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-bool">bool</a></label><span id='Regexp-fold-method-MatchString-docs' class="fold-docs">
+				MatchString reports whether the string s
+				contains any match of the regular expression re.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-NumSubexp"><label for="Regexp-fold-method-NumSubexp">(*T) <a href="../src/regexp/regexp.go.html#line-335">NumSubexp</a>() <a href="builtin.html#name-int">int</a></label><span id='Regexp-fold-method-NumSubexp-docs' class="fold-docs">
+				NumSubexp returns the number of parenthesized subexpressions in this Regexp.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-ReplaceAll"><label for="Regexp-fold-method-ReplaceAll">(*T) <a href="../src/regexp/regexp.go.html#line-669">ReplaceAll</a>(src, repl []<a href="builtin.html#name-byte">byte</a>) []<a href="builtin.html#name-byte">byte</a></label><span id='Regexp-fold-method-ReplaceAll-docs' class="fold-docs">
+				ReplaceAll returns a copy of src, replacing matches of the Regexp
+				with the replacement text repl. Inside repl, $ signs are interpreted as
+				in Expand, so for instance $1 represents the text of the first submatch.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-ReplaceAllFunc"><label for="Regexp-fold-method-ReplaceAllFunc">(*T) <a href="../src/regexp/regexp.go.html#line-697">ReplaceAllFunc</a>(src []<a href="builtin.html#name-byte">byte</a>, repl func([]<a href="builtin.html#name-byte">byte</a>) []<a href="builtin.html#name-byte">byte</a>) []<a href="builtin.html#name-byte">byte</a></label><span id='Regexp-fold-method-ReplaceAllFunc-docs' class="fold-docs">
+				ReplaceAllFunc returns a copy of src in which all matches of the
+				Regexp have been replaced by the return value of function repl applied
+				to the matched byte slice. The replacement returned by repl is substituted
+				directly, without using Expand.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-ReplaceAllLiteral"><label for="Regexp-fold-method-ReplaceAllLiteral">(*T) <a href="../src/regexp/regexp.go.html#line-687">ReplaceAllLiteral</a>(src, repl []<a href="builtin.html#name-byte">byte</a>) []<a href="builtin.html#name-byte">byte</a></label><span id='Regexp-fold-method-ReplaceAllLiteral-docs' class="fold-docs">
+				ReplaceAllLiteral returns a copy of src, replacing matches of the Regexp
+				with the replacement bytes repl. The replacement repl is substituted directly,
+				without using Expand.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-ReplaceAllLiteralString"><label for="Regexp-fold-method-ReplaceAllLiteralString">(*T) <a href="../src/regexp/regexp.go.html#line-584">ReplaceAllLiteralString</a>(src, repl <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-string">string</a></label><span id='Regexp-fold-method-ReplaceAllLiteralString-docs' class="fold-docs">
+				ReplaceAllLiteralString returns a copy of src, replacing matches of the Regexp
+				with the replacement string repl. The replacement repl is substituted directly,
+				without using Expand.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-ReplaceAllString"><label for="Regexp-fold-method-ReplaceAllString">(*T) <a href="../src/regexp/regexp.go.html#line-570">ReplaceAllString</a>(src, repl <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-string">string</a></label><span id='Regexp-fold-method-ReplaceAllString-docs' class="fold-docs">
+				ReplaceAllString returns a copy of src, replacing matches of the Regexp
+				with the replacement string repl. Inside repl, $ signs are interpreted as
+				in Expand, so for instance $1 represents the text of the first submatch.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-ReplaceAllStringFunc"><label for="Regexp-fold-method-ReplaceAllStringFunc">(*T) <a href="../src/regexp/regexp.go.html#line-594">ReplaceAllStringFunc</a>(src <a href="builtin.html#name-string">string</a>, repl func(<a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-string">string</a></label><span id='Regexp-fold-method-ReplaceAllStringFunc-docs' class="fold-docs">
+				ReplaceAllStringFunc returns a copy of src in which all matches of the
+				Regexp have been replaced by the return value of function repl applied
+				to the matched substring. The replacement returned by repl is substituted
+				directly, without using Expand.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-Split"><label for="Regexp-fold-method-Split">(*T) <a href="../src/regexp/regexp.go.html#line-1244">Split</a>(s <a href="builtin.html#name-string">string</a>, n <a href="builtin.html#name-int">int</a>) []<a href="builtin.html#name-string">string</a></label><span id='Regexp-fold-method-Split-docs' class="fold-docs">
+				Split slices s into substrings separated by the expression and returns a slice of
+				the substrings between those expression matches.
+
+				The slice returned by this method consists of all the substrings of s
+				not contained in the slice returned by FindAllString. When called on an expression
+				that contains no metacharacters, it is equivalent to strings.SplitN.
+
+				Example:
+				  s := regexp.MustCompile("a*").Split("abaabaccadaaae", 5)
+				  // s: ["", "b", "b", "c", "cadaaae"]
+
+				The count determines the number of substrings to return:
+				  n &gt; 0: at most n substrings; the last substring will be the unsplit remainder.
+				  n == 0: the result is nil (zero substrings)
+				  n &lt; 0: all substrings
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-String"><label for="Regexp-fold-method-String">(*T) <a href="../src/regexp/regexp.go.html#line-105">String</a>() <a href="builtin.html#name-string">string</a></label><span id='Regexp-fold-method-String-docs' class="fold-docs">
+				String returns the source text used to compile the regular expression.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-SubexpIndex"><label for="Regexp-fold-method-SubexpIndex">(*T) <a href="../src/regexp/regexp.go.html#line-355">SubexpIndex</a>(name <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-int">int</a></label><span id='Regexp-fold-method-SubexpIndex-docs' class="fold-docs">
+				SubexpIndex returns the index of the first subexpression with the given name,
+				or -1 if there is no subexpression with that name.
+
+				Note that multiple subexpressions can be written using the same name, as in
+				(?P&lt;bob&gt;a+)(?P&lt;bob&gt;b+), which declares two subexpressions named "bob".
+				In this case, SubexpIndex returns the index of the leftmost such subexpression
+				in the regular expression.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-SubexpNames"><label for="Regexp-fold-method-SubexpNames">(*T) <a href="../src/regexp/regexp.go.html#line-344">SubexpNames</a>() []<a href="builtin.html#name-string">string</a></label><span id='Regexp-fold-method-SubexpNames-docs' class="fold-docs">
+				SubexpNames returns the names of the parenthesized subexpressions
+				in this Regexp. The name for the first sub-expression is names[1],
+				so that if m is a match slice, the name for m[i] is SubexpNames()[i].
+				Since the Regexp as a whole cannot be named, names[0] is always
+				the empty string. The slice should not be modified.
+</span></span>
+			<input type='checkbox' class="showhide" id="Regexp-showhide-methods"><i><label for="Regexp-showhide-methods" class="show-inline">/* 11 unexporteds ... */</label><label for="Regexp-showhide-methods" class="hide-inline">/* 11 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-allMatches"><label for="Regexp-fold-method-allMatches">(*T) <a href="../src/regexp/regexp.go.html#line-767">allMatches</a>(s <a href="builtin.html#name-string">string</a>, b []<a href="builtin.html#name-byte">byte</a>, n <a href="builtin.html#name-int">int</a>, deliver func([]<a href="builtin.html#name-int">int</a>))</label><span id='Regexp-fold-method-allMatches-docs' class="fold-docs">
+				allMatches calls deliver at most n times
+				with the location of successive matches in the input text.
+				The input text is b if non-nil, otherwise s.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-backtrack"><label for="Regexp-fold-method-backtrack">(*T) <a href="../src/regexp/backtrack.go.html#line-307">backtrack</a>(ib []<a href="builtin.html#name-byte">byte</a>, is <a href="builtin.html#name-string">string</a>, pos <a href="builtin.html#name-int">int</a>, ncap <a href="builtin.html#name-int">int</a>, dstCap []<a href="builtin.html#name-int">int</a>) []<a href="builtin.html#name-int">int</a></label><span id='Regexp-fold-method-backtrack-docs' class="fold-docs">
+				backtrack runs a backtracking search of prog on the input starting at pos.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-doExecute"><label for="Regexp-fold-method-doExecute">(*T) <a href="../src/regexp/exec.go.html#line-521">doExecute</a>(r <a href="io.html">io</a>.<a href="io.html#name-RuneReader">RuneReader</a>, b []<a href="builtin.html#name-byte">byte</a>, s <a href="builtin.html#name-string">string</a>, pos <a href="builtin.html#name-int">int</a>, ncap <a href="builtin.html#name-int">int</a>, dstCap []<a href="builtin.html#name-int">int</a>) []<a href="builtin.html#name-int">int</a></label><span id='Regexp-fold-method-doExecute-docs' class="fold-docs">
+				doExecute finds the leftmost match in the input, appends the position
+				of its subexpressions to dstCap and returns dstCap.
+
+				nil is returned if no matches are found and non-nil if matches are found.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-doMatch"><label for="Regexp-fold-method-doMatch">(*T) <a href="../src/regexp/exec.go.html#line-513">doMatch</a>(r <a href="io.html">io</a>.<a href="io.html#name-RuneReader">RuneReader</a>, b []<a href="builtin.html#name-byte">byte</a>, s <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-bool">bool</a></label><span id='Regexp-fold-method-doMatch-docs' class="fold-docs">
+				doMatch reports whether either r, b or s match the regexp.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-doOnePass"><label for="Regexp-fold-method-doOnePass">(*T) <a href="../src/regexp/exec.go.html#line-397">doOnePass</a>(ir <a href="io.html">io</a>.<a href="io.html#name-RuneReader">RuneReader</a>, ib []<a href="builtin.html#name-byte">byte</a>, is <a href="builtin.html#name-string">string</a>, pos, ncap <a href="builtin.html#name-int">int</a>, dstCap []<a href="builtin.html#name-int">int</a>) []<a href="builtin.html#name-int">int</a></label><span id='Regexp-fold-method-doOnePass-docs' class="fold-docs">
+				doOnePass implements r.doExecute using the one-pass execution engine.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/regexp.go.html#line-923">expand</a>(dst []<a href="builtin.html#name-byte">byte</a>, template <a href="builtin.html#name-string">string</a>, bsrc []<a href="builtin.html#name-byte">byte</a>, src <a href="builtin.html#name-string">string</a>, match []<a href="builtin.html#name-int">int</a>) []<a href="builtin.html#name-byte">byte</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-get"><label for="Regexp-fold-method-get">(*T) <a href="../src/regexp/regexp.go.html#line-234">get</a>() *<a href="#name-machine">machine</a></label><span id='Regexp-fold-method-get-docs' class="fold-docs">
+				get returns a machine to use for matching re.
+				It uses the re's machine cache if possible, to avoid
+				unnecessary allocation.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-pad"><label for="Regexp-fold-method-pad">(*T) <a href="../src/regexp/regexp.go.html#line-752">pad</a>(a []<a href="builtin.html#name-int">int</a>) []<a href="builtin.html#name-int">int</a></label><span id='Regexp-fold-method-pad-docs' class="fold-docs">
+				The number of capture values in the program may correspond
+				to fewer capturing expressions than are in the regexp.
+				For example, "(a){0}" turns into an empty program, so the
+				maximum capture in the program is 0 but we need to return
+				an expression for \1.  Pad appends -1s to the slice a as needed.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-put"><label for="Regexp-fold-method-put">(*T) <a href="../src/regexp/regexp.go.html#line-262">put</a>(m *<a href="#name-machine">machine</a>)</label><span id='Regexp-fold-method-put-docs' class="fold-docs">
+				put returns a machine to the correct machine pool.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/regexp.go.html#line-601">replaceAll</a>(bsrc []<a href="builtin.html#name-byte">byte</a>, src <a href="builtin.html#name-string">string</a>, nmatch <a href="builtin.html#name-int">int</a>, repl func(dst []<a href="builtin.html#name-byte">byte</a>, m []<a href="builtin.html#name-int">int</a>) []<a href="builtin.html#name-byte">byte</a>) []<a href="builtin.html#name-byte">byte</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Regexp-fold-method-tryBacktrack"><label for="Regexp-fold-method-tryBacktrack">(*T) <a href="../src/regexp/backtrack.go.html#line-140">tryBacktrack</a>(b *<a href="#name-bitState">bitState</a>, i <a href="#name-input">input</a>, pc <a href="builtin.html#name-uint32">uint32</a>, pos <a href="builtin.html#name-int">int</a>) <a href="builtin.html#name-bool">bool</a></label><span id='Regexp-fold-method-tryBacktrack-docs' class="fold-docs">
+				tryBacktrack runs a backtracking search starting at pos.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Regexp-fold-impls"><label for="Regexp-fold-impls">Implements (<i>at least 3, in which 1 are exported</i>)</label><span id='Regexp-fold-impls-items' class="fold-items"><span>
+			*T : fmt.<a href="fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' class="showhide" id="Regexp-showhide-impls"><i><label for="Regexp-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="Regexp-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			*T : context.<a href="context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*T : runtime.<a href="runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="Regexp-fold-results"><label for="Regexp-fold-results">As Outputs Of (<i>at least 6, in which 5 are exported</i>)</label><span id='Regexp-fold-results-items' class="fold-items"><span>
+			func <a href="#name-Compile">Compile</a>(expr <a href="builtin.html#name-string">string</a>) (*<b>Regexp</b>, <a href="builtin.html#name-error">error</a>)</span><span>
+			func <a href="#name-CompilePOSIX">CompilePOSIX</a>(expr <a href="builtin.html#name-string">string</a>) (*<b>Regexp</b>, <a href="builtin.html#name-error">error</a>)</span><span>
+			func <a href="#name-MustCompile">MustCompile</a>(str <a href="builtin.html#name-string">string</a>) *<b>Regexp</b></span><span>
+			func <a href="#name-MustCompilePOSIX">MustCompilePOSIX</a>(str <a href="builtin.html#name-string">string</a>) *<b>Regexp</b></span><span>
+			func (*Regexp).<a href="../src/regexp/regexp.go.html#line-117">Copy</a>() *<b>Regexp</b></span>
+			<input type='checkbox' class="showhide" id="Regexp-showhide-inputofs"><i><label for="Regexp-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="Regexp-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-compile">compile</a>(expr <a href="builtin.html#name-string">string</a>, mode <a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Flags">Flags</a>, longest <a href="builtin.html#name-bool">bool</a>) (*<b>Regexp</b>, <a href="builtin.html#name-error">error</a>)</i></span></span>
+		<input type='checkbox' class="fold" id="Regexp-fold-params"><label for="Regexp-fold-params">As Inputs Of (<i>at least 3, in which 2 are exported</i>)</label><span id='Regexp-fold-params-items' class="fold-items"><span>
+			func github.com/magiconair/properties.(*<a href="github.com/magiconair/properties.html#name-Properties">Properties</a>).<a href="../src/github.com/magiconair/properties/properties.go.html#line-463">FilterRegexp</a>(re *<b>Regexp</b>) *<a href="github.com/magiconair/properties.html">properties</a>.<a href="github.com/magiconair/properties.html#name-Properties">Properties</a></span><span>
+			func github.com/spf13/afero.<a href="github.com/spf13/afero.html#name-NewRegexpFs">NewRegexpFs</a>(source <a href="github.com/spf13/afero.html">afero</a>.<a href="github.com/spf13/afero.html#name-Fs">Fs</a>, re *<b>Regexp</b>) <a href="github.com/spf13/afero.html">afero</a>.<a href="github.com/spf13/afero.html#name-Fs">Fs</a></span>
+			<input type='checkbox' class="showhide" id="Regexp-showhide-outputofs"><i><label for="Regexp-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="Regexp-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func github.com/ARM-software/golang-utils/utils/filesystem.<a href="github.com/ARM-software*34f8c/golang-utils/utils/filesystem.html#name-isExcluded">isExcluded</a>(path <a href="builtin.html#name-string">string</a>, exclusionPatterns ...*<b>Regexp</b>) <a href="builtin.html#name-bool">bool</a></i></span></span>
+		<input type='checkbox' class="fold" id="Regexp-fold-values"><label for="Regexp-fold-values">As Types Of (<i>total 6, none are exported</i>)</label><span id='Regexp-fold-values-items' class="fold-items">
+			<input type='checkbox' class="showhide" id="Regexp-showhide-values"><i><label for="Regexp-showhide-values" class="show-inline">/* 6 unexporteds ... */</label><label for="Regexp-showhide-values" class="hide-inline">/* 6 unexporteds: */</label></i><span class="hidden"><i>
+			  var github.com/hashicorp/go-retryablehttp.<a href="github.com/hashicorp/go-retryablehttp.html#name-redirectsErrorRe">redirectsErrorRe</a> *Regexp</i></span><span class="hidden"><i>
+			  var github.com/hashicorp/go-retryablehttp.<a href="github.com/hashicorp/go-retryablehttp.html#name-schemeErrorRe">schemeErrorRe</a> *Regexp</i></span><span class="hidden"><i>
+			  var gopkg.in/ini.v1.<a href="gopkg.in/ini.v1.html#name-pythonMultiline">pythonMultiline</a> *Regexp</i></span><span class="hidden"><i>
+			  var gopkg.in/ini.v1.<a href="gopkg.in/ini.v1.html#name-varPattern">varPattern</a> *Regexp</i></span><span class="hidden"><i>
+			  var gopkg.in/yaml.v2.<a href="gopkg.in/yaml.v2.html#name-base60float">base60float</a> *Regexp</i></span><span class="hidden"><i>
+			  var gopkg.in/yaml.v2.<a href="gopkg.in/yaml.v2.html#name-yamlStyleFloat">yamlStyleFloat</a> *Regexp</i></span></span>
+
+</span></div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* 17 unexporteds ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* 17 unexporteds: */</label></i><div class="anchor type-res hidden" id="name-bitState" data-popularity="295">	<input type='checkbox' class="fold" id="bitState-fold-content"><label for="bitState-fold-content"> type <a href="../src/regexp/backtrack.go.html#line-37">bitState</a> <i>(struct)</i></label><span id='bitState-fold-content-docs' class="fold-docs">
+		bitState holds state for the backtracker.
+
+		<input type='checkbox' class="fold" id="bitState-fold-fields"><label for="bitState-fold-fields">Fields (<i>total 6, none are exported</i>)</label><span id='bitState-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="bitState-showhide-fields"><i><label for="bitState-showhide-fields" class="show-inline">/* 6 unexporteds ... */</label><label for="bitState-showhide-fields" class="hide-inline">/* 6 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/backtrack.go.html#line-39">cap</a> <i>[]<a href="builtin.html#name-int">int</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/backtrack.go.html#line-38">end</a> <i><a href="builtin.html#name-int">int</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/backtrack.go.html#line-44">inputs</a> <i><a href="#name-inputs">inputs</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/backtrack.go.html#line-41">jobs</a> <i>[]<a href="#name-job">job</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/backtrack.go.html#line-40">matchcap</a> <i>[]<a href="builtin.html#name-int">int</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/backtrack.go.html#line-42">visited</a> <i>[]<a href="builtin.html#name-uint32">uint32</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="bitState-fold-methods"><label for="bitState-fold-methods">Methods (<i>total 3, none are exported</i>)</label><span id='bitState-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="bitState-showhide-methods"><i><label for="bitState-showhide-methods" class="show-inline">/* 3 unexporteds ... */</label><label for="bitState-showhide-methods" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="bitState-fold-method-push"><label for="bitState-fold-method-push">(*T) <a href="../src/regexp/backtrack.go.html#line-131">push</a>(re *<a href="#name-Regexp">Regexp</a>, pc <a href="builtin.html#name-uint32">uint32</a>, pos <a href="builtin.html#name-int">int</a>, arg <a href="builtin.html#name-bool">bool</a>)</label><span id='bitState-fold-method-push-docs' class="fold-docs">
+				push pushes (pc, pos, arg) onto the job stack if it should be
+				visited.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="bitState-fold-method-reset"><label for="bitState-fold-method-reset">(*T) <a href="../src/regexp/backtrack.go.html#line-80">reset</a>(prog *<a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Prog">Prog</a>, end <a href="builtin.html#name-int">int</a>, ncap <a href="builtin.html#name-int">int</a>)</label><span id='bitState-fold-method-reset-docs' class="fold-docs">
+				reset resets the state of the backtracker.
+				end is the end position in the input.
+				ncap is the number of captures.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="bitState-fold-method-shouldVisit"><label for="bitState-fold-method-shouldVisit">(*T) <a href="../src/regexp/backtrack.go.html#line-120">shouldVisit</a>(pc <a href="builtin.html#name-uint32">uint32</a>, pos <a href="builtin.html#name-int">int</a>) <a href="builtin.html#name-bool">bool</a></label><span id='bitState-fold-method-shouldVisit-docs' class="fold-docs">
+				shouldVisit reports whether the combination of (pc, pos) has not
+				been visited yet.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="bitState-fold-results"><label for="bitState-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='bitState-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="bitState-showhide-inputofs"><i><label for="bitState-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="bitState-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newBitState">newBitState</a>() *<b>bitState</b></i></span></span>
+		<input type='checkbox' class="fold" id="bitState-fold-params"><label for="bitState-fold-params">As Inputs Of (<i>at least 2, neither is exported</i>)</label><span id='bitState-fold-params-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="bitState-showhide-outputofs"><i><label for="bitState-showhide-outputofs" class="show-inline">/* 2+ unexporteds ... */</label><label for="bitState-showhide-outputofs" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-freeBitState">freeBitState</a>(b *<b>bitState</b>)</i></span><span class="hidden"><i>
+			func (*<a href="#name-Regexp">Regexp</a>).<a href="../src/regexp/backtrack.go.html#line-140">tryBacktrack</a>(b *<b>bitState</b>, i <a href="#name-input">input</a>, pc <a href="builtin.html#name-uint32">uint32</a>, pos <a href="builtin.html#name-int">int</a>) <a href="builtin.html#name-bool">bool</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-entry" data-popularity="0">	<input type='checkbox' class="fold" id="entry-fold-content"><label for="entry-fold-content"> type <a href="../src/regexp/exec.go.html#line-24">entry</a> <i>(struct)</i></label><span id='entry-fold-content-docs' class="fold-docs">
+		An entry is an entry on a queue.
+		It holds both the instruction pc and the actual thread.
+		Some queue entries are just place holders so that the machine
+		knows it has considered that pc. Such entries have t == nil.
+
+		<input type='checkbox' class="fold" id="entry-fold-fields"><label for="entry-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='entry-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="entry-showhide-fields"><i><label for="entry-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="entry-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/exec.go.html#line-25">pc</a> <i><a href="builtin.html#name-uint32">uint32</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/exec.go.html#line-26">t</a> <i>*<a href="#name-thread">thread</a></i></span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-input" data-popularity="735">	<input type='checkbox' class="fold" id="input-fold-content"><label for="input-fold-content"> type <a href="../src/regexp/regexp.go.html#line-370">input</a> <b><i>(interface)</i></b></label><span id='input-fold-content-docs' class="fold-docs">
+		input abstracts different representations of the input text. It provides
+		one-character lookahead.
+
+		<input type='checkbox' class="fold" id="input-fold-methods"><label for="input-fold-methods">Methods (<i>total 5, none are exported</i>)</label><span id='input-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="input-showhide-methods"><i><label for="input-showhide-methods" class="show-inline">/* 5 unexporteds ... */</label><label for="input-showhide-methods" class="hide-inline">/* 5 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="input-fold-method-canCheckPrefix"><label for="input-fold-method-canCheckPrefix">( T) <a href="../src/regexp/regexp.go.html#line-372">canCheckPrefix</a>() <a href="builtin.html#name-bool">bool</a></label><span id='input-fold-method-canCheckPrefix-docs' class="fold-docs">
+				// can we look ahead without losing info?
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../src/regexp/regexp.go.html#line-375">context</a>(pos <a href="builtin.html#name-int">int</a>) <a href="#name-lazyFlag">lazyFlag</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../src/regexp/regexp.go.html#line-373">hasPrefix</a>(re *<a href="#name-Regexp">Regexp</a>) <a href="builtin.html#name-bool">bool</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../src/regexp/regexp.go.html#line-374">index</a>(re *<a href="#name-Regexp">Regexp</a>, pos <a href="builtin.html#name-int">int</a>) <a href="builtin.html#name-int">int</a></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="input-fold-method-step"><label for="input-fold-method-step">( T) <a href="../src/regexp/regexp.go.html#line-371">step</a>(pos <a href="builtin.html#name-int">int</a>) (r <a href="builtin.html#name-rune">rune</a>, width <a href="builtin.html#name-int">int</a>)</label><span id='input-fold-method-step-docs' class="fold-docs">
+				// advance one rune
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="input-fold-impledby"><label for="input-fold-impledby">Implemented By (<i>at least 3, none are exported</i>)</label><span id='input-fold-impledby-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="input-showhide-impedBys"><i><label for="input-showhide-impedBys" class="show-inline">/* 3+ unexporteds ... */</label><label for="input-showhide-impedBys" class="hide-inline">/* 3+ unexporteds: */</label></i><span class="hidden"><i>
+			*<a href="#name-inputBytes">inputBytes</a></i></span><span class="hidden"><i>
+			*<a href="#name-inputReader">inputReader</a></i></span><span class="hidden"><i>
+			*<a href="#name-inputString">inputString</a></i></span></span>
+		<input type='checkbox' class="fold" id="input-fold-params"><label for="input-fold-params">As Inputs Of (<i>at least one unexported</i>)</label><span id='input-fold-params-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="input-showhide-outputofs"><i><label for="input-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="input-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func (*<a href="#name-Regexp">Regexp</a>).<a href="../src/regexp/backtrack.go.html#line-140">tryBacktrack</a>(b *<a href="#name-bitState">bitState</a>, i <b>input</b>, pc <a href="builtin.html#name-uint32">uint32</a>, pos <a href="builtin.html#name-int">int</a>) <a href="builtin.html#name-bool">bool</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-inputBytes" data-popularity="300">	<input type='checkbox' class="fold" id="inputBytes-fold-content"><label for="inputBytes-fold-content"> type <a href="../src/regexp/regexp.go.html#line-426">inputBytes</a> <i>(struct)</i></label><span id='inputBytes-fold-content-docs' class="fold-docs">
+		inputBytes scans a byte slice.
+
+		<input type='checkbox' class="fold" id="inputBytes-fold-fields"><label for="inputBytes-fold-fields">Fields (<i>only one, which is unexported</i>)</label><span id='inputBytes-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="inputBytes-showhide-fields"><i><label for="inputBytes-showhide-fields" class="show-inline">/* one unexported ... */</label><label for="inputBytes-showhide-fields" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/regexp.go.html#line-427">str</a> <i>[]<a href="builtin.html#name-byte">byte</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="inputBytes-fold-methods"><label for="inputBytes-fold-methods">Methods (<i>total 5, none are exported</i>)</label><span id='inputBytes-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="inputBytes-showhide-methods"><i><label for="inputBytes-showhide-methods" class="show-inline">/* 5 unexporteds ... */</label><label for="inputBytes-showhide-methods" class="hide-inline">/* 5 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/regexp.go.html#line-441">canCheckPrefix</a>() <a href="builtin.html#name-bool">bool</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/regexp.go.html#line-453">context</a>(pos <a href="builtin.html#name-int">int</a>) <a href="#name-lazyFlag">lazyFlag</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/regexp.go.html#line-445">hasPrefix</a>(re *<a href="#name-Regexp">Regexp</a>) <a href="builtin.html#name-bool">bool</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/regexp.go.html#line-449">index</a>(re *<a href="#name-Regexp">Regexp</a>, pos <a href="builtin.html#name-int">int</a>) <a href="builtin.html#name-int">int</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/regexp.go.html#line-430">step</a>(pos <a href="builtin.html#name-int">int</a>) (<a href="builtin.html#name-rune">rune</a>, <a href="builtin.html#name-int">int</a>)</span></i></span></span>
+		<input type='checkbox' class="fold" id="inputBytes-fold-impls"><label for="inputBytes-fold-impls">Implements (<i>at least one unexported</i>)</label><span id='inputBytes-fold-impls-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="inputBytes-showhide-impls"><i><label for="inputBytes-showhide-impls" class="show-inline">/* at least one unexported ... */</label><label for="inputBytes-showhide-impls" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			*T : <a href="#name-input">input</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-inputReader" data-popularity="300">	<input type='checkbox' class="fold" id="inputReader-fold-content"><label for="inputReader-fold-content"> type <a href="../src/regexp/regexp.go.html#line-473">inputReader</a> <i>(struct)</i></label><span id='inputReader-fold-content-docs' class="fold-docs">
+		inputReader scans a RuneReader.
+
+		<input type='checkbox' class="fold" id="inputReader-fold-fields"><label for="inputReader-fold-fields">Fields (<i>total 3, none are exported</i>)</label><span id='inputReader-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="inputReader-showhide-fields"><i><label for="inputReader-showhide-fields" class="show-inline">/* 3 unexporteds ... */</label><label for="inputReader-showhide-fields" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/regexp.go.html#line-475">atEOT</a> <i><a href="builtin.html#name-bool">bool</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/regexp.go.html#line-476">pos</a> <i><a href="builtin.html#name-int">int</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/regexp.go.html#line-474">r</a> <i><a href="io.html">io</a>.<a href="io.html#name-RuneReader">RuneReader</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="inputReader-fold-methods"><label for="inputReader-fold-methods">Methods (<i>total 5, none are exported</i>)</label><span id='inputReader-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="inputReader-showhide-methods"><i><label for="inputReader-showhide-methods" class="show-inline">/* 5 unexporteds ... */</label><label for="inputReader-showhide-methods" class="hide-inline">/* 5 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/regexp.go.html#line-493">canCheckPrefix</a>() <a href="builtin.html#name-bool">bool</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/regexp.go.html#line-505">context</a>(pos <a href="builtin.html#name-int">int</a>) <a href="#name-lazyFlag">lazyFlag</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/regexp.go.html#line-497">hasPrefix</a>(re *<a href="#name-Regexp">Regexp</a>) <a href="builtin.html#name-bool">bool</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/regexp.go.html#line-501">index</a>(re *<a href="#name-Regexp">Regexp</a>, pos <a href="builtin.html#name-int">int</a>) <a href="builtin.html#name-int">int</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/regexp.go.html#line-479">step</a>(pos <a href="builtin.html#name-int">int</a>) (<a href="builtin.html#name-rune">rune</a>, <a href="builtin.html#name-int">int</a>)</span></i></span></span>
+		<input type='checkbox' class="fold" id="inputReader-fold-impls"><label for="inputReader-fold-impls">Implements (<i>at least one unexported</i>)</label><span id='inputReader-fold-impls-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="inputReader-showhide-impls"><i><label for="inputReader-showhide-impls" class="show-inline">/* at least one unexported ... */</label><label for="inputReader-showhide-impls" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			*T : <a href="#name-input">input</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-inputs" data-popularity="250">	<input type='checkbox' class="fold" id="inputs-fold-content"><label for="inputs-fold-content"> type <a href="../src/regexp/exec.go.html#line-49">inputs</a> <i>(struct)</i></label><span id='inputs-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="inputs-fold-fields"><label for="inputs-fold-fields">Fields (<i>total 3, none are exported</i>)</label><span id='inputs-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="inputs-showhide-fields"><i><label for="inputs-showhide-fields" class="show-inline">/* 3 unexporteds ... */</label><label for="inputs-showhide-fields" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="inputs-fold-field-bytes"><label for="inputs-fold-field-bytes"><a href="../src/regexp/exec.go.html#line-51">bytes</a> <i><a href="#name-inputBytes">inputBytes</a></i></label><span id='inputs-fold-field-bytes-docs' class="fold-docs">
+				cached inputs, to avoid allocation
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/exec.go.html#line-53">reader</a> <i><a href="#name-inputReader">inputReader</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/exec.go.html#line-52">string</a> <i><a href="#name-inputString">inputString</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="inputs-fold-methods"><label for="inputs-fold-methods">Methods (<i>total 5, none are exported</i>)</label><span id='inputs-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="inputs-showhide-methods"><i><label for="inputs-showhide-methods" class="show-inline">/* 5 unexporteds ... */</label><label for="inputs-showhide-methods" class="hide-inline">/* 5 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/exec.go.html#line-73">clear</a>()</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/exec.go.html#line-85">init</a>(r <a href="io.html">io</a>.<a href="io.html#name-RuneReader">RuneReader</a>, b []<a href="builtin.html#name-byte">byte</a>, s <a href="builtin.html#name-string">string</a>) (<a href="#name-input">input</a>, <a href="builtin.html#name-int">int</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/exec.go.html#line-56">newBytes</a>(b []<a href="builtin.html#name-byte">byte</a>) <a href="#name-input">input</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/exec.go.html#line-66">newReader</a>(r <a href="io.html">io</a>.<a href="io.html#name-RuneReader">RuneReader</a>) <a href="#name-input">input</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/exec.go.html#line-61">newString</a>(s <a href="builtin.html#name-string">string</a>) <a href="#name-input">input</a></span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-inputString" data-popularity="300">	<input type='checkbox' class="fold" id="inputString-fold-content"><label for="inputString-fold-content"> type <a href="../src/regexp/regexp.go.html#line-379">inputString</a> <i>(struct)</i></label><span id='inputString-fold-content-docs' class="fold-docs">
+		inputString scans a string.
+
+		<input type='checkbox' class="fold" id="inputString-fold-fields"><label for="inputString-fold-fields">Fields (<i>only one, which is unexported</i>)</label><span id='inputString-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="inputString-showhide-fields"><i><label for="inputString-showhide-fields" class="show-inline">/* one unexported ... */</label><label for="inputString-showhide-fields" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/regexp.go.html#line-380">str</a> <i><a href="builtin.html#name-string">string</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="inputString-fold-methods"><label for="inputString-fold-methods">Methods (<i>total 5, none are exported</i>)</label><span id='inputString-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="inputString-showhide-methods"><i><label for="inputString-showhide-methods" class="show-inline">/* 5 unexporteds ... */</label><label for="inputString-showhide-methods" class="hide-inline">/* 5 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/regexp.go.html#line-394">canCheckPrefix</a>() <a href="builtin.html#name-bool">bool</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/regexp.go.html#line-406">context</a>(pos <a href="builtin.html#name-int">int</a>) <a href="#name-lazyFlag">lazyFlag</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/regexp.go.html#line-398">hasPrefix</a>(re *<a href="#name-Regexp">Regexp</a>) <a href="builtin.html#name-bool">bool</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/regexp.go.html#line-402">index</a>(re *<a href="#name-Regexp">Regexp</a>, pos <a href="builtin.html#name-int">int</a>) <a href="builtin.html#name-int">int</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/regexp.go.html#line-383">step</a>(pos <a href="builtin.html#name-int">int</a>) (<a href="builtin.html#name-rune">rune</a>, <a href="builtin.html#name-int">int</a>)</span></i></span></span>
+		<input type='checkbox' class="fold" id="inputString-fold-impls"><label for="inputString-fold-impls">Implements (<i>at least one unexported</i>)</label><span id='inputString-fold-impls-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="inputString-showhide-impls"><i><label for="inputString-showhide-impls" class="show-inline">/* at least one unexported ... */</label><label for="inputString-showhide-impls" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			*T : <a href="#name-input">input</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-job" data-popularity="0">	<input type='checkbox' class="fold" id="job-fold-content"><label for="job-fold-content"> type <a href="../src/regexp/backtrack.go.html#line-24">job</a> <i>(struct)</i></label><span id='job-fold-content-docs' class="fold-docs">
+		A job is an entry on the backtracker's job stack. It holds
+		the instruction pc and the position in the input.
+
+		<input type='checkbox' class="fold" id="job-fold-fields"><label for="job-fold-fields">Fields (<i>total 3, none are exported</i>)</label><span id='job-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="job-showhide-fields"><i><label for="job-showhide-fields" class="show-inline">/* 3 unexporteds ... */</label><label for="job-showhide-fields" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/backtrack.go.html#line-26">arg</a> <i><a href="builtin.html#name-bool">bool</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/backtrack.go.html#line-25">pc</a> <i><a href="builtin.html#name-uint32">uint32</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/backtrack.go.html#line-27">pos</a> <i><a href="builtin.html#name-int">int</a></i></span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-lazyFlag" data-popularity="125">	<input type='checkbox' class="fold" id="lazyFlag-fold-content"><label for="lazyFlag-fold-content"> type <a href="../src/regexp/exec.go.html#line-122">lazyFlag</a> <a href="builtin.html#name-uint64">uint64</a> <i>(basic type)</i></label><span id='lazyFlag-fold-content-docs' class="fold-docs">
+		A lazyFlag is a lazily-evaluated syntax.EmptyOp,
+		for checking zero-width flags like ^ $ \A \z \B \b.
+		It records the pair of relevant runes and does not
+		determine the implied flags until absolutely necessary
+		(most of the time, that means never).
+
+		<input type='checkbox' class="fold" id="lazyFlag-fold-methods"><label for="lazyFlag-fold-methods">Methods (<i>only one, which is unexported</i>)</label><span id='lazyFlag-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="lazyFlag-showhide-methods"><i><label for="lazyFlag-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="lazyFlag-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<span class="nodocs">( T) <a href="../src/regexp/exec.go.html#line-128">match</a>(op <a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-EmptyOp">EmptyOp</a>) <a href="builtin.html#name-bool">bool</a></span></i></span></span>
+		<input type='checkbox' class="fold" id="lazyFlag-fold-results"><label for="lazyFlag-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='lazyFlag-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="lazyFlag-showhide-inputofs"><i><label for="lazyFlag-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="lazyFlag-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newLazyFlag">newLazyFlag</a>(r1, r2 <a href="builtin.html#name-rune">rune</a>) <b>lazyFlag</b></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-machine" data-popularity="410">	<input type='checkbox' class="fold" id="machine-fold-content"><label for="machine-fold-content"> type <a href="../src/regexp/exec.go.html#line-38">machine</a> <i>(struct)</i></label><span id='machine-fold-content-docs' class="fold-docs">
+		A machine holds all the state during an NFA simulation for p.
+
+		<input type='checkbox' class="fold" id="machine-fold-fields"><label for="machine-fold-fields">Fields (<i>total 8, none are exported</i>)</label><span id='machine-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="machine-showhide-fields"><i><label for="machine-showhide-fields" class="show-inline">/* 8 unexporteds ... */</label><label for="machine-showhide-fields" class="hide-inline">/* 8 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/exec.go.html#line-46">inputs</a> <i><a href="#name-inputs">inputs</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="machine-fold-field-matchcap"><label for="machine-fold-field-matchcap"><a href="../src/regexp/exec.go.html#line-44">matchcap</a> <i>[]<a href="builtin.html#name-int">int</a></i></label><span id='machine-fold-field-matchcap-docs' class="fold-docs">
+				// capture information for the match
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="machine-fold-field-matched"><label for="machine-fold-field-matched"><a href="../src/regexp/exec.go.html#line-43">matched</a> <i><a href="builtin.html#name-bool">bool</a></i></label><span id='machine-fold-field-matched-docs' class="fold-docs">
+				// whether a match was found
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="machine-fold-field-p"><label for="machine-fold-field-p"><a href="../src/regexp/exec.go.html#line-40">p</a> <i>*<a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Prog">Prog</a></i></label><span id='machine-fold-field-p-docs' class="fold-docs">
+				// compiled program
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="machine-fold-field-pool"><label for="machine-fold-field-pool"><a href="../src/regexp/exec.go.html#line-42">pool</a> <i>[]*<a href="#name-thread">thread</a></i></label><span id='machine-fold-field-pool-docs' class="fold-docs">
+				// pool of available threads
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="machine-fold-field-q0"><label for="machine-fold-field-q0"><a href="../src/regexp/exec.go.html#line-41">q0</a> <i><a href="#name-queue">queue</a></i></label><span id='machine-fold-field-q0-docs' class="fold-docs">
+				// two queues for runq, nextq
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="machine-fold-field-q1"><label for="machine-fold-field-q1"><a href="../src/regexp/exec.go.html#line-41">q1</a> <i><a href="#name-queue">queue</a></i></label><span id='machine-fold-field-q1-docs' class="fold-docs">
+				// two queues for runq, nextq
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="machine-fold-field-re"><label for="machine-fold-field-re"><a href="../src/regexp/exec.go.html#line-39">re</a> <i>*<a href="#name-Regexp">Regexp</a></i></label><span id='machine-fold-field-re-docs' class="fold-docs">
+				// corresponding Regexp
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="machine-fold-methods"><label for="machine-fold-methods">Methods (<i>total 6, none are exported</i>)</label><span id='machine-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="machine-showhide-methods"><i><label for="machine-showhide-methods" class="show-inline">/* 6 unexporteds ... */</label><label for="machine-showhide-methods" class="hide-inline">/* 6 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="machine-fold-method-add"><label for="machine-fold-method-add">(*T) <a href="../src/regexp/exec.go.html#line-317">add</a>(q *<a href="#name-queue">queue</a>, pc <a href="builtin.html#name-uint32">uint32</a>, pos <a href="builtin.html#name-int">int</a>, cap []<a href="builtin.html#name-int">int</a>, cond *<a href="#name-lazyFlag">lazyFlag</a>, t *<a href="#name-thread">thread</a>) *<a href="#name-thread">thread</a></label><span id='machine-fold-method-add-docs' class="fold-docs">
+				add adds an entry to q for pc, unless the q already has such an entry.
+				It also recursively adds an entry for all instructions reachable from pc by following
+				empty-width conditions satisfied by cond.  pos gives the current position
+				in the input.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="machine-fold-method-alloc"><label for="machine-fold-method-alloc">(*T) <a href="../src/regexp/exec.go.html#line-104">alloc</a>(i *<a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Inst">Inst</a>) *<a href="#name-thread">thread</a></label><span id='machine-fold-method-alloc-docs' class="fold-docs">
+				alloc allocates a new thread with the given instruction.
+				It uses the free pool if possible.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="machine-fold-method-clear"><label for="machine-fold-method-clear">(*T) <a href="../src/regexp/exec.go.html#line-246">clear</a>(q *<a href="#name-queue">queue</a>)</label><span id='machine-fold-method-clear-docs' class="fold-docs">
+				clear frees all threads on the thread queue.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/exec.go.html#line-95">init</a>(ncap <a href="builtin.html#name-int">int</a>)</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="machine-fold-method-match"><label for="machine-fold-method-match">(*T) <a href="../src/regexp/exec.go.html#line-175">match</a>(i <a href="#name-input">input</a>, pos <a href="builtin.html#name-int">int</a>) <a href="builtin.html#name-bool">bool</a></label><span id='machine-fold-method-match-docs' class="fold-docs">
+				match runs the machine over the input starting at pos.
+				It reports whether a match was found.
+				If so, m.matchcap holds the submatch information.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="machine-fold-method-step"><label for="machine-fold-method-step">(*T) <a href="../src/regexp/exec.go.html#line-260">step</a>(runq, nextq *<a href="#name-queue">queue</a>, pos, nextPos <a href="builtin.html#name-int">int</a>, c <a href="builtin.html#name-rune">rune</a>, nextCond *<a href="#name-lazyFlag">lazyFlag</a>)</label><span id='machine-fold-method-step-docs' class="fold-docs">
+				step executes one step of the machine, running each of the threads
+				on runq and appending new threads to nextq.
+				The step processes the rune c (which may be endOfText),
+				which starts at position pos and ends at nextPos.
+				nextCond gives the setting for the empty-width flags after c.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="machine-fold-results"><label for="machine-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='machine-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="machine-showhide-inputofs"><i><label for="machine-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="machine-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func (*<a href="#name-Regexp">Regexp</a>).<a href="../src/regexp/regexp.go.html#line-234">get</a>() *<b>machine</b></i></span></span>
+		<input type='checkbox' class="fold" id="machine-fold-params"><label for="machine-fold-params">As Inputs Of (<i>at least one unexported</i>)</label><span id='machine-fold-params-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="machine-showhide-outputofs"><i><label for="machine-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="machine-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func (*<a href="#name-Regexp">Regexp</a>).<a href="../src/regexp/regexp.go.html#line-262">put</a>(m *<b>machine</b>)</i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-onePassInst" data-popularity="435">	<input type='checkbox' class="fold" id="onePassInst-fold-content"><label for="onePassInst-fold-content"> type <a href="../src/regexp/onepass.go.html#line-30">onePassInst</a> <i>(struct)</i></label><span id='onePassInst-fold-content-docs' class="fold-docs">
+		A onePassInst is a single instruction in a one-pass regular expression program.
+		It is the same as syntax.Inst except for the new 'Next' field.
+
+		<input type='checkbox' class="fold" id="onePassInst-fold-fields"><label for="onePassInst-fold-fields">Fields (<i>total 6, all are exported</i>)</label><span id='onePassInst-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../src/regexp/onepass.go.html#line-31">Inst</a> <i><a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Inst">Inst</a></i></span></span><span>
+			<input type='checkbox' class="fold" id="onePassInst-fold-field-Arg"><label for="onePassInst-fold-field-Arg"><a href="../src/regexp/onepass.go.html#line-31" class="path-duplicate">Inst</a>.<a href="../src/regexp/syntax/prog.go.html#line-115">Arg</a> <i><a href="builtin.html#name-uint32">uint32</a></i></label><span id='onePassInst-fold-field-Arg-docs' class="fold-docs">
+				// InstAlt, InstAltMatch, InstCapture, InstEmptyWidth
+</span></span><span>
+			<span class="nodocs"><a href="../src/regexp/onepass.go.html#line-31" class="path-duplicate">Inst</a>.<a href="../src/regexp/syntax/prog.go.html#line-113">Op</a> <i><a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-InstOp">InstOp</a></i></span></span><span>
+			<input type='checkbox' class="fold" id="onePassInst-fold-field-Out"><label for="onePassInst-fold-field-Out"><a href="../src/regexp/onepass.go.html#line-31" class="path-duplicate">Inst</a>.<a href="../src/regexp/syntax/prog.go.html#line-114">Out</a> <i><a href="builtin.html#name-uint32">uint32</a></i></label><span id='onePassInst-fold-field-Out-docs' class="fold-docs">
+				// all but InstMatch, InstFail
+</span></span><span>
+			<span class="nodocs"><a href="../src/regexp/onepass.go.html#line-31" class="path-duplicate">Inst</a>.<a href="../src/regexp/syntax/prog.go.html#line-116">Rune</a> <i>[]<a href="builtin.html#name-rune">rune</a></i></span></span><span>
+			<span class="nodocs"><a href="../src/regexp/onepass.go.html#line-32">Next</a> <i>[]<a href="builtin.html#name-uint32">uint32</a></i></span></span></span>
+		<input type='checkbox' class="fold" id="onePassInst-fold-methods"><label for="onePassInst-fold-methods">Methods (<i>total 5, in which 4 are exported</i>)</label><span id='onePassInst-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="onePassInst-fold-method-MatchEmptyWidth"><label for="onePassInst-fold-method-MatchEmptyWidth">(*T) <a href="../src/regexp/syntax/prog.go.html#line-263">MatchEmptyWidth</a>(before <a href="builtin.html#name-rune">rune</a>, after <a href="builtin.html#name-rune">rune</a>) <a href="builtin.html#name-bool">bool</a></label><span id='onePassInst-fold-method-MatchEmptyWidth-docs' class="fold-docs">
+				MatchEmptyWidth reports whether the instruction matches
+				an empty string between the runes before and after.
+				It should only be called when i.Op == InstEmptyWidth.
+</span></span><span>
+			<input type='checkbox' class="fold" id="onePassInst-fold-method-MatchRune"><label for="onePassInst-fold-method-MatchRune">(*T) <a href="../src/regexp/syntax/prog.go.html#line-192">MatchRune</a>(r <a href="builtin.html#name-rune">rune</a>) <a href="builtin.html#name-bool">bool</a></label><span id='onePassInst-fold-method-MatchRune-docs' class="fold-docs">
+				MatchRune reports whether the instruction matches (and consumes) r.
+				It should only be called when i.Op == InstRune.
+</span></span><span>
+			<input type='checkbox' class="fold" id="onePassInst-fold-method-MatchRunePos"><label for="onePassInst-fold-method-MatchRunePos">(*T) <a href="../src/regexp/syntax/prog.go.html#line-201">MatchRunePos</a>(r <a href="builtin.html#name-rune">rune</a>) <a href="builtin.html#name-int">int</a></label><span id='onePassInst-fold-method-MatchRunePos-docs' class="fold-docs">
+				MatchRunePos checks whether the instruction matches (and consumes) r.
+				If so, MatchRunePos returns the index of the matching rune pair
+				(or, when len(i.Rune) == 1, rune singleton).
+				If not, MatchRunePos returns -1.
+				MatchRunePos should only be called when i.Op == InstRune.
+</span></span><span>
+			<span class="nodocs">(*T) <a href="../src/regexp/syntax/prog.go.html#line-281">String</a>() <a href="builtin.html#name-string">string</a></span></span>
+			<input type='checkbox' checked class="showhide" id="onePassInst-showhide-methods"><i><label for="onePassInst-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="onePassInst-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="onePassInst-fold-method-op"><label for="onePassInst-fold-method-op">(*T) <a href="../src/regexp/syntax/prog.go.html#line-135">op</a>() <a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-InstOp">InstOp</a></label><span id='onePassInst-fold-method-op-docs' class="fold-docs">
+				op returns i.Op but merges all the Rune special cases into InstRune
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="onePassInst-fold-impls"><label for="onePassInst-fold-impls">Implements (<i>at least 3, in which 1 are exported</i>)</label><span id='onePassInst-fold-impls-items' class="fold-items"><span>
+			*T : fmt.<a href="fmt.html#name-Stringer">Stringer</a></span>
+			<input type='checkbox' checked class="showhide" id="onePassInst-showhide-impls"><i><label for="onePassInst-showhide-impls" class="show-inline">/* 2+ unexporteds ... */</label><label for="onePassInst-showhide-impls" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			*T : context.<a href="context.html#name-stringer">stringer</a></i></span><span class="hidden"><i>
+			*T : runtime.<a href="runtime.html#name-stringer">stringer</a></i></span></span>
+		<input type='checkbox' class="fold" id="onePassInst-fold-params"><label for="onePassInst-fold-params">As Inputs Of (<i>at least one unexported</i>)</label><span id='onePassInst-fold-params-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="onePassInst-showhide-outputofs"><i><label for="onePassInst-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="onePassInst-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-onePassNext">onePassNext</a>(i *<b>onePassInst</b>, r <a href="builtin.html#name-rune">rune</a>) <a href="builtin.html#name-uint32">uint32</a></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-onePassMachine" data-popularity="110">	<input type='checkbox' class="fold" id="onePassMachine-fold-content"><label for="onePassMachine-fold-content"> type <a href="../src/regexp/exec.go.html#line-376">onePassMachine</a> <i>(struct)</i></label><span id='onePassMachine-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="onePassMachine-fold-fields"><label for="onePassMachine-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='onePassMachine-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="onePassMachine-showhide-fields"><i><label for="onePassMachine-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="onePassMachine-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/exec.go.html#line-377">inputs</a> <i><a href="#name-inputs">inputs</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/exec.go.html#line-378">matchcap</a> <i>[]<a href="builtin.html#name-int">int</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="onePassMachine-fold-results"><label for="onePassMachine-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='onePassMachine-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="onePassMachine-showhide-inputofs"><i><label for="onePassMachine-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="onePassMachine-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newOnePassMachine">newOnePassMachine</a>() *<b>onePassMachine</b></i></span></span>
+		<input type='checkbox' class="fold" id="onePassMachine-fold-params"><label for="onePassMachine-fold-params">As Inputs Of (<i>at least one unexported</i>)</label><span id='onePassMachine-fold-params-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="onePassMachine-showhide-outputofs"><i><label for="onePassMachine-showhide-outputofs" class="show-inline">/* at least one unexported ... */</label><label for="onePassMachine-showhide-outputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-freeOnePassMachine">freeOnePassMachine</a>(m *<b>onePassMachine</b>)</i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-onePassProg" data-popularity="295">	<input type='checkbox' class="fold" id="onePassProg-fold-content"><label for="onePassProg-fold-content"> type <a href="../src/regexp/onepass.go.html#line-22">onePassProg</a> <i>(struct)</i></label><span id='onePassProg-fold-content-docs' class="fold-docs">
+		A onePassProg is a compiled one-pass regular expression program.
+		It is the same as syntax.Prog except for the use of onePassInst.
+
+		<input type='checkbox' class="fold" id="onePassProg-fold-fields"><label for="onePassProg-fold-fields">Fields (<i>total 3, all are exported</i>)</label><span id='onePassProg-fold-fields-items' class="fold-items"><span>
+			<span class="nodocs"><a href="../src/regexp/onepass.go.html#line-23">Inst</a> <i>[]<a href="#name-onePassInst">onePassInst</a></i></span></span><span>
+			<input type='checkbox' class="fold" id="onePassProg-fold-field-NumCap"><label for="onePassProg-fold-field-NumCap"><a href="../src/regexp/onepass.go.html#line-25">NumCap</a> <i><a href="builtin.html#name-int">int</a></i></label><span id='onePassProg-fold-field-NumCap-docs' class="fold-docs">
+				// number of InstCapture insts in re
+</span></span><span>
+			<input type='checkbox' class="fold" id="onePassProg-fold-field-Start"><label for="onePassProg-fold-field-Start"><a href="../src/regexp/onepass.go.html#line-24">Start</a> <i><a href="builtin.html#name-int">int</a></i></label><span id='onePassProg-fold-field-Start-docs' class="fold-docs">
+				// index of start instruction
+</span></span></span>
+		<input type='checkbox' class="fold" id="onePassProg-fold-results"><label for="onePassProg-fold-results">As Outputs Of (<i>at least 3, none are exported</i>)</label><span id='onePassProg-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="onePassProg-showhide-inputofs"><i><label for="onePassProg-showhide-inputofs" class="show-inline">/* 3+ unexporteds ... */</label><label for="onePassProg-showhide-inputofs" class="hide-inline">/* 3+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-compileOnePass">compileOnePass</a>(prog *<a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Prog">Prog</a>) (p *<b>onePassProg</b>)</i></span><span class="hidden"><i>
+			func <a href="#name-makeOnePass">makeOnePass</a>(p *<b>onePassProg</b>) *<b>onePassProg</b></i></span><span class="hidden"><i>
+			func <a href="#name-onePassCopy">onePassCopy</a>(prog *<a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Prog">Prog</a>) *<b>onePassProg</b></i></span></span>
+		<input type='checkbox' class="fold" id="onePassProg-fold-params"><label for="onePassProg-fold-params">As Inputs Of (<i>at least 2, neither is exported</i>)</label><span id='onePassProg-fold-params-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="onePassProg-showhide-outputofs"><i><label for="onePassProg-showhide-outputofs" class="show-inline">/* 2+ unexporteds ... */</label><label for="onePassProg-showhide-outputofs" class="hide-inline">/* 2+ unexporteds: */</label></i><span class="hidden"><i>
+			func <a href="#name-cleanupOnePass">cleanupOnePass</a>(prog *<b>onePassProg</b>, original *<a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Prog">Prog</a>)</i></span><span class="hidden"><i>
+			func <a href="#name-makeOnePass">makeOnePass</a>(p *<b>onePassProg</b>) *<b>onePassProg</b></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-queue" data-popularity="0">	<input type='checkbox' class="fold" id="queue-fold-content"><label for="queue-fold-content"> type <a href="../src/regexp/exec.go.html#line-15">queue</a> <i>(struct)</i></label><span id='queue-fold-content-docs' class="fold-docs">
+		A queue is a 'sparse array' holding pending threads of execution.
+		See https://research.swtch.com/2008/03/using-uninitialized-memory-for-fun-and.html
+
+		<input type='checkbox' class="fold" id="queue-fold-fields"><label for="queue-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='queue-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="queue-showhide-fields"><i><label for="queue-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="queue-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/exec.go.html#line-17">dense</a> <i>[]<a href="#name-entry">entry</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/exec.go.html#line-16">sparse</a> <i>[]<a href="builtin.html#name-uint32">uint32</a></i></span></i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-queueOnePass" data-popularity="375">	<input type='checkbox' class="fold" id="queueOnePass-fold-content"><label for="queueOnePass-fold-content"> type <a href="../src/regexp/onepass.go.html#line-95">queueOnePass</a> <i>(struct)</i></label><span id='queueOnePass-fold-content-docs' class="fold-docs">
+		Sparse Array implementation is used as a queueOnePass.
+
+		<input type='checkbox' class="fold" id="queueOnePass-fold-fields"><label for="queueOnePass-fold-fields">Fields (<i>total 4, none are exported</i>)</label><span id='queueOnePass-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="queueOnePass-showhide-fields"><i><label for="queueOnePass-showhide-fields" class="show-inline">/* 4 unexporteds ... */</label><label for="queueOnePass-showhide-fields" class="hide-inline">/* 4 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/onepass.go.html#line-97">dense</a> <i>[]<a href="builtin.html#name-uint32">uint32</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/onepass.go.html#line-98">nextIndex</a> <i><a href="builtin.html#name-uint32">uint32</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/onepass.go.html#line-98">size</a> <i><a href="builtin.html#name-uint32">uint32</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/onepass.go.html#line-96">sparse</a> <i>[]<a href="builtin.html#name-uint32">uint32</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="queueOnePass-fold-methods"><label for="queueOnePass-fold-methods">Methods (<i>total 6, none are exported</i>)</label><span id='queueOnePass-fold-methods-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="queueOnePass-showhide-methods"><i><label for="queueOnePass-showhide-methods" class="show-inline">/* 6 unexporteds ... */</label><label for="queueOnePass-showhide-methods" class="hide-inline">/* 6 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/onepass.go.html#line-111">clear</a>()</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/onepass.go.html#line-116">contains</a>(u <a href="builtin.html#name-uint32">uint32</a>) <a href="builtin.html#name-bool">bool</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/onepass.go.html#line-101">empty</a>() <a href="builtin.html#name-bool">bool</a></span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/onepass.go.html#line-123">insert</a>(u <a href="builtin.html#name-uint32">uint32</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/onepass.go.html#line-129">insertNew</a>(u <a href="builtin.html#name-uint32">uint32</a>)</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../src/regexp/onepass.go.html#line-105">next</a>() (n <a href="builtin.html#name-uint32">uint32</a>)</span></i></span></span>
+		<input type='checkbox' class="fold" id="queueOnePass-fold-results"><label for="queueOnePass-fold-results">As Outputs Of (<i>at least one unexported</i>)</label><span id='queueOnePass-fold-results-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="queueOnePass-showhide-inputofs"><i><label for="queueOnePass-showhide-inputofs" class="show-inline">/* at least one unexported ... */</label><label for="queueOnePass-showhide-inputofs" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			func <a href="#name-newQueue">newQueue</a>(size <a href="builtin.html#name-int">int</a>) (q *<b>queueOnePass</b>)</i></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-runeSlice" data-popularity="250">	<input type='checkbox' class="fold" id="runeSlice-fold-content"><label for="runeSlice-fold-content"> type <a href="../src/regexp/onepass.go.html#line-285">runeSlice</a> <i>([]T)</i></label><span id='runeSlice-fold-content-docs' class="fold-docs">
+		runeSlice exists to permit sorting the case-folded rune sets.
+
+		<input type='checkbox' class="fold" id="runeSlice-fold-methods"><label for="runeSlice-fold-methods">Methods (<i>total 3, all are exported</i>)</label><span id='runeSlice-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../src/regexp/onepass.go.html#line-287">Len</a>() <a href="builtin.html#name-int">int</a></span></span><span>
+			<span class="nodocs">( T) <a href="../src/regexp/onepass.go.html#line-288">Less</a>(i, j <a href="builtin.html#name-int">int</a>) <a href="builtin.html#name-bool">bool</a></span></span><span>
+			<span class="nodocs">( T) <a href="../src/regexp/onepass.go.html#line-289">Swap</a>(i, j <a href="builtin.html#name-int">int</a>)</span></span></span>
+		<input type='checkbox' class="fold" id="runeSlice-fold-impls"><label for="runeSlice-fold-impls">Implements (<i>at least 2, both are exported</i>)</label><span id='runeSlice-fold-impls-items' class="fold-items"><span>
+			 T : github.com/hashicorp/go-retryablehttp.<a href="github.com/hashicorp/go-retryablehttp.html#name-LenReader">LenReader</a></span><span>
+			 T : sort.<a href="sort.html#name-Interface">Interface</a></span></span>
+
+</span></div><div class="anchor type-res hidden" id="name-thread" data-popularity="0">	<input type='checkbox' class="fold" id="thread-fold-content"><label for="thread-fold-content"> type <a href="../src/regexp/exec.go.html#line-32">thread</a> <i>(struct)</i></label><span id='thread-fold-content-docs' class="fold-docs">
+		A thread is the state of a single path through the machine:
+		an instruction and a corresponding capture array.
+		See https://swtch.com/~rsc/regexp/regexp2.html
+
+		<input type='checkbox' class="fold" id="thread-fold-fields"><label for="thread-fold-fields">Fields (<i>total 2, neither is exported</i>)</label><span id='thread-fold-fields-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="thread-showhide-fields"><i><label for="thread-showhide-fields" class="show-inline">/* 2 unexporteds ... */</label><label for="thread-showhide-fields" class="hide-inline">/* 2 unexporteds: */</label></i><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/exec.go.html#line-34">cap</a> <i>[]<a href="builtin.html#name-int">int</a></i></span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../src/regexp/exec.go.html#line-33">inst</a> <i>*<a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Inst">Inst</a></i></span></i></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 30, in which 8 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-Compile">	<input type='checkbox' class="fold" id="Compile-fold-content"><label for="Compile-fold-content"> func <a href="../src/regexp/regexp.go.html#line-132">Compile</a>(expr <a href="builtin.html#name-string">string</a>) (*<a href="#name-Regexp">Regexp</a>, <a href="builtin.html#name-error">error</a>)</label><span id='Compile-fold-content-docs' class="fold-docs">
+		Compile parses a regular expression and returns, if successful,
+		a Regexp object that can be used to match against text.
+
+		When matching against text, the regexp returns a match that
+		begins as early as possible in the input (leftmost), and among those
+		it chooses the one that a backtracking search would have found first.
+		This so-called leftmost-first matching is the same semantics
+		that Perl, Python, and other implementations use, although this
+		package implements it without the expense of backtracking.
+		For POSIX leftmost-longest matching, see CompilePOSIX.
+
+</span></div><div class="anchor value-res" id="name-CompilePOSIX">	<input type='checkbox' class="fold" id="CompilePOSIX-fold-content"><label for="CompilePOSIX-fold-content"> func <a href="../src/regexp/regexp.go.html#line-155">CompilePOSIX</a>(expr <a href="builtin.html#name-string">string</a>) (*<a href="#name-Regexp">Regexp</a>, <a href="builtin.html#name-error">error</a>)</label><span id='CompilePOSIX-fold-content-docs' class="fold-docs">
+		CompilePOSIX is like Compile but restricts the regular expression
+		to POSIX ERE (egrep) syntax and changes the match semantics to
+		leftmost-longest.
+
+		That is, when matching against text, the regexp returns a match that
+		begins as early as possible in the input (leftmost), and among those
+		it chooses a match that is as long as possible.
+		This so-called leftmost-longest matching is the same semantics
+		that early regular expression implementations used and that POSIX
+		specifies.
+
+		However, there can be multiple leftmost-longest matches, with different
+		submatch choices, and here this package diverges from POSIX.
+		Among the possible leftmost-longest matches, this package chooses
+		the one that a backtracking search would have found first, while POSIX
+		specifies that the match be chosen to maximize the length of the first
+		subexpression, then the second, and so on from left to right.
+		The POSIX rule is computationally prohibitive and not even well-defined.
+		See https://swtch.com/~rsc/regexp/regexp2.html#posix for details.
+
+</span></div><div class="anchor value-res" id="name-Match">	<input type='checkbox' class="fold" id="Match-fold-content"><label for="Match-fold-content"> func <a href="../src/regexp/regexp.go.html#line-559">Match</a>(pattern <a href="builtin.html#name-string">string</a>, b []<a href="builtin.html#name-byte">byte</a>) (matched <a href="builtin.html#name-bool">bool</a>, err <a href="builtin.html#name-error">error</a>)</label><span id='Match-fold-content-docs' class="fold-docs">
+		Match reports whether the byte slice b
+		contains any match of the regular expression pattern.
+		More complicated queries need to use Compile and the full Regexp interface.
+
+</span></div><div class="anchor value-res" id="name-MatchReader">	<input type='checkbox' class="fold" id="MatchReader-fold-content"><label for="MatchReader-fold-content"> func <a href="../src/regexp/regexp.go.html#line-537">MatchReader</a>(pattern <a href="builtin.html#name-string">string</a>, r <a href="io.html">io</a>.<a href="io.html#name-RuneReader">RuneReader</a>) (matched <a href="builtin.html#name-bool">bool</a>, err <a href="builtin.html#name-error">error</a>)</label><span id='MatchReader-fold-content-docs' class="fold-docs">
+		MatchReader reports whether the text returned by the RuneReader
+		contains any match of the regular expression pattern.
+		More complicated queries need to use Compile and the full Regexp interface.
+
+</span></div><div class="anchor value-res" id="name-MatchString">	<input type='checkbox' class="fold" id="MatchString-fold-content"><label for="MatchString-fold-content"> func <a href="../src/regexp/regexp.go.html#line-548">MatchString</a>(pattern <a href="builtin.html#name-string">string</a>, s <a href="builtin.html#name-string">string</a>) (matched <a href="builtin.html#name-bool">bool</a>, err <a href="builtin.html#name-error">error</a>)</label><span id='MatchString-fold-content-docs' class="fold-docs">
+		MatchString reports whether the string s
+		contains any match of the regular expression pattern.
+		More complicated queries need to use Compile and the full Regexp interface.
+
+</span></div><div class="anchor value-res" id="name-MustCompile">	<input type='checkbox' class="fold" id="MustCompile-fold-content"><label for="MustCompile-fold-content"> func <a href="../src/regexp/regexp.go.html#line-308">MustCompile</a>(str <a href="builtin.html#name-string">string</a>) *<a href="#name-Regexp">Regexp</a></label><span id='MustCompile-fold-content-docs' class="fold-docs">
+		MustCompile is like Compile but panics if the expression cannot be parsed.
+		It simplifies safe initialization of global variables holding compiled regular
+		expressions.
+
+</span></div><div class="anchor value-res" id="name-MustCompilePOSIX">	<input type='checkbox' class="fold" id="MustCompilePOSIX-fold-content"><label for="MustCompilePOSIX-fold-content"> func <a href="../src/regexp/regexp.go.html#line-319">MustCompilePOSIX</a>(str <a href="builtin.html#name-string">string</a>) *<a href="#name-Regexp">Regexp</a></label><span id='MustCompilePOSIX-fold-content-docs' class="fold-docs">
+		MustCompilePOSIX is like CompilePOSIX but panics if the expression cannot be parsed.
+		It simplifies safe initialization of global variables holding compiled regular
+		expressions.
+
+</span></div><div class="anchor value-res" id="name-QuoteMeta">	<input type='checkbox' class="fold" id="QuoteMeta-fold-content"><label for="QuoteMeta-fold-content"> func <a href="../src/regexp/regexp.go.html#line-720">QuoteMeta</a>(s <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-string">string</a></label><span id='QuoteMeta-fold-content-docs' class="fold-docs">
+		QuoteMeta returns a string that escapes all regular expression metacharacters
+		inside the argument text; the returned string is a regular expression matching
+		the literal text.
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 22 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 22 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-cleanupOnePass"><i>	<input type='checkbox' class="fold" id="cleanupOnePass-fold-content"><label for="cleanupOnePass-fold-content"> func <a href="../src/regexp/onepass.go.html#line-207">cleanupOnePass</a>(prog *<a href="#name-onePassProg">onePassProg</a>, original *<a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Prog">Prog</a>)</label><span id='cleanupOnePass-fold-content-docs' class="fold-docs">
+		cleanupOnePass drops working memory, and restores certain shortcut instructions.
+
+</span></i></div><div class="anchor value-res hidden" id="name-compile"><i>	<span class="nodocs"> func <a href="../src/regexp/regexp.go.html#line-169">compile</a>(expr <a href="builtin.html#name-string">string</a>, mode <a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Flags">Flags</a>, longest <a href="builtin.html#name-bool">bool</a>) (*<a href="#name-Regexp">Regexp</a>, <a href="builtin.html#name-error">error</a>)</span></i></div><div class="anchor value-res hidden" id="name-compileOnePass"><i>	<input type='checkbox' class="fold" id="compileOnePass-fold-content"><label for="compileOnePass-fold-content"> func <a href="../src/regexp/onepass.go.html#line-465">compileOnePass</a>(prog *<a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Prog">Prog</a>) (p *<a href="#name-onePassProg">onePassProg</a>)</label><span id='compileOnePass-fold-content-docs' class="fold-docs">
+		compileOnePass returns a new *syntax.Prog suitable for onePass execution if the original Prog
+		can be recharacterized as a one-pass regexp program, or syntax.nil if the
+		Prog cannot be converted. For a one pass prog, the fundamental condition that must
+		be true is: at any InstAlt, there must be no ambiguity about what branch to  take.
+
+</span></i></div><div class="anchor value-res hidden" id="name-extract"><i>	<input type='checkbox' class="fold" id="extract-fold-content"><label for="extract-fold-content"> func <a href="../src/regexp/regexp.go.html#line-972">extract</a>(str <a href="builtin.html#name-string">string</a>) (name <a href="builtin.html#name-string">string</a>, num <a href="builtin.html#name-int">int</a>, rest <a href="builtin.html#name-string">string</a>, ok <a href="builtin.html#name-bool">bool</a>)</label><span id='extract-fold-content-docs' class="fold-docs">
+		extract returns the name from a leading "$name" or "${name}" in str.
+		If it is a number, extract returns num set to that number; otherwise num = -1.
+
+</span></i></div><div class="anchor value-res hidden" id="name-freeBitState"><i>	<span class="nodocs"> func <a href="../src/regexp/backtrack.go.html#line-57">freeBitState</a>(b *<a href="#name-bitState">bitState</a>)</span></i></div><div class="anchor value-res hidden" id="name-freeOnePassMachine"><i>	<span class="nodocs"> func <a href="../src/regexp/exec.go.html#line-391">freeOnePassMachine</a>(m *<a href="#name-onePassMachine">onePassMachine</a>)</span></i></div><div class="anchor value-res hidden" id="name-init"><i>	<span class="nodocs"> func <a href="../src/regexp/regexp.go.html#line-711">init</a>()</span></i></div><div class="anchor value-res hidden" id="name-iop"><i>	<span class="nodocs"> func <a href="../src/regexp/onepass.go.html#line-85">iop</a>(i *<a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Inst">Inst</a>) <a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-InstOp">InstOp</a></span></i></div><div class="anchor value-res hidden" id="name-makeOnePass"><i>	<input type='checkbox' class="fold" id="makeOnePass-fold-content"><label for="makeOnePass-fold-content"> func <a href="../src/regexp/onepass.go.html#line-299">makeOnePass</a>(p *<a href="#name-onePassProg">onePassProg</a>) *<a href="#name-onePassProg">onePassProg</a></label><span id='makeOnePass-fold-content-docs' class="fold-docs">
+		makeOnePass creates a onepass Prog, if possible. It is possible if at any alt,
+		the match engine can always tell which branch to take. The routine may modify
+		p if it is turned into a onepass Prog. If it isn't possible for this to be a
+		onepass Prog, the Prog nil is returned. makeOnePass is recursive
+		to the size of the Prog.
+
+</span></i></div><div class="anchor value-res hidden" id="name-maxBitStateLen"><i>	<input type='checkbox' class="fold" id="maxBitStateLen-fold-content"><label for="maxBitStateLen-fold-content"> func <a href="../src/regexp/backtrack.go.html#line-64">maxBitStateLen</a>(prog *<a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Prog">Prog</a>) <a href="builtin.html#name-int">int</a></label><span id='maxBitStateLen-fold-content-docs' class="fold-docs">
+		maxBitStateLen returns the maximum length of a string to search with
+		the backtracker using prog.
+
+</span></i></div><div class="anchor value-res hidden" id="name-mergeRuneSets"><i>	<span class="nodocs"> func <a href="../src/regexp/onepass.go.html#line-157">mergeRuneSets</a>(leftRunes, rightRunes *[]<a href="builtin.html#name-rune">rune</a>, leftPC, rightPC <a href="builtin.html#name-uint32">uint32</a>) ([]<a href="builtin.html#name-rune">rune</a>, []<a href="builtin.html#name-uint32">uint32</a>)</span></i></div><div class="anchor value-res hidden" id="name-minInputLen"><i>	<input type='checkbox' class="fold" id="minInputLen-fold-content"><label for="minInputLen-fold-content"> func <a href="../src/regexp/regexp.go.html#line-270">minInputLen</a>(re *<a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Regexp">Regexp</a>) <a href="builtin.html#name-int">int</a></label><span id='minInputLen-fold-content-docs' class="fold-docs">
+		minInputLen walks the regexp to find the minimum length of any matchable input
+
+</span></i></div><div class="anchor value-res hidden" id="name-newBitState"><i>	<span class="nodocs"> func <a href="../src/regexp/backtrack.go.html#line-49">newBitState</a>() *<a href="#name-bitState">bitState</a></span></i></div><div class="anchor value-res hidden" id="name-newLazyFlag"><i>	<span class="nodocs"> func <a href="../src/regexp/exec.go.html#line-124">newLazyFlag</a>(r1, r2 <a href="builtin.html#name-rune">rune</a>) <a href="#name-lazyFlag">lazyFlag</a></span></i></div><div class="anchor value-res hidden" id="name-newOnePassMachine"><i>	<span class="nodocs"> func <a href="../src/regexp/exec.go.html#line-383">newOnePassMachine</a>() *<a href="#name-onePassMachine">onePassMachine</a></span></i></div><div class="anchor value-res hidden" id="name-newQueue"><i>	<span class="nodocs"> func <a href="../src/regexp/onepass.go.html#line-138">newQueue</a>(size <a href="builtin.html#name-int">int</a>) (q *<a href="#name-queueOnePass">queueOnePass</a>)</span></i></div><div class="anchor value-res hidden" id="name-onePassCopy"><i>	<input type='checkbox' class="fold" id="onePassCopy-fold-content"><label for="onePassCopy-fold-content"> func <a href="../src/regexp/onepass.go.html#line-221">onePassCopy</a>(prog *<a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Prog">Prog</a>) *<a href="#name-onePassProg">onePassProg</a></label><span id='onePassCopy-fold-content-docs' class="fold-docs">
+		onePassCopy creates a copy of the original Prog, as we'll be modifying it
+
+</span></i></div><div class="anchor value-res hidden" id="name-onePassNext"><i>	<input type='checkbox' class="fold" id="onePassNext-fold-content"><label for="onePassNext-fold-content"> func <a href="../src/regexp/onepass.go.html#line-74">onePassNext</a>(i *<a href="#name-onePassInst">onePassInst</a>, r <a href="builtin.html#name-rune">rune</a>) <a href="builtin.html#name-uint32">uint32</a></label><span id='onePassNext-fold-content-docs' class="fold-docs">
+		OnePassNext selects the next actionable state of the prog, based on the input character.
+		It should only be called when i.Op == InstAlt or InstAltMatch, and from the one-pass machine.
+		One of the alternates may ultimately lead without input to end of line. If the instruction
+		is InstAltMatch the path to the InstMatch is in i.Out, the normal node in i.Next.
+
+</span></i></div><div class="anchor value-res hidden" id="name-onePassPrefix"><i>	<input type='checkbox' class="fold" id="onePassPrefix-fold-content"><label for="onePassPrefix-fold-content"> func <a href="../src/regexp/onepass.go.html#line-40">onePassPrefix</a>(p *<a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Prog">Prog</a>) (prefix <a href="builtin.html#name-string">string</a>, complete <a href="builtin.html#name-bool">bool</a>, pc <a href="builtin.html#name-uint32">uint32</a>)</label><span id='onePassPrefix-fold-content-docs' class="fold-docs">
+		OnePassPrefix returns a literal string that all matches for the
+		regexp must start with. Complete is true if the prefix
+		is the entire match. Pc is the index of the last rune instruction
+		in the string. The OnePassPrefix skips over the mandatory
+		EmptyBeginText
+
+</span></i></div><div class="anchor value-res hidden" id="name-quote"><i>	<span class="nodocs"> func <a href="../src/regexp/regexp.go.html#line-327">quote</a>(s <a href="builtin.html#name-string">string</a>) <a href="builtin.html#name-string">string</a></span></i></div><div class="anchor value-res hidden" id="name-shouldBacktrack"><i>	<input type='checkbox' class="fold" id="shouldBacktrack-fold-content"><label for="shouldBacktrack-fold-content"> func <a href="../src/regexp/backtrack.go.html#line-73">shouldBacktrack</a>(prog *<a href="regexp/syntax.html">syntax</a>.<a href="regexp/syntax.html#name-Prog">Prog</a>) <a href="builtin.html#name-bool">bool</a></label><span id='shouldBacktrack-fold-content-docs' class="fold-docs">
+		shouldBacktrack reports whether the program is too
+		long for the backtracker to run.
+
+</span></i></div><div class="anchor value-res hidden" id="name-special"><i>	<input type='checkbox' class="fold" id="special-fold-content"><label for="special-fold-content"> func <a href="../src/regexp/regexp.go.html#line-707">special</a>(b <a href="builtin.html#name-byte">byte</a>) <a href="builtin.html#name-bool">bool</a></label><span id='special-fold-content-docs' class="fold-docs">
+		special reports whether byte b needs to be escaped by QuoteMeta.
+
+</span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (total 10, none are exported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* 10 unexporteds ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* 10 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-anyRune"><i>	<span class="nodocs">  var <a href="../src/regexp/onepass.go.html#line-292">anyRune</a> []<a href="builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-anyRuneNotNL"><i>	<span class="nodocs">  var <a href="../src/regexp/onepass.go.html#line-291">anyRuneNotNL</a> []<a href="builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-arrayNoInts"><i>	<input type='checkbox' class="fold" id="arrayNoInts-fold-content"><label for="arrayNoInts-fold-content">  var <a href="../src/regexp/exec.go.html#line-554">arrayNoInts</a> [0]<a href="builtin.html#name-int">int</a></label><span id='arrayNoInts-fold-content-docs' class="fold-docs">
+		arrayNoInts is returned by doExecute match if nil dstCap is passed
+		to it with ncap=0.
+
+</span></i></div><div class="anchor value-res hidden" id="name-bitStatePool"><i>	<span class="nodocs">  var <a href="../src/regexp/backtrack.go.html#line-47">bitStatePool</a> <a href="sync.html">sync</a>.<a href="sync.html#name-Pool">Pool</a></span></i></div><div class="anchor value-res hidden" id="name-matchPool"><i>	<input type='checkbox' class="fold" id="matchPool-fold-content"><label for="matchPool-fold-content">  var <a href="../src/regexp/regexp.go.html#line-228">matchPool</a> [5]<a href="sync.html">sync</a>.<a href="sync.html#name-Pool">Pool</a></label><span id='matchPool-fold-content-docs' class="fold-docs">
+		Pools of *machine for use during (*Regexp).doExecute,
+		split up by the size of the execution queues.
+		matchPool[i] machines have queue size matchSize[i].
+		On a 64-bit system each queue entry is 16 bytes,
+		so matchPool[0] has 16*2*128 = 4kB queues, etc.
+		The final matchPool is a catch-all for very large queues.
+
+</span></i></div><div class="anchor value-res hidden" id="name-matchSize"><i>	<input type='checkbox' class="fold" id="matchSize-fold-content"><label for="matchSize-fold-content">  var <a href="../src/regexp/regexp.go.html#line-227">matchSize</a> [5]<a href="builtin.html#name-int">int</a></label><span id='matchSize-fold-content-docs' class="fold-docs">
+		Pools of *machine for use during (*Regexp).doExecute,
+		split up by the size of the execution queues.
+		matchPool[i] machines have queue size matchSize[i].
+		On a 64-bit system each queue entry is 16 bytes,
+		so matchPool[0] has 16*2*128 = 4kB queues, etc.
+		The final matchPool is a catch-all for very large queues.
+
+</span></i></div><div class="anchor value-res hidden" id="name-noNext"><i>	<span class="nodocs">  var <a href="../src/regexp/onepass.go.html#line-154">noNext</a> []<a href="builtin.html#name-uint32">uint32</a></span></i></div><div class="anchor value-res hidden" id="name-noRune"><i>	<span class="nodocs">  var <a href="../src/regexp/onepass.go.html#line-153">noRune</a> []<a href="builtin.html#name-rune">rune</a></span></i></div><div class="anchor value-res hidden" id="name-onePassPool"><i>	<span class="nodocs">  var <a href="../src/regexp/exec.go.html#line-381">onePassPool</a> <a href="sync.html">sync</a>.<a href="sync.html#name-Pool">Pool</a></span></i></div><div class="anchor value-res hidden" id="name-specialBytes"><i>	<input type='checkbox' class="fold" id="specialBytes-fold-content"><label for="specialBytes-fold-content">  var <a href="../src/regexp/regexp.go.html#line-704">specialBytes</a> [16]<a href="builtin.html#name-byte">byte</a></label><span id='specialBytes-fold-content-docs' class="fold-docs">
+		Bitmap used by func special to check whether a character needs to be escaped.
+
+</span></i></div></div>
+<div id="exported-constants"><span class="title">Package-Level Constants<span class="title-stat"><i> (total 6, none are exported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-constants-showhide"><i><label for="unexported-constants-showhide" class="show-inline">/* 6 unexporteds ... */</label><label for="unexported-constants-showhide" class="hide-inline">/* 6 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-endOfText"><i>	<span class="nodocs">const <a href="../src/regexp/regexp.go.html#line-366">endOfText</a> <a href="builtin.html#name-rune">rune</a> = -1</span></i></div><div class="anchor value-res hidden" id="name-maxBacktrackProg"><i>	<span class="nodocs">const <a href="../src/regexp/backtrack.go.html#line-32">maxBacktrackProg</a> = 500 // len(prog.Inst) &lt;= max</span></i></div><div class="anchor value-res hidden" id="name-maxBacktrackVector"><i>	<span class="nodocs">const <a href="../src/regexp/backtrack.go.html#line-33">maxBacktrackVector</a> = 262144 // bit vector size &lt;= max (bits)</span></i></div><div class="anchor value-res hidden" id="name-mergeFailed"><i>	<input type='checkbox' class="fold" id="mergeFailed-fold-content"><label for="mergeFailed-fold-content">const <a href="../src/regexp/onepass.go.html#line-150">mergeFailed</a> <a href="builtin.html#name-uint32">uint32</a> = 4294967295</label><span id='mergeFailed-fold-content-docs' class="fold-docs">
+		mergeRuneSets merges two non-intersecting runesets, and returns the merged result,
+		and a NextIp array. The idea is that if a rune matches the OnePassRunes at index
+		i, NextIp[i/2] is the target. If the input sets intersect, an empty runeset and a
+		NextIp array with the single element mergeFailed is returned.
+		The code assumes that both inputs contain ordered and non-intersecting rune pairs.
+
+</span></i></div><div class="anchor value-res hidden" id="name-startSize"><i>	<span class="nodocs">const <a href="../src/regexp/regexp.go.html#line-1070">startSize</a> = 10 // The size at which to start a slice in the 'All' routines.</span></i></div><div class="anchor value-res hidden" id="name-visitedBits"><i>	<span class="nodocs">const <a href="../src/regexp/backtrack.go.html#line-31">visitedBits</a> = 32</span></i></div></div></code></pre><pre id="footer">
+<table><tr><td><img src="../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

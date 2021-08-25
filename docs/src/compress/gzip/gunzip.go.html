@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: gunzip.go in package compress/gzip</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	gunzip.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/compress/gzip.html">compress/gzip</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package gzip implements reading and writing of gzip format compressed files,</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// as specified in RFC 1952.</span></code></span></div><span class="codeline" id="line-7"><code><span class="keyword">package</span> gzip</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<label for="i0"><span class="lit-string i0">"bufio"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i1"><span class="lit-string i1">"compress/flate"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i2"><span class="lit-string i2">"encoding/binary"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i3"><span class="lit-string i3">"errors"</span></label></code></span>
+<span class="codeline" id="line-14"><code>	<label for="i4"><span class="lit-string i4">"hash/crc32"</span></label></code></span>
+<span class="codeline" id="line-15"><code>	<label for="i5"><span class="lit-string i5">"io"</span></label></code></span>
+<span class="codeline" id="line-16"><code>	<label for="i6"><span class="lit-string i6">"time"</span></label></code></span>
+<span class="codeline" id="line-17"><code>)</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../../pkg/compress/gzip.html#name-gzipID1" class="ident">gzipID1</a>     = <span class="lit-number">0x1f</span></code></span>
+<span class="codeline" id="line-21"><code>	<a href="../../../pkg/compress/gzip.html#name-gzipID2" class="ident">gzipID2</a>     = <span class="lit-number">0x8b</span></code></span>
+<span class="codeline" id="line-22"><code>	<a href="../../../pkg/compress/gzip.html#name-gzipDeflate" class="ident">gzipDeflate</a> = <span class="lit-number">8</span></code></span>
+<span class="codeline" id="line-23"><code>	<a href="../../../pkg/compress/gzip.html#name-flagText" class="ident">flagText</a>    = <span class="lit-number">1</span> &lt;&lt; <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-24"><code>	<a href="../../../pkg/compress/gzip.html#name-flagHdrCrc" class="ident">flagHdrCrc</a>  = <span class="lit-number">1</span> &lt;&lt; <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-25"><code>	<a href="../../../pkg/compress/gzip.html#name-flagExtra" class="ident">flagExtra</a>   = <span class="lit-number">1</span> &lt;&lt; <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-26"><code>	<a href="../../../pkg/compress/gzip.html#name-flagName" class="ident">flagName</a>    = <span class="lit-number">1</span> &lt;&lt; <span class="lit-number">3</span></code></span>
+<span class="codeline" id="line-27"><code>	<a href="../../../pkg/compress/gzip.html#name-flagComment" class="ident">flagComment</a> = <span class="lit-number">1</span> &lt;&lt; <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-28"><code>)</code></span>
+<span class="codeline" id="line-29"><code></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-31"><code>	<span class="comment">// ErrChecksum is returned when reading GZIP data that has an invalid checksum.</span></code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../../pkg/compress/gzip.html#name-ErrChecksum" class="ident">ErrChecksum</a> = <a href="../../../pkg/errors.html" class="ident i3">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"gzip: invalid checksum"</span>)</code></span>
+<span class="codeline" id="line-33"><code>	<span class="comment">// ErrHeader is returned when reading GZIP data that has an invalid header.</span></code></span>
+<span class="codeline" id="line-34"><code>	<a href="../../../pkg/compress/gzip.html#name-ErrHeader" class="ident">ErrHeader</a> = <a href="../../../pkg/errors.html" class="ident i3">errors</a>.<a href="../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"gzip: invalid header"</span>)</code></span>
+<span class="codeline" id="line-35"><code>)</code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code><span class="keyword">var</span> <a href="../../../pkg/compress/gzip.html#name-le" class="ident">le</a> = <a href="../../../pkg/encoding/binary.html" class="ident i2">binary</a>.<a href="../../encoding/binary/binary.go.html#line-45" class="ident">LittleEndian</a></code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// noEOF converts io.EOF to io.ErrUnexpectedEOF.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/compress/gzip.html#name-noEOF" class="ident">noEOF</a></label>(<label for="r1" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-41"><code>	<span class="keyword">if</span> <label for="r1" class="ident">err</label> == <a href="../../../pkg/io.html" class="ident i5">io</a>.<a href="../../io/io.go.html#line-44" class="ident">EOF</a> {</code></span>
+<span class="codeline" id="line-42"><code>		<span class="keyword">return</span> <a href="../../../pkg/io.html" class="ident i5">io</a>.<a href="../../io/io.go.html#line-48" class="ident">ErrUnexpectedEOF</a></code></span>
+<span class="codeline" id="line-43"><code>	}</code></span>
+<span class="codeline" id="line-44"><code>	<span class="keyword">return</span> <label for="r1" class="ident">err</label></code></span>
+<span class="codeline" id="line-45"><code>}</code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// The gzip file stores a header giving metadata about the compressed file.</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// That header is exposed as the fields of the Writer and Reader structs.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// Strings must be UTF-8 encoded and may only contain Unicode code points</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// U+0001 through U+00FF, due to limitations of the GZIP file format.</span></code></span>
+<span class="codeline" id="line-52"><code><span class="keyword">type</span> <a href="../../../pkg/compress/gzip.html#name-Header" class="ident">Header</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-53"><code>	Comment <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>    <span class="comment">// comment</span></code></span>
+<span class="codeline" id="line-54"><code>	Extra   []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>    <span class="comment">// "extra data"</span></code></span>
+<span class="codeline" id="line-55"><code>	ModTime <a href="../../../pkg/time.html" class="ident i6">time</a>.<a href="../../time/time.go.html#line-127" class="ident">Time</a> <span class="comment">// modification time</span></code></span>
+<span class="codeline" id="line-56"><code>	Name    <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>    <span class="comment">// file name</span></code></span>
+<span class="codeline" id="line-57"><code>	OS      <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>      <span class="comment">// operating system type</span></code></span>
+<span class="codeline" id="line-58"><code>}</code></span>
+<span class="codeline" id="line-59"><code></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">// A Reader is an io.Reader that can be read to retrieve</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">// uncompressed data from a gzip-format compressed file.</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">// In general, a gzip file can be a concatenation of gzip files,</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">// each with its own header. Reads from the Reader</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// return the concatenation of the uncompressed data of each.</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// Only the first header is recorded in the Reader fields.</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">// Gzip files store a length and checksum of the uncompressed data.</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// The Reader will return an ErrChecksum when Read</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// reaches the end of the uncompressed data if it does not</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// have the expected length or checksum. Clients should treat data</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">// returned by Read as tentative until they receive the io.EOF</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// marking the end of the data.</span></code></span>
+<span class="codeline" id="line-74"><code><span class="keyword">type</span> <a href="../../../pkg/compress/gzip.html#name-Reader" class="ident">Reader</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-75"><code>	<a href="#line-52" class="ident">Header</a>       <span class="comment">// valid after NewReader or Reader.Reset</span></code></span>
+<span class="codeline" id="line-76"><code>	r            <a href="../../../pkg/compress/flate.html" class="ident i1">flate</a>.<a href="../flate/inflate.go.html#line-261" class="ident">Reader</a></code></span>
+<span class="codeline" id="line-77"><code>	decompressor <a href="../../../pkg/io.html" class="ident i5">io</a>.<a href="../../io/io.go.html#line-132" class="ident">ReadCloser</a></code></span>
+<span class="codeline" id="line-78"><code>	digest       <a href="../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">// CRC-32, IEEE polynomial (section 8)</span></code></span>
+<span class="codeline" id="line-79"><code>	size         <a href="../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">// Uncompressed size (section 2.3.1)</span></code></span>
+<span class="codeline" id="line-80"><code>	buf          [<span class="lit-number">512</span>]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-81"><code>	err          <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-82"><code>	multistream  <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-83"><code>}</code></span>
+<span class="codeline" id="line-84"><code></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// NewReader creates a new Reader reading the given reader.</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">// If r does not also implement io.ByteReader,</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// the decompressor may read more data than necessary from r.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">// It is the caller's responsibility to call Close on the Reader when done.</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">// The Reader.Header fields will be valid in the Reader returned.</span></code></span>
+<span class="codeline" id="line-92"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../../pkg/compress/gzip.html#name-NewReader" class="ident">NewReader</a></label>(<label for="r3" class="ident">r</label> <a href="../../../pkg/io.html" class="ident i5">io</a>.<a href="../../io/io.go.html#line-83" class="ident">Reader</a>) (*<a href="#line-74" class="ident">Reader</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-93"><code>	<label for="r4" class="ident">z</label> := <a href="../../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="#line-74" class="ident">Reader</a>)</code></span>
+<span class="codeline" id="line-94"><code>	<span class="keyword">if</span> <label for="r5" class="ident">err</label> := <label for="r4" class="ident">z</label>.<a href="#line-103" class="ident">Reset</a>(<label for="r3" class="ident">r</label>); <label for="r5" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-95"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r5" class="ident">err</label></code></span>
+<span class="codeline" id="line-96"><code>	}</code></span>
+<span class="codeline" id="line-97"><code>	<span class="keyword">return</span> <label for="r4" class="ident">z</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-98"><code>}</code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">// Reset discards the Reader z's state and makes it equivalent to the</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">// result of its original state from NewReader, but reading from r instead.</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">// This permits reusing a Reader rather than allocating a new one.</span></code></span>
+<span class="codeline" id="line-103"><code><span class="keyword">func</span> (<label for="r6" class="ident">z</label> *<a href="#line-74" class="ident">Reader</a>) <label for="r7" class="ident">Reset</label>(<label for="r8" class="ident">r</label> <a href="../../../pkg/io.html" class="ident i5">io</a>.<a href="../../io/io.go.html#line-83" class="ident">Reader</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-104"><code>	*<label for="r6" class="ident">z</label> = <a href="#line-74" class="ident">Reader</a>{</code></span>
+<span class="codeline" id="line-105"><code>		<a href="#line-77" class="ident">decompressor</a>: <label for="r6" class="ident">z</label>.<a href="#line-77" class="ident">decompressor</a>,</code></span>
+<span class="codeline" id="line-106"><code>		<a href="#line-82" class="ident">multistream</a>:  <a href="../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-107"><code>	}</code></span>
+<span class="codeline" id="line-108"><code>	<span class="keyword">if</span> <label for="r9" class="ident">rr</label>, <label for="r10" class="ident">ok</label> := <label for="r8" class="ident">r</label>.(<a href="../../../pkg/compress/flate.html" class="ident i1">flate</a>.<a href="../flate/inflate.go.html#line-261" class="ident">Reader</a>); <label for="r10" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-109"><code>		<label for="r6" class="ident">z</label>.<a href="#line-76" class="ident">r</a> = <label for="r9" class="ident">rr</label></code></span>
+<span class="codeline" id="line-110"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-111"><code>		<label for="r6" class="ident">z</label>.<a href="#line-76" class="ident">r</a> = <a href="../../../pkg/bufio.html" class="ident i0">bufio</a>.<a href="../../bufio/bufio.go.html#line-62" class="ident">NewReader</a>(<label for="r8" class="ident">r</label>)</code></span>
+<span class="codeline" id="line-112"><code>	}</code></span>
+<span class="codeline" id="line-113"><code>	<label for="r6" class="ident">z</label>.<a href="#line-75" class="ident">Header</a>, <label for="r6" class="ident">z</label>.<a href="#line-81" class="ident">err</a> = <label for="r6" class="ident">z</label>.<a href="#line-174" class="ident">readHeader</a>()</code></span>
+<span class="codeline" id="line-114"><code>	<span class="keyword">return</span> <label for="r6" class="ident">z</label>.<a href="#line-81" class="ident">err</a></code></span>
+<span class="codeline" id="line-115"><code>}</code></span>
+<span class="codeline" id="line-116"><code></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">// Multistream controls whether the reader supports multistream files.</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">// If enabled (the default), the Reader expects the input to be a sequence</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">// of individually gzipped data streams, each with its own header and</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">// trailer, ending at EOF. The effect is that the concatenation of a sequence</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">// of gzipped files is treated as equivalent to the gzip of the concatenation</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">// of the sequence. This is standard behavior for gzip readers.</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">// Calling Multistream(false) disables this behavior; disabling the behavior</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">// can be useful when reading file formats that distinguish individual gzip</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">// data streams or mix gzip data streams with other data streams.</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">// In this mode, when the Reader reaches the end of the data stream,</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">// Read returns io.EOF. The underlying reader must implement io.ByteReader</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">// in order to be left positioned just after the gzip stream.</span></code></span>
+<span class="codeline" id="line-131"><code><span class="comment">// To start the next stream, call z.Reset(r) followed by z.Multistream(false).</span></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">// If there is no next stream, z.Reset(r) will return io.EOF.</span></code></span>
+<span class="codeline" id="line-133"><code><span class="keyword">func</span> (<label for="r11" class="ident">z</label> *<a href="#line-74" class="ident">Reader</a>) <label for="r12" class="ident">Multistream</label>(<label for="r13" class="ident">ok</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-134"><code>	<label for="r11" class="ident">z</label>.<a href="#line-82" class="ident">multistream</a> = <label for="r13" class="ident">ok</label></code></span>
+<span class="codeline" id="line-135"><code>}</code></span>
+<span class="codeline" id="line-136"><code></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">// readString reads a NUL-terminated string from z.r.</span></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">// It treats the bytes read as being encoded as ISO 8859-1 (Latin-1) and</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">// will output a string encoded using UTF-8.</span></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">// This method always updates z.digest with the data read.</span></code></span>
+<span class="codeline" id="line-141"><code><span class="keyword">func</span> (<label for="r14" class="ident">z</label> *<a href="#line-74" class="ident">Reader</a>) <label for="r15" class="ident">readString</label>() (<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-142"><code>	<span class="keyword">var</span> <label for="r16" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-143"><code>	<label for="r17" class="ident">needConv</label> := <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-144"><code>	<span class="keyword">for</span> <label for="r18" class="ident">i</label> := <span class="lit-number">0</span>; ; <label for="r18" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-145"><code>		<span class="keyword">if</span> <label for="r18" class="ident">i</label> &gt;= <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r14" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>) {</code></span>
+<span class="codeline" id="line-146"><code>			<span class="keyword">return</span> <span class="lit-string">""</span>, <a href="#line-34" class="ident">ErrHeader</a></code></span>
+<span class="codeline" id="line-147"><code>		}</code></span>
+<span class="codeline" id="line-148"><code>		<label for="r14" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[<label for="r18" class="ident">i</label>], <label for="r16" class="ident">err</label> = <label for="r14" class="ident">z</label>.<a href="#line-76" class="ident">r</a>.<a href="../../io/io.go.html#line-258" class="ident">ReadByte</a>()</code></span>
+<span class="codeline" id="line-149"><code>		<span class="keyword">if</span> <label for="r16" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-150"><code>			<span class="keyword">return</span> <span class="lit-string">""</span>, <label for="r16" class="ident">err</label></code></span>
+<span class="codeline" id="line-151"><code>		}</code></span>
+<span class="codeline" id="line-152"><code>		<span class="keyword">if</span> <label for="r14" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[<label for="r18" class="ident">i</label>] &gt; <span class="lit-number">0x7f</span> {</code></span>
+<span class="codeline" id="line-153"><code>			<label for="r17" class="ident">needConv</label> = <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-154"><code>		}</code></span>
+<span class="codeline" id="line-155"><code>		<span class="keyword">if</span> <label for="r14" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[<label for="r18" class="ident">i</label>] == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-156"><code>			<span class="comment">// Digest covers the NUL terminator.</span></code></span>
+<span class="codeline" id="line-157"><code>			<label for="r14" class="ident">z</label>.<a href="#line-78" class="ident">digest</a> = <a href="../../../pkg/hash/crc32.html" class="ident i4">crc32</a>.<a href="../../hash/crc32/crc32.go.html#line-214" class="ident">Update</a>(<label for="r14" class="ident">z</label>.<a href="#line-78" class="ident">digest</a>, <a href="../../../pkg/hash/crc32.html" class="ident i4">crc32</a>.<a href="../../hash/crc32/crc32.go.html#line-103" class="ident">IEEETable</a>, <label for="r14" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[:<label for="r18" class="ident">i</label>+<span class="lit-number">1</span>])</code></span>
+<span class="codeline" id="line-158"><code></code></span>
+<span class="codeline" id="line-159"><code>			<span class="comment">// Strings are ISO 8859-1, Latin-1 (RFC 1952, section 2.3.1).</span></code></span>
+<span class="codeline" id="line-160"><code>			<span class="keyword">if</span> <label for="r17" class="ident">needConv</label> {</code></span>
+<span class="codeline" id="line-161"><code>				<label for="r19" class="ident">s</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-rune" class="ident">rune</a>, <span class="lit-number">0</span>, <label for="r18" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-162"><code>				<span class="keyword">for</span> <label for="r20" class="ident">_</label>, <label for="r21" class="ident">v</label> := <span class="keyword">range</span> <label for="r14" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[:<label for="r18" class="ident">i</label>] {</code></span>
+<span class="codeline" id="line-163"><code>					<label for="r19" class="ident">s</label> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r19" class="ident">s</label>, <a href="../../../pkg/builtin.html#name-rune" class="ident">rune</a>(<label for="r21" class="ident">v</label>))</code></span>
+<span class="codeline" id="line-164"><code>				}</code></span>
+<span class="codeline" id="line-165"><code>				<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r19" class="ident">s</label>), <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-166"><code>			}</code></span>
+<span class="codeline" id="line-167"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r14" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[:<label for="r18" class="ident">i</label>]), <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-168"><code>		}</code></span>
+<span class="codeline" id="line-169"><code>	}</code></span>
+<span class="codeline" id="line-170"><code>}</code></span>
+<span class="codeline" id="line-171"><code></code></span>
+<span class="codeline" id="line-172"><code><span class="comment">// readHeader reads the GZIP header according to section 2.3.1.</span></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">// This method does not set z.err.</span></code></span>
+<span class="codeline" id="line-174"><code><span class="keyword">func</span> (<label for="r22" class="ident">z</label> *<a href="#line-74" class="ident">Reader</a>) <label for="r23" class="ident">readHeader</label>() (<label for="r24" class="ident">hdr</label> <a href="#line-52" class="ident">Header</a>, <label for="r25" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-175"><code>	<span class="keyword">if</span> _, <label for="r25" class="ident">err</label> = <a href="../../../pkg/io.html" class="ident i5">io</a>.<a href="../../io/io.go.html#line-346" class="ident">ReadFull</a>(<label for="r22" class="ident">z</label>.<a href="#line-76" class="ident">r</a>, <label for="r22" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[:<span class="lit-number">10</span>]); <label for="r25" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-176"><code>		<span class="comment">// RFC 1952, section 2.2, says the following:</span></code></span>
+<span class="codeline" id="line-177"><code><span class="comment">		//	A gzip file consists of a series of "members" (compressed data sets).</span></code></span>
+<span class="codeline" id="line-178"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-179"><code><span class="comment">		// Other than this, the specification does not clarify whether a</span></code></span>
+<span class="codeline" id="line-180"><code><span class="comment">		// "series" is defined as "one or more" or "zero or more". To err on the</span></code></span>
+<span class="codeline" id="line-181"><code><span class="comment">		// side of caution, Go interprets this to mean "zero or more".</span></code></span>
+<span class="codeline" id="line-182"><code><span class="comment">		// Thus, it is okay to return io.EOF here.</span></code></span>
+<span class="codeline" id="line-183"><code>		<span class="keyword">return</span> <label for="r24" class="ident">hdr</label>, <label for="r25" class="ident">err</label></code></span>
+<span class="codeline" id="line-184"><code>	}</code></span>
+<span class="codeline" id="line-185"><code>	<span class="keyword">if</span> <label for="r22" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[<span class="lit-number">0</span>] != <a href="#line-20" class="ident">gzipID1</a> || <label for="r22" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[<span class="lit-number">1</span>] != <a href="#line-21" class="ident">gzipID2</a> || <label for="r22" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[<span class="lit-number">2</span>] != <a href="#line-22" class="ident">gzipDeflate</a> {</code></span>
+<span class="codeline" id="line-186"><code>		<span class="keyword">return</span> <label for="r24" class="ident">hdr</label>, <a href="#line-34" class="ident">ErrHeader</a></code></span>
+<span class="codeline" id="line-187"><code>	}</code></span>
+<span class="codeline" id="line-188"><code>	<label for="r26" class="ident">flg</label> := <label for="r22" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[<span class="lit-number">3</span>]</code></span>
+<span class="codeline" id="line-189"><code>	<span class="keyword">if</span> <label for="r27" class="ident">t</label> := <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<a href="#line-37" class="ident">le</a>.<a href="../../encoding/binary/binary.go.html#line-63" class="ident">Uint32</a>(<label for="r22" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[<span class="lit-number">4</span>:<span class="lit-number">8</span>])); <label for="r27" class="ident">t</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-190"><code>		<span class="comment">// Section 2.3.1, the zero value for MTIME means that the</span></code></span>
+<span class="codeline" id="line-191"><code><span class="comment">		// modified time is not set.</span></code></span>
+<span class="codeline" id="line-192"><code>		<label for="r24" class="ident">hdr</label>.<a href="#line-55" class="ident">ModTime</a> = <a href="../../../pkg/time.html" class="ident i6">time</a>.<a href="../../time/time.go.html#line-1292" class="ident">Unix</a>(<label for="r27" class="ident">t</label>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-193"><code>	}</code></span>
+<span class="codeline" id="line-194"><code>	<span class="comment">// z.buf[8] is XFL and is currently ignored.</span></code></span>
+<span class="codeline" id="line-195"><code>	<label for="r24" class="ident">hdr</label>.<a href="#line-57" class="ident">OS</a> = <label for="r22" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[<span class="lit-number">9</span>]</code></span>
+<span class="codeline" id="line-196"><code>	<label for="r22" class="ident">z</label>.<a href="#line-78" class="ident">digest</a> = <a href="../../../pkg/hash/crc32.html" class="ident i4">crc32</a>.<a href="../../hash/crc32/crc32.go.html#line-255" class="ident">ChecksumIEEE</a>(<label for="r22" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[:<span class="lit-number">10</span>])</code></span>
+<span class="codeline" id="line-197"><code></code></span>
+<span class="codeline" id="line-198"><code>	<span class="keyword">if</span> <label for="r26" class="ident">flg</label>&amp;<a href="#line-25" class="ident">flagExtra</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-199"><code>		<span class="keyword">if</span> _, <label for="r25" class="ident">err</label> = <a href="../../../pkg/io.html" class="ident i5">io</a>.<a href="../../io/io.go.html#line-346" class="ident">ReadFull</a>(<label for="r22" class="ident">z</label>.<a href="#line-76" class="ident">r</a>, <label for="r22" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[:<span class="lit-number">2</span>]); <label for="r25" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-200"><code>			<span class="keyword">return</span> <label for="r24" class="ident">hdr</label>, <a href="#line-40" class="ident">noEOF</a>(<label for="r25" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-201"><code>		}</code></span>
+<span class="codeline" id="line-202"><code>		<label for="r22" class="ident">z</label>.<a href="#line-78" class="ident">digest</a> = <a href="../../../pkg/hash/crc32.html" class="ident i4">crc32</a>.<a href="../../hash/crc32/crc32.go.html#line-214" class="ident">Update</a>(<label for="r22" class="ident">z</label>.<a href="#line-78" class="ident">digest</a>, <a href="../../../pkg/hash/crc32.html" class="ident i4">crc32</a>.<a href="../../hash/crc32/crc32.go.html#line-103" class="ident">IEEETable</a>, <label for="r22" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[:<span class="lit-number">2</span>])</code></span>
+<span class="codeline" id="line-203"><code>		<label for="r28" class="ident">data</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="#line-37" class="ident">le</a>.<a href="../../encoding/binary/binary.go.html#line-52" class="ident">Uint16</a>(<label for="r22" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[:<span class="lit-number">2</span>]))</code></span>
+<span class="codeline" id="line-204"><code>		<span class="keyword">if</span> _, <label for="r25" class="ident">err</label> = <a href="../../../pkg/io.html" class="ident i5">io</a>.<a href="../../io/io.go.html#line-346" class="ident">ReadFull</a>(<label for="r22" class="ident">z</label>.<a href="#line-76" class="ident">r</a>, <label for="r28" class="ident">data</label>); <label for="r25" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-205"><code>			<span class="keyword">return</span> <label for="r24" class="ident">hdr</label>, <a href="#line-40" class="ident">noEOF</a>(<label for="r25" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-206"><code>		}</code></span>
+<span class="codeline" id="line-207"><code>		<label for="r22" class="ident">z</label>.<a href="#line-78" class="ident">digest</a> = <a href="../../../pkg/hash/crc32.html" class="ident i4">crc32</a>.<a href="../../hash/crc32/crc32.go.html#line-214" class="ident">Update</a>(<label for="r22" class="ident">z</label>.<a href="#line-78" class="ident">digest</a>, <a href="../../../pkg/hash/crc32.html" class="ident i4">crc32</a>.<a href="../../hash/crc32/crc32.go.html#line-103" class="ident">IEEETable</a>, <label for="r28" class="ident">data</label>)</code></span>
+<span class="codeline" id="line-208"><code>		<label for="r24" class="ident">hdr</label>.<a href="#line-54" class="ident">Extra</a> = <label for="r28" class="ident">data</label></code></span>
+<span class="codeline" id="line-209"><code>	}</code></span>
+<span class="codeline" id="line-210"><code></code></span>
+<span class="codeline" id="line-211"><code>	<span class="keyword">var</span> <label for="r29" class="ident">s</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-212"><code>	<span class="keyword">if</span> <label for="r26" class="ident">flg</label>&amp;<a href="#line-26" class="ident">flagName</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-213"><code>		<span class="keyword">if</span> <label for="r29" class="ident">s</label>, <label for="r25" class="ident">err</label> = <label for="r22" class="ident">z</label>.<a href="#line-141" class="ident">readString</a>(); <label for="r25" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-214"><code>			<span class="keyword">return</span> <label for="r24" class="ident">hdr</label>, <label for="r25" class="ident">err</label></code></span>
+<span class="codeline" id="line-215"><code>		}</code></span>
+<span class="codeline" id="line-216"><code>		<label for="r24" class="ident">hdr</label>.<a href="#line-56" class="ident">Name</a> = <label for="r29" class="ident">s</label></code></span>
+<span class="codeline" id="line-217"><code>	}</code></span>
+<span class="codeline" id="line-218"><code></code></span>
+<span class="codeline" id="line-219"><code>	<span class="keyword">if</span> <label for="r26" class="ident">flg</label>&amp;<a href="#line-27" class="ident">flagComment</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-220"><code>		<span class="keyword">if</span> <label for="r29" class="ident">s</label>, <label for="r25" class="ident">err</label> = <label for="r22" class="ident">z</label>.<a href="#line-141" class="ident">readString</a>(); <label for="r25" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-221"><code>			<span class="keyword">return</span> <label for="r24" class="ident">hdr</label>, <label for="r25" class="ident">err</label></code></span>
+<span class="codeline" id="line-222"><code>		}</code></span>
+<span class="codeline" id="line-223"><code>		<label for="r24" class="ident">hdr</label>.<a href="#line-53" class="ident">Comment</a> = <label for="r29" class="ident">s</label></code></span>
+<span class="codeline" id="line-224"><code>	}</code></span>
+<span class="codeline" id="line-225"><code></code></span>
+<span class="codeline" id="line-226"><code>	<span class="keyword">if</span> <label for="r26" class="ident">flg</label>&amp;<a href="#line-24" class="ident">flagHdrCrc</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-227"><code>		<span class="keyword">if</span> _, <label for="r25" class="ident">err</label> = <a href="../../../pkg/io.html" class="ident i5">io</a>.<a href="../../io/io.go.html#line-346" class="ident">ReadFull</a>(<label for="r22" class="ident">z</label>.<a href="#line-76" class="ident">r</a>, <label for="r22" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[:<span class="lit-number">2</span>]); <label for="r25" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-228"><code>			<span class="keyword">return</span> <label for="r24" class="ident">hdr</label>, <a href="#line-40" class="ident">noEOF</a>(<label for="r25" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-229"><code>		}</code></span>
+<span class="codeline" id="line-230"><code>		<label for="r30" class="ident">digest</label> := <a href="#line-37" class="ident">le</a>.<a href="../../encoding/binary/binary.go.html#line-52" class="ident">Uint16</a>(<label for="r22" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[:<span class="lit-number">2</span>])</code></span>
+<span class="codeline" id="line-231"><code>		<span class="keyword">if</span> <label for="r30" class="ident">digest</label> != <a href="../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r22" class="ident">z</label>.<a href="#line-78" class="ident">digest</a>) {</code></span>
+<span class="codeline" id="line-232"><code>			<span class="keyword">return</span> <label for="r24" class="ident">hdr</label>, <a href="#line-34" class="ident">ErrHeader</a></code></span>
+<span class="codeline" id="line-233"><code>		}</code></span>
+<span class="codeline" id="line-234"><code>	}</code></span>
+<span class="codeline" id="line-235"><code></code></span>
+<span class="codeline" id="line-236"><code>	<label for="r22" class="ident">z</label>.<a href="#line-78" class="ident">digest</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-237"><code>	<span class="keyword">if</span> <label for="r22" class="ident">z</label>.<a href="#line-77" class="ident">decompressor</a> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-238"><code>		<label for="r22" class="ident">z</label>.<a href="#line-77" class="ident">decompressor</a> = <a href="../../../pkg/compress/flate.html" class="ident i1">flate</a>.<a href="../flate/inflate.go.html#line-796" class="ident">NewReader</a>(<label for="r22" class="ident">z</label>.<a href="#line-76" class="ident">r</a>)</code></span>
+<span class="codeline" id="line-239"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-240"><code>		<label for="r22" class="ident">z</label>.<a href="#line-77" class="ident">decompressor</a>.(<a href="../../../pkg/compress/flate.html" class="ident i1">flate</a>.<a href="../flate/inflate.go.html#line-71" class="ident">Resetter</a>).<a href="../flate/inflate.go.html#line-74" class="ident">Reset</a>(<label for="r22" class="ident">z</label>.<a href="#line-76" class="ident">r</a>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-241"><code>	}</code></span>
+<span class="codeline" id="line-242"><code>	<span class="keyword">return</span> <label for="r24" class="ident">hdr</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-243"><code>}</code></span>
+<span class="codeline" id="line-244"><code></code></span>
+<span class="codeline" id="line-245"><code><span class="comment">// Read implements io.Reader, reading uncompressed bytes from its underlying Reader.</span></code></span>
+<span class="codeline" id="line-246"><code><span class="keyword">func</span> (<label for="r31" class="ident">z</label> *<a href="#line-74" class="ident">Reader</a>) <label for="r32" class="ident"><a href="../../../imp/compress/gzip.Reader.html#name-.Read" class="ident">Read</a></label>(<label for="r33" class="ident">p</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r34" class="ident">n</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r35" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-247"><code>	<span class="keyword">if</span> <label for="r31" class="ident">z</label>.<a href="#line-81" class="ident">err</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-248"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <label for="r31" class="ident">z</label>.<a href="#line-81" class="ident">err</a></code></span>
+<span class="codeline" id="line-249"><code>	}</code></span>
+<span class="codeline" id="line-250"><code></code></span>
+<span class="codeline" id="line-251"><code>	<label for="r34" class="ident">n</label>, <label for="r31" class="ident">z</label>.<a href="#line-81" class="ident">err</a> = <label for="r31" class="ident">z</label>.<a href="#line-77" class="ident">decompressor</a>.<a href="../../io/io.go.html#line-84" class="ident">Read</a>(<label for="r33" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-252"><code>	<label for="r31" class="ident">z</label>.<a href="#line-78" class="ident">digest</a> = <a href="../../../pkg/hash/crc32.html" class="ident i4">crc32</a>.<a href="../../hash/crc32/crc32.go.html#line-214" class="ident">Update</a>(<label for="r31" class="ident">z</label>.<a href="#line-78" class="ident">digest</a>, <a href="../../../pkg/hash/crc32.html" class="ident i4">crc32</a>.<a href="../../hash/crc32/crc32.go.html#line-103" class="ident">IEEETable</a>, <label for="r33" class="ident">p</label>[:<label for="r34" class="ident">n</label>])</code></span>
+<span class="codeline" id="line-253"><code>	<label for="r31" class="ident">z</label>.<a href="#line-79" class="ident">size</a> += <a href="../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r34" class="ident">n</label>)</code></span>
+<span class="codeline" id="line-254"><code>	<span class="keyword">if</span> <label for="r31" class="ident">z</label>.<a href="#line-81" class="ident">err</a> != <a href="../../../pkg/io.html" class="ident i5">io</a>.<a href="../../io/io.go.html#line-44" class="ident">EOF</a> {</code></span>
+<span class="codeline" id="line-255"><code>		<span class="comment">// In the normal case we return here.</span></code></span>
+<span class="codeline" id="line-256"><code>		<span class="keyword">return</span> <label for="r34" class="ident">n</label>, <label for="r31" class="ident">z</label>.<a href="#line-81" class="ident">err</a></code></span>
+<span class="codeline" id="line-257"><code>	}</code></span>
+<span class="codeline" id="line-258"><code></code></span>
+<span class="codeline" id="line-259"><code>	<span class="comment">// Finished file; check checksum and size.</span></code></span>
+<span class="codeline" id="line-260"><code>	<span class="keyword">if</span> <label for="r36" class="ident">_</label>, <label for="r37" class="ident">err</label> := <a href="../../../pkg/io.html" class="ident i5">io</a>.<a href="../../io/io.go.html#line-346" class="ident">ReadFull</a>(<label for="r31" class="ident">z</label>.<a href="#line-76" class="ident">r</a>, <label for="r31" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[:<span class="lit-number">8</span>]); <label for="r37" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-261"><code>		<label for="r31" class="ident">z</label>.<a href="#line-81" class="ident">err</a> = <a href="#line-40" class="ident">noEOF</a>(<label for="r37" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-262"><code>		<span class="keyword">return</span> <label for="r34" class="ident">n</label>, <label for="r31" class="ident">z</label>.<a href="#line-81" class="ident">err</a></code></span>
+<span class="codeline" id="line-263"><code>	}</code></span>
+<span class="codeline" id="line-264"><code>	<label for="r38" class="ident">digest</label> := <a href="#line-37" class="ident">le</a>.<a href="../../encoding/binary/binary.go.html#line-63" class="ident">Uint32</a>(<label for="r31" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[:<span class="lit-number">4</span>])</code></span>
+<span class="codeline" id="line-265"><code>	<label for="r39" class="ident">size</label> := <a href="#line-37" class="ident">le</a>.<a href="../../encoding/binary/binary.go.html#line-63" class="ident">Uint32</a>(<label for="r31" class="ident">z</label>.<a href="#line-80" class="ident">buf</a>[<span class="lit-number">4</span>:<span class="lit-number">8</span>])</code></span>
+<span class="codeline" id="line-266"><code>	<span class="keyword">if</span> <label for="r38" class="ident">digest</label> != <label for="r31" class="ident">z</label>.<a href="#line-78" class="ident">digest</a> || <label for="r39" class="ident">size</label> != <label for="r31" class="ident">z</label>.<a href="#line-79" class="ident">size</a> {</code></span>
+<span class="codeline" id="line-267"><code>		<label for="r31" class="ident">z</label>.<a href="#line-81" class="ident">err</a> = <a href="#line-32" class="ident">ErrChecksum</a></code></span>
+<span class="codeline" id="line-268"><code>		<span class="keyword">return</span> <label for="r34" class="ident">n</label>, <label for="r31" class="ident">z</label>.<a href="#line-81" class="ident">err</a></code></span>
+<span class="codeline" id="line-269"><code>	}</code></span>
+<span class="codeline" id="line-270"><code>	<label for="r31" class="ident">z</label>.<a href="#line-78" class="ident">digest</a>, <label for="r31" class="ident">z</label>.<a href="#line-79" class="ident">size</a> = <span class="lit-number">0</span>, <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-271"><code></code></span>
+<span class="codeline" id="line-272"><code>	<span class="comment">// File is ok; check if there is another.</span></code></span>
+<span class="codeline" id="line-273"><code>	<span class="keyword">if</span> !<label for="r31" class="ident">z</label>.<a href="#line-82" class="ident">multistream</a> {</code></span>
+<span class="codeline" id="line-274"><code>		<span class="keyword">return</span> <label for="r34" class="ident">n</label>, <a href="../../../pkg/io.html" class="ident i5">io</a>.<a href="../../io/io.go.html#line-44" class="ident">EOF</a></code></span>
+<span class="codeline" id="line-275"><code>	}</code></span>
+<span class="codeline" id="line-276"><code>	<label for="r31" class="ident">z</label>.<a href="#line-81" class="ident">err</a> = <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> <span class="comment">// Remove io.EOF</span></code></span>
+<span class="codeline" id="line-277"><code></code></span>
+<span class="codeline" id="line-278"><code>	<span class="keyword">if</span> _, <label for="r31" class="ident">z</label>.<a href="#line-81" class="ident">err</a> = <label for="r31" class="ident">z</label>.<a href="#line-174" class="ident">readHeader</a>(); <label for="r31" class="ident">z</label>.<a href="#line-81" class="ident">err</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-279"><code>		<span class="keyword">return</span> <label for="r34" class="ident">n</label>, <label for="r31" class="ident">z</label>.<a href="#line-81" class="ident">err</a></code></span>
+<span class="codeline" id="line-280"><code>	}</code></span>
+<span class="codeline" id="line-281"><code></code></span>
+<span class="codeline" id="line-282"><code>	<span class="comment">// Read from next file, if necessary.</span></code></span>
+<span class="codeline" id="line-283"><code>	<span class="keyword">if</span> <label for="r34" class="ident">n</label> &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-284"><code>		<span class="keyword">return</span> <label for="r34" class="ident">n</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-285"><code>	}</code></span>
+<span class="codeline" id="line-286"><code>	<span class="keyword">return</span> <label for="r31" class="ident">z</label>.<label for="r32" class="ident">Read</label>(<label for="r33" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-287"><code>}</code></span>
+<span class="codeline" id="line-288"><code></code></span>
+<span class="codeline" id="line-289"><code><span class="comment">// Close closes the Reader. It does not close the underlying io.Reader.</span></code></span>
+<span class="codeline" id="line-290"><code><span class="comment">// In order for the GZIP checksum to be verified, the reader must be</span></code></span>
+<span class="codeline" id="line-291"><code><span class="comment">// fully consumed until the io.EOF.</span></code></span>
+<span class="codeline" id="line-292"><code><span class="keyword">func</span> (<label for="r40" class="ident">z</label> *<a href="#line-74" class="ident">Reader</a>) <label for="r41" class="ident"><a href="../../../imp/compress/gzip.Reader.html#name-.Close" class="ident">Close</a></label>() <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> { <span class="keyword">return</span> <label for="r40" class="ident">z</label>.<a href="#line-77" class="ident">decompressor</a>.<a href="../../io/io.go.html#line-105" class="ident">Close</a>() }</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

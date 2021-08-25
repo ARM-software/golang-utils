@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: ipsock_posix.go in package net</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	ipsock_posix.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/net.html">net</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// +build aix darwin dragonfly freebsd js,wasm linux netbsd openbsd solaris windows</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> net</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i1"><span class="lit-string i1">"internal/poll"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i2"><span class="lit-string i2">"runtime"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i3"><span class="lit-string i3">"syscall"</span></label></code></span>
+<span class="codeline" id="line-14"><code>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// Probe probes IPv4, IPv6 and IPv4-mapped IPv6 communication</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// capabilities which are controlled by the IPV6_V6ONLY socket option</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// and kernel configuration.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// Should we try to use the IPv4 socket interface if we're only</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// dealing with IPv4 sockets? As long as the host system understands</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// IPv4-mapped IPv6, it's okay to pass IPv4-mapeed IPv6 addresses to</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// the IPv6 interface. That simplifies our code and is most</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// general. Unfortunately, we need to run on kernels built without</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// IPv6 support too. So probe the kernel to figure it out.</span></code></span>
+<span class="codeline" id="line-26"><code><span class="keyword">func</span> (<label for="r0" class="ident">p</label> *<a href="ipsock.go.html#line-20" class="ident">ipStackCapabilities</a>) <label for="r1" class="ident">probe</label>() {</code></span>
+<span class="codeline" id="line-27"><code>	<label for="r2" class="ident">s</label>, <label for="r3" class="ident">err</label> := <a href="sock_cloexec.go.html#line-20" class="ident">sysSocket</a>(<a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-26" class="ident">AF_INET</a>, <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1010" class="ident">SOCK_STREAM</a>, <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-396" class="ident">IPPROTO_TCP</a>)</code></span>
+<span class="codeline" id="line-28"><code>	<span class="keyword">switch</span> <label for="r3" class="ident">err</label> {</code></span>
+<span class="codeline" id="line-29"><code>	<span class="keyword">case</span> <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1211" class="ident">EAFNOSUPPORT</a>, <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1313" class="ident">EPROTONOSUPPORT</a>:</code></span>
+<span class="codeline" id="line-30"><code>	<span class="keyword">case</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>:</code></span>
+<span class="codeline" id="line-31"><code>		<a href="../../pkg/internal/poll.html" class="ident i1">poll</a>.<a href="../internal/poll/hook_unix.go.html#line-12" class="ident">CloseFunc</a>(<label for="r2" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-32"><code>		<label for="r0" class="ident">p</label>.<a href="ipsock.go.html#line-22" class="ident">ipv4Enabled</a> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-33"><code>	}</code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">var</span> <label for="r4" class="ident">probes</label> = []<span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-35"><code>		<label for="r5" class="ident">laddr</label> <a href="tcpsock.go.html#line-19" class="ident">TCPAddr</a></code></span>
+<span class="codeline" id="line-36"><code>		<label for="r6" class="ident">value</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-37"><code>	}{</code></span>
+<span class="codeline" id="line-38"><code>		<span class="comment">// IPv6 communication capability</span></code></span>
+<span class="codeline" id="line-39"><code>		{<label for="r5" class="ident">laddr</label>: <a href="tcpsock.go.html#line-19" class="ident">TCPAddr</a>{<a href="tcpsock.go.html#line-20" class="ident">IP</a>: <a href="ip.go.html#line-678" class="ident">ParseIP</a>(<span class="lit-string">"::1"</span>)}, <label for="r6" class="ident">value</label>: <span class="lit-number">1</span>},</code></span>
+<span class="codeline" id="line-40"><code>		<span class="comment">// IPv4-mapped IPv6 address communication capability</span></code></span>
+<span class="codeline" id="line-41"><code>		{<label for="r5" class="ident">laddr</label>: <a href="tcpsock.go.html#line-19" class="ident">TCPAddr</a>{<a href="tcpsock.go.html#line-20" class="ident">IP</a>: <a href="ip.go.html#line-48" class="ident">IPv4</a>(<span class="lit-number">127</span>, <span class="lit-number">0</span>, <span class="lit-number">0</span>, <span class="lit-number">1</span>)}, <label for="r6" class="ident">value</label>: <span class="lit-number">0</span>},</code></span>
+<span class="codeline" id="line-42"><code>	}</code></span>
+<span class="codeline" id="line-43"><code>	<span class="keyword">switch</span> <a href="../../pkg/runtime.html" class="ident i2">runtime</a>.<a href="../runtime/extern.go.html#line-253" class="ident">GOOS</a> {</code></span>
+<span class="codeline" id="line-44"><code>	<span class="keyword">case</span> <span class="lit-string">"dragonfly"</span>, <span class="lit-string">"openbsd"</span>:</code></span>
+<span class="codeline" id="line-45"><code>		<span class="comment">// The latest DragonFly BSD and OpenBSD kernels don't</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">		// support IPV6_V6ONLY=0. They always return an error</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">		// and we don't need to probe the capability.</span></code></span>
+<span class="codeline" id="line-48"><code>		<label for="r4" class="ident">probes</label> = <label for="r4" class="ident">probes</label>[:<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-49"><code>	}</code></span>
+<span class="codeline" id="line-50"><code>	<span class="keyword">for</span> <label for="r7" class="ident">i</label> := <span class="keyword">range</span> <label for="r4" class="ident">probes</label> {</code></span>
+<span class="codeline" id="line-51"><code>		<label for="r8" class="ident">s</label>, <label for="r9" class="ident">err</label> := <a href="sock_cloexec.go.html#line-20" class="ident">sysSocket</a>(<a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-27" class="ident">AF_INET6</a>, <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1010" class="ident">SOCK_STREAM</a>, <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-396" class="ident">IPPROTO_TCP</a>)</code></span>
+<span class="codeline" id="line-52"><code>		<span class="keyword">if</span> <label for="r9" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-53"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-54"><code>		}</code></span>
+<span class="codeline" id="line-55"><code>		<span class="keyword">defer</span> <a href="../../pkg/internal/poll.html" class="ident i1">poll</a>.<a href="../internal/poll/hook_unix.go.html#line-12" class="ident">CloseFunc</a>(<label for="r8" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-56"><code>		<a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/syscall_unix.go.html#line-305" class="ident">SetsockoptInt</a>(<label for="r8" class="ident">s</label>, <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-387" class="ident">IPPROTO_IPV6</a>, <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-447" class="ident">IPV6_V6ONLY</a>, <label for="r4" class="ident">probes</label>[<label for="r7" class="ident">i</label>].<label for="r6" class="ident">value</label>)</code></span>
+<span class="codeline" id="line-57"><code>		<label for="r10" class="ident">sa</label>, <label for="r9" class="ident">err</label> := <label for="r4" class="ident">probes</label>[<label for="r7" class="ident">i</label>].<label for="r5" class="ident">laddr</label>.<a href="tcpsock_posix.go.html#line-36" class="ident">sockaddr</a>(<a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-27" class="ident">AF_INET6</a>)</code></span>
+<span class="codeline" id="line-58"><code>		<span class="keyword">if</span> <label for="r9" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-59"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-60"><code>		}</code></span>
+<span class="codeline" id="line-61"><code>		<span class="keyword">if</span> <label for="r11" class="ident">err</label> := <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/syscall_unix.go.html#line-249" class="ident">Bind</a>(<label for="r8" class="ident">s</label>, <label for="r10" class="ident">sa</label>); <label for="r11" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-62"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-63"><code>		}</code></span>
+<span class="codeline" id="line-64"><code>		<span class="keyword">if</span> <label for="r7" class="ident">i</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-65"><code>			<label for="r0" class="ident">p</label>.<a href="ipsock.go.html#line-23" class="ident">ipv6Enabled</a> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-66"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-67"><code>			<label for="r0" class="ident">p</label>.<a href="ipsock.go.html#line-24" class="ident">ipv4MappedIPv6Enabled</a> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-68"><code>		}</code></span>
+<span class="codeline" id="line-69"><code>	}</code></span>
+<span class="codeline" id="line-70"><code>}</code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">// favoriteAddrFamily returns the appropriate address family for the</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// given network, laddr, raddr and mode.</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">// If mode indicates "listen" and laddr is a wildcard, we assume that</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">// the user wants to make a passive-open connection with a wildcard</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">// address family, both AF_INET and AF_INET6, and a wildcard address</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// like the following:</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">//	- A listen for a wildcard communication domain, "tcp" or</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">//	  "udp", with a wildcard address: If the platform supports</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">//	  both IPv6 and IPv4-mapped IPv6 communication capabilities,</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">//	  or does not support IPv4, we use a dual stack, AF_INET6 and</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">//	  IPV6_V6ONLY=0, wildcard address listen. The dual stack</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">//	  wildcard address listen may fall back to an IPv6-only,</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">//	  AF_INET6 and IPV6_V6ONLY=1, wildcard address listen.</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">//	  Otherwise we prefer an IPv4-only, AF_INET, wildcard address</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">//	  listen.</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">//	- A listen for a wildcard communication domain, "tcp" or</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">//	  "udp", with an IPv4 wildcard address: same as above.</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">//	- A listen for a wildcard communication domain, "tcp" or</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">//	  "udp", with an IPv6 wildcard address: same as above.</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">//	- A listen for an IPv4 communication domain, "tcp4" or "udp4",</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">//	  with an IPv4 wildcard address: We use an IPv4-only, AF_INET,</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">//	  wildcard address listen.</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">//	- A listen for an IPv6 communication domain, "tcp6" or "udp6",</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">//	  with an IPv6 wildcard address: We use an IPv6-only, AF_INET6</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">//	  and IPV6_V6ONLY=1, wildcard address listen.</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">// Otherwise guess: If the addresses are IPv4 then returns AF_INET,</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// or else returns AF_INET6. It also returns a boolean value what</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">// designates IPV6_V6ONLY option.</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">// Note that the latest DragonFly BSD and OpenBSD kernels allow</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">// neither "net.inet6.ip6.v6only=1" change nor IPPROTO_IPV6 level</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">// IPV6_V6ONLY socket option setting.</span></code></span>
+<span class="codeline" id="line-111"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../pkg/net.html#name-favoriteAddrFamily" class="ident">favoriteAddrFamily</a></label>(<label for="r13" class="ident">network</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r14" class="ident">laddr</label>, <label for="r15" class="ident">raddr</label> <a href="sockaddr_posix.go.html#line-15" class="ident">sockaddr</a>, <label for="r16" class="ident">mode</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r17" class="ident">family</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r18" class="ident">ipv6only</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-112"><code>	<span class="keyword">switch</span> <label for="r13" class="ident">network</label>[<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r13" class="ident">network</label>)-<span class="lit-number">1</span>] {</code></span>
+<span class="codeline" id="line-113"><code>	<span class="keyword">case</span> <span class="lit-number">'4'</span>:</code></span>
+<span class="codeline" id="line-114"><code>		<span class="keyword">return</span> <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-26" class="ident">AF_INET</a>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-115"><code>	<span class="keyword">case</span> <span class="lit-number">'6'</span>:</code></span>
+<span class="codeline" id="line-116"><code>		<span class="keyword">return</span> <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-27" class="ident">AF_INET6</a>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-117"><code>	}</code></span>
+<span class="codeline" id="line-118"><code></code></span>
+<span class="codeline" id="line-119"><code>	<span class="keyword">if</span> <label for="r16" class="ident">mode</label> == <span class="lit-string">"listen"</span> &amp;&amp; (<label for="r14" class="ident">laddr</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> || <label for="r14" class="ident">laddr</label>.<a href="sockaddr_posix.go.html#line-24" class="ident">isWildcard</a>()) {</code></span>
+<span class="codeline" id="line-120"><code>		<span class="keyword">if</span> <a href="ipsock.go.html#line-46" class="ident">supportsIPv4map</a>() || !<a href="ipsock.go.html#line-31" class="ident">supportsIPv4</a>() {</code></span>
+<span class="codeline" id="line-121"><code>			<span class="keyword">return</span> <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-27" class="ident">AF_INET6</a>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-122"><code>		}</code></span>
+<span class="codeline" id="line-123"><code>		<span class="keyword">if</span> <label for="r14" class="ident">laddr</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-124"><code>			<span class="keyword">return</span> <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-26" class="ident">AF_INET</a>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-125"><code>		}</code></span>
+<span class="codeline" id="line-126"><code>		<span class="keyword">return</span> <label for="r14" class="ident">laddr</label>.<a href="sockaddr_posix.go.html#line-20" class="ident">family</a>(), <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-127"><code>	}</code></span>
+<span class="codeline" id="line-128"><code></code></span>
+<span class="codeline" id="line-129"><code>	<span class="keyword">if</span> (<label for="r14" class="ident">laddr</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> || <label for="r14" class="ident">laddr</label>.<a href="sockaddr_posix.go.html#line-20" class="ident">family</a>() == <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-26" class="ident">AF_INET</a>) &amp;&amp;</code></span>
+<span class="codeline" id="line-130"><code>		(<label for="r15" class="ident">raddr</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> || <label for="r15" class="ident">raddr</label>.<a href="sockaddr_posix.go.html#line-20" class="ident">family</a>() == <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-26" class="ident">AF_INET</a>) {</code></span>
+<span class="codeline" id="line-131"><code>		<span class="keyword">return</span> <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-26" class="ident">AF_INET</a>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-132"><code>	}</code></span>
+<span class="codeline" id="line-133"><code>	<span class="keyword">return</span> <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-27" class="ident">AF_INET6</a>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-134"><code>}</code></span>
+<span class="codeline" id="line-135"><code></code></span>
+<span class="codeline" id="line-136"><code><span class="keyword">func</span> <label for="r19" class="ident"><a href="../../pkg/net.html#name-internetSocket" class="ident">internetSocket</a></label>(<label for="r20" class="ident">ctx</label> <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a>, <label for="r21" class="ident">net</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r22" class="ident">laddr</label>, <label for="r23" class="ident">raddr</label> <a href="sockaddr_posix.go.html#line-15" class="ident">sockaddr</a>, <label for="r24" class="ident">sotype</label>, <label for="r25" class="ident">proto</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r26" class="ident">mode</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r27" class="ident">ctrlFn</label> <span class="keyword">func</span>(<a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/net.go.html#line-8" class="ident">RawConn</a>) <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) (<label for="r28" class="ident">fd</label> *<a href="fd_posix.go.html#line-17" class="ident">netFD</a>, <label for="r29" class="ident">err</label> <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-137"><code>	<span class="keyword">if</span> (<a href="../../pkg/runtime.html" class="ident i2">runtime</a>.<a href="../runtime/extern.go.html#line-253" class="ident">GOOS</a> == <span class="lit-string">"aix"</span> || <a href="../../pkg/runtime.html" class="ident i2">runtime</a>.<a href="../runtime/extern.go.html#line-253" class="ident">GOOS</a> == <span class="lit-string">"windows"</span> || <a href="../../pkg/runtime.html" class="ident i2">runtime</a>.<a href="../runtime/extern.go.html#line-253" class="ident">GOOS</a> == <span class="lit-string">"openbsd"</span>) &amp;&amp; <label for="r26" class="ident">mode</label> == <span class="lit-string">"dial"</span> &amp;&amp; <label for="r23" class="ident">raddr</label>.<a href="sockaddr_posix.go.html#line-24" class="ident">isWildcard</a>() {</code></span>
+<span class="codeline" id="line-138"><code>		<label for="r23" class="ident">raddr</label> = <label for="r23" class="ident">raddr</label>.<a href="sockaddr_posix.go.html#line-33" class="ident">toLocal</a>(<label for="r21" class="ident">net</label>)</code></span>
+<span class="codeline" id="line-139"><code>	}</code></span>
+<span class="codeline" id="line-140"><code>	<label for="r30" class="ident">family</label>, <label for="r31" class="ident">ipv6only</label> := <a href="#line-111" class="ident">favoriteAddrFamily</a>(<label for="r21" class="ident">net</label>, <label for="r22" class="ident">laddr</label>, <label for="r23" class="ident">raddr</label>, <label for="r26" class="ident">mode</label>)</code></span>
+<span class="codeline" id="line-141"><code>	<span class="keyword">return</span> <a href="sock_posix.go.html#line-18" class="ident">socket</a>(<label for="r20" class="ident">ctx</label>, <label for="r21" class="ident">net</label>, <label for="r30" class="ident">family</label>, <label for="r24" class="ident">sotype</label>, <label for="r25" class="ident">proto</label>, <label for="r31" class="ident">ipv6only</label>, <label for="r22" class="ident">laddr</label>, <label for="r23" class="ident">raddr</label>, <label for="r27" class="ident">ctrlFn</label>)</code></span>
+<span class="codeline" id="line-142"><code>}</code></span>
+<span class="codeline" id="line-143"><code></code></span>
+<span class="codeline" id="line-144"><code><span class="keyword">func</span> <label for="r32" class="ident"><a href="../../pkg/net.html#name-ipToSockaddr" class="ident">ipToSockaddr</a></label>(<label for="r33" class="ident">family</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r34" class="ident">ip</label> <a href="ip.go.html#line-32" class="ident">IP</a>, <label for="r35" class="ident">port</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r36" class="ident">zone</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/syscall_unix.go.html#line-227" class="ident">Sockaddr</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-145"><code>	<span class="keyword">switch</span> <label for="r33" class="ident">family</label> {</code></span>
+<span class="codeline" id="line-146"><code>	<span class="keyword">case</span> <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-26" class="ident">AF_INET</a>:</code></span>
+<span class="codeline" id="line-147"><code>		<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r34" class="ident">ip</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-148"><code>			<label for="r34" class="ident">ip</label> = <a href="ip.go.html#line-101" class="ident">IPv4zero</a></code></span>
+<span class="codeline" id="line-149"><code>		}</code></span>
+<span class="codeline" id="line-150"><code>		<label for="r37" class="ident">ip4</label> := <label for="r34" class="ident">ip</label>.<a href="ip.go.html#line-189" class="ident">To4</a>()</code></span>
+<span class="codeline" id="line-151"><code>		<span class="keyword">if</span> <label for="r37" class="ident">ip4</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-152"><code>			<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="net.go.html#line-542" class="ident">AddrError</a>{<a href="net.go.html#line-543" class="ident">Err</a>: <span class="lit-string">"non-IPv4 address"</span>, <a href="net.go.html#line-544" class="ident">Addr</a>: <label for="r34" class="ident">ip</label>.<a href="ip.go.html#line-291" class="ident">String</a>()}</code></span>
+<span class="codeline" id="line-153"><code>		}</code></span>
+<span class="codeline" id="line-154"><code>		<label for="r38" class="ident">sa</label> := &amp;<a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/syscall_unix.go.html#line-231" class="ident">SockaddrInet4</a>{<a href="../syscall/syscall_unix.go.html#line-232" class="ident">Port</a>: <label for="r35" class="ident">port</label>}</code></span>
+<span class="codeline" id="line-155"><code>		<a href="../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r38" class="ident">sa</label>.<a href="../syscall/syscall_unix.go.html#line-233" class="ident">Addr</a>[:], <label for="r37" class="ident">ip4</label>)</code></span>
+<span class="codeline" id="line-156"><code>		<span class="keyword">return</span> <label for="r38" class="ident">sa</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-157"><code>	<span class="keyword">case</span> <a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-27" class="ident">AF_INET6</a>:</code></span>
+<span class="codeline" id="line-158"><code>		<span class="comment">// In general, an IP wildcard address, which is either</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">		// "0.0.0.0" or "::", means the entire IP addressing</span></code></span>
+<span class="codeline" id="line-160"><code><span class="comment">		// space. For some historical reason, it is used to</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">		// specify "any available address" on some operations</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">		// of IP node.</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">		//</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">		// When the IP node supports IPv4-mapped IPv6 address,</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">		// we allow a listener to listen to the wildcard</span></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">		// address of both IP addressing spaces by specifying</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">		// IPv6 wildcard address.</span></code></span>
+<span class="codeline" id="line-168"><code>		<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r34" class="ident">ip</label>) == <span class="lit-number">0</span> || <label for="r34" class="ident">ip</label>.<a href="ip.go.html#line-410" class="ident">Equal</a>(<a href="ip.go.html#line-101" class="ident">IPv4zero</a>) {</code></span>
+<span class="codeline" id="line-169"><code>			<label for="r34" class="ident">ip</label> = <a href="ip.go.html#line-106" class="ident">IPv6zero</a></code></span>
+<span class="codeline" id="line-170"><code>		}</code></span>
+<span class="codeline" id="line-171"><code>		<span class="comment">// We accept any IPv6 address including IPv4-mapped</span></code></span>
+<span class="codeline" id="line-172"><code><span class="comment">		// IPv6 address.</span></code></span>
+<span class="codeline" id="line-173"><code>		<label for="r39" class="ident">ip6</label> := <label for="r34" class="ident">ip</label>.<a href="ip.go.html#line-204" class="ident">To16</a>()</code></span>
+<span class="codeline" id="line-174"><code>		<span class="keyword">if</span> <label for="r39" class="ident">ip6</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-175"><code>			<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="net.go.html#line-542" class="ident">AddrError</a>{<a href="net.go.html#line-543" class="ident">Err</a>: <span class="lit-string">"non-IPv6 address"</span>, <a href="net.go.html#line-544" class="ident">Addr</a>: <label for="r34" class="ident">ip</label>.<a href="ip.go.html#line-291" class="ident">String</a>()}</code></span>
+<span class="codeline" id="line-176"><code>		}</code></span>
+<span class="codeline" id="line-177"><code>		<label for="r40" class="ident">sa</label> := &amp;<a href="../../pkg/syscall.html" class="ident i3">syscall</a>.<a href="../syscall/syscall_unix.go.html#line-237" class="ident">SockaddrInet6</a>{<a href="../syscall/syscall_unix.go.html#line-238" class="ident">Port</a>: <label for="r35" class="ident">port</label>, <a href="../syscall/syscall_unix.go.html#line-239" class="ident">ZoneId</a>: <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<a href="interface.go.html#line-185" class="ident">zoneCache</a>.<a href="interface.go.html#line-238" class="ident">index</a>(<label for="r36" class="ident">zone</label>))}</code></span>
+<span class="codeline" id="line-178"><code>		<a href="../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r40" class="ident">sa</label>.<a href="../syscall/syscall_unix.go.html#line-240" class="ident">Addr</a>[:], <label for="r39" class="ident">ip6</label>)</code></span>
+<span class="codeline" id="line-179"><code>		<span class="keyword">return</span> <label for="r40" class="ident">sa</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-180"><code>	}</code></span>
+<span class="codeline" id="line-181"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<a href="net.go.html#line-542" class="ident">AddrError</a>{<a href="net.go.html#line-543" class="ident">Err</a>: <span class="lit-string">"invalid address family"</span>, <a href="net.go.html#line-544" class="ident">Addr</a>: <label for="r34" class="ident">ip</label>.<a href="ip.go.html#line-291" class="ident">String</a>()}</code></span>
+<span class="codeline" id="line-182"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

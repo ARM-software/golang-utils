@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: log.go in package internal/testlog</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	log.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/internal/testlog.html">internal/testlog</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2017 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package testlog provides a back-channel communication path</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// between tests and package os, so that cmd/go can see which</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// environment variables and files a test consults.</span></code></span></div><span class="codeline" id="line-8"><code><span class="keyword">package</span> testlog</code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"sync/atomic"</span></label></code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// Interface is the interface required of test loggers.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// The os package will invoke the interface's methods to indicate that</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// it is inspecting the given environment variables or files.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// Multiple goroutines may call these methods simultaneously.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">type</span> <a href="../../../pkg/internal/testlog.html#name-Interface" class="ident">Interface</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-17"><code>	<a href="../../../imp/internal/testlog.Interface.html#name-Getenv" class="ident">Getenv</a>(key <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-18"><code>	<a href="../../../imp/internal/testlog.Interface.html#name-Stat" class="ident">Stat</a>(file <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-19"><code>	<a href="../../../imp/internal/testlog.Interface.html#name-Open" class="ident">Open</a>(file <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../../imp/internal/testlog.Interface.html#name-Chdir" class="ident">Chdir</a>(dir <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-21"><code>}</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// logger is the current logger Interface.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// We use an atomic.Value in case test startup</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// is racing with goroutines started during init.</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// That must not cause a race detector failure,</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// although it will still result in limited visibility</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// into exactly what those goroutines do.</span></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">var</span> <a href="../../../pkg/internal/testlog.html#name-logger" class="ident">logger</a> <a href="../../../pkg/sync/atomic.html" class="ident i0">atomic</a>.<a href="../../sync/atomic/value.go.html#line-16" class="ident">Value</a></code></span>
+<span class="codeline" id="line-30"><code></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// SetLogger sets the test logger implementation for the current process.</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// It must be called only once, at process startup.</span></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/internal/testlog.html#name-SetLogger" class="ident">SetLogger</a></label>(<label for="r1" class="ident">impl</label> <a href="#line-16" class="ident">Interface</a>) {</code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">if</span> <a href="#line-29" class="ident">logger</a>.<a href="../../sync/atomic/value.go.html#line-28" class="ident">Load</a>() != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-35"><code>		<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"testlog: SetLogger must be called only once"</span>)</code></span>
+<span class="codeline" id="line-36"><code>	}</code></span>
+<span class="codeline" id="line-37"><code>	<a href="#line-29" class="ident">logger</a>.<a href="../../sync/atomic/value.go.html#line-45" class="ident">Store</a>(&amp;<label for="r1" class="ident">impl</label>)</code></span>
+<span class="codeline" id="line-38"><code>}</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// Logger returns the current test logger implementation.</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">// It returns nil if there is no logger.</span></code></span>
+<span class="codeline" id="line-42"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../../pkg/internal/testlog.html#name-Logger" class="ident">Logger</a></label>() <a href="#line-16" class="ident">Interface</a> {</code></span>
+<span class="codeline" id="line-43"><code>	<label for="r3" class="ident">impl</label> := <a href="#line-29" class="ident">logger</a>.<a href="../../sync/atomic/value.go.html#line-28" class="ident">Load</a>()</code></span>
+<span class="codeline" id="line-44"><code>	<span class="keyword">if</span> <label for="r3" class="ident">impl</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-45"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-46"><code>	}</code></span>
+<span class="codeline" id="line-47"><code>	<span class="keyword">return</span> *<label for="r3" class="ident">impl</label>.(*<a href="#line-16" class="ident">Interface</a>)</code></span>
+<span class="codeline" id="line-48"><code>}</code></span>
+<span class="codeline" id="line-49"><code></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">// Getenv calls Logger().Getenv, if a logger has been set.</span></code></span>
+<span class="codeline" id="line-51"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../pkg/internal/testlog.html#name-Getenv" class="ident">Getenv</a></label>(<label for="r5" class="ident">name</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-52"><code>	<span class="keyword">if</span> <label for="r6" class="ident">log</label> := <a href="#line-42" class="ident">Logger</a>(); <label for="r6" class="ident">log</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-53"><code>		<label for="r6" class="ident">log</label>.<a href="#line-17" class="ident">Getenv</a>(<label for="r5" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-54"><code>	}</code></span>
+<span class="codeline" id="line-55"><code>}</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// Open calls Logger().Open, if a logger has been set.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../../pkg/internal/testlog.html#name-Open" class="ident">Open</a></label>(<label for="r8" class="ident">name</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-59"><code>	<span class="keyword">if</span> <label for="r9" class="ident">log</label> := <a href="#line-42" class="ident">Logger</a>(); <label for="r9" class="ident">log</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-60"><code>		<label for="r9" class="ident">log</label>.<a href="#line-19" class="ident">Open</a>(<label for="r8" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-61"><code>	}</code></span>
+<span class="codeline" id="line-62"><code>}</code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">// Stat calls Logger().Stat, if a logger has been set.</span></code></span>
+<span class="codeline" id="line-65"><code><span class="keyword">func</span> <label for="r10" class="ident"><a href="../../../pkg/internal/testlog.html#name-Stat" class="ident">Stat</a></label>(<label for="r11" class="ident">name</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-66"><code>	<span class="keyword">if</span> <label for="r12" class="ident">log</label> := <a href="#line-42" class="ident">Logger</a>(); <label for="r12" class="ident">log</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-67"><code>		<label for="r12" class="ident">log</label>.<a href="#line-18" class="ident">Stat</a>(<label for="r11" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-68"><code>	}</code></span>
+<span class="codeline" id="line-69"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

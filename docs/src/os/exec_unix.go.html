@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: exec_unix.go in package os</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	exec_unix.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/os.html">os</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// +build aix darwin dragonfly freebsd js,wasm linux netbsd openbsd solaris</span></code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">package</span> os</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<label for="i0"><span class="lit-string i0">"errors"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i1"><span class="lit-string i1">"runtime"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i2"><span class="lit-string i2">"syscall"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i3"><span class="lit-string i3">"time"</span></label></code></span>
+<span class="codeline" id="line-14"><code>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">func</span> (<label for="r0" class="ident">p</label> *<a href="exec.go.html#line-21" class="ident">Process</a>) <label for="r1" class="ident">wait</label>() (<label for="r2" class="ident">ps</label> *<a href="exec_posix.go.html#line-70" class="ident">ProcessState</a>, <label for="r3" class="ident">err</label> <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-17"><code>	<span class="keyword">if</span> <label for="r0" class="ident">p</label>.<a href="exec.go.html#line-22" class="ident">Pid</a> == -<span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-18"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1245" class="ident">EINVAL</a></code></span>
+<span class="codeline" id="line-19"><code>	}</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code>	<span class="comment">// If we can block until Wait4 will succeed immediately, do so.</span></code></span>
+<span class="codeline" id="line-22"><code>	<label for="r4" class="ident">ready</label>, <label for="r3" class="ident">err</label> := <label for="r0" class="ident">p</label>.<a href="wait_waitid.go.html#line-23" class="ident">blockUntilWaitable</a>()</code></span>
+<span class="codeline" id="line-23"><code>	<span class="keyword">if</span> <label for="r3" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-24"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r3" class="ident">err</label></code></span>
+<span class="codeline" id="line-25"><code>	}</code></span>
+<span class="codeline" id="line-26"><code>	<span class="keyword">if</span> <label for="r4" class="ident">ready</label> {</code></span>
+<span class="codeline" id="line-27"><code>		<span class="comment">// Mark the process done now, before the call to Wait4,</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">		// so that Process.signal will not send a signal.</span></code></span>
+<span class="codeline" id="line-29"><code>		<label for="r0" class="ident">p</label>.<a href="exec.go.html#line-34" class="ident">setDone</a>()</code></span>
+<span class="codeline" id="line-30"><code>		<span class="comment">// Acquire a write lock on sigMu to wait for any</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">		// active call to the signal method to complete.</span></code></span>
+<span class="codeline" id="line-32"><code>		<label for="r0" class="ident">p</label>.<a href="exec.go.html#line-25" class="ident">sigMu</a>.<a href="../sync/rwmutex.go.html#line-105" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-33"><code>		<label for="r0" class="ident">p</label>.<a href="exec.go.html#line-25" class="ident">sigMu</a>.<a href="../sync/rwmutex.go.html#line-131" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-34"><code>	}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code>	<span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-37"><code>		<label for="r5" class="ident">status</label> <a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/syscall_linux.go.html#line-307" class="ident">WaitStatus</a></code></span>
+<span class="codeline" id="line-38"><code>		<label for="r6" class="ident">rusage</label> <a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/ztypes_linux_amd64.go.html#line-75" class="ident">Rusage</a></code></span>
+<span class="codeline" id="line-39"><code>		<label for="r7" class="ident">pid1</label>   <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-40"><code>		<label for="r8" class="ident">e</label>      <a href="../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-41"><code>	)</code></span>
+<span class="codeline" id="line-42"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-43"><code>		<label for="r7" class="ident">pid1</label>, <label for="r8" class="ident">e</label> = <a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/syscall_linux.go.html#line-366" class="ident">Wait4</a>(<label for="r0" class="ident">p</label>.<a href="exec.go.html#line-22" class="ident">Pid</a>, &amp;<label for="r5" class="ident">status</label>, <span class="lit-number">0</span>, &amp;<label for="r6" class="ident">rusage</label>)</code></span>
+<span class="codeline" id="line-44"><code>		<span class="keyword">if</span> <label for="r8" class="ident">e</label> != <a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1244" class="ident">EINTR</a> {</code></span>
+<span class="codeline" id="line-45"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-46"><code>		}</code></span>
+<span class="codeline" id="line-47"><code>	}</code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">if</span> <label for="r8" class="ident">e</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-49"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="error.go.html#line-69" class="ident">NewSyscallError</a>(<span class="lit-string">"wait"</span>, <label for="r8" class="ident">e</label>)</code></span>
+<span class="codeline" id="line-50"><code>	}</code></span>
+<span class="codeline" id="line-51"><code>	<span class="keyword">if</span> <label for="r7" class="ident">pid1</label> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-52"><code>		<label for="r0" class="ident">p</label>.<a href="exec.go.html#line-34" class="ident">setDone</a>()</code></span>
+<span class="codeline" id="line-53"><code>	}</code></span>
+<span class="codeline" id="line-54"><code>	<label for="r2" class="ident">ps</label> = &amp;<a href="exec_posix.go.html#line-70" class="ident">ProcessState</a>{</code></span>
+<span class="codeline" id="line-55"><code>		<a href="exec_posix.go.html#line-71" class="ident">pid</a>:    <label for="r7" class="ident">pid1</label>,</code></span>
+<span class="codeline" id="line-56"><code>		<a href="exec_posix.go.html#line-72" class="ident">status</a>: <label for="r5" class="ident">status</label>,</code></span>
+<span class="codeline" id="line-57"><code>		<a href="exec_posix.go.html#line-73" class="ident">rusage</a>: &amp;<label for="r6" class="ident">rusage</label>,</code></span>
+<span class="codeline" id="line-58"><code>	}</code></span>
+<span class="codeline" id="line-59"><code>	<span class="keyword">return</span> <label for="r2" class="ident">ps</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-60"><code>}</code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code><span class="keyword">func</span> (<label for="r9" class="ident">p</label> *<a href="exec.go.html#line-21" class="ident">Process</a>) <label for="r10" class="ident">signal</label>(<label for="r11" class="ident">sig</label> <a href="exec.go.html#line-69" class="ident">Signal</a>) <a href="../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-63"><code>	<span class="keyword">if</span> <label for="r9" class="ident">p</label>.<a href="exec.go.html#line-22" class="ident">Pid</a> == -<span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-64"><code>		<span class="keyword">return</span> <a href="../../pkg/errors.html" class="ident i0">errors</a>.<a href="../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"os: process already released"</span>)</code></span>
+<span class="codeline" id="line-65"><code>	}</code></span>
+<span class="codeline" id="line-66"><code>	<span class="keyword">if</span> <label for="r9" class="ident">p</label>.<a href="exec.go.html#line-22" class="ident">Pid</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-67"><code>		<span class="keyword">return</span> <a href="../../pkg/errors.html" class="ident i0">errors</a>.<a href="../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"os: process not initialized"</span>)</code></span>
+<span class="codeline" id="line-68"><code>	}</code></span>
+<span class="codeline" id="line-69"><code>	<label for="r9" class="ident">p</label>.<a href="exec.go.html#line-25" class="ident">sigMu</a>.<a href="../sync/rwmutex.go.html#line-56" class="ident">RLock</a>()</code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">defer</span> <label for="r9" class="ident">p</label>.<a href="exec.go.html#line-25" class="ident">sigMu</a>.<a href="../sync/rwmutex.go.html#line-75" class="ident">RUnlock</a>()</code></span>
+<span class="codeline" id="line-71"><code>	<span class="keyword">if</span> <label for="r9" class="ident">p</label>.<a href="exec.go.html#line-38" class="ident">done</a>() {</code></span>
+<span class="codeline" id="line-72"><code>		<span class="keyword">return</span> <a href="exec.go.html#line-18" class="ident">ErrProcessDone</a></code></span>
+<span class="codeline" id="line-73"><code>	}</code></span>
+<span class="codeline" id="line-74"><code>	<label for="r12" class="ident">s</label>, <label for="r13" class="ident">ok</label> := <label for="r11" class="ident">sig</label>.(<a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/syscall_unix.go.html#line-172" class="ident">Signal</a>)</code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">if</span> !<label for="r13" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-76"><code>		<span class="keyword">return</span> <a href="../../pkg/errors.html" class="ident i0">errors</a>.<a href="../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"os: unsupported signal type"</span>)</code></span>
+<span class="codeline" id="line-77"><code>	}</code></span>
+<span class="codeline" id="line-78"><code>	<span class="keyword">if</span> <label for="r14" class="ident">e</label> := <a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/zsyscall_linux_amd64.go.html#line-560" class="ident">Kill</a>(<label for="r9" class="ident">p</label>.<a href="exec.go.html#line-22" class="ident">Pid</a>, <label for="r12" class="ident">s</label>); <label for="r14" class="ident">e</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-79"><code>		<span class="keyword">if</span> <label for="r14" class="ident">e</label> == <a href="../../pkg/syscall.html" class="ident i2">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1325" class="ident">ESRCH</a> {</code></span>
+<span class="codeline" id="line-80"><code>			<span class="keyword">return</span> <a href="exec.go.html#line-18" class="ident">ErrProcessDone</a></code></span>
+<span class="codeline" id="line-81"><code>		}</code></span>
+<span class="codeline" id="line-82"><code>		<span class="keyword">return</span> <label for="r14" class="ident">e</label></code></span>
+<span class="codeline" id="line-83"><code>	}</code></span>
+<span class="codeline" id="line-84"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-85"><code>}</code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code><span class="keyword">func</span> (<label for="r15" class="ident">p</label> *<a href="exec.go.html#line-21" class="ident">Process</a>) <label for="r16" class="ident">release</label>() <a href="../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-88"><code>	<span class="comment">// NOOP for unix.</span></code></span>
+<span class="codeline" id="line-89"><code>	<label for="r15" class="ident">p</label>.<a href="exec.go.html#line-22" class="ident">Pid</a> = -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-90"><code>	<span class="comment">// no need for a finalizer anymore</span></code></span>
+<span class="codeline" id="line-91"><code>	<a href="../../pkg/runtime.html" class="ident i1">runtime</a>.<a href="../runtime/mfinal.go.html#line-309" class="ident">SetFinalizer</a>(<label for="r15" class="ident">p</label>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-92"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-93"><code>}</code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code><span class="keyword">func</span> <label for="r17" class="ident"><a href="../../pkg/os.html#name-findProcess" class="ident">findProcess</a></label>(<label for="r18" class="ident">pid</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) (<label for="r19" class="ident">p</label> *<a href="exec.go.html#line-21" class="ident">Process</a>, <label for="r20" class="ident">err</label> <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-96"><code>	<span class="comment">// NOOP for unix.</span></code></span>
+<span class="codeline" id="line-97"><code>	<span class="keyword">return</span> <a href="exec.go.html#line-28" class="ident">newProcess</a>(<label for="r18" class="ident">pid</label>, <span class="lit-number">0</span>), <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-98"><code>}</code></span>
+<span class="codeline" id="line-99"><code></code></span>
+<span class="codeline" id="line-100"><code><span class="keyword">func</span> (<label for="r21" class="ident">p</label> *<a href="exec_posix.go.html#line-70" class="ident">ProcessState</a>) <label for="r22" class="ident">userTime</label>() <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-583" class="ident">Duration</a> {</code></span>
+<span class="codeline" id="line-101"><code>	<span class="keyword">return</span> <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-583" class="ident">Duration</a>(<label for="r21" class="ident">p</label>.<a href="exec_posix.go.html#line-73" class="ident">rusage</a>.<a href="../syscall/ztypes_linux_amd64.go.html#line-76" class="ident">Utime</a>.<a href="../syscall/syscall.go.html#line-96" class="ident">Nano</a>()) * <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-602" class="ident">Nanosecond</a></code></span>
+<span class="codeline" id="line-102"><code>}</code></span>
+<span class="codeline" id="line-103"><code></code></span>
+<span class="codeline" id="line-104"><code><span class="keyword">func</span> (<label for="r23" class="ident">p</label> *<a href="exec_posix.go.html#line-70" class="ident">ProcessState</a>) <label for="r24" class="ident">systemTime</label>() <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-583" class="ident">Duration</a> {</code></span>
+<span class="codeline" id="line-105"><code>	<span class="keyword">return</span> <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-583" class="ident">Duration</a>(<label for="r23" class="ident">p</label>.<a href="exec_posix.go.html#line-73" class="ident">rusage</a>.<a href="../syscall/ztypes_linux_amd64.go.html#line-77" class="ident">Stime</a>.<a href="../syscall/syscall.go.html#line-96" class="ident">Nano</a>()) * <a href="../../pkg/time.html" class="ident i3">time</a>.<a href="../time/time.go.html#line-602" class="ident">Nanosecond</a></code></span>
+<span class="codeline" id="line-106"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: doctype.go in package golang.org/x/net/html</title>
+<link href="../../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	doctype.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/golang.org/x/net/html.html">golang.org/x/net/html</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> html</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"strings"</span></label></code></span>
+<span class="codeline" id="line-9"><code>)</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// parseDoctype parses the data from a DoctypeToken into a name,</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// public identifier, and system identifier. It returns a Node whose Type</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// is DoctypeNode, whose Data is the name, and which has attributes</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// named "system" and "public" for the two identifiers if they were present.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// quirks is whether the document should be parsed in "quirks mode".</span></code></span>
+<span class="codeline" id="line-16"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-parseDoctype" class="ident">parseDoctype</a></label>(<label for="r1" class="ident">s</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r2" class="ident">n</label> *<a href="node.go.html#line-44" class="ident">Node</a>, <label for="r3" class="ident">quirks</label> <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-17"><code>	<label for="r2" class="ident">n</label> = &amp;<a href="node.go.html#line-44" class="ident">Node</a>{<a href="node.go.html#line-47" class="ident">Type</a>: <a href="node.go.html#line-20" class="ident">DoctypeNode</a>}</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code>	<span class="comment">// Find the name.</span></code></span>
+<span class="codeline" id="line-20"><code>	<label for="r4" class="ident">space</label> := <a href="../../../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../../../strings/strings.go.html#line-141" class="ident">IndexAny</a>(<label for="r1" class="ident">s</label>, <a href="parse.go.html#line-512" class="ident">whitespace</a>)</code></span>
+<span class="codeline" id="line-21"><code>	<span class="keyword">if</span> <label for="r4" class="ident">space</label> == -<span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-22"><code>		<label for="r4" class="ident">space</label> = <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-23"><code>	}</code></span>
+<span class="codeline" id="line-24"><code>	<label for="r2" class="ident">n</label>.<a href="node.go.html#line-49" class="ident">Data</a> = <label for="r1" class="ident">s</label>[:<label for="r4" class="ident">space</label>]</code></span>
+<span class="codeline" id="line-25"><code>	<span class="comment">// The comparison to "html" is case-sensitive.</span></code></span>
+<span class="codeline" id="line-26"><code>	<span class="keyword">if</span> <label for="r2" class="ident">n</label>.<a href="node.go.html#line-49" class="ident">Data</a> != <span class="lit-string">"html"</span> {</code></span>
+<span class="codeline" id="line-27"><code>		<label for="r3" class="ident">quirks</label> = <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-28"><code>	}</code></span>
+<span class="codeline" id="line-29"><code>	<label for="r2" class="ident">n</label>.<a href="node.go.html#line-49" class="ident">Data</a> = <a href="../../../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../../../strings/strings.go.html#line-580" class="ident">ToLower</a>(<label for="r2" class="ident">n</label>.<a href="node.go.html#line-49" class="ident">Data</a>)</code></span>
+<span class="codeline" id="line-30"><code>	<label for="r1" class="ident">s</label> = <a href="../../../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../../../strings/strings.go.html#line-847" class="ident">TrimLeft</a>(<label for="r1" class="ident">s</label>[<label for="r4" class="ident">space</label>:], <a href="parse.go.html#line-512" class="ident">whitespace</a>)</code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">s</label>) &lt; <span class="lit-number">6</span> {</code></span>
+<span class="codeline" id="line-33"><code>		<span class="comment">// It can't start with "PUBLIC" or "SYSTEM".</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">		// Ignore the rest of the string.</span></code></span>
+<span class="codeline" id="line-35"><code>		<span class="keyword">return</span> <label for="r2" class="ident">n</label>, <label for="r3" class="ident">quirks</label> || <label for="r1" class="ident">s</label> != <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-36"><code>	}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code>	<label for="r5" class="ident">key</label> := <a href="../../../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../../../strings/strings.go.html#line-580" class="ident">ToLower</a>(<label for="r1" class="ident">s</label>[:<span class="lit-number">6</span>])</code></span>
+<span class="codeline" id="line-39"><code>	<label for="r1" class="ident">s</label> = <label for="r1" class="ident">s</label>[<span class="lit-number">6</span>:]</code></span>
+<span class="codeline" id="line-40"><code>	<span class="keyword">for</span> <label for="r5" class="ident">key</label> == <span class="lit-string">"public"</span> || <label for="r5" class="ident">key</label> == <span class="lit-string">"system"</span> {</code></span>
+<span class="codeline" id="line-41"><code>		<label for="r1" class="ident">s</label> = <a href="../../../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../../../strings/strings.go.html#line-847" class="ident">TrimLeft</a>(<label for="r1" class="ident">s</label>, <a href="parse.go.html#line-512" class="ident">whitespace</a>)</code></span>
+<span class="codeline" id="line-42"><code>		<span class="keyword">if</span> <label for="r1" class="ident">s</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-43"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-44"><code>		}</code></span>
+<span class="codeline" id="line-45"><code>		<label for="r6" class="ident">quote</label> := <label for="r1" class="ident">s</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-46"><code>		<span class="keyword">if</span> <label for="r6" class="ident">quote</label> != <span class="lit-number">'"'</span> &amp;&amp; <label for="r6" class="ident">quote</label> != <span class="lit-number">'\''</span> {</code></span>
+<span class="codeline" id="line-47"><code>			<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-48"><code>		}</code></span>
+<span class="codeline" id="line-49"><code>		<label for="r1" class="ident">s</label> = <label for="r1" class="ident">s</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-50"><code>		<label for="r7" class="ident">q</label> := <a href="../../../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../../../strings/strings.go.html#line-121" class="ident">IndexRune</a>(<label for="r1" class="ident">s</label>, <a href="../../../../../pkg/builtin.html#name-rune" class="ident">rune</a>(<label for="r6" class="ident">quote</label>))</code></span>
+<span class="codeline" id="line-51"><code>		<span class="keyword">var</span> <label for="r8" class="ident">id</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-52"><code>		<span class="keyword">if</span> <label for="r7" class="ident">q</label> == -<span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-53"><code>			<label for="r8" class="ident">id</label> = <label for="r1" class="ident">s</label></code></span>
+<span class="codeline" id="line-54"><code>			<label for="r1" class="ident">s</label> = <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-55"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-56"><code>			<label for="r8" class="ident">id</label> = <label for="r1" class="ident">s</label>[:<label for="r7" class="ident">q</label>]</code></span>
+<span class="codeline" id="line-57"><code>			<label for="r1" class="ident">s</label> = <label for="r1" class="ident">s</label>[<label for="r7" class="ident">q</label>+<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-58"><code>		}</code></span>
+<span class="codeline" id="line-59"><code>		<label for="r2" class="ident">n</label>.<a href="node.go.html#line-51" class="ident">Attr</a> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r2" class="ident">n</label>.<a href="node.go.html#line-51" class="ident">Attr</a>, <a href="token.go.html#line-67" class="ident">Attribute</a>{<a href="token.go.html#line-68" class="ident">Key</a>: <label for="r5" class="ident">key</label>, <a href="token.go.html#line-68" class="ident">Val</a>: <label for="r8" class="ident">id</label>})</code></span>
+<span class="codeline" id="line-60"><code>		<span class="keyword">if</span> <label for="r5" class="ident">key</label> == <span class="lit-string">"public"</span> {</code></span>
+<span class="codeline" id="line-61"><code>			<label for="r5" class="ident">key</label> = <span class="lit-string">"system"</span></code></span>
+<span class="codeline" id="line-62"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-63"><code>			<label for="r5" class="ident">key</label> = <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-64"><code>		}</code></span>
+<span class="codeline" id="line-65"><code>	}</code></span>
+<span class="codeline" id="line-66"><code></code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">if</span> <label for="r5" class="ident">key</label> != <span class="lit-string">""</span> || <label for="r1" class="ident">s</label> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-68"><code>		<label for="r3" class="ident">quirks</label> = <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-69"><code>	} <span class="keyword">else</span> <span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">n</label>.<a href="node.go.html#line-51" class="ident">Attr</a>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-70"><code>		<span class="keyword">if</span> <label for="r2" class="ident">n</label>.<a href="node.go.html#line-51" class="ident">Attr</a>[<span class="lit-number">0</span>].<a href="token.go.html#line-68" class="ident">Key</a> == <span class="lit-string">"public"</span> {</code></span>
+<span class="codeline" id="line-71"><code>			<label for="r9" class="ident">public</label> := <a href="../../../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../../../strings/strings.go.html#line-580" class="ident">ToLower</a>(<label for="r2" class="ident">n</label>.<a href="node.go.html#line-51" class="ident">Attr</a>[<span class="lit-number">0</span>].<a href="token.go.html#line-68" class="ident">Val</a>)</code></span>
+<span class="codeline" id="line-72"><code>			<span class="keyword">switch</span> <label for="r9" class="ident">public</label> {</code></span>
+<span class="codeline" id="line-73"><code>			<span class="keyword">case</span> <span class="lit-string">"-//w3o//dtd w3 html strict 3.0//en//"</span>, <span class="lit-string">"-/w3d/dtd html 4.0 transitional/en"</span>, <span class="lit-string">"html"</span>:</code></span>
+<span class="codeline" id="line-74"><code>				<label for="r3" class="ident">quirks</label> = <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-75"><code>			<span class="keyword">default</span>:</code></span>
+<span class="codeline" id="line-76"><code>				<span class="keyword">for</span> <label for="r10" class="ident">_</label>, <label for="r11" class="ident">q</label> := <span class="keyword">range</span> <a href="#line-100" class="ident">quirkyIDs</a> {</code></span>
+<span class="codeline" id="line-77"><code>					<span class="keyword">if</span> <a href="../../../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../../../strings/strings.go.html#line-444" class="ident">HasPrefix</a>(<label for="r9" class="ident">public</label>, <label for="r11" class="ident">q</label>) {</code></span>
+<span class="codeline" id="line-78"><code>						<label for="r3" class="ident">quirks</label> = <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-79"><code>						<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-80"><code>					}</code></span>
+<span class="codeline" id="line-81"><code>				}</code></span>
+<span class="codeline" id="line-82"><code>			}</code></span>
+<span class="codeline" id="line-83"><code>			<span class="comment">// The following two public IDs only cause quirks mode if there is no system ID.</span></code></span>
+<span class="codeline" id="line-84"><code>			<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">n</label>.<a href="node.go.html#line-51" class="ident">Attr</a>) == <span class="lit-number">1</span> &amp;&amp; (<a href="../../../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../../../strings/strings.go.html#line-444" class="ident">HasPrefix</a>(<label for="r9" class="ident">public</label>, <span class="lit-string">"-//w3c//dtd html 4.01 frameset//"</span>) ||</code></span>
+<span class="codeline" id="line-85"><code>				<a href="../../../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../../../strings/strings.go.html#line-444" class="ident">HasPrefix</a>(<label for="r9" class="ident">public</label>, <span class="lit-string">"-//w3c//dtd html 4.01 transitional//"</span>)) {</code></span>
+<span class="codeline" id="line-86"><code>				<label for="r3" class="ident">quirks</label> = <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-87"><code>			}</code></span>
+<span class="codeline" id="line-88"><code>		}</code></span>
+<span class="codeline" id="line-89"><code>		<span class="keyword">if</span> <label for="r12" class="ident">lastAttr</label> := <label for="r2" class="ident">n</label>.<a href="node.go.html#line-51" class="ident">Attr</a>[<a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">n</label>.<a href="node.go.html#line-51" class="ident">Attr</a>)-<span class="lit-number">1</span>]; <label for="r12" class="ident">lastAttr</label>.<a href="token.go.html#line-68" class="ident">Key</a> == <span class="lit-string">"system"</span> &amp;&amp;</code></span>
+<span class="codeline" id="line-90"><code>			<a href="../../../../../pkg/strings.html" class="ident i0">strings</a>.<a href="../../../../strings/strings.go.html#line-580" class="ident">ToLower</a>(<label for="r12" class="ident">lastAttr</label>.<a href="token.go.html#line-68" class="ident">Val</a>) == <span class="lit-string">"http://www.ibm.com/data/dtd/v11/ibmxhtml1-transitional.dtd"</span> {</code></span>
+<span class="codeline" id="line-91"><code>			<label for="r3" class="ident">quirks</label> = <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-92"><code>		}</code></span>
+<span class="codeline" id="line-93"><code>	}</code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code>	<span class="keyword">return</span> <label for="r2" class="ident">n</label>, <label for="r3" class="ident">quirks</label></code></span>
+<span class="codeline" id="line-96"><code>}</code></span>
+<span class="codeline" id="line-97"><code></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">// quirkyIDs is a list of public doctype identifiers that cause a document</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">// to be interpreted in quirks mode. The identifiers should be in lower case.</span></code></span>
+<span class="codeline" id="line-100"><code><span class="keyword">var</span> <a href="../../../../../pkg/golang.org/x/net/html.html#name-quirkyIDs" class="ident">quirkyIDs</a> = []<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>{</code></span>
+<span class="codeline" id="line-101"><code>	<span class="lit-string">"+//silmaril//dtd html pro v0r11 19970101//"</span>,</code></span>
+<span class="codeline" id="line-102"><code>	<span class="lit-string">"-//advasoft ltd//dtd html 3.0 aswedit + extensions//"</span>,</code></span>
+<span class="codeline" id="line-103"><code>	<span class="lit-string">"-//as//dtd html 3.0 aswedit + extensions//"</span>,</code></span>
+<span class="codeline" id="line-104"><code>	<span class="lit-string">"-//ietf//dtd html 2.0 level 1//"</span>,</code></span>
+<span class="codeline" id="line-105"><code>	<span class="lit-string">"-//ietf//dtd html 2.0 level 2//"</span>,</code></span>
+<span class="codeline" id="line-106"><code>	<span class="lit-string">"-//ietf//dtd html 2.0 strict level 1//"</span>,</code></span>
+<span class="codeline" id="line-107"><code>	<span class="lit-string">"-//ietf//dtd html 2.0 strict level 2//"</span>,</code></span>
+<span class="codeline" id="line-108"><code>	<span class="lit-string">"-//ietf//dtd html 2.0 strict//"</span>,</code></span>
+<span class="codeline" id="line-109"><code>	<span class="lit-string">"-//ietf//dtd html 2.0//"</span>,</code></span>
+<span class="codeline" id="line-110"><code>	<span class="lit-string">"-//ietf//dtd html 2.1e//"</span>,</code></span>
+<span class="codeline" id="line-111"><code>	<span class="lit-string">"-//ietf//dtd html 3.0//"</span>,</code></span>
+<span class="codeline" id="line-112"><code>	<span class="lit-string">"-//ietf//dtd html 3.2 final//"</span>,</code></span>
+<span class="codeline" id="line-113"><code>	<span class="lit-string">"-//ietf//dtd html 3.2//"</span>,</code></span>
+<span class="codeline" id="line-114"><code>	<span class="lit-string">"-//ietf//dtd html 3//"</span>,</code></span>
+<span class="codeline" id="line-115"><code>	<span class="lit-string">"-//ietf//dtd html level 0//"</span>,</code></span>
+<span class="codeline" id="line-116"><code>	<span class="lit-string">"-//ietf//dtd html level 1//"</span>,</code></span>
+<span class="codeline" id="line-117"><code>	<span class="lit-string">"-//ietf//dtd html level 2//"</span>,</code></span>
+<span class="codeline" id="line-118"><code>	<span class="lit-string">"-//ietf//dtd html level 3//"</span>,</code></span>
+<span class="codeline" id="line-119"><code>	<span class="lit-string">"-//ietf//dtd html strict level 0//"</span>,</code></span>
+<span class="codeline" id="line-120"><code>	<span class="lit-string">"-//ietf//dtd html strict level 1//"</span>,</code></span>
+<span class="codeline" id="line-121"><code>	<span class="lit-string">"-//ietf//dtd html strict level 2//"</span>,</code></span>
+<span class="codeline" id="line-122"><code>	<span class="lit-string">"-//ietf//dtd html strict level 3//"</span>,</code></span>
+<span class="codeline" id="line-123"><code>	<span class="lit-string">"-//ietf//dtd html strict//"</span>,</code></span>
+<span class="codeline" id="line-124"><code>	<span class="lit-string">"-//ietf//dtd html//"</span>,</code></span>
+<span class="codeline" id="line-125"><code>	<span class="lit-string">"-//metrius//dtd metrius presentational//"</span>,</code></span>
+<span class="codeline" id="line-126"><code>	<span class="lit-string">"-//microsoft//dtd internet explorer 2.0 html strict//"</span>,</code></span>
+<span class="codeline" id="line-127"><code>	<span class="lit-string">"-//microsoft//dtd internet explorer 2.0 html//"</span>,</code></span>
+<span class="codeline" id="line-128"><code>	<span class="lit-string">"-//microsoft//dtd internet explorer 2.0 tables//"</span>,</code></span>
+<span class="codeline" id="line-129"><code>	<span class="lit-string">"-//microsoft//dtd internet explorer 3.0 html strict//"</span>,</code></span>
+<span class="codeline" id="line-130"><code>	<span class="lit-string">"-//microsoft//dtd internet explorer 3.0 html//"</span>,</code></span>
+<span class="codeline" id="line-131"><code>	<span class="lit-string">"-//microsoft//dtd internet explorer 3.0 tables//"</span>,</code></span>
+<span class="codeline" id="line-132"><code>	<span class="lit-string">"-//netscape comm. corp.//dtd html//"</span>,</code></span>
+<span class="codeline" id="line-133"><code>	<span class="lit-string">"-//netscape comm. corp.//dtd strict html//"</span>,</code></span>
+<span class="codeline" id="line-134"><code>	<span class="lit-string">"-//o'reilly and associates//dtd html 2.0//"</span>,</code></span>
+<span class="codeline" id="line-135"><code>	<span class="lit-string">"-//o'reilly and associates//dtd html extended 1.0//"</span>,</code></span>
+<span class="codeline" id="line-136"><code>	<span class="lit-string">"-//o'reilly and associates//dtd html extended relaxed 1.0//"</span>,</code></span>
+<span class="codeline" id="line-137"><code>	<span class="lit-string">"-//softquad software//dtd hotmetal pro 6.0::19990601::extensions to html 4.0//"</span>,</code></span>
+<span class="codeline" id="line-138"><code>	<span class="lit-string">"-//softquad//dtd hotmetal pro 4.0::19971010::extensions to html 4.0//"</span>,</code></span>
+<span class="codeline" id="line-139"><code>	<span class="lit-string">"-//spyglass//dtd html 2.0 extended//"</span>,</code></span>
+<span class="codeline" id="line-140"><code>	<span class="lit-string">"-//sq//dtd html 2.0 hotmetal + extensions//"</span>,</code></span>
+<span class="codeline" id="line-141"><code>	<span class="lit-string">"-//sun microsystems corp.//dtd hotjava html//"</span>,</code></span>
+<span class="codeline" id="line-142"><code>	<span class="lit-string">"-//sun microsystems corp.//dtd hotjava strict html//"</span>,</code></span>
+<span class="codeline" id="line-143"><code>	<span class="lit-string">"-//w3c//dtd html 3 1995-03-24//"</span>,</code></span>
+<span class="codeline" id="line-144"><code>	<span class="lit-string">"-//w3c//dtd html 3.2 draft//"</span>,</code></span>
+<span class="codeline" id="line-145"><code>	<span class="lit-string">"-//w3c//dtd html 3.2 final//"</span>,</code></span>
+<span class="codeline" id="line-146"><code>	<span class="lit-string">"-//w3c//dtd html 3.2//"</span>,</code></span>
+<span class="codeline" id="line-147"><code>	<span class="lit-string">"-//w3c//dtd html 3.2s draft//"</span>,</code></span>
+<span class="codeline" id="line-148"><code>	<span class="lit-string">"-//w3c//dtd html 4.0 frameset//"</span>,</code></span>
+<span class="codeline" id="line-149"><code>	<span class="lit-string">"-//w3c//dtd html 4.0 transitional//"</span>,</code></span>
+<span class="codeline" id="line-150"><code>	<span class="lit-string">"-//w3c//dtd html experimental 19960712//"</span>,</code></span>
+<span class="codeline" id="line-151"><code>	<span class="lit-string">"-//w3c//dtd html experimental 970421//"</span>,</code></span>
+<span class="codeline" id="line-152"><code>	<span class="lit-string">"-//w3c//dtd w3 html//"</span>,</code></span>
+<span class="codeline" id="line-153"><code>	<span class="lit-string">"-//w3o//dtd w3 html 3.0//"</span>,</code></span>
+<span class="codeline" id="line-154"><code>	<span class="lit-string">"-//webtechs//dtd mozilla html 2.0//"</span>,</code></span>
+<span class="codeline" id="line-155"><code>	<span class="lit-string">"-//webtechs//dtd mozilla html//"</span>,</code></span>
+<span class="codeline" id="line-156"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: flags.go in package github.com/spf13/viper</title>
+<link href="../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	flags.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/github.com/spf13/viper.html">github.com/spf13/viper</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> viper</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"github.com/spf13/pflag"</span></label></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// FlagValueSet is an interface that users can implement</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// to bind a set of flags to viper.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/spf13/viper.html#name-FlagValueSet" class="ident">FlagValueSet</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-8"><code>	<a href="../../../../imp/github.com/spf13/viper.FlagValueSet.html#name-VisitAll" class="ident">VisitAll</a>(fn <span class="keyword">func</span>(<a href="#line-13" class="ident">FlagValue</a>))</code></span>
+<span class="codeline" id="line-9"><code>}</code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// FlagValue is an interface that users can implement</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// to bind different flags to viper.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/spf13/viper.html#name-FlagValue" class="ident">FlagValue</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-14"><code>	<a href="../../../../imp/github.com/spf13/viper.FlagValue.html#name-HasChanged" class="ident">HasChanged</a>() <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-15"><code>	<a href="../../../../imp/github.com/spf13/viper.FlagValue.html#name-Name" class="ident">Name</a>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-16"><code>	<a href="../../../../imp/github.com/spf13/viper.FlagValue.html#name-ValueString" class="ident">ValueString</a>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-17"><code>	<a href="../../../../imp/github.com/spf13/viper.FlagValue.html#name-ValueType" class="ident">ValueType</a>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-18"><code>}</code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// pflagValueSet is a wrapper around *pflag.ValueSet</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// that implements FlagValueSet.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/spf13/viper.html#name-pflagValueSet" class="ident">pflagValueSet</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-23"><code>	flags *<a href="../../../../pkg/github.com/spf13/pflag.html" class="ident i0">pflag</a>.<a href="../pflag/flag.go.html#line-138" class="ident">FlagSet</a></code></span>
+<span class="codeline" id="line-24"><code>}</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// VisitAll iterates over all *pflag.Flag inside the *pflag.FlagSet.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="keyword">func</span> (<label for="r0" class="ident">p</label> <a href="#line-22" class="ident">pflagValueSet</a>) <label for="r1" class="ident"><a href="../../../../imp/github.com/spf13/viper.pflagValueSet*18c9e.html#name-.VisitAll" class="ident">VisitAll</a></label>(<label for="r2" class="ident">fn</label> <span class="keyword">func</span>(<label for="r3" class="ident">flag</label> <a href="#line-13" class="ident">FlagValue</a>)) {</code></span>
+<span class="codeline" id="line-28"><code>	<label for="r0" class="ident">p</label>.<a href="#line-23" class="ident">flags</a>.<a href="../pflag/flag.go.html#line-274" class="ident">VisitAll</a>(<span class="keyword">func</span>(<label for="r4" class="ident">flag</label> *<a href="../../../../pkg/github.com/spf13/pflag.html" class="ident i0">pflag</a>.<a href="../pflag/flag.go.html#line-171" class="ident">Flag</a>) {</code></span>
+<span class="codeline" id="line-29"><code>		<label for="r2" class="ident">fn</label>(<a href="#line-35" class="ident">pflagValue</a>{<label for="r4" class="ident">flag</label>})</code></span>
+<span class="codeline" id="line-30"><code>	})</code></span>
+<span class="codeline" id="line-31"><code>}</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// pflagValue is a wrapper aroung *pflag.flag</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// that implements FlagValue</span></code></span>
+<span class="codeline" id="line-35"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/spf13/viper.html#name-pflagValue" class="ident">pflagValue</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-36"><code>	flag *<a href="../../../../pkg/github.com/spf13/pflag.html" class="ident i0">pflag</a>.<a href="../pflag/flag.go.html#line-171" class="ident">Flag</a></code></span>
+<span class="codeline" id="line-37"><code>}</code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// HasChanged returns whether the flag has changes or not.</span></code></span>
+<span class="codeline" id="line-40"><code><span class="keyword">func</span> (<label for="r5" class="ident">p</label> <a href="#line-35" class="ident">pflagValue</a>) <label for="r6" class="ident"><a href="../../../../imp/github.com/spf13/viper.pflagValue*4d35e.html#name-.HasChanged" class="ident">HasChanged</a></label>() <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-41"><code>	<span class="keyword">return</span> <label for="r5" class="ident">p</label>.<a href="#line-36" class="ident">flag</a>.<a href="../pflag/flag.go.html#line-177" class="ident">Changed</a></code></span>
+<span class="codeline" id="line-42"><code>}</code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">// Name returns the name of the flag.</span></code></span>
+<span class="codeline" id="line-45"><code><span class="keyword">func</span> (<label for="r7" class="ident">p</label> <a href="#line-35" class="ident">pflagValue</a>) <label for="r8" class="ident"><a href="../../../../imp/github.com/spf13/viper.pflagValue*4d35e.html#name-.Name" class="ident">Name</a></label>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-46"><code>	<span class="keyword">return</span> <label for="r7" class="ident">p</label>.<a href="#line-36" class="ident">flag</a>.<a href="../pflag/flag.go.html#line-172" class="ident">Name</a></code></span>
+<span class="codeline" id="line-47"><code>}</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// ValueString returns the value of the flag as a string.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="keyword">func</span> (<label for="r9" class="ident">p</label> <a href="#line-35" class="ident">pflagValue</a>) <label for="r10" class="ident"><a href="../../../../imp/github.com/spf13/viper.pflagValue*4d35e.html#name-.ValueString" class="ident">ValueString</a></label>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-51"><code>	<span class="keyword">return</span> <label for="r9" class="ident">p</label>.<a href="#line-36" class="ident">flag</a>.<a href="../pflag/flag.go.html#line-175" class="ident">Value</a>.<a href="../pflag/flag.go.html#line-188" class="ident">String</a>()</code></span>
+<span class="codeline" id="line-52"><code>}</code></span>
+<span class="codeline" id="line-53"><code></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// ValueType returns the type of the flag as a string.</span></code></span>
+<span class="codeline" id="line-55"><code><span class="keyword">func</span> (<label for="r11" class="ident">p</label> <a href="#line-35" class="ident">pflagValue</a>) <label for="r12" class="ident"><a href="../../../../imp/github.com/spf13/viper.pflagValue*4d35e.html#name-.ValueType" class="ident">ValueType</a></label>() <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">return</span> <label for="r11" class="ident">p</label>.<a href="#line-36" class="ident">flag</a>.<a href="../pflag/flag.go.html#line-175" class="ident">Value</a>.<a href="../pflag/flag.go.html#line-190" class="ident">Type</a>()</code></span>
+<span class="codeline" id="line-57"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

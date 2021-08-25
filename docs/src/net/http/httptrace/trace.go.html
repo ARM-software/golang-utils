@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: trace.go in package net/http/httptrace</title>
+<link href="../../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	trace.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/net/http/httptrace.html">net/http/httptrace</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2016 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package httptrace provides mechanisms to trace the events within</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// HTTP client requests.</span></code></span></div><span class="codeline" id="line-7"><code><span class="keyword">package</span> httptrace</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i1"><span class="lit-string i1">"crypto/tls"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i2"><span class="lit-string i2">"internal/nettrace"</span></label></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i3"><span class="lit-string i3">"net"</span></label></code></span>
+<span class="codeline" id="line-14"><code>	<label for="i4"><span class="lit-string i4">"net/textproto"</span></label></code></span>
+<span class="codeline" id="line-15"><code>	<label for="i5"><span class="lit-string i5">"reflect"</span></label></code></span>
+<span class="codeline" id="line-16"><code>	<label for="i6"><span class="lit-string i6">"time"</span></label></code></span>
+<span class="codeline" id="line-17"><code>)</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// unique type to prevent assignment.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">type</span> <a href="../../../../pkg/net/http/httptrace.html#name-clientEventContextKey" class="ident">clientEventContextKey</a> <span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-21"><code></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">// ContextClientTrace returns the ClientTrace associated with the</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// provided context. If none, it returns nil.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../pkg/net/http/httptrace.html#name-ContextClientTrace" class="ident">ContextClientTrace</a></label>(<label for="r1" class="ident">ctx</label> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-62" class="ident">Context</a>) *<a href="#line-80" class="ident">ClientTrace</a> {</code></span>
+<span class="codeline" id="line-25"><code>	<label for="r2" class="ident">trace</label>, <label for="r3" class="ident">_</label> := <label for="r1" class="ident">ctx</label>.<a href="../../../context/context.go.html#line-153" class="ident">Value</a>(<a href="#line-20" class="ident">clientEventContextKey</a>{}).(*<a href="#line-80" class="ident">ClientTrace</a>)</code></span>
+<span class="codeline" id="line-26"><code>	<span class="keyword">return</span> <label for="r2" class="ident">trace</label></code></span>
+<span class="codeline" id="line-27"><code>}</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// WithClientTrace returns a new context based on the provided parent</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// ctx. HTTP client requests made with the returned context will use</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">// the provided trace hooks, in addition to any previous hooks</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">// registered with ctx. Any hooks defined in the provided trace will</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">// be called first.</span></code></span>
+<span class="codeline" id="line-34"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../../pkg/net/http/httptrace.html#name-WithClientTrace" class="ident">WithClientTrace</a></label>(<label for="r5" class="ident">ctx</label> <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-62" class="ident">Context</a>, <label for="r6" class="ident">trace</label> *<a href="#line-80" class="ident">ClientTrace</a>) <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-62" class="ident">Context</a> {</code></span>
+<span class="codeline" id="line-35"><code>	<span class="keyword">if</span> <label for="r6" class="ident">trace</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-36"><code>		<a href="../../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"nil trace"</span>)</code></span>
+<span class="codeline" id="line-37"><code>	}</code></span>
+<span class="codeline" id="line-38"><code>	<label for="r7" class="ident">old</label> := <a href="#line-24" class="ident">ContextClientTrace</a>(<label for="r5" class="ident">ctx</label>)</code></span>
+<span class="codeline" id="line-39"><code>	<label for="r6" class="ident">trace</label>.<a href="#line-175" class="ident">compose</a>(<label for="r7" class="ident">old</label>)</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code>	<label for="r5" class="ident">ctx</label> = <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-519" class="ident">WithValue</a>(<label for="r5" class="ident">ctx</label>, <a href="#line-20" class="ident">clientEventContextKey</a>{}, <label for="r6" class="ident">trace</label>)</code></span>
+<span class="codeline" id="line-42"><code>	<span class="keyword">if</span> <label for="r6" class="ident">trace</label>.<a href="#line-229" class="ident">hasNetHooks</a>() {</code></span>
+<span class="codeline" id="line-43"><code>		<label for="r8" class="ident">nt</label> := &amp;<a href="../../../../pkg/internal/nettrace.html" class="ident i2">nettrace</a>.<a href="../../../internal/nettrace/nettrace.go.html#line-24" class="ident">Trace</a>{</code></span>
+<span class="codeline" id="line-44"><code>			<a href="../../../internal/nettrace/nettrace.go.html#line-39" class="ident">ConnectStart</a>: <label for="r6" class="ident">trace</label>.<a href="#line-126" class="ident">ConnectStart</a>,</code></span>
+<span class="codeline" id="line-45"><code>			<a href="../../../internal/nettrace/nettrace.go.html#line-44" class="ident">ConnectDone</a>:  <label for="r6" class="ident">trace</label>.<a href="#line-133" class="ident">ConnectDone</a>,</code></span>
+<span class="codeline" id="line-46"><code>		}</code></span>
+<span class="codeline" id="line-47"><code>		<span class="keyword">if</span> <label for="r6" class="ident">trace</label>.<a href="#line-118" class="ident">DNSStart</a> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-48"><code>			<label for="r8" class="ident">nt</label>.<a href="../../../internal/nettrace/nettrace.go.html#line-27" class="ident">DNSStart</a> = <span class="keyword">func</span>(<label for="r9" class="ident">name</label> <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-49"><code>				<label for="r6" class="ident">trace</label>.<a href="#line-118" class="ident">DNSStart</a>(<a href="#line-211" class="ident">DNSStartInfo</a>{<a href="#line-212" class="ident">Host</a>: <label for="r9" class="ident">name</label>})</code></span>
+<span class="codeline" id="line-50"><code>			}</code></span>
+<span class="codeline" id="line-51"><code>		}</code></span>
+<span class="codeline" id="line-52"><code>		<span class="keyword">if</span> <label for="r6" class="ident">trace</label>.<a href="#line-121" class="ident">DNSDone</a> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-53"><code>			<label for="r8" class="ident">nt</label>.<a href="../../../internal/nettrace/nettrace.go.html#line-33" class="ident">DNSDone</a> = <span class="keyword">func</span>(<label for="r10" class="ident">netIPs</label> []<span class="keyword">interface</span>{}, <label for="r11" class="ident">coalesced</label> <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r12" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-54"><code>				<label for="r13" class="ident">addrs</label> := <a href="../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../pkg/net.html" class="ident i3">net</a>.<a href="../../iprawsock.go.html#line-31" class="ident">IPAddr</a>, <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r10" class="ident">netIPs</label>))</code></span>
+<span class="codeline" id="line-55"><code>				<span class="keyword">for</span> <label for="r14" class="ident">i</label>, <label for="r15" class="ident">ip</label> := <span class="keyword">range</span> <label for="r10" class="ident">netIPs</label> {</code></span>
+<span class="codeline" id="line-56"><code>					<label for="r13" class="ident">addrs</label>[<label for="r14" class="ident">i</label>] = <label for="r15" class="ident">ip</label>.(<a href="../../../../pkg/net.html" class="ident i3">net</a>.<a href="../../iprawsock.go.html#line-31" class="ident">IPAddr</a>)</code></span>
+<span class="codeline" id="line-57"><code>				}</code></span>
+<span class="codeline" id="line-58"><code>				<label for="r6" class="ident">trace</label>.<a href="#line-121" class="ident">DNSDone</a>(<a href="#line-216" class="ident">DNSDoneInfo</a>{</code></span>
+<span class="codeline" id="line-59"><code>					<a href="#line-219" class="ident">Addrs</a>:     <label for="r13" class="ident">addrs</label>,</code></span>
+<span class="codeline" id="line-60"><code>					<a href="#line-226" class="ident">Coalesced</a>: <label for="r11" class="ident">coalesced</label>,</code></span>
+<span class="codeline" id="line-61"><code>					<a href="#line-222" class="ident">Err</a>:       <label for="r12" class="ident">err</label>,</code></span>
+<span class="codeline" id="line-62"><code>				})</code></span>
+<span class="codeline" id="line-63"><code>			}</code></span>
+<span class="codeline" id="line-64"><code>		}</code></span>
+<span class="codeline" id="line-65"><code>		<label for="r5" class="ident">ctx</label> = <a href="../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../context/context.go.html#line-519" class="ident">WithValue</a>(<label for="r5" class="ident">ctx</label>, <a href="../../../../pkg/internal/nettrace.html" class="ident i2">nettrace</a>.<a href="../../../internal/nettrace/nettrace.go.html#line-13" class="ident">TraceKey</a>{}, <label for="r8" class="ident">nt</label>)</code></span>
+<span class="codeline" id="line-66"><code>	}</code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">return</span> <label for="r5" class="ident">ctx</label></code></span>
+<span class="codeline" id="line-68"><code>}</code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// ClientTrace is a set of hooks to run at various stages of an outgoing</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// HTTP request. Any particular hook may be nil. Functions may be</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">// called concurrently from different goroutines and some may be called</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// after the request has completed or failed.</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">// ClientTrace currently traces a single HTTP request &amp; response</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">// during a single round trip and has no hooks that span a series</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">// of redirected requests.</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// See https://blog.golang.org/http-tracing for more.</span></code></span>
+<span class="codeline" id="line-80"><code><span class="keyword">type</span> <a href="../../../../pkg/net/http/httptrace.html#name-ClientTrace" class="ident">ClientTrace</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-81"><code>	<span class="comment">// GetConn is called before a connection is created or</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">	// retrieved from an idle pool. The hostPort is the</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">	// "host:port" of the target or proxy. GetConn is called even</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">	// if there's already an idle cached connection available.</span></code></span>
+<span class="codeline" id="line-85"><code>	GetConn <span class="keyword">func</span>(hostPort <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code>	<span class="comment">// GotConn is called after a successful connection is</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">	// obtained. There is no hook for failure to obtain a</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">	// connection; instead, use the error from</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">	// Transport.RoundTrip.</span></code></span>
+<span class="codeline" id="line-91"><code>	GotConn <span class="keyword">func</span>(<a href="#line-238" class="ident">GotConnInfo</a>)</code></span>
+<span class="codeline" id="line-92"><code></code></span>
+<span class="codeline" id="line-93"><code>	<span class="comment">// PutIdleConn is called when the connection is returned to</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">	// the idle pool. If err is nil, the connection was</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">	// successfully returned to the idle pool. If err is non-nil,</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">	// it describes why not. PutIdleConn is not called if</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">	// connection reuse is disabled via Transport.DisableKeepAlives.</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">	// PutIdleConn is called before the caller's Response.Body.Close</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">	// call returns.</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">	// For HTTP/2, this hook is not currently used.</span></code></span>
+<span class="codeline" id="line-101"><code>	PutIdleConn <span class="keyword">func</span>(err <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code>	<span class="comment">// GotFirstResponseByte is called when the first byte of the response</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">	// headers is available.</span></code></span>
+<span class="codeline" id="line-105"><code>	GotFirstResponseByte <span class="keyword">func</span>()</code></span>
+<span class="codeline" id="line-106"><code></code></span>
+<span class="codeline" id="line-107"><code>	<span class="comment">// Got100Continue is called if the server replies with a "100</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">	// Continue" response.</span></code></span>
+<span class="codeline" id="line-109"><code>	Got100Continue <span class="keyword">func</span>()</code></span>
+<span class="codeline" id="line-110"><code></code></span>
+<span class="codeline" id="line-111"><code>	<span class="comment">// Got1xxResponse is called for each 1xx informational response header</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">	// returned before the final non-1xx response. Got1xxResponse is called</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">	// for "100 Continue" responses, even if Got100Continue is also defined.</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">	// If it returns an error, the client request is aborted with that error value.</span></code></span>
+<span class="codeline" id="line-115"><code>	Got1xxResponse <span class="keyword">func</span>(code <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>, header <a href="../../../../pkg/net/textproto.html" class="ident i4">textproto</a>.<a href="../../textproto/header.go.html#line-9" class="ident">MIMEHeader</a>) <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-116"><code></code></span>
+<span class="codeline" id="line-117"><code>	<span class="comment">// DNSStart is called when a DNS lookup begins.</span></code></span>
+<span class="codeline" id="line-118"><code>	DNSStart <span class="keyword">func</span>(<a href="#line-211" class="ident">DNSStartInfo</a>)</code></span>
+<span class="codeline" id="line-119"><code></code></span>
+<span class="codeline" id="line-120"><code>	<span class="comment">// DNSDone is called when a DNS lookup ends.</span></code></span>
+<span class="codeline" id="line-121"><code>	DNSDone <span class="keyword">func</span>(<a href="#line-216" class="ident">DNSDoneInfo</a>)</code></span>
+<span class="codeline" id="line-122"><code></code></span>
+<span class="codeline" id="line-123"><code>	<span class="comment">// ConnectStart is called when a new connection's Dial begins.</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">	// If net.Dialer.DualStack (IPv6 "Happy Eyeballs") support is</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">	// enabled, this may be called multiple times.</span></code></span>
+<span class="codeline" id="line-126"><code>	ConnectStart <span class="keyword">func</span>(network, addr <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-127"><code></code></span>
+<span class="codeline" id="line-128"><code>	<span class="comment">// ConnectDone is called when a new connection's Dial</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">	// completes. The provided err indicates whether the</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">	// connection completedly successfully.</span></code></span>
+<span class="codeline" id="line-131"><code><span class="comment">	// If net.Dialer.DualStack ("Happy Eyeballs") support is</span></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">	// enabled, this may be called multiple times.</span></code></span>
+<span class="codeline" id="line-133"><code>	ConnectDone <span class="keyword">func</span>(network, addr <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, err <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-134"><code></code></span>
+<span class="codeline" id="line-135"><code>	<span class="comment">// TLSHandshakeStart is called when the TLS handshake is started. When</span></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">	// connecting to an HTTPS site via an HTTP proxy, the handshake happens</span></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">	// after the CONNECT request is processed by the proxy.</span></code></span>
+<span class="codeline" id="line-138"><code>	TLSHandshakeStart <span class="keyword">func</span>()</code></span>
+<span class="codeline" id="line-139"><code></code></span>
+<span class="codeline" id="line-140"><code>	<span class="comment">// TLSHandshakeDone is called after the TLS handshake with either the</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">	// successful handshake's connection state, or a non-nil error on handshake</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">	// failure.</span></code></span>
+<span class="codeline" id="line-143"><code>	TLSHandshakeDone <span class="keyword">func</span>(<a href="../../../../pkg/crypto/tls.html" class="ident i1">tls</a>.<a href="../../../crypto/tls/common.go.html#line-217" class="ident">ConnectionState</a>, <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-144"><code></code></span>
+<span class="codeline" id="line-145"><code>	<span class="comment">// WroteHeaderField is called after the Transport has written</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">	// each request header. At the time of this call the values</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">	// might be buffered and not yet written to the network.</span></code></span>
+<span class="codeline" id="line-148"><code>	WroteHeaderField <span class="keyword">func</span>(key <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>, value []<a href="../../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+<span class="codeline" id="line-149"><code></code></span>
+<span class="codeline" id="line-150"><code>	<span class="comment">// WroteHeaders is called after the Transport has written</span></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">	// all request headers.</span></code></span>
+<span class="codeline" id="line-152"><code>	WroteHeaders <span class="keyword">func</span>()</code></span>
+<span class="codeline" id="line-153"><code></code></span>
+<span class="codeline" id="line-154"><code>	<span class="comment">// Wait100Continue is called if the Request specified</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">	// "Expect: 100-continue" and the Transport has written the</span></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">	// request headers but is waiting for "100 Continue" from the</span></code></span>
+<span class="codeline" id="line-157"><code><span class="comment">	// server before writing the request body.</span></code></span>
+<span class="codeline" id="line-158"><code>	Wait100Continue <span class="keyword">func</span>()</code></span>
+<span class="codeline" id="line-159"><code></code></span>
+<span class="codeline" id="line-160"><code>	<span class="comment">// WroteRequest is called with the result of writing the</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">	// request and any body. It may be called multiple times</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">	// in the case of retried requests.</span></code></span>
+<span class="codeline" id="line-163"><code>	WroteRequest <span class="keyword">func</span>(<a href="#line-168" class="ident">WroteRequestInfo</a>)</code></span>
+<span class="codeline" id="line-164"><code>}</code></span>
+<span class="codeline" id="line-165"><code></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">// WroteRequestInfo contains information provided to the WroteRequest</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">// hook.</span></code></span>
+<span class="codeline" id="line-168"><code><span class="keyword">type</span> <a href="../../../../pkg/net/http/httptrace.html#name-WroteRequestInfo" class="ident">WroteRequestInfo</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-169"><code>	<span class="comment">// Err is any error encountered while writing the Request.</span></code></span>
+<span class="codeline" id="line-170"><code>	Err <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-171"><code>}</code></span>
+<span class="codeline" id="line-172"><code></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">// compose modifies t such that it respects the previously-registered hooks in old,</span></code></span>
+<span class="codeline" id="line-174"><code><span class="comment">// subject to the composition policy requested in t.Compose.</span></code></span>
+<span class="codeline" id="line-175"><code><span class="keyword">func</span> (<label for="r16" class="ident">t</label> *<a href="#line-80" class="ident">ClientTrace</a>) <label for="r17" class="ident">compose</label>(<label for="r18" class="ident">old</label> *<a href="#line-80" class="ident">ClientTrace</a>) {</code></span>
+<span class="codeline" id="line-176"><code>	<span class="keyword">if</span> <label for="r18" class="ident">old</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-177"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-178"><code>	}</code></span>
+<span class="codeline" id="line-179"><code>	<label for="r19" class="ident">tv</label> := <a href="../../../../pkg/reflect.html" class="ident i5">reflect</a>.<a href="../../../reflect/value.go.html#line-2351" class="ident">ValueOf</a>(<label for="r16" class="ident">t</label>).<a href="../../../reflect/value.go.html#line-811" class="ident">Elem</a>()</code></span>
+<span class="codeline" id="line-180"><code>	<label for="r20" class="ident">ov</label> := <a href="../../../../pkg/reflect.html" class="ident i5">reflect</a>.<a href="../../../reflect/value.go.html#line-2351" class="ident">ValueOf</a>(<label for="r18" class="ident">old</label>).<a href="../../../reflect/value.go.html#line-811" class="ident">Elem</a>()</code></span>
+<span class="codeline" id="line-181"><code>	<label for="r21" class="ident">structType</label> := <label for="r19" class="ident">tv</label>.<a href="../../../reflect/value.go.html#line-1905" class="ident">Type</a>()</code></span>
+<span class="codeline" id="line-182"><code>	<span class="keyword">for</span> <label for="r22" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r22" class="ident">i</label> &lt; <label for="r21" class="ident">structType</label>.<a href="../../../reflect/type.go.html#line-197" class="ident">NumField</a>(); <label for="r22" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-183"><code>		<label for="r23" class="ident">tf</label> := <label for="r19" class="ident">tv</label>.<a href="../../../reflect/value.go.html#line-848" class="ident">Field</a>(<label for="r22" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-184"><code>		<label for="r24" class="ident">hookType</label> := <label for="r23" class="ident">tf</label>.<a href="../../../reflect/value.go.html#line-1905" class="ident">Type</a>()</code></span>
+<span class="codeline" id="line-185"><code>		<span class="keyword">if</span> <label for="r24" class="ident">hookType</label>.<a href="../../../reflect/type.go.html#line-100" class="ident">Kind</a>() != <a href="../../../../pkg/reflect.html" class="ident i5">reflect</a>.<a href="../../../reflect/type.go.html#line-254" class="ident">Func</a> {</code></span>
+<span class="codeline" id="line-186"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-187"><code>		}</code></span>
+<span class="codeline" id="line-188"><code>		<label for="r25" class="ident">of</label> := <label for="r20" class="ident">ov</label>.<a href="../../../reflect/value.go.html#line-848" class="ident">Field</a>(<label for="r22" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-189"><code>		<span class="keyword">if</span> <label for="r25" class="ident">of</label>.<a href="../../../reflect/value.go.html#line-1069" class="ident">IsNil</a>() {</code></span>
+<span class="codeline" id="line-190"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-191"><code>		}</code></span>
+<span class="codeline" id="line-192"><code>		<span class="keyword">if</span> <label for="r23" class="ident">tf</label>.<a href="../../../reflect/value.go.html#line-1069" class="ident">IsNil</a>() {</code></span>
+<span class="codeline" id="line-193"><code>			<label for="r23" class="ident">tf</label>.<a href="../../../reflect/value.go.html#line-1557" class="ident">Set</a>(<label for="r25" class="ident">of</label>)</code></span>
+<span class="codeline" id="line-194"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-195"><code>		}</code></span>
+<span class="codeline" id="line-196"><code></code></span>
+<span class="codeline" id="line-197"><code>		<span class="comment">// Make a copy of tf for tf to call. (Otherwise it</span></code></span>
+<span class="codeline" id="line-198"><code><span class="comment">		// creates a recursive call cycle and stack overflows)</span></code></span>
+<span class="codeline" id="line-199"><code>		<label for="r26" class="ident">tfCopy</label> := <a href="../../../../pkg/reflect.html" class="ident i5">reflect</a>.<a href="../../../reflect/value.go.html#line-2351" class="ident">ValueOf</a>(<label for="r23" class="ident">tf</label>.<a href="../../../reflect/value.go.html#line-1015" class="ident">Interface</a>())</code></span>
+<span class="codeline" id="line-200"><code></code></span>
+<span class="codeline" id="line-201"><code>		<span class="comment">// We need to call both tf and of in some order.</span></code></span>
+<span class="codeline" id="line-202"><code>		<label for="r27" class="ident">newFunc</label> := <a href="../../../../pkg/reflect.html" class="ident i5">reflect</a>.<a href="../../../reflect/makefunc.go.html#line-48" class="ident">MakeFunc</a>(<label for="r24" class="ident">hookType</label>, <span class="keyword">func</span>(<label for="r28" class="ident">args</label> []<a href="../../../../pkg/reflect.html" class="ident i5">reflect</a>.<a href="../../../reflect/value.go.html#line-37" class="ident">Value</a>) []<a href="../../../../pkg/reflect.html" class="ident i5">reflect</a>.<a href="../../../reflect/value.go.html#line-37" class="ident">Value</a> {</code></span>
+<span class="codeline" id="line-203"><code>			<label for="r26" class="ident">tfCopy</label>.<a href="../../../reflect/value.go.html#line-334" class="ident">Call</a>(<label for="r28" class="ident">args</label>)</code></span>
+<span class="codeline" id="line-204"><code>			<span class="keyword">return</span> <label for="r25" class="ident">of</label>.<a href="../../../reflect/value.go.html#line-334" class="ident">Call</a>(<label for="r28" class="ident">args</label>)</code></span>
+<span class="codeline" id="line-205"><code>		})</code></span>
+<span class="codeline" id="line-206"><code>		<label for="r19" class="ident">tv</label>.<a href="../../../reflect/value.go.html#line-848" class="ident">Field</a>(<label for="r22" class="ident">i</label>).<a href="../../../reflect/value.go.html#line-1557" class="ident">Set</a>(<label for="r27" class="ident">newFunc</label>)</code></span>
+<span class="codeline" id="line-207"><code>	}</code></span>
+<span class="codeline" id="line-208"><code>}</code></span>
+<span class="codeline" id="line-209"><code></code></span>
+<span class="codeline" id="line-210"><code><span class="comment">// DNSStartInfo contains information about a DNS request.</span></code></span>
+<span class="codeline" id="line-211"><code><span class="keyword">type</span> <a href="../../../../pkg/net/http/httptrace.html#name-DNSStartInfo" class="ident">DNSStartInfo</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-212"><code>	Host <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-213"><code>}</code></span>
+<span class="codeline" id="line-214"><code></code></span>
+<span class="codeline" id="line-215"><code><span class="comment">// DNSDoneInfo contains information about the results of a DNS lookup.</span></code></span>
+<span class="codeline" id="line-216"><code><span class="keyword">type</span> <a href="../../../../pkg/net/http/httptrace.html#name-DNSDoneInfo" class="ident">DNSDoneInfo</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-217"><code>	<span class="comment">// Addrs are the IPv4 and/or IPv6 addresses found in the DNS</span></code></span>
+<span class="codeline" id="line-218"><code><span class="comment">	// lookup. The contents of the slice should not be mutated.</span></code></span>
+<span class="codeline" id="line-219"><code>	Addrs []<a href="../../../../pkg/net.html" class="ident i3">net</a>.<a href="../../iprawsock.go.html#line-31" class="ident">IPAddr</a></code></span>
+<span class="codeline" id="line-220"><code></code></span>
+<span class="codeline" id="line-221"><code>	<span class="comment">// Err is any error that occurred during the DNS lookup.</span></code></span>
+<span class="codeline" id="line-222"><code>	Err <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-223"><code></code></span>
+<span class="codeline" id="line-224"><code>	<span class="comment">// Coalesced is whether the Addrs were shared with another</span></code></span>
+<span class="codeline" id="line-225"><code><span class="comment">	// caller who was doing the same DNS lookup concurrently.</span></code></span>
+<span class="codeline" id="line-226"><code>	Coalesced <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-227"><code>}</code></span>
+<span class="codeline" id="line-228"><code></code></span>
+<span class="codeline" id="line-229"><code><span class="keyword">func</span> (<label for="r29" class="ident">t</label> *<a href="#line-80" class="ident">ClientTrace</a>) <label for="r30" class="ident">hasNetHooks</label>() <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-230"><code>	<span class="keyword">if</span> <label for="r29" class="ident">t</label> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-231"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-232"><code>	}</code></span>
+<span class="codeline" id="line-233"><code>	<span class="keyword">return</span> <label for="r29" class="ident">t</label>.<a href="#line-118" class="ident">DNSStart</a> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> || <label for="r29" class="ident">t</label>.<a href="#line-121" class="ident">DNSDone</a> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> || <label for="r29" class="ident">t</label>.<a href="#line-126" class="ident">ConnectStart</a> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> || <label for="r29" class="ident">t</label>.<a href="#line-133" class="ident">ConnectDone</a> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-234"><code>}</code></span>
+<span class="codeline" id="line-235"><code></code></span>
+<span class="codeline" id="line-236"><code><span class="comment">// GotConnInfo is the argument to the ClientTrace.GotConn function and</span></code></span>
+<span class="codeline" id="line-237"><code><span class="comment">// contains information about the obtained connection.</span></code></span>
+<span class="codeline" id="line-238"><code><span class="keyword">type</span> <a href="../../../../pkg/net/http/httptrace.html#name-GotConnInfo" class="ident">GotConnInfo</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-239"><code>	<span class="comment">// Conn is the connection that was obtained. It is owned by</span></code></span>
+<span class="codeline" id="line-240"><code><span class="comment">	// the http.Transport and should not be read, written or</span></code></span>
+<span class="codeline" id="line-241"><code><span class="comment">	// closed by users of ClientTrace.</span></code></span>
+<span class="codeline" id="line-242"><code>	Conn <a href="../../../../pkg/net.html" class="ident i3">net</a>.<a href="../../net.go.html#line-113" class="ident">Conn</a></code></span>
+<span class="codeline" id="line-243"><code></code></span>
+<span class="codeline" id="line-244"><code>	<span class="comment">// Reused is whether this connection has been previously</span></code></span>
+<span class="codeline" id="line-245"><code><span class="comment">	// used for another HTTP request.</span></code></span>
+<span class="codeline" id="line-246"><code>	Reused <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-247"><code></code></span>
+<span class="codeline" id="line-248"><code>	<span class="comment">// WasIdle is whether this connection was obtained from an</span></code></span>
+<span class="codeline" id="line-249"><code><span class="comment">	// idle pool.</span></code></span>
+<span class="codeline" id="line-250"><code>	WasIdle <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-251"><code></code></span>
+<span class="codeline" id="line-252"><code>	<span class="comment">// IdleTime reports how long the connection was previously</span></code></span>
+<span class="codeline" id="line-253"><code><span class="comment">	// idle, if WasIdle is true.</span></code></span>
+<span class="codeline" id="line-254"><code>	IdleTime <a href="../../../../pkg/time.html" class="ident i6">time</a>.<a href="../../../time/time.go.html#line-583" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-255"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

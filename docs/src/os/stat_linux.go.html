@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: stat_linux.go in package os</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	stat_linux.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/os.html">os</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2009 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> os</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"syscall"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"time"</span></label></code></span>
+<span class="codeline" id="line-10"><code>)</code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/os.html#name-fillFileStatFromSys" class="ident">fillFileStatFromSys</a></label>(<label for="r1" class="ident">fs</label> *<a href="types_unix.go.html#line-16" class="ident">fileStat</a>, <label for="r2" class="ident">name</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-13"><code>	<label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-17" class="ident">name</a> = <a href="path_unix.go.html#line-20" class="ident">basename</a>(<label for="r2" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-14"><code>	<label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-18" class="ident">size</a> = <label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-21" class="ident">sys</a>.<a href="../syscall/ztypes_linux_amd64.go.html#line-110" class="ident">Size</a></code></span>
+<span class="codeline" id="line-15"><code>	<label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-20" class="ident">modTime</a> = <a href="#line-44" class="ident">timespecToTime</a>(<label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-21" class="ident">sys</a>.<a href="../syscall/ztypes_linux_amd64.go.html#line-114" class="ident">Mtim</a>)</code></span>
+<span class="codeline" id="line-16"><code>	<label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-19" class="ident">mode</a> = <a href="types.go.html#line-28" class="ident">FileMode</a>(<label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-21" class="ident">sys</a>.<a href="../syscall/ztypes_linux_amd64.go.html#line-105" class="ident">Mode</a> &amp; <span class="lit-number">0777</span>)</code></span>
+<span class="codeline" id="line-17"><code>	<span class="keyword">switch</span> <label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-21" class="ident">sys</a>.<a href="../syscall/ztypes_linux_amd64.go.html#line-105" class="ident">Mode</a> &amp; <a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1070" class="ident">S_IFMT</a> {</code></span>
+<span class="codeline" id="line-18"><code>	<span class="keyword">case</span> <a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1065" class="ident">S_IFBLK</a>:</code></span>
+<span class="codeline" id="line-19"><code>		<label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-19" class="ident">mode</a> |= <a href="types.go.html#line-43" class="ident">ModeDevice</a></code></span>
+<span class="codeline" id="line-20"><code>	<span class="keyword">case</span> <a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1066" class="ident">S_IFCHR</a>:</code></span>
+<span class="codeline" id="line-21"><code>		<label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-19" class="ident">mode</a> |= <a href="types.go.html#line-43" class="ident">ModeDevice</a> | <a href="types.go.html#line-48" class="ident">ModeCharDevice</a></code></span>
+<span class="codeline" id="line-22"><code>	<span class="keyword">case</span> <a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1067" class="ident">S_IFDIR</a>:</code></span>
+<span class="codeline" id="line-23"><code>		<label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-19" class="ident">mode</a> |= <a href="types.go.html#line-38" class="ident">ModeDir</a></code></span>
+<span class="codeline" id="line-24"><code>	<span class="keyword">case</span> <a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1068" class="ident">S_IFIFO</a>:</code></span>
+<span class="codeline" id="line-25"><code>		<label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-19" class="ident">mode</a> |= <a href="types.go.html#line-44" class="ident">ModeNamedPipe</a></code></span>
+<span class="codeline" id="line-26"><code>	<span class="keyword">case</span> <a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1069" class="ident">S_IFLNK</a>:</code></span>
+<span class="codeline" id="line-27"><code>		<label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-19" class="ident">mode</a> |= <a href="types.go.html#line-42" class="ident">ModeSymlink</a></code></span>
+<span class="codeline" id="line-28"><code>	<span class="keyword">case</span> <a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1071" class="ident">S_IFREG</a>:</code></span>
+<span class="codeline" id="line-29"><code>		<span class="comment">// nothing to do</span></code></span>
+<span class="codeline" id="line-30"><code>	<span class="keyword">case</span> <a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1072" class="ident">S_IFSOCK</a>:</code></span>
+<span class="codeline" id="line-31"><code>		<label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-19" class="ident">mode</a> |= <a href="types.go.html#line-45" class="ident">ModeSocket</a></code></span>
+<span class="codeline" id="line-32"><code>	}</code></span>
+<span class="codeline" id="line-33"><code>	<span class="keyword">if</span> <label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-21" class="ident">sys</a>.<a href="../syscall/ztypes_linux_amd64.go.html#line-105" class="ident">Mode</a>&amp;<a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1080" class="ident">S_ISGID</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-34"><code>		<label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-19" class="ident">mode</a> |= <a href="types.go.html#line-47" class="ident">ModeSetgid</a></code></span>
+<span class="codeline" id="line-35"><code>	}</code></span>
+<span class="codeline" id="line-36"><code>	<span class="keyword">if</span> <label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-21" class="ident">sys</a>.<a href="../syscall/ztypes_linux_amd64.go.html#line-105" class="ident">Mode</a>&amp;<a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1081" class="ident">S_ISUID</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-37"><code>		<label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-19" class="ident">mode</a> |= <a href="types.go.html#line-46" class="ident">ModeSetuid</a></code></span>
+<span class="codeline" id="line-38"><code>	}</code></span>
+<span class="codeline" id="line-39"><code>	<span class="keyword">if</span> <label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-21" class="ident">sys</a>.<a href="../syscall/ztypes_linux_amd64.go.html#line-105" class="ident">Mode</a>&amp;<a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/zerrors_linux_amd64.go.html#line-1082" class="ident">S_ISVTX</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-40"><code>		<label for="r1" class="ident">fs</label>.<a href="types_unix.go.html#line-19" class="ident">mode</a> |= <a href="types.go.html#line-49" class="ident">ModeSticky</a></code></span>
+<span class="codeline" id="line-41"><code>	}</code></span>
+<span class="codeline" id="line-42"><code>}</code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../pkg/os.html#name-timespecToTime" class="ident">timespecToTime</a></label>(<label for="r4" class="ident">ts</label> <a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/ztypes_linux_amd64.go.html#line-24" class="ident">Timespec</a>) <a href="../../pkg/time.html" class="ident i1">time</a>.<a href="../time/time.go.html#line-127" class="ident">Time</a> {</code></span>
+<span class="codeline" id="line-45"><code>	<span class="keyword">return</span> <a href="../../pkg/time.html" class="ident i1">time</a>.<a href="../time/time.go.html#line-1292" class="ident">Unix</a>(<a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r4" class="ident">ts</label>.<a href="../syscall/ztypes_linux_amd64.go.html#line-25" class="ident">Sec</a>), <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r4" class="ident">ts</label>.<a href="../syscall/ztypes_linux_amd64.go.html#line-26" class="ident">Nsec</a>))</code></span>
+<span class="codeline" id="line-46"><code>}</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// For testing.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../pkg/os.html#name-atime" class="ident">atime</a></label>(<label for="r6" class="ident">fi</label> <a href="types.go.html#line-21" class="ident">FileInfo</a>) <a href="../../pkg/time.html" class="ident i1">time</a>.<a href="../time/time.go.html#line-127" class="ident">Time</a> {</code></span>
+<span class="codeline" id="line-50"><code>	<span class="keyword">return</span> <a href="#line-44" class="ident">timespecToTime</a>(<label for="r6" class="ident">fi</label>.<a href="../io/fs/fs.go.html#line-156" class="ident">Sys</a>().(*<a href="../../pkg/syscall.html" class="ident i0">syscall</a>.<a href="../syscall/ztypes_linux_amd64.go.html#line-101" class="ident">Stat_t</a>).<a href="../syscall/ztypes_linux_amd64.go.html#line-113" class="ident">Atim</a>)</code></span>
+<span class="codeline" id="line-51"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

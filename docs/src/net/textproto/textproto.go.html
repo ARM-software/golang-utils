@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: textproto.go in package net/textproto</title>
+<link href="../../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	textproto.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/net/textproto.html">net/textproto</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2010 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package textproto implements generic support for text-based request/response</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// protocols in the style of HTTP, NNTP, and SMTP.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// The package provides:</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// Error, which represents a numeric error response from</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// a server.</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// Pipeline, to manage pipelined requests and responses</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// in a client.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// Reader, to read numeric response code lines,</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// key: value headers, lines wrapped with leading spaces</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// on continuation lines, and whole text blocks ending</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// with a dot on a line by itself.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// Writer, to write dot-encoded text blocks.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// Conn, a convenient packaging of Reader, Writer, and Pipeline for use</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// with a single network connection.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">//</span></code></span></div><span class="codeline" id="line-26"><code><span class="keyword">package</span> textproto</code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-29"><code>	<label for="i0"><span class="lit-string i0">"bufio"</span></label></code></span>
+<span class="codeline" id="line-30"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-31"><code>	<label for="i2"><span class="lit-string i2">"io"</span></label></code></span>
+<span class="codeline" id="line-32"><code>	<label for="i3"><span class="lit-string i3">"net"</span></label></code></span>
+<span class="codeline" id="line-33"><code>)</code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// An Error represents a numeric error response from a server.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">type</span> <a href="../../../pkg/net/textproto.html#name-Error" class="ident">Error</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-37"><code>	Code <a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-38"><code>	Msg  <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-39"><code>}</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="keyword">func</span> (<label for="r0" class="ident">e</label> *<a href="#line-36" class="ident">Error</a>) <label for="r1" class="ident"><a href="../../../imp/net/textproto.Error.html#name-.Error" class="ident">Error</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-42"><code>	<span class="keyword">return</span> <a href="../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../fmt/print.go.html#line-217" class="ident">Sprintf</a>(<span class="lit-string">"%03d %s"</span>, <label for="r0" class="ident">e</label>.<a href="#line-37" class="ident">Code</a>, <label for="r0" class="ident">e</label>.<a href="#line-38" class="ident">Msg</a>)</code></span>
+<span class="codeline" id="line-43"><code>}</code></span>
+<span class="codeline" id="line-44"><code></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// A ProtocolError describes a protocol violation such</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// as an invalid response or a hung-up connection.</span></code></span>
+<span class="codeline" id="line-47"><code><span class="keyword">type</span> <a href="../../../pkg/net/textproto.html#name-ProtocolError" class="ident">ProtocolError</a> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">func</span> (<label for="r2" class="ident">p</label> <a href="#line-47" class="ident">ProtocolError</a>) <label for="r3" class="ident"><a href="../../../imp/net/textproto.ProtocolError.html#name-.Error" class="ident">Error</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-50"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r2" class="ident">p</label>)</code></span>
+<span class="codeline" id="line-51"><code>}</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// A Conn represents a textual network protocol connection.</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// It consists of a Reader and Writer to manage I/O</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// and a Pipeline to sequence concurrent requests on the connection.</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// These embedded types carry methods with them;</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// see the documentation of those types for details.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">type</span> <a href="../../../pkg/net/textproto.html#name-Conn" class="ident">Conn</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-59"><code>	<a href="reader.go.html#line-19" class="ident">Reader</a></code></span>
+<span class="codeline" id="line-60"><code>	<a href="writer.go.html#line-15" class="ident">Writer</a></code></span>
+<span class="codeline" id="line-61"><code>	<a href="pipeline.go.html#line-28" class="ident">Pipeline</a></code></span>
+<span class="codeline" id="line-62"><code>	conn <a href="../../../pkg/io.html" class="ident i2">io</a>.<a href="../../io/io.go.html#line-144" class="ident">ReadWriteCloser</a></code></span>
+<span class="codeline" id="line-63"><code>}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// NewConn returns a new Conn using conn for I/O.</span></code></span>
+<span class="codeline" id="line-66"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../pkg/net/textproto.html#name-NewConn" class="ident">NewConn</a></label>(<label for="r5" class="ident">conn</label> <a href="../../../pkg/io.html" class="ident i2">io</a>.<a href="../../io/io.go.html#line-144" class="ident">ReadWriteCloser</a>) *<a href="#line-58" class="ident">Conn</a> {</code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">return</span> &amp;<a href="#line-58" class="ident">Conn</a>{</code></span>
+<span class="codeline" id="line-68"><code>		<a href="#line-59" class="ident">Reader</a>: <a href="reader.go.html#line-19" class="ident">Reader</a>{<a href="reader.go.html#line-20" class="ident">R</a>: <a href="../../../pkg/bufio.html" class="ident i0">bufio</a>.<a href="../../bufio/bufio.go.html#line-62" class="ident">NewReader</a>(<label for="r5" class="ident">conn</label>)},</code></span>
+<span class="codeline" id="line-69"><code>		<a href="#line-60" class="ident">Writer</a>: <a href="writer.go.html#line-15" class="ident">Writer</a>{<a href="writer.go.html#line-16" class="ident">W</a>: <a href="../../../pkg/bufio.html" class="ident i0">bufio</a>.<a href="../../bufio/bufio.go.html#line-584" class="ident">NewWriter</a>(<label for="r5" class="ident">conn</label>)},</code></span>
+<span class="codeline" id="line-70"><code>		<a href="#line-62" class="ident">conn</a>:   <label for="r5" class="ident">conn</label>,</code></span>
+<span class="codeline" id="line-71"><code>	}</code></span>
+<span class="codeline" id="line-72"><code>}</code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// Close closes the connection.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="keyword">func</span> (<label for="r6" class="ident">c</label> *<a href="#line-58" class="ident">Conn</a>) <label for="r7" class="ident"><a href="../../../imp/net/textproto.Conn.html#name-.Close" class="ident">Close</a></label>() <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">return</span> <label for="r6" class="ident">c</label>.<a href="#line-62" class="ident">conn</a>.<a href="../../io/io.go.html#line-105" class="ident">Close</a>()</code></span>
+<span class="codeline" id="line-77"><code>}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// Dial connects to the given address on the given network using net.Dial</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// and then returns a new Conn for the connection.</span></code></span>
+<span class="codeline" id="line-81"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../../pkg/net/textproto.html#name-Dial" class="ident">Dial</a></label>(<label for="r9" class="ident">network</label>, <label for="r10" class="ident">addr</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) (*<a href="#line-58" class="ident">Conn</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-82"><code>	<label for="r11" class="ident">c</label>, <label for="r12" class="ident">err</label> := <a href="../../../pkg/net.html" class="ident i3">net</a>.<a href="../dial.go.html#line-317" class="ident">Dial</a>(<label for="r9" class="ident">network</label>, <label for="r10" class="ident">addr</label>)</code></span>
+<span class="codeline" id="line-83"><code>	<span class="keyword">if</span> <label for="r12" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-84"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r12" class="ident">err</label></code></span>
+<span class="codeline" id="line-85"><code>	}</code></span>
+<span class="codeline" id="line-86"><code>	<span class="keyword">return</span> <a href="#line-66" class="ident">NewConn</a>(<label for="r11" class="ident">c</label>), <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-87"><code>}</code></span>
+<span class="codeline" id="line-88"><code></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">// Cmd is a convenience method that sends a command after</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// waiting its turn in the pipeline. The command text is the</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">// result of formatting format with args and appending \r\n.</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">// Cmd returns the id of the command, for use with StartResponse and EndResponse.</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// For example, a client might run a HELP command that returns a dot-body</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">// by using:</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">//	id, err := c.Cmd("HELP")</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">//	if err != nil {</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">//		return nil, err</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">//	}</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">//	c.StartResponse(id)</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">//	defer c.EndResponse(id)</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">//	if _, _, err = c.ReadCodeLine(110); err != nil {</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">//		return nil, err</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">//	}</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">//	text, err := c.ReadDotBytes()</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">//	if err != nil {</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">//		return nil, err</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">//	}</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">//	return c.ReadCodeLine(250)</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-114"><code><span class="keyword">func</span> (<label for="r13" class="ident">c</label> *<a href="#line-58" class="ident">Conn</a>) <label for="r14" class="ident">Cmd</label>(<label for="r15" class="ident">format</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r16" class="ident">args</label> ...<span class="keyword">interface</span>{}) (<label for="r17" class="ident">id</label> <a href="../../../pkg/builtin.html#name-uint" class="ident">uint</a>, <label for="r18" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-115"><code>	<label for="r17" class="ident">id</label> = <label for="r13" class="ident">c</label>.<a href="pipeline.go.html#line-36" class="ident">Next</a>()</code></span>
+<span class="codeline" id="line-116"><code>	<label for="r13" class="ident">c</label>.<a href="pipeline.go.html#line-46" class="ident">StartRequest</a>(<label for="r17" class="ident">id</label>)</code></span>
+<span class="codeline" id="line-117"><code>	<label for="r18" class="ident">err</label> = <label for="r13" class="ident">c</label>.<a href="writer.go.html#line-29" class="ident">PrintfLine</a>(<label for="r15" class="ident">format</label>, <label for="r16" class="ident">args</label>...)</code></span>
+<span class="codeline" id="line-118"><code>	<label for="r13" class="ident">c</label>.<a href="pipeline.go.html#line-52" class="ident">EndRequest</a>(<label for="r17" class="ident">id</label>)</code></span>
+<span class="codeline" id="line-119"><code>	<span class="keyword">if</span> <label for="r18" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-120"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <label for="r18" class="ident">err</label></code></span>
+<span class="codeline" id="line-121"><code>	}</code></span>
+<span class="codeline" id="line-122"><code>	<span class="keyword">return</span> <label for="r17" class="ident">id</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-123"><code>}</code></span>
+<span class="codeline" id="line-124"><code></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">// TrimString returns s without leading and trailing ASCII space.</span></code></span>
+<span class="codeline" id="line-126"><code><span class="keyword">func</span> <label for="r19" class="ident"><a href="../../../pkg/net/textproto.html#name-TrimString" class="ident">TrimString</a></label>(<label for="r20" class="ident">s</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-127"><code>	<span class="keyword">for</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r20" class="ident">s</label>) &gt; <span class="lit-number">0</span> &amp;&amp; <a href="#line-147" class="ident">isASCIISpace</a>(<label for="r20" class="ident">s</label>[<span class="lit-number">0</span>]) {</code></span>
+<span class="codeline" id="line-128"><code>		<label for="r20" class="ident">s</label> = <label for="r20" class="ident">s</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-129"><code>	}</code></span>
+<span class="codeline" id="line-130"><code>	<span class="keyword">for</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r20" class="ident">s</label>) &gt; <span class="lit-number">0</span> &amp;&amp; <a href="#line-147" class="ident">isASCIISpace</a>(<label for="r20" class="ident">s</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r20" class="ident">s</label>)-<span class="lit-number">1</span>]) {</code></span>
+<span class="codeline" id="line-131"><code>		<label for="r20" class="ident">s</label> = <label for="r20" class="ident">s</label>[:<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r20" class="ident">s</label>)-<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-132"><code>	}</code></span>
+<span class="codeline" id="line-133"><code>	<span class="keyword">return</span> <label for="r20" class="ident">s</label></code></span>
+<span class="codeline" id="line-134"><code>}</code></span>
+<span class="codeline" id="line-135"><code></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">// TrimBytes returns b without leading and trailing ASCII space.</span></code></span>
+<span class="codeline" id="line-137"><code><span class="keyword">func</span> <label for="r21" class="ident"><a href="../../../pkg/net/textproto.html#name-TrimBytes" class="ident">TrimBytes</a></label>(<label for="r22" class="ident">b</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-138"><code>	<span class="keyword">for</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r22" class="ident">b</label>) &gt; <span class="lit-number">0</span> &amp;&amp; <a href="#line-147" class="ident">isASCIISpace</a>(<label for="r22" class="ident">b</label>[<span class="lit-number">0</span>]) {</code></span>
+<span class="codeline" id="line-139"><code>		<label for="r22" class="ident">b</label> = <label for="r22" class="ident">b</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-140"><code>	}</code></span>
+<span class="codeline" id="line-141"><code>	<span class="keyword">for</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r22" class="ident">b</label>) &gt; <span class="lit-number">0</span> &amp;&amp; <a href="#line-147" class="ident">isASCIISpace</a>(<label for="r22" class="ident">b</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r22" class="ident">b</label>)-<span class="lit-number">1</span>]) {</code></span>
+<span class="codeline" id="line-142"><code>		<label for="r22" class="ident">b</label> = <label for="r22" class="ident">b</label>[:<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r22" class="ident">b</label>)-<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-143"><code>	}</code></span>
+<span class="codeline" id="line-144"><code>	<span class="keyword">return</span> <label for="r22" class="ident">b</label></code></span>
+<span class="codeline" id="line-145"><code>}</code></span>
+<span class="codeline" id="line-146"><code></code></span>
+<span class="codeline" id="line-147"><code><span class="keyword">func</span> <label for="r23" class="ident"><a href="../../../pkg/net/textproto.html#name-isASCIISpace" class="ident">isASCIISpace</a></label>(<label for="r24" class="ident">b</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-148"><code>	<span class="keyword">return</span> <label for="r24" class="ident">b</label> == <span class="lit-number">' '</span> || <label for="r24" class="ident">b</label> == <span class="lit-number">'\t'</span> || <label for="r24" class="ident">b</label> == <span class="lit-number">'\n'</span> || <label for="r24" class="ident">b</label> == <span class="lit-number">'\r'</span></code></span>
+<span class="codeline" id="line-149"><code>}</code></span>
+<span class="codeline" id="line-150"><code></code></span>
+<span class="codeline" id="line-151"><code><span class="keyword">func</span> <label for="r25" class="ident"><a href="../../../pkg/net/textproto.html#name-isASCIILetter" class="ident">isASCIILetter</a></label>(<label for="r26" class="ident">b</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-152"><code>	<label for="r26" class="ident">b</label> |= <span class="lit-number">0x20</span> <span class="comment">// make lower case</span></code></span>
+<span class="codeline" id="line-153"><code>	<span class="keyword">return</span> <span class="lit-number">'a'</span> &lt;= <label for="r26" class="ident">b</label> &amp;&amp; <label for="r26" class="ident">b</label> &lt;= <span class="lit-number">'z'</span></code></span>
+<span class="codeline" id="line-154"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: iface.go in package runtime</title>
+<link href="../../css/light-v0.3.3-preview.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.3.3-preview.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	iface.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../pkg/runtime.html">runtime</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104],
+input[id=r105]:checked ~pre label[for=r105],
+input[id=r106]:checked ~pre label[for=r106],
+input[id=r107]:checked ~pre label[for=r107],
+input[id=r108]:checked ~pre label[for=r108],
+input[id=r109]:checked ~pre label[for=r109],
+input[id=r110]:checked ~pre label[for=r110],
+input[id=r111]:checked ~pre label[for=r111],
+input[id=r112]:checked ~pre label[for=r112],
+input[id=r113]:checked ~pre label[for=r113],
+input[id=r114]:checked ~pre label[for=r114],
+input[id=r115]:checked ~pre label[for=r115],
+input[id=r116]:checked ~pre label[for=r116],
+input[id=r117]:checked ~pre label[for=r117],
+input[id=r118]:checked ~pre label[for=r118],
+input[id=r119]:checked ~pre label[for=r119],
+input[id=r120]:checked ~pre label[for=r120],
+input[id=r121]:checked ~pre label[for=r121],
+input[id=r122]:checked ~pre label[for=r122],
+input[id=r123]:checked ~pre label[for=r123],
+input[id=r124]:checked ~pre label[for=r124],
+input[id=r125]:checked ~pre label[for=r125],
+input[id=r126]:checked ~pre label[for=r126],
+input[id=r127]:checked ~pre label[for=r127],
+input[id=r128]:checked ~pre label[for=r128],
+input[id=r129]:checked ~pre label[for=r129],
+input[id=r130]:checked ~pre label[for=r130],
+input[id=r131]:checked ~pre label[for=r131],
+input[id=r132]:checked ~pre label[for=r132],
+input[id=r133]:checked ~pre label[for=r133],
+input[id=r134]:checked ~pre label[for=r134],
+input[id=r135]:checked ~pre label[for=r135],
+input[id=r136]:checked ~pre label[for=r136],
+input[id=r137]:checked ~pre label[for=r137],
+input[id=r138]:checked ~pre label[for=r138],
+input[id=r139]:checked ~pre label[for=r139],
+input[id=r140]:checked ~pre label[for=r140],
+input[id=r141]:checked ~pre label[for=r141],
+input[id=r142]:checked ~pre label[for=r142],
+input[id=r143]:checked ~pre label[for=r143],
+input[id=r144]:checked ~pre label[for=r144],
+input[id=r145]:checked ~pre label[for=r145],
+input[id=r146]:checked ~pre label[for=r146],
+input[id=r147]:checked ~pre label[for=r147]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="r105" type="radio" name="g"/>
+<input id="r106" type="radio" name="g"/>
+<input id="r107" type="radio" name="g"/>
+<input id="r108" type="radio" name="g"/>
+<input id="r109" type="radio" name="g"/>
+<input id="r110" type="radio" name="g"/>
+<input id="r111" type="radio" name="g"/>
+<input id="r112" type="radio" name="g"/>
+<input id="r113" type="radio" name="g"/>
+<input id="r114" type="radio" name="g"/>
+<input id="r115" type="radio" name="g"/>
+<input id="r116" type="radio" name="g"/>
+<input id="r117" type="radio" name="g"/>
+<input id="r118" type="radio" name="g"/>
+<input id="r119" type="radio" name="g"/>
+<input id="r120" type="radio" name="g"/>
+<input id="r121" type="radio" name="g"/>
+<input id="r122" type="radio" name="g"/>
+<input id="r123" type="radio" name="g"/>
+<input id="r124" type="radio" name="g"/>
+<input id="r125" type="radio" name="g"/>
+<input id="r126" type="radio" name="g"/>
+<input id="r127" type="radio" name="g"/>
+<input id="r128" type="radio" name="g"/>
+<input id="r129" type="radio" name="g"/>
+<input id="r130" type="radio" name="g"/>
+<input id="r131" type="radio" name="g"/>
+<input id="r132" type="radio" name="g"/>
+<input id="r133" type="radio" name="g"/>
+<input id="r134" type="radio" name="g"/>
+<input id="r135" type="radio" name="g"/>
+<input id="r136" type="radio" name="g"/>
+<input id="r137" type="radio" name="g"/>
+<input id="r138" type="radio" name="g"/>
+<input id="r139" type="radio" name="g"/>
+<input id="r140" type="radio" name="g"/>
+<input id="r141" type="radio" name="g"/>
+<input id="r142" type="radio" name="g"/>
+<input id="r143" type="radio" name="g"/>
+<input id="r144" type="radio" name="g"/>
+<input id="r145" type="radio" name="g"/>
+<input id="r146" type="radio" name="g"/>
+<input id="r147" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2014 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> runtime</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"runtime/internal/atomic"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"runtime/internal/sys"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">const</span> <a href="../../pkg/runtime.html#name-itabInitSize" class="ident">itabInitSize</a> = <span class="lit-number">512</span></code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-16"><code>	<a href="../../pkg/runtime.html#name-itabLock" class="ident">itabLock</a>      <a href="runtime2.go.html#line-162" class="ident">mutex</a>                               <span class="comment">// lock for accessing itab table</span></code></span>
+<span class="codeline" id="line-17"><code>	<a href="../../pkg/runtime.html#name-itabTable" class="ident">itabTable</a>     = &amp;<a href="#line-18" class="ident">itabTableInit</a>                    <span class="comment">// pointer to current table</span></code></span>
+<span class="codeline" id="line-18"><code>	<a href="../../pkg/runtime.html#name-itabTableInit" class="ident">itabTableInit</a> = <a href="#line-22" class="ident">itabTableType</a>{<a href="#line-23" class="ident">size</a>: <a href="#line-13" class="ident">itabInitSize</a>} <span class="comment">// starter table</span></code></span>
+<span class="codeline" id="line-19"><code>)</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// Note: change the formula in the mallocgc call in itabAdd if you change these fields.</span></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-itabTableType" class="ident">itabTableType</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-23"><code>	size    <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>             <span class="comment">// length of entries array. Always a power of 2.</span></code></span>
+<span class="codeline" id="line-24"><code>	count   <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>             <span class="comment">// current number of filled entries.</span></code></span>
+<span class="codeline" id="line-25"><code>	entries [<a href="#line-13" class="ident">itabInitSize</a>]*<a href="runtime2.go.html#line-854" class="ident">itab</a> <span class="comment">// really [size] large</span></code></span>
+<span class="codeline" id="line-26"><code>}</code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-itabHashFunc" class="ident">itabHashFunc</a></label>(<label for="r1" class="ident">inter</label> *<a href="type.go.html#line-366" class="ident">interfacetype</a>, <label for="r2" class="ident">typ</label> *<a href="type.go.html#line-31" class="ident">_type</a>) <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a> {</code></span>
+<span class="codeline" id="line-29"><code>	<span class="comment">// compiler has provided some good hash codes for us.</span></code></span>
+<span class="codeline" id="line-30"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r1" class="ident">inter</label>.<a href="type.go.html#line-367" class="ident">typ</a>.<a href="type.go.html#line-34" class="ident">hash</a> ^ <label for="r2" class="ident">typ</label>.<a href="type.go.html#line-34" class="ident">hash</a>)</code></span>
+<span class="codeline" id="line-31"><code>}</code></span>
+<span class="codeline" id="line-32"><code></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../pkg/runtime.html#name-getitab" class="ident">getitab</a></label>(<label for="r4" class="ident">inter</label> *<a href="type.go.html#line-366" class="ident">interfacetype</a>, <label for="r5" class="ident">typ</label> *<a href="type.go.html#line-31" class="ident">_type</a>, <label for="r6" class="ident">canfail</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) *<a href="runtime2.go.html#line-854" class="ident">itab</a> {</code></span>
+<span class="codeline" id="line-34"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r4" class="ident">inter</label>.<a href="type.go.html#line-369" class="ident">mhdr</a>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-35"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"internal error - misuse of itab"</span>)</code></span>
+<span class="codeline" id="line-36"><code>	}</code></span>
+<span class="codeline" id="line-37"><code></code></span>
+<span class="codeline" id="line-38"><code>	<span class="comment">// easy case</span></code></span>
+<span class="codeline" id="line-39"><code>	<span class="keyword">if</span> <label for="r5" class="ident">typ</label>.<a href="type.go.html#line-35" class="ident">tflag</a>&amp;<a href="type.go.html#line-21" class="ident">tflagUncommon</a> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-40"><code>		<span class="keyword">if</span> <label for="r6" class="ident">canfail</label> {</code></span>
+<span class="codeline" id="line-41"><code>			<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-42"><code>		}</code></span>
+<span class="codeline" id="line-43"><code>		<label for="r7" class="ident">name</label> := <label for="r4" class="ident">inter</label>.<a href="type.go.html#line-367" class="ident">typ</a>.<a href="type.go.html#line-215" class="ident">nameOff</a>(<label for="r4" class="ident">inter</label>.<a href="type.go.html#line-369" class="ident">mhdr</a>[<span class="lit-number">0</span>].<a href="type.go.html#line-362" class="ident">name</a>)</code></span>
+<span class="codeline" id="line-44"><code>		<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(&amp;<a href="error.go.html#line-21" class="ident">TypeAssertionError</a>{<a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r5" class="ident">typ</label>, &amp;<label for="r4" class="ident">inter</label>.<a href="type.go.html#line-367" class="ident">typ</a>, <label for="r7" class="ident">name</label>.<a href="type.go.html#line-474" class="ident">name</a>()})</code></span>
+<span class="codeline" id="line-45"><code>	}</code></span>
+<span class="codeline" id="line-46"><code></code></span>
+<span class="codeline" id="line-47"><code>	<span class="keyword">var</span> <label for="r8" class="ident">m</label> *<a href="runtime2.go.html#line-854" class="ident">itab</a></code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code>	<span class="comment">// First, look in the existing table to see if we can find the itab we need.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">	// This is by far the most common case, so do it without locks.</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">	// Use atomic to ensure we see any previous writes done by the thread</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">	// that updates the itabTable field (with atomic.Storep in itabAdd).</span></code></span>
+<span class="codeline" id="line-53"><code>	<label for="r9" class="ident">t</label> := (*<a href="#line-22" class="ident">itabTableType</a>)(<a href="../../pkg/runtime/internal/atomic.html" class="ident i0">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-22" class="ident">Loadp</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<a href="#line-17" class="ident">itabTable</a>)))</code></span>
+<span class="codeline" id="line-54"><code>	<span class="keyword">if</span> <label for="r8" class="ident">m</label> = <label for="r9" class="ident">t</label>.<a href="#line-96" class="ident">find</a>(<label for="r4" class="ident">inter</label>, <label for="r5" class="ident">typ</label>); <label for="r8" class="ident">m</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-55"><code>		<span class="keyword">goto</span> <label for="r10" class="ident">finish</label></code></span>
+<span class="codeline" id="line-56"><code>	}</code></span>
+<span class="codeline" id="line-57"><code></code></span>
+<span class="codeline" id="line-58"><code>	<span class="comment">// Not found.  Grab the lock and try again.</span></code></span>
+<span class="codeline" id="line-59"><code>	<a href="lock_futex.go.html#line-46" class="ident">lock</a>(&amp;<a href="#line-16" class="ident">itabLock</a>)</code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">if</span> <label for="r8" class="ident">m</label> = <a href="#line-17" class="ident">itabTable</a>.<a href="#line-96" class="ident">find</a>(<label for="r4" class="ident">inter</label>, <label for="r5" class="ident">typ</label>); <label for="r8" class="ident">m</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-61"><code>		<a href="lock_futex.go.html#line-110" class="ident">unlock</a>(&amp;<a href="#line-16" class="ident">itabLock</a>)</code></span>
+<span class="codeline" id="line-62"><code>		<span class="keyword">goto</span> <label for="r10" class="ident">finish</label></code></span>
+<span class="codeline" id="line-63"><code>	}</code></span>
+<span class="codeline" id="line-64"><code></code></span>
+<span class="codeline" id="line-65"><code>	<span class="comment">// Entry doesn't exist yet. Make a new entry &amp; add it.</span></code></span>
+<span class="codeline" id="line-66"><code>	<label for="r8" class="ident">m</label> = (*<a href="runtime2.go.html#line-854" class="ident">itab</a>)(<a href="malloc.go.html#line-1311" class="ident">persistentalloc</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(<a href="runtime2.go.html#line-854" class="ident">itab</a>{})+<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r4" class="ident">inter</label>.<a href="type.go.html#line-369" class="ident">mhdr</a>)-<span class="lit-number">1</span>)*<a href="../../pkg/runtime/internal/sys.html" class="ident i1">sys</a>.<a href="internal/sys/stubs.go.html#line-9" class="ident">PtrSize</a>, <span class="lit-number">0</span>, &amp;<a href="mstats.go.html#line-170" class="ident">memstats</a>.<a href="mstats.go.html#line-61" class="ident">other_sys</a>))</code></span>
+<span class="codeline" id="line-67"><code>	<label for="r8" class="ident">m</label>.<a href="runtime2.go.html#line-855" class="ident">inter</a> = <label for="r4" class="ident">inter</label></code></span>
+<span class="codeline" id="line-68"><code>	<label for="r8" class="ident">m</label>.<a href="runtime2.go.html#line-856" class="ident">_type</a> = <label for="r5" class="ident">typ</label></code></span>
+<span class="codeline" id="line-69"><code>	<span class="comment">// The hash is used in type switches. However, compiler statically generates itab's</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">	// for all interface/type pairs used in switches (which are added to itabTable</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">	// in itabsinit). The dynamically-generated itab's never participate in type switches,</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">	// and thus the hash is irrelevant.</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">	// Note: m.hash is _not_ the hash used for the runtime itabTable hash table.</span></code></span>
+<span class="codeline" id="line-74"><code>	<label for="r8" class="ident">m</label>.<a href="runtime2.go.html#line-857" class="ident">hash</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-75"><code>	<label for="r8" class="ident">m</label>.<a href="#line-191" class="ident">init</a>()</code></span>
+<span class="codeline" id="line-76"><code>	<a href="#line-121" class="ident">itabAdd</a>(<label for="r8" class="ident">m</label>)</code></span>
+<span class="codeline" id="line-77"><code>	<a href="lock_futex.go.html#line-110" class="ident">unlock</a>(&amp;<a href="#line-16" class="ident">itabLock</a>)</code></span>
+<span class="codeline" id="line-78"><code><label for="r10" class="ident">finish</label>:</code></span>
+<span class="codeline" id="line-79"><code>	<span class="keyword">if</span> <label for="r8" class="ident">m</label>.<a href="runtime2.go.html#line-859" class="ident">fun</a>[<span class="lit-number">0</span>] != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-80"><code>		<span class="keyword">return</span> <label for="r8" class="ident">m</label></code></span>
+<span class="codeline" id="line-81"><code>	}</code></span>
+<span class="codeline" id="line-82"><code>	<span class="keyword">if</span> <label for="r6" class="ident">canfail</label> {</code></span>
+<span class="codeline" id="line-83"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-84"><code>	}</code></span>
+<span class="codeline" id="line-85"><code>	<span class="comment">// this can only happen if the conversion</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">	// was already done once using the , ok form</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">	// and we have a cached negative result.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">	// The cached result doesn't record which</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">	// interface function was missing, so initialize</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">	// the itab again to get the missing function name.</span></code></span>
+<span class="codeline" id="line-91"><code>	<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(&amp;<a href="error.go.html#line-21" class="ident">TypeAssertionError</a>{<a href="error.go.html#line-23" class="ident">concrete</a>: <label for="r5" class="ident">typ</label>, <a href="error.go.html#line-24" class="ident">asserted</a>: &amp;<label for="r4" class="ident">inter</label>.<a href="type.go.html#line-367" class="ident">typ</a>, <a href="error.go.html#line-25" class="ident">missingMethod</a>: <label for="r8" class="ident">m</label>.<a href="#line-191" class="ident">init</a>()})</code></span>
+<span class="codeline" id="line-92"><code>}</code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">// find finds the given interface/type pair in t.</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">// Returns nil if the given interface/type pair isn't present.</span></code></span>
+<span class="codeline" id="line-96"><code><span class="keyword">func</span> (<label for="r11" class="ident">t</label> *<a href="#line-22" class="ident">itabTableType</a>) <label for="r12" class="ident">find</label>(<label for="r13" class="ident">inter</label> *<a href="type.go.html#line-366" class="ident">interfacetype</a>, <label for="r14" class="ident">typ</label> *<a href="type.go.html#line-31" class="ident">_type</a>) *<a href="runtime2.go.html#line-854" class="ident">itab</a> {</code></span>
+<span class="codeline" id="line-97"><code>	<span class="comment">// Implemented using quadratic probing.</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">	// Probe sequence is h(i) = h0 + i*(i+1)/2 mod 2^k.</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">	// We're guaranteed to hit all table entries using this probe sequence.</span></code></span>
+<span class="codeline" id="line-100"><code>	<label for="r15" class="ident">mask</label> := <label for="r11" class="ident">t</label>.<a href="#line-23" class="ident">size</a> - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-101"><code>	<label for="r16" class="ident">h</label> := <a href="#line-28" class="ident">itabHashFunc</a>(<label for="r13" class="ident">inter</label>, <label for="r14" class="ident">typ</label>) &amp; <label for="r15" class="ident">mask</label></code></span>
+<span class="codeline" id="line-102"><code>	<span class="keyword">for</span> <label for="r17" class="ident">i</label> := <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<span class="lit-number">1</span>); ; <label for="r17" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-103"><code>		<label for="r18" class="ident">p</label> := (**<a href="runtime2.go.html#line-854" class="ident">itab</a>)(<a href="stubs.go.html#line-11" class="ident">add</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r11" class="ident">t</label>.<a href="#line-25" class="ident">entries</a>), <label for="r16" class="ident">h</label>*<a href="../../pkg/runtime/internal/sys.html" class="ident i1">sys</a>.<a href="internal/sys/stubs.go.html#line-9" class="ident">PtrSize</a>))</code></span>
+<span class="codeline" id="line-104"><code>		<span class="comment">// Use atomic read here so if we see m != nil, we also see</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">		// the initializations of the fields of m.</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">		// m := *p</span></code></span>
+<span class="codeline" id="line-107"><code>		<label for="r19" class="ident">m</label> := (*<a href="runtime2.go.html#line-854" class="ident">itab</a>)(<a href="../../pkg/runtime/internal/atomic.html" class="ident i0">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-22" class="ident">Loadp</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r18" class="ident">p</label>)))</code></span>
+<span class="codeline" id="line-108"><code>		<span class="keyword">if</span> <label for="r19" class="ident">m</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-109"><code>			<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-110"><code>		}</code></span>
+<span class="codeline" id="line-111"><code>		<span class="keyword">if</span> <label for="r19" class="ident">m</label>.<a href="runtime2.go.html#line-855" class="ident">inter</a> == <label for="r13" class="ident">inter</label> &amp;&amp; <label for="r19" class="ident">m</label>.<a href="runtime2.go.html#line-856" class="ident">_type</a> == <label for="r14" class="ident">typ</label> {</code></span>
+<span class="codeline" id="line-112"><code>			<span class="keyword">return</span> <label for="r19" class="ident">m</label></code></span>
+<span class="codeline" id="line-113"><code>		}</code></span>
+<span class="codeline" id="line-114"><code>		<label for="r16" class="ident">h</label> += <label for="r17" class="ident">i</label></code></span>
+<span class="codeline" id="line-115"><code>		<label for="r16" class="ident">h</label> &amp;= <label for="r15" class="ident">mask</label></code></span>
+<span class="codeline" id="line-116"><code>	}</code></span>
+<span class="codeline" id="line-117"><code>}</code></span>
+<span class="codeline" id="line-118"><code></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">// itabAdd adds the given itab to the itab hash table.</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">// itabLock must be held.</span></code></span>
+<span class="codeline" id="line-121"><code><span class="keyword">func</span> <label for="r20" class="ident"><a href="../../pkg/runtime.html#name-itabAdd" class="ident">itabAdd</a></label>(<label for="r21" class="ident">m</label> *<a href="runtime2.go.html#line-854" class="ident">itab</a>) {</code></span>
+<span class="codeline" id="line-122"><code>	<span class="comment">// Bugs can lead to calling this while mallocing is set,</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">	// typically because this is called while panicing.</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">	// Crash reliably, rather than only when we need to grow</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">	// the hash table.</span></code></span>
+<span class="codeline" id="line-126"><code>	<span class="keyword">if</span> <a href="stubs.go.html#line-18" class="ident">getg</a>().<a href="runtime2.go.html#line-418" class="ident">m</a>.<a href="runtime2.go.html#line-504" class="ident">mallocing</a> != <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-127"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"malloc deadlock"</span>)</code></span>
+<span class="codeline" id="line-128"><code>	}</code></span>
+<span class="codeline" id="line-129"><code></code></span>
+<span class="codeline" id="line-130"><code>	<label for="r22" class="ident">t</label> := <a href="#line-17" class="ident">itabTable</a></code></span>
+<span class="codeline" id="line-131"><code>	<span class="keyword">if</span> <label for="r22" class="ident">t</label>.<a href="#line-24" class="ident">count</a> &gt;= <span class="lit-number">3</span>*(<label for="r22" class="ident">t</label>.<a href="#line-23" class="ident">size</a>/<span class="lit-number">4</span>) { <span class="comment">// 75% load factor</span></code></span>
+<span class="codeline" id="line-132"><code>		<span class="comment">// Grow hash table.</span></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">		// t2 = new(itabTableType) + some additional entries</span></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">		// We lie and tell malloc we want pointer-free memory because</span></code></span>
+<span class="codeline" id="line-135"><code><span class="comment">		// all the pointed-to values are not in the heap.</span></code></span>
+<span class="codeline" id="line-136"><code>		<label for="r23" class="ident">t2</label> := (*<a href="#line-22" class="ident">itabTableType</a>)(<a href="malloc.go.html#line-905" class="ident">mallocgc</a>((<span class="lit-number">2</span>+<span class="lit-number">2</span>*<label for="r22" class="ident">t</label>.<a href="#line-23" class="ident">size</a>)*<a href="../../pkg/runtime/internal/sys.html" class="ident i1">sys</a>.<a href="internal/sys/stubs.go.html#line-9" class="ident">PtrSize</a>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a>))</code></span>
+<span class="codeline" id="line-137"><code>		<label for="r23" class="ident">t2</label>.<a href="#line-23" class="ident">size</a> = <label for="r22" class="ident">t</label>.<a href="#line-23" class="ident">size</a> * <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-138"><code></code></span>
+<span class="codeline" id="line-139"><code>		<span class="comment">// Copy over entries.</span></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">		// Note: while copying, other threads may look for an itab and</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">		// fail to find it. That's ok, they will then try to get the itab lock</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">		// and as a consequence wait until this copying is complete.</span></code></span>
+<span class="codeline" id="line-143"><code>		<a href="#line-519" class="ident">iterate_itabs</a>(<label for="r23" class="ident">t2</label>.<a href="#line-158" class="ident">add</a>)</code></span>
+<span class="codeline" id="line-144"><code>		<span class="keyword">if</span> <label for="r23" class="ident">t2</label>.<a href="#line-24" class="ident">count</a> != <label for="r22" class="ident">t</label>.<a href="#line-24" class="ident">count</a> {</code></span>
+<span class="codeline" id="line-145"><code>			<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"mismatched count during itab table copy"</span>)</code></span>
+<span class="codeline" id="line-146"><code>		}</code></span>
+<span class="codeline" id="line-147"><code>		<span class="comment">// Publish new hash table. Use an atomic write: see comment in getitab.</span></code></span>
+<span class="codeline" id="line-148"><code>		<a href="atomic_pointer.go.html#line-31" class="ident">atomicstorep</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<a href="#line-17" class="ident">itabTable</a>), <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r23" class="ident">t2</label>))</code></span>
+<span class="codeline" id="line-149"><code>		<span class="comment">// Adopt the new table as our own.</span></code></span>
+<span class="codeline" id="line-150"><code>		<label for="r22" class="ident">t</label> = <a href="#line-17" class="ident">itabTable</a></code></span>
+<span class="codeline" id="line-151"><code>		<span class="comment">// Note: the old table can be GC'ed here.</span></code></span>
+<span class="codeline" id="line-152"><code>	}</code></span>
+<span class="codeline" id="line-153"><code>	<label for="r22" class="ident">t</label>.<a href="#line-158" class="ident">add</a>(<label for="r21" class="ident">m</label>)</code></span>
+<span class="codeline" id="line-154"><code>}</code></span>
+<span class="codeline" id="line-155"><code></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">// add adds the given itab to itab table t.</span></code></span>
+<span class="codeline" id="line-157"><code><span class="comment">// itabLock must be held.</span></code></span>
+<span class="codeline" id="line-158"><code><span class="keyword">func</span> (<label for="r24" class="ident">t</label> *<a href="#line-22" class="ident">itabTableType</a>) <label for="r25" class="ident">add</label>(<label for="r26" class="ident">m</label> *<a href="runtime2.go.html#line-854" class="ident">itab</a>) {</code></span>
+<span class="codeline" id="line-159"><code>	<span class="comment">// See comment in find about the probe sequence.</span></code></span>
+<span class="codeline" id="line-160"><code><span class="comment">	// Insert new itab in the first empty spot in the probe sequence.</span></code></span>
+<span class="codeline" id="line-161"><code>	<label for="r27" class="ident">mask</label> := <label for="r24" class="ident">t</label>.<a href="#line-23" class="ident">size</a> - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-162"><code>	<label for="r28" class="ident">h</label> := <a href="#line-28" class="ident">itabHashFunc</a>(<label for="r26" class="ident">m</label>.<a href="runtime2.go.html#line-855" class="ident">inter</a>, <label for="r26" class="ident">m</label>.<a href="runtime2.go.html#line-856" class="ident">_type</a>) &amp; <label for="r27" class="ident">mask</label></code></span>
+<span class="codeline" id="line-163"><code>	<span class="keyword">for</span> <label for="r29" class="ident">i</label> := <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<span class="lit-number">1</span>); ; <label for="r29" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-164"><code>		<label for="r30" class="ident">p</label> := (**<a href="runtime2.go.html#line-854" class="ident">itab</a>)(<a href="stubs.go.html#line-11" class="ident">add</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r24" class="ident">t</label>.<a href="#line-25" class="ident">entries</a>), <label for="r28" class="ident">h</label>*<a href="../../pkg/runtime/internal/sys.html" class="ident i1">sys</a>.<a href="internal/sys/stubs.go.html#line-9" class="ident">PtrSize</a>))</code></span>
+<span class="codeline" id="line-165"><code>		<label for="r31" class="ident">m2</label> := *<label for="r30" class="ident">p</label></code></span>
+<span class="codeline" id="line-166"><code>		<span class="keyword">if</span> <label for="r31" class="ident">m2</label> == <label for="r26" class="ident">m</label> {</code></span>
+<span class="codeline" id="line-167"><code>			<span class="comment">// A given itab may be used in more than one module</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">			// and thanks to the way global symbol resolution works, the</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">			// pointed-to itab may already have been inserted into the</span></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">			// global 'hash'.</span></code></span>
+<span class="codeline" id="line-171"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-172"><code>		}</code></span>
+<span class="codeline" id="line-173"><code>		<span class="keyword">if</span> <label for="r31" class="ident">m2</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-174"><code>			<span class="comment">// Use atomic write here so if a reader sees m, it also</span></code></span>
+<span class="codeline" id="line-175"><code><span class="comment">			// sees the correctly initialized fields of m.</span></code></span>
+<span class="codeline" id="line-176"><code><span class="comment">			// NoWB is ok because m is not in heap memory.</span></code></span>
+<span class="codeline" id="line-177"><code><span class="comment">			// *p = m</span></code></span>
+<span class="codeline" id="line-178"><code>			<a href="../../pkg/runtime/internal/atomic.html" class="ident i0">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-116" class="ident">StorepNoWB</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r30" class="ident">p</label>), <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r26" class="ident">m</label>))</code></span>
+<span class="codeline" id="line-179"><code>			<label for="r24" class="ident">t</label>.<a href="#line-24" class="ident">count</a>++</code></span>
+<span class="codeline" id="line-180"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-181"><code>		}</code></span>
+<span class="codeline" id="line-182"><code>		<label for="r28" class="ident">h</label> += <label for="r29" class="ident">i</label></code></span>
+<span class="codeline" id="line-183"><code>		<label for="r28" class="ident">h</label> &amp;= <label for="r27" class="ident">mask</label></code></span>
+<span class="codeline" id="line-184"><code>	}</code></span>
+<span class="codeline" id="line-185"><code>}</code></span>
+<span class="codeline" id="line-186"><code></code></span>
+<span class="codeline" id="line-187"><code><span class="comment">// init fills in the m.fun array with all the code pointers for</span></code></span>
+<span class="codeline" id="line-188"><code><span class="comment">// the m.inter/m._type pair. If the type does not implement the interface,</span></code></span>
+<span class="codeline" id="line-189"><code><span class="comment">// it sets m.fun[0] to 0 and returns the name of an interface function that is missing.</span></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">// It is ok to call this multiple times on the same m, even concurrently.</span></code></span>
+<span class="codeline" id="line-191"><code><span class="keyword">func</span> (<label for="r32" class="ident">m</label> *<a href="runtime2.go.html#line-854" class="ident">itab</a>) <label for="r33" class="ident">init</label>() <a href="../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-192"><code>	<label for="r34" class="ident">inter</label> := <label for="r32" class="ident">m</label>.<a href="runtime2.go.html#line-855" class="ident">inter</a></code></span>
+<span class="codeline" id="line-193"><code>	<label for="r35" class="ident">typ</label> := <label for="r32" class="ident">m</label>.<a href="runtime2.go.html#line-856" class="ident">_type</a></code></span>
+<span class="codeline" id="line-194"><code>	<label for="r36" class="ident">x</label> := <label for="r35" class="ident">typ</label>.<a href="type.go.html#line-58" class="ident">uncommon</a>()</code></span>
+<span class="codeline" id="line-195"><code></code></span>
+<span class="codeline" id="line-196"><code>	<span class="comment">// both inter and typ have method sorted by name,</span></code></span>
+<span class="codeline" id="line-197"><code><span class="comment">	// and interface names are unique,</span></code></span>
+<span class="codeline" id="line-198"><code><span class="comment">	// so can iterate over both in lock step;</span></code></span>
+<span class="codeline" id="line-199"><code><span class="comment">	// the loop is O(ni+nt) not O(ni*nt).</span></code></span>
+<span class="codeline" id="line-200"><code>	<label for="r37" class="ident">ni</label> := <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r34" class="ident">inter</label>.<a href="type.go.html#line-369" class="ident">mhdr</a>)</code></span>
+<span class="codeline" id="line-201"><code>	<label for="r38" class="ident">nt</label> := <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r36" class="ident">x</label>.<a href="type.go.html#line-355" class="ident">mcount</a>)</code></span>
+<span class="codeline" id="line-202"><code>	<label for="r39" class="ident">xmhdr</label> := (*[<span class="lit-number">1</span> &lt;&lt; <span class="lit-number">16</span>]<a href="type.go.html#line-346" class="ident">method</a>)(<a href="stubs.go.html#line-11" class="ident">add</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r36" class="ident">x</label>), <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r36" class="ident">x</label>.<a href="type.go.html#line-357" class="ident">moff</a>)))[:<label for="r38" class="ident">nt</label>:<label for="r38" class="ident">nt</label>]</code></span>
+<span class="codeline" id="line-203"><code>	<label for="r40" class="ident">j</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-204"><code>	<label for="r41" class="ident">methods</label> := (*[<span class="lit-number">1</span> &lt;&lt; <span class="lit-number">16</span>]<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>)(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r32" class="ident">m</label>.<a href="runtime2.go.html#line-859" class="ident">fun</a>[<span class="lit-number">0</span>]))[:<label for="r37" class="ident">ni</label>:<label for="r37" class="ident">ni</label>]</code></span>
+<span class="codeline" id="line-205"><code>	<span class="keyword">var</span> <label for="r42" class="ident">fun0</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a></code></span>
+<span class="codeline" id="line-206"><code><label for="r43" class="ident">imethods</label>:</code></span>
+<span class="codeline" id="line-207"><code>	<span class="keyword">for</span> <label for="r44" class="ident">k</label> := <span class="lit-number">0</span>; <label for="r44" class="ident">k</label> &lt; <label for="r37" class="ident">ni</label>; <label for="r44" class="ident">k</label>++ {</code></span>
+<span class="codeline" id="line-208"><code>		<label for="r45" class="ident">i</label> := &amp;<label for="r34" class="ident">inter</label>.<a href="type.go.html#line-369" class="ident">mhdr</a>[<label for="r44" class="ident">k</label>]</code></span>
+<span class="codeline" id="line-209"><code>		<label for="r46" class="ident">itype</label> := <label for="r34" class="ident">inter</label>.<a href="type.go.html#line-367" class="ident">typ</a>.<a href="type.go.html#line-257" class="ident">typeOff</a>(<label for="r45" class="ident">i</label>.<a href="type.go.html#line-363" class="ident">ityp</a>)</code></span>
+<span class="codeline" id="line-210"><code>		<label for="r47" class="ident">name</label> := <label for="r34" class="ident">inter</label>.<a href="type.go.html#line-367" class="ident">typ</a>.<a href="type.go.html#line-215" class="ident">nameOff</a>(<label for="r45" class="ident">i</label>.<a href="type.go.html#line-362" class="ident">name</a>)</code></span>
+<span class="codeline" id="line-211"><code>		<label for="r48" class="ident">iname</label> := <label for="r47" class="ident">name</label>.<a href="type.go.html#line-474" class="ident">name</a>()</code></span>
+<span class="codeline" id="line-212"><code>		<label for="r49" class="ident">ipkg</label> := <label for="r47" class="ident">name</label>.<a href="type.go.html#line-500" class="ident">pkgPath</a>()</code></span>
+<span class="codeline" id="line-213"><code>		<span class="keyword">if</span> <label for="r49" class="ident">ipkg</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-214"><code>			<label for="r49" class="ident">ipkg</label> = <label for="r34" class="ident">inter</label>.<a href="type.go.html#line-368" class="ident">pkgpath</a>.<a href="type.go.html#line-474" class="ident">name</a>()</code></span>
+<span class="codeline" id="line-215"><code>		}</code></span>
+<span class="codeline" id="line-216"><code>		<span class="keyword">for</span> ; <label for="r40" class="ident">j</label> &lt; <label for="r38" class="ident">nt</label>; <label for="r40" class="ident">j</label>++ {</code></span>
+<span class="codeline" id="line-217"><code>			<label for="r50" class="ident">t</label> := &amp;<label for="r39" class="ident">xmhdr</label>[<label for="r40" class="ident">j</label>]</code></span>
+<span class="codeline" id="line-218"><code>			<label for="r51" class="ident">tname</label> := <label for="r35" class="ident">typ</label>.<a href="type.go.html#line-215" class="ident">nameOff</a>(<label for="r50" class="ident">t</label>.<a href="type.go.html#line-347" class="ident">name</a>)</code></span>
+<span class="codeline" id="line-219"><code>			<span class="keyword">if</span> <label for="r35" class="ident">typ</label>.<a href="type.go.html#line-257" class="ident">typeOff</a>(<label for="r50" class="ident">t</label>.<a href="type.go.html#line-348" class="ident">mtyp</a>) == <label for="r46" class="ident">itype</label> &amp;&amp; <label for="r51" class="ident">tname</label>.<a href="type.go.html#line-474" class="ident">name</a>() == <label for="r48" class="ident">iname</label> {</code></span>
+<span class="codeline" id="line-220"><code>				<label for="r52" class="ident">pkgPath</label> := <label for="r51" class="ident">tname</label>.<a href="type.go.html#line-500" class="ident">pkgPath</a>()</code></span>
+<span class="codeline" id="line-221"><code>				<span class="keyword">if</span> <label for="r52" class="ident">pkgPath</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-222"><code>					<label for="r52" class="ident">pkgPath</label> = <label for="r35" class="ident">typ</label>.<a href="type.go.html#line-215" class="ident">nameOff</a>(<label for="r36" class="ident">x</label>.<a href="type.go.html#line-354" class="ident">pkgpath</a>).<a href="type.go.html#line-474" class="ident">name</a>()</code></span>
+<span class="codeline" id="line-223"><code>				}</code></span>
+<span class="codeline" id="line-224"><code>				<span class="keyword">if</span> <label for="r51" class="ident">tname</label>.<a href="type.go.html#line-458" class="ident">isExported</a>() || <label for="r52" class="ident">pkgPath</label> == <label for="r49" class="ident">ipkg</label> {</code></span>
+<span class="codeline" id="line-225"><code>					<span class="keyword">if</span> <label for="r32" class="ident">m</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-226"><code>						<label for="r53" class="ident">ifn</label> := <label for="r35" class="ident">typ</label>.<a href="type.go.html#line-261" class="ident">textOff</a>(<label for="r50" class="ident">t</label>.<a href="type.go.html#line-349" class="ident">ifn</a>)</code></span>
+<span class="codeline" id="line-227"><code>						<span class="keyword">if</span> <label for="r44" class="ident">k</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-228"><code>							<label for="r42" class="ident">fun0</label> = <label for="r53" class="ident">ifn</label> <span class="comment">// we'll set m.fun[0] at the end</span></code></span>
+<span class="codeline" id="line-229"><code>						} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-230"><code>							<label for="r41" class="ident">methods</label>[<label for="r44" class="ident">k</label>] = <label for="r53" class="ident">ifn</label></code></span>
+<span class="codeline" id="line-231"><code>						}</code></span>
+<span class="codeline" id="line-232"><code>					}</code></span>
+<span class="codeline" id="line-233"><code>					<span class="keyword">continue</span> <label for="r43" class="ident">imethods</label></code></span>
+<span class="codeline" id="line-234"><code>				}</code></span>
+<span class="codeline" id="line-235"><code>			}</code></span>
+<span class="codeline" id="line-236"><code>		}</code></span>
+<span class="codeline" id="line-237"><code>		<span class="comment">// didn't find method</span></code></span>
+<span class="codeline" id="line-238"><code>		<label for="r32" class="ident">m</label>.<a href="runtime2.go.html#line-859" class="ident">fun</a>[<span class="lit-number">0</span>] = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-239"><code>		<span class="keyword">return</span> <label for="r48" class="ident">iname</label></code></span>
+<span class="codeline" id="line-240"><code>	}</code></span>
+<span class="codeline" id="line-241"><code>	<label for="r32" class="ident">m</label>.<a href="runtime2.go.html#line-859" class="ident">fun</a>[<span class="lit-number">0</span>] = <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r42" class="ident">fun0</label>)</code></span>
+<span class="codeline" id="line-242"><code>	<span class="keyword">return</span> <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-243"><code>}</code></span>
+<span class="codeline" id="line-244"><code></code></span>
+<span class="codeline" id="line-245"><code><span class="keyword">func</span> <label for="r54" class="ident"><a href="../../pkg/runtime.html#name-itabsinit" class="ident">itabsinit</a></label>() {</code></span>
+<span class="codeline" id="line-246"><code>	<a href="lockrank_off.go.html#line-14" class="ident">lockInit</a>(&amp;<a href="#line-16" class="ident">itabLock</a>, <a href="lockrank.go.html#line-52" class="ident">lockRankItab</a>)</code></span>
+<span class="codeline" id="line-247"><code>	<a href="lock_futex.go.html#line-46" class="ident">lock</a>(&amp;<a href="#line-16" class="ident">itabLock</a>)</code></span>
+<span class="codeline" id="line-248"><code>	<span class="keyword">for</span> <label for="r55" class="ident">_</label>, <label for="r56" class="ident">md</label> := <span class="keyword">range</span> <a href="symtab.go.html#line-441" class="ident">activeModules</a>() {</code></span>
+<span class="codeline" id="line-249"><code>		<span class="keyword">for</span> <label for="r57" class="ident">_</label>, <label for="r58" class="ident">i</label> := <span class="keyword">range</span> <label for="r56" class="ident">md</label>.<a href="symtab.go.html#line-380" class="ident">itablinks</a> {</code></span>
+<span class="codeline" id="line-250"><code>			<a href="#line-121" class="ident">itabAdd</a>(<label for="r58" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-251"><code>		}</code></span>
+<span class="codeline" id="line-252"><code>	}</code></span>
+<span class="codeline" id="line-253"><code>	<a href="lock_futex.go.html#line-110" class="ident">unlock</a>(&amp;<a href="#line-16" class="ident">itabLock</a>)</code></span>
+<span class="codeline" id="line-254"><code>}</code></span>
+<span class="codeline" id="line-255"><code></code></span>
+<span class="codeline" id="line-256"><code><span class="comment">// panicdottypeE is called when doing an e.(T) conversion and the conversion fails.</span></code></span>
+<span class="codeline" id="line-257"><code><span class="comment">// have = the dynamic type we have.</span></code></span>
+<span class="codeline" id="line-258"><code><span class="comment">// want = the static type we're trying to convert to.</span></code></span>
+<span class="codeline" id="line-259"><code><span class="comment">// iface = the static type we're converting from.</span></code></span>
+<span class="codeline" id="line-260"><code><span class="keyword">func</span> <label for="r59" class="ident"><a href="../../pkg/runtime.html#name-panicdottypeE" class="ident">panicdottypeE</a></label>(<label for="r60" class="ident">have</label>, <label for="r61" class="ident">want</label>, <label for="r62" class="ident">iface</label> *<a href="type.go.html#line-31" class="ident">_type</a>) {</code></span>
+<span class="codeline" id="line-261"><code>	<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(&amp;<a href="error.go.html#line-21" class="ident">TypeAssertionError</a>{<label for="r62" class="ident">iface</label>, <label for="r60" class="ident">have</label>, <label for="r61" class="ident">want</label>, <span class="lit-string">""</span>})</code></span>
+<span class="codeline" id="line-262"><code>}</code></span>
+<span class="codeline" id="line-263"><code></code></span>
+<span class="codeline" id="line-264"><code><span class="comment">// panicdottypeI is called when doing an i.(T) conversion and the conversion fails.</span></code></span>
+<span class="codeline" id="line-265"><code><span class="comment">// Same args as panicdottypeE, but "have" is the dynamic itab we have.</span></code></span>
+<span class="codeline" id="line-266"><code><span class="keyword">func</span> <label for="r63" class="ident"><a href="../../pkg/runtime.html#name-panicdottypeI" class="ident">panicdottypeI</a></label>(<label for="r64" class="ident">have</label> *<a href="runtime2.go.html#line-854" class="ident">itab</a>, <label for="r65" class="ident">want</label>, <label for="r66" class="ident">iface</label> *<a href="type.go.html#line-31" class="ident">_type</a>) {</code></span>
+<span class="codeline" id="line-267"><code>	<span class="keyword">var</span> <label for="r67" class="ident">t</label> *<a href="type.go.html#line-31" class="ident">_type</a></code></span>
+<span class="codeline" id="line-268"><code>	<span class="keyword">if</span> <label for="r64" class="ident">have</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-269"><code>		<label for="r67" class="ident">t</label> = <label for="r64" class="ident">have</label>.<a href="runtime2.go.html#line-856" class="ident">_type</a></code></span>
+<span class="codeline" id="line-270"><code>	}</code></span>
+<span class="codeline" id="line-271"><code>	<a href="#line-260" class="ident">panicdottypeE</a>(<label for="r67" class="ident">t</label>, <label for="r65" class="ident">want</label>, <label for="r66" class="ident">iface</label>)</code></span>
+<span class="codeline" id="line-272"><code>}</code></span>
+<span class="codeline" id="line-273"><code></code></span>
+<span class="codeline" id="line-274"><code><span class="comment">// panicnildottype is called when doing a i.(T) conversion and the interface i is nil.</span></code></span>
+<span class="codeline" id="line-275"><code><span class="comment">// want = the static type we're trying to convert to.</span></code></span>
+<span class="codeline" id="line-276"><code><span class="keyword">func</span> <label for="r68" class="ident"><a href="../../pkg/runtime.html#name-panicnildottype" class="ident">panicnildottype</a></label>(<label for="r69" class="ident">want</label> *<a href="type.go.html#line-31" class="ident">_type</a>) {</code></span>
+<span class="codeline" id="line-277"><code>	<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(&amp;<a href="error.go.html#line-21" class="ident">TypeAssertionError</a>{<a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r69" class="ident">want</label>, <span class="lit-string">""</span>})</code></span>
+<span class="codeline" id="line-278"><code>	<span class="comment">// TODO: Add the static type we're converting from as well.</span></code></span>
+<span class="codeline" id="line-279"><code><span class="comment">	// It might generate a better error message.</span></code></span>
+<span class="codeline" id="line-280"><code><span class="comment">	// Just to match other nil conversion errors, we don't for now.</span></code></span>
+<span class="codeline" id="line-281"><code>}</code></span>
+<span class="codeline" id="line-282"><code></code></span>
+<span class="codeline" id="line-283"><code><span class="comment">// The specialized convTx routines need a type descriptor to use when calling mallocgc.</span></code></span>
+<span class="codeline" id="line-284"><code><span class="comment">// We don't need the type to be exact, just to have the correct size, alignment, and pointer-ness.</span></code></span>
+<span class="codeline" id="line-285"><code><span class="comment">// However, when debugging, it'd be nice to have some indication in mallocgc where the types came from,</span></code></span>
+<span class="codeline" id="line-286"><code><span class="comment">// so we use named types here.</span></code></span>
+<span class="codeline" id="line-287"><code><span class="comment">// We then construct interface values of these types,</span></code></span>
+<span class="codeline" id="line-288"><code><span class="comment">// and then extract the type word to use as needed.</span></code></span>
+<span class="codeline" id="line-289"><code><span class="keyword">type</span> (</code></span>
+<span class="codeline" id="line-290"><code>	<a href="../../pkg/runtime.html#name-uint16InterfacePtr" class="ident">uint16InterfacePtr</a> <a href="../../pkg/builtin.html#name-uint16" class="ident">uint16</a></code></span>
+<span class="codeline" id="line-291"><code>	<a href="../../pkg/runtime.html#name-uint32InterfacePtr" class="ident">uint32InterfacePtr</a> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-292"><code>	<a href="../../pkg/runtime.html#name-uint64InterfacePtr" class="ident">uint64InterfacePtr</a> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-293"><code>	<a href="../../pkg/runtime.html#name-stringInterfacePtr" class="ident">stringInterfacePtr</a> <a href="../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-294"><code>	<a href="../../pkg/runtime.html#name-sliceInterfacePtr" class="ident">sliceInterfacePtr</a>  []<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-295"><code>)</code></span>
+<span class="codeline" id="line-296"><code></code></span>
+<span class="codeline" id="line-297"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-298"><code>	<a href="../../pkg/runtime.html#name-uint16Eface" class="ident">uint16Eface</a> <span class="keyword">interface</span>{} = <a href="#line-290" class="ident">uint16InterfacePtr</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-299"><code>	<a href="../../pkg/runtime.html#name-uint32Eface" class="ident">uint32Eface</a> <span class="keyword">interface</span>{} = <a href="#line-291" class="ident">uint32InterfacePtr</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-300"><code>	<a href="../../pkg/runtime.html#name-uint64Eface" class="ident">uint64Eface</a> <span class="keyword">interface</span>{} = <a href="#line-292" class="ident">uint64InterfacePtr</a>(<span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-301"><code>	<a href="../../pkg/runtime.html#name-stringEface" class="ident">stringEface</a> <span class="keyword">interface</span>{} = <a href="#line-293" class="ident">stringInterfacePtr</a>(<span class="lit-string">""</span>)</code></span>
+<span class="codeline" id="line-302"><code>	<a href="../../pkg/runtime.html#name-sliceEface" class="ident">sliceEface</a>  <span class="keyword">interface</span>{} = <a href="#line-294" class="ident">sliceInterfacePtr</a>(<a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
+<span class="codeline" id="line-303"><code></code></span>
+<span class="codeline" id="line-304"><code>	<a href="../../pkg/runtime.html#name-uint16Type" class="ident">uint16Type</a> *<a href="type.go.html#line-31" class="ident">_type</a> = <a href="runtime2.go.html#line-213" class="ident">efaceOf</a>(&amp;<a href="#line-298" class="ident">uint16Eface</a>).<a href="runtime2.go.html#line-209" class="ident">_type</a></code></span>
+<span class="codeline" id="line-305"><code>	<a href="../../pkg/runtime.html#name-uint32Type" class="ident">uint32Type</a> *<a href="type.go.html#line-31" class="ident">_type</a> = <a href="runtime2.go.html#line-213" class="ident">efaceOf</a>(&amp;<a href="#line-299" class="ident">uint32Eface</a>).<a href="runtime2.go.html#line-209" class="ident">_type</a></code></span>
+<span class="codeline" id="line-306"><code>	<a href="../../pkg/runtime.html#name-uint64Type" class="ident">uint64Type</a> *<a href="type.go.html#line-31" class="ident">_type</a> = <a href="runtime2.go.html#line-213" class="ident">efaceOf</a>(&amp;<a href="#line-300" class="ident">uint64Eface</a>).<a href="runtime2.go.html#line-209" class="ident">_type</a></code></span>
+<span class="codeline" id="line-307"><code>	<a href="../../pkg/runtime.html#name-stringType" class="ident">stringType</a> *<a href="type.go.html#line-31" class="ident">_type</a> = <a href="runtime2.go.html#line-213" class="ident">efaceOf</a>(&amp;<a href="#line-301" class="ident">stringEface</a>).<a href="runtime2.go.html#line-209" class="ident">_type</a></code></span>
+<span class="codeline" id="line-308"><code>	<a href="../../pkg/runtime.html#name-sliceType" class="ident">sliceType</a>  *<a href="type.go.html#line-31" class="ident">_type</a> = <a href="runtime2.go.html#line-213" class="ident">efaceOf</a>(&amp;<a href="#line-302" class="ident">sliceEface</a>).<a href="runtime2.go.html#line-209" class="ident">_type</a></code></span>
+<span class="codeline" id="line-309"><code>)</code></span>
+<span class="codeline" id="line-310"><code></code></span>
+<span class="codeline" id="line-311"><code><span class="comment">// The conv and assert functions below do very similar things.</span></code></span>
+<span class="codeline" id="line-312"><code><span class="comment">// The convXXX functions are guaranteed by the compiler to succeed.</span></code></span>
+<span class="codeline" id="line-313"><code><span class="comment">// The assertXXX functions may fail (either panicking or returning false,</span></code></span>
+<span class="codeline" id="line-314"><code><span class="comment">// depending on whether they are 1-result or 2-result).</span></code></span>
+<span class="codeline" id="line-315"><code><span class="comment">// The convXXX functions succeed on a nil input, whereas the assertXXX</span></code></span>
+<span class="codeline" id="line-316"><code><span class="comment">// functions fail on a nil input.</span></code></span>
+<span class="codeline" id="line-317"><code></code></span>
+<span class="codeline" id="line-318"><code><span class="keyword">func</span> <label for="r70" class="ident"><a href="../../pkg/runtime.html#name-convT2E" class="ident">convT2E</a></label>(<label for="r71" class="ident">t</label> *<a href="type.go.html#line-31" class="ident">_type</a>, <label for="r72" class="ident">elem</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) (<label for="r73" class="ident">e</label> <a href="runtime2.go.html#line-208" class="ident">eface</a>) {</code></span>
+<span class="codeline" id="line-319"><code>	<span class="keyword">if</span> <a href="race0.go.html#line-15" class="ident">raceenabled</a> {</code></span>
+<span class="codeline" id="line-320"><code>		<a href="race0.go.html#line-19" class="ident">raceReadObjectPC</a>(<label for="r71" class="ident">t</label>, <label for="r72" class="ident">elem</label>, <a href="stubs.go.html#line-250" class="ident">getcallerpc</a>(), <a href="proc.go.html#line-447" class="ident">funcPC</a>(<label for="r70" class="ident">convT2E</label>))</code></span>
+<span class="codeline" id="line-321"><code>	}</code></span>
+<span class="codeline" id="line-322"><code>	<span class="keyword">if</span> <a href="msan0.go.html#line-15" class="ident">msanenabled</a> {</code></span>
+<span class="codeline" id="line-323"><code>		<a href="msan0.go.html#line-19" class="ident">msanread</a>(<label for="r72" class="ident">elem</label>, <label for="r71" class="ident">t</label>.<a href="type.go.html#line-32" class="ident">size</a>)</code></span>
+<span class="codeline" id="line-324"><code>	}</code></span>
+<span class="codeline" id="line-325"><code>	<label for="r74" class="ident">x</label> := <a href="malloc.go.html#line-905" class="ident">mallocgc</a>(<label for="r71" class="ident">t</label>.<a href="type.go.html#line-32" class="ident">size</a>, <label for="r71" class="ident">t</label>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-326"><code>	<span class="comment">// TODO: We allocate a zeroed object only to overwrite it with actual data.</span></code></span>
+<span class="codeline" id="line-327"><code><span class="comment">	// Figure out how to avoid zeroing. Also below in convT2Eslice, convT2I, convT2Islice.</span></code></span>
+<span class="codeline" id="line-328"><code>	<a href="mbarrier.go.html#line-156" class="ident">typedmemmove</a>(<label for="r71" class="ident">t</label>, <label for="r74" class="ident">x</label>, <label for="r72" class="ident">elem</label>)</code></span>
+<span class="codeline" id="line-329"><code>	<label for="r73" class="ident">e</label>.<a href="runtime2.go.html#line-209" class="ident">_type</a> = <label for="r71" class="ident">t</label></code></span>
+<span class="codeline" id="line-330"><code>	<label for="r73" class="ident">e</label>.<a href="runtime2.go.html#line-210" class="ident">data</a> = <label for="r74" class="ident">x</label></code></span>
+<span class="codeline" id="line-331"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-332"><code>}</code></span>
+<span class="codeline" id="line-333"><code></code></span>
+<span class="codeline" id="line-334"><code><span class="keyword">func</span> <label for="r75" class="ident"><a href="../../pkg/runtime.html#name-convT16" class="ident">convT16</a></label>(<label for="r76" class="ident">val</label> <a href="../../pkg/builtin.html#name-uint16" class="ident">uint16</a>) (<label for="r77" class="ident">x</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) {</code></span>
+<span class="codeline" id="line-335"><code>	<span class="keyword">if</span> <label for="r76" class="ident">val</label> &lt; <a href="../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-532" class="ident">staticuint64s</a>)) {</code></span>
+<span class="codeline" id="line-336"><code>		<label for="r77" class="ident">x</label> = <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<a href="#line-532" class="ident">staticuint64s</a>[<label for="r76" class="ident">val</label>])</code></span>
+<span class="codeline" id="line-337"><code>		<span class="keyword">if</span> <a href="../../pkg/runtime/internal/sys.html" class="ident i1">sys</a>.<a href="internal/sys/arch_amd64.go.html#line-9" class="ident">BigEndian</a> {</code></span>
+<span class="codeline" id="line-338"><code>			<label for="r77" class="ident">x</label> = <a href="stubs.go.html#line-11" class="ident">add</a>(<label for="r77" class="ident">x</label>, <span class="lit-number">6</span>)</code></span>
+<span class="codeline" id="line-339"><code>		}</code></span>
+<span class="codeline" id="line-340"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-341"><code>		<label for="r77" class="ident">x</label> = <a href="malloc.go.html#line-905" class="ident">mallocgc</a>(<span class="lit-number">2</span>, <a href="#line-304" class="ident">uint16Type</a>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-342"><code>		*(*<a href="../../pkg/builtin.html#name-uint16" class="ident">uint16</a>)(<label for="r77" class="ident">x</label>) = <label for="r76" class="ident">val</label></code></span>
+<span class="codeline" id="line-343"><code>	}</code></span>
+<span class="codeline" id="line-344"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-345"><code>}</code></span>
+<span class="codeline" id="line-346"><code></code></span>
+<span class="codeline" id="line-347"><code><span class="keyword">func</span> <label for="r78" class="ident"><a href="../../pkg/runtime.html#name-convT32" class="ident">convT32</a></label>(<label for="r79" class="ident">val</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) (<label for="r80" class="ident">x</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) {</code></span>
+<span class="codeline" id="line-348"><code>	<span class="keyword">if</span> <label for="r79" class="ident">val</label> &lt; <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-532" class="ident">staticuint64s</a>)) {</code></span>
+<span class="codeline" id="line-349"><code>		<label for="r80" class="ident">x</label> = <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<a href="#line-532" class="ident">staticuint64s</a>[<label for="r79" class="ident">val</label>])</code></span>
+<span class="codeline" id="line-350"><code>		<span class="keyword">if</span> <a href="../../pkg/runtime/internal/sys.html" class="ident i1">sys</a>.<a href="internal/sys/arch_amd64.go.html#line-9" class="ident">BigEndian</a> {</code></span>
+<span class="codeline" id="line-351"><code>			<label for="r80" class="ident">x</label> = <a href="stubs.go.html#line-11" class="ident">add</a>(<label for="r80" class="ident">x</label>, <span class="lit-number">4</span>)</code></span>
+<span class="codeline" id="line-352"><code>		}</code></span>
+<span class="codeline" id="line-353"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-354"><code>		<label for="r80" class="ident">x</label> = <a href="malloc.go.html#line-905" class="ident">mallocgc</a>(<span class="lit-number">4</span>, <a href="#line-305" class="ident">uint32Type</a>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-355"><code>		*(*<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>)(<label for="r80" class="ident">x</label>) = <label for="r79" class="ident">val</label></code></span>
+<span class="codeline" id="line-356"><code>	}</code></span>
+<span class="codeline" id="line-357"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-358"><code>}</code></span>
+<span class="codeline" id="line-359"><code></code></span>
+<span class="codeline" id="line-360"><code><span class="keyword">func</span> <label for="r81" class="ident"><a href="../../pkg/runtime.html#name-convT64" class="ident">convT64</a></label>(<label for="r82" class="ident">val</label> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) (<label for="r83" class="ident">x</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) {</code></span>
+<span class="codeline" id="line-361"><code>	<span class="keyword">if</span> <label for="r82" class="ident">val</label> &lt; <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<a href="#line-532" class="ident">staticuint64s</a>)) {</code></span>
+<span class="codeline" id="line-362"><code>		<label for="r83" class="ident">x</label> = <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<a href="#line-532" class="ident">staticuint64s</a>[<label for="r82" class="ident">val</label>])</code></span>
+<span class="codeline" id="line-363"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-364"><code>		<label for="r83" class="ident">x</label> = <a href="malloc.go.html#line-905" class="ident">mallocgc</a>(<span class="lit-number">8</span>, <a href="#line-306" class="ident">uint64Type</a>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-365"><code>		*(*<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>)(<label for="r83" class="ident">x</label>) = <label for="r82" class="ident">val</label></code></span>
+<span class="codeline" id="line-366"><code>	}</code></span>
+<span class="codeline" id="line-367"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-368"><code>}</code></span>
+<span class="codeline" id="line-369"><code></code></span>
+<span class="codeline" id="line-370"><code><span class="keyword">func</span> <label for="r84" class="ident"><a href="../../pkg/runtime.html#name-convTstring" class="ident">convTstring</a></label>(<label for="r85" class="ident">val</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r86" class="ident">x</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) {</code></span>
+<span class="codeline" id="line-371"><code>	<span class="keyword">if</span> <label for="r85" class="ident">val</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-372"><code>		<label for="r86" class="ident">x</label> = <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<a href="map.go.html#line-1384" class="ident">zeroVal</a>[<span class="lit-number">0</span>])</code></span>
+<span class="codeline" id="line-373"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-374"><code>		<label for="r86" class="ident">x</label> = <a href="malloc.go.html#line-905" class="ident">mallocgc</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(<label for="r85" class="ident">val</label>), <a href="#line-307" class="ident">stringType</a>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-375"><code>		*(*<a href="../../pkg/builtin.html#name-string" class="ident">string</a>)(<label for="r86" class="ident">x</label>) = <label for="r85" class="ident">val</label></code></span>
+<span class="codeline" id="line-376"><code>	}</code></span>
+<span class="codeline" id="line-377"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-378"><code>}</code></span>
+<span class="codeline" id="line-379"><code></code></span>
+<span class="codeline" id="line-380"><code><span class="keyword">func</span> <label for="r87" class="ident"><a href="../../pkg/runtime.html#name-convTslice" class="ident">convTslice</a></label>(<label for="r88" class="ident">val</label> []<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r89" class="ident">x</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) {</code></span>
+<span class="codeline" id="line-381"><code>	<span class="comment">// Note: this must work for any element type, not just byte.</span></code></span>
+<span class="codeline" id="line-382"><code>	<span class="keyword">if</span> (*<a href="slice.go.html#line-13" class="ident">slice</a>)(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r88" class="ident">val</label>)).<a href="slice.go.html#line-14" class="ident">array</a> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-383"><code>		<label for="r89" class="ident">x</label> = <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<a href="map.go.html#line-1384" class="ident">zeroVal</a>[<span class="lit-number">0</span>])</code></span>
+<span class="codeline" id="line-384"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-385"><code>		<label for="r89" class="ident">x</label> = <a href="malloc.go.html#line-905" class="ident">mallocgc</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(<label for="r88" class="ident">val</label>), <a href="#line-308" class="ident">sliceType</a>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-386"><code>		*(*[]<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a>)(<label for="r89" class="ident">x</label>) = <label for="r88" class="ident">val</label></code></span>
+<span class="codeline" id="line-387"><code>	}</code></span>
+<span class="codeline" id="line-388"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-389"><code>}</code></span>
+<span class="codeline" id="line-390"><code></code></span>
+<span class="codeline" id="line-391"><code><span class="keyword">func</span> <label for="r90" class="ident"><a href="../../pkg/runtime.html#name-convT2Enoptr" class="ident">convT2Enoptr</a></label>(<label for="r91" class="ident">t</label> *<a href="type.go.html#line-31" class="ident">_type</a>, <label for="r92" class="ident">elem</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) (<label for="r93" class="ident">e</label> <a href="runtime2.go.html#line-208" class="ident">eface</a>) {</code></span>
+<span class="codeline" id="line-392"><code>	<span class="keyword">if</span> <a href="race0.go.html#line-15" class="ident">raceenabled</a> {</code></span>
+<span class="codeline" id="line-393"><code>		<a href="race0.go.html#line-19" class="ident">raceReadObjectPC</a>(<label for="r91" class="ident">t</label>, <label for="r92" class="ident">elem</label>, <a href="stubs.go.html#line-250" class="ident">getcallerpc</a>(), <a href="proc.go.html#line-447" class="ident">funcPC</a>(<label for="r90" class="ident">convT2Enoptr</label>))</code></span>
+<span class="codeline" id="line-394"><code>	}</code></span>
+<span class="codeline" id="line-395"><code>	<span class="keyword">if</span> <a href="msan0.go.html#line-15" class="ident">msanenabled</a> {</code></span>
+<span class="codeline" id="line-396"><code>		<a href="msan0.go.html#line-19" class="ident">msanread</a>(<label for="r92" class="ident">elem</label>, <label for="r91" class="ident">t</label>.<a href="type.go.html#line-32" class="ident">size</a>)</code></span>
+<span class="codeline" id="line-397"><code>	}</code></span>
+<span class="codeline" id="line-398"><code>	<label for="r94" class="ident">x</label> := <a href="malloc.go.html#line-905" class="ident">mallocgc</a>(<label for="r91" class="ident">t</label>.<a href="type.go.html#line-32" class="ident">size</a>, <label for="r91" class="ident">t</label>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-399"><code>	<a href="stubs.go.html#line-106" class="ident">memmove</a>(<label for="r94" class="ident">x</label>, <label for="r92" class="ident">elem</label>, <label for="r91" class="ident">t</label>.<a href="type.go.html#line-32" class="ident">size</a>)</code></span>
+<span class="codeline" id="line-400"><code>	<label for="r93" class="ident">e</label>.<a href="runtime2.go.html#line-209" class="ident">_type</a> = <label for="r91" class="ident">t</label></code></span>
+<span class="codeline" id="line-401"><code>	<label for="r93" class="ident">e</label>.<a href="runtime2.go.html#line-210" class="ident">data</a> = <label for="r94" class="ident">x</label></code></span>
+<span class="codeline" id="line-402"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-403"><code>}</code></span>
+<span class="codeline" id="line-404"><code></code></span>
+<span class="codeline" id="line-405"><code><span class="keyword">func</span> <label for="r95" class="ident"><a href="../../pkg/runtime.html#name-convT2I" class="ident">convT2I</a></label>(<label for="r96" class="ident">tab</label> *<a href="runtime2.go.html#line-854" class="ident">itab</a>, <label for="r97" class="ident">elem</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) (<label for="r98" class="ident">i</label> <a href="runtime2.go.html#line-203" class="ident">iface</a>) {</code></span>
+<span class="codeline" id="line-406"><code>	<label for="r99" class="ident">t</label> := <label for="r96" class="ident">tab</label>.<a href="runtime2.go.html#line-856" class="ident">_type</a></code></span>
+<span class="codeline" id="line-407"><code>	<span class="keyword">if</span> <a href="race0.go.html#line-15" class="ident">raceenabled</a> {</code></span>
+<span class="codeline" id="line-408"><code>		<a href="race0.go.html#line-19" class="ident">raceReadObjectPC</a>(<label for="r99" class="ident">t</label>, <label for="r97" class="ident">elem</label>, <a href="stubs.go.html#line-250" class="ident">getcallerpc</a>(), <a href="proc.go.html#line-447" class="ident">funcPC</a>(<label for="r95" class="ident">convT2I</label>))</code></span>
+<span class="codeline" id="line-409"><code>	}</code></span>
+<span class="codeline" id="line-410"><code>	<span class="keyword">if</span> <a href="msan0.go.html#line-15" class="ident">msanenabled</a> {</code></span>
+<span class="codeline" id="line-411"><code>		<a href="msan0.go.html#line-19" class="ident">msanread</a>(<label for="r97" class="ident">elem</label>, <label for="r99" class="ident">t</label>.<a href="type.go.html#line-32" class="ident">size</a>)</code></span>
+<span class="codeline" id="line-412"><code>	}</code></span>
+<span class="codeline" id="line-413"><code>	<label for="r100" class="ident">x</label> := <a href="malloc.go.html#line-905" class="ident">mallocgc</a>(<label for="r99" class="ident">t</label>.<a href="type.go.html#line-32" class="ident">size</a>, <label for="r99" class="ident">t</label>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-414"><code>	<a href="mbarrier.go.html#line-156" class="ident">typedmemmove</a>(<label for="r99" class="ident">t</label>, <label for="r100" class="ident">x</label>, <label for="r97" class="ident">elem</label>)</code></span>
+<span class="codeline" id="line-415"><code>	<label for="r98" class="ident">i</label>.<a href="runtime2.go.html#line-204" class="ident">tab</a> = <label for="r96" class="ident">tab</label></code></span>
+<span class="codeline" id="line-416"><code>	<label for="r98" class="ident">i</label>.<a href="runtime2.go.html#line-205" class="ident">data</a> = <label for="r100" class="ident">x</label></code></span>
+<span class="codeline" id="line-417"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-418"><code>}</code></span>
+<span class="codeline" id="line-419"><code></code></span>
+<span class="codeline" id="line-420"><code><span class="keyword">func</span> <label for="r101" class="ident"><a href="../../pkg/runtime.html#name-convT2Inoptr" class="ident">convT2Inoptr</a></label>(<label for="r102" class="ident">tab</label> *<a href="runtime2.go.html#line-854" class="ident">itab</a>, <label for="r103" class="ident">elem</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) (<label for="r104" class="ident">i</label> <a href="runtime2.go.html#line-203" class="ident">iface</a>) {</code></span>
+<span class="codeline" id="line-421"><code>	<label for="r105" class="ident">t</label> := <label for="r102" class="ident">tab</label>.<a href="runtime2.go.html#line-856" class="ident">_type</a></code></span>
+<span class="codeline" id="line-422"><code>	<span class="keyword">if</span> <a href="race0.go.html#line-15" class="ident">raceenabled</a> {</code></span>
+<span class="codeline" id="line-423"><code>		<a href="race0.go.html#line-19" class="ident">raceReadObjectPC</a>(<label for="r105" class="ident">t</label>, <label for="r103" class="ident">elem</label>, <a href="stubs.go.html#line-250" class="ident">getcallerpc</a>(), <a href="proc.go.html#line-447" class="ident">funcPC</a>(<label for="r101" class="ident">convT2Inoptr</label>))</code></span>
+<span class="codeline" id="line-424"><code>	}</code></span>
+<span class="codeline" id="line-425"><code>	<span class="keyword">if</span> <a href="msan0.go.html#line-15" class="ident">msanenabled</a> {</code></span>
+<span class="codeline" id="line-426"><code>		<a href="msan0.go.html#line-19" class="ident">msanread</a>(<label for="r103" class="ident">elem</label>, <label for="r105" class="ident">t</label>.<a href="type.go.html#line-32" class="ident">size</a>)</code></span>
+<span class="codeline" id="line-427"><code>	}</code></span>
+<span class="codeline" id="line-428"><code>	<label for="r106" class="ident">x</label> := <a href="malloc.go.html#line-905" class="ident">mallocgc</a>(<label for="r105" class="ident">t</label>.<a href="type.go.html#line-32" class="ident">size</a>, <label for="r105" class="ident">t</label>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-429"><code>	<a href="stubs.go.html#line-106" class="ident">memmove</a>(<label for="r106" class="ident">x</label>, <label for="r103" class="ident">elem</label>, <label for="r105" class="ident">t</label>.<a href="type.go.html#line-32" class="ident">size</a>)</code></span>
+<span class="codeline" id="line-430"><code>	<label for="r104" class="ident">i</label>.<a href="runtime2.go.html#line-204" class="ident">tab</a> = <label for="r102" class="ident">tab</label></code></span>
+<span class="codeline" id="line-431"><code>	<label for="r104" class="ident">i</label>.<a href="runtime2.go.html#line-205" class="ident">data</a> = <label for="r106" class="ident">x</label></code></span>
+<span class="codeline" id="line-432"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-433"><code>}</code></span>
+<span class="codeline" id="line-434"><code></code></span>
+<span class="codeline" id="line-435"><code><span class="keyword">func</span> <label for="r107" class="ident"><a href="../../pkg/runtime.html#name-convI2I" class="ident">convI2I</a></label>(<label for="r108" class="ident">inter</label> *<a href="type.go.html#line-366" class="ident">interfacetype</a>, <label for="r109" class="ident">i</label> <a href="runtime2.go.html#line-203" class="ident">iface</a>) (<label for="r110" class="ident">r</label> <a href="runtime2.go.html#line-203" class="ident">iface</a>) {</code></span>
+<span class="codeline" id="line-436"><code>	<label for="r111" class="ident">tab</label> := <label for="r109" class="ident">i</label>.<a href="runtime2.go.html#line-204" class="ident">tab</a></code></span>
+<span class="codeline" id="line-437"><code>	<span class="keyword">if</span> <label for="r111" class="ident">tab</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-438"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-439"><code>	}</code></span>
+<span class="codeline" id="line-440"><code>	<span class="keyword">if</span> <label for="r111" class="ident">tab</label>.<a href="runtime2.go.html#line-855" class="ident">inter</a> == <label for="r108" class="ident">inter</label> {</code></span>
+<span class="codeline" id="line-441"><code>		<label for="r110" class="ident">r</label>.<a href="runtime2.go.html#line-204" class="ident">tab</a> = <label for="r111" class="ident">tab</label></code></span>
+<span class="codeline" id="line-442"><code>		<label for="r110" class="ident">r</label>.<a href="runtime2.go.html#line-205" class="ident">data</a> = <label for="r109" class="ident">i</label>.<a href="runtime2.go.html#line-205" class="ident">data</a></code></span>
+<span class="codeline" id="line-443"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-444"><code>	}</code></span>
+<span class="codeline" id="line-445"><code>	<label for="r110" class="ident">r</label>.<a href="runtime2.go.html#line-204" class="ident">tab</a> = <a href="#line-33" class="ident">getitab</a>(<label for="r108" class="ident">inter</label>, <label for="r111" class="ident">tab</label>.<a href="runtime2.go.html#line-856" class="ident">_type</a>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-446"><code>	<label for="r110" class="ident">r</label>.<a href="runtime2.go.html#line-205" class="ident">data</a> = <label for="r109" class="ident">i</label>.<a href="runtime2.go.html#line-205" class="ident">data</a></code></span>
+<span class="codeline" id="line-447"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-448"><code>}</code></span>
+<span class="codeline" id="line-449"><code></code></span>
+<span class="codeline" id="line-450"><code><span class="keyword">func</span> <label for="r112" class="ident"><a href="../../pkg/runtime.html#name-assertI2I" class="ident">assertI2I</a></label>(<label for="r113" class="ident">inter</label> *<a href="type.go.html#line-366" class="ident">interfacetype</a>, <label for="r114" class="ident">i</label> <a href="runtime2.go.html#line-203" class="ident">iface</a>) (<label for="r115" class="ident">r</label> <a href="runtime2.go.html#line-203" class="ident">iface</a>) {</code></span>
+<span class="codeline" id="line-451"><code>	<label for="r116" class="ident">tab</label> := <label for="r114" class="ident">i</label>.<a href="runtime2.go.html#line-204" class="ident">tab</a></code></span>
+<span class="codeline" id="line-452"><code>	<span class="keyword">if</span> <label for="r116" class="ident">tab</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-453"><code>		<span class="comment">// explicit conversions require non-nil interface value.</span></code></span>
+<span class="codeline" id="line-454"><code>		<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(&amp;<a href="error.go.html#line-21" class="ident">TypeAssertionError</a>{<a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<label for="r113" class="ident">inter</label>.<a href="type.go.html#line-367" class="ident">typ</a>, <span class="lit-string">""</span>})</code></span>
+<span class="codeline" id="line-455"><code>	}</code></span>
+<span class="codeline" id="line-456"><code>	<span class="keyword">if</span> <label for="r116" class="ident">tab</label>.<a href="runtime2.go.html#line-855" class="ident">inter</a> == <label for="r113" class="ident">inter</label> {</code></span>
+<span class="codeline" id="line-457"><code>		<label for="r115" class="ident">r</label>.<a href="runtime2.go.html#line-204" class="ident">tab</a> = <label for="r116" class="ident">tab</label></code></span>
+<span class="codeline" id="line-458"><code>		<label for="r115" class="ident">r</label>.<a href="runtime2.go.html#line-205" class="ident">data</a> = <label for="r114" class="ident">i</label>.<a href="runtime2.go.html#line-205" class="ident">data</a></code></span>
+<span class="codeline" id="line-459"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-460"><code>	}</code></span>
+<span class="codeline" id="line-461"><code>	<label for="r115" class="ident">r</label>.<a href="runtime2.go.html#line-204" class="ident">tab</a> = <a href="#line-33" class="ident">getitab</a>(<label for="r113" class="ident">inter</label>, <label for="r116" class="ident">tab</label>.<a href="runtime2.go.html#line-856" class="ident">_type</a>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-462"><code>	<label for="r115" class="ident">r</label>.<a href="runtime2.go.html#line-205" class="ident">data</a> = <label for="r114" class="ident">i</label>.<a href="runtime2.go.html#line-205" class="ident">data</a></code></span>
+<span class="codeline" id="line-463"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-464"><code>}</code></span>
+<span class="codeline" id="line-465"><code></code></span>
+<span class="codeline" id="line-466"><code><span class="keyword">func</span> <label for="r117" class="ident"><a href="../../pkg/runtime.html#name-assertI2I2" class="ident">assertI2I2</a></label>(<label for="r118" class="ident">inter</label> *<a href="type.go.html#line-366" class="ident">interfacetype</a>, <label for="r119" class="ident">i</label> <a href="runtime2.go.html#line-203" class="ident">iface</a>) (<label for="r120" class="ident">r</label> <a href="runtime2.go.html#line-203" class="ident">iface</a>, <label for="r121" class="ident">b</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-467"><code>	<label for="r122" class="ident">tab</label> := <label for="r119" class="ident">i</label>.<a href="runtime2.go.html#line-204" class="ident">tab</a></code></span>
+<span class="codeline" id="line-468"><code>	<span class="keyword">if</span> <label for="r122" class="ident">tab</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-469"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-470"><code>	}</code></span>
+<span class="codeline" id="line-471"><code>	<span class="keyword">if</span> <label for="r122" class="ident">tab</label>.<a href="runtime2.go.html#line-855" class="ident">inter</a> != <label for="r118" class="ident">inter</label> {</code></span>
+<span class="codeline" id="line-472"><code>		<label for="r122" class="ident">tab</label> = <a href="#line-33" class="ident">getitab</a>(<label for="r118" class="ident">inter</label>, <label for="r122" class="ident">tab</label>.<a href="runtime2.go.html#line-856" class="ident">_type</a>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-473"><code>		<span class="keyword">if</span> <label for="r122" class="ident">tab</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-474"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-475"><code>		}</code></span>
+<span class="codeline" id="line-476"><code>	}</code></span>
+<span class="codeline" id="line-477"><code>	<label for="r120" class="ident">r</label>.<a href="runtime2.go.html#line-204" class="ident">tab</a> = <label for="r122" class="ident">tab</label></code></span>
+<span class="codeline" id="line-478"><code>	<label for="r120" class="ident">r</label>.<a href="runtime2.go.html#line-205" class="ident">data</a> = <label for="r119" class="ident">i</label>.<a href="runtime2.go.html#line-205" class="ident">data</a></code></span>
+<span class="codeline" id="line-479"><code>	<label for="r121" class="ident">b</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-480"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-481"><code>}</code></span>
+<span class="codeline" id="line-482"><code></code></span>
+<span class="codeline" id="line-483"><code><span class="keyword">func</span> <label for="r123" class="ident"><a href="../../pkg/runtime.html#name-assertE2I" class="ident">assertE2I</a></label>(<label for="r124" class="ident">inter</label> *<a href="type.go.html#line-366" class="ident">interfacetype</a>, <label for="r125" class="ident">e</label> <a href="runtime2.go.html#line-208" class="ident">eface</a>) (<label for="r126" class="ident">r</label> <a href="runtime2.go.html#line-203" class="ident">iface</a>) {</code></span>
+<span class="codeline" id="line-484"><code>	<label for="r127" class="ident">t</label> := <label for="r125" class="ident">e</label>.<a href="runtime2.go.html#line-209" class="ident">_type</a></code></span>
+<span class="codeline" id="line-485"><code>	<span class="keyword">if</span> <label for="r127" class="ident">t</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-486"><code>		<span class="comment">// explicit conversions require non-nil interface value.</span></code></span>
+<span class="codeline" id="line-487"><code>		<a href="../../pkg/builtin.html#name-panic" class="ident">panic</a>(&amp;<a href="error.go.html#line-21" class="ident">TypeAssertionError</a>{<a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, &amp;<label for="r124" class="ident">inter</label>.<a href="type.go.html#line-367" class="ident">typ</a>, <span class="lit-string">""</span>})</code></span>
+<span class="codeline" id="line-488"><code>	}</code></span>
+<span class="codeline" id="line-489"><code>	<label for="r126" class="ident">r</label>.<a href="runtime2.go.html#line-204" class="ident">tab</a> = <a href="#line-33" class="ident">getitab</a>(<label for="r124" class="ident">inter</label>, <label for="r127" class="ident">t</label>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-490"><code>	<label for="r126" class="ident">r</label>.<a href="runtime2.go.html#line-205" class="ident">data</a> = <label for="r125" class="ident">e</label>.<a href="runtime2.go.html#line-210" class="ident">data</a></code></span>
+<span class="codeline" id="line-491"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-492"><code>}</code></span>
+<span class="codeline" id="line-493"><code></code></span>
+<span class="codeline" id="line-494"><code><span class="keyword">func</span> <label for="r128" class="ident"><a href="../../pkg/runtime.html#name-assertE2I2" class="ident">assertE2I2</a></label>(<label for="r129" class="ident">inter</label> *<a href="type.go.html#line-366" class="ident">interfacetype</a>, <label for="r130" class="ident">e</label> <a href="runtime2.go.html#line-208" class="ident">eface</a>) (<label for="r131" class="ident">r</label> <a href="runtime2.go.html#line-203" class="ident">iface</a>, <label for="r132" class="ident">b</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-495"><code>	<label for="r133" class="ident">t</label> := <label for="r130" class="ident">e</label>.<a href="runtime2.go.html#line-209" class="ident">_type</a></code></span>
+<span class="codeline" id="line-496"><code>	<span class="keyword">if</span> <label for="r133" class="ident">t</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-497"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-498"><code>	}</code></span>
+<span class="codeline" id="line-499"><code>	<label for="r134" class="ident">tab</label> := <a href="#line-33" class="ident">getitab</a>(<label for="r129" class="ident">inter</label>, <label for="r133" class="ident">t</label>, <a href="../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-500"><code>	<span class="keyword">if</span> <label for="r134" class="ident">tab</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-501"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-502"><code>	}</code></span>
+<span class="codeline" id="line-503"><code>	<label for="r131" class="ident">r</label>.<a href="runtime2.go.html#line-204" class="ident">tab</a> = <label for="r134" class="ident">tab</label></code></span>
+<span class="codeline" id="line-504"><code>	<label for="r131" class="ident">r</label>.<a href="runtime2.go.html#line-205" class="ident">data</a> = <label for="r130" class="ident">e</label>.<a href="runtime2.go.html#line-210" class="ident">data</a></code></span>
+<span class="codeline" id="line-505"><code>	<label for="r132" class="ident">b</label> = <a href="../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-506"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-507"><code>}</code></span>
+<span class="codeline" id="line-508"><code></code></span>
+<span class="codeline" id="line-509"><code><span class="comment">//go:linkname reflect_ifaceE2I reflect.ifaceE2I</span></code></span>
+<span class="codeline" id="line-510"><code><span class="keyword">func</span> <label for="r135" class="ident"><a href="../../pkg/runtime.html#name-reflect_ifaceE2I" class="ident">reflect_ifaceE2I</a></label>(<label for="r136" class="ident">inter</label> *<a href="type.go.html#line-366" class="ident">interfacetype</a>, <label for="r137" class="ident">e</label> <a href="runtime2.go.html#line-208" class="ident">eface</a>, <label for="r138" class="ident">dst</label> *<a href="runtime2.go.html#line-203" class="ident">iface</a>) {</code></span>
+<span class="codeline" id="line-511"><code>	*<label for="r138" class="ident">dst</label> = <a href="#line-483" class="ident">assertE2I</a>(<label for="r136" class="ident">inter</label>, <label for="r137" class="ident">e</label>)</code></span>
+<span class="codeline" id="line-512"><code>}</code></span>
+<span class="codeline" id="line-513"><code></code></span>
+<span class="codeline" id="line-514"><code><span class="comment">//go:linkname reflectlite_ifaceE2I internal/reflectlite.ifaceE2I</span></code></span>
+<span class="codeline" id="line-515"><code><span class="keyword">func</span> <label for="r139" class="ident"><a href="../../pkg/runtime.html#name-reflectlite_ifaceE2I" class="ident">reflectlite_ifaceE2I</a></label>(<label for="r140" class="ident">inter</label> *<a href="type.go.html#line-366" class="ident">interfacetype</a>, <label for="r141" class="ident">e</label> <a href="runtime2.go.html#line-208" class="ident">eface</a>, <label for="r142" class="ident">dst</label> *<a href="runtime2.go.html#line-203" class="ident">iface</a>) {</code></span>
+<span class="codeline" id="line-516"><code>	*<label for="r142" class="ident">dst</label> = <a href="#line-483" class="ident">assertE2I</a>(<label for="r140" class="ident">inter</label>, <label for="r141" class="ident">e</label>)</code></span>
+<span class="codeline" id="line-517"><code>}</code></span>
+<span class="codeline" id="line-518"><code></code></span>
+<span class="codeline" id="line-519"><code><span class="keyword">func</span> <label for="r143" class="ident"><a href="../../pkg/runtime.html#name-iterate_itabs" class="ident">iterate_itabs</a></label>(<label for="r144" class="ident">fn</label> <span class="keyword">func</span>(*<a href="runtime2.go.html#line-854" class="ident">itab</a>)) {</code></span>
+<span class="codeline" id="line-520"><code>	<span class="comment">// Note: only runs during stop the world or with itabLock held,</span></code></span>
+<span class="codeline" id="line-521"><code><span class="comment">	// so no other locks/atomics needed.</span></code></span>
+<span class="codeline" id="line-522"><code>	<label for="r145" class="ident">t</label> := <a href="#line-17" class="ident">itabTable</a></code></span>
+<span class="codeline" id="line-523"><code>	<span class="keyword">for</span> <label for="r146" class="ident">i</label> := <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<span class="lit-number">0</span>); <label for="r146" class="ident">i</label> &lt; <label for="r145" class="ident">t</label>.<a href="#line-23" class="ident">size</a>; <label for="r146" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-524"><code>		<label for="r147" class="ident">m</label> := *(**<a href="runtime2.go.html#line-854" class="ident">itab</a>)(<a href="stubs.go.html#line-11" class="ident">add</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r145" class="ident">t</label>.<a href="#line-25" class="ident">entries</a>), <label for="r146" class="ident">i</label>*<a href="../../pkg/runtime/internal/sys.html" class="ident i1">sys</a>.<a href="internal/sys/stubs.go.html#line-9" class="ident">PtrSize</a>))</code></span>
+<span class="codeline" id="line-525"><code>		<span class="keyword">if</span> <label for="r147" class="ident">m</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-526"><code>			<label for="r144" class="ident">fn</label>(<label for="r147" class="ident">m</label>)</code></span>
+<span class="codeline" id="line-527"><code>		}</code></span>
+<span class="codeline" id="line-528"><code>	}</code></span>
+<span class="codeline" id="line-529"><code>}</code></span>
+<span class="codeline" id="line-530"><code></code></span>
+<span class="codeline" id="line-531"><code><span class="comment">// staticuint64s is used to avoid allocating in convTx for small integer values.</span></code></span>
+<span class="codeline" id="line-532"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-staticuint64s" class="ident">staticuint64s</a> = [...]<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>{</code></span>
+<span class="codeline" id="line-533"><code>	<span class="lit-number">0x00</span>, <span class="lit-number">0x01</span>, <span class="lit-number">0x02</span>, <span class="lit-number">0x03</span>, <span class="lit-number">0x04</span>, <span class="lit-number">0x05</span>, <span class="lit-number">0x06</span>, <span class="lit-number">0x07</span>,</code></span>
+<span class="codeline" id="line-534"><code>	<span class="lit-number">0x08</span>, <span class="lit-number">0x09</span>, <span class="lit-number">0x0a</span>, <span class="lit-number">0x0b</span>, <span class="lit-number">0x0c</span>, <span class="lit-number">0x0d</span>, <span class="lit-number">0x0e</span>, <span class="lit-number">0x0f</span>,</code></span>
+<span class="codeline" id="line-535"><code>	<span class="lit-number">0x10</span>, <span class="lit-number">0x11</span>, <span class="lit-number">0x12</span>, <span class="lit-number">0x13</span>, <span class="lit-number">0x14</span>, <span class="lit-number">0x15</span>, <span class="lit-number">0x16</span>, <span class="lit-number">0x17</span>,</code></span>
+<span class="codeline" id="line-536"><code>	<span class="lit-number">0x18</span>, <span class="lit-number">0x19</span>, <span class="lit-number">0x1a</span>, <span class="lit-number">0x1b</span>, <span class="lit-number">0x1c</span>, <span class="lit-number">0x1d</span>, <span class="lit-number">0x1e</span>, <span class="lit-number">0x1f</span>,</code></span>
+<span class="codeline" id="line-537"><code>	<span class="lit-number">0x20</span>, <span class="lit-number">0x21</span>, <span class="lit-number">0x22</span>, <span class="lit-number">0x23</span>, <span class="lit-number">0x24</span>, <span class="lit-number">0x25</span>, <span class="lit-number">0x26</span>, <span class="lit-number">0x27</span>,</code></span>
+<span class="codeline" id="line-538"><code>	<span class="lit-number">0x28</span>, <span class="lit-number">0x29</span>, <span class="lit-number">0x2a</span>, <span class="lit-number">0x2b</span>, <span class="lit-number">0x2c</span>, <span class="lit-number">0x2d</span>, <span class="lit-number">0x2e</span>, <span class="lit-number">0x2f</span>,</code></span>
+<span class="codeline" id="line-539"><code>	<span class="lit-number">0x30</span>, <span class="lit-number">0x31</span>, <span class="lit-number">0x32</span>, <span class="lit-number">0x33</span>, <span class="lit-number">0x34</span>, <span class="lit-number">0x35</span>, <span class="lit-number">0x36</span>, <span class="lit-number">0x37</span>,</code></span>
+<span class="codeline" id="line-540"><code>	<span class="lit-number">0x38</span>, <span class="lit-number">0x39</span>, <span class="lit-number">0x3a</span>, <span class="lit-number">0x3b</span>, <span class="lit-number">0x3c</span>, <span class="lit-number">0x3d</span>, <span class="lit-number">0x3e</span>, <span class="lit-number">0x3f</span>,</code></span>
+<span class="codeline" id="line-541"><code>	<span class="lit-number">0x40</span>, <span class="lit-number">0x41</span>, <span class="lit-number">0x42</span>, <span class="lit-number">0x43</span>, <span class="lit-number">0x44</span>, <span class="lit-number">0x45</span>, <span class="lit-number">0x46</span>, <span class="lit-number">0x47</span>,</code></span>
+<span class="codeline" id="line-542"><code>	<span class="lit-number">0x48</span>, <span class="lit-number">0x49</span>, <span class="lit-number">0x4a</span>, <span class="lit-number">0x4b</span>, <span class="lit-number">0x4c</span>, <span class="lit-number">0x4d</span>, <span class="lit-number">0x4e</span>, <span class="lit-number">0x4f</span>,</code></span>
+<span class="codeline" id="line-543"><code>	<span class="lit-number">0x50</span>, <span class="lit-number">0x51</span>, <span class="lit-number">0x52</span>, <span class="lit-number">0x53</span>, <span class="lit-number">0x54</span>, <span class="lit-number">0x55</span>, <span class="lit-number">0x56</span>, <span class="lit-number">0x57</span>,</code></span>
+<span class="codeline" id="line-544"><code>	<span class="lit-number">0x58</span>, <span class="lit-number">0x59</span>, <span class="lit-number">0x5a</span>, <span class="lit-number">0x5b</span>, <span class="lit-number">0x5c</span>, <span class="lit-number">0x5d</span>, <span class="lit-number">0x5e</span>, <span class="lit-number">0x5f</span>,</code></span>
+<span class="codeline" id="line-545"><code>	<span class="lit-number">0x60</span>, <span class="lit-number">0x61</span>, <span class="lit-number">0x62</span>, <span class="lit-number">0x63</span>, <span class="lit-number">0x64</span>, <span class="lit-number">0x65</span>, <span class="lit-number">0x66</span>, <span class="lit-number">0x67</span>,</code></span>
+<span class="codeline" id="line-546"><code>	<span class="lit-number">0x68</span>, <span class="lit-number">0x69</span>, <span class="lit-number">0x6a</span>, <span class="lit-number">0x6b</span>, <span class="lit-number">0x6c</span>, <span class="lit-number">0x6d</span>, <span class="lit-number">0x6e</span>, <span class="lit-number">0x6f</span>,</code></span>
+<span class="codeline" id="line-547"><code>	<span class="lit-number">0x70</span>, <span class="lit-number">0x71</span>, <span class="lit-number">0x72</span>, <span class="lit-number">0x73</span>, <span class="lit-number">0x74</span>, <span class="lit-number">0x75</span>, <span class="lit-number">0x76</span>, <span class="lit-number">0x77</span>,</code></span>
+<span class="codeline" id="line-548"><code>	<span class="lit-number">0x78</span>, <span class="lit-number">0x79</span>, <span class="lit-number">0x7a</span>, <span class="lit-number">0x7b</span>, <span class="lit-number">0x7c</span>, <span class="lit-number">0x7d</span>, <span class="lit-number">0x7e</span>, <span class="lit-number">0x7f</span>,</code></span>
+<span class="codeline" id="line-549"><code>	<span class="lit-number">0x80</span>, <span class="lit-number">0x81</span>, <span class="lit-number">0x82</span>, <span class="lit-number">0x83</span>, <span class="lit-number">0x84</span>, <span class="lit-number">0x85</span>, <span class="lit-number">0x86</span>, <span class="lit-number">0x87</span>,</code></span>
+<span class="codeline" id="line-550"><code>	<span class="lit-number">0x88</span>, <span class="lit-number">0x89</span>, <span class="lit-number">0x8a</span>, <span class="lit-number">0x8b</span>, <span class="lit-number">0x8c</span>, <span class="lit-number">0x8d</span>, <span class="lit-number">0x8e</span>, <span class="lit-number">0x8f</span>,</code></span>
+<span class="codeline" id="line-551"><code>	<span class="lit-number">0x90</span>, <span class="lit-number">0x91</span>, <span class="lit-number">0x92</span>, <span class="lit-number">0x93</span>, <span class="lit-number">0x94</span>, <span class="lit-number">0x95</span>, <span class="lit-number">0x96</span>, <span class="lit-number">0x97</span>,</code></span>
+<span class="codeline" id="line-552"><code>	<span class="lit-number">0x98</span>, <span class="lit-number">0x99</span>, <span class="lit-number">0x9a</span>, <span class="lit-number">0x9b</span>, <span class="lit-number">0x9c</span>, <span class="lit-number">0x9d</span>, <span class="lit-number">0x9e</span>, <span class="lit-number">0x9f</span>,</code></span>
+<span class="codeline" id="line-553"><code>	<span class="lit-number">0xa0</span>, <span class="lit-number">0xa1</span>, <span class="lit-number">0xa2</span>, <span class="lit-number">0xa3</span>, <span class="lit-number">0xa4</span>, <span class="lit-number">0xa5</span>, <span class="lit-number">0xa6</span>, <span class="lit-number">0xa7</span>,</code></span>
+<span class="codeline" id="line-554"><code>	<span class="lit-number">0xa8</span>, <span class="lit-number">0xa9</span>, <span class="lit-number">0xaa</span>, <span class="lit-number">0xab</span>, <span class="lit-number">0xac</span>, <span class="lit-number">0xad</span>, <span class="lit-number">0xae</span>, <span class="lit-number">0xaf</span>,</code></span>
+<span class="codeline" id="line-555"><code>	<span class="lit-number">0xb0</span>, <span class="lit-number">0xb1</span>, <span class="lit-number">0xb2</span>, <span class="lit-number">0xb3</span>, <span class="lit-number">0xb4</span>, <span class="lit-number">0xb5</span>, <span class="lit-number">0xb6</span>, <span class="lit-number">0xb7</span>,</code></span>
+<span class="codeline" id="line-556"><code>	<span class="lit-number">0xb8</span>, <span class="lit-number">0xb9</span>, <span class="lit-number">0xba</span>, <span class="lit-number">0xbb</span>, <span class="lit-number">0xbc</span>, <span class="lit-number">0xbd</span>, <span class="lit-number">0xbe</span>, <span class="lit-number">0xbf</span>,</code></span>
+<span class="codeline" id="line-557"><code>	<span class="lit-number">0xc0</span>, <span class="lit-number">0xc1</span>, <span class="lit-number">0xc2</span>, <span class="lit-number">0xc3</span>, <span class="lit-number">0xc4</span>, <span class="lit-number">0xc5</span>, <span class="lit-number">0xc6</span>, <span class="lit-number">0xc7</span>,</code></span>
+<span class="codeline" id="line-558"><code>	<span class="lit-number">0xc8</span>, <span class="lit-number">0xc9</span>, <span class="lit-number">0xca</span>, <span class="lit-number">0xcb</span>, <span class="lit-number">0xcc</span>, <span class="lit-number">0xcd</span>, <span class="lit-number">0xce</span>, <span class="lit-number">0xcf</span>,</code></span>
+<span class="codeline" id="line-559"><code>	<span class="lit-number">0xd0</span>, <span class="lit-number">0xd1</span>, <span class="lit-number">0xd2</span>, <span class="lit-number">0xd3</span>, <span class="lit-number">0xd4</span>, <span class="lit-number">0xd5</span>, <span class="lit-number">0xd6</span>, <span class="lit-number">0xd7</span>,</code></span>
+<span class="codeline" id="line-560"><code>	<span class="lit-number">0xd8</span>, <span class="lit-number">0xd9</span>, <span class="lit-number">0xda</span>, <span class="lit-number">0xdb</span>, <span class="lit-number">0xdc</span>, <span class="lit-number">0xdd</span>, <span class="lit-number">0xde</span>, <span class="lit-number">0xdf</span>,</code></span>
+<span class="codeline" id="line-561"><code>	<span class="lit-number">0xe0</span>, <span class="lit-number">0xe1</span>, <span class="lit-number">0xe2</span>, <span class="lit-number">0xe3</span>, <span class="lit-number">0xe4</span>, <span class="lit-number">0xe5</span>, <span class="lit-number">0xe6</span>, <span class="lit-number">0xe7</span>,</code></span>
+<span class="codeline" id="line-562"><code>	<span class="lit-number">0xe8</span>, <span class="lit-number">0xe9</span>, <span class="lit-number">0xea</span>, <span class="lit-number">0xeb</span>, <span class="lit-number">0xec</span>, <span class="lit-number">0xed</span>, <span class="lit-number">0xee</span>, <span class="lit-number">0xef</span>,</code></span>
+<span class="codeline" id="line-563"><code>	<span class="lit-number">0xf0</span>, <span class="lit-number">0xf1</span>, <span class="lit-number">0xf2</span>, <span class="lit-number">0xf3</span>, <span class="lit-number">0xf4</span>, <span class="lit-number">0xf5</span>, <span class="lit-number">0xf6</span>, <span class="lit-number">0xf7</span>,</code></span>
+<span class="codeline" id="line-564"><code>	<span class="lit-number">0xf8</span>, <span class="lit-number">0xf9</span>, <span class="lit-number">0xfa</span>, <span class="lit-number">0xfb</span>, <span class="lit-number">0xfc</span>, <span class="lit-number">0xfd</span>, <span class="lit-number">0xfe</span>, <span class="lit-number">0xff</span>,</code></span>
+<span class="codeline" id="line-565"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.3-preview</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>
