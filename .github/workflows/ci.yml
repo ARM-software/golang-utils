@@ -42,12 +42,14 @@ jobs:
     steps:
     - uses: actions/setup-python@v2
     - name: Install tools
-      run: pip install detect-secrets==1.1.0 && pip list
+      run: pip install detect-secrets==1.0.3 && pip list
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
     - name: Check for secrets using gitleaks
       uses: zricethezav/gitleaks-action@master
+      with:
+        config-path: .gitleaks.toml
     - name: Check for secrets using detect-secrets
       run: git ls-files -z | xargs -0 detect-secrets-hook --baseline .secrets.baseline --exclude-files '.*go\.sum$' --exclude-files '.*\.html$' --exclude-files '.*\.properties$' --exclude-files 'ci.yml'
       working-directory: .
