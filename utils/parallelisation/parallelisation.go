@@ -77,7 +77,7 @@ func SleepWithInterruption(stop chan bool, delay time.Duration) {
 
 // Calls function `f` with a `period` and an `offset`.
 func Schedule(ctx context.Context, period time.Duration, offset time.Duration, f func(time.Time)) {
-	go func() {
+	go func(ctx context.Context, period time.Duration, offset time.Duration, function func(time.Time)) {
 		// Position the first execution
 		first := time.Now().Truncate(period).Add(offset)
 		if first.Before(time.Now()) {
@@ -93,15 +93,15 @@ func Schedule(ctx context.Context, period time.Duration, offset time.Duration, f
 			case v := <-firstC:
 				// The ticker has to be started before f as it can take some time to finish
 				t = time.NewTicker(period)
-				f(v)
+				function(v)
 			case v := <-t.C:
-				f(v)
+				function(v)
 			case <-ctx.Done():
 				t.Stop()
 				return
 			}
 		}
-	}()
+	}(ctx, period, offset, f)
 }
 
 // Runs an action with timeout

@@ -122,19 +122,20 @@ func TestSleepWithInterruption(t *testing.T) {
 }
 
 func TestSchedule(t *testing.T) {
-	var ticks []int
+	var ticks atomic.Uint64
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	Schedule(ctx, 10*time.Millisecond, 15*time.Millisecond, func(time time.Time) {
-		ticks = append(ticks, time.Nanosecond())
+	Schedule(ctx, 10*time.Millisecond, 15*time.Millisecond, func(time.Time) {
+		ticks.Inc()
 	})
-
 	time.Sleep(500 * time.Millisecond)
 	// Expected number should be 49 but there is some timing variance depending on the state of the environment this is run on.
 	// Therefore, we accept that the number of ticks achieved is not always accurate but close to what is expected.
-	assert.GreaterOrEqual(t, len(ticks), 20)
-	assert.LessOrEqual(t, len(ticks), 80)
+	tickNumbers := ticks.Load()
 	require.Nil(t, ctx.Err())
+	cancel()
+	assert.GreaterOrEqual(t, tickNumbers, uint64(20))
+	assert.LessOrEqual(t, tickNumbers, uint64(80))
 }
 
 func TestRunBlockingActionWithTimeout(t *testing.T) {
