@@ -223,10 +223,10 @@ func TestCancelledLongerLivedSubprocess2(t *testing.T) {
 	defer func() { _ = p.Stop() }()
 
 	ready := make(chan bool)
-	go func() {
+	go func(proc *Subprocess) {
 		ready <- true
-		_ = p.Execute()
-	}()
+		_ = proc.Execute()
+	}(p)
 	<-ready
 	time.Sleep(10 * time.Millisecond)
 	assert.True(t, p.IsOn())
@@ -250,10 +250,10 @@ func TestCancelledLongerLivedSubprocess3(t *testing.T) {
 	defer func() { _ = p.Stop() }()
 
 	ready := make(chan bool)
-	go func() {
+	go func(proc *Subprocess) {
 		ready <- true
-		_ = p.Execute()
-	}()
+		_ = proc.Execute()
+	}(p)
 	<-ready
 	time.Sleep(10 * time.Millisecond)
 	assert.True(t, p.IsOn())

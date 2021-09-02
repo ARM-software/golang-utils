@@ -2,15 +2,14 @@
  * Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
+//The subprocess module allows you to spawn new processes, retrieve their output/error pipes, and obtain their return codes.
 package subprocess
 
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
-	"strings"
 	"sync"
 
 	"go.uber.org/atomic"
@@ -20,11 +19,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
-type logStreamer struct {
-	io.Writer
-	IsStdErr bool
-	Loggers  logs.Loggers
-}
+// A subprocess description.
 type Subprocess struct {
 	mu                    sync.RWMutex
 	parentCtx             context.Context
@@ -40,21 +35,6 @@ type Subprocess struct {
 	isRunning             atomic.Bool
 }
 
-func (l *logStreamer) Write(p []byte) (n int, err error) {
-	lines := strings.Split(string(p), "\n")
-	for i := range lines { // https://stackoverflow.com/questions/62446118/implicit-memory-aliasing-in-for-loop
-		line := lines[i]
-		if line != "" {
-			if l.IsStdErr {
-				l.Loggers.LogError(line)
-			} else {
-				l.Loggers.Log(line)
-			}
-		}
-	}
-	return len(p), nil
-}
-
 // Creates a subprocess description.
 func New(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (p *Subprocess, err error) {
 	p = new(Subprocess)
@@ -62,7 +42,7 @@ func New(ctx context.Context, loggers logs.Loggers, messageOnStart string, messa
 	return
 }
 
-// Executes a command
+// Executes a command (i.e. spawns a subprocess)
 func Execute(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
 	p, err := New(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
 	if err != nil {
@@ -71,9 +51,9 @@ func Execute(ctx context.Context, loggers logs.Loggers, messageOnStart string, m
 	return p.Execute()
 }
 
-// In GO, there is no reentrant locks and so following what is described there
-// https://groups.google.com/forum/#!msg/golang-nuts/XqW1qcuZgKg/Ui3nQkeLV80J
 func (s *Subprocess) check() (err error) {
+	// In GO, there is no reentrant locks and so following what is described there
+	// https://groups.google.com/forum/#!msg/golang-nuts/XqW1qcuZgKg/Ui3nQkeLV80J
 	if s.command == nil {
 		err = fmt.Errorf("missing command: %w", commonerrors.ErrUndefined)
 		return
@@ -99,7 +79,7 @@ func (s *Subprocess) resetContext() {
 	s.cancelStore.RegisterCancelFunction(cancelFunc)
 }
 
-// Sets up a sub-process.
+// Sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure.
 func (s *Subprocess) Setup(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
 	if s.IsOn() {
 		err = s.Stop()
@@ -116,8 +96,8 @@ func (s *Subprocess) Setup(ctx context.Context, loggers logs.Loggers, messageOnS
 	cmdCtx, cmdcancelFunc := context.WithCancel(s.parentCtx)
 	s.cmdCanceller = cmdcancelFunc
 	s.command = exec.CommandContext(cmdCtx, cmd, args...)
-	s.command.Stdout = &logStreamer{IsStdErr: false, Loggers: loggers}
-	s.command.Stderr = &logStreamer{IsStdErr: true, Loggers: loggers}
+	s.command.Stdout = newOutStreamer(loggers)
+	s.command.Stderr = newErrLogStreamer(loggers)
 	s.messageOnProcessStart = messageOnStart
 	s.messageOnSuccess = messageOnSuccess
 	s.messageOnFailure = messageOnFailure
@@ -133,12 +113,12 @@ func (s *Subprocess) Setup(ctx context.Context, loggers logs.Loggers, messageOnS
 	return s.check()
 }
 
-// States whether the subprocess is on or not
+// States whether the subprocess is on or not.
 func (s *Subprocess) IsOn() bool {
 	return s.isRunning.Load()
 }
 
-// Starts the process if not already started
+// Starts the process if not already started.
 func (s *Subprocess) Start() (err error) {
 	err = s.Check()
 	if err != nil {
@@ -162,6 +142,7 @@ func (s *Subprocess) Start() (err error) {
 	return
 }
 
+// Cancels the subprocess.
 func (s *Subprocess) Cancel() {
 	store := s.cancelStore
 	if store != nil {
@@ -171,14 +152,14 @@ func (s *Subprocess) Cancel() {
 
 func (s *Subprocess) runProcessStatusCheck() {
 	s.resetContext()
-	go func() {
-		<-s.cancellableCtx.Load().(context.Context).Done()
-		s.Cancel()
-		_ = s.Stop()
-	}()
+	go func(proc *Subprocess) {
+		<-proc.cancellableCtx.Load().(context.Context).Done()
+		proc.Cancel()
+		_ = proc.Stop()
+	}(s)
 }
 
-// Executes the command and waits to completion.
+// Executes the command and waits for completion.
 func (s *Subprocess) Execute() (err error) {
 	err = s.Check()
 	if err != nil {
@@ -186,9 +167,7 @@ func (s *Subprocess) Execute() (err error) {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	defer func() {
-		s.Cancel()
-	}()
+	defer s.Cancel()
 
 	if s.IsOn() {
 		return fmt.Errorf("process is already started: %w", commonerrors.ErrConflict)
@@ -207,7 +186,7 @@ func (s *Subprocess) Execute() (err error) {
 	return
 }
 
-// Stops the process if currently working
+// Stops the process if currently working.
 func (s *Subprocess) Stop() (err error) {
 	if !s.IsOn() {
 		return
