@@ -15,6 +15,7 @@ import (
 
 	retry "github.com/avast/retry-go"
 
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
@@ -22,6 +23,9 @@ import (
 const LockFilePrefix = "lockfile"
 
 // Distributed lock using only the file system.
+// The locking mechanism is performed using directories and the atomic function `mkdir`.
+// A major issue of distributed locks is the presence of stale locks due to many factors such as the loss of the holder of a lock for various reasons.
+// To mitigate this problem, a "heart bit" file is modified regularly by the lock holder in order to specify the holder is still alive and the lock still valid.
 type RemoteLockFile struct {
 	id                   string
 	prefix               string
@@ -87,14 +91,23 @@ func (l *RemoteLockFile) IsStale() bool {
 		}
 		return isStale(dirInfo, l.lockHeartBeatPeriod)
 	}
-	heartBeat := filepath.Join(lockPath, heartBeatFiles[0]) // there should only be one file in the directory
-	// check the time since the heart beat was last modified.
-	// if this is less than that beat period then the lock is alive
-	info, err := l.fs.StatTimes(heartBeat)
-	if err != nil {
-		return false
+	return areHeartBeatFilesAllStale(l.fs, lockPath, heartBeatFiles, l.lockHeartBeatPeriod)
+}
+
+func areHeartBeatFilesAllStale(fs *VFS, lockPath string, heartBeatFiles []string, lockHeartBeatPeriod time.Duration) bool {
+	staleFiles := []bool{}
+	for i := range heartBeatFiles {
+		heartBeat := filepath.Join(lockPath, heartBeatFiles[i]) // there should only be one file in the directory
+		// check the time since the heart beat was last modified.
+		// if this is less than that beat period then the lock is alive
+		info, err := fs.StatTimes(heartBeat)
+		isStaleB := false
+		if err == nil {
+			isStaleB = isStale(info, lockHeartBeatPeriod)
+		}
+		staleFiles = append(staleFiles, isStaleB)
 	}
-	return isStale(info, l.lockHeartBeatPeriod)
+	return collection.All(staleFiles)
 }
 
 func isStale(filetime FileTimeInfo, beatPeriod time.Duration) bool {

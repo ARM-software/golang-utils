@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
+	"go.uber.org/goleak"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
@@ -73,7 +74,7 @@ func TestLockStale(t *testing.T) {
 		for j := range FileSystemTypes {
 			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
-				t.Parallel()
+				defer goleak.VerifyNone(t)
 				fs := NewFs(fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {
@@ -141,7 +142,7 @@ func TestLockReleaseIfStale(t *testing.T) {
 		for j := range FileSystemTypes {
 			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
-				t.Parallel()
+				defer goleak.VerifyNone(t)
 				fs := NewFs(fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {
@@ -204,6 +205,7 @@ func TestLockSimpleSequential(t *testing.T) { // Several lock/unlock sequences p
 		for j := range FileSystemTypes {
 			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
+				defer goleak.VerifyNone(t)
 				fs := NewFs(fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {
@@ -281,7 +283,7 @@ func TestLockSequential(t *testing.T) {
 		for j := range FileSystemTypes {
 			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
-				t.Parallel()
+				defer goleak.VerifyNone(t)
 				fs := NewFs(fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {
@@ -370,6 +372,7 @@ func TestLockConcurrentSafeguard(t *testing.T) {
 		for j := range FileSystemTypes {
 			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
+				defer goleak.VerifyNone(t)
 				fs := NewFs(fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {
@@ -442,7 +445,7 @@ func TestLockWithConcurrentAccess(t *testing.T) {
 		for j := range FileSystemTypes {
 			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
-				t.Parallel()
+				defer goleak.VerifyNone(t)
 				fs := NewFs(fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {

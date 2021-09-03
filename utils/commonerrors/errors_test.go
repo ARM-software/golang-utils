@@ -12,6 +12,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"go.uber.org/goleak"
 )
 
 func TestAny(t *testing.T) {
@@ -29,6 +31,7 @@ func TestNone(t *testing.T) {
 }
 
 func TestContextErrorConversion(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	task := func(ctx context.Context) {
 		for {
 			select {

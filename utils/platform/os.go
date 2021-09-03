@@ -24,6 +24,11 @@ func LineSeparator() string {
 	if IsWindows() {
 		return "\r\n"
 	}
+	return UnixLineSeparator()
+}
+
+// Returns the line separator on Unix platform.
+func UnixLineSeparator() string {
 	return "\n"
 }
 
