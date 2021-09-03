@@ -306,9 +306,9 @@ func TestLockConcurrentSafeguard(t *testing.T) {
 			ExpectedError: commonerrors.ErrTimeout,
 		},
 	}
-	test := func(ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context) error, expectedError error) {
+	test := func(t0 *testing.T, ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context) error, expectedError error) {
 		dirToLock, err := fs.TempDirInTempDir("test-lock-dir")
-		require.Nil(t, err)
+		require.Nil(t0, err)
 		defer func() { _ = fs.Rm(dirToLock) }()
 		id := "lock"
 		Lock1 := fs.NewRemoteLockFile(id, dirToLock)
@@ -317,23 +317,23 @@ func TestLockConcurrentSafeguard(t *testing.T) {
 		defer func() { _ = Lock2.Unlock(ctx) }()
 
 		err = Lock1.Unlock(ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 		err = Lock2.Unlock(ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 
 		c1 := make(chan error)
 		c2 := make(chan error)
 
-		go func(l ILock, ctx context.Context) {
-			err := LockFunc(l, ctx)
+		go func(function func(ILock, context.Context) error, l ILock, ctx context.Context) {
+			err := function(l, ctx)
 			c1 <- err
 
-		}(Lock1, ctx)
+		}(LockFunc, Lock1, ctx)
 
-		go func(l ILock, ctx context.Context) {
-			err := LockFunc(l, ctx)
+		go func(function func(ILock, context.Context) error, l ILock, ctx context.Context) {
+			err := function(l, ctx)
 			c2 <- err
-		}(Lock2, ctx)
+		}(LockFunc, Lock2, ctx)
 
 		// One will succeed and the other will keep trying till it times out
 		err1 := <-c1
@@ -342,29 +342,31 @@ func TestLockConcurrentSafeguard(t *testing.T) {
 			// FIXME it was noticed that there could be some race conditions happening in the in-memory file system
 			// see https://github.com/spf13/afero/issues/298
 			if err1 != nil {
-				require.Equal(t, expectedError, err1)
+				require.Equal(t0, expectedError, err1)
 			}
 			if err2 != nil {
-				require.Equal(t, expectedError, err2)
+				require.Equal(t0, expectedError, err2)
 			}
 		} else {
-			require.NotEqual(t, err1, err2)
+			require.NotEqual(t0, err1, err2)
 			if err1 == nil {
-				require.Equal(t, expectedError, err2)
+				require.Equal(t0, expectedError, err2)
 			}
 			if err2 == nil {
-				require.Equal(t, expectedError, err1)
+				require.Equal(t0, expectedError, err1)
 			}
 		}
 	}
-	for _, lockFunc := range lockFuncs {
-		for _, fsType := range FileSystemTypes {
+	for i := range lockFuncs {
+		lockFunc := lockFuncs[i]
+		for j := range FileSystemTypes {
+			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
 				t.Parallel()
 				fs := NewFs(fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {
-					test(ctx, fs, lockFunc.LockFunc, lockFunc.ExpectedError)
+					test(t, ctx, fs, lockFunc.LockFunc, lockFunc.ExpectedError)
 				}
 			})
 		}
