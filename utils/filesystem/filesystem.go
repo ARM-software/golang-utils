@@ -40,6 +40,7 @@ func NewFs(fsType int) FS {
 	return NewStandardFileSystem()
 }
 
+// Converts file system error into common errors
 func ConvertFileSytemError(err error) error {
 	if err == nil {
 		return nil

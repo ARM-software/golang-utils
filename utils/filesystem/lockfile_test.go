@@ -37,45 +37,47 @@ func TestLockStale(t *testing.T) {
 			Name: "LockWithTimeout",
 		},
 	}
-	test := func(ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context) error) {
+	test := func(t0 *testing.T, ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context) error) {
 		dirToLock, err := fs.TempDirInTempDir("test-lock-dir")
-		require.Nil(t, err)
+		require.Nil(t0, err)
 		defer func() { _ = fs.Rm(dirToLock) }()
 
 		lock := fs.NewRemoteLockFile("lock", dirToLock)
 		defer func() { _ = lock.Unlock(ctx) }()
 
 		err = lock.Unlock(ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 
 		err = LockFunc(lock, ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 
-		assert.False(t, lock.IsStale())
+		assert.False(t0, lock.IsStale())
 
 		time.Sleep(100 * time.Millisecond)
 
-		assert.False(t, lock.IsStale())
+		assert.False(t0, lock.IsStale())
 
 		err = lock.MakeStale(ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 
-		assert.True(t, lock.IsStale())
+		assert.True(t0, lock.IsStale())
 
 		err = lock.Unlock(ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 
 		err = fs.Rm(dirToLock)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 	}
-	for _, lockFunc := range lockFuncs {
-		for _, fsType := range FileSystemTypes {
+	for i := range lockFuncs {
+		lockFunc := lockFuncs[i]
+		for j := range FileSystemTypes {
+			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
 				t.Parallel()
 				fs := NewFs(fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {
-					test(ctx, fs, lockFunc.LockFunc)
+					test(t, ctx, fs, lockFunc.LockFunc)
 				}
 			})
 		}
@@ -100,48 +102,50 @@ func TestLockReleaseIfStale(t *testing.T) {
 			Name: "LockWithTimeout",
 		},
 	}
-	test := func(ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context) error) {
+	test := func(t0 *testing.T, ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context) error) {
 		dirToLock, err := fs.TempDirInTempDir("test-lock-dir")
-		require.Nil(t, err)
+		require.Nil(t0, err)
 		defer func() { _ = fs.Rm(dirToLock) }()
 
 		lock := fs.NewRemoteLockFile("lock", dirToLock)
 		defer func() { _ = lock.Unlock(ctx) }()
 
 		err = lock.Unlock(ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 
 		err = LockFunc(lock, ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 
 		err = lock.MakeStale(ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 
-		assert.True(t, lock.IsStale())
+		assert.True(t0, lock.IsStale())
 
 		err = LockFunc(lock, ctx)
-		require.NotNil(t, err)
+		require.NotNil(t0, err)
 
 		err = lock.ReleaseIfStale(ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 
 		err = LockFunc(lock, ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 
 		err = lock.Unlock(ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 
 		err = fs.Rm(dirToLock)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 	}
-	for _, lockFunc := range lockFuncs {
-		for _, fsType := range FileSystemTypes {
+	for i := range lockFuncs {
+		lockFunc := lockFuncs[i]
+		for j := range FileSystemTypes {
+			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
 				t.Parallel()
 				fs := NewFs(fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {
-					test(ctx, fs, lockFunc.LockFunc)
+					test(t, ctx, fs, lockFunc.LockFunc)
 				}
 			})
 		}
@@ -169,9 +173,9 @@ func TestLockSimpleSequential(t *testing.T) { // Several lock/unlock sequences p
 			ExpectedError: commonerrors.ErrTimeout,
 		},
 	}
-	test := func(ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context) error, expectedError error) {
+	test := func(t0 *testing.T, ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context) error, expectedError error) {
 		dirToLock, err := fs.TempDirInTempDir("test-lock-dir")
-		require.Nil(t, err)
+		require.Nil(t0, err)
 		defer func() { _ = fs.Rm(dirToLock) }()
 		id := "lock"
 		Lock := fs.NewRemoteLockFile(id, dirToLock)
@@ -179,29 +183,31 @@ func TestLockSimpleSequential(t *testing.T) { // Several lock/unlock sequences p
 
 		for c := 0; c < 20; c++ {
 			err = Lock.Unlock(ctx)
-			require.Nil(t, err)
+			require.Nil(t0, err)
 
 			err = LockFunc(Lock, ctx)
 			// FIXME it was noticed that there could be some race conditions happening in the in-memory file system when dealing with concurrency
 			// see https://github.com/spf13/afero/issues/298
 			if fs.GetType() != InMemoryFS {
-				require.Nil(t, err)
+				require.Nil(t0, err)
 			}
 
 			err = Lock.Unlock(ctx)
-			require.Nil(t, err)
+			require.Nil(t0, err)
 		}
 
 		err = fs.Rm(dirToLock)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 	}
-	for _, lockFunc := range lockFuncs {
-		for _, fsType := range FileSystemTypes {
+	for i := range lockFuncs {
+		lockFunc := lockFuncs[i]
+		for j := range FileSystemTypes {
+			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
 				fs := NewFs(fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {
-					test(ctx, fs, lockFunc.LockFunc, lockFunc.ExpectedError)
+					test(t, ctx, fs, lockFunc.LockFunc, lockFunc.ExpectedError)
 				}
 			})
 		}
@@ -237,9 +243,9 @@ func TestLockSequential(t *testing.T) {
 			ExpectedError: commonerrors.ErrTimeout,
 		},
 	}
-	test := func(ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context) error, expectedError error) {
+	test := func(t0 *testing.T, ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context) error, expectedError error) {
 		dirToLock, err := fs.TempDirInTempDir("test-lock-dir")
-		require.Nil(t, err)
+		require.Nil(t0, err)
 		defer func() { _ = fs.Rm(dirToLock) }()
 		id := "lock"
 		Lock1 := fs.NewRemoteLockFile(id, dirToLock)
@@ -248,36 +254,38 @@ func TestLockSequential(t *testing.T) {
 		defer func() { _ = Lock2.Unlock(ctx) }()
 
 		err = Lock1.Unlock(ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 		err = Lock2.Unlock(ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 
 		err = LockFunc(Lock1, ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 
 		err = LockFunc(Lock2, ctx)
-		require.ErrorIs(t, err, expectedError)
+		require.ErrorIs(t0, err, expectedError)
 
 		err = Lock1.Unlock(ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 
 		err = LockFunc(Lock2, ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 
 		err = Lock2.Unlock(ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 
 		err = fs.Rm(dirToLock)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 	}
-	for _, lockFunc := range lockFuncs {
-		for _, fsType := range FileSystemTypes {
+	for i := range lockFuncs {
+		lockFunc := lockFuncs[i]
+		for j := range FileSystemTypes {
+			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
 				t.Parallel()
 				fs := NewFs(fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {
-					test(ctx, fs, lockFunc.LockFunc, lockFunc.ExpectedError)
+					test(t, ctx, fs, lockFunc.LockFunc, lockFunc.ExpectedError)
 				}
 			})
 		}
@@ -362,7 +370,6 @@ func TestLockConcurrentSafeguard(t *testing.T) {
 		for j := range FileSystemTypes {
 			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
-				t.Parallel()
 				fs := NewFs(fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {
@@ -387,9 +394,9 @@ func TestLockWithConcurrentAccess(t *testing.T) {
 			Name: "LockWithTimeout",
 		},
 	}
-	test := func(ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context, t *testing.T)) {
+	test := func(t0 *testing.T, ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context, t *testing.T)) {
 		dirToLock, err := fs.TempDirInTempDir("test-lock-dir")
-		require.Nil(t, err)
+		require.Nil(t0, err)
 		defer func() { _ = fs.Rm(dirToLock) }()
 
 		Lock1 := fs.NewRemoteLockFile("lock", dirToLock)
@@ -398,16 +405,16 @@ func TestLockWithConcurrentAccess(t *testing.T) {
 		defer func() { _ = Lock2.Unlock(ctx) }()
 
 		err = Lock1.Unlock(ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 		err = Lock2.Unlock(ctx)
-		require.Nil(t, err)
+		require.Nil(t0, err)
 
 		lockedCount := atomic.NewInt64(0)
 
 		var waitGroup sync.WaitGroup
 
 		LockWithTimeoutTest := func(l ILock, ctx context.Context) {
-			LockFunc(l, ctx, t)
+			LockFunc(l, ctx, t0)
 
 			lockedCount.Inc()
 
@@ -416,7 +423,7 @@ func TestLockWithConcurrentAccess(t *testing.T) {
 
 			// Unlock so other lock can successfully lock
 			err = l.Unlock(ctx)
-			require.Nil(t, err)
+			require.Nil(t0, err)
 
 			waitGroup.Done()
 		}
@@ -428,16 +435,18 @@ func TestLockWithConcurrentAccess(t *testing.T) {
 		go LockWithTimeoutTest(Lock2, ctx)
 
 		waitGroup.Wait()
-		require.Equal(t, int64(2), lockedCount.Load())
+		require.Equal(t0, int64(2), lockedCount.Load())
 	}
-	for _, lockFunc := range lockFuncs {
-		for _, fsType := range FileSystemTypes {
+	for i := range lockFuncs {
+		lockFunc := lockFuncs[i]
+		for j := range FileSystemTypes {
+			fsType := FileSystemTypes[j]
 			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
 				t.Parallel()
 				fs := NewFs(fsType)
 				ctx := context.Background()
 				for c := 0; c < 5; c++ {
-					test(ctx, fs, lockFunc.LockFunc)
+					test(t, ctx, fs, lockFunc.LockFunc)
 				}
 			})
 		}

@@ -2,6 +2,7 @@
  * Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
+// Concurrency module
 package parallelisation
 
 import (
@@ -31,13 +32,13 @@ func Parallelise(argList interface{}, action func(arg interface{}) (interface{},
 	len := argListValue.Len()
 	channel := make(chan result, len)
 	for i := 0; i < len; i++ {
-		go func(args reflect.Value) {
+		go func(args reflect.Value, actionFunc func(arg interface{}) (interface{}, error)) {
 			var r result
 			r.Item, r.err = func(v reflect.Value) (interface{}, error) {
-				return action(v.Interface())
+				return actionFunc(v.Interface())
 			}(args)
 			channel <- r
-		}(argListValue.Index(i))
+		}(argListValue.Index(i), action)
 	}
 	var v reflect.Value
 	if keepReturn {
@@ -59,6 +60,7 @@ func Parallelise(argList interface{}, action func(arg interface{}) (interface{},
 	return
 }
 
+// Interruptable sleep
 // Similar to time.Sleep() but also responding to context cancellation instead of blocking for the whole length of time.
 func SleepWithContext(ctx context.Context, delay time.Duration) {
 	select {
@@ -67,6 +69,7 @@ func SleepWithContext(ctx context.Context, delay time.Duration) {
 	}
 }
 
+// Interruptable sleep
 // Similar to time.Sleep() but also interrupting when requested instead of blocking for the whole length of time.
 func SleepWithInterruption(stop chan bool, delay time.Duration) {
 	select {
@@ -77,6 +80,10 @@ func SleepWithInterruption(stop chan bool, delay time.Duration) {
 
 // Calls function `f` with a `period` and an `offset`.
 func Schedule(ctx context.Context, period time.Duration, offset time.Duration, f func(time.Time)) {
+	err := DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
 	go func(ctx context.Context, period time.Duration, offset time.Duration, function func(time.Time)) {
 		// Position the first execution
 		first := time.Now().Truncate(period).Add(offset)
@@ -110,9 +117,9 @@ func RunActionWithTimeout(blockingAction func(stop chan bool) error, timeout tim
 	stop := make(chan bool)
 	completed := atomic.NewBool(false)
 
-	go func() {
-		channel <- blockingAction(stop)
-	}()
+	go func(action func(stop chan bool) error) {
+		channel <- action(stop)
+	}(blockingAction)
 
 	select {
 	case err = <-channel:
@@ -136,7 +143,12 @@ func RunActionWithTimeoutAndContext(ctx context.Context, timeout time.Duration, 
 }
 
 // Runs an action with timeout
+// The cancel store is used just to register the cancel function so that it can be called on Cancel.
 func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Duration, store *CancelFunctionStore, blockingAction func(context.Context) error) error {
+	err := DetermineContextError(ctx)
+	if err != nil {
+		return err
+	}
 	timeoutContext, cancel := context.WithTimeout(ctx, timeout)
 	store.RegisterCancelFunction(cancel)
 	channel := make(chan error, 1)
@@ -144,7 +156,7 @@ func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Durati
 		channel <- blockingAction(timeoutContext)
 	}()
 
-	err := <-channel
+	err = <-channel
 	err2 := DetermineContextError(timeoutContext)
 
 	if err2 != nil {
@@ -156,6 +168,10 @@ func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Durati
 // Runs an action with a check in parallel
 // The function performing the check should return true if the check was favorable; false otherwise. If the check did not have the expected result and the whole function would be cancelled.
 func RunActionWithParallelCheck(ctx context.Context, action func(ctx context.Context) error, checkAction func(ctx context.Context) bool, checkPeriod time.Duration) error {
+	err := DetermineContextError(ctx)
+	if err != nil {
+		return err
+	}
 	cancelStore := NewCancelFunctionsStore()
 	defer cancelStore.Cancel()
 	cancellableCtx, cancelFunc := context.WithCancel(ctx)
@@ -175,7 +191,7 @@ func RunActionWithParallelCheck(ctx context.Context, action func(ctx context.Con
 			}
 		}
 	}(cancellableCtx, cancelStore)
-	err := action(cancellableCtx)
+	err = action(cancellableCtx)
 	err2 := DetermineContextError(cancellableCtx)
 	if err2 != nil {
 		return err2

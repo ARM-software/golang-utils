@@ -2,6 +2,8 @@
  * Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
+
+//Distributed lock using lock files https://fileinfo.com/extension/lock
 package filesystem
 
 import (
@@ -19,6 +21,7 @@ import (
 
 const LockFilePrefix = "lockfile"
 
+// Distributed lock using only the file system.
 type RemoteLockFile struct {
 	id                   string
 	prefix               string
@@ -59,16 +62,15 @@ func heartBeat(ctx context.Context, fs FS, period time.Duration, filepath string
 		// FIXME: this is to overcome the problem found with different filesystems which do not update modTime on file change.
 		// e.g. https://github.com/spf13/afero/issues/297
 		_ = fs.Chtimes(filepath, now, now)
-		waitContext, cancelFunc := context.WithTimeout(ctx, period-time.Millisecond)
 		// sleeping until next heart beat
-		<-waitContext.Done()
-		cancelFunc()
+		parallelisation.SleepWithContext(ctx, period-time.Millisecond)
 	}
 }
 func (l *RemoteLockFile) lockPath() string {
 	return filepath.Join(l.path, fmt.Sprintf("%v-%v", strings.TrimSpace(l.prefix), strings.TrimSpace(l.id)))
 }
 
+// Checks whether the lock is stale (i.e. no heart beat detected) or not.
 func (l *RemoteLockFile) IsStale() bool {
 	lockPath := l.lockPath()
 	heartBeatFiles, err := l.fs.Ls(lockPath)
@@ -118,7 +120,7 @@ func (l *RemoteLockFile) TryLock(ctx context.Context) (err error) {
 	lockPath := l.lockPath()
 	// create directory as lock
 	err = l.fs.vfs.Mkdir(lockPath, 0755)
-	if ConvertFileSytemError(err) == commonerrors.ErrExists {
+	if commonerrors.Any(ConvertFileSytemError(err), commonerrors.ErrExists) {
 		if l.IsStale() {
 			if l.overrideStaleLock {
 				_ = l.ReleaseIfStale(ctx)
@@ -179,7 +181,7 @@ func (l *RemoteLockFile) LockWithTimeout(ctx context.Context, timeout time.Durat
 	return parallelisation.RunActionWithTimeoutAndCancelStore(ctx, timeout, l.cancelStore, l.Lock)
 }
 
-// Unlock the lock
+// Unlocks the lock
 func (l *RemoteLockFile) Unlock(context.Context) error {
 	l.cancelStore.Cancel()
 	return retry.Do(
