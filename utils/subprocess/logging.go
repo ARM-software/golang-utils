@@ -8,7 +8,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
-var lineSep = platform.LineSeparator()
+var lineSep = platform.UnixLineSeparator()
 
 type logStreamer struct {
 	io.Writer

@@ -21,18 +21,15 @@ import (
 
 // A subprocess description.
 type Subprocess struct {
-	mu                    sync.RWMutex
-	parentCtx             context.Context
-	cancellableCtx        atomic.Value
-	cancelStore           *parallelisation.CancelFunctionStore
-	cmdCanceller          context.CancelFunc
-	command               *exec.Cmd
-	loggers               logs.Loggers
-	messageOnSuccess      string
-	messageOnFailure      string
-	messageOnProcessStart string
-	subprocess            *os.Process
-	isRunning             atomic.Bool
+	mu             sync.RWMutex
+	parentCtx      context.Context
+	cancellableCtx atomic.Value
+	cancelStore    *parallelisation.CancelFunctionStore
+	cmdCanceller   context.CancelFunc
+	command        *exec.Cmd
+	subprocess     *os.Process
+	isRunning      atomic.Bool
+	messsaging     *subprocessMessaging
 }
 
 // Creates a subprocess description.
@@ -58,11 +55,11 @@ func (s *Subprocess) check() (err error) {
 		err = fmt.Errorf("missing command: %w", commonerrors.ErrUndefined)
 		return
 	}
-	if s.loggers == nil {
+	if s.messsaging == nil {
 		err = commonerrors.ErrNoLogger
 		return
 	}
-	err = s.loggers.Check()
+	err = s.messsaging.Check()
 	return
 }
 
@@ -90,7 +87,6 @@ func (s *Subprocess) Setup(ctx context.Context, loggers logs.Loggers, messageOnS
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.isRunning.Store(false)
-	s.loggers = loggers
 	s.cancelStore = parallelisation.NewCancelFunctionsStore()
 	s.parentCtx = ctx
 	cmdCtx, cmdcancelFunc := context.WithCancel(s.parentCtx)
@@ -98,18 +94,7 @@ func (s *Subprocess) Setup(ctx context.Context, loggers logs.Loggers, messageOnS
 	s.command = exec.CommandContext(cmdCtx, cmd, args...)
 	s.command.Stdout = newOutStreamer(loggers)
 	s.command.Stderr = newErrLogStreamer(loggers)
-	s.messageOnProcessStart = messageOnStart
-	s.messageOnSuccess = messageOnSuccess
-	s.messageOnFailure = messageOnFailure
-	if s.messageOnProcessStart == "" {
-		s.messageOnProcessStart = fmt.Sprintf("Executing command  -> `%v`", s.command.Path)
-	}
-	if s.messageOnSuccess == "" {
-		s.messageOnSuccess = fmt.Sprintf("command  -> `%v` ended successfully", s.command.Path)
-	}
-	if s.messageOnFailure == "" {
-		s.messageOnFailure = fmt.Sprintf("Error occurred when executing -> `%v`: ", s.command.Path)
-	}
+	s.messsaging = NewSubprocessMessaging(loggers, messageOnSuccess, messageOnFailure, messageOnStart, s.command.Path)
 	return s.check()
 }
 
@@ -132,17 +117,17 @@ func (s *Subprocess) Start() (err error) {
 	s.runProcessStatusCheck()
 	err = commonerrors.ConvertContextError(s.command.Start())
 	if err != nil {
-		s.loggers.LogError(fmt.Sprintf("Failed starting process `%v`: %v", s.command.Path, err))
+		s.messsaging.LogFailedStart(err)
 		s.isRunning.Store(false)
 		return
 	}
 	s.subprocess = s.command.Process
 	s.isRunning.Store(true)
-	s.loggers.Log(fmt.Sprintf("Started process [%v]", s.subprocess.Pid))
+	s.messsaging.SetPid(s.subprocess.Pid)
+	s.messsaging.LogStarted()
 	return
 }
 
-// Cancels the subprocess.
 func (s *Subprocess) Cancel() {
 	store := s.cancelStore
 	if store != nil {
@@ -172,17 +157,13 @@ func (s *Subprocess) Execute() (err error) {
 	if s.IsOn() {
 		return fmt.Errorf("process is already started: %w", commonerrors.ErrConflict)
 	}
-	s.loggers.Log(s.messageOnProcessStart)
+	s.messsaging.LogStart()
 	s.cancelStore.RegisterCancelFunction(s.cmdCanceller)
 	s.runProcessStatusCheck()
 	s.isRunning.Store(true)
 	err = commonerrors.ConvertContextError(s.command.Run())
 	s.isRunning.Store(false)
-	if err == nil {
-		s.loggers.Log(s.messageOnSuccess)
-	} else {
-		s.loggers.LogError(s.messageOnFailure, err)
-	}
+	s.messsaging.LogEnd(err)
 	return
 }
 
@@ -201,12 +182,13 @@ func (s *Subprocess) Stop() (err error) {
 	if !s.IsOn() {
 		return
 	}
-	s.loggers.Log(fmt.Sprintf("Stopping process [%v]", s.subprocess.Pid))
+	s.messsaging.LogStopping()
 	_ = s.subprocess.Kill()
 	_ = s.command.Wait()
 	s.command.Process = nil
 	s.subprocess = nil
 	s.isRunning.Store(false)
+	s.messsaging.LogEnd(nil)
 	return
 }
 

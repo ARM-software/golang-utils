@@ -60,7 +60,7 @@ test 1
 			for i := 0; i < randI; i++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 				out += faker.Sentence()
 				if rand.Intn(10) > 5 { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
-					out += "\n"
+					out += platform.LineSeparator()
 				}
 			}
 			return
