@@ -10,6 +10,8 @@ import (
 
 var lineSep = platform.UnixLineSeparator()
 
+// INTERNAL
+// Way of redirecting process output to a logger.
 type logStreamer struct {
 	io.Writer
 	IsStdErr bool

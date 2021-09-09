@@ -9,6 +9,8 @@ import (
 	"github.com/ARM-software/golang-utils/utils/logs"
 )
 
+// INTERNAL
+// Messages logged
 // Object in charge of logging subprocess output.
 type subprocessMessaging struct {
 	loggers               logs.Loggers
@@ -62,7 +64,7 @@ func (s *subprocessMessaging) Check() (err error) {
 	return
 }
 
-func NewSubprocessMessaging(loggers logs.Loggers, messageOnSuccess string, messageOnFailure string, messageOnProcessStart string, commandPath string) *subprocessMessaging {
+func newSubprocessMessaging(loggers logs.Loggers, messageOnSuccess string, messageOnFailure string, messageOnProcessStart string, commandPath string) *subprocessMessaging {
 	m := &subprocessMessaging{
 		loggers:               loggers,
 		commandPath:           commandPath,

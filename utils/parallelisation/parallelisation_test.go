@@ -144,6 +144,24 @@ func TestSchedule(t *testing.T) {
 	assert.LessOrEqual(t, tickNumbers, uint64(80))
 }
 
+func TestScheduleAfter(t *testing.T) {
+	defer goleak.VerifyNone(t)
+	var timeS atomic.Value
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	time1 := time.Now()
+	expectedOffset := 10 * time.Millisecond
+	ScheduleAfter(ctx, expectedOffset, func(time.Time) {
+		timeS.Store(time.Now())
+	})
+	time.Sleep(50 * time.Millisecond)
+
+	duration := timeS.Load().(time.Time).Sub(time1)
+	require.Nil(t, ctx.Err())
+	cancel()
+	assert.GreaterOrEqual(t, duration, expectedOffset)
+}
+
 func TestRunBlockingActionWithTimeout(t *testing.T) {
 	defer goleak.VerifyNone(t)
 	for i := 0; i < 200; i++ {

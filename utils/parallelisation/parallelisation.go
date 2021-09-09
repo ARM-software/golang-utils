@@ -78,7 +78,27 @@ func SleepWithInterruption(stop chan bool, delay time.Duration) {
 	}
 }
 
-// Calls function `f` with a `period` and an `offset`.
+// Calls once function `f` after `offset`
+func ScheduleAfter(ctx context.Context, offset time.Duration, f func(time.Time)) {
+	err := DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+	timer := time.NewTimer(offset)
+	go func(ctx context.Context, function func(time.Time)) {
+		for {
+			select {
+			case v := <-timer.C:
+				function(v)
+			case <-ctx.Done():
+				timer.Stop()
+				return
+			}
+		}
+	}(ctx, f)
+}
+
+// Calls function `f` regularly with a `period` and an `offset`.
 func Schedule(ctx context.Context, period time.Duration, offset time.Duration, f func(time.Time)) {
 	err := DetermineContextError(ctx)
 	if err != nil {

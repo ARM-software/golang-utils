@@ -8,28 +8,21 @@ package subprocess
 import (
 	"context"
 	"fmt"
-	"os"
-	"os/exec"
-	"sync"
 
+	"github.com/sasha-s/go-deadlock"
 	"go.uber.org/atomic"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/logs"
-	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
 // A subprocess description.
 type Subprocess struct {
-	mu             sync.RWMutex
-	parentCtx      context.Context
-	cancellableCtx atomic.Value
-	cancelStore    *parallelisation.CancelFunctionStore
-	cmdCanceller   context.CancelFunc
-	command        *exec.Cmd
-	subprocess     *os.Process
-	isRunning      atomic.Bool
-	messsaging     *subprocessMessaging
+	mu                deadlock.RWMutex
+	isRunning         atomic.Bool
+	command           *command
+	processMonitoring *subprocessMonitoring
+	messsaging        *subprocessMessaging
 }
 
 // Creates a subprocess description.
@@ -48,34 +41,6 @@ func Execute(ctx context.Context, loggers logs.Loggers, messageOnStart string, m
 	return p.Execute()
 }
 
-func (s *Subprocess) check() (err error) {
-	// In GO, there is no reentrant locks and so following what is described there
-	// https://groups.google.com/forum/#!msg/golang-nuts/XqW1qcuZgKg/Ui3nQkeLV80J
-	if s.command == nil {
-		err = fmt.Errorf("missing command: %w", commonerrors.ErrUndefined)
-		return
-	}
-	if s.messsaging == nil {
-		err = commonerrors.ErrNoLogger
-		return
-	}
-	err = s.messsaging.Check()
-	return
-}
-
-// Checks whether the subprocess is correctly defined.
-func (s *Subprocess) Check() (err error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.check()
-}
-
-func (s *Subprocess) resetContext() {
-	subctx, cancelFunc := context.WithCancel(s.parentCtx)
-	s.cancellableCtx.Store(subctx)
-	s.cancelStore.RegisterCancelFunction(cancelFunc)
-}
-
 // Sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure.
 func (s *Subprocess) Setup(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
 	if s.IsOn() {
@@ -87,61 +52,87 @@ func (s *Subprocess) Setup(ctx context.Context, loggers logs.Loggers, messageOnS
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.isRunning.Store(false)
-	s.cancelStore = parallelisation.NewCancelFunctionsStore()
-	s.parentCtx = ctx
-	cmdCtx, cmdcancelFunc := context.WithCancel(s.parentCtx)
-	s.cmdCanceller = cmdcancelFunc
-	s.command = exec.CommandContext(cmdCtx, cmd, args...)
-	s.command.Stdout = newOutStreamer(loggers)
-	s.command.Stderr = newErrLogStreamer(loggers)
-	s.messsaging = NewSubprocessMessaging(loggers, messageOnSuccess, messageOnFailure, messageOnStart, s.command.Path)
+	s.processMonitoring = newSubprocessMonitoring(ctx)
+	s.command = newCommand(loggers, cmd, args...)
+	s.messsaging = newSubprocessMessaging(loggers, messageOnSuccess, messageOnFailure, messageOnStart, s.command.GetPath())
+	s.reset()
 	return s.check()
 }
 
-// States whether the subprocess is on or not.
+func (s *Subprocess) check() (err error) {
+	// In GO, there is no reentrant locks and so following what is described there
+	// https://groups.google.com/forum/#!msg/golang-nuts/XqW1qcuZgKg/Ui3nQkeLV80J
+	if s.command == nil {
+		err = fmt.Errorf("missing command: %w", commonerrors.ErrUndefined)
+		return
+	}
+	err = s.command.Check()
+	if err != nil {
+		return
+	}
+	if s.messsaging == nil {
+		err = commonerrors.ErrNoLogger
+		return
+	}
+	err = s.messsaging.Check()
+	return
+}
+
+// Checks whether the subprocess is correctly defined.
+func (s *Subprocess) Check() error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.check()
+}
+
+// States whether the subprocess is running or not.
 func (s *Subprocess) IsOn() bool {
-	return s.isRunning.Load()
+	return s.isRunning.Load() && s.processMonitoring.IsOn()
 }
 
 // Starts the process if not already started.
+// This method is idempotent.
 func (s *Subprocess) Start() (err error) {
-	err = s.Check()
-	if err != nil {
+	if s.IsOn() {
 		return
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	err = s.check()
+	if err != nil {
+		return
+	}
 	if s.IsOn() {
 		return
 	}
-	s.runProcessStatusCheck()
-	err = commonerrors.ConvertContextError(s.command.Start())
+	s.reset()
+	s.runProcessMonitoring()
+	cmd := s.getCmd()
+	err = cmd.Start()
 	if err != nil {
 		s.messsaging.LogFailedStart(err)
 		s.isRunning.Store(false)
+		s.Cancel()
 		return
 	}
-	s.subprocess = s.command.Process
+	pid, err := cmd.Pid()
+	if err != nil {
+		s.messsaging.LogFailedStart(err)
+		s.isRunning.Store(false)
+		s.Cancel()
+		return
+	}
+
 	s.isRunning.Store(true)
-	s.messsaging.SetPid(s.subprocess.Pid)
+	s.messsaging.SetPid(pid)
 	s.messsaging.LogStarted()
 	return
 }
 
+// Interrupts an on-going process.
+// This method is idempotent.
 func (s *Subprocess) Cancel() {
-	store := s.cancelStore
-	if store != nil {
-		store.Cancel()
-	}
-}
-
-func (s *Subprocess) runProcessStatusCheck() {
-	s.resetContext()
-	go func(proc *Subprocess) {
-		<-proc.cancellableCtx.Load().(context.Context).Done()
-		proc.Cancel()
-		_ = proc.Stop()
-	}(s)
+	s.processMonitoring.CancelSubprocess()
 }
 
 // Executes the command and waits for completion.
@@ -157,18 +148,47 @@ func (s *Subprocess) Execute() (err error) {
 	if s.IsOn() {
 		return fmt.Errorf("process is already started: %w", commonerrors.ErrConflict)
 	}
+	s.processMonitoring.Reset()
+	s.command.Reset()
 	s.messsaging.LogStart()
-	s.cancelStore.RegisterCancelFunction(s.cmdCanceller)
-	s.runProcessStatusCheck()
+	s.runProcessMonitoring()
+	cmd := s.getCmd()
 	s.isRunning.Store(true)
-	err = commonerrors.ConvertContextError(s.command.Run())
+	err = cmd.Run()
 	s.isRunning.Store(false)
 	s.messsaging.LogEnd(err)
 	return
 }
 
-// Stops the process if currently working.
+// Stops the process straight away if currently working without waiting for completion. This method should be used in combination with `Start`.
+// However, in order to interrupt a process however it was started (using `Start` or `Execute`), prefer `Cancel`.
+// This method is idempotent.
 func (s *Subprocess) Stop() (err error) {
+	return s.stop(true)
+}
+
+// Restarts a process. It will stop the process if currently running.
+func (s *Subprocess) Restart() (err error) {
+	err = s.stop(false)
+	if err != nil {
+		return
+	}
+	return s.Start()
+}
+func (s *Subprocess) getCmd() *cmdWrapper {
+	return s.command.GetCmd(s.processMonitoring.ProcessContext())
+}
+
+func (s *Subprocess) runProcessMonitoring() {
+	s.processMonitoring.RunMonitoring(s.Stop)
+}
+
+func (s *Subprocess) reset() {
+	s.processMonitoring.Reset()
+	s.command.Reset()
+}
+
+func (s *Subprocess) stop(cancel bool) (err error) {
 	if !s.IsOn() {
 		return
 	}
@@ -178,25 +198,18 @@ func (s *Subprocess) Stop() (err error) {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	defer s.Cancel()
+	defer func() {
+		if cancel {
+			s.Cancel()
+		}
+	}()
 	if !s.IsOn() {
 		return
 	}
 	s.messsaging.LogStopping()
-	_ = s.subprocess.Kill()
-	_ = s.command.Wait()
-	s.command.Process = nil
-	s.subprocess = nil
+	err = s.getCmd().Stop()
+	s.command.Reset()
 	s.isRunning.Store(false)
 	s.messsaging.LogEnd(nil)
 	return
-}
-
-// Restarts a process.
-func (s *Subprocess) Restart() (err error) {
-	err = s.Stop()
-	if err != nil {
-		return
-	}
-	return s.Start()
 }
