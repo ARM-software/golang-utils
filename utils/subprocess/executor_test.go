@@ -53,7 +53,7 @@ test 1
 
 	edgeCases := []string{ // both these would mess with the regex
 		`
-`,          // just a '\n'
+`, // just a '\n'
 		"", // empty string
 	}
 

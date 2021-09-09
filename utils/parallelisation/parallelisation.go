@@ -86,14 +86,12 @@ func ScheduleAfter(ctx context.Context, offset time.Duration, f func(time.Time))
 	}
 	timer := time.NewTimer(offset)
 	go func(ctx context.Context, function func(time.Time)) {
-		for {
-			select {
-			case v := <-timer.C:
-				function(v)
-			case <-ctx.Done():
-				timer.Stop()
-				return
-			}
+		select {
+		case v := <-timer.C:
+			function(v)
+		case <-ctx.Done():
+			timer.Stop()
+			return
 		}
 	}(ctx, f)
 }

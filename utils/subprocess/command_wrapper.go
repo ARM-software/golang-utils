@@ -13,6 +13,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/logs"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
+
 // INTERNAL
 // wrapper over an exec cmd.
 type cmdWrapper struct {
@@ -100,7 +101,7 @@ type command struct {
 }
 
 func (c *command) createCommand(cmdCtx context.Context) *exec.Cmd {
-	cmd := exec.CommandContext(cmdCtx, c.cmd, c.args...)
+	cmd := exec.CommandContext(cmdCtx, c.cmd, c.args...) //nolint:gosec
 	cmd.Stdout = newOutStreamer(c.loggers)
 	cmd.Stderr = newErrLogStreamer(c.loggers)
 	return cmd
