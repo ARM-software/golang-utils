@@ -2,6 +2,8 @@
  * Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
+
+//Distributed lock using lock files https://fileinfo.com/extension/lock
 package filesystem
 
 import (
@@ -13,12 +15,17 @@ import (
 
 	retry "github.com/avast/retry-go"
 
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
 const LockFilePrefix = "lockfile"
 
+// RemoteLockFile describes a distributed lock using only the file system.
+// The locking mechanism is performed using directories and the atomic function `mkdir`.
+// A major issue of distributed locks is the presence of stale locks due to many factors such as the loss of the holder of a lock for various reasons.
+// To mitigate this problem, a "heart bit" file is modified regularly by the lock holder in order to specify the holder is still alive and the lock still valid.
 type RemoteLockFile struct {
 	id                   string
 	prefix               string
@@ -30,6 +37,7 @@ type RemoteLockFile struct {
 	overrideStaleLock    bool
 }
 
+// NewGenericRemoteLockFile creates a new remote lock using the file system.
 func NewGenericRemoteLockFile(fs *VFS, lockID string, dirPath string, overrideStaleLock bool) ILock {
 	return &RemoteLockFile{
 		id:                   lockID,
@@ -43,6 +51,7 @@ func NewGenericRemoteLockFile(fs *VFS, lockID string, dirPath string, overrideSt
 	}
 }
 
+// NewRemoteLockFile creates a new remote lock using the file system.
 // lockID Id for the lock.
 // dirPath path where the lock should be applied to.
 func NewRemoteLockFile(fs *VFS, lockID string, dirPath string) ILock {
@@ -59,16 +68,15 @@ func heartBeat(ctx context.Context, fs FS, period time.Duration, filepath string
 		// FIXME: this is to overcome the problem found with different filesystems which do not update modTime on file change.
 		// e.g. https://github.com/spf13/afero/issues/297
 		_ = fs.Chtimes(filepath, now, now)
-		waitContext, cancelFunc := context.WithTimeout(ctx, period-time.Millisecond)
 		// sleeping until next heart beat
-		<-waitContext.Done()
-		cancelFunc()
+		parallelisation.SleepWithContext(ctx, period-time.Millisecond)
 	}
 }
 func (l *RemoteLockFile) lockPath() string {
 	return filepath.Join(l.path, fmt.Sprintf("%v-%v", strings.TrimSpace(l.prefix), strings.TrimSpace(l.id)))
 }
 
+// IsStale checks whether the lock is stale (i.e. no heart beat detected) or not.
 func (l *RemoteLockFile) IsStale() bool {
 	lockPath := l.lockPath()
 	heartBeatFiles, err := l.fs.Ls(lockPath)
@@ -85,14 +93,23 @@ func (l *RemoteLockFile) IsStale() bool {
 		}
 		return isStale(dirInfo, l.lockHeartBeatPeriod)
 	}
-	heartBeat := filepath.Join(lockPath, heartBeatFiles[0]) // there should only be one file in the directory
-	// check the time since the heart beat was last modified.
-	// if this is less than that beat period then the lock is alive
-	info, err := l.fs.StatTimes(heartBeat)
-	if err != nil {
-		return false
+	return areHeartBeatFilesAllStale(l.fs, lockPath, heartBeatFiles, l.lockHeartBeatPeriod)
+}
+
+func areHeartBeatFilesAllStale(fs *VFS, lockPath string, heartBeatFiles []string, lockHeartBeatPeriod time.Duration) bool {
+	staleFiles := []bool{}
+	for i := range heartBeatFiles {
+		heartBeat := filepath.Join(lockPath, heartBeatFiles[i]) // there should only be one file in the directory
+		// check the time since the heart beat was last modified.
+		// if this is less than that beat period then the lock is alive
+		info, err := fs.StatTimes(heartBeat)
+		isStaleB := false
+		if err == nil {
+			isStaleB = isStale(info, lockHeartBeatPeriod)
+		}
+		staleFiles = append(staleFiles, isStaleB)
 	}
-	return isStale(info, l.lockHeartBeatPeriod)
+	return collection.All(staleFiles)
 }
 
 func isStale(filetime FileTimeInfo, beatPeriod time.Duration) bool {
@@ -109,7 +126,7 @@ func (l *RemoteLockFile) ReleaseIfStale(ctx context.Context) error {
 	return nil
 }
 
-// Attempts to lock the lock straight away.
+// TryLock attempts to lock the lock straight away.
 func (l *RemoteLockFile) TryLock(ctx context.Context) (err error) {
 	if err := parallelisation.DetermineContextError(ctx); err != nil {
 		return err
@@ -118,7 +135,7 @@ func (l *RemoteLockFile) TryLock(ctx context.Context) (err error) {
 	lockPath := l.lockPath()
 	// create directory as lock
 	err = l.fs.vfs.Mkdir(lockPath, 0755)
-	if ConvertFileSytemError(err) == commonerrors.ErrExists {
+	if commonerrors.Any(ConvertFileSytemError(err), commonerrors.ErrExists) {
 		if l.IsStale() {
 			if l.overrideStaleLock {
 				_ = l.ReleaseIfStale(ctx)
@@ -151,7 +168,7 @@ func (l *RemoteLockFile) heartBeatFile(lockPath string) string {
 	return filepath.Join(lockPath, fmt.Sprintf("%v.lock", l.id))
 }
 
-// Locks the lock. This call will block until the lock is available.
+// Lock locks the lock. This call will block until the lock is available.
 func (l *RemoteLockFile) Lock(ctx context.Context) error {
 	for {
 		if err := parallelisation.DetermineContextError(ctx); err != nil {
@@ -171,7 +188,7 @@ func (l *RemoteLockFile) Lock(ctx context.Context) error {
 	}
 }
 
-// Tries to lock the lock until the timeout expires
+// LockWithTimeout tries to lock the lock until the timeout expires
 func (l *RemoteLockFile) LockWithTimeout(ctx context.Context, timeout time.Duration) error {
 	if err := parallelisation.DetermineContextError(ctx); err != nil {
 		return err
@@ -179,7 +196,7 @@ func (l *RemoteLockFile) LockWithTimeout(ctx context.Context, timeout time.Durat
 	return parallelisation.RunActionWithTimeoutAndCancelStore(ctx, timeout, l.cancelStore, l.Lock)
 }
 
-// Unlock the lock
+// Unlock unlocks the lock
 func (l *RemoteLockFile) Unlock(context.Context) error {
 	l.cancelStore.Cancel()
 	return retry.Do(
@@ -199,7 +216,7 @@ func (l *RemoteLockFile) Unlock(context.Context) error {
 	)
 }
 
-// This is mostly for testing purposes.
+// MakeStale is mostly useful for testing purposes and tries to mock locks going stale.
 func (l *RemoteLockFile) MakeStale(ctx context.Context) error {
 	l.cancelStore.Cancel()
 	parallelisation.SleepWithContext(ctx, l.lockHeartBeatPeriod+time.Millisecond)

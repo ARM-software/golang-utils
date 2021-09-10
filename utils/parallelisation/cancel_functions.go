@@ -6,11 +6,12 @@ package parallelisation
 
 import (
 	"context"
-	"sync"
+
+	"github.com/sasha-s/go-deadlock"
 )
 
 type CancelFunctionStore struct {
-	mu              sync.RWMutex
+	mu              deadlock.RWMutex
 	cancelFunctions []context.CancelFunc
 }
 

@@ -5,6 +5,7 @@
 package http
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"net/http"
@@ -12,25 +13,38 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
+
+	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
-func createTestServer(t *testing.T, handler http.Handler, port string, ch chan error) {
+func createTestServer(t *testing.T, ctx context.Context, handler http.Handler, port string) {
 	// Create a test server
 	list, err := net.Listen("tcp", fmt.Sprintf(":%v", port))
 	require.Nil(t, err)
+	srv := &http.Server{Handler: handler}
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+	// Goroutine in charge of closing the server when requested.
+	go func(ctx context.Context, server *http.Server) {
+		<-ctx.Done()
+		_ = server.Close()
+	}(ctx, srv)
 
-	go func() {
-		defer list.Close()
-		err = http.Serve(list, handler)
-		if err != nil {
-			ch <- err
-		}
-	}()
+	go func(server *http.Server, listen net.Listener) {
+		defer func() { _ = listen.Close() }()
+		err = srv.Serve(listen)
+	}(srv, list)
 }
 
 // This test will sleep for 50ms after the request is made asynchronously via RetryableClient
 // as to test that the exponential backoff is working.
 func TestClient_Delete_Backoff(t *testing.T) {
+	defer goleak.VerifyNone(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	// Collect errors for goroutines
 	errs := make(chan error)
 	// Mock server which always responds 200.
@@ -50,17 +64,18 @@ func TestClient_Delete_Backoff(t *testing.T) {
 		if err != nil {
 			errs <- err
 		} else {
-			resp.Body.Close()
+			_ = resp.Body.Close()
 		}
 	}()
 
 	// We set this to simulate a first error on the first request so that we can properly test the backoff
 	time.Sleep(50 * time.Millisecond)
-	createTestServer(t, handler, "28934", errs)
+	createTestServer(t, ctx, handler, "28934")
 
 	<-doneCh
 	// close errs once all children finish.
 	close(errs)
+	cancel()
 	for err := range errs {
 		require.Nil(t, err)
 	}
@@ -69,7 +84,10 @@ func TestClient_Delete_Backoff(t *testing.T) {
 // This test simulates a 404, to which the backoff should not apply as it should only care about networking problems.
 // If the client is found to be retrying, the test will fail.
 func TestClient_Get_Fail_Timeout(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	// Collect errors for goroutines
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	errs := make(chan error)
 
 	// Mock server which always responds 200.
@@ -80,7 +98,7 @@ func TestClient_Get_Fail_Timeout(t *testing.T) {
 		w.WriteHeader(404)
 	})
 
-	createTestServer(t, handler, "28935", errs)
+	createTestServer(t, ctx, handler, "28935")
 
 	// Send the asynchronous request
 	var resp *http.Response
@@ -92,7 +110,7 @@ func TestClient_Get_Fail_Timeout(t *testing.T) {
 		if err != nil {
 			errs <- err
 		} else {
-			resp.Body.Close()
+			_ = resp.Body.Close()
 		}
 	}()
 	select {

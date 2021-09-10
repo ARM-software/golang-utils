@@ -7,6 +7,7 @@ package subprocess
 import (
 	"context"
 	"math/rand"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -15,31 +16,14 @@ import (
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 
 	"github.com/ARM-software/golang-utils/utils/logs"
 	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
-func TestExecute(t *testing.T) {
-	var loggers logs.Loggers = &logs.GenericLoggers{}
-	err := loggers.Check()
-	assert.NotNil(t, err)
-
-	err = Execute(context.Background(), loggers, "", "", "", "ls")
-	assert.NotNil(t, err)
-
-	loggers, err = logs.CreateStdLogger("Test")
-	require.Nil(t, err)
-	if platform.IsWindows() {
-		err = Execute(context.Background(), loggers, "", "", "", "cmd", "/c", "dir")
-	} else {
-		err = Execute(context.Background(), loggers, "", "", "", "ls", "-l")
-	}
-	require.Nil(t, err)
-}
-
 func TestExecuteEmptyLines(t *testing.T) {
-
+	defer goleak.VerifyNone(t)
 	multilineEchos := []string{ // Some weird lines with contents and empty lines to be filtered
 		`hello
 
@@ -60,7 +44,7 @@ test 1
 			for i := 0; i < randI; i++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 				out += faker.Sentence()
 				if rand.Intn(10) > 5 { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
-					out += "\n"
+					out += platform.LineSeparator()
 				}
 			}
 			return
@@ -119,146 +103,266 @@ test 1
 	}
 }
 
-func TestShortLivedSubprocess(t *testing.T) {
-	var loggers logs.Loggers = &logs.GenericLoggers{}
-	err := loggers.Check()
-	assert.NotNil(t, err)
-
-	_, err = New(context.Background(), loggers, "", "", "", "ls")
-	assert.NotNil(t, err)
-
-	loggers, err = logs.CreateStdLogger("Test")
+func TestStartStop(t *testing.T) {
+	currentDir, err := os.Getwd()
 	require.Nil(t, err)
-	var p *Subprocess
-	if platform.IsWindows() {
-		p, err = New(context.Background(), loggers, "", "", "", "cmd", "dir")
-	} else {
-		p, err = New(context.Background(), loggers, "", "", "", "ls", "-l")
+	tests := []struct {
+		name       string
+		cmdWindows string
+		argWindows []string
+		cmdOther   string
+		argOther   []string
+	}{
+		{
+			name:       "ShortProcess",
+			cmdWindows: "cmd",
+			argWindows: []string{"dir", currentDir},
+			cmdOther:   "ls",
+			argOther:   []string{"-l", currentDir},
+		},
+		{
+			name:       "LongProcess",
+			cmdWindows: "cmd",
+			argWindows: []string{"SLEEP 1"},
+			cmdOther:   "sleep",
+			argOther:   []string{"1"},
+		},
 	}
-	require.Nil(t, err)
-	defer func() { _ = p.Stop() }()
-	_testSubprocess(t, p)
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			defer goleak.VerifyNone(t)
+			var loggers, err = logs.CreateStdLogger("Test")
+			require.Nil(t, err)
+
+			var p *Subprocess
+			if platform.IsWindows() {
+				p, err = New(context.Background(), loggers, "", "", "", test.cmdWindows, test.argWindows...)
+			} else {
+				p, err = New(context.Background(), loggers, "", "", "", test.cmdOther, test.argOther...)
+			}
+			require.Nil(t, err)
+			require.NotNil(t, p)
+			assert.False(t, p.IsOn())
+			err = p.Start()
+			require.Nil(t, err)
+			assert.True(t, p.IsOn())
+
+			//Checking idempotence
+			err = p.Start()
+			require.Nil(t, err)
+			err = p.Check()
+			require.Nil(t, err)
+
+			time.Sleep(200 * time.Millisecond)
+			err = p.Restart()
+			require.Nil(t, err)
+			assert.True(t, p.IsOn())
+			err = p.Stop()
+			require.Nil(t, err)
+			assert.False(t, p.IsOn())
+			//Checking idempotence
+			err = p.Stop()
+			require.Nil(t, err)
+			time.Sleep(100 * time.Millisecond)
+			err = p.Execute()
+			require.Nil(t, err)
+		})
+	}
 }
 
-func TestLongerLivedSubprocess(t *testing.T) {
-	var loggers, err = logs.CreateStdLogger("Test")
+func TestExecute(t *testing.T) {
+	currentDir, err := os.Getwd()
 	require.Nil(t, err)
-
-	var p *Subprocess
-	if platform.IsWindows() {
-		p, err = New(context.Background(), loggers, "", "", "", "cmd", "SLEEP 4")
-	} else {
-		p, err = New(context.Background(), loggers, "", "", "", "sleep", "4")
+	tests := []struct {
+		name       string
+		cmdWindows string
+		argWindows []string
+		cmdOther   string
+		argOther   []string
+	}{
+		{
+			name:       "ShortProcess",
+			cmdWindows: "cmd",
+			argWindows: []string{"dir", currentDir},
+			cmdOther:   "ls",
+			argOther:   []string{"-l", currentDir},
+		},
+		{
+			name:       "LongProcess",
+			cmdWindows: "cmd",
+			argWindows: []string{"SLEEP 1"},
+			cmdOther:   "sleep",
+			argOther:   []string{"1"},
+		},
 	}
-	require.Nil(t, err)
-	defer func() { _ = p.Stop() }()
-	_testSubprocess(t, p)
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			defer goleak.VerifyNone(t)
+			var loggers logs.Loggers = &logs.GenericLoggers{}
+			err := loggers.Check()
+			assert.NotNil(t, err)
+
+			err = Execute(context.Background(), loggers, "", "", "", "ls")
+			assert.NotNil(t, err)
+
+			loggers, err = logs.CreateStdLogger("Test")
+			require.Nil(t, err)
+			if platform.IsWindows() {
+				err = Execute(context.Background(), loggers, "", "", "", test.cmdWindows, test.argWindows...)
+			} else {
+				err = Execute(context.Background(), loggers, "", "", "", test.cmdOther, test.argOther...)
+			}
+			require.Nil(t, err)
+		})
+	}
 }
 
-func _testSubprocess(t *testing.T, p *Subprocess) {
-	assert.False(t, p.IsOn())
-	err := p.Start()
-	require.Nil(t, err)
-	assert.True(t, p.IsOn())
+func TestCancelledSubprocess(t *testing.T) {
+	tests := []struct {
+		name       string
+		cmdWindows string
+		argWindows []string
+		cmdOther   string
+		argOther   []string
+	}{
+		{
+			name:       "LongProcess",
+			cmdWindows: "cmd",
+			argWindows: []string{"SLEEP 4"},
+			cmdOther:   "sleep",
+			argOther:   []string{"4"},
+		},
+	}
 
-	//Checking idempotence
-	err = p.Start()
-	require.Nil(t, err)
-	err = p.Check()
-	require.Nil(t, err)
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			defer goleak.VerifyNone(t)
+			var loggers, err = logs.CreateStdLogger("Test")
+			require.Nil(t, err)
+			cancellableCtx, cancelFunc := context.WithCancel(context.Background())
 
-	time.Sleep(time.Duration(200) * time.Millisecond)
+			var p *Subprocess
+			if platform.IsWindows() {
+				p, err = New(cancellableCtx, loggers, "", "", "", test.cmdWindows, test.argWindows...)
+			} else {
+				p, err = New(cancellableCtx, loggers, "", "", "", test.cmdOther, test.argOther...)
+			}
+			require.Nil(t, err)
+			defer func() { _ = p.Stop() }()
 
-	err = p.Restart()
-	require.Nil(t, err)
-	assert.True(t, p.IsOn())
-
-	err = p.Stop()
-	require.Nil(t, err)
-	assert.False(t, p.IsOn())
-
-	//Checking idempotence
-	err = p.Stop()
-	require.Nil(t, err)
-
-	err = p.Execute()
-	assert.NotNil(t, err)
+			assert.False(t, p.IsOn())
+			err = p.Start()
+			require.Nil(t, err)
+			assert.True(t, p.IsOn())
+			time.Sleep(10 * time.Millisecond)
+			cancelFunc()
+			time.Sleep(200 * time.Millisecond)
+			assert.False(t, p.IsOn())
+		})
+	}
 }
 
-func TestCancelledLongerLivedSubprocess(t *testing.T) {
-	var loggers, err = logs.CreateStdLogger("Test")
-	require.Nil(t, err)
-	cancellableCtx, cancelFunc := context.WithCancel(context.Background())
-
-	var p *Subprocess
-	if platform.IsWindows() {
-		p, err = New(cancellableCtx, loggers, "", "", "", "cmd", "SLEEP 4")
-	} else {
-		p, err = New(cancellableCtx, loggers, "", "", "", "sleep", "4")
+func TestCancelledSubprocess2(t *testing.T) {
+	tests := []struct {
+		name       string
+		cmdWindows string
+		argWindows []string
+		cmdOther   string
+		argOther   []string
+	}{
+		{
+			name:       "LongProcess",
+			cmdWindows: "cmd",
+			argWindows: []string{"SLEEP 4"},
+			cmdOther:   "sleep",
+			argOther:   []string{"4"},
+		},
 	}
-	require.Nil(t, err)
-	defer func() { _ = p.Stop() }()
 
-	assert.False(t, p.IsOn())
-	err = p.Start()
-	require.Nil(t, err)
-	assert.True(t, p.IsOn())
-	time.Sleep(10 * time.Millisecond)
-	cancelFunc()
-	time.Sleep(200 * time.Millisecond)
-	assert.False(t, p.IsOn())
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			defer goleak.VerifyNone(t)
+			var loggers, err = logs.CreateStdLogger("Test")
+			require.Nil(t, err)
+			ctx, cancelFunc := context.WithCancel(context.Background())
+			var p *Subprocess
+			if platform.IsWindows() {
+				p, err = New(ctx, loggers, "", "", "", test.cmdWindows, test.argWindows...)
+			} else {
+				p, err = New(ctx, loggers, "", "", "", test.cmdOther, test.argOther...)
+			}
+			require.Nil(t, err)
+			defer func() { _ = p.Stop() }()
+
+			ready := make(chan bool)
+			go func(proc *Subprocess) {
+				ready <- true
+				_ = proc.Execute()
+			}(p)
+			<-ready
+			time.Sleep(10 * time.Millisecond)
+			assert.True(t, p.IsOn())
+			time.Sleep(10 * time.Millisecond)
+			cancelFunc()
+			time.Sleep(200 * time.Millisecond)
+			assert.False(t, p.IsOn())
+		})
+	}
 }
 
-func TestCancelledLongerLivedSubprocess2(t *testing.T) {
-	var loggers, err = logs.CreateStdLogger("Test")
-	require.Nil(t, err)
-	ctx := context.Background()
-	var p *Subprocess
-	if platform.IsWindows() {
-		p, err = New(ctx, loggers, "", "", "", "cmd", "SLEEP 4")
-	} else {
-		p, err = New(ctx, loggers, "", "", "", "sleep", "4")
+func TestCancelledSubprocess3(t *testing.T) {
+	tests := []struct {
+		name       string
+		cmdWindows string
+		argWindows []string
+		cmdOther   string
+		argOther   []string
+	}{
+		{
+			name:       "LongProcess",
+			cmdWindows: "cmd",
+			argWindows: []string{"SLEEP 4"},
+			cmdOther:   "sleep",
+			argOther:   []string{"4"},
+		},
 	}
-	require.Nil(t, err)
-	defer func() { _ = p.Stop() }()
 
-	ready := make(chan bool)
-	go func() {
-		ready <- true
-		_ = p.Execute()
-	}()
-	<-ready
-	time.Sleep(10 * time.Millisecond)
-	assert.True(t, p.IsOn())
-	time.Sleep(10 * time.Millisecond)
-	p.Cancel()
-	time.Sleep(200 * time.Millisecond)
-	assert.False(t, p.IsOn())
-}
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			defer goleak.VerifyNone(t)
+			var loggers, err = logs.CreateStdLogger("Test")
+			require.Nil(t, err)
+			ctx := context.Background()
+			var p *Subprocess
+			if platform.IsWindows() {
+				p, err = New(ctx, loggers, "", "", "", test.cmdWindows, test.argWindows...)
+			} else {
+				p, err = New(ctx, loggers, "", "", "", test.cmdOther, test.argOther...)
+			}
+			require.Nil(t, err)
+			defer func() { _ = p.Stop() }()
 
-func TestCancelledLongerLivedSubprocess3(t *testing.T) {
-	var loggers, err = logs.CreateStdLogger("Test")
-	require.Nil(t, err)
-	ctx, cancelFunc := context.WithCancel(context.Background())
-	var p *Subprocess
-	if platform.IsWindows() {
-		p, err = New(ctx, loggers, "", "", "", "cmd", "SLEEP 4")
-	} else {
-		p, err = New(ctx, loggers, "", "", "", "sleep", "4")
+			ready := make(chan bool)
+			go func(proc *Subprocess) {
+				ready <- true
+				_ = proc.Execute()
+			}(p)
+			<-ready
+			time.Sleep(10 * time.Millisecond)
+			assert.True(t, p.IsOn())
+			time.Sleep(10 * time.Millisecond)
+			p.Cancel()
+			// checking idempotence.
+			p.Cancel()
+			time.Sleep(200 * time.Millisecond)
+			assert.False(t, p.IsOn())
+		})
 	}
-	require.Nil(t, err)
-	defer func() { _ = p.Stop() }()
-
-	ready := make(chan bool)
-	go func() {
-		ready <- true
-		_ = p.Execute()
-	}()
-	<-ready
-	time.Sleep(10 * time.Millisecond)
-	assert.True(t, p.IsOn())
-	time.Sleep(10 * time.Millisecond)
-	cancelFunc()
-	time.Sleep(200 * time.Millisecond)
-	assert.False(t, p.IsOn())
 }

@@ -16,11 +16,13 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
+	"go.uber.org/goleak"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 func TestParallelisationWithResults(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	var values []int
 	length := 100
 	for i := 0; i < length; i++ {
@@ -30,14 +32,15 @@ func TestParallelisationWithResults(t *testing.T) {
 		result = int64(arg.(int))
 		return
 	}
-	var temp []int64
-	results, err := Parallelise(values, action, reflect.TypeOf(temp))
+	var results []int64
+	rawResults, err := Parallelise(values, action, reflect.TypeOf(results))
 	require.Nil(t, err)
 
-	temp = results.([]int64)
-	assert.Equal(t, length, len(temp))
+	results = rawResults.([]int64)
+	assert.Equal(t, length, len(results))
 }
 func TestParallelisationWithoutResults(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	var values []int
 	length := 30
 	for i := 0; i < length; i++ {
@@ -52,6 +55,7 @@ func TestParallelisationWithoutResults(t *testing.T) {
 }
 
 func TestParallelisationWithErrors(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	var values []int
 	length := 30
 	for i := 0; i < length; i++ {
@@ -116,34 +120,57 @@ func TestSleepWithInterruption(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
+			defer goleak.VerifyNone(t)
 			testSleep(t, test.sleep)
 		})
 	}
 }
 
 func TestSchedule(t *testing.T) {
-	var ticks []int
+	defer goleak.VerifyNone(t)
+	var ticks atomic.Uint64
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	Schedule(ctx, 10*time.Millisecond, 15*time.Millisecond, func(time time.Time) {
-		ticks = append(ticks, time.Nanosecond())
+	Schedule(ctx, 10*time.Millisecond, 15*time.Millisecond, func(time.Time) {
+		ticks.Inc()
 	})
-
 	time.Sleep(500 * time.Millisecond)
 	// Expected number should be 49 but there is some timing variance depending on the state of the environment this is run on.
 	// Therefore, we accept that the number of ticks achieved is not always accurate but close to what is expected.
-	assert.GreaterOrEqual(t, len(ticks), 20)
-	assert.LessOrEqual(t, len(ticks), 80)
+	tickNumbers := ticks.Load()
 	require.Nil(t, ctx.Err())
+	cancel()
+	assert.GreaterOrEqual(t, tickNumbers, uint64(20))
+	assert.LessOrEqual(t, tickNumbers, uint64(80))
+}
+
+func TestScheduleAfter(t *testing.T) {
+	defer goleak.VerifyNone(t)
+	var timeS atomic.Value
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	time1 := time.Now()
+	expectedOffset := 10 * time.Millisecond
+	ScheduleAfter(ctx, expectedOffset, func(time.Time) {
+		timeS.Store(time.Now())
+	})
+	time.Sleep(50 * time.Millisecond)
+
+	duration := timeS.Load().(time.Time).Sub(time1)
+	require.Nil(t, ctx.Err())
+	cancel()
+	assert.GreaterOrEqual(t, duration, expectedOffset)
 }
 
 func TestRunBlockingActionWithTimeout(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	for i := 0; i < 200; i++ {
 		testTimeout(t)
 	}
 }
 
 func TestRunBlockingActionWithTimeoutAndContex(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	ctx := context.Background()
 	for i := 0; i < 200; i++ {
 		testTimeoutWithContext(t, ctx)
@@ -284,6 +311,7 @@ func TestRunActionWithParallelCheckHappy(t *testing.T) {
 	ctx := context.Background()
 	for i := 0; i < 10; i++ {
 		t.Run(fmt.Sprintf("test #%v", i), func(t *testing.T) {
+			defer goleak.VerifyNone(t)
 			runActionWithParallelCheckHappy(t, ctx)
 		})
 	}
@@ -293,6 +321,7 @@ func TestRunActionWithParallelCheckFail(t *testing.T) {
 	ctx := context.Background()
 	for i := 0; i < 10; i++ {
 		t.Run(fmt.Sprintf("test #%v", i), func(t *testing.T) {
+			defer goleak.VerifyNone(t)
 			runActionWithParallelCheckFail(t, ctx)
 		})
 	}
@@ -302,6 +331,7 @@ func TestRunActionWithParallelCheckFailAtRandom(t *testing.T) {
 	ctx := context.Background()
 	for i := 0; i < 10; i++ {
 		t.Run(fmt.Sprintf("test #%v", i), func(t *testing.T) {
+			defer goleak.VerifyNone(t)
 			runActionWithParallelCheckFailAtRandom(t, ctx)
 		})
 	}
