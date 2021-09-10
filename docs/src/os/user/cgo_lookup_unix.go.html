@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: cgo_lookup_unix.go in package os/user</title>
+<link href="../../../css/light-v0.3.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	cgo_lookup_unix.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/os/user.html">os/user</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3,
+input[id=i4]:checked ~pre .i4,
+input[id=i5]:checked ~pre .i5,
+input[id=i6]:checked ~pre .i6
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+<input id="i4" type="radio" name="i"/>
+<input id="i5" type="radio" name="i"/>
+<input id="i6" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Code generated by cmd/cgo; DO NOT EDIT.</span></code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">//line /opt/hostedtoolcache/go/1.16.7/x64/src/os/user/cgo_lookup_unix.go:1:1</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// +build aix darwin dragonfly freebsd !android,linux netbsd openbsd solaris</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// +build cgo,!osusergo</span></code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code><span class="keyword">package</span> user; <span class="keyword">import</span> <a href="../../../pkg/unsafe.html" class="ident i0">_cgo_unsafe</a> <label for="i0"><span class="lit-string i0">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-14"><code>	<label for="i1"><span class="lit-string i1">"fmt"</span></label></code></span>
+<span class="codeline" id="line-15"><code>	<label for="i2"><span class="lit-string i2">"strconv"</span></label></code></span>
+<span class="codeline" id="line-16"><code>	<label for="i3"><span class="lit-string i3">"strings"</span></label></code></span>
+<span class="codeline" id="line-17"><code>	<label for="i4"><span class="lit-string i4">"syscall"</span></label></code></span>
+<span class="codeline" id="line-18"><code>	<label for="i5"><span class="lit-string i5">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-19"><code>)</code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">#cgo solaris CFLAGS: -D_POSIX_PTHREAD_SEMANTICS</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">#include &lt;unistd.h&gt;</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">#include &lt;sys/types.h&gt;</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">#include &lt;pwd.h&gt;</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">#include &lt;grp.h&gt;</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">#include &lt;stdlib.h&gt;</span></code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">static int mygetpwuid_r(int uid, struct passwd *pwd,</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	char *buf, size_t buflen, struct passwd **result) {</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	return getpwuid_r(uid, pwd, buf, buflen, result);</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">}</span></code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">static int mygetpwnam_r(const char *name, struct passwd *pwd,</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	char *buf, size_t buflen, struct passwd **result) {</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	return getpwnam_r(name, pwd, buf, buflen, result);</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">}</span></code></span>
+<span class="codeline" id="line-38"><code></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">static int mygetgrgid_r(int gid, struct group *grp,</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">	char *buf, size_t buflen, struct group **result) {</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment"> return getgrgid_r(gid, grp, buf, buflen, result);</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">}</span></code></span>
+<span class="codeline" id="line-43"><code></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">static int mygetgrnam_r(const char *name, struct group *grp,</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	char *buf, size_t buflen, struct group **result) {</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment"> return getgrnam_r(name, grp, buf, buflen, result);</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">}</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">*/</span></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">import</span> <a href="../../../pkg/unsafe.html" class="ident i6">_</a> <label for="i6"><span class="lit-string i6">"unsafe"</span></label></code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/os/user.html#name-current" class="ident">current</a></label>() (*<a href="user.go.html#line-29" class="ident">User</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-52"><code>	<span class="keyword">return</span> <a href="#line-88" class="ident">lookupUnixUid</a>(<a href="../../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../../syscall/zsyscall_linux_amd64.go.html#line-1145" class="ident">Getuid</a>())</code></span>
+<span class="codeline" id="line-53"><code>}</code></span>
+<span class="codeline" id="line-54"><code></code></span>
+<span class="codeline" id="line-55"><code><span class="keyword">func</span> <label for="r1" class="ident"><a href="../../../pkg/os/user.html#name-lookupUser" class="ident">lookupUser</a></label>(<label for="r2" class="ident">username</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) (*<a href="user.go.html#line-29" class="ident">User</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">var</span> <label for="r3" class="ident">pwd</label>  <span class="comment">/*line :53:10*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-47" class="ident">_Ctype_struct_passwd</a> <span class="comment">/*line :53:25*/</span></code></span>
+<span class="codeline" id="line-57"><code>	<span class="keyword">var</span> <label for="r4" class="ident">result</label> * <span class="comment">/*line :54:14*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-47" class="ident">_Ctype_struct_passwd</a> <span class="comment">/*line :54:29*/</span></code></span>
+<span class="codeline" id="line-58"><code>	<label for="r5" class="ident">nameC</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">username</label>)+<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-59"><code>	<a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r5" class="ident">nameC</label>, <label for="r2" class="ident">username</label>)</code></span>
+<span class="codeline" id="line-60"><code></code></span>
+<span class="codeline" id="line-61"><code>	<label for="r6" class="ident">buf</label> := <a href="#line-212" class="ident">alloc</a>(<a href="#line-188" class="ident">userBuffer</a>)</code></span>
+<span class="codeline" id="line-62"><code>	<span class="keyword">defer</span> <label for="r6" class="ident">buf</label>.<a href="#line-225" class="ident">free</a>()</code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code>	<label for="r7" class="ident">err</label> := <a href="#line-232" class="ident">retryWithBuffer</a>(<label for="r6" class="ident">buf</label>, <span class="keyword">func</span>() <a href="../../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../../syscall/syscall_unix.go.html#line-114" class="ident">Errno</a> {</code></span>
+<span class="codeline" id="line-65"><code>		<span class="comment">// mygetpwnam_r is a wrapper around getpwnam_r to avoid</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">		// passing a size_t to getpwnam_r, because for unknown</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">		// reasons passing a size_t to getpwnam_r doesn't work on</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">		// Solaris.</span></code></span>
+<span class="codeline" id="line-69"><code>		<span class="keyword">return</span> <a href="../../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../../syscall/syscall_unix.go.html#line-114" class="ident">Errno</a>(<span class="keyword">func</span>() <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-30" class="ident">_Ctype_int</a>{ <span class="keyword">var</span> <label for="r8" class="ident">_cgo0</label> *<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-26" class="ident">_Ctype_char</a> = <span class="comment">/*line :66:39*/</span>(*<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-26" class="ident">_Ctype_char</a>)(<a href="../../../pkg/unsafe.html" class="ident i6">unsafe</a>.<a href="../../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r5" class="ident">nameC</label>[<span class="lit-number">0</span>])); <label for="r9" class="ident">_cgoBase1</label> := <span class="comment">/*line :67:4*/</span>&amp;<label for="r3" class="ident">pwd</label>; <label for="r10" class="ident">_cgo1</label> := <label for="r9" class="ident">_cgoBase1</label>; <span class="keyword">var</span> <label for="r11" class="ident">_cgo2</label> *<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-26" class="ident">_Ctype_char</a> = <span class="comment">/*line :68:4*/</span>(*<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-26" class="ident">_Ctype_char</a>)(<label for="r6" class="ident">buf</label>.<a href="#line-208" class="ident">ptr</a>); <span class="keyword">var</span> <label for="r12" class="ident">_cgo3</label> <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-38" class="ident">_Ctype_size_t</a> = <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-38" class="ident">_Ctype_size_t</a>(<label for="r6" class="ident">buf</label>.<a href="#line-209" class="ident">size</a>); <label for="r13" class="ident">_cgoBase4</label> := <span class="comment">/*line :70:4*/</span>&amp;<label for="r4" class="ident">result</label>; <label for="r14" class="ident">_cgo4</label> := <label for="r13" class="ident">_cgoBase4</label>; <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-67" class="ident">_cgoCheckPointer</a>(<label for="r9" class="ident">_cgoBase1</label>, <span class="lit-number">0</span> == <span class="lit-number">0</span>); <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-67" class="ident">_cgoCheckPointer</a>(<label for="r13" class="ident">_cgoBase4</label>, <span class="lit-number">0</span> == <span class="lit-number">0</span>); <span class="keyword">return</span> <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-154" class="ident">_Cfunc_mygetpwnam_r</a>(<label for="r8" class="ident">_cgo0</label>, <label for="r10" class="ident">_cgo1</label>, <label for="r11" class="ident">_cgo2</label>, <label for="r12" class="ident">_cgo3</label>, <label for="r14" class="ident">_cgo4</label>); }())</code></span>
+<span class="codeline" id="line-70"><code>	})</code></span>
+<span class="codeline" id="line-71"><code>	<span class="keyword">if</span> <label for="r7" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-72"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"user: lookup username %s: %v"</span>, <label for="r2" class="ident">username</label>, <label for="r7" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-73"><code>	}</code></span>
+<span class="codeline" id="line-74"><code>	<span class="keyword">if</span> <label for="r4" class="ident">result</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-75"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="user.go.html#line-70" class="ident">UnknownUserError</a>(<label for="r2" class="ident">username</label>)</code></span>
+<span class="codeline" id="line-76"><code>	}</code></span>
+<span class="codeline" id="line-77"><code>	<span class="keyword">return</span> <a href="#line-109" class="ident">buildUser</a>(&amp;<label for="r3" class="ident">pwd</label>), <label for="r7" class="ident">err</label></code></span>
+<span class="codeline" id="line-78"><code>}</code></span>
+<span class="codeline" id="line-79"><code></code></span>
+<span class="codeline" id="line-80"><code><span class="keyword">func</span> <label for="r15" class="ident"><a href="../../../pkg/os/user.html#name-lookupUserId" class="ident">lookupUserId</a></label>(<label for="r16" class="ident">uid</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) (*<a href="user.go.html#line-29" class="ident">User</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-81"><code>	<label for="r17" class="ident">i</label>, <label for="r18" class="ident">e</label> := <a href="../../../pkg/strconv.html" class="ident i2">strconv</a>.<a href="../../strconv/atoi.go.html#line-224" class="ident">Atoi</a>(<label for="r16" class="ident">uid</label>)</code></span>
+<span class="codeline" id="line-82"><code>	<span class="keyword">if</span> <label for="r18" class="ident">e</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-83"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r18" class="ident">e</label></code></span>
+<span class="codeline" id="line-84"><code>	}</code></span>
+<span class="codeline" id="line-85"><code>	<span class="keyword">return</span> <a href="#line-88" class="ident">lookupUnixUid</a>(<label for="r17" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-86"><code>}</code></span>
+<span class="codeline" id="line-87"><code></code></span>
+<span class="codeline" id="line-88"><code><span class="keyword">func</span> <label for="r19" class="ident"><a href="../../../pkg/os/user.html#name-lookupUnixUid" class="ident">lookupUnixUid</a></label>(<label for="r20" class="ident">uid</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) (*<a href="user.go.html#line-29" class="ident">User</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-89"><code>	<span class="keyword">var</span> <label for="r21" class="ident">pwd</label>  <span class="comment">/*line :90:10*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-47" class="ident">_Ctype_struct_passwd</a> <span class="comment">/*line :90:25*/</span></code></span>
+<span class="codeline" id="line-90"><code>	<span class="keyword">var</span> <label for="r22" class="ident">result</label> * <span class="comment">/*line :91:14*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-47" class="ident">_Ctype_struct_passwd</a> <span class="comment">/*line :91:29*/</span></code></span>
+<span class="codeline" id="line-91"><code></code></span>
+<span class="codeline" id="line-92"><code>	<label for="r23" class="ident">buf</label> := <a href="#line-212" class="ident">alloc</a>(<a href="#line-188" class="ident">userBuffer</a>)</code></span>
+<span class="codeline" id="line-93"><code>	<span class="keyword">defer</span> <label for="r23" class="ident">buf</label>.<a href="#line-225" class="ident">free</a>()</code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code>	<label for="r24" class="ident">err</label> := <a href="#line-232" class="ident">retryWithBuffer</a>(<label for="r23" class="ident">buf</label>, <span class="keyword">func</span>() <a href="../../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../../syscall/syscall_unix.go.html#line-114" class="ident">Errno</a> {</code></span>
+<span class="codeline" id="line-96"><code>		<span class="comment">// mygetpwuid_r is a wrapper around getpwuid_r to avoid using uid_t</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">		// because C.uid_t(uid) for unknown reasons doesn't work on linux.</span></code></span>
+<span class="codeline" id="line-98"><code>		<span class="keyword">return</span> <a href="../../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../../syscall/syscall_unix.go.html#line-114" class="ident">Errno</a>(<span class="keyword">func</span>() <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-30" class="ident">_Ctype_int</a>{ <span class="keyword">var</span> <label for="r25" class="ident">_cgo0</label> <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-30" class="ident">_Ctype_int</a> = <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-30" class="ident">_Ctype_int</a>(<label for="r20" class="ident">uid</label>); <label for="r26" class="ident">_cgoBase1</label> := <span class="comment">/*line :100:4*/</span>&amp;<label for="r21" class="ident">pwd</label>; <label for="r27" class="ident">_cgo1</label> := <label for="r26" class="ident">_cgoBase1</label>; <span class="keyword">var</span> <label for="r28" class="ident">_cgo2</label> *<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-26" class="ident">_Ctype_char</a> = <span class="comment">/*line :101:4*/</span>(*<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-26" class="ident">_Ctype_char</a>)(<label for="r23" class="ident">buf</label>.<a href="#line-208" class="ident">ptr</a>); <span class="keyword">var</span> <label for="r29" class="ident">_cgo3</label> <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-38" class="ident">_Ctype_size_t</a> = <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-38" class="ident">_Ctype_size_t</a>(<label for="r23" class="ident">buf</label>.<a href="#line-209" class="ident">size</a>); <label for="r30" class="ident">_cgoBase4</label> := <span class="comment">/*line :103:4*/</span>&amp;<label for="r22" class="ident">result</label>; <label for="r31" class="ident">_cgo4</label> := <label for="r30" class="ident">_cgoBase4</label>; <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-67" class="ident">_cgoCheckPointer</a>(<label for="r26" class="ident">_cgoBase1</label>, <span class="lit-number">0</span> == <span class="lit-number">0</span>); <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-67" class="ident">_cgoCheckPointer</a>(<label for="r30" class="ident">_cgoBase4</label>, <span class="lit-number">0</span> == <span class="lit-number">0</span>); <span class="keyword">return</span> <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-171" class="ident">_Cfunc_mygetpwuid_r</a>(<label for="r25" class="ident">_cgo0</label>, <label for="r27" class="ident">_cgo1</label>, <label for="r28" class="ident">_cgo2</label>, <label for="r29" class="ident">_cgo3</label>, <label for="r31" class="ident">_cgo4</label>); }())</code></span>
+<span class="codeline" id="line-99"><code>	})</code></span>
+<span class="codeline" id="line-100"><code>	<span class="keyword">if</span> <label for="r24" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-101"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"user: lookup userid %d: %v"</span>, <label for="r20" class="ident">uid</label>, <label for="r24" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-102"><code>	}</code></span>
+<span class="codeline" id="line-103"><code>	<span class="keyword">if</span> <label for="r22" class="ident">result</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-104"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="user.go.html#line-62" class="ident">UnknownUserIdError</a>(<label for="r20" class="ident">uid</label>)</code></span>
+<span class="codeline" id="line-105"><code>	}</code></span>
+<span class="codeline" id="line-106"><code>	<span class="keyword">return</span> <a href="#line-109" class="ident">buildUser</a>(&amp;<label for="r21" class="ident">pwd</label>), <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-107"><code>}</code></span>
+<span class="codeline" id="line-108"><code></code></span>
+<span class="codeline" id="line-109"><code><span class="keyword">func</span> <label for="r32" class="ident"><a href="../../../pkg/os/user.html#name-buildUser" class="ident">buildUser</a></label>(<label for="r33" class="ident">pwd</label> * <span class="comment">/*line :114:21*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-47" class="ident">_Ctype_struct_passwd</a> <span class="comment">/*line :114:36*/</span>) *<a href="user.go.html#line-29" class="ident">User</a> {</code></span>
+<span class="codeline" id="line-110"><code>	<label for="r34" class="ident">u</label> := &amp;<a href="user.go.html#line-29" class="ident">User</a>{</code></span>
+<span class="codeline" id="line-111"><code>		<a href="user.go.html#line-34" class="ident">Uid</a>:      <a href="../../../pkg/strconv.html" class="ident i2">strconv</a>.<a href="../../strconv/itoa.go.html#line-14" class="ident">FormatUint</a>(<a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r33" class="ident">pwd</label>.<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-50" class="ident">pw_uid</a>), <span class="lit-number">10</span>),</code></span>
+<span class="codeline" id="line-112"><code>		<a href="user.go.html#line-39" class="ident">Gid</a>:      <a href="../../../pkg/strconv.html" class="ident i2">strconv</a>.<a href="../../strconv/itoa.go.html#line-14" class="ident">FormatUint</a>(<a href="../../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r33" class="ident">pwd</label>.<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-51" class="ident">pw_gid</a>), <span class="lit-number">10</span>),</code></span>
+<span class="codeline" id="line-113"><code>		<a href="user.go.html#line-41" class="ident">Username</a>: ( <span class="comment">/*line :118:13*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-78" class="ident">_Cfunc_GoString</a> <span class="comment">/*line :118:22*/</span>)(<label for="r33" class="ident">pwd</label>.<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-48" class="ident">pw_name</a>),</code></span>
+<span class="codeline" id="line-114"><code>		<a href="user.go.html#line-48" class="ident">Name</a>:     ( <span class="comment">/*line :119:13*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-78" class="ident">_Cfunc_GoString</a> <span class="comment">/*line :119:22*/</span>)(<label for="r33" class="ident">pwd</label>.<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-52" class="ident">pw_gecos</a>),</code></span>
+<span class="codeline" id="line-115"><code>		<a href="user.go.html#line-50" class="ident">HomeDir</a>:  ( <span class="comment">/*line :120:13*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-78" class="ident">_Cfunc_GoString</a> <span class="comment">/*line :120:22*/</span>)(<label for="r33" class="ident">pwd</label>.<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-53" class="ident">pw_dir</a>),</code></span>
+<span class="codeline" id="line-116"><code>	}</code></span>
+<span class="codeline" id="line-117"><code>	<span class="comment">// The pw_gecos field isn't quite standardized. Some docs</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">	// say: "It is expected to be a comma separated list of</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">	// personal data where the first item is the full name of the</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">	// user."</span></code></span>
+<span class="codeline" id="line-121"><code>	<span class="keyword">if</span> <label for="r35" class="ident">i</label> := <a href="../../../pkg/strings.html" class="ident i3">strings</a>.<a href="../../strings/strings.go.html#line-1024" class="ident">Index</a>(<label for="r34" class="ident">u</label>.<a href="user.go.html#line-48" class="ident">Name</a>, <span class="lit-string">","</span>); <label for="r35" class="ident">i</label> &gt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-122"><code>		<label for="r34" class="ident">u</label>.<a href="user.go.html#line-48" class="ident">Name</a> = <label for="r34" class="ident">u</label>.<a href="user.go.html#line-48" class="ident">Name</a>[:<label for="r35" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-123"><code>	}</code></span>
+<span class="codeline" id="line-124"><code>	<span class="keyword">return</span> <label for="r34" class="ident">u</label></code></span>
+<span class="codeline" id="line-125"><code>}</code></span>
+<span class="codeline" id="line-126"><code></code></span>
+<span class="codeline" id="line-127"><code><span class="keyword">func</span> <label for="r36" class="ident"><a href="../../../pkg/os/user.html#name-lookupGroup" class="ident">lookupGroup</a></label>(<label for="r37" class="ident">groupname</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) (*<a href="user.go.html#line-56" class="ident">Group</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-128"><code>	<span class="keyword">var</span> <label for="r38" class="ident">grp</label>  <span class="comment">/*line :133:10*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-40" class="ident">_Ctype_struct_group</a> <span class="comment">/*line :133:24*/</span></code></span>
+<span class="codeline" id="line-129"><code>	<span class="keyword">var</span> <label for="r39" class="ident">result</label> * <span class="comment">/*line :134:14*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-40" class="ident">_Ctype_struct_group</a> <span class="comment">/*line :134:28*/</span></code></span>
+<span class="codeline" id="line-130"><code></code></span>
+<span class="codeline" id="line-131"><code>	<label for="r40" class="ident">buf</label> := <a href="#line-212" class="ident">alloc</a>(<a href="#line-189" class="ident">groupBuffer</a>)</code></span>
+<span class="codeline" id="line-132"><code>	<span class="keyword">defer</span> <label for="r40" class="ident">buf</label>.<a href="#line-225" class="ident">free</a>()</code></span>
+<span class="codeline" id="line-133"><code>	<label for="r41" class="ident">cname</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r37" class="ident">groupname</label>)+<span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-134"><code>	<a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r41" class="ident">cname</label>, <label for="r37" class="ident">groupname</label>)</code></span>
+<span class="codeline" id="line-135"><code></code></span>
+<span class="codeline" id="line-136"><code>	<label for="r42" class="ident">err</label> := <a href="#line-232" class="ident">retryWithBuffer</a>(<label for="r40" class="ident">buf</label>, <span class="keyword">func</span>() <a href="../../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../../syscall/syscall_unix.go.html#line-114" class="ident">Errno</a> {</code></span>
+<span class="codeline" id="line-137"><code>		<span class="keyword">return</span> <a href="../../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../../syscall/syscall_unix.go.html#line-114" class="ident">Errno</a>(<span class="keyword">func</span>() <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-30" class="ident">_Ctype_int</a>{ <span class="keyword">var</span> <label for="r43" class="ident">_cgo0</label> *<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-26" class="ident">_Ctype_char</a> = <span class="comment">/*line :142:39*/</span>(*<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-26" class="ident">_Ctype_char</a>)(<a href="../../../pkg/unsafe.html" class="ident i6">unsafe</a>.<a href="../../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r41" class="ident">cname</label>[<span class="lit-number">0</span>])); <label for="r44" class="ident">_cgoBase1</label> := <span class="comment">/*line :143:4*/</span>&amp;<label for="r38" class="ident">grp</label>; <label for="r45" class="ident">_cgo1</label> := <label for="r44" class="ident">_cgoBase1</label>; <span class="keyword">var</span> <label for="r46" class="ident">_cgo2</label> *<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-26" class="ident">_Ctype_char</a> = <span class="comment">/*line :144:4*/</span>(*<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-26" class="ident">_Ctype_char</a>)(<label for="r40" class="ident">buf</label>.<a href="#line-208" class="ident">ptr</a>); <span class="keyword">var</span> <label for="r47" class="ident">_cgo3</label> <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-38" class="ident">_Ctype_size_t</a> = <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-38" class="ident">_Ctype_size_t</a>(<label for="r40" class="ident">buf</label>.<a href="#line-209" class="ident">size</a>); <label for="r48" class="ident">_cgoBase4</label> := <span class="comment">/*line :146:4*/</span>&amp;<label for="r39" class="ident">result</label>; <label for="r49" class="ident">_cgo4</label> := <label for="r48" class="ident">_cgoBase4</label>; <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-67" class="ident">_cgoCheckPointer</a>(<label for="r44" class="ident">_cgoBase1</label>, <span class="lit-number">0</span> == <span class="lit-number">0</span>); <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-67" class="ident">_cgoCheckPointer</a>(<label for="r48" class="ident">_cgoBase4</label>, <span class="lit-number">0</span> == <span class="lit-number">0</span>); <span class="keyword">return</span> <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-121" class="ident">_Cfunc_mygetgrnam_r</a>(<label for="r43" class="ident">_cgo0</label>, <label for="r45" class="ident">_cgo1</label>, <label for="r46" class="ident">_cgo2</label>, <label for="r47" class="ident">_cgo3</label>, <label for="r49" class="ident">_cgo4</label>); }())</code></span>
+<span class="codeline" id="line-138"><code>	})</code></span>
+<span class="codeline" id="line-139"><code>	<span class="keyword">if</span> <label for="r42" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-140"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"user: lookup groupname %s: %v"</span>, <label for="r37" class="ident">groupname</label>, <label for="r42" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-141"><code>	}</code></span>
+<span class="codeline" id="line-142"><code>	<span class="keyword">if</span> <label for="r39" class="ident">result</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-143"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="user.go.html#line-86" class="ident">UnknownGroupError</a>(<label for="r37" class="ident">groupname</label>)</code></span>
+<span class="codeline" id="line-144"><code>	}</code></span>
+<span class="codeline" id="line-145"><code>	<span class="keyword">return</span> <a href="#line-177" class="ident">buildGroup</a>(&amp;<label for="r38" class="ident">grp</label>), <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-146"><code>}</code></span>
+<span class="codeline" id="line-147"><code></code></span>
+<span class="codeline" id="line-148"><code><span class="keyword">func</span> <label for="r50" class="ident"><a href="../../../pkg/os/user.html#name-lookupGroupId" class="ident">lookupGroupId</a></label>(<label for="r51" class="ident">gid</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>) (*<a href="user.go.html#line-56" class="ident">Group</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-149"><code>	<label for="r52" class="ident">i</label>, <label for="r53" class="ident">e</label> := <a href="../../../pkg/strconv.html" class="ident i2">strconv</a>.<a href="../../strconv/atoi.go.html#line-224" class="ident">Atoi</a>(<label for="r51" class="ident">gid</label>)</code></span>
+<span class="codeline" id="line-150"><code>	<span class="keyword">if</span> <label for="r53" class="ident">e</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-151"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r53" class="ident">e</label></code></span>
+<span class="codeline" id="line-152"><code>	}</code></span>
+<span class="codeline" id="line-153"><code>	<span class="keyword">return</span> <a href="#line-156" class="ident">lookupUnixGid</a>(<label for="r52" class="ident">i</label>)</code></span>
+<span class="codeline" id="line-154"><code>}</code></span>
+<span class="codeline" id="line-155"><code></code></span>
+<span class="codeline" id="line-156"><code><span class="keyword">func</span> <label for="r54" class="ident"><a href="../../../pkg/os/user.html#name-lookupUnixGid" class="ident">lookupUnixGid</a></label>(<label for="r55" class="ident">gid</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) (*<a href="user.go.html#line-56" class="ident">Group</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-157"><code>	<span class="keyword">var</span> <label for="r56" class="ident">grp</label>  <span class="comment">/*line :166:10*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-40" class="ident">_Ctype_struct_group</a> <span class="comment">/*line :166:24*/</span></code></span>
+<span class="codeline" id="line-158"><code>	<span class="keyword">var</span> <label for="r57" class="ident">result</label> * <span class="comment">/*line :167:14*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-40" class="ident">_Ctype_struct_group</a> <span class="comment">/*line :167:28*/</span></code></span>
+<span class="codeline" id="line-159"><code></code></span>
+<span class="codeline" id="line-160"><code>	<label for="r58" class="ident">buf</label> := <a href="#line-212" class="ident">alloc</a>(<a href="#line-189" class="ident">groupBuffer</a>)</code></span>
+<span class="codeline" id="line-161"><code>	<span class="keyword">defer</span> <label for="r58" class="ident">buf</label>.<a href="#line-225" class="ident">free</a>()</code></span>
+<span class="codeline" id="line-162"><code></code></span>
+<span class="codeline" id="line-163"><code>	<label for="r59" class="ident">err</label> := <a href="#line-232" class="ident">retryWithBuffer</a>(<label for="r58" class="ident">buf</label>, <span class="keyword">func</span>() <a href="../../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../../syscall/syscall_unix.go.html#line-114" class="ident">Errno</a> {</code></span>
+<span class="codeline" id="line-164"><code>		<span class="comment">// mygetgrgid_r is a wrapper around getgrgid_r to avoid using gid_t</span></code></span>
+<span class="codeline" id="line-165"><code><span class="comment">		// because C.gid_t(gid) for unknown reasons doesn't work on linux.</span></code></span>
+<span class="codeline" id="line-166"><code>		<span class="keyword">return</span> <a href="../../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../../syscall/syscall_unix.go.html#line-114" class="ident">Errno</a>(<span class="keyword">func</span>() <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-30" class="ident">_Ctype_int</a>{ <span class="keyword">var</span> <label for="r60" class="ident">_cgo0</label> <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-30" class="ident">_Ctype_int</a> = <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-30" class="ident">_Ctype_int</a>(<label for="r55" class="ident">gid</label>); <label for="r61" class="ident">_cgoBase1</label> := <span class="comment">/*line :176:4*/</span>&amp;<label for="r56" class="ident">grp</label>; <label for="r62" class="ident">_cgo1</label> := <label for="r61" class="ident">_cgoBase1</label>; <span class="keyword">var</span> <label for="r63" class="ident">_cgo2</label> *<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-26" class="ident">_Ctype_char</a> = <span class="comment">/*line :177:4*/</span>(*<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-26" class="ident">_Ctype_char</a>)(<label for="r58" class="ident">buf</label>.<a href="#line-208" class="ident">ptr</a>); <span class="keyword">var</span> <label for="r64" class="ident">_cgo3</label> <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-38" class="ident">_Ctype_size_t</a> = <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-38" class="ident">_Ctype_size_t</a>(<label for="r58" class="ident">buf</label>.<a href="#line-209" class="ident">size</a>); <label for="r65" class="ident">_cgoBase4</label> := <span class="comment">/*line :179:4*/</span>&amp;<label for="r57" class="ident">result</label>; <label for="r66" class="ident">_cgo4</label> := <label for="r65" class="ident">_cgoBase4</label>; <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-67" class="ident">_cgoCheckPointer</a>(<label for="r61" class="ident">_cgoBase1</label>, <span class="lit-number">0</span> == <span class="lit-number">0</span>); <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-67" class="ident">_cgoCheckPointer</a>(<label for="r65" class="ident">_cgoBase4</label>, <span class="lit-number">0</span> == <span class="lit-number">0</span>); <span class="keyword">return</span> <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-104" class="ident">_Cfunc_mygetgrgid_r</a>(<label for="r60" class="ident">_cgo0</label>, <label for="r62" class="ident">_cgo1</label>, <label for="r63" class="ident">_cgo2</label>, <label for="r64" class="ident">_cgo3</label>, <label for="r66" class="ident">_cgo4</label>); }())</code></span>
+<span class="codeline" id="line-167"><code>	})</code></span>
+<span class="codeline" id="line-168"><code>	<span class="keyword">if</span> <label for="r59" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-169"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"user: lookup groupid %d: %v"</span>, <label for="r55" class="ident">gid</label>, <label for="r59" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-170"><code>	}</code></span>
+<span class="codeline" id="line-171"><code>	<span class="keyword">if</span> <label for="r57" class="ident">result</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-172"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="user.go.html#line-78" class="ident">UnknownGroupIdError</a>(<a href="../../../pkg/strconv.html" class="ident i2">strconv</a>.<a href="../../strconv/itoa.go.html#line-34" class="ident">Itoa</a>(<label for="r55" class="ident">gid</label>))</code></span>
+<span class="codeline" id="line-173"><code>	}</code></span>
+<span class="codeline" id="line-174"><code>	<span class="keyword">return</span> <a href="#line-177" class="ident">buildGroup</a>(&amp;<label for="r56" class="ident">grp</label>), <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-175"><code>}</code></span>
+<span class="codeline" id="line-176"><code></code></span>
+<span class="codeline" id="line-177"><code><span class="keyword">func</span> <label for="r67" class="ident"><a href="../../../pkg/os/user.html#name-buildGroup" class="ident">buildGroup</a></label>(<label for="r68" class="ident">grp</label> * <span class="comment">/*line :190:22*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-40" class="ident">_Ctype_struct_group</a> <span class="comment">/*line :190:36*/</span>) *<a href="user.go.html#line-56" class="ident">Group</a> {</code></span>
+<span class="codeline" id="line-178"><code>	<label for="r69" class="ident">g</label> := &amp;<a href="user.go.html#line-56" class="ident">Group</a>{</code></span>
+<span class="codeline" id="line-179"><code>		<a href="user.go.html#line-57" class="ident">Gid</a>:  <a href="../../../pkg/strconv.html" class="ident i2">strconv</a>.<a href="../../strconv/itoa.go.html#line-34" class="ident">Itoa</a>(<a href="../../../pkg/builtin.html#name-int" class="ident">int</a>(<label for="r68" class="ident">grp</label>.<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-43" class="ident">gr_gid</a>)),</code></span>
+<span class="codeline" id="line-180"><code>		<a href="user.go.html#line-58" class="ident">Name</a>: ( <span class="comment">/*line :193:9*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-78" class="ident">_Cfunc_GoString</a> <span class="comment">/*line :193:18*/</span>)(<label for="r68" class="ident">grp</label>.<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-41" class="ident">gr_name</a>),</code></span>
+<span class="codeline" id="line-181"><code>	}</code></span>
+<span class="codeline" id="line-182"><code>	<span class="keyword">return</span> <label for="r69" class="ident">g</label></code></span>
+<span class="codeline" id="line-183"><code>}</code></span>
+<span class="codeline" id="line-184"><code></code></span>
+<span class="codeline" id="line-185"><code><span class="keyword">type</span> <a href="../../../pkg/os/user.html#name-bufferKind" class="ident">bufferKind</a>  <span class="comment">/*line :198:17*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-30" class="ident">_Ctype_int</a> <span class="comment">/*line :198:22*/</span></code></span>
+<span class="codeline" id="line-186"><code></code></span>
+<span class="codeline" id="line-187"><code><span class="keyword">const</span> (</code></span>
+<span class="codeline" id="line-188"><code>	<a href="../../../pkg/os/user.html#name-userBuffer" class="ident">userBuffer</a>  = <a href="#line-185" class="ident">bufferKind</a>(( <span class="comment">/*line :201:27*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-72" class="ident">_Ciconst__SC_GETPW_R_SIZE_MAX</a> <span class="comment">/*line :201:48*/</span>))</code></span>
+<span class="codeline" id="line-189"><code>	<a href="../../../pkg/os/user.html#name-groupBuffer" class="ident">groupBuffer</a> = <a href="#line-185" class="ident">bufferKind</a>(( <span class="comment">/*line :202:27*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-71" class="ident">_Ciconst__SC_GETGR_R_SIZE_MAX</a> <span class="comment">/*line :202:48*/</span>))</code></span>
+<span class="codeline" id="line-190"><code>)</code></span>
+<span class="codeline" id="line-191"><code></code></span>
+<span class="codeline" id="line-192"><code><span class="keyword">func</span> (<label for="r70" class="ident">k</label> <a href="#line-185" class="ident">bufferKind</a>) <label for="r71" class="ident">initialSize</label>()  <span class="comment">/*line :205:35*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-38" class="ident">_Ctype_size_t</a> <span class="comment">/*line :205:43*/</span> {</code></span>
+<span class="codeline" id="line-193"><code>	<label for="r72" class="ident">sz</label> := ( <span class="comment">/*line :206:8*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-202" class="ident">_Cfunc_sysconf</a> <span class="comment">/*line :206:16*/</span>)( <span class="comment">/*line :206:18*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-30" class="ident">_Ctype_int</a> <span class="comment">/*line :206:23*/</span>(<label for="r70" class="ident">k</label>))</code></span>
+<span class="codeline" id="line-194"><code>	<span class="keyword">if</span> <label for="r72" class="ident">sz</label> == -<span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-195"><code>		<span class="comment">// DragonFly and FreeBSD do not have _SC_GETPW_R_SIZE_MAX.</span></code></span>
+<span class="codeline" id="line-196"><code><span class="comment">		// Additionally, not all Linux systems have it, either. For</span></code></span>
+<span class="codeline" id="line-197"><code><span class="comment">		// example, the musl libc returns -1.</span></code></span>
+<span class="codeline" id="line-198"><code>		<span class="keyword">return</span> <span class="lit-number">1024</span></code></span>
+<span class="codeline" id="line-199"><code>	}</code></span>
+<span class="codeline" id="line-200"><code>	<span class="keyword">if</span> !<a href="#line-250" class="ident">isSizeReasonable</a>(<a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r72" class="ident">sz</label>)) {</code></span>
+<span class="codeline" id="line-201"><code>		<span class="comment">// Truncate.  If this truly isn't enough, retryWithBuffer will error on the first run.</span></code></span>
+<span class="codeline" id="line-202"><code>		<span class="keyword">return</span> <a href="#line-248" class="ident">maxBufferSize</a></code></span>
+<span class="codeline" id="line-203"><code>	}</code></span>
+<span class="codeline" id="line-204"><code>	<span class="keyword">return</span>  <span class="comment">/*line :217:9*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-38" class="ident">_Ctype_size_t</a> <span class="comment">/*line :217:17*/</span>(<label for="r72" class="ident">sz</label>)</code></span>
+<span class="codeline" id="line-205"><code>}</code></span>
+<span class="codeline" id="line-206"><code></code></span>
+<span class="codeline" id="line-207"><code><span class="keyword">type</span> <a href="../../../pkg/os/user.html#name-memBuffer" class="ident">memBuffer</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-208"><code>	ptr  <a href="../../../pkg/unsafe.html" class="ident i6">unsafe</a>.<a href="../../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a></code></span>
+<span class="codeline" id="line-209"><code>	size  <span class="comment">/*line :222:7*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-38" class="ident">_Ctype_size_t</a> <span class="comment">/*line :222:15*/</span></code></span>
+<span class="codeline" id="line-210"><code>}</code></span>
+<span class="codeline" id="line-211"><code></code></span>
+<span class="codeline" id="line-212"><code><span class="keyword">func</span> <label for="r73" class="ident"><a href="../../../pkg/os/user.html#name-alloc" class="ident">alloc</a></label>(<label for="r74" class="ident">kind</label> <a href="#line-185" class="ident">bufferKind</a>) *<a href="#line-207" class="ident">memBuffer</a> {</code></span>
+<span class="codeline" id="line-213"><code>	<label for="r75" class="ident">sz</label> := <label for="r74" class="ident">kind</label>.<a href="#line-192" class="ident">initialSize</a>()</code></span>
+<span class="codeline" id="line-214"><code>	<span class="keyword">return</span> &amp;<a href="#line-207" class="ident">memBuffer</a>{</code></span>
+<span class="codeline" id="line-215"><code>		<a href="#line-208" class="ident">ptr</a>:  ( <span class="comment">/*line :228:9*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-82" class="ident">_Cfunc__CMalloc</a> <span class="comment">/*line :228:16*/</span>)(<label for="r75" class="ident">sz</label>),</code></span>
+<span class="codeline" id="line-216"><code>		<a href="#line-209" class="ident">size</a>: <label for="r75" class="ident">sz</label>,</code></span>
+<span class="codeline" id="line-217"><code>	}</code></span>
+<span class="codeline" id="line-218"><code>}</code></span>
+<span class="codeline" id="line-219"><code></code></span>
+<span class="codeline" id="line-220"><code><span class="keyword">func</span> (<label for="r76" class="ident">mb</label> *<a href="#line-207" class="ident">memBuffer</a>) <label for="r77" class="ident">resize</label>(<label for="r78" class="ident">newSize</label>  <span class="comment">/*line :233:37*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-38" class="ident">_Ctype_size_t</a> <span class="comment">/*line :233:45*/</span>) {</code></span>
+<span class="codeline" id="line-221"><code>	<label for="r76" class="ident">mb</label>.<a href="#line-208" class="ident">ptr</a> = <span class="keyword">func</span>() <a href="../../../pkg/unsafe.html" class="ident i6">_cgo_unsafe</a>.<a href="../../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>{ <label for="r79" class="ident">_cgo0</label> := <span class="comment">/*line :234:21*/</span><label for="r76" class="ident">mb</label>.<a href="#line-208" class="ident">ptr</a>; <span class="keyword">var</span> <label for="r80" class="ident">_cgo1</label> <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-38" class="ident">_Ctype_size_t</a> = <span class="comment">/*line :234:29*/</span><label for="r78" class="ident">newSize</label>; <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-67" class="ident">_cgoCheckPointer</a>(<label for="r79" class="ident">_cgo0</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>); <span class="keyword">return</span> <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-188" class="ident">_Cfunc_realloc</a>(<label for="r79" class="ident">_cgo0</label>, <label for="r80" class="ident">_cgo1</label>); }()</code></span>
+<span class="codeline" id="line-222"><code>	<label for="r76" class="ident">mb</label>.<a href="#line-209" class="ident">size</a> = <label for="r78" class="ident">newSize</label></code></span>
+<span class="codeline" id="line-223"><code>}</code></span>
+<span class="codeline" id="line-224"><code></code></span>
+<span class="codeline" id="line-225"><code><span class="keyword">func</span> (<label for="r81" class="ident">mb</label> *<a href="#line-207" class="ident">memBuffer</a>) <label for="r82" class="ident">free</label>() {</code></span>
+<span class="codeline" id="line-226"><code>	<span class="keyword">func</span>() { <label for="r83" class="ident">_cgo0</label> := <span class="comment">/*line :239:9*/</span><label for="r81" class="ident">mb</label>.<a href="#line-208" class="ident">ptr</a>; <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-67" class="ident">_cgoCheckPointer</a>(<label for="r83" class="ident">_cgo0</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>); <a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-91" class="ident">_Cfunc_free</a>(<label for="r83" class="ident">_cgo0</label>); }()</code></span>
+<span class="codeline" id="line-227"><code>}</code></span>
+<span class="codeline" id="line-228"><code></code></span>
+<span class="codeline" id="line-229"><code><span class="comment">// retryWithBuffer repeatedly calls f(), increasing the size of the</span></code></span>
+<span class="codeline" id="line-230"><code><span class="comment">// buffer each time, until f succeeds, fails with a non-ERANGE error,</span></code></span>
+<span class="codeline" id="line-231"><code><span class="comment">// or the buffer exceeds a reasonable limit.</span></code></span>
+<span class="codeline" id="line-232"><code><span class="keyword">func</span> <label for="r84" class="ident"><a href="../../../pkg/os/user.html#name-retryWithBuffer" class="ident">retryWithBuffer</a></label>(<label for="r85" class="ident">buf</label> *<a href="#line-207" class="ident">memBuffer</a>, <label for="r86" class="ident">f</label> <span class="keyword">func</span>() <a href="../../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../../syscall/syscall_unix.go.html#line-114" class="ident">Errno</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-233"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-234"><code>		<label for="r87" class="ident">errno</label> := <label for="r86" class="ident">f</label>()</code></span>
+<span class="codeline" id="line-235"><code>		<span class="keyword">if</span> <label for="r87" class="ident">errno</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-236"><code>			<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-237"><code>		} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r87" class="ident">errno</label> != <a href="../../../pkg/syscall.html" class="ident i4">syscall</a>.<a href="../../syscall/zerrors_linux_amd64.go.html#line-1315" class="ident">ERANGE</a> {</code></span>
+<span class="codeline" id="line-238"><code>			<span class="keyword">return</span> <label for="r87" class="ident">errno</label></code></span>
+<span class="codeline" id="line-239"><code>		}</code></span>
+<span class="codeline" id="line-240"><code>		<label for="r88" class="ident">newSize</label> := <label for="r85" class="ident">buf</label>.<a href="#line-209" class="ident">size</a> * <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-241"><code>		<span class="keyword">if</span> !<a href="#line-250" class="ident">isSizeReasonable</a>(<a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r88" class="ident">newSize</label>)) {</code></span>
+<span class="codeline" id="line-242"><code>			<span class="keyword">return</span> <a href="../../../pkg/fmt.html" class="ident i1">fmt</a>.<a href="../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"internal buffer exceeds %d bytes"</span>, <a href="#line-248" class="ident">maxBufferSize</a>)</code></span>
+<span class="codeline" id="line-243"><code>		}</code></span>
+<span class="codeline" id="line-244"><code>		<label for="r85" class="ident">buf</label>.<a href="#line-220" class="ident">resize</a>(<label for="r88" class="ident">newSize</label>)</code></span>
+<span class="codeline" id="line-245"><code>	}</code></span>
+<span class="codeline" id="line-246"><code>}</code></span>
+<span class="codeline" id="line-247"><code></code></span>
+<span class="codeline" id="line-248"><code><span class="keyword">const</span> <a href="../../../pkg/os/user.html#name-maxBufferSize" class="ident">maxBufferSize</a> = <span class="lit-number">1</span> &lt;&lt; <span class="lit-number">20</span></code></span>
+<span class="codeline" id="line-249"><code></code></span>
+<span class="codeline" id="line-250"><code><span class="keyword">func</span> <label for="r89" class="ident"><a href="../../../pkg/os/user.html#name-isSizeReasonable" class="ident">isSizeReasonable</a></label>(<label for="r90" class="ident">sz</label> <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-251"><code>	<span class="keyword">return</span> <label for="r90" class="ident">sz</label> &gt; <span class="lit-number">0</span> &amp;&amp; <label for="r90" class="ident">sz</label> &lt;= <a href="#line-248" class="ident">maxBufferSize</a></code></span>
+<span class="codeline" id="line-252"><code>}</code></span>
+<span class="codeline" id="line-253"><code></code></span>
+<span class="codeline" id="line-254"><code><span class="comment">// Because we can't use cgo in tests:</span></code></span>
+<span class="codeline" id="line-255"><code><span class="keyword">func</span> <label for="r91" class="ident"><a href="../../../pkg/os/user.html#name-structPasswdForNegativeTest" class="ident">structPasswdForNegativeTest</a></label>()  <span class="comment">/*line :268:36*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-47" class="ident">_Ctype_struct_passwd</a> <span class="comment">/*line :268:51*/</span> {</code></span>
+<span class="codeline" id="line-256"><code>	<label for="r92" class="ident">sp</label> :=  <span class="comment">/*line :269:8*/</span><a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-47" class="ident">_Ctype_struct_passwd</a> <span class="comment">/*line :269:23*/</span>{}</code></span>
+<span class="codeline" id="line-257"><code>	<label for="r92" class="ident">sp</label>.<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-50" class="ident">pw_uid</a> = <span class="lit-number">1</span>&lt;&lt;<span class="lit-number">32</span> - <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-258"><code>	<label for="r92" class="ident">sp</label>.<a href="3c7af68ea5ea8664a8d20723d27ac982d6dc1522bd58ee02b40efeab99eea8a3-d.html#line-51" class="ident">pw_gid</a> = <span class="lit-number">1</span>&lt;&lt;<span class="lit-number">32</span> - <span class="lit-number">3</span></code></span>
+<span class="codeline" id="line-259"><code>	<span class="keyword">return</span> <label for="r92" class="ident">sp</label></code></span>
+<span class="codeline" id="line-260"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.6</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

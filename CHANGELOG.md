@@ -14,6 +14,38 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.1.0" (2021-09-10)
+=======================
+
+Features
+--------
+
+- Added a way to perform an action after some time: `ScheduleAfter` (#202109092134)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: gopsutil v3-3.21.8 (#202109021259)
+- Dependency upgrade: zerolog-1.24.0 (#202109021331)
+- Fixed `Schedule` race condition reported by golang race detector (#202109021504)
+- Fixed `Subprocess` race condition reported by golang race detector (#202109021553)
+- Fixed `lock file` race condition reported by golang race detector (#202109031636)
+- Introduced [deadlock detector](https://github.com/sasha-s/go-deadlock) where shared resources are used (#202109092209)
+
+
+Improved Documentation
+----------------------
+
+- Improved DEVELOPER guide (#202108251951)
+
+
+Misc
+----
+
+- #202108260927, #202109021444, #202109031754
+
+
 "1.0.0" (2021-08-25)"1.0.0" (2021-08-25)
 ====================
 
