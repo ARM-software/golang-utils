@@ -22,7 +22,7 @@ import (
 
 const LockFilePrefix = "lockfile"
 
-// Distributed lock using only the file system.
+// RemoteLockFile describes a distributed lock using only the file system.
 // The locking mechanism is performed using directories and the atomic function `mkdir`.
 // A major issue of distributed locks is the presence of stale locks due to many factors such as the loss of the holder of a lock for various reasons.
 // To mitigate this problem, a "heart bit" file is modified regularly by the lock holder in order to specify the holder is still alive and the lock still valid.
@@ -37,6 +37,7 @@ type RemoteLockFile struct {
 	overrideStaleLock    bool
 }
 
+// NewGenericRemoteLockFile creates a new remote lock using the file system.
 func NewGenericRemoteLockFile(fs *VFS, lockID string, dirPath string, overrideStaleLock bool) ILock {
 	return &RemoteLockFile{
 		id:                   lockID,
@@ -50,6 +51,7 @@ func NewGenericRemoteLockFile(fs *VFS, lockID string, dirPath string, overrideSt
 	}
 }
 
+// NewRemoteLockFile creates a new remote lock using the file system.
 // lockID Id for the lock.
 // dirPath path where the lock should be applied to.
 func NewRemoteLockFile(fs *VFS, lockID string, dirPath string) ILock {
@@ -74,7 +76,7 @@ func (l *RemoteLockFile) lockPath() string {
 	return filepath.Join(l.path, fmt.Sprintf("%v-%v", strings.TrimSpace(l.prefix), strings.TrimSpace(l.id)))
 }
 
-// Checks whether the lock is stale (i.e. no heart beat detected) or not.
+// IsStale checks whether the lock is stale (i.e. no heart beat detected) or not.
 func (l *RemoteLockFile) IsStale() bool {
 	lockPath := l.lockPath()
 	heartBeatFiles, err := l.fs.Ls(lockPath)
@@ -124,7 +126,7 @@ func (l *RemoteLockFile) ReleaseIfStale(ctx context.Context) error {
 	return nil
 }
 
-// Attempts to lock the lock straight away.
+// TryLock attempts to lock the lock straight away.
 func (l *RemoteLockFile) TryLock(ctx context.Context) (err error) {
 	if err := parallelisation.DetermineContextError(ctx); err != nil {
 		return err
@@ -166,7 +168,7 @@ func (l *RemoteLockFile) heartBeatFile(lockPath string) string {
 	return filepath.Join(lockPath, fmt.Sprintf("%v.lock", l.id))
 }
 
-// Locks the lock. This call will block until the lock is available.
+// Lock locks the lock. This call will block until the lock is available.
 func (l *RemoteLockFile) Lock(ctx context.Context) error {
 	for {
 		if err := parallelisation.DetermineContextError(ctx); err != nil {
@@ -186,7 +188,7 @@ func (l *RemoteLockFile) Lock(ctx context.Context) error {
 	}
 }
 
-// Tries to lock the lock until the timeout expires
+// LockWithTimeout tries to lock the lock until the timeout expires
 func (l *RemoteLockFile) LockWithTimeout(ctx context.Context, timeout time.Duration) error {
 	if err := parallelisation.DetermineContextError(ctx); err != nil {
 		return err
@@ -194,7 +196,7 @@ func (l *RemoteLockFile) LockWithTimeout(ctx context.Context, timeout time.Durat
 	return parallelisation.RunActionWithTimeoutAndCancelStore(ctx, timeout, l.cancelStore, l.Lock)
 }
 
-// Unlocks the lock
+// Unlock unlocks the lock
 func (l *RemoteLockFile) Unlock(context.Context) error {
 	l.cancelStore.Cancel()
 	return retry.Do(
@@ -214,7 +216,7 @@ func (l *RemoteLockFile) Unlock(context.Context) error {
 	)
 }
 
-// This is mostly for testing purposes.
+// MakeStale is mostly useful for testing purposes and tries to mock locks going stale.
 func (l *RemoteLockFile) MakeStale(ctx context.Context) error {
 	l.cancelStore.Cancel()
 	parallelisation.SleepWithContext(ctx, l.lockHeartBeatPeriod+time.Millisecond)

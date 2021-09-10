@@ -15,7 +15,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
-// Determines what the context error is if any.
+// DetermineContextError determines what the context error is if any.
 func DetermineContextError(ctx context.Context) error {
 	return commonerrors.ConvertContextError(ctx.Err())
 }
@@ -25,7 +25,7 @@ type result struct {
 	err  error
 }
 
-// Parallelises an action over as many goroutines as specified by the argList and retrieves all the results when all the goroutines are done.
+// Parallelise parallelises an action over as many goroutines as specified by the argList and retrieves all the results when all the goroutines are done.
 func Parallelise(argList interface{}, action func(arg interface{}) (interface{}, error), resultType reflect.Type) (results interface{}, err error) {
 	keepReturn := resultType != nil
 	argListValue := reflect.ValueOf(argList)
@@ -60,7 +60,7 @@ func Parallelise(argList interface{}, action func(arg interface{}) (interface{},
 	return
 }
 
-// Interruptable sleep
+// SleepWithContext performs an interruptable sleep
 // Similar to time.Sleep() but also responding to context cancellation instead of blocking for the whole length of time.
 func SleepWithContext(ctx context.Context, delay time.Duration) {
 	select {
@@ -69,7 +69,7 @@ func SleepWithContext(ctx context.Context, delay time.Duration) {
 	}
 }
 
-// Interruptable sleep
+// SleepWithInterruption performs an interruptable sleep
 // Similar to time.Sleep() but also interrupting when requested instead of blocking for the whole length of time.
 func SleepWithInterruption(stop chan bool, delay time.Duration) {
 	select {
@@ -78,7 +78,7 @@ func SleepWithInterruption(stop chan bool, delay time.Duration) {
 	}
 }
 
-// Calls once function `f` after `offset`
+// ScheduleAfter calls once function `f` after `offset`
 func ScheduleAfter(ctx context.Context, offset time.Duration, f func(time.Time)) {
 	err := DetermineContextError(ctx)
 	if err != nil {
@@ -96,7 +96,7 @@ func ScheduleAfter(ctx context.Context, offset time.Duration, f func(time.Time))
 	}(ctx, f)
 }
 
-// Calls function `f` regularly with a `period` and an `offset`.
+// Schedule calls function `f` regularly with a `period` and an `offset`.
 func Schedule(ctx context.Context, period time.Duration, offset time.Duration, f func(time.Time)) {
 	err := DetermineContextError(ctx)
 	if err != nil {
@@ -129,7 +129,7 @@ func Schedule(ctx context.Context, period time.Duration, offset time.Duration, f
 	}(ctx, period, offset, f)
 }
 
-// Runs an action with timeout
+// RunActionWithTimeout runs an action with timeout
 func RunActionWithTimeout(blockingAction func(stop chan bool) error, timeout time.Duration) (err error) {
 	channel := make(chan error, 1)
 	stop := make(chan bool)
@@ -152,7 +152,7 @@ func RunActionWithTimeout(blockingAction func(stop chan bool) error, timeout tim
 	return
 }
 
-// Runs an action with timeout
+// RunActionWithTimeoutAndContext runs an action with timeout
 // blockingAction's context will be cancelled on exit.
 func RunActionWithTimeoutAndContext(ctx context.Context, timeout time.Duration, blockingAction func(context.Context) error) error {
 	store := NewCancelFunctionsStore()
@@ -160,7 +160,7 @@ func RunActionWithTimeoutAndContext(ctx context.Context, timeout time.Duration, 
 	return RunActionWithTimeoutAndCancelStore(ctx, timeout, store, blockingAction)
 }
 
-// Runs an action with timeout
+// RunActionWithTimeoutAndCancelStore runs an action with timeout
 // The cancel store is used just to register the cancel function so that it can be called on Cancel.
 func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Duration, store *CancelFunctionStore, blockingAction func(context.Context) error) error {
 	err := DetermineContextError(ctx)
@@ -183,7 +183,7 @@ func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Durati
 	return err
 }
 
-// Runs an action with a check in parallel
+// RunActionWithParallelCheck runs an action with a check in parallel
 // The function performing the check should return true if the check was favorable; false otherwise. If the check did not have the expected result and the whole function would be cancelled.
 func RunActionWithParallelCheck(ctx context.Context, action func(ctx context.Context) error, checkAction func(ctx context.Context) bool, checkPeriod time.Duration) error {
 	err := DetermineContextError(ctx)

@@ -2,7 +2,7 @@
  * Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-//The subprocess module allows you to spawn new processes, retrieve their output/error pipes, and obtain their return codes.
+// Package subprocess allows you to spawn new processes, retrieve their output/error pipes, and obtain their return codes.
 package subprocess
 
 import (
@@ -16,7 +16,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/logs"
 )
 
-// A subprocess description.
+// Subprocess describes what a subproccess is as well as any monitoring it may need.
 type Subprocess struct {
 	mu                deadlock.RWMutex
 	isRunning         atomic.Bool
@@ -25,14 +25,14 @@ type Subprocess struct {
 	messsaging        *subprocessMessaging
 }
 
-// Creates a subprocess description.
+// New creates a subprocess description.
 func New(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (p *Subprocess, err error) {
 	p = new(Subprocess)
 	err = p.Setup(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
 	return
 }
 
-// Executes a command (i.e. spawns a subprocess)
+// Execute executes a command (i.e. spawns a subprocess)
 func Execute(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
 	p, err := New(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
 	if err != nil {
@@ -41,7 +41,7 @@ func Execute(ctx context.Context, loggers logs.Loggers, messageOnStart string, m
 	return p.Execute()
 }
 
-// Sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure.
+// Setup sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure.
 func (s *Subprocess) Setup(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
 	if s.IsOn() {
 		err = s.Stop()
@@ -78,19 +78,19 @@ func (s *Subprocess) check() (err error) {
 	return
 }
 
-// Checks whether the subprocess is correctly defined.
+// Check checks whether the subprocess is correctly defined.
 func (s *Subprocess) Check() error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.check()
 }
 
-// States whether the subprocess is running or not.
+// IsOn states whether the subprocess is running or not.
 func (s *Subprocess) IsOn() bool {
 	return s.isRunning.Load() && s.processMonitoring.IsOn()
 }
 
-// Starts the process if not already started.
+// Start starts the process if not already started.
 // This method is idempotent.
 func (s *Subprocess) Start() (err error) {
 	if s.IsOn() {
@@ -129,13 +129,12 @@ func (s *Subprocess) Start() (err error) {
 	return
 }
 
-// Interrupts an on-going process.
-// This method is idempotent.
+// Cancel interrupts an on-going process. This method is idempotent.
 func (s *Subprocess) Cancel() {
 	s.processMonitoring.CancelSubprocess()
 }
 
-// Executes the command and waits for completion.
+// Execute executes the command and waits for completion.
 func (s *Subprocess) Execute() (err error) {
 	err = s.Check()
 	if err != nil {
@@ -160,14 +159,14 @@ func (s *Subprocess) Execute() (err error) {
 	return
 }
 
-// Stops the process straight away if currently working without waiting for completion. This method should be used in combination with `Start`.
+// Stop stops the process straight away if currently working without waiting for completion. This method should be used in combination with `Start`.
 // However, in order to interrupt a process however it was started (using `Start` or `Execute`), prefer `Cancel`.
 // This method is idempotent.
 func (s *Subprocess) Stop() (err error) {
 	return s.stop(true)
 }
 
-// Restarts a process. It will stop the process if currently running.
+// Restart restarts a process. It will stop the process if currently running.
 func (s *Subprocess) Restart() (err error) {
 	err = s.stop(false)
 	if err != nil {
