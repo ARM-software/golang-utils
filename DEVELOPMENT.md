@@ -60,6 +60,10 @@ Plugins for various tools are also available:
   - [PyCharm](https://plugins.jetbrains.com/plugin/13306-code-cleaner-with-code-climate-cli)
   - [Vim](https://docs.codeclimate.com/docs/vim-plugin)
 
+# Dependency upgrades
+
+For dependency upgrades, dependabot is relied upon and news files are auto-generated in order to document such change. Nonetheless, due to a change in [GitHub actions](https://github.blog/changelog/2021-02-19-github-actions-workflows-triggered-by-dependabot-prs-will-run-with-read-only-permissions), secrets are not available in the build triggered by the pull request unless they are [re-run manually](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/automating-dependabot-with-github-actions#manually-re-running-a-workflow). So please re-run every dependabot PR CI jobs.
+
 # Releasing
 
 ## Release Types
