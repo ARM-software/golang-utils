@@ -26,7 +26,7 @@ require (
 	github.com/spf13/viper v1.8.1
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/atomic v1.9.0
-	go.uber.org/goleak v1.1.10
+	go.uber.org/goleak v1.1.11
 	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 )
