@@ -35,7 +35,8 @@ var (
 )
 
 func Any(target error, err ...error) bool {
-	for _, e := range err {
+	for i := range err {
+		e := err[i]
 		if errors.Is(e, target) || errors.Is(target, e) {
 			return true
 		}
@@ -44,7 +45,8 @@ func Any(target error, err ...error) bool {
 }
 
 func None(target error, err ...error) bool {
-	for _, e := range err {
+	for i := range err {
+		e := err[i]
 		if errors.Is(e, target) || errors.Is(target, e) {
 			return false
 		}
