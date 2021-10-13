@@ -132,14 +132,6 @@ func TestClient(t *testing.T) {
 				time.Sleep(100 * time.Millisecond)
 
 			})
-			//for i := range tests {
-			//	test := tests[i]
-			//	t.Run(fmt.Sprintf("external host/Client %v/Method %v", client.clientName, test.method), func(t *testing.T) {
-			//		resp, err := test.function(rawclient, "https://httpbin.org", strings.ToLower(test.method))
-			//		require.Nil(t, err)
-			//		_ = resp.Body.Close()
-			//	})
-			//}
 			_ = rawclient.Close()
 		}
 	}
