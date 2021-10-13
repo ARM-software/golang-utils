@@ -1,0 +1,21 @@
+/*
+ * Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+package http
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+func TestHttpClientConfiguration(t *testing.T) {
+	configTest := DefaultHttpClientConfiguration()
+	require.Nil(t, configTest.Validate())
+}
+
+func TestFastHttpClientConfiguration(t *testing.T) {
+	configTest := FastHttpClientConfiguration()
+	require.Nil(t, configTest.Validate())
+}

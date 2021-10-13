@@ -11,34 +11,22 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 )
 
-// IClient provides a familiar HTTP client interface with automatic retries and exponential backoff.
-type IClient interface {
-	// Get is a convenience helper for doing simple GET requests.
-	Get(url string) (*http.Response, error)
-	// Head is a convenience method for doing simple HEAD requests.
-	Head(url string) (*http.Response, error)
-	// Post is a convenience method for doing simple POST requests.
-	Post(url, bodyType string, body interface{}) (*http.Response, error)
-	// PostForm is a convenience method for doing simple POST operations using
-	// pre-filled url.Values form data.
-	PostForm(url string, data url.Values) (*http.Response, error)
-	// StandardClient returns a stdlib *http.Client with a custom Transport, which
-	// shims in a *retryablehttp.Client for added retries.
-	StandardClient() *http.Client
-	// Perform a PUT request.
-	Put(url string, rawBody interface{}) (*http.Response, error)
-	// Perform a DELETE request.
-	Delete(url string) (*http.Response, error)
-	// Perform a generic request with exponential backoff
-	Do(req *http.Request) (*http.Response, error)
-}
-
 type RetryableClient struct {
 	client *retryablehttp.Client
 }
 
+// NewRetryableClient creates a new http client which will retry failed requests with exponential backoff
 func NewRetryableClient() IClient {
 	return &RetryableClient{client: retryablehttp.NewClient()}
+}
+
+// NewRetryableClient creates a new http client which will retry failed requests with exponential backoff
+func NewConfigurableRetryableClient(cfg *HttpClientConfiguration) IClient {
+	subClient := retryablehttp.NewClient()
+	if t, ok := subClient.HTTPClient.Transport.(*http.Transport); ok {
+		setTransportConfiguration(cfg, t)
+	}
+	return &RetryableClient{client: subClient}
 }
 
 func (c *RetryableClient) Head(url string) (*http.Response, error) {
@@ -83,4 +71,9 @@ func (c *RetryableClient) Put(url string, rawBody interface{}) (*http.Response, 
 		return nil, err
 	}
 	return c.client.Do(req)
+}
+
+func (c *RetryableClient) Close() error {
+	c.StandardClient().CloseIdleConnections()
+	return nil
 }

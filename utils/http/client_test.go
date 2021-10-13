@@ -7,120 +7,139 @@ package http
 import (
 	"context"
 	"fmt"
-	"net"
+	"go.uber.org/goleak"
 	"net/http"
 	"testing"
 	"time"
 
+	"github.com/ARM-software/golang-utils/utils/http/httptest"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/goleak"
-
-	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
-func createTestServer(t *testing.T, ctx context.Context, handler http.Handler, port string) {
-	// Create a test server
-	list, err := net.Listen("tcp", fmt.Sprintf(":%v", port))
-	require.Nil(t, err)
-	srv := &http.Server{Handler: handler}
-	err = parallelisation.DetermineContextError(ctx)
-	if err != nil {
-		return
+func TestClient(t *testing.T) {
+	clientsToTest := []struct {
+		clientName string
+		client     func() IClient
+	}{
+		{
+			clientName: "fast client",
+			client: func() IClient {
+				return NewFastPooledClient()
+			},
+		},
+		{
+			clientName: "default client",
+			client: func() IClient {
+				return NewDefaultPooledClient()
+			},
+		},
+		{
+			clientName: "default retryable client",
+			client: func() IClient {
+				return NewRetryableClient()
+			},
+		},
+		{
+			clientName: "retryable client",
+			client: func() IClient {
+				return NewConfigurableRetryableClient(DefaultHttpClientConfiguration())
+			},
+		},
 	}
-	// Goroutine in charge of closing the server when requested.
-	go func(ctx context.Context, server *http.Server) {
-		<-ctx.Done()
-		_ = server.Close()
-	}(ctx, srv)
 
-	go func(server *http.Server, listen net.Listener) {
-		defer func() { _ = listen.Close() }()
-		err = srv.Serve(listen)
-	}(srv, list)
-}
+	tests := []struct {
+		method   string
+		uri      string
+		function func(client IClient, host string, uri string) (*http.Response, error)
+	}{
+		{
+			method: http.MethodGet,
+			uri:    "/foo/bar",
+			function: func(client IClient, host string, uri string) (*http.Response, error) {
+				return client.Get(fmt.Sprintf("%v/%v", host, uri))
+			},
+		},
+		{
+			method: http.MethodDelete,
+			uri:    "/foo/bar",
+			function: func(client IClient, host string, uri string) (*http.Response, error) {
+				return client.Delete(fmt.Sprintf("%v/%v", host, uri))
+			},
+		},
+		{
+			method: http.MethodHead,
+			uri:    "/foo/bar",
+			function: func(client IClient, host string, uri string) (*http.Response, error) {
+				return client.Head(fmt.Sprintf("%v/%v", host, uri))
+			},
+		},
+		{
+			method: http.MethodPut,
+			uri:    "/foo/bar",
+			function: func(client IClient, host string, uri string) (*http.Response, error) {
+				return client.Put(fmt.Sprintf("%v/%v", host, uri), nil)
+			},
+		},
 
-// This test will sleep for 50ms after the request is made asynchronously via RetryableClient
-// as to test that the exponential backoff is working.
-func TestClient_Delete_Backoff(t *testing.T) {
-	defer goleak.VerifyNone(t)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	// Collect errors for goroutines
-	errs := make(chan error)
-	// Mock server which always responds 200.
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, r.Method, "DELETE")
-		require.Equal(t, r.RequestURI, "/foo/bar")
-		// The request succeeds
-		w.WriteHeader(200)
-	})
-
-	doneCh := make(chan struct{})
-	// Make the request asynchronously and deliberately fail the first request,
-	// exponential backoff should pass on subsequent attempts of the same request
-	go func() {
-		defer close(doneCh)
-		resp, err := NewRetryableClient().Delete("http://127.0.0.1:28934/foo/bar")
-		if err != nil {
-			errs <- err
-		} else {
-			_ = resp.Body.Close()
-		}
-	}()
-
-	// We set this to simulate a first error on the first request so that we can properly test the backoff
-	time.Sleep(50 * time.Millisecond)
-	createTestServer(t, ctx, handler, "28934")
-
-	<-doneCh
-	// close errs once all children finish.
-	close(errs)
-	cancel()
-	for err := range errs {
-		require.Nil(t, err)
+		{
+			method: http.MethodPost,
+			uri:    "/foo/bar",
+			function: func(client IClient, host string, uri string) (*http.Response, error) {
+				return client.Post(fmt.Sprintf("%v/%v", host, uri), "", nil)
+			},
+		},
+		{
+			method: http.MethodPost,
+			uri:    "/foo/bar",
+			function: func(client IClient, host string, uri string) (*http.Response, error) {
+				return client.PostForm(fmt.Sprintf("%v/%v", host, uri), nil)
+			},
+		},
 	}
-}
 
-// This test simulates a 404, to which the backoff should not apply as it should only care about networking problems.
-// If the client is found to be retrying, the test will fail.
-func TestClient_Get_Fail_Timeout(t *testing.T) {
-	defer goleak.VerifyNone(t)
-	// Collect errors for goroutines
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	errs := make(chan error)
+	for i := range tests {
+		test := tests[i]
+		for j := range clientsToTest {
+			defer goleak.VerifyNone(t)
+			client := clientsToTest[j]
+			rawclient := client.client()
+			defer func() { _ = rawclient.Close() }()
+			t.Run(fmt.Sprintf("local host/Client %v/Method %v", client.clientName, test.method), func(t *testing.T) {
 
-	// Mock server which always responds 200.
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		require.Equal(t, r.Method, "GET")
-		require.Equal(t, r.RequestURI, "/foo/bar")
-		// The request fails
-		w.WriteHeader(404)
-	})
+				ctx, cancel := context.WithCancel(context.Background())
+				defer cancel()
 
-	createTestServer(t, ctx, handler, "28935")
+				// Mock server which always responds 200.
+				handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-	// Send the asynchronous request
-	var resp *http.Response
-	doneCh := make(chan struct{})
-	go func() {
-		defer close(doneCh)
-		var err error
-		resp, err = NewRetryableClient().Get("http://127.0.0.1:28935/foo/bar") //nolint:bodyclose // False Positive: Is closed below
-		if err != nil {
-			errs <- err
-		} else {
-			_ = resp.Body.Close()
+					var statusCode int
+					if r.Method == test.method && r.RequestURI == test.uri {
+						statusCode = 200
+					} else {
+						statusCode = 400
+					}
+					// The request succeeds
+					w.WriteHeader(statusCode)
+				})
+				port := "28934"
+				httptest.NewTestServer(t, ctx, handler, port)
+				time.Sleep(100 * time.Millisecond)
+				resp, err := test.function(rawclient, fmt.Sprintf("http://127.0.0.1:%v", port), test.uri)
+				require.Nil(t, err)
+				_ = resp.Body.Close()
+				cancel()
+				time.Sleep(100 * time.Millisecond)
+
+			})
+			//for i := range tests {
+			//	test := tests[i]
+			//	t.Run(fmt.Sprintf("external host/Client %v/Method %v", client.clientName, test.method), func(t *testing.T) {
+			//		resp, err := test.function(rawclient, "https://httpbin.org", strings.ToLower(test.method))
+			//		require.Nil(t, err)
+			//		_ = resp.Body.Close()
+			//	})
+			//}
+			_ = rawclient.Close()
 		}
-	}()
-	select {
-	case <-doneCh:
-		// close errs once all children finish.
-		close(errs)
-		for err := range errs {
-			require.Nil(t, err)
-		}
-	case <-time.After(1000 * time.Millisecond):
-		t.Fatalf("Client should fail instantly with a 404 response, not retrying!")
 	}
 }

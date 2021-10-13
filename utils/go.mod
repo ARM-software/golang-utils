@@ -10,6 +10,7 @@ require (
 	github.com/djherbis/times v1.5.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/gofrs/uuid v3.4.0+incompatible
+	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-retryablehttp v0.7.0
 	github.com/joho/godotenv v1.4.0
 	github.com/kr/text v0.2.0 // indirect
