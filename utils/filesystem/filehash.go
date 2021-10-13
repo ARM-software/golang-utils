@@ -11,14 +11,6 @@ import (
 	"github.com/ARM-software/golang-utils/utils/hashing"
 )
 
-// For reference.
-//https://stackoverflow.com/questions/1761607/what-is-the-fastest-hash-algorithm-to-check-if-two-files-are-equal
-type IFileHash interface {
-	Calculate(f File) (string, error)
-	CalculateFile(fs FS, path string) (string, error)
-	GetType() string
-}
-
 type fileHashing struct {
 	algo hashing.IHash
 }

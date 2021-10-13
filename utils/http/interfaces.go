@@ -10,6 +10,8 @@ import (
 	"net/url"
 )
 
+//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IClient
+
 // IClient provides a familiar HTTP client interface with automatic retries and exponential backoff.
 type IClient interface {
 	io.Closer
