@@ -31,7 +31,6 @@ const (
 	HashXXHash = "xxhash" //https://github.com/OneOfOne/xxhash
 )
 
-
 type hashingAlgo struct {
 	Hash hash.Hash
 	Type string

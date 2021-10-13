@@ -14,8 +14,6 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
-
-
 // Definition of command loggers
 type GenericLoggers struct {
 	Output *log.Logger

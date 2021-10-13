@@ -38,7 +38,6 @@ const (
 	UnsetFileHandle = ^uint64(0)
 )
 
-
 type UsageStat struct {
 	Total             uint64
 	Free              uint64
