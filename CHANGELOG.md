@@ -14,6 +14,26 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.2.0" (2021-10-13)
+=======================
+
+Features
+--------
+
+- Made IClient implementations easily configurable (#202110131646)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: goleak-1.1.11 (#202109131112)
+- Improved testing and fixed `gosec` reported error in `commonerrors` (#202109131145)
+- Dependency upgrade: mapstructure-1.4.2 (#202109161324)
+- Dependency upgrade: godotenv-1.4.0 (#202110041008)
+- Dependency upgrade: goleak-1.1.12 (#202110110900)
+- Dependency upgrade: v3-3.21.9 (#202110131642)
+
+
 "" "1.1.0" (2021-09-10)
 =======================
 

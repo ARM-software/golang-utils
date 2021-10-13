@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: required.go in package github.com/go-ozzo/ozzo-validation/v4</title>
+<link href="../../../../../css/light-v0.3.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.3.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	required.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html">github.com/go-ozzo/ozzo-validation/v4</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13]
+{background: #226; color: #ff8;}
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2016 Qiang Xue. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a MIT-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> validation</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<span class="comment">// ErrRequired is the error that returns when a value is required.</span></code></span>
+<span class="codeline" id="line-9"><code>	<a href="../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html#name-ErrRequired" class="ident">ErrRequired</a> = <a href="error.go.html#line-172" class="ident">NewError</a>(<span class="lit-string">"validation_required"</span>, <span class="lit-string">"cannot be blank"</span>)</code></span>
+<span class="codeline" id="line-10"><code>	<span class="comment">// ErrNilOrNotEmpty is the error that returns when a value is not nil and is empty.</span></code></span>
+<span class="codeline" id="line-11"><code>	<a href="../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html#name-ErrNilOrNotEmpty" class="ident">ErrNilOrNotEmpty</a> = <a href="error.go.html#line-172" class="ident">NewError</a>(<span class="lit-string">"validation_nil_or_not_empty_required"</span>, <span class="lit-string">"cannot be blank"</span>)</code></span>
+<span class="codeline" id="line-12"><code>)</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// Required is a validation rule that checks if a value is not empty.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// A value is considered not empty if</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// - integer, float: not zero</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// - bool: true</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// - string, array, slice, map: len() &gt; 0</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// - interface, pointer: not nil and the referenced value is not empty</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// - any other types</span></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">var</span> <a href="../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html#name-Required" class="ident">Required</a> = <a href="#line-28" class="ident">RequiredRule</a>{<a href="#line-30" class="ident">skipNil</a>: <a href="../../../../../pkg/builtin.html#name-false" class="ident">false</a>, <a href="#line-29" class="ident">condition</a>: <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a>}</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// NilOrNotEmpty checks if a value is a nil pointer or a value that is not empty.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// NilOrNotEmpty differs from Required in that it treats a nil pointer as valid.</span></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">var</span> <a href="../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html#name-NilOrNotEmpty" class="ident">NilOrNotEmpty</a> = <a href="#line-28" class="ident">RequiredRule</a>{<a href="#line-30" class="ident">skipNil</a>: <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a>, <a href="#line-29" class="ident">condition</a>: <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a>}</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// RequiredRule is a rule that checks if a value is not empty.</span></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html#name-RequiredRule" class="ident">RequiredRule</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-29"><code>	condition <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-30"><code>	skipNil   <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-31"><code>	err       <a href="error.go.html#line-18" class="ident">Error</a></code></span>
+<span class="codeline" id="line-32"><code>}</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// Validate checks if the given value is valid or not.</span></code></span>
+<span class="codeline" id="line-35"><code><span class="keyword">func</span> (<label for="r0" class="ident">r</label> <a href="#line-28" class="ident">RequiredRule</a>) <label for="r1" class="ident"><a href="../../../../../imp/github.com/go-ozzo/ozzo-validation/v4.RequiredRule.html#name-.Validate" class="ident">Validate</a></label>(<label for="r2" class="ident">value</label> <span class="keyword">interface</span>{}) <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-36"><code>	<span class="keyword">if</span> <label for="r0" class="ident">r</label>.<a href="#line-29" class="ident">condition</a> {</code></span>
+<span class="codeline" id="line-37"><code>		<label for="r3" class="ident">value</label>, <label for="r4" class="ident">isNil</label> := <a href="util.go.html#line-134" class="ident">Indirect</a>(<label for="r2" class="ident">value</label>)</code></span>
+<span class="codeline" id="line-38"><code>		<span class="keyword">if</span> <label for="r0" class="ident">r</label>.<a href="#line-30" class="ident">skipNil</a> &amp;&amp; !<label for="r4" class="ident">isNil</label> &amp;&amp; <a href="util.go.html#line-99" class="ident">IsEmpty</a>(<label for="r3" class="ident">value</label>) || !<label for="r0" class="ident">r</label>.<a href="#line-30" class="ident">skipNil</a> &amp;&amp; (<label for="r4" class="ident">isNil</label> || <a href="util.go.html#line-99" class="ident">IsEmpty</a>(<label for="r3" class="ident">value</label>)) {</code></span>
+<span class="codeline" id="line-39"><code>			<span class="keyword">if</span> <label for="r0" class="ident">r</label>.<a href="#line-31" class="ident">err</a> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-40"><code>				<span class="keyword">return</span> <label for="r0" class="ident">r</label>.<a href="#line-31" class="ident">err</a></code></span>
+<span class="codeline" id="line-41"><code>			}</code></span>
+<span class="codeline" id="line-42"><code>			<span class="keyword">if</span> <label for="r0" class="ident">r</label>.<a href="#line-30" class="ident">skipNil</a> {</code></span>
+<span class="codeline" id="line-43"><code>				<span class="keyword">return</span> <a href="#line-11" class="ident">ErrNilOrNotEmpty</a></code></span>
+<span class="codeline" id="line-44"><code>			}</code></span>
+<span class="codeline" id="line-45"><code>			<span class="keyword">return</span> <a href="#line-9" class="ident">ErrRequired</a></code></span>
+<span class="codeline" id="line-46"><code>		}</code></span>
+<span class="codeline" id="line-47"><code>	}</code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-49"><code>}</code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// When sets the condition that determines if the validation should be performed.</span></code></span>
+<span class="codeline" id="line-52"><code><span class="keyword">func</span> (<label for="r5" class="ident">r</label> <a href="#line-28" class="ident">RequiredRule</a>) <label for="r6" class="ident">When</label>(<label for="r7" class="ident">condition</label> <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>) <a href="#line-28" class="ident">RequiredRule</a> {</code></span>
+<span class="codeline" id="line-53"><code>	<label for="r5" class="ident">r</label>.<a href="#line-29" class="ident">condition</a> = <label for="r7" class="ident">condition</label></code></span>
+<span class="codeline" id="line-54"><code>	<span class="keyword">return</span> <label for="r5" class="ident">r</label></code></span>
+<span class="codeline" id="line-55"><code>}</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// Error sets the error message for the rule.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">func</span> (<label for="r8" class="ident">r</label> <a href="#line-28" class="ident">RequiredRule</a>) <label for="r9" class="ident">Error</label>(<label for="r10" class="ident">message</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="#line-28" class="ident">RequiredRule</a> {</code></span>
+<span class="codeline" id="line-59"><code>	<span class="keyword">if</span> <label for="r8" class="ident">r</label>.<a href="#line-31" class="ident">err</a> == <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-60"><code>		<span class="keyword">if</span> <label for="r8" class="ident">r</label>.<a href="#line-30" class="ident">skipNil</a> {</code></span>
+<span class="codeline" id="line-61"><code>			<label for="r8" class="ident">r</label>.<a href="#line-31" class="ident">err</a> = <a href="#line-11" class="ident">ErrNilOrNotEmpty</a></code></span>
+<span class="codeline" id="line-62"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-63"><code>			<label for="r8" class="ident">r</label>.<a href="#line-31" class="ident">err</a> = <a href="#line-9" class="ident">ErrRequired</a></code></span>
+<span class="codeline" id="line-64"><code>		}</code></span>
+<span class="codeline" id="line-65"><code>	}</code></span>
+<span class="codeline" id="line-66"><code>	<label for="r8" class="ident">r</label>.<a href="#line-31" class="ident">err</a> = <label for="r8" class="ident">r</label>.<a href="#line-31" class="ident">err</a>.<a href="error.go.html#line-22" class="ident">SetMessage</a>(<label for="r10" class="ident">message</label>)</code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">return</span> <label for="r8" class="ident">r</label></code></span>
+<span class="codeline" id="line-68"><code>}</code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// ErrorObject sets the error struct for the rule.</span></code></span>
+<span class="codeline" id="line-71"><code><span class="keyword">func</span> (<label for="r11" class="ident">r</label> <a href="#line-28" class="ident">RequiredRule</a>) <label for="r12" class="ident">ErrorObject</label>(<label for="r13" class="ident">err</label> <a href="error.go.html#line-18" class="ident">Error</a>) <a href="#line-28" class="ident">RequiredRule</a> {</code></span>
+<span class="codeline" id="line-72"><code>	<label for="r11" class="ident">r</label>.<a href="#line-31" class="ident">err</a> = <label for="r13" class="ident">err</label></code></span>
+<span class="codeline" id="line-73"><code>	<span class="keyword">return</span> <label for="r11" class="ident">r</label></code></span>
+<span class="codeline" id="line-74"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.6</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

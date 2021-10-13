@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Package: net/http/httptest</title>
+<link href="../../../css/light-v0.3.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="package-details"><code><span style="font-size:xx-large;">package <b>httptest</b></span>
+
+<span class="title">Import Path</span>
+	<a href="../../../index.html#pkg-net/http/httptest">net/http/httptest</a><i> (on <a href="https://pkg.go.dev/net/http/httptest" target="_blank">go.dev</a>)</i>
+
+<span class="title">Dependency Relation</span>
+	imports <a href="../../../dep/net/http/httptest.html">18 packages</a>, and imported by <a href="../../../dep/net/http/httptest.html#imported-by">one package</a>
+
+<div id="files"><span class="title">Involved Source Files</span>
+
+	<input type='checkbox' checked class="fold" id="file-0-fold-content"><label for="file-0-fold-content">   <a href="../../../src/net/http/httptest/httptest.go.html#doc">#d</a> <a href="../../../src/net/http/httptest/httptest.go.html">httptest.go</a></label><span id='file-0-fold-content-items' class="fold-items">
+		Package httptest provides utilities for HTTP testing.
+</span>
+	<span class="nodocs">      <a href="../../../src/net/http/httptest/recorder.go.html">recorder.go</a></span>
+	<span class="nodocs">      <a href="../../../src/net/http/httptest/server.go.html">server.go</a></span></div>
+<div id="examples"><span class="title">Code Examples</span>
+
+	<input type='checkbox' class="fold" id="example-0-fold-content"><label for="example-0-fold-content">NewTLSServer</label><span id='example-0-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"io"
+			"log"
+			"net/http"
+			"net/http/httptest"
+		)
+		
+		func main() {
+			ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				fmt.Fprintln(w, "Hello, client")
+			}))
+			defer ts.Close()
+		
+			client := ts.Client()
+			res, err := client.Get(ts.URL)
+			if err != nil {
+				log.Fatal(err)
+			}
+		
+			greeting, err := io.ReadAll(res.Body)
+			res.Body.Close()
+			if err != nil {
+				log.Fatal(err)
+			}
+		
+			fmt.Printf("%s", greeting)
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-1-fold-content"><label for="example-1-fold-content">ResponseRecorder</label><span id='example-1-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"io"
+			"net/http"
+			"net/http/httptest"
+		)
+		
+		func main() {
+			handler := func(w http.ResponseWriter, r *http.Request) {
+				io.WriteString(w, "<html><body>Hello World!</body></html>")
+			}
+		
+			req := httptest.NewRequest("GET", "http://example.com/foo", nil)
+			w := httptest.NewRecorder()
+			handler(w, req)
+		
+			resp := w.Result()
+			body, _ := io.ReadAll(resp.Body)
+		
+			fmt.Println(resp.StatusCode)
+			fmt.Println(resp.Header.Get("Content-Type"))
+			fmt.Println(string(body))
+		
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-2-fold-content"><label for="example-2-fold-content">Server</label><span id='example-2-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"io"
+			"log"
+			"net/http"
+			"net/http/httptest"
+		)
+		
+		func main() {
+			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				fmt.Fprintln(w, "Hello, client")
+			}))
+			defer ts.Close()
+		
+			res, err := http.Get(ts.URL)
+			if err != nil {
+				log.Fatal(err)
+			}
+			greeting, err := io.ReadAll(res.Body)
+			res.Body.Close()
+			if err != nil {
+				log.Fatal(err)
+			}
+		
+			fmt.Printf("%s", greeting)
+		}
+</span>
+	<input type='checkbox' class="fold" id="example-3-fold-content"><label for="example-3-fold-content">Server_hTTP2</label><span id='example-3-fold-content-items' class="fold-items">
+		package main
+		
+		import (
+			"fmt"
+			"io"
+			"log"
+			"net/http"
+			"net/http/httptest"
+		)
+		
+		func main() {
+			ts := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				fmt.Fprintf(w, "Hello, %s", r.Proto)
+			}))
+			ts.EnableHTTP2 = true
+			ts.StartTLS()
+			defer ts.Close()
+		
+			res, err := ts.Client().Get(ts.URL)
+			if err != nil {
+				log.Fatal(err)
+			}
+			greeting, err := io.ReadAll(res.Body)
+			res.Body.Close()
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("%s", greeting)
+		
+		}
+</span>
+</div>
+<div id="exported-types"><span class="title">Package-Level Type Names<span class="title-stat"><i> (total 3, in which 2 are exported)</i></span></span>
+
+<div id="exported-types-buttons" class="js-on">	/* sort exporteds by: <label id="sort-types-by-alphabet" class="button">alphabet</label> | <label id="sort-types-by-popularity" class="button">popularity</label> */</div><div class="anchor type-res" id="name-ResponseRecorder" data-popularity="675">	<input type='checkbox' class="fold" id="ResponseRecorder-fold-content"><label for="ResponseRecorder-fold-content"> type <a href="../../../src/net/http/httptest/recorder.go.html#line-21">ResponseRecorder</a> <i>(struct)</i></label><span id='ResponseRecorder-fold-content-docs' class="fold-docs">
+		ResponseRecorder is an implementation of http.ResponseWriter that
+		records its mutations for later inspection in tests.
+
+		<input type='checkbox' class="fold" id="ResponseRecorder-fold-fields"><label for="ResponseRecorder-fold-fields">Fields (<i>total 7, in which 4 are exported</i>)</label><span id='ResponseRecorder-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="ResponseRecorder-fold-field-Body"><label for="ResponseRecorder-fold-field-Body"><a href="../../../src/net/http/httptest/recorder.go.html#line-40">Body</a> <i>*<a href="../../bytes.html">bytes</a>.<a href="../../bytes.html#name-Buffer">Buffer</a></i></label><span id='ResponseRecorder-fold-field-Body-docs' class="fold-docs">
+				Body is the buffer to which the Handler's Write calls are sent.
+				If nil, the Writes are silently discarded.
+</span></span><span>
+			<input type='checkbox' class="fold" id="ResponseRecorder-fold-field-Code"><label for="ResponseRecorder-fold-field-Code"><a href="../../../src/net/http/httptest/recorder.go.html#line-28">Code</a> <i><a href="../../builtin.html#name-int">int</a></i></label><span id='ResponseRecorder-fold-field-Code-docs' class="fold-docs">
+				Code is the HTTP response code set by WriteHeader.
+
+				Note that if a Handler never calls WriteHeader or Write,
+				this might end up being 0, rather than the implicit
+				http.StatusOK. To get the implicit value, use the Result
+				method.
+</span></span><span>
+			<input type='checkbox' class="fold" id="ResponseRecorder-fold-field-Flushed"><label for="ResponseRecorder-fold-field-Flushed"><a href="../../../src/net/http/httptest/recorder.go.html#line-43">Flushed</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='ResponseRecorder-fold-field-Flushed-docs' class="fold-docs">
+				Flushed is whether the Handler called Flush.
+</span></span><span>
+			<input type='checkbox' class="fold" id="ResponseRecorder-fold-field-HeaderMap"><label for="ResponseRecorder-fold-field-HeaderMap"><a href="../../../src/net/http/httptest/recorder.go.html#line-36">HeaderMap</a> <i><a href="../http.html">http</a>.<a href="../http.html#name-Header">Header</a></i></label><span id='ResponseRecorder-fold-field-HeaderMap-docs' class="fold-docs">
+				HeaderMap contains the headers explicitly set by the Handler.
+				It is an internal detail.
+
+				Deprecated: HeaderMap exists for historical compatibility
+				and should not be used. To access the headers returned by a handler,
+				use the Response.Header map as returned by the Result method.
+</span></span>
+			<input type='checkbox' class="showhide" id="ResponseRecorder-showhide-fields"><i><label for="ResponseRecorder-showhide-fields" class="show-inline">/* 3 unexporteds ... */</label><label for="ResponseRecorder-showhide-fields" class="hide-inline">/* 3 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="ResponseRecorder-fold-field-result"><label for="ResponseRecorder-fold-field-result"><a href="../../../src/net/http/httptest/recorder.go.html#line-45">result</a> <i>*<a href="../http.html">http</a>.<a href="../http.html#name-Response">Response</a></i></label><span id='ResponseRecorder-fold-field-result-docs' class="fold-docs">
+				// cache of Result's return value
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="ResponseRecorder-fold-field-snapHeader"><label for="ResponseRecorder-fold-field-snapHeader"><a href="../../../src/net/http/httptest/recorder.go.html#line-46">snapHeader</a> <i><a href="../http.html">http</a>.<a href="../http.html#name-Header">Header</a></i></label><span id='ResponseRecorder-fold-field-snapHeader-docs' class="fold-docs">
+				// snapshot of HeaderMap at first Write
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/net/http/httptest/recorder.go.html#line-47">wroteHeader</a> <i><a href="../../builtin.html#name-bool">bool</a></i></span></i></span></span>
+		<input type='checkbox' class="fold" id="ResponseRecorder-fold-methods"><label for="ResponseRecorder-fold-methods">Methods (<i>total 7, in which 6 are exported</i>)</label><span id='ResponseRecorder-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="ResponseRecorder-fold-method-Flush"><label for="ResponseRecorder-fold-method-Flush">(*T) <a href="../../../src/net/http/httptest/recorder.go.html#line-140">Flush</a>()</label><span id='ResponseRecorder-fold-method-Flush-docs' class="fold-docs">
+				Flush implements http.Flusher. To test whether Flush was
+				called, see rw.Flushed.
+</span></span><span>
+			<input type='checkbox' class="fold" id="ResponseRecorder-fold-method-Header"><label for="ResponseRecorder-fold-method-Header">(*T) <a href="../../../src/net/http/httptest/recorder.go.html#line-67">Header</a>() <a href="../http.html">http</a>.<a href="../http.html#name-Header">Header</a></label><span id='ResponseRecorder-fold-method-Header-docs' class="fold-docs">
+				Header implements http.ResponseWriter. It returns the response
+				headers to mutate within a handler. To test the headers that were
+				written after a handler completes, use the Result method and see
+				the returned Response value's Header.
+</span></span><span>
+			<input type='checkbox' class="fold" id="ResponseRecorder-fold-method-Result"><label for="ResponseRecorder-fold-method-Result">(*T) <a href="../../../src/net/http/httptest/recorder.go.html#line-162">Result</a>() *<a href="../http.html">http</a>.<a href="../http.html#name-Response">Response</a></label><span id='ResponseRecorder-fold-method-Result-docs' class="fold-docs">
+				Result returns the response generated by the handler.
+
+				The returned Response will have at least its StatusCode,
+				Header, Body, and optionally Trailer populated.
+				More fields may be populated in the future, so callers should
+				not DeepEqual the result in tests.
+
+				The Response.Header is a snapshot of the headers at the time of the
+				first write call, or at the time of this call, if the handler never
+				did a write.
+
+				The Response.Body is guaranteed to be non-nil and Body.Read call is
+				guaranteed to not return any error other than io.EOF.
+
+				Result must only be called after the handler has finished running.
+</span></span><span>
+			<input type='checkbox' class="fold" id="ResponseRecorder-fold-method-Write"><label for="ResponseRecorder-fold-method-Write">(*T) <a href="../../../src/net/http/httptest/recorder.go.html#line-107">Write</a>(buf []<a href="../../builtin.html#name-byte">byte</a>) (<a href="../../builtin.html#name-int">int</a>, <a href="../../builtin.html#name-error">error</a>)</label><span id='ResponseRecorder-fold-method-Write-docs' class="fold-docs">
+				Write implements http.ResponseWriter. The data in buf is written to
+				rw.Body, if not nil.
+</span></span><span>
+			<input type='checkbox' class="fold" id="ResponseRecorder-fold-method-WriteHeader"><label for="ResponseRecorder-fold-method-WriteHeader">(*T) <a href="../../../src/net/http/httptest/recorder.go.html#line-126">WriteHeader</a>(code <a href="../../builtin.html#name-int">int</a>)</label><span id='ResponseRecorder-fold-method-WriteHeader-docs' class="fold-docs">
+				WriteHeader implements http.ResponseWriter.
+</span></span><span>
+			<input type='checkbox' class="fold" id="ResponseRecorder-fold-method-WriteString"><label for="ResponseRecorder-fold-method-WriteString">(*T) <a href="../../../src/net/http/httptest/recorder.go.html#line-117">WriteString</a>(str <a href="../../builtin.html#name-string">string</a>) (<a href="../../builtin.html#name-int">int</a>, <a href="../../builtin.html#name-error">error</a>)</label><span id='ResponseRecorder-fold-method-WriteString-docs' class="fold-docs">
+				WriteString implements io.StringWriter. The data in str is written
+				to rw.Body, if not nil.
+</span></span>
+			<input type='checkbox' class="showhide" id="ResponseRecorder-showhide-methods"><i><label for="ResponseRecorder-showhide-methods" class="show-inline">/* one unexported ... */</label><label for="ResponseRecorder-showhide-methods" class="hide-inline">/* one unexported: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="ResponseRecorder-fold-method-writeHeader"><label for="ResponseRecorder-fold-method-writeHeader">(*T) <a href="../../../src/net/http/httptest/recorder.go.html#line-83">writeHeader</a>(b []<a href="../../builtin.html#name-byte">byte</a>, str <a href="../../builtin.html#name-string">string</a>)</label><span id='ResponseRecorder-fold-method-writeHeader-docs' class="fold-docs">
+				writeHeader writes a header if it was not written yet and
+				detects Content-Type if needed.
+
+				bytes or str are the beginning of the response body.
+				We pass both to avoid unnecessarily generate garbage
+				in rw.WriteString which was created for performance reasons.
+				Non-nil bytes win.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="ResponseRecorder-fold-impls"><label for="ResponseRecorder-fold-impls">Implements (<i>at least 5, in which 4 are exported</i>)</label><span id='ResponseRecorder-fold-impls-items' class="fold-items"><span>
+			*T : net/http.<a href="../http.html#name-Flusher">Flusher</a></span><span>
+			*T : net/http.<a href="../http.html#name-ResponseWriter">ResponseWriter</a></span><span>
+			*T : io.<a href="../../io.html#name-StringWriter">StringWriter</a></span><span>
+			*T : io.<a href="../../io.html#name-Writer">Writer</a></span>
+			<input type='checkbox' class="showhide" id="ResponseRecorder-showhide-impls"><i><label for="ResponseRecorder-showhide-impls" class="show-inline">/* at least one unexported ... */</label><label for="ResponseRecorder-showhide-impls" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			*T : net/http.<a href="../http.html#name-http2stringWriter">http2stringWriter</a></i></span></span>
+		<input type='checkbox' class="fold" id="ResponseRecorder-fold-results"><label for="ResponseRecorder-fold-results">As Outputs Of (<i>at least one exported</i>)</label><span id='ResponseRecorder-fold-results-items' class="fold-items"><span>
+			func <a href="#name-NewRecorder">NewRecorder</a>() *<b>ResponseRecorder</b></span></span>
+
+</span></div><div class="anchor type-res" id="name-Server" data-popularity="825">	<input type='checkbox' class="fold" id="Server-fold-content"><label for="Server-fold-content"> type <a href="../../../src/net/http/httptest/server.go.html#line-26">Server</a> <i>(struct)</i></label><span id='Server-fold-content-docs' class="fold-docs">
+		A Server is an HTTP server listening on a system-chosen port on the
+		local loopback interface, for use in end-to-end HTTP tests.
+
+		<input type='checkbox' class="fold" id="Server-fold-fields"><label for="Server-fold-fields">Fields (<i>total 11, in which 5 are exported</i>)</label><span id='Server-fold-fields-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Server-fold-field-Config"><label for="Server-fold-field-Config"><a href="../../../src/net/http/httptest/server.go.html#line-42">Config</a> <i>*<a href="../http.html">http</a>.<a href="../http.html#name-Server">Server</a></i></label><span id='Server-fold-field-Config-docs' class="fold-docs">
+				Config may be changed after calling NewUnstartedServer and
+				before Start or StartTLS.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Server-fold-field-EnableHTTP2"><label for="Server-fold-field-EnableHTTP2"><a href="../../../src/net/http/httptest/server.go.html#line-33">EnableHTTP2</a> <i><a href="../../builtin.html#name-bool">bool</a></i></label><span id='Server-fold-field-EnableHTTP2-docs' class="fold-docs">
+				EnableHTTP2 controls whether HTTP/2 is enabled
+				on the server. It must be set between calling
+				NewUnstartedServer and calling Server.StartTLS.
+</span></span><span>
+			<span class="nodocs"><a href="../../../src/net/http/httptest/server.go.html#line-28">Listener</a> <i><a href="../../net.html">net</a>.<a href="../../net.html#name-Listener">Listener</a></i></span></span><span>
+			<input type='checkbox' class="fold" id="Server-fold-field-TLS"><label for="Server-fold-field-TLS"><a href="../../../src/net/http/httptest/server.go.html#line-38">TLS</a> <i>*<a href="../../crypto/tls.html">tls</a>.<a href="../../crypto/tls.html#name-Config">Config</a></i></label><span id='Server-fold-field-TLS-docs' class="fold-docs">
+				TLS is the optional TLS configuration, populated with a new config
+				after TLS is started. If set on an unstarted server before StartTLS
+				is called, existing fields are copied into the new config.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Server-fold-field-URL"><label for="Server-fold-field-URL"><a href="../../../src/net/http/httptest/server.go.html#line-27">URL</a> <i><a href="../../builtin.html#name-string">string</a></i></label><span id='Server-fold-field-URL-docs' class="fold-docs">
+				// base URL of form http://ipaddr:port with no trailing slash
+</span></span>
+			<input type='checkbox' class="showhide" id="Server-showhide-fields"><i><label for="Server-showhide-fields" class="show-inline">/* 6 unexporteds ... */</label><label for="Server-showhide-fields" class="hide-inline">/* 6 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Server-fold-field-certificate"><label for="Server-fold-field-certificate"><a href="../../../src/net/http/httptest/server.go.html#line-45">certificate</a> <i>*<a href="../../crypto/x509.html">x509</a>.<a href="../../crypto/x509.html#name-Certificate">Certificate</a></i></label><span id='Server-fold-field-certificate-docs' class="fold-docs">
+				certificate is a parsed version of the TLS config certificate, if present.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Server-fold-field-client"><label for="Server-fold-field-client"><a href="../../../src/net/http/httptest/server.go.html#line-57">client</a> <i>*<a href="../http.html">http</a>.<a href="../http.html#name-Client">Client</a></i></label><span id='Server-fold-field-client-docs' class="fold-docs">
+				client is configured for use with the server.
+				Its transport is automatically closed when Close is called.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs"><a href="../../../src/net/http/httptest/server.go.html#line-52">closed</a> <i><a href="../../builtin.html#name-bool">bool</a></i></span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Server-fold-field-conns"><label for="Server-fold-field-conns"><a href="../../../src/net/http/httptest/server.go.html#line-53">conns</a> <i>map[<a href="../../net.html">net</a>.<a href="../../net.html#name-Conn">Conn</a>]<a href="../http.html">http</a>.<a href="../http.html#name-ConnState">ConnState</a></i></label><span id='Server-fold-field-conns-docs' class="fold-docs">
+				// except terminal states
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Server-fold-field-mu"><label for="Server-fold-field-mu"><a href="../../../src/net/http/httptest/server.go.html#line-51">mu</a> <i><a href="../../sync.html">sync</a>.<a href="../../sync.html#name-Mutex">Mutex</a></i></label><span id='Server-fold-field-mu-docs' class="fold-docs">
+				// guards closed and conns
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Server-fold-field-wg"><label for="Server-fold-field-wg"><a href="../../../src/net/http/httptest/server.go.html#line-49">wg</a> <i><a href="../../sync.html">sync</a>.<a href="../../sync.html#name-WaitGroup">WaitGroup</a></i></label><span id='Server-fold-field-wg-docs' class="fold-docs">
+				wg counts the number of outstanding HTTP requests on this server.
+				Close blocks until all requests are finished.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Server-fold-methods"><label for="Server-fold-methods">Methods (<i>total 12, in which 6 are exported</i>)</label><span id='Server-fold-methods-items' class="fold-items"><span>
+			<input type='checkbox' class="fold" id="Server-fold-method-Certificate"><label for="Server-fold-method-Certificate">(*T) <a href="../../../src/net/http/httptest/server.go.html#line-293">Certificate</a>() *<a href="../../crypto/x509.html">x509</a>.<a href="../../crypto/x509.html#name-Certificate">Certificate</a></label><span id='Server-fold-method-Certificate-docs' class="fold-docs">
+				Certificate returns the certificate used by the server, or nil if
+				the server doesn't use TLS.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Server-fold-method-Client"><label for="Server-fold-method-Client">(*T) <a href="../../../src/net/http/httptest/server.go.html#line-300">Client</a>() *<a href="../http.html">http</a>.<a href="../http.html#name-Client">Client</a></label><span id='Server-fold-method-Client-docs' class="fold-docs">
+				Client returns an HTTP client configured for making requests to the server.
+				It is configured to trust the server's TLS test certificate and will
+				close its idle connections on Server.Close.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Server-fold-method-Close"><label for="Server-fold-method-Close">(*T) <a href="../../../src/net/http/httptest/server.go.html#line-200">Close</a>()</label><span id='Server-fold-method-Close-docs' class="fold-docs">
+				Close shuts down the server and blocks until all outstanding
+				requests on this server have completed.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Server-fold-method-CloseClientConnections"><label for="Server-fold-method-CloseClientConnections">(*T) <a href="../../../src/net/http/httptest/server.go.html#line-264">CloseClientConnections</a>()</label><span id='Server-fold-method-CloseClientConnections-docs' class="fold-docs">
+				CloseClientConnections closes any open HTTP connections to the test Server.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Server-fold-method-Start"><label for="Server-fold-method-Start">(*T) <a href="../../../src/net/http/httptest/server.go.html#line-123">Start</a>()</label><span id='Server-fold-method-Start-docs' class="fold-docs">
+				Start starts a server from NewUnstartedServer.
+</span></span><span>
+			<input type='checkbox' class="fold" id="Server-fold-method-StartTLS"><label for="Server-fold-method-StartTLS">(*T) <a href="../../../src/net/http/httptest/server.go.html#line-140">StartTLS</a>()</label><span id='Server-fold-method-StartTLS-docs' class="fold-docs">
+				StartTLS starts TLS on a server from NewUnstartedServer.
+</span></span>
+			<input type='checkbox' class="showhide" id="Server-showhide-methods"><i><label for="Server-showhide-methods" class="show-inline">/* 6 unexporteds ... */</label><label for="Server-showhide-methods" class="hide-inline">/* 6 unexporteds: */</label></i><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Server-fold-method-closeConn"><label for="Server-fold-method-closeConn">(*T) <a href="../../../src/net/http/httptest/server.go.html#line-364">closeConn</a>(c <a href="../../net.html">net</a>.<a href="../../net.html#name-Conn">Conn</a>)</label><span id='Server-fold-method-closeConn-docs' class="fold-docs">
+				closeConn closes c.
+				s.mu must be held.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Server-fold-method-closeConnChan"><label for="Server-fold-method-closeConnChan">(*T) <a href="../../../src/net/http/httptest/server.go.html#line-368">closeConnChan</a>(c <a href="../../net.html">net</a>.<a href="../../net.html#name-Conn">Conn</a>, done chan&lt;- struct{})</label><span id='Server-fold-method-closeConnChan-docs' class="fold-docs">
+				closeConnChan is like closeConn, but takes an optional channel to receive a value
+				when the goroutine closing c is done.
+</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Server-fold-method-forgetConn"><label for="Server-fold-method-forgetConn">(*T) <a href="../../../src/net/http/httptest/server.go.html#line-378">forgetConn</a>(c <a href="../../net.html">net</a>.<a href="../../net.html#name-Conn">Conn</a>)</label><span id='Server-fold-method-forgetConn-docs' class="fold-docs">
+				forgetConn removes c from the set of tracked conns and decrements it from the
+				waitgroup, unless it was previously removed.
+				s.mu must be held.
+</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../../src/net/http/httptest/server.go.html#line-304">goServe</a>()</span></i></span><span class="hidden"><i>
+			<span class="nodocs">(*T) <a href="../../../src/net/http/httptest/server.go.html#line-252">logCloseHangDebugInfo</a>()</span></i></span><span class="hidden"><i>
+			<input type='checkbox' class="fold" id="Server-fold-method-wrap"><label for="Server-fold-method-wrap">(*T) <a href="../../../src/net/http/httptest/server.go.html#line-314">wrap</a>()</label><span id='Server-fold-method-wrap-docs' class="fold-docs">
+				wrap installs the connection state-tracking hook to know which
+				connections are idle.
+</span></i></span></span>
+		<input type='checkbox' class="fold" id="Server-fold-results"><label for="Server-fold-results">As Outputs Of (<i>at least 3, all are exported</i>)</label><span id='Server-fold-results-items' class="fold-items"><span>
+			func <a href="#name-NewServer">NewServer</a>(handler <a href="../http.html">http</a>.<a href="../http.html#name-Handler">Handler</a>) *<b>Server</b></span><span>
+			func <a href="#name-NewTLSServer">NewTLSServer</a>(handler <a href="../http.html">http</a>.<a href="../http.html#name-Handler">Handler</a>) *<b>Server</b></span><span>
+			func <a href="#name-NewUnstartedServer">NewUnstartedServer</a>(handler <a href="../http.html">http</a>.<a href="../http.html#name-Handler">Handler</a>) *<b>Server</b></span></span>
+
+</span></div></div><div>	<input type='checkbox' class="showhide" id="unexported-typenames-showhide"><i><label for="unexported-typenames-showhide" class="show-inline">/* one unexported ... */</label><label for="unexported-typenames-showhide" class="hide-inline">/* one unexported: */</label></i><div class="anchor type-res hidden" id="name-closeIdleTransport" data-popularity="850">	<input type='checkbox' class="fold" id="closeIdleTransport-fold-content"><label for="closeIdleTransport-fold-content"> type <a href="../../../src/net/http/httptest/server.go.html#line-194">closeIdleTransport</a> <b><i>(interface)</i></b></label><span id='closeIdleTransport-fold-content-docs' class="fold-docs">
+
+		<input type='checkbox' class="fold" id="closeIdleTransport-fold-methods"><label for="closeIdleTransport-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='closeIdleTransport-fold-methods-items' class="fold-items"><span>
+			<span class="nodocs">( T) <a href="../../../src/net/http/transport.go.html#line-351">CloseIdleConnections</a>()</span></span></span>
+		<input type='checkbox' class="fold" id="closeIdleTransport-fold-impledby"><label for="closeIdleTransport-fold-impledby">Implemented By (<i>at least 5, in which 2 are exported</i>)</label><span id='closeIdleTransport-fold-impledby-items' class="fold-items"><span>
+			*net/http.<a href="../http.html#name-Client">Client</a></span><span>
+			*net/http.<a href="../http.html#name-Transport">Transport</a></span>
+			<input type='checkbox' checked class="showhide" id="closeIdleTransport-showhide-impedBys"><i><label for="closeIdleTransport-showhide-impedBys" class="show-inline">/* 3+ unexporteds ... */</label><label for="closeIdleTransport-showhide-impedBys" class="hide-inline">/* 3+ unexporteds: */</label></i><span class="hidden"><i>
+			 net/http.<a href="../http.html#name-h2Transport">h2Transport</a> <i>(interface)</i></i></span><span class="hidden"><i>
+			 net/http.<a href="../http.html#name-http2noDialH2RoundTripper">http2noDialH2RoundTripper</a></i></span><span class="hidden"><i>
+			*net/http.<a href="../http.html#name-http2Transport">http2Transport</a></i></span></span>
+		<input type='checkbox' class="fold" id="closeIdleTransport-fold-impls"><label for="closeIdleTransport-fold-impls">Implements (<i>at least one unexported</i>)</label><span id='closeIdleTransport-fold-impls-items' class="fold-items">
+			<input type='checkbox' checked class="showhide" id="closeIdleTransport-showhide-impls"><i><label for="closeIdleTransport-showhide-impls" class="show-inline">/* at least one unexported ... */</label><label for="closeIdleTransport-showhide-impls" class="hide-inline">/* at least one unexported: */</label></i><span class="hidden"><i>
+			 T : net/http.<a href="../http.html#name-h2Transport">h2Transport</a></i></span></span>
+
+</span></div></div>
+<div id="exported-functions"><span class="title">Package-Level Functions<span class="title-stat"><i> (total 9, in which 5 are exported)</i></span></span>
+
+<div class="anchor value-res" id="name-NewRecorder">	<input type='checkbox' class="fold" id="NewRecorder-fold-content"><label for="NewRecorder-fold-content"> func <a href="../../../src/net/http/httptest/recorder.go.html#line-51">NewRecorder</a>() *<a href="#name-ResponseRecorder">ResponseRecorder</a></label><span id='NewRecorder-fold-content-docs' class="fold-docs">
+		NewRecorder returns an initialized ResponseRecorder.
+
+</span></div><div class="anchor value-res" id="name-NewRequest">	<input type='checkbox' class="fold" id="NewRequest-fold-content"><label for="NewRequest-fold-content"> func <a href="../../../src/net/http/httptest/httptest.go.html#line-40">NewRequest</a>(method, target <a href="../../builtin.html#name-string">string</a>, body <a href="../../io.html">io</a>.<a href="../../io.html#name-Reader">Reader</a>) *<a href="../http.html">http</a>.<a href="../http.html#name-Request">Request</a></label><span id='NewRequest-fold-content-docs' class="fold-docs">
+		NewRequest returns a new incoming server Request, suitable
+		for passing to an http.Handler for testing.
+
+		The target is the RFC 7230 "request-target": it may be either a
+		path or an absolute URL. If target is an absolute URL, the host name
+		from the URL is used. Otherwise, "example.com" is used.
+
+		The TLS field is set to a non-nil dummy value if target has scheme
+		"https".
+
+		The Request.Proto is always HTTP/1.1.
+
+		An empty method means "GET".
+
+		The provided body may be nil. If the body is of type *bytes.Reader,
+		*strings.Reader, or *bytes.Buffer, the Request.ContentLength is
+		set.
+
+		NewRequest panics on error for ease of use in testing, where a
+		panic is acceptable.
+
+		To generate a client HTTP request instead of a server request, see
+		the NewRequest function in the net/http package.
+
+</span></div><div class="anchor value-res" id="name-NewServer">	<input type='checkbox' class="fold" id="NewServer-fold-content"><label for="NewServer-fold-content"> func <a href="../../../src/net/http/httptest/server.go.html#line-103">NewServer</a>(handler <a href="../http.html">http</a>.<a href="../http.html#name-Handler">Handler</a>) *<a href="#name-Server">Server</a></label><span id='NewServer-fold-content-docs' class="fold-docs">
+		NewServer starts and returns a new Server.
+		The caller should call Close when finished, to shut it down.
+
+</span></div><div class="anchor value-res" id="name-NewTLSServer">	<input type='checkbox' class="fold" id="NewTLSServer-fold-content"><label for="NewTLSServer-fold-content"> func <a href="../../../src/net/http/httptest/server.go.html#line-188">NewTLSServer</a>(handler <a href="../http.html">http</a>.<a href="../http.html#name-Handler">Handler</a>) *<a href="#name-Server">Server</a></label><span id='NewTLSServer-fold-content-docs' class="fold-docs">
+		NewTLSServer starts and returns a new Server using TLS.
+		The caller should call Close when finished, to shut it down.
+
+</span></div><div class="anchor value-res" id="name-NewUnstartedServer">	<input type='checkbox' class="fold" id="NewUnstartedServer-fold-content"><label for="NewUnstartedServer-fold-content"> func <a href="../../../src/net/http/httptest/server.go.html#line-115">NewUnstartedServer</a>(handler <a href="../http.html">http</a>.<a href="../http.html#name-Handler">Handler</a>) *<a href="#name-Server">Server</a></label><span id='NewUnstartedServer-fold-content-docs' class="fold-docs">
+		NewUnstartedServer returns a new Server but doesn't start it.
+
+		After changing its configuration, the caller should call Start or
+		StartTLS.
+
+		The caller should call Close when finished, to shut it down.
+
+</span></div>	<input type='checkbox' class="showhide" id="unexported-functions-showhide"><i><label for="unexported-functions-showhide" class="show-inline">/* 4 unexporteds ... */</label><label for="unexported-functions-showhide" class="hide-inline">/* 4 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-init"><i>	<span class="nodocs"> func <a href="../../../src/net/http/httptest/server.go.html#line-86">init</a>()</span></i></div><div class="anchor value-res hidden" id="name-newLocalListener"><i>	<span class="nodocs"> func <a href="../../../src/net/http/httptest/server.go.html#line-60">newLocalListener</a>() <a href="../../net.html">net</a>.<a href="../../net.html#name-Listener">Listener</a></span></i></div><div class="anchor value-res hidden" id="name-parseContentLength"><i>	<input type='checkbox' class="fold" id="parseContentLength-fold-content"><label for="parseContentLength-fold-content"> func <a href="../../../src/net/http/httptest/recorder.go.html#line-224">parseContentLength</a>(cl <a href="../../builtin.html#name-string">string</a>) <a href="../../builtin.html#name-int64">int64</a></label><span id='parseContentLength-fold-content-docs' class="fold-docs">
+		parseContentLength trims whitespace from s and returns -1 if no value
+		is set, or the value if it's &gt;= 0.
+
+		This a modified version of same function found in net/http/transfer.go. This
+		one just ignores an invalid header.
+
+</span></i></div><div class="anchor value-res hidden" id="name-strSliceContainsPrefix"><i>	<span class="nodocs"> func <a href="../../../src/net/http/httptest/server.go.html#line-92">strSliceContainsPrefix</a>(v []<a href="../../builtin.html#name-string">string</a>, pre <a href="../../builtin.html#name-string">string</a>) <a href="../../builtin.html#name-bool">bool</a></span></i></div></div>
+<div id="exported-variables"><span class="title">Package-Level Variables<span class="title-stat"><i> (only one, which is unexported)</i></span></span>
+
+	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* one unexported ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* one unexported: */</label></i><div class="anchor value-res hidden" id="name-serveFlag"><i>	<input type='checkbox' class="fold" id="serveFlag-fold-content"><label for="serveFlag-fold-content">  var <a href="../../../src/net/http/httptest/server.go.html#line-84">serveFlag</a> <a href="../../builtin.html#name-string">string</a></label><span id='serveFlag-fold-content-docs' class="fold-docs">
+		When debugging a particular http server-based test,
+		this flag lets you run
+			go test -run=BrokenTest -httptest.serve=127.0.0.1:8000
+		to start the broken server so you can interact with it manually.
+		We only register this flag if it looks like the caller knows about it
+		and is trying to use it as we don't want to pollute flags and this
+		isn't really part of our API. Don't depend on this.
+
+</span></i></div></div>
+<div id="exported-constants"><span class="title">Package-Level Constants<span class="title-stat"><i> (only one, which is exported)</i></span></span>
+
+<div class="anchor value-res" id="name-DefaultRemoteAddr">	<input type='checkbox' class="fold" id="DefaultRemoteAddr-fold-content"><label for="DefaultRemoteAddr-fold-content">const <a href="../../../src/net/http/httptest/recorder.go.html#line-61">DefaultRemoteAddr</a> = "1.2.3.4"</label><span id='DefaultRemoteAddr-fold-content-docs' class="fold-docs">
+		DefaultRemoteAddr is the default remote address to return in RemoteAddr if
+		an explicit DefaultRemoteAddr isn't set on ResponseRecorder.
+
+</span></div></div></code></pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.6</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>
