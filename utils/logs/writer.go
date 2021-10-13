@@ -12,11 +12,6 @@ import (
 	"github.com/rs/zerolog/diode"
 )
 
-type WriterWithSource interface {
-	io.WriteCloser
-	SetSource(source string) error
-}
-
 type MultipleWritersWithSource struct {
 	mu      sync.RWMutex
 	writers []WriterWithSource

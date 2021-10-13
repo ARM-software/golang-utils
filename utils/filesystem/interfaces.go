@@ -1,7 +1,3 @@
-/*
- * Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
- */
 package filesystem
 
 import (
@@ -11,7 +7,46 @@ import (
 	"time"
 
 	"github.com/bmatcuk/doublestar/v3"
+	"github.com/spf13/afero"
 )
+
+//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IFileHash,Chowner,Linker,File,DiskUsage,FileTimeInfo,ILock,FS
+
+// For reference.
+//https://stackoverflow.com/questions/1761607/what-is-the-fastest-hash-algorithm-to-check-if-two-files-are-equal
+type IFileHash interface {
+	Calculate(f File) (string, error)
+	CalculateFile(fs FS, path string) (string, error)
+	GetType() string
+}
+
+// Optional interface. It is only implemented by the
+// filesystems saying so.
+type Chowner interface {
+	ChownIfPossible(string, int, int) error
+}
+
+// Optional interface. It is only implemented by the
+// filesystems saying so.
+type Linker interface {
+	LinkIfPossible(string, string) error
+}
+
+type File interface {
+	afero.File
+	Fd() uintptr
+}
+
+type DiskUsage interface {
+	GetTotal() uint64
+	GetFree() uint64
+	GetUsed() uint64
+	GetUsedPercent() float64
+	GetInodesTotal() uint64
+	GetInodesUsed() uint64
+	GetInodesFree() uint64
+	GetInodesUsedPercent() float64
+}
 
 type FileTimeInfo interface {
 	ModTime() time.Time

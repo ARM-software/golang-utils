@@ -38,33 +38,7 @@ const (
 	UnsetFileHandle = ^uint64(0)
 )
 
-// Optional interface. It is only implemented by the
-// filesystems saying so.
-type Chowner interface {
-	ChownIfPossible(string, int, int) error
-}
 
-// Optional interface. It is only implemented by the
-// filesystems saying so.
-type Linker interface {
-	LinkIfPossible(string, string) error
-}
-
-type File interface {
-	afero.File
-	Fd() uintptr
-}
-
-type DiskUsage interface {
-	GetTotal() uint64
-	GetFree() uint64
-	GetUsed() uint64
-	GetUsedPercent() float64
-	GetInodesTotal() uint64
-	GetInodesUsed() uint64
-	GetInodesFree() uint64
-	GetInodesUsedPercent() float64
-}
 type UsageStat struct {
 	Total             uint64
 	Free              uint64
