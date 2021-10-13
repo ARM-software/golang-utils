@@ -7,13 +7,14 @@ package http
 import (
 	"context"
 	"fmt"
-	"go.uber.org/goleak"
 	"net/http"
 	"testing"
 	"time"
 
-	"github.com/ARM-software/golang-utils/utils/http/httptest"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
+
+	"github.com/ARM-software/golang-utils/utils/http/httptest"
 )
 
 func TestClient(t *testing.T) {
@@ -42,7 +43,7 @@ func TestClient(t *testing.T) {
 		{
 			clientName: "retryable client",
 			client: func() IClient {
-				return NewConfigurableRetryableClient(DefaultHttpClientConfiguration())
+				return NewConfigurableRetryableClient(DefaultHTTPClientConfiguration())
 			},
 		},
 	}

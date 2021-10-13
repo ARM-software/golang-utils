@@ -25,20 +25,20 @@ type PooledClient struct {
 //  NewDefaultPooledClient returns a new HTTP client with similar default values to
 // http.Client, but with a shared Transport.
 func NewDefaultPooledClient() IClient {
-	return NewPooledClient(DefaultHttpClientConfiguration())
+	return NewPooledClient(DefaultHTTPClientConfiguration())
 }
 
 //  NewFastPooledClient returns a new HTTP client with similar default values to
 // fast http client https://github.com/valyala/fasthttp.
 func NewFastPooledClient() IClient {
-	return NewPooledClient(FastHttpClientConfiguration())
+	return NewPooledClient(FastHTTPClientConfiguration())
 }
 
 //  NewPooledClient returns a new HTTP client using the configuration passed as argument.
 // Do not use this function for
 // transient clients as it can leak file descriptors over time. Only use this
 // for clients that will be re-used for the same host(s).
-func NewPooledClient(cfg *HttpClientConfiguration) IClient {
+func NewPooledClient(cfg *HTTPClientConfiguration) IClient {
 	transport := cleanhttp.DefaultPooledTransport()
 	setTransportConfiguration(cfg, transport)
 	return &PooledClient{client: &http.Client{

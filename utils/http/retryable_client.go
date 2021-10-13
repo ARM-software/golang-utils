@@ -21,7 +21,7 @@ func NewRetryableClient() IClient {
 }
 
 // NewRetryableClient creates a new http client which will retry failed requests with exponential backoff
-func NewConfigurableRetryableClient(cfg *HttpClientConfiguration) IClient {
+func NewConfigurableRetryableClient(cfg *HTTPClientConfiguration) IClient {
 	subClient := retryablehttp.NewClient()
 	if t, ok := subClient.HTTPClient.Transport.(*http.Transport); ok {
 		setTransportConfiguration(cfg, t)

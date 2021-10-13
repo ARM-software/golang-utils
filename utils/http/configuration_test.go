@@ -11,11 +11,11 @@ import (
 )
 
 func TestHttpClientConfiguration(t *testing.T) {
-	configTest := DefaultHttpClientConfiguration()
+	configTest := DefaultHTTPClientConfiguration()
 	require.Nil(t, configTest.Validate())
 }
 
 func TestFastHttpClientConfiguration(t *testing.T) {
-	configTest := FastHttpClientConfiguration()
+	configTest := FastHTTPClientConfiguration()
 	require.Nil(t, configTest.Validate())
 }

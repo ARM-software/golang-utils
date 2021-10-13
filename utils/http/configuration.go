@@ -13,7 +13,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/config"
 )
 
-type HttpClientConfiguration struct {
+type HTTPClientConfiguration struct {
 	MaxConnsPerHost       int           `mapstructure:"max_connections_per_host"`
 	MaxIdleConns          int           `mapstructure:"max_idle_connections"`
 	MaxIdleConnsPerHost   int           `mapstructure:"max_idle_connections_per_host"`
@@ -22,7 +22,7 @@ type HttpClientConfiguration struct {
 	ExpectContinueTimeout time.Duration `mapstructure:"timeout_expect_continue"`
 }
 
-func (cfg *HttpClientConfiguration) Validate() error {
+func (cfg *HTTPClientConfiguration) Validate() error {
 
 	// Validate Embedded Structs
 	err := config.ValidateEmbedded(cfg)
@@ -39,8 +39,8 @@ func (cfg *HttpClientConfiguration) Validate() error {
 }
 
 // Default values similar to https://github.com/hashicorp/go-cleanhttp/blob/6d9e2ac5d828e5f8594b97f88c4bde14a67bb6d2/cleanhttp.go#L23
-func DefaultHttpClientConfiguration() *HttpClientConfiguration {
-	return &HttpClientConfiguration{
+func DefaultHTTPClientConfiguration() *HTTPClientConfiguration {
+	return &HTTPClientConfiguration{
 		MaxIdleConns:          100,
 		MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
 		IdleConnTimeout:       90 * time.Second,
@@ -50,8 +50,8 @@ func DefaultHttpClientConfiguration() *HttpClientConfiguration {
 }
 
 // Default values similar to https://github.com/valyala/fasthttp/blob/81fc96827033a5ee92d8a098ab1cdb9827e1eb8d/client.go
-func FastHttpClientConfiguration() *HttpClientConfiguration {
-	return &HttpClientConfiguration{
+func FastHTTPClientConfiguration() *HTTPClientConfiguration {
+	return &HTTPClientConfiguration{
 		MaxIdleConns:          1024,
 		MaxIdleConnsPerHost:   512,
 		IdleConnTimeout:       10 * time.Second,

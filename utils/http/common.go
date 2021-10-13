@@ -6,7 +6,7 @@ package http
 
 import "net/http"
 
-func setTransportConfiguration(cfg *HttpClientConfiguration, transport *http.Transport) {
+func setTransportConfiguration(cfg *HTTPClientConfiguration, transport *http.Transport) {
 	if cfg == nil || transport == nil {
 		return
 	}
