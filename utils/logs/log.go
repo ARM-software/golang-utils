@@ -6,7 +6,6 @@ package logs
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"strings"
 	"sync"
@@ -14,20 +13,6 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
-
-type Loggers interface {
-	io.Closer
-	// Checks whether the loggers are correctly defined or not.
-	Check() error
-	// Sets the source of the log message e.g. related build job, related command, etc.
-	SetLogSource(source string) error
-	// Sets the source of the logger e.g. APIs, Build worker, CMSIS tools.
-	SetLoggerSource(source string) error
-	// Logs to the output logger.
-	Log(output ...interface{})
-	// Logs to the Error logger.
-	LogError(err ...interface{})
-}
 
 // Definition of command loggers
 type GenericLoggers struct {

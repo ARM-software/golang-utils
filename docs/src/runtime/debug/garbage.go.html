@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: garbage.go in package runtime/debug</title>
+<link href="../../../css/light-v0.3.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	garbage.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/runtime/debug.html">runtime/debug</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2013 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<span class="codeline" id="line-5"><code><span class="keyword">package</span> debug</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"runtime"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"sort"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"time"</span></label></code></span>
+<span class="codeline" id="line-11"><code>)</code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// GCStats collect information about recent garbage collections.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">type</span> <a href="../../../pkg/runtime/debug.html#name-GCStats" class="ident">GCStats</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-15"><code>	LastGC         <a href="../../../pkg/time.html" class="ident i2">time</a>.<a href="../../time/time.go.html#line-127" class="ident">Time</a>       <span class="comment">// time of last collection</span></code></span>
+<span class="codeline" id="line-16"><code>	NumGC          <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>           <span class="comment">// number of garbage collections</span></code></span>
+<span class="codeline" id="line-17"><code>	PauseTotal     <a href="../../../pkg/time.html" class="ident i2">time</a>.<a href="../../time/time.go.html#line-583" class="ident">Duration</a>   <span class="comment">// total pause for all collections</span></code></span>
+<span class="codeline" id="line-18"><code>	Pause          []<a href="../../../pkg/time.html" class="ident i2">time</a>.<a href="../../time/time.go.html#line-583" class="ident">Duration</a> <span class="comment">// pause history, most recent first</span></code></span>
+<span class="codeline" id="line-19"><code>	PauseEnd       []<a href="../../../pkg/time.html" class="ident i2">time</a>.<a href="../../time/time.go.html#line-127" class="ident">Time</a>     <span class="comment">// pause end times history, most recent first</span></code></span>
+<span class="codeline" id="line-20"><code>	PauseQuantiles []<a href="../../../pkg/time.html" class="ident i2">time</a>.<a href="../../time/time.go.html#line-583" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-21"><code>}</code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">// ReadGCStats reads statistics about garbage collection into stats.</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// The number of entries in the pause history is system-dependent;</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// stats.Pause slice will be reused if large enough, reallocated otherwise.</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// ReadGCStats may use the full capacity of the stats.Pause slice.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">// If stats.PauseQuantiles is non-empty, ReadGCStats fills it with quantiles</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// summarizing the distribution of pause time. For example, if</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// len(stats.PauseQuantiles) is 5, it will be filled with the minimum,</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// 25%, 50%, 75%, and maximum pause times.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/runtime/debug.html#name-ReadGCStats" class="ident">ReadGCStats</a></label>(<label for="r1" class="ident">stats</label> *<a href="#line-14" class="ident">GCStats</a>) {</code></span>
+<span class="codeline" id="line-32"><code>	<span class="comment">// Create a buffer with space for at least two copies of the</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	// pause history tracked by the runtime. One will be returned</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">	// to the caller and the other will be used as transfer buffer</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">	// for end times history and as a temporary buffer for</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">	// computing quantiles.</span></code></span>
+<span class="codeline" id="line-37"><code>	<span class="keyword">const</span> <label for="r2" class="ident">maxPause</label> = <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(((*<a href="../../../pkg/runtime.html" class="ident i0">runtime</a>.<a href="../mstats.go.html#line-173" class="ident">MemStats</a>)(<a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a>)).<a href="../mstats.go.html#line-383" class="ident">PauseNs</a>)</code></span>
+<span class="codeline" id="line-38"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-cap" class="ident">cap</a>(<label for="r1" class="ident">stats</label>.<a href="#line-18" class="ident">Pause</a>) &lt; <span class="lit-number">2</span>*<label for="r2" class="ident">maxPause</label>+<span class="lit-number">3</span> {</code></span>
+<span class="codeline" id="line-39"><code>		<label for="r1" class="ident">stats</label>.<a href="#line-18" class="ident">Pause</a> = <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/time.html" class="ident i2">time</a>.<a href="../../time/time.go.html#line-583" class="ident">Duration</a>, <span class="lit-number">2</span>*<label for="r2" class="ident">maxPause</label>+<span class="lit-number">3</span>)</code></span>
+<span class="codeline" id="line-40"><code>	}</code></span>
+<span class="codeline" id="line-41"><code></code></span>
+<span class="codeline" id="line-42"><code>	<span class="comment">// readGCStats fills in the pause and end times histories (up to</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	// maxPause entries) and then three more: Unix ns time of last GC,</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	// number of GC, and total pause time in nanoseconds. Here we</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">	// depend on the fact that time.Duration's native unit is</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">	// nanoseconds, so the pauses and the total pause time do not need</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">	// any conversion.</span></code></span>
+<span class="codeline" id="line-48"><code>	<a href="stubs.go.html#line-12" class="ident">readGCStats</a>(&amp;<label for="r1" class="ident">stats</label>.<a href="#line-18" class="ident">Pause</a>)</code></span>
+<span class="codeline" id="line-49"><code>	<label for="r3" class="ident">n</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">stats</label>.<a href="#line-18" class="ident">Pause</a>) - <span class="lit-number">3</span></code></span>
+<span class="codeline" id="line-50"><code>	<label for="r1" class="ident">stats</label>.<a href="#line-15" class="ident">LastGC</a> = <a href="../../../pkg/time.html" class="ident i2">time</a>.<a href="../../time/time.go.html#line-1292" class="ident">Unix</a>(<span class="lit-number">0</span>, <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r1" class="ident">stats</label>.<a href="#line-18" class="ident">Pause</a>[<label for="r3" class="ident">n</label>]))</code></span>
+<span class="codeline" id="line-51"><code>	<label for="r1" class="ident">stats</label>.<a href="#line-16" class="ident">NumGC</a> = <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r1" class="ident">stats</label>.<a href="#line-18" class="ident">Pause</a>[<label for="r3" class="ident">n</label>+<span class="lit-number">1</span>])</code></span>
+<span class="codeline" id="line-52"><code>	<label for="r1" class="ident">stats</label>.<a href="#line-17" class="ident">PauseTotal</a> = <label for="r1" class="ident">stats</label>.<a href="#line-18" class="ident">Pause</a>[<label for="r3" class="ident">n</label>+<span class="lit-number">2</span>]</code></span>
+<span class="codeline" id="line-53"><code>	<label for="r3" class="ident">n</label> /= <span class="lit-number">2</span> <span class="comment">// buffer holds pauses and end times</span></code></span>
+<span class="codeline" id="line-54"><code>	<label for="r1" class="ident">stats</label>.<a href="#line-18" class="ident">Pause</a> = <label for="r1" class="ident">stats</label>.<a href="#line-18" class="ident">Pause</a>[:<label for="r3" class="ident">n</label>]</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-cap" class="ident">cap</a>(<label for="r1" class="ident">stats</label>.<a href="#line-19" class="ident">PauseEnd</a>) &lt; <label for="r2" class="ident">maxPause</label> {</code></span>
+<span class="codeline" id="line-57"><code>		<label for="r1" class="ident">stats</label>.<a href="#line-19" class="ident">PauseEnd</a> = <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/time.html" class="ident i2">time</a>.<a href="../../time/time.go.html#line-127" class="ident">Time</a>, <span class="lit-number">0</span>, <label for="r2" class="ident">maxPause</label>)</code></span>
+<span class="codeline" id="line-58"><code>	}</code></span>
+<span class="codeline" id="line-59"><code>	<label for="r1" class="ident">stats</label>.<a href="#line-19" class="ident">PauseEnd</a> = <label for="r1" class="ident">stats</label>.<a href="#line-19" class="ident">PauseEnd</a>[:<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">for</span> <label for="r4" class="ident">_</label>, <label for="r5" class="ident">ns</label> := <span class="keyword">range</span> <label for="r1" class="ident">stats</label>.<a href="#line-18" class="ident">Pause</a>[<label for="r3" class="ident">n</label> : <label for="r3" class="ident">n</label>+<label for="r3" class="ident">n</label>] {</code></span>
+<span class="codeline" id="line-61"><code>		<label for="r1" class="ident">stats</label>.<a href="#line-19" class="ident">PauseEnd</a> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r1" class="ident">stats</label>.<a href="#line-19" class="ident">PauseEnd</a>, <a href="../../../pkg/time.html" class="ident i2">time</a>.<a href="../../time/time.go.html#line-1292" class="ident">Unix</a>(<span class="lit-number">0</span>, <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r5" class="ident">ns</label>)))</code></span>
+<span class="codeline" id="line-62"><code>	}</code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">stats</label>.<a href="#line-20" class="ident">PauseQuantiles</a>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-65"><code>		<span class="keyword">if</span> <label for="r3" class="ident">n</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-66"><code>			<span class="keyword">for</span> <label for="r6" class="ident">i</label> := <span class="keyword">range</span> <label for="r1" class="ident">stats</label>.<a href="#line-20" class="ident">PauseQuantiles</a> {</code></span>
+<span class="codeline" id="line-67"><code>				<label for="r1" class="ident">stats</label>.<a href="#line-20" class="ident">PauseQuantiles</a>[<label for="r6" class="ident">i</label>] = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-68"><code>			}</code></span>
+<span class="codeline" id="line-69"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-70"><code>			<span class="comment">// There's room for a second copy of the data in stats.Pause.</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">			// See the allocation at the top of the function.</span></code></span>
+<span class="codeline" id="line-72"><code>			<label for="r7" class="ident">sorted</label> := <label for="r1" class="ident">stats</label>.<a href="#line-18" class="ident">Pause</a>[<label for="r3" class="ident">n</label> : <label for="r3" class="ident">n</label>+<label for="r3" class="ident">n</label>]</code></span>
+<span class="codeline" id="line-73"><code>			<a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r7" class="ident">sorted</label>, <label for="r1" class="ident">stats</label>.<a href="#line-18" class="ident">Pause</a>)</code></span>
+<span class="codeline" id="line-74"><code>			<a href="../../../pkg/sort.html" class="ident i1">sort</a>.<a href="../../sort/slice.go.html#line-16" class="ident">Slice</a>(<label for="r7" class="ident">sorted</label>, <span class="keyword">func</span>(<label for="r8" class="ident">i</label>, <label for="r9" class="ident">j</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> { <span class="keyword">return</span> <label for="r7" class="ident">sorted</label>[<label for="r8" class="ident">i</label>] &lt; <label for="r7" class="ident">sorted</label>[<label for="r9" class="ident">j</label>] })</code></span>
+<span class="codeline" id="line-75"><code>			<label for="r10" class="ident">nq</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">stats</label>.<a href="#line-20" class="ident">PauseQuantiles</a>) - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-76"><code>			<span class="keyword">for</span> <label for="r11" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r11" class="ident">i</label> &lt; <label for="r10" class="ident">nq</label>; <label for="r11" class="ident">i</label>++ {</code></span>
+<span class="codeline" id="line-77"><code>				<label for="r1" class="ident">stats</label>.<a href="#line-20" class="ident">PauseQuantiles</a>[<label for="r11" class="ident">i</label>] = <label for="r7" class="ident">sorted</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r7" class="ident">sorted</label>)*<label for="r11" class="ident">i</label>/<label for="r10" class="ident">nq</label>]</code></span>
+<span class="codeline" id="line-78"><code>			}</code></span>
+<span class="codeline" id="line-79"><code>			<label for="r1" class="ident">stats</label>.<a href="#line-20" class="ident">PauseQuantiles</a>[<label for="r10" class="ident">nq</label>] = <label for="r7" class="ident">sorted</label>[<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r7" class="ident">sorted</label>)-<span class="lit-number">1</span>]</code></span>
+<span class="codeline" id="line-80"><code>		}</code></span>
+<span class="codeline" id="line-81"><code>	}</code></span>
+<span class="codeline" id="line-82"><code>}</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// SetGCPercent sets the garbage collection target percentage:</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// a collection is triggered when the ratio of freshly allocated data</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">// to live data remaining after the previous collection reaches this percentage.</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// SetGCPercent returns the previous setting.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">// The initial setting is the value of the GOGC environment variable</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">// at startup, or 100 if the variable is not set.</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">// A negative percentage disables garbage collection.</span></code></span>
+<span class="codeline" id="line-91"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../../pkg/runtime/debug.html#name-SetGCPercent" class="ident">SetGCPercent</a></label>(<label for="r13" class="ident">percent</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-92"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>(<a href="stubs.go.html#line-15" class="ident">setGCPercent</a>(<a href="../../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r13" class="ident">percent</label>)))</code></span>
+<span class="codeline" id="line-93"><code>}</code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">// FreeOSMemory forces a garbage collection followed by an</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// attempt to return as much memory to the operating system</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">// as possible. (Even if this is not called, the runtime gradually</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">// returns memory to the operating system in a background task.)</span></code></span>
+<span class="codeline" id="line-99"><code><span class="keyword">func</span> <label for="r14" class="ident"><a href="../../../pkg/runtime/debug.html#name-FreeOSMemory" class="ident">FreeOSMemory</a></label>() {</code></span>
+<span class="codeline" id="line-100"><code>	<a href="stubs.go.html#line-13" class="ident">freeOSMemory</a>()</code></span>
+<span class="codeline" id="line-101"><code>}</code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">// SetMaxStack sets the maximum amount of memory that</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">// can be used by a single goroutine stack.</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// If any goroutine exceeds this limit while growing its stack,</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">// the program crashes.</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">// SetMaxStack returns the previous setting.</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">// The initial setting is 1 GB on 64-bit systems, 250 MB on 32-bit systems.</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">// There may be a system-imposed maximum stack limit regardless</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">// of the value provided to SetMaxStack.</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">// SetMaxStack is useful mainly for limiting the damage done by</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">// goroutines that enter an infinite recursion. It only limits future</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">// stack growth.</span></code></span>
+<span class="codeline" id="line-115"><code><span class="keyword">func</span> <label for="r15" class="ident"><a href="../../../pkg/runtime/debug.html#name-SetMaxStack" class="ident">SetMaxStack</a></label>(<label for="r16" class="ident">bytes</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-116"><code>	<span class="keyword">return</span> <a href="stubs.go.html#line-14" class="ident">setMaxStack</a>(<label for="r16" class="ident">bytes</label>)</code></span>
+<span class="codeline" id="line-117"><code>}</code></span>
+<span class="codeline" id="line-118"><code></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">// SetMaxThreads sets the maximum number of operating system</span></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">// threads that the Go program can use. If it attempts to use more than</span></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">// this many, the program crashes.</span></code></span>
+<span class="codeline" id="line-122"><code><span class="comment">// SetMaxThreads returns the previous setting.</span></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">// The initial setting is 10,000 threads.</span></code></span>
+<span class="codeline" id="line-124"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">// The limit controls the number of operating system threads, not the number</span></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">// of goroutines. A Go program creates a new thread only when a goroutine</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">// is ready to run but all the existing threads are blocked in system calls, cgo calls,</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">// or are locked to other goroutines due to use of runtime.LockOSThread.</span></code></span>
+<span class="codeline" id="line-129"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">// SetMaxThreads is useful mainly for limiting the damage done by</span></code></span>
+<span class="codeline" id="line-131"><code><span class="comment">// programs that create an unbounded number of threads. The idea is</span></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">// to take down the program before it takes down the operating system.</span></code></span>
+<span class="codeline" id="line-133"><code><span class="keyword">func</span> <label for="r17" class="ident"><a href="../../../pkg/runtime/debug.html#name-SetMaxThreads" class="ident">SetMaxThreads</a></label>(<label for="r18" class="ident">threads</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-134"><code>	<span class="keyword">return</span> <a href="stubs.go.html#line-17" class="ident">setMaxThreads</a>(<label for="r18" class="ident">threads</label>)</code></span>
+<span class="codeline" id="line-135"><code>}</code></span>
+<span class="codeline" id="line-136"><code></code></span>
+<span class="codeline" id="line-137"><code><span class="comment">// SetPanicOnFault controls the runtime's behavior when a program faults</span></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">// at an unexpected (non-nil) address. Such faults are typically caused by</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">// bugs such as runtime memory corruption, so the default response is to crash</span></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">// the program. Programs working with memory-mapped files or unsafe</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">// manipulation of memory may cause faults at non-nil addresses in less</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">// dramatic situations; SetPanicOnFault allows such programs to request</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">// that the runtime trigger only a panic, not a crash.</span></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">// The runtime.Error that the runtime panics with may have an additional method:</span></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">//     Addr() uintptr</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">// If that method exists, it returns the memory address which triggered the fault.</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">// The results of Addr are best-effort and the veracity of the result</span></code></span>
+<span class="codeline" id="line-148"><code><span class="comment">// may depend on the platform.</span></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">// SetPanicOnFault applies only to the current goroutine.</span></code></span>
+<span class="codeline" id="line-150"><code><span class="comment">// It returns the previous setting.</span></code></span>
+<span class="codeline" id="line-151"><code><span class="keyword">func</span> <label for="r19" class="ident"><a href="../../../pkg/runtime/debug.html#name-SetPanicOnFault" class="ident">SetPanicOnFault</a></label>(<label for="r20" class="ident">enabled</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-152"><code>	<span class="keyword">return</span> <a href="stubs.go.html#line-16" class="ident">setPanicOnFault</a>(<label for="r20" class="ident">enabled</label>)</code></span>
+<span class="codeline" id="line-153"><code>}</code></span>
+<span class="codeline" id="line-154"><code></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">// WriteHeapDump writes a description of the heap and the objects in</span></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">// it to the given file descriptor.</span></code></span>
+<span class="codeline" id="line-157"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-158"><code><span class="comment">// WriteHeapDump suspends the execution of all goroutines until the heap</span></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">// dump is completely written.  Thus, the file descriptor must not be</span></code></span>
+<span class="codeline" id="line-160"><code><span class="comment">// connected to a pipe or socket whose other end is in the same Go</span></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">// process; instead, use a temporary file or network socket.</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">// The heap dump format is defined at https://golang.org/s/go15heapdump.</span></code></span>
+<span class="codeline" id="line-164"><code><span class="keyword">func</span> <label for="r21" class="ident"><a href="../../../pkg/runtime/debug.html#name-WriteHeapDump" class="ident">WriteHeapDump</a></label>(<label for="r22" class="ident">fd</label> <a href="../../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>)</code></span>
+<span class="codeline" id="line-165"><code></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">// SetTraceback sets the amount of detail printed by the runtime in</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">// the traceback it prints before exiting due to an unrecovered panic</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">// or an internal runtime error.</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">// The level argument takes the same values as the GOTRACEBACK</span></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">// environment variable. For example, SetTraceback("all") ensure</span></code></span>
+<span class="codeline" id="line-171"><code><span class="comment">// that the program prints all goroutines when it crashes.</span></code></span>
+<span class="codeline" id="line-172"><code><span class="comment">// See the package runtime documentation for details.</span></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">// If SetTraceback is called with a level lower than that of the</span></code></span>
+<span class="codeline" id="line-174"><code><span class="comment">// environment variable, the call is ignored.</span></code></span>
+<span class="codeline" id="line-175"><code><span class="keyword">func</span> <label for="r23" class="ident"><a href="../../../pkg/runtime/debug.html#name-SetTraceback" class="ident">SetTraceback</a></label>(<label for="r24" class="ident">level</label> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>)</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.6</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

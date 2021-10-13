@@ -31,11 +31,6 @@ const (
 	HashXXHash = "xxhash" //https://github.com/OneOfOne/xxhash
 )
 
-type IHash interface {
-	Calculate(reader io.Reader) (string, error)
-	GetType() string
-}
-
 type hashingAlgo struct {
 	Hash hash.Hash
 	Type string

@@ -80,84 +80,87 @@ input[id=i3]:checked ~pre .i3
 <input id="i3" type="radio" name="i"/>
 
 <pre class="line-numbers">
-<span class="codeline" id="line-1"><code><span class="keyword">package</span> subprocess</code></span>
-<span class="codeline" id="line-2"><code></code></span>
-<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
-<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
-<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"time"</span></label></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> * Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * SPDX-License-Identifier: Apache-2.0</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> */</span></code></span></div><span class="codeline" id="line-5"><code><span class="keyword">package</span> subprocess</code></span>
 <span class="codeline" id="line-6"><code></code></span>
-<span class="codeline" id="line-7"><code>	<label for="i2"><span class="lit-string i2">"go.uber.org/atomic"</span></label></code></span>
-<span class="codeline" id="line-8"><code></code></span>
-<span class="codeline" id="line-9"><code>	<label for="i3"><span class="lit-string i3">"github.com/ARM-software/golang-utils/utils/parallelisation"</span></label></code></span>
-<span class="codeline" id="line-10"><code>)</code></span>
-<span class="codeline" id="line-11"><code></code></span>
-<span class="codeline" id="line-12"><code><span class="comment">// INTERNAL</span></code></span>
-<span class="codeline" id="line-13"><code><span class="comment">// Object in charge of monitoring subprocesses.</span></code></span>
-<span class="codeline" id="line-14"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/subprocess.html#name-subprocessMonitoring" class="ident">subprocessMonitoring</a> <span class="keyword">struct</span> {</code></span>
-<span class="codeline" id="line-15"><code>	cancelStore        *<a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/parallelisation.html" class="ident i3">parallelisation</a>.<a href="../parallelisation/cancel_functions.go.html#line-13" class="ident">CancelFunctionStore</a></code></span>
-<span class="codeline" id="line-16"><code>	parentCtx          <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-62" class="ident">Context</a></code></span>
-<span class="codeline" id="line-17"><code>	cancellableCtx     <a href="../../../../../../pkg/go.uber.org/atomic.html" class="ident i2">atomic</a>.<a href="../../../../../go.uber.org/atomic/value.go.html#line-27" class="ident">Value</a></code></span>
-<span class="codeline" id="line-18"><code>	monitoringOn       <a href="../../../../../../pkg/go.uber.org/atomic.html" class="ident i2">atomic</a>.<a href="../../../../../go.uber.org/atomic/bool.go.html#line-30" class="ident">Bool</a></code></span>
-<span class="codeline" id="line-19"><code>	monitoringStopping <a href="../../../../../../pkg/go.uber.org/atomic.html" class="ident i2">atomic</a>.<a href="../../../../../go.uber.org/atomic/bool.go.html#line-30" class="ident">Bool</a></code></span>
-<span class="codeline" id="line-20"><code>}</code></span>
-<span class="codeline" id="line-21"><code></code></span>
-<span class="codeline" id="line-22"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/subprocess.html#name-newSubprocessMonitoring" class="ident">newSubprocessMonitoring</a></label>(<label for="r1" class="ident">parentCtx</label> <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-62" class="ident">Context</a>) *<a href="#line-14" class="ident">subprocessMonitoring</a> {</code></span>
-<span class="codeline" id="line-23"><code>	<label for="r2" class="ident">m</label> := &amp;<a href="#line-14" class="ident">subprocessMonitoring</a>{</code></span>
-<span class="codeline" id="line-24"><code>		<a href="#line-15" class="ident">cancelStore</a>: <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/parallelisation.html" class="ident i3">parallelisation</a>.<a href="../parallelisation/cancel_functions.go.html#line-38" class="ident">NewCancelFunctionsStore</a>(),</code></span>
-<span class="codeline" id="line-25"><code>		<a href="#line-16" class="ident">parentCtx</a>:   <label for="r1" class="ident">parentCtx</label>,</code></span>
-<span class="codeline" id="line-26"><code>	}</code></span>
-<span class="codeline" id="line-27"><code>	<label for="r2" class="ident">m</label>.<a href="#line-55" class="ident">Reset</a>()</code></span>
-<span class="codeline" id="line-28"><code>	<span class="keyword">return</span> <label for="r2" class="ident">m</label></code></span>
-<span class="codeline" id="line-29"><code>}</code></span>
-<span class="codeline" id="line-30"><code></code></span>
-<span class="codeline" id="line-31"><code><span class="comment">// Interrupts an on-going process.</span></code></span>
-<span class="codeline" id="line-32"><code><span class="keyword">func</span> (<label for="r3" class="ident">s</label> *<a href="#line-14" class="ident">subprocessMonitoring</a>) <label for="r4" class="ident">CancelSubprocess</label>() {</code></span>
-<span class="codeline" id="line-33"><code>	<label for="r3" class="ident">s</label>.<a href="#line-19" class="ident">monitoringStopping</a>.<a href="../../../../../go.uber.org/atomic/bool.go.html#line-53" class="ident">Store</a>(<a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
-<span class="codeline" id="line-34"><code>	<label for="r3" class="ident">s</label>.<a href="#line-15" class="ident">cancelStore</a>.<a href="../parallelisation/cancel_functions.go.html#line-24" class="ident">Cancel</a>()</code></span>
-<span class="codeline" id="line-35"><code>}</code></span>
-<span class="codeline" id="line-36"><code></code></span>
-<span class="codeline" id="line-37"><code><span class="keyword">func</span> (<label for="r5" class="ident">s</label> *<a href="#line-14" class="ident">subprocessMonitoring</a>) <label for="r6" class="ident">RunMonitoring</label>(<label for="r7" class="ident">stopProcess</label> <span class="keyword">func</span>() <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
-<span class="codeline" id="line-38"><code>	<label for="r8" class="ident">timeoutCtx</label>, <label for="r9" class="ident">cancel</label> := <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-502" class="ident">WithTimeout</a>(<label for="r5" class="ident">s</label>.<a href="#line-16" class="ident">parentCtx</a>, <a href="../../../../../../pkg/time.html" class="ident i1">time</a>.<a href="../../../../../time/time.go.html#line-605" class="ident">Second</a>)</code></span>
-<span class="codeline" id="line-39"><code>	<span class="keyword">defer</span> <label for="r9" class="ident">cancel</label>()</code></span>
-<span class="codeline" id="line-40"><code>	<span class="keyword">for</span> <label for="r5" class="ident">s</label>.<a href="#line-62" class="ident">IsOn</a>() {</code></span>
-<span class="codeline" id="line-41"><code>		<span class="comment">// if monitoring is already on, either wait until it is stopped to relaunch it or do not do anything</span></code></span>
-<span class="codeline" id="line-42"><code>		<span class="keyword">if</span> !<label for="r5" class="ident">s</label>.<a href="#line-19" class="ident">monitoringStopping</a>.<a href="../../../../../go.uber.org/atomic/bool.go.html#line-48" class="ident">Load</a>() {</code></span>
-<span class="codeline" id="line-43"><code>			<span class="keyword">return</span></code></span>
-<span class="codeline" id="line-44"><code>		}</code></span>
-<span class="codeline" id="line-45"><code>		<a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/parallelisation.html" class="ident i3">parallelisation</a>.<a href="../parallelisation/parallelisation.go.html#line-65" class="ident">SleepWithContext</a>(<label for="r8" class="ident">timeoutCtx</label>, <a href="../../../../../../pkg/time.html" class="ident i1">time</a>.<a href="../../../../../time/time.go.html#line-604" class="ident">Millisecond</a>)</code></span>
-<span class="codeline" id="line-46"><code>		<label for="r10" class="ident">err</label> := <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/parallelisation.html" class="ident i3">parallelisation</a>.<a href="../parallelisation/parallelisation.go.html#line-19" class="ident">DetermineContextError</a>(<label for="r8" class="ident">timeoutCtx</label>)</code></span>
-<span class="codeline" id="line-47"><code>		<span class="keyword">if</span> <label for="r10" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
-<span class="codeline" id="line-48"><code>			<span class="keyword">return</span></code></span>
-<span class="codeline" id="line-49"><code>		}</code></span>
-<span class="codeline" id="line-50"><code>	}</code></span>
-<span class="codeline" id="line-51"><code>	<label for="r5" class="ident">s</label>.<a href="#line-55" class="ident">Reset</a>()</code></span>
-<span class="codeline" id="line-52"><code>	<label for="r5" class="ident">s</label>.<a href="#line-70" class="ident">runProcessMonitoring</a>(<label for="r7" class="ident">stopProcess</label>)</code></span>
-<span class="codeline" id="line-53"><code>}</code></span>
-<span class="codeline" id="line-54"><code></code></span>
-<span class="codeline" id="line-55"><code><span class="keyword">func</span> (<label for="r11" class="ident">s</label> *<a href="#line-14" class="ident">subprocessMonitoring</a>) <label for="r12" class="ident">Reset</label>() {</code></span>
-<span class="codeline" id="line-56"><code>	<label for="r11" class="ident">s</label>.<a href="#line-19" class="ident">monitoringStopping</a>.<a href="../../../../../go.uber.org/atomic/bool.go.html#line-53" class="ident">Store</a>(<a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
-<span class="codeline" id="line-57"><code>	<label for="r13" class="ident">subctx</label>, <label for="r14" class="ident">cancelFunc</label> := <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-232" class="ident">WithCancel</a>(<label for="r11" class="ident">s</label>.<a href="#line-16" class="ident">parentCtx</a>)</code></span>
-<span class="codeline" id="line-58"><code>	<label for="r11" class="ident">s</label>.<a href="#line-17" class="ident">cancellableCtx</a>.<a href="../../../../../sync/atomic/value.go.html#line-45" class="ident">Store</a>(<label for="r13" class="ident">subctx</label>)</code></span>
-<span class="codeline" id="line-59"><code>	<label for="r11" class="ident">s</label>.<a href="#line-15" class="ident">cancelStore</a>.<a href="../parallelisation/cancel_functions.go.html#line-18" class="ident">RegisterCancelFunction</a>(<label for="r14" class="ident">cancelFunc</label>)</code></span>
-<span class="codeline" id="line-60"><code>}</code></span>
-<span class="codeline" id="line-61"><code></code></span>
-<span class="codeline" id="line-62"><code><span class="keyword">func</span> (<label for="r15" class="ident">s</label> *<a href="#line-14" class="ident">subprocessMonitoring</a>) <label for="r16" class="ident">IsOn</label>() <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
-<span class="codeline" id="line-63"><code>	<span class="keyword">return</span> <label for="r15" class="ident">s</label>.<a href="#line-18" class="ident">monitoringOn</a>.<a href="../../../../../go.uber.org/atomic/bool.go.html#line-48" class="ident">Load</a>()</code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"context"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"time"</span></label></code></span>
+<span class="codeline" id="line-10"><code></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i2"><span class="lit-string i2">"go.uber.org/atomic"</span></label></code></span>
+<span class="codeline" id="line-12"><code></code></span>
+<span class="codeline" id="line-13"><code>	<label for="i3"><span class="lit-string i3">"github.com/ARM-software/golang-utils/utils/parallelisation"</span></label></code></span>
+<span class="codeline" id="line-14"><code>)</code></span>
+<span class="codeline" id="line-15"><code></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// INTERNAL</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// Object in charge of monitoring subprocesses.</span></code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/subprocess.html#name-subprocessMonitoring" class="ident">subprocessMonitoring</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-19"><code>	cancelStore        *<a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/parallelisation.html" class="ident i3">parallelisation</a>.<a href="../parallelisation/cancel_functions.go.html#line-13" class="ident">CancelFunctionStore</a></code></span>
+<span class="codeline" id="line-20"><code>	parentCtx          <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-62" class="ident">Context</a></code></span>
+<span class="codeline" id="line-21"><code>	cancellableCtx     <a href="../../../../../../pkg/go.uber.org/atomic.html" class="ident i2">atomic</a>.<a href="../../../../../go.uber.org/atomic/value.go.html#line-27" class="ident">Value</a></code></span>
+<span class="codeline" id="line-22"><code>	monitoringOn       <a href="../../../../../../pkg/go.uber.org/atomic.html" class="ident i2">atomic</a>.<a href="../../../../../go.uber.org/atomic/bool.go.html#line-30" class="ident">Bool</a></code></span>
+<span class="codeline" id="line-23"><code>	monitoringStopping <a href="../../../../../../pkg/go.uber.org/atomic.html" class="ident i2">atomic</a>.<a href="../../../../../go.uber.org/atomic/bool.go.html#line-30" class="ident">Bool</a></code></span>
+<span class="codeline" id="line-24"><code>}</code></span>
+<span class="codeline" id="line-25"><code></code></span>
+<span class="codeline" id="line-26"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/subprocess.html#name-newSubprocessMonitoring" class="ident">newSubprocessMonitoring</a></label>(<label for="r1" class="ident">parentCtx</label> <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-62" class="ident">Context</a>) *<a href="#line-18" class="ident">subprocessMonitoring</a> {</code></span>
+<span class="codeline" id="line-27"><code>	<label for="r2" class="ident">m</label> := &amp;<a href="#line-18" class="ident">subprocessMonitoring</a>{</code></span>
+<span class="codeline" id="line-28"><code>		<a href="#line-19" class="ident">cancelStore</a>: <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/parallelisation.html" class="ident i3">parallelisation</a>.<a href="../parallelisation/cancel_functions.go.html#line-38" class="ident">NewCancelFunctionsStore</a>(),</code></span>
+<span class="codeline" id="line-29"><code>		<a href="#line-20" class="ident">parentCtx</a>:   <label for="r1" class="ident">parentCtx</label>,</code></span>
+<span class="codeline" id="line-30"><code>	}</code></span>
+<span class="codeline" id="line-31"><code>	<label for="r2" class="ident">m</label>.<a href="#line-59" class="ident">Reset</a>()</code></span>
+<span class="codeline" id="line-32"><code>	<span class="keyword">return</span> <label for="r2" class="ident">m</label></code></span>
+<span class="codeline" id="line-33"><code>}</code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// Interrupts an on-going process.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">func</span> (<label for="r3" class="ident">s</label> *<a href="#line-18" class="ident">subprocessMonitoring</a>) <label for="r4" class="ident">CancelSubprocess</label>() {</code></span>
+<span class="codeline" id="line-37"><code>	<label for="r3" class="ident">s</label>.<a href="#line-23" class="ident">monitoringStopping</a>.<a href="../../../../../go.uber.org/atomic/bool.go.html#line-53" class="ident">Store</a>(<a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-38"><code>	<label for="r3" class="ident">s</label>.<a href="#line-19" class="ident">cancelStore</a>.<a href="../parallelisation/cancel_functions.go.html#line-24" class="ident">Cancel</a>()</code></span>
+<span class="codeline" id="line-39"><code>}</code></span>
+<span class="codeline" id="line-40"><code></code></span>
+<span class="codeline" id="line-41"><code><span class="keyword">func</span> (<label for="r5" class="ident">s</label> *<a href="#line-18" class="ident">subprocessMonitoring</a>) <label for="r6" class="ident">RunMonitoring</label>(<label for="r7" class="ident">stopProcess</label> <span class="keyword">func</span>() <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-42"><code>	<label for="r8" class="ident">timeoutCtx</label>, <label for="r9" class="ident">cancel</label> := <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-502" class="ident">WithTimeout</a>(<label for="r5" class="ident">s</label>.<a href="#line-20" class="ident">parentCtx</a>, <a href="../../../../../../pkg/time.html" class="ident i1">time</a>.<a href="../../../../../time/time.go.html#line-605" class="ident">Second</a>)</code></span>
+<span class="codeline" id="line-43"><code>	<span class="keyword">defer</span> <label for="r9" class="ident">cancel</label>()</code></span>
+<span class="codeline" id="line-44"><code>	<span class="keyword">for</span> <label for="r5" class="ident">s</label>.<a href="#line-66" class="ident">IsOn</a>() {</code></span>
+<span class="codeline" id="line-45"><code>		<span class="comment">// if monitoring is already on, either wait until it is stopped to relaunch it or do not do anything</span></code></span>
+<span class="codeline" id="line-46"><code>		<span class="keyword">if</span> !<label for="r5" class="ident">s</label>.<a href="#line-23" class="ident">monitoringStopping</a>.<a href="../../../../../go.uber.org/atomic/bool.go.html#line-48" class="ident">Load</a>() {</code></span>
+<span class="codeline" id="line-47"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-48"><code>		}</code></span>
+<span class="codeline" id="line-49"><code>		<a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/parallelisation.html" class="ident i3">parallelisation</a>.<a href="../parallelisation/parallelisation.go.html#line-65" class="ident">SleepWithContext</a>(<label for="r8" class="ident">timeoutCtx</label>, <a href="../../../../../../pkg/time.html" class="ident i1">time</a>.<a href="../../../../../time/time.go.html#line-604" class="ident">Millisecond</a>)</code></span>
+<span class="codeline" id="line-50"><code>		<label for="r10" class="ident">err</label> := <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/parallelisation.html" class="ident i3">parallelisation</a>.<a href="../parallelisation/parallelisation.go.html#line-19" class="ident">DetermineContextError</a>(<label for="r8" class="ident">timeoutCtx</label>)</code></span>
+<span class="codeline" id="line-51"><code>		<span class="keyword">if</span> <label for="r10" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-52"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-53"><code>		}</code></span>
+<span class="codeline" id="line-54"><code>	}</code></span>
+<span class="codeline" id="line-55"><code>	<label for="r5" class="ident">s</label>.<a href="#line-59" class="ident">Reset</a>()</code></span>
+<span class="codeline" id="line-56"><code>	<label for="r5" class="ident">s</label>.<a href="#line-74" class="ident">runProcessMonitoring</a>(<label for="r7" class="ident">stopProcess</label>)</code></span>
+<span class="codeline" id="line-57"><code>}</code></span>
+<span class="codeline" id="line-58"><code></code></span>
+<span class="codeline" id="line-59"><code><span class="keyword">func</span> (<label for="r11" class="ident">s</label> *<a href="#line-18" class="ident">subprocessMonitoring</a>) <label for="r12" class="ident">Reset</label>() {</code></span>
+<span class="codeline" id="line-60"><code>	<label for="r11" class="ident">s</label>.<a href="#line-23" class="ident">monitoringStopping</a>.<a href="../../../../../go.uber.org/atomic/bool.go.html#line-53" class="ident">Store</a>(<a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-61"><code>	<label for="r13" class="ident">subctx</label>, <label for="r14" class="ident">cancelFunc</label> := <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-232" class="ident">WithCancel</a>(<label for="r11" class="ident">s</label>.<a href="#line-20" class="ident">parentCtx</a>)</code></span>
+<span class="codeline" id="line-62"><code>	<label for="r11" class="ident">s</label>.<a href="#line-21" class="ident">cancellableCtx</a>.<a href="../../../../../sync/atomic/value.go.html#line-45" class="ident">Store</a>(<label for="r13" class="ident">subctx</label>)</code></span>
+<span class="codeline" id="line-63"><code>	<label for="r11" class="ident">s</label>.<a href="#line-19" class="ident">cancelStore</a>.<a href="../parallelisation/cancel_functions.go.html#line-18" class="ident">RegisterCancelFunction</a>(<label for="r14" class="ident">cancelFunc</label>)</code></span>
 <span class="codeline" id="line-64"><code>}</code></span>
 <span class="codeline" id="line-65"><code></code></span>
-<span class="codeline" id="line-66"><code><span class="keyword">func</span> (<label for="r17" class="ident">s</label> *<a href="#line-14" class="ident">subprocessMonitoring</a>) <label for="r18" class="ident">ProcessContext</label>() <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-62" class="ident">Context</a> {</code></span>
-<span class="codeline" id="line-67"><code>	<span class="keyword">return</span> <label for="r17" class="ident">s</label>.<a href="#line-17" class="ident">cancellableCtx</a>.<a href="../../../../../sync/atomic/value.go.html#line-28" class="ident">Load</a>().(<a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-62" class="ident">Context</a>)</code></span>
+<span class="codeline" id="line-66"><code><span class="keyword">func</span> (<label for="r15" class="ident">s</label> *<a href="#line-18" class="ident">subprocessMonitoring</a>) <label for="r16" class="ident">IsOn</label>() <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-67"><code>	<span class="keyword">return</span> <label for="r15" class="ident">s</label>.<a href="#line-22" class="ident">monitoringOn</a>.<a href="../../../../../go.uber.org/atomic/bool.go.html#line-48" class="ident">Load</a>()</code></span>
 <span class="codeline" id="line-68"><code>}</code></span>
 <span class="codeline" id="line-69"><code></code></span>
-<span class="codeline" id="line-70"><code><span class="keyword">func</span> (<label for="r19" class="ident">s</label> *<a href="#line-14" class="ident">subprocessMonitoring</a>) <label for="r20" class="ident">runProcessMonitoring</label>(<label for="r21" class="ident">stopProcess</label> <span class="keyword">func</span>() <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
-<span class="codeline" id="line-71"><code>	<span class="keyword">go</span> <span class="keyword">func</span>(<label for="r22" class="ident">m</label> *<a href="#line-14" class="ident">subprocessMonitoring</a>, <label for="r23" class="ident">stop</label> <span class="keyword">func</span>() <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
-<span class="codeline" id="line-72"><code>		<label for="r22" class="ident">m</label>.<a href="#line-18" class="ident">monitoringOn</a>.<a href="../../../../../go.uber.org/atomic/bool.go.html#line-53" class="ident">Store</a>(<a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
-<span class="codeline" id="line-73"><code>		&lt;-<label for="r19" class="ident">s</label>.<a href="#line-66" class="ident">ProcessContext</a>().<a href="../../../../../context/context.go.html#line-99" class="ident">Done</a>()</code></span>
-<span class="codeline" id="line-74"><code>		<label for="r22" class="ident">m</label>.<a href="#line-32" class="ident">CancelSubprocess</a>()</code></span>
-<span class="codeline" id="line-75"><code>		_ = <label for="r23" class="ident">stop</label>()</code></span>
-<span class="codeline" id="line-76"><code>		<label for="r22" class="ident">m</label>.<a href="#line-18" class="ident">monitoringOn</a>.<a href="../../../../../go.uber.org/atomic/bool.go.html#line-53" class="ident">Store</a>(<a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
-<span class="codeline" id="line-77"><code>	}(<label for="r19" class="ident">s</label>, <label for="r21" class="ident">stopProcess</label>)</code></span>
-<span class="codeline" id="line-78"><code>}</code></span>
+<span class="codeline" id="line-70"><code><span class="keyword">func</span> (<label for="r17" class="ident">s</label> *<a href="#line-18" class="ident">subprocessMonitoring</a>) <label for="r18" class="ident">ProcessContext</label>() <a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-62" class="ident">Context</a> {</code></span>
+<span class="codeline" id="line-71"><code>	<span class="keyword">return</span> <label for="r17" class="ident">s</label>.<a href="#line-21" class="ident">cancellableCtx</a>.<a href="../../../../../sync/atomic/value.go.html#line-28" class="ident">Load</a>().(<a href="../../../../../../pkg/context.html" class="ident i0">context</a>.<a href="../../../../../context/context.go.html#line-62" class="ident">Context</a>)</code></span>
+<span class="codeline" id="line-72"><code>}</code></span>
+<span class="codeline" id="line-73"><code></code></span>
+<span class="codeline" id="line-74"><code><span class="keyword">func</span> (<label for="r19" class="ident">s</label> *<a href="#line-18" class="ident">subprocessMonitoring</a>) <label for="r20" class="ident">runProcessMonitoring</label>(<label for="r21" class="ident">stopProcess</label> <span class="keyword">func</span>() <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">go</span> <span class="keyword">func</span>(<label for="r22" class="ident">m</label> *<a href="#line-18" class="ident">subprocessMonitoring</a>, <label for="r23" class="ident">stop</label> <span class="keyword">func</span>() <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-76"><code>		<label for="r22" class="ident">m</label>.<a href="#line-22" class="ident">monitoringOn</a>.<a href="../../../../../go.uber.org/atomic/bool.go.html#line-53" class="ident">Store</a>(<a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>)</code></span>
+<span class="codeline" id="line-77"><code>		&lt;-<label for="r19" class="ident">s</label>.<a href="#line-70" class="ident">ProcessContext</a>().<a href="../../../../../context/context.go.html#line-99" class="ident">Done</a>()</code></span>
+<span class="codeline" id="line-78"><code>		<label for="r22" class="ident">m</label>.<a href="#line-36" class="ident">CancelSubprocess</a>()</code></span>
+<span class="codeline" id="line-79"><code>		_ = <label for="r23" class="ident">stop</label>()</code></span>
+<span class="codeline" id="line-80"><code>		<label for="r22" class="ident">m</label>.<a href="#line-22" class="ident">monitoringOn</a>.<a href="../../../../../go.uber.org/atomic/bool.go.html#line-53" class="ident">Store</a>(<a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-81"><code>	}(<label for="r19" class="ident">s</label>, <label for="r21" class="ident">stopProcess</label>)</code></span>
+<span class="codeline" id="line-82"><code>}</code></span>
 </pre><pre id="footer">
 <table><tr><td><img src="../../../../../../png/go101-twitter.png"></td>
 <td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.6</i>. (GOOS=linux GOARCH=amd64)

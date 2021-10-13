@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: stack.go in package runtime/debug</title>
+<link href="../../../css/light-v0.3.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	stack.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/runtime/debug.html">runtime/debug</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2011 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package debug contains facilities for programs to debug themselves while</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// they are running.</span></code></span></div><span class="codeline" id="line-7"><code><span class="keyword">package</span> debug</code></span>
+<span class="codeline" id="line-8"><code></code></span>
+<span class="codeline" id="line-9"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-10"><code>	<label for="i0"><span class="lit-string i0">"os"</span></label></code></span>
+<span class="codeline" id="line-11"><code>	<label for="i1"><span class="lit-string i1">"runtime"</span></label></code></span>
+<span class="codeline" id="line-12"><code>)</code></span>
+<span class="codeline" id="line-13"><code></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// PrintStack prints to standard error the stack trace returned by runtime.Stack.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/runtime/debug.html#name-PrintStack" class="ident">PrintStack</a></label>() {</code></span>
+<span class="codeline" id="line-16"><code>	<a href="../../../pkg/os.html" class="ident i0">os</a>.<a href="../../os/file.go.html#line-66" class="ident">Stderr</a>.<a href="../../os/file.go.html#line-170" class="ident">Write</a>(<a href="#line-21" class="ident">Stack</a>())</code></span>
+<span class="codeline" id="line-17"><code>}</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// Stack returns a formatted stack trace of the goroutine that calls it.</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// It calls runtime.Stack with a large enough buffer to capture the entire trace.</span></code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">func</span> <label for="r1" class="ident"><a href="../../../pkg/runtime/debug.html#name-Stack" class="ident">Stack</a></label>() []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-22"><code>	<label for="r2" class="ident">buf</label> := <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">1024</span>)</code></span>
+<span class="codeline" id="line-23"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-24"><code>		<label for="r3" class="ident">n</label> := <a href="../../../pkg/runtime.html" class="ident i1">runtime</a>.<a href="../mprof.go.html#line-803" class="ident">Stack</a>(<label for="r2" class="ident">buf</label>, <a href="../../../pkg/builtin.html#name-false" class="ident">false</a>)</code></span>
+<span class="codeline" id="line-25"><code>		<span class="keyword">if</span> <label for="r3" class="ident">n</label> &lt; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">buf</label>) {</code></span>
+<span class="codeline" id="line-26"><code>			<span class="keyword">return</span> <label for="r2" class="ident">buf</label>[:<label for="r3" class="ident">n</label>]</code></span>
+<span class="codeline" id="line-27"><code>		}</code></span>
+<span class="codeline" id="line-28"><code>		<label for="r2" class="ident">buf</label> = <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">2</span>*<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">buf</label>))</code></span>
+<span class="codeline" id="line-29"><code>	}</code></span>
+<span class="codeline" id="line-30"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.6</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

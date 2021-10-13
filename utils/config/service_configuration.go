@@ -14,11 +14,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-type IServiceConfiguration interface {
-	// Validates configuration entries.
-	Validate() error
-}
-
 // Loads the configuration from the environment and puts the entries into the configuration object.
 // If not found in the environment, the values will come from the default values.
 // `envVarPrefix` defines a prefix that ENVIRONMENT variables will use.  E.g. if your prefix is "spf", the env registry will look for env variables that start with "SPF_".

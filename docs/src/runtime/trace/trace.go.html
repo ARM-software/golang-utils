@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: trace.go in package runtime/trace</title>
+<link href="../../../css/light-v0.3.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	trace.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/runtime/trace.html">runtime/trace</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// Copyright 2015 The Go Authors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Use of this source code is governed by a BSD-style</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// license that can be found in the LICENSE file.</span></code></span>
+<span class="codeline" id="line-4"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-5"><code><span class="comment">// Package trace contains facilities for programs to generate traces</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// for the Go execution tracer.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// Tracing runtime activities</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// The execution trace captures a wide range of execution events such as</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// goroutine creation/blocking/unblocking, syscall enter/exit/block,</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// GC-related events, changes of heap size, processor start/stop, etc.</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// A precise nanosecond-precision timestamp and a stack trace is</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// captured for most events. The generated trace can be interpreted</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// using `go tool trace`.</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// Support for tracing tests and benchmarks built with the standard</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// testing package is built into `go test`. For example, the following</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// command runs the test in the current directory and writes the trace</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// file (trace.out).</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">//    go test -trace=trace.out</span></code></span>
+<span class="codeline" id="line-23"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">// This runtime/trace package provides APIs to add equivalent tracing</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">// support to a standalone program. See the Example that demonstrates</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">// how to use this API to enable tracing.</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">// There is also a standard HTTP interface to trace data. Adding the</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// following line will install a handler under the /debug/pprof/trace URL</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// to download a live trace:</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">//     import _ "net/http/pprof"</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-34"><code><span class="comment">// See the net/http/pprof package for more details about all of the</span></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">// debug endpoints installed by this import.</span></code></span>
+<span class="codeline" id="line-36"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">// User annotation</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">// Package trace provides user annotation APIs that can be used to</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">// log interesting events during execution.</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">// There are three types of user annotations: log messages, regions,</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">// and tasks.</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-45"><code><span class="comment">// Log emits a timestamped message to the execution trace along with</span></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">// additional information such as the category of the message and</span></code></span>
+<span class="codeline" id="line-47"><code><span class="comment">// which goroutine called Log. The execution tracer provides UIs to filter</span></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// and group goroutines using the log category and the message supplied</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">// in Log.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">// A region is for logging a time interval during a goroutine's execution.</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// By definition, a region starts and ends in the same goroutine.</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">// Regions can be nested to represent subintervals.</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">// For example, the following code records four regions in the execution</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">// trace to trace the durations of sequential steps in a cappuccino making</span></code></span>
+<span class="codeline" id="line-56"><code><span class="comment">// operation.</span></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">//   trace.WithRegion(ctx, "makeCappuccino", func() {</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">//      // orderID allows to identify a specific order</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">//      // among many cappuccino order region records.</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">//      trace.Log(ctx, "orderID", orderID)</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">//      trace.WithRegion(ctx, "steamMilk", steamMilk)</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">//      trace.WithRegion(ctx, "extractCoffee", extractCoffee)</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">//      trace.WithRegion(ctx, "mixMilkCoffee", mixMilkCoffee)</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">//   })</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// A task is a higher-level component that aids tracing of logical</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// operations such as an RPC request, an HTTP request, or an</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// interesting local operation which may require multiple goroutines</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">// working together. Since tasks can involve multiple goroutines,</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// they are tracked via a context.Context object. NewTask creates</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">// a new task and embeds it in the returned context.Context object.</span></code></span>
+<span class="codeline" id="line-75"><code><span class="comment">// Log messages and regions are attached to the task, if any, in the</span></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">// Context passed to Log and WithRegion.</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// For example, assume that we decided to froth milk, extract coffee,</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// and mix milk and coffee in separate goroutines. With a task,</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// the trace tool can identify the goroutines involved in a specific</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// cappuccino order.</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">//      ctx, task := trace.NewTask(ctx, "makeCappuccino")</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">//      trace.Log(ctx, "orderID", orderID)</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">//      milk := make(chan bool)</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">//      espresso := make(chan bool)</span></code></span>
+<span class="codeline" id="line-88"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">//      go func() {</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">//              trace.WithRegion(ctx, "steamMilk", steamMilk)</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">//              milk &lt;- true</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">//      }()</span></code></span>
+<span class="codeline" id="line-93"><code><span class="comment">//      go func() {</span></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">//              trace.WithRegion(ctx, "extractCoffee", extractCoffee)</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">//              espresso &lt;- true</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">//      }()</span></code></span>
+<span class="codeline" id="line-97"><code><span class="comment">//      go func() {</span></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">//              defer task.End() // When assemble is done, the order is complete.</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">//              &lt;-espresso</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">//              &lt;-milk</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">//              trace.WithRegion(ctx, "mixMilkCoffee", mixMilkCoffee)</span></code></span>
+<span class="codeline" id="line-102"><code><span class="comment">//      }()</span></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">// The trace tool computes the latency of a task by measuring the</span></code></span>
+<span class="codeline" id="line-106"><code><span class="comment">// time between the task creation and the task end and provides</span></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">// latency distributions for each task type found in the trace.</span></code></span></div><span class="codeline" id="line-108"><code><span class="keyword">package</span> trace</code></span>
+<span class="codeline" id="line-109"><code></code></span>
+<span class="codeline" id="line-110"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-111"><code>	<label for="i0"><span class="lit-string i0">"io"</span></label></code></span>
+<span class="codeline" id="line-112"><code>	<label for="i1"><span class="lit-string i1">"runtime"</span></label></code></span>
+<span class="codeline" id="line-113"><code>	<label for="i2"><span class="lit-string i2">"sync"</span></label></code></span>
+<span class="codeline" id="line-114"><code>	<label for="i3"><span class="lit-string i3">"sync/atomic"</span></label></code></span>
+<span class="codeline" id="line-115"><code>)</code></span>
+<span class="codeline" id="line-116"><code></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">// Start enables tracing for the current program.</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">// While tracing, the trace will be buffered and written to w.</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">// Start returns an error if tracing is already enabled.</span></code></span>
+<span class="codeline" id="line-120"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/runtime/trace.html#name-Start" class="ident">Start</a></label>(<label for="r1" class="ident">w</label> <a href="../../../pkg/io.html" class="ident i0">io</a>.<a href="../../io/io.go.html#line-96" class="ident">Writer</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-121"><code>	<a href="#line-150" class="ident">tracing</a>.<a href="../../sync/mutex.go.html#line-72" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-122"><code>	<span class="keyword">defer</span> <a href="#line-150" class="ident">tracing</a>.<a href="../../sync/mutex.go.html#line-179" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-123"><code></code></span>
+<span class="codeline" id="line-124"><code>	<span class="keyword">if</span> <label for="r2" class="ident">err</label> := <a href="../../../pkg/runtime.html" class="ident i1">runtime</a>.<a href="../trace.go.html#line-183" class="ident">StartTrace</a>(); <label for="r2" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-125"><code>		<span class="keyword">return</span> <label for="r2" class="ident">err</label></code></span>
+<span class="codeline" id="line-126"><code>	}</code></span>
+<span class="codeline" id="line-127"><code>	<span class="keyword">go</span> <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-128"><code>		<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-129"><code>			<label for="r3" class="ident">data</label> := <a href="../../../pkg/runtime.html" class="ident i1">runtime</a>.<a href="../trace.go.html#line-376" class="ident">ReadTrace</a>()</code></span>
+<span class="codeline" id="line-130"><code>			<span class="keyword">if</span> <label for="r3" class="ident">data</label> == <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-131"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-132"><code>			}</code></span>
+<span class="codeline" id="line-133"><code>			<label for="r1" class="ident">w</label>.<a href="../../io/io.go.html#line-97" class="ident">Write</a>(<label for="r3" class="ident">data</label>)</code></span>
+<span class="codeline" id="line-134"><code>		}</code></span>
+<span class="codeline" id="line-135"><code>	}()</code></span>
+<span class="codeline" id="line-136"><code>	<a href="../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../sync/atomic/doc.go.html#line-129" class="ident">StoreInt32</a>(&amp;<a href="#line-150" class="ident">tracing</a>.<a href="#line-152" class="ident">enabled</a>, <span class="lit-number">1</span>)</code></span>
+<span class="codeline" id="line-137"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-138"><code>}</code></span>
+<span class="codeline" id="line-139"><code></code></span>
+<span class="codeline" id="line-140"><code><span class="comment">// Stop stops the current tracing, if any.</span></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">// Stop only returns after all the writes for the trace have completed.</span></code></span>
+<span class="codeline" id="line-142"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../pkg/runtime/trace.html#name-Stop" class="ident">Stop</a></label>() {</code></span>
+<span class="codeline" id="line-143"><code>	<a href="#line-150" class="ident">tracing</a>.<a href="../../sync/mutex.go.html#line-72" class="ident">Lock</a>()</code></span>
+<span class="codeline" id="line-144"><code>	<span class="keyword">defer</span> <a href="#line-150" class="ident">tracing</a>.<a href="../../sync/mutex.go.html#line-179" class="ident">Unlock</a>()</code></span>
+<span class="codeline" id="line-145"><code>	<a href="../../../pkg/sync/atomic.html" class="ident i3">atomic</a>.<a href="../../sync/atomic/doc.go.html#line-129" class="ident">StoreInt32</a>(&amp;<a href="#line-150" class="ident">tracing</a>.<a href="#line-152" class="ident">enabled</a>, <span class="lit-number">0</span>)</code></span>
+<span class="codeline" id="line-146"><code></code></span>
+<span class="codeline" id="line-147"><code>	<a href="../../../pkg/runtime.html" class="ident i1">runtime</a>.<a href="../trace.go.html#line-283" class="ident">StopTrace</a>()</code></span>
+<span class="codeline" id="line-148"><code>}</code></span>
+<span class="codeline" id="line-149"><code></code></span>
+<span class="codeline" id="line-150"><code><span class="keyword">var</span> <a href="../../../pkg/runtime/trace.html#name-tracing" class="ident">tracing</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-151"><code>	<a href="../../../pkg/sync.html" class="ident i2">sync</a>.<a href="../../sync/mutex.go.html#line-25" class="ident">Mutex</a>       <span class="comment">// gate mutators (Start, Stop)</span></code></span>
+<span class="codeline" id="line-152"><code>	enabled    <a href="../../../pkg/builtin.html#name-int32" class="ident">int32</a> <span class="comment">// accessed via atomic</span></code></span>
+<span class="codeline" id="line-153"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.6</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

@@ -62,55 +62,58 @@ input[id=i3]:checked ~pre .i3
 <input id="i3" type="radio" name="i"/>
 
 <pre class="line-numbers">
-<span class="codeline" id="line-1"><code><span class="keyword">package</span> subprocess</code></span>
-<span class="codeline" id="line-2"><code></code></span>
-<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
-<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"io"</span></label></code></span>
-<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"strings"</span></label></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> * Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * SPDX-License-Identifier: Apache-2.0</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> */</span></code></span></div><span class="codeline" id="line-5"><code><span class="keyword">package</span> subprocess</code></span>
 <span class="codeline" id="line-6"><code></code></span>
-<span class="codeline" id="line-7"><code>	<label for="i2"><span class="lit-string i2">"github.com/ARM-software/golang-utils/utils/logs"</span></label></code></span>
-<span class="codeline" id="line-8"><code>	<label for="i3"><span class="lit-string i3">"github.com/ARM-software/golang-utils/utils/platform"</span></label></code></span>
-<span class="codeline" id="line-9"><code>)</code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"io"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"strings"</span></label></code></span>
 <span class="codeline" id="line-10"><code></code></span>
-<span class="codeline" id="line-11"><code><span class="keyword">var</span> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/subprocess.html#name-lineSep" class="ident">lineSep</a> = <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/platform.html" class="ident i3">platform</a>.<a href="../platform/os.go.html#line-31" class="ident">UnixLineSeparator</a>()</code></span>
-<span class="codeline" id="line-12"><code></code></span>
-<span class="codeline" id="line-13"><code><span class="comment">// INTERNAL</span></code></span>
-<span class="codeline" id="line-14"><code><span class="comment">// Way of redirecting process output to a logger.</span></code></span>
-<span class="codeline" id="line-15"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/subprocess.html#name-logStreamer" class="ident">logStreamer</a> <span class="keyword">struct</span> {</code></span>
-<span class="codeline" id="line-16"><code>	<a href="../../../../../../pkg/io.html" class="ident i0">io</a>.<a href="../../../../../io/io.go.html#line-96" class="ident">Writer</a></code></span>
-<span class="codeline" id="line-17"><code>	IsStdErr <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
-<span class="codeline" id="line-18"><code>	Loggers  <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/logs.html" class="ident i2">logs</a>.<a href="../logs/log.go.html#line-18" class="ident">Loggers</a></code></span>
-<span class="codeline" id="line-19"><code>}</code></span>
-<span class="codeline" id="line-20"><code></code></span>
-<span class="codeline" id="line-21"><code><span class="keyword">func</span> (<label for="r0" class="ident">l</label> *<a href="#line-15" class="ident">logStreamer</a>) <label for="r1" class="ident"><a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/subprocess.logStreamer^e23dc.html#name-.Write" class="ident">Write</a></label>(<label for="r2" class="ident">p</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r3" class="ident">n</label> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r4" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
-<span class="codeline" id="line-22"><code>	<label for="r5" class="ident">lines</label> := <a href="../../../../../../pkg/strings.html" class="ident i1">strings</a>.<a href="../../../../../strings/strings.go.html#line-299" class="ident">Split</a>(<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r2" class="ident">p</label>), <a href="#line-11" class="ident">lineSep</a>)</code></span>
-<span class="codeline" id="line-23"><code>	<span class="keyword">for</span> <label for="r6" class="ident">i</label> := <span class="keyword">range</span> <label for="r5" class="ident">lines</label> { <span class="comment">// https://stackoverflow.com/questions/62446118/implicit-memory-aliasing-in-for-loop</span></code></span>
-<span class="codeline" id="line-24"><code>		<label for="r7" class="ident">line</label> := <label for="r5" class="ident">lines</label>[<label for="r6" class="ident">i</label>]</code></span>
-<span class="codeline" id="line-25"><code>		<span class="keyword">if</span> <label for="r7" class="ident">line</label> != <span class="lit-string">""</span> {</code></span>
-<span class="codeline" id="line-26"><code>			<span class="keyword">if</span> <label for="r0" class="ident">l</label>.<a href="#line-17" class="ident">IsStdErr</a> {</code></span>
-<span class="codeline" id="line-27"><code>				<label for="r0" class="ident">l</label>.<a href="#line-18" class="ident">Loggers</a>.<a href="../logs/log.go.html#line-29" class="ident">LogError</a>(<label for="r7" class="ident">line</label>)</code></span>
-<span class="codeline" id="line-28"><code>			} <span class="keyword">else</span> {</code></span>
-<span class="codeline" id="line-29"><code>				<label for="r0" class="ident">l</label>.<a href="#line-18" class="ident">Loggers</a>.<a href="../logs/log.go.html#line-27" class="ident">Log</a>(<label for="r7" class="ident">line</label>)</code></span>
-<span class="codeline" id="line-30"><code>			}</code></span>
-<span class="codeline" id="line-31"><code>		}</code></span>
-<span class="codeline" id="line-32"><code>	}</code></span>
-<span class="codeline" id="line-33"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">p</label>), <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
-<span class="codeline" id="line-34"><code>}</code></span>
-<span class="codeline" id="line-35"><code></code></span>
-<span class="codeline" id="line-36"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/subprocess.html#name-newLogStreamer" class="ident">newLogStreamer</a></label>(<label for="r9" class="ident">IsStdErr</label> <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r10" class="ident">Loggers</label> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/logs.html" class="ident i2">logs</a>.<a href="../logs/log.go.html#line-18" class="ident">Loggers</a>) *<a href="#line-15" class="ident">logStreamer</a> {</code></span>
-<span class="codeline" id="line-37"><code>	<span class="keyword">return</span> &amp;<a href="#line-15" class="ident">logStreamer</a>{</code></span>
-<span class="codeline" id="line-38"><code>		<a href="#line-17" class="ident">IsStdErr</a>: <label for="r9" class="ident">IsStdErr</label>,</code></span>
-<span class="codeline" id="line-39"><code>		<a href="#line-18" class="ident">Loggers</a>:  <label for="r10" class="ident">Loggers</label>,</code></span>
-<span class="codeline" id="line-40"><code>	}</code></span>
-<span class="codeline" id="line-41"><code>}</code></span>
-<span class="codeline" id="line-42"><code></code></span>
-<span class="codeline" id="line-43"><code><span class="keyword">func</span> <label for="r11" class="ident"><a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/subprocess.html#name-newOutStreamer" class="ident">newOutStreamer</a></label>(<label for="r12" class="ident">Loggers</label> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/logs.html" class="ident i2">logs</a>.<a href="../logs/log.go.html#line-18" class="ident">Loggers</a>) *<a href="#line-15" class="ident">logStreamer</a> {</code></span>
-<span class="codeline" id="line-44"><code>	<span class="keyword">return</span> <a href="#line-36" class="ident">newLogStreamer</a>(<a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a>, <label for="r12" class="ident">Loggers</label>)</code></span>
+<span class="codeline" id="line-11"><code>	<label for="i2"><span class="lit-string i2">"github.com/ARM-software/golang-utils/utils/logs"</span></label></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i3"><span class="lit-string i3">"github.com/ARM-software/golang-utils/utils/platform"</span></label></code></span>
+<span class="codeline" id="line-13"><code>)</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="keyword">var</span> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/subprocess.html#name-lineSep" class="ident">lineSep</a> = <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/platform.html" class="ident i3">platform</a>.<a href="../platform/os.go.html#line-31" class="ident">UnixLineSeparator</a>()</code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// INTERNAL</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// Way of redirecting process output to a logger.</span></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/subprocess.html#name-logStreamer" class="ident">logStreamer</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-20"><code>	<a href="../../../../../../pkg/io.html" class="ident i0">io</a>.<a href="../../../../../io/io.go.html#line-96" class="ident">Writer</a></code></span>
+<span class="codeline" id="line-21"><code>	IsStdErr <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-22"><code>	Loggers  <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/logs.html" class="ident i2">logs</a>.<a href="../logs/log.go.html#line-18" class="ident">Loggers</a></code></span>
+<span class="codeline" id="line-23"><code>}</code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">func</span> (<label for="r0" class="ident">l</label> *<a href="#line-19" class="ident">logStreamer</a>) <label for="r1" class="ident"><a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/subprocess.logStreamer^e23dc.html#name-.Write" class="ident">Write</a></label>(<label for="r2" class="ident">p</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r3" class="ident">n</label> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r4" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-26"><code>	<label for="r5" class="ident">lines</label> := <a href="../../../../../../pkg/strings.html" class="ident i1">strings</a>.<a href="../../../../../strings/strings.go.html#line-299" class="ident">Split</a>(<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r2" class="ident">p</label>), <a href="#line-15" class="ident">lineSep</a>)</code></span>
+<span class="codeline" id="line-27"><code>	<span class="keyword">for</span> <label for="r6" class="ident">i</label> := <span class="keyword">range</span> <label for="r5" class="ident">lines</label> { <span class="comment">// https://stackoverflow.com/questions/62446118/implicit-memory-aliasing-in-for-loop</span></code></span>
+<span class="codeline" id="line-28"><code>		<label for="r7" class="ident">line</label> := <label for="r5" class="ident">lines</label>[<label for="r6" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-29"><code>		<span class="keyword">if</span> <label for="r7" class="ident">line</label> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-30"><code>			<span class="keyword">if</span> <label for="r0" class="ident">l</label>.<a href="#line-21" class="ident">IsStdErr</a> {</code></span>
+<span class="codeline" id="line-31"><code>				<label for="r0" class="ident">l</label>.<a href="#line-22" class="ident">Loggers</a>.<a href="../logs/log.go.html#line-29" class="ident">LogError</a>(<label for="r7" class="ident">line</label>)</code></span>
+<span class="codeline" id="line-32"><code>			} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-33"><code>				<label for="r0" class="ident">l</label>.<a href="#line-22" class="ident">Loggers</a>.<a href="../logs/log.go.html#line-27" class="ident">Log</a>(<label for="r7" class="ident">line</label>)</code></span>
+<span class="codeline" id="line-34"><code>			}</code></span>
+<span class="codeline" id="line-35"><code>		}</code></span>
+<span class="codeline" id="line-36"><code>	}</code></span>
+<span class="codeline" id="line-37"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r2" class="ident">p</label>), <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-38"><code>}</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/subprocess.html#name-newLogStreamer" class="ident">newLogStreamer</a></label>(<label for="r9" class="ident">IsStdErr</label> <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r10" class="ident">Loggers</label> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/logs.html" class="ident i2">logs</a>.<a href="../logs/log.go.html#line-18" class="ident">Loggers</a>) *<a href="#line-19" class="ident">logStreamer</a> {</code></span>
+<span class="codeline" id="line-41"><code>	<span class="keyword">return</span> &amp;<a href="#line-19" class="ident">logStreamer</a>{</code></span>
+<span class="codeline" id="line-42"><code>		<a href="#line-21" class="ident">IsStdErr</a>: <label for="r9" class="ident">IsStdErr</label>,</code></span>
+<span class="codeline" id="line-43"><code>		<a href="#line-22" class="ident">Loggers</a>:  <label for="r10" class="ident">Loggers</label>,</code></span>
+<span class="codeline" id="line-44"><code>	}</code></span>
 <span class="codeline" id="line-45"><code>}</code></span>
 <span class="codeline" id="line-46"><code></code></span>
-<span class="codeline" id="line-47"><code><span class="keyword">func</span> <label for="r13" class="ident"><a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/subprocess.html#name-newErrLogStreamer" class="ident">newErrLogStreamer</a></label>(<label for="r14" class="ident">Loggers</label> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/logs.html" class="ident i2">logs</a>.<a href="../logs/log.go.html#line-18" class="ident">Loggers</a>) *<a href="#line-15" class="ident">logStreamer</a> {</code></span>
-<span class="codeline" id="line-48"><code>	<span class="keyword">return</span> <a href="#line-36" class="ident">newLogStreamer</a>(<a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>, <label for="r14" class="ident">Loggers</label>)</code></span>
+<span class="codeline" id="line-47"><code><span class="keyword">func</span> <label for="r11" class="ident"><a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/subprocess.html#name-newOutStreamer" class="ident">newOutStreamer</a></label>(<label for="r12" class="ident">Loggers</label> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/logs.html" class="ident i2">logs</a>.<a href="../logs/log.go.html#line-18" class="ident">Loggers</a>) *<a href="#line-19" class="ident">logStreamer</a> {</code></span>
+<span class="codeline" id="line-48"><code>	<span class="keyword">return</span> <a href="#line-40" class="ident">newLogStreamer</a>(<a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a>, <label for="r12" class="ident">Loggers</label>)</code></span>
 <span class="codeline" id="line-49"><code>}</code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code><span class="keyword">func</span> <label for="r13" class="ident"><a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/subprocess.html#name-newErrLogStreamer" class="ident">newErrLogStreamer</a></label>(<label for="r14" class="ident">Loggers</label> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/logs.html" class="ident i2">logs</a>.<a href="../logs/log.go.html#line-18" class="ident">Loggers</a>) *<a href="#line-19" class="ident">logStreamer</a> {</code></span>
+<span class="codeline" id="line-52"><code>	<span class="keyword">return</span> <a href="#line-40" class="ident">newLogStreamer</a>(<a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>, <label for="r14" class="ident">Loggers</label>)</code></span>
+<span class="codeline" id="line-53"><code>}</code></span>
 </pre><pre id="footer">
 <table><tr><td><img src="../../../../../../png/go101-twitter.png"></td>
 <td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.6</i>. (GOOS=linux GOARCH=amd64)

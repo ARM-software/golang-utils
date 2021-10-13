@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: doc.go in package github.com/davecgh/go-spew/spew</title>
+<link href="../../../../../css/light-v0.3.6.css" rel="stylesheet">
+<script src="../../../../../jvs/golds-v0.3.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	doc.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../pkg/github.com/davecgh/go-spew/spew.html">github.com/davecgh/go-spew/spew</a>
+</code></pre>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> * Copyright (c) 2013-2016 Dave Collins &lt;dave@davec.name&gt;</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> * Permission to use, copy, modify, and distribute this software for any</span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment"> * purpose with or without fee is hereby granted, provided that the above</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment"> * copyright notice and this permission notice appear in all copies.</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment"> *</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment"> * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment"> * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment"> * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment"> * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment"> * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment"> * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment"> * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-16"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-17"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">Package spew implements a deep pretty printer for Go data structures to aid in</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">debugging.</span></code></span>
+<span class="codeline" id="line-20"><code></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">A quick overview of the additional features spew provides over the built-in</span></code></span>
+<span class="codeline" id="line-22"><code><span class="comment">printing facilities for Go data types are as follows:</span></code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code><span class="comment">	* Pointers are dereferenced and followed</span></code></span>
+<span class="codeline" id="line-25"><code><span class="comment">	* Circular data structures are detected and handled properly</span></code></span>
+<span class="codeline" id="line-26"><code><span class="comment">	* Custom Stringer/error interfaces are optionally invoked, including</span></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">	  on unexported types</span></code></span>
+<span class="codeline" id="line-28"><code><span class="comment">	* Custom types which only implement the Stringer/error interfaces via</span></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">	  a pointer receiver are optionally invoked when passing non-pointer</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">	  variables</span></code></span>
+<span class="codeline" id="line-31"><code><span class="comment">	* Byte arrays and slices are dumped like the hexdump -C command which</span></code></span>
+<span class="codeline" id="line-32"><code><span class="comment">	  includes offsets, byte values in hex, and ASCII output (only when using</span></code></span>
+<span class="codeline" id="line-33"><code><span class="comment">	  Dump style)</span></code></span>
+<span class="codeline" id="line-34"><code></code></span>
+<span class="codeline" id="line-35"><code><span class="comment">There are two different approaches spew allows for dumping Go data structures:</span></code></span>
+<span class="codeline" id="line-36"><code></code></span>
+<span class="codeline" id="line-37"><code><span class="comment">	* Dump style which prints with newlines, customizable indentation,</span></code></span>
+<span class="codeline" id="line-38"><code><span class="comment">	  and additional debug information such as types and all pointer addresses</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">	  used to indirect to the final value</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">	* A custom Formatter interface that integrates cleanly with the standard fmt</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">	  package and replaces %v, %+v, %#v, and %#+v to provide inline printing</span></code></span>
+<span class="codeline" id="line-42"><code><span class="comment">	  similar to the default %v while providing the additional functionality</span></code></span>
+<span class="codeline" id="line-43"><code><span class="comment">	  outlined above and passing unsupported format verbs such as %x and %q</span></code></span>
+<span class="codeline" id="line-44"><code><span class="comment">	  along to fmt</span></code></span>
+<span class="codeline" id="line-45"><code></code></span>
+<span class="codeline" id="line-46"><code><span class="comment">Quick Start</span></code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">This section demonstrates how to quickly get started with spew.  See the</span></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">sections below for further details on formatting and configuration options.</span></code></span>
+<span class="codeline" id="line-50"><code></code></span>
+<span class="codeline" id="line-51"><code><span class="comment">To dump a variable with full newlines, indentation, type, and pointer</span></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">information use Dump, Fdump, or Sdump:</span></code></span>
+<span class="codeline" id="line-53"><code><span class="comment">	spew.Dump(myVar1, myVar2, ...)</span></code></span>
+<span class="codeline" id="line-54"><code><span class="comment">	spew.Fdump(someWriter, myVar1, myVar2, ...)</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	str := spew.Sdump(myVar1, myVar2, ...)</span></code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">Alternatively, if you would prefer to use format strings with a compacted inline</span></code></span>
+<span class="codeline" id="line-58"><code><span class="comment">printing style, use the convenience wrappers Printf, Fprintf, etc with</span></code></span>
+<span class="codeline" id="line-59"><code><span class="comment">%v (most compact), %+v (adds pointer addresses), %#v (adds types), or</span></code></span>
+<span class="codeline" id="line-60"><code><span class="comment">%#+v (adds types and pointer addresses):</span></code></span>
+<span class="codeline" id="line-61"><code><span class="comment">	spew.Printf("myVar1: %v -- myVar2: %+v", myVar1, myVar2)</span></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">	spew.Printf("myVar3: %#v -- myVar4: %#+v", myVar3, myVar4)</span></code></span>
+<span class="codeline" id="line-63"><code><span class="comment">	spew.Fprintf(someWriter, "myVar1: %v -- myVar2: %+v", myVar1, myVar2)</span></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">	spew.Fprintf(someWriter, "myVar3: %#v -- myVar4: %#+v", myVar3, myVar4)</span></code></span>
+<span class="codeline" id="line-65"><code></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">Configuration Options</span></code></span>
+<span class="codeline" id="line-67"><code></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">Configuration of spew is handled by fields in the ConfigState type.  For</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">convenience, all of the top-level functions use a global state available</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">via the spew.Config global.</span></code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">It is also possible to create a ConfigState instance that provides methods</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">equivalent to the top-level functions.  This allows concurrent configuration</span></code></span>
+<span class="codeline" id="line-74"><code><span class="comment">options.  See the ConfigState documentation for more details.</span></code></span>
+<span class="codeline" id="line-75"><code></code></span>
+<span class="codeline" id="line-76"><code><span class="comment">The following configuration options are available:</span></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">	* Indent</span></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">		String to use for each indentation level for Dump functions.</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">		It is a single space by default.  A popular alternative is "\t".</span></code></span>
+<span class="codeline" id="line-80"><code></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">	* MaxDepth</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">		Maximum number of levels to descend into nested data structures.</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">		There is no limit by default.</span></code></span>
+<span class="codeline" id="line-84"><code></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">	* DisableMethods</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">		Disables invocation of error and Stringer interface methods.</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">		Method invocation is enabled by default.</span></code></span>
+<span class="codeline" id="line-88"><code></code></span>
+<span class="codeline" id="line-89"><code><span class="comment">	* DisablePointerMethods</span></code></span>
+<span class="codeline" id="line-90"><code><span class="comment">		Disables invocation of error and Stringer interface methods on types</span></code></span>
+<span class="codeline" id="line-91"><code><span class="comment">		which only accept pointer receivers from non-pointer variables.</span></code></span>
+<span class="codeline" id="line-92"><code><span class="comment">		Pointer method invocation is enabled by default.</span></code></span>
+<span class="codeline" id="line-93"><code></code></span>
+<span class="codeline" id="line-94"><code><span class="comment">	* DisablePointerAddresses</span></code></span>
+<span class="codeline" id="line-95"><code><span class="comment">		DisablePointerAddresses specifies whether to disable the printing of</span></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">		pointer addresses. This is useful when diffing data structures in tests.</span></code></span>
+<span class="codeline" id="line-97"><code></code></span>
+<span class="codeline" id="line-98"><code><span class="comment">	* DisableCapacities</span></code></span>
+<span class="codeline" id="line-99"><code><span class="comment">		DisableCapacities specifies whether to disable the printing of</span></code></span>
+<span class="codeline" id="line-100"><code><span class="comment">		capacities for arrays, slices, maps and channels. This is useful when</span></code></span>
+<span class="codeline" id="line-101"><code><span class="comment">		diffing data structures in tests.</span></code></span>
+<span class="codeline" id="line-102"><code></code></span>
+<span class="codeline" id="line-103"><code><span class="comment">	* ContinueOnMethod</span></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">		Enables recursion into types after invoking error and Stringer interface</span></code></span>
+<span class="codeline" id="line-105"><code><span class="comment">		methods. Recursion after method invocation is disabled by default.</span></code></span>
+<span class="codeline" id="line-106"><code></code></span>
+<span class="codeline" id="line-107"><code><span class="comment">	* SortKeys</span></code></span>
+<span class="codeline" id="line-108"><code><span class="comment">		Specifies map keys should be sorted before being printed. Use</span></code></span>
+<span class="codeline" id="line-109"><code><span class="comment">		this to have a more deterministic, diffable output.  Note that</span></code></span>
+<span class="codeline" id="line-110"><code><span class="comment">		only native types (bool, int, uint, floats, uintptr and string)</span></code></span>
+<span class="codeline" id="line-111"><code><span class="comment">		and types which implement error or Stringer interfaces are</span></code></span>
+<span class="codeline" id="line-112"><code><span class="comment">		supported with other types sorted according to the</span></code></span>
+<span class="codeline" id="line-113"><code><span class="comment">		reflect.Value.String() output which guarantees display</span></code></span>
+<span class="codeline" id="line-114"><code><span class="comment">		stability.  Natural map order is used by default.</span></code></span>
+<span class="codeline" id="line-115"><code></code></span>
+<span class="codeline" id="line-116"><code><span class="comment">	* SpewKeys</span></code></span>
+<span class="codeline" id="line-117"><code><span class="comment">		Specifies that, as a last resort attempt, map keys should be</span></code></span>
+<span class="codeline" id="line-118"><code><span class="comment">		spewed to strings and sorted by those strings.  This is only</span></code></span>
+<span class="codeline" id="line-119"><code><span class="comment">		considered if SortKeys is true.</span></code></span>
+<span class="codeline" id="line-120"><code></code></span>
+<span class="codeline" id="line-121"><code><span class="comment">Dump Usage</span></code></span>
+<span class="codeline" id="line-122"><code></code></span>
+<span class="codeline" id="line-123"><code><span class="comment">Simply call spew.Dump with a list of variables you want to dump:</span></code></span>
+<span class="codeline" id="line-124"><code></code></span>
+<span class="codeline" id="line-125"><code><span class="comment">	spew.Dump(myVar1, myVar2, ...)</span></code></span>
+<span class="codeline" id="line-126"><code></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">You may also call spew.Fdump if you would prefer to output to an arbitrary</span></code></span>
+<span class="codeline" id="line-128"><code><span class="comment">io.Writer.  For example, to dump to standard error:</span></code></span>
+<span class="codeline" id="line-129"><code></code></span>
+<span class="codeline" id="line-130"><code><span class="comment">	spew.Fdump(os.Stderr, myVar1, myVar2, ...)</span></code></span>
+<span class="codeline" id="line-131"><code></code></span>
+<span class="codeline" id="line-132"><code><span class="comment">A third option is to call spew.Sdump to get the formatted output as a string:</span></code></span>
+<span class="codeline" id="line-133"><code></code></span>
+<span class="codeline" id="line-134"><code><span class="comment">	str := spew.Sdump(myVar1, myVar2, ...)</span></code></span>
+<span class="codeline" id="line-135"><code></code></span>
+<span class="codeline" id="line-136"><code><span class="comment">Sample Dump Output</span></code></span>
+<span class="codeline" id="line-137"><code></code></span>
+<span class="codeline" id="line-138"><code><span class="comment">See the Dump example for details on the setup of the types and variables being</span></code></span>
+<span class="codeline" id="line-139"><code><span class="comment">shown here.</span></code></span>
+<span class="codeline" id="line-140"><code></code></span>
+<span class="codeline" id="line-141"><code><span class="comment">	(main.Foo) {</span></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">	 unexportedField: (*main.Bar)(0xf84002e210)({</span></code></span>
+<span class="codeline" id="line-143"><code><span class="comment">	  flag: (main.Flag) flagTwo,</span></code></span>
+<span class="codeline" id="line-144"><code><span class="comment">	  data: (uintptr) &lt;nil&gt;</span></code></span>
+<span class="codeline" id="line-145"><code><span class="comment">	 }),</span></code></span>
+<span class="codeline" id="line-146"><code><span class="comment">	 ExportedField: (map[interface {}]interface {}) (len=1) {</span></code></span>
+<span class="codeline" id="line-147"><code><span class="comment">	  (string) (len=3) "one": (bool) true</span></code></span>
+<span class="codeline" id="line-148"><code><span class="comment">	 }</span></code></span>
+<span class="codeline" id="line-149"><code><span class="comment">	}</span></code></span>
+<span class="codeline" id="line-150"><code></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">Byte (and uint8) arrays and slices are displayed uniquely like the hexdump -C</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">command as shown.</span></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">	([]uint8) (len=32 cap=32) {</span></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">	 00000000  11 12 13 14 15 16 17 18  19 1a 1b 1c 1d 1e 1f 20  |............... |</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">	 00000010  21 22 23 24 25 26 27 28  29 2a 2b 2c 2d 2e 2f 30  |!"#$%&amp;'()*+,-./0|</span></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">	 00000020  31 32                                             |12|</span></code></span>
+<span class="codeline" id="line-157"><code><span class="comment">	}</span></code></span>
+<span class="codeline" id="line-158"><code></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">Custom Formatter</span></code></span>
+<span class="codeline" id="line-160"><code></code></span>
+<span class="codeline" id="line-161"><code><span class="comment">Spew provides a custom formatter that implements the fmt.Formatter interface</span></code></span>
+<span class="codeline" id="line-162"><code><span class="comment">so that it integrates cleanly with standard fmt package printing functions. The</span></code></span>
+<span class="codeline" id="line-163"><code><span class="comment">formatter is useful for inline printing of smaller data types similar to the</span></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">standard %v format specifier.</span></code></span>
+<span class="codeline" id="line-165"><code></code></span>
+<span class="codeline" id="line-166"><code><span class="comment">The custom formatter only responds to the %v (most compact), %+v (adds pointer</span></code></span>
+<span class="codeline" id="line-167"><code><span class="comment">addresses), %#v (adds types), or %#+v (adds types and pointer addresses) verb</span></code></span>
+<span class="codeline" id="line-168"><code><span class="comment">combinations.  Any other verbs such as %x and %q will be sent to the the</span></code></span>
+<span class="codeline" id="line-169"><code><span class="comment">standard fmt package for formatting.  In addition, the custom formatter ignores</span></code></span>
+<span class="codeline" id="line-170"><code><span class="comment">the width and precision arguments (however they will still work on the format</span></code></span>
+<span class="codeline" id="line-171"><code><span class="comment">specifiers not handled by the custom formatter).</span></code></span>
+<span class="codeline" id="line-172"><code></code></span>
+<span class="codeline" id="line-173"><code><span class="comment">Custom Formatter Usage</span></code></span>
+<span class="codeline" id="line-174"><code></code></span>
+<span class="codeline" id="line-175"><code><span class="comment">The simplest way to make use of the spew custom formatter is to call one of the</span></code></span>
+<span class="codeline" id="line-176"><code><span class="comment">convenience functions such as spew.Printf, spew.Println, or spew.Printf.  The</span></code></span>
+<span class="codeline" id="line-177"><code><span class="comment">functions have syntax you are most likely already familiar with:</span></code></span>
+<span class="codeline" id="line-178"><code></code></span>
+<span class="codeline" id="line-179"><code><span class="comment">	spew.Printf("myVar1: %v -- myVar2: %+v", myVar1, myVar2)</span></code></span>
+<span class="codeline" id="line-180"><code><span class="comment">	spew.Printf("myVar3: %#v -- myVar4: %#+v", myVar3, myVar4)</span></code></span>
+<span class="codeline" id="line-181"><code><span class="comment">	spew.Println(myVar, myVar2)</span></code></span>
+<span class="codeline" id="line-182"><code><span class="comment">	spew.Fprintf(os.Stderr, "myVar1: %v -- myVar2: %+v", myVar1, myVar2)</span></code></span>
+<span class="codeline" id="line-183"><code><span class="comment">	spew.Fprintf(os.Stderr, "myVar3: %#v -- myVar4: %#+v", myVar3, myVar4)</span></code></span>
+<span class="codeline" id="line-184"><code></code></span>
+<span class="codeline" id="line-185"><code><span class="comment">See the Index for the full list convenience functions.</span></code></span>
+<span class="codeline" id="line-186"><code></code></span>
+<span class="codeline" id="line-187"><code><span class="comment">Sample Formatter Output</span></code></span>
+<span class="codeline" id="line-188"><code></code></span>
+<span class="codeline" id="line-189"><code><span class="comment">Double pointer to a uint8:</span></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">	  %v: &lt;**&gt;5</span></code></span>
+<span class="codeline" id="line-191"><code><span class="comment">	 %+v: &lt;**&gt;(0xf8400420d0-&gt;0xf8400420c8)5</span></code></span>
+<span class="codeline" id="line-192"><code><span class="comment">	 %#v: (**uint8)5</span></code></span>
+<span class="codeline" id="line-193"><code><span class="comment">	%#+v: (**uint8)(0xf8400420d0-&gt;0xf8400420c8)5</span></code></span>
+<span class="codeline" id="line-194"><code></code></span>
+<span class="codeline" id="line-195"><code><span class="comment">Pointer to circular struct with a uint8 field and a pointer to itself:</span></code></span>
+<span class="codeline" id="line-196"><code><span class="comment">	  %v: &lt;*&gt;{1 &lt;*&gt;&lt;shown&gt;}</span></code></span>
+<span class="codeline" id="line-197"><code><span class="comment">	 %+v: &lt;*&gt;(0xf84003e260){ui8:1 c:&lt;*&gt;(0xf84003e260)&lt;shown&gt;}</span></code></span>
+<span class="codeline" id="line-198"><code><span class="comment">	 %#v: (*main.circular){ui8:(uint8)1 c:(*main.circular)&lt;shown&gt;}</span></code></span>
+<span class="codeline" id="line-199"><code><span class="comment">	%#+v: (*main.circular)(0xf84003e260){ui8:(uint8)1 c:(*main.circular)(0xf84003e260)&lt;shown&gt;}</span></code></span>
+<span class="codeline" id="line-200"><code></code></span>
+<span class="codeline" id="line-201"><code><span class="comment">See the Printf example for details on the setup of variables being shown</span></code></span>
+<span class="codeline" id="line-202"><code><span class="comment">here.</span></code></span>
+<span class="codeline" id="line-203"><code></code></span>
+<span class="codeline" id="line-204"><code><span class="comment">Errors</span></code></span>
+<span class="codeline" id="line-205"><code></code></span>
+<span class="codeline" id="line-206"><code><span class="comment">Since it is possible for custom Stringer/error interfaces to panic, spew</span></code></span>
+<span class="codeline" id="line-207"><code><span class="comment">detects them and handles them internally by printing the panic information</span></code></span>
+<span class="codeline" id="line-208"><code><span class="comment">inline with the output.  Since spew is intended to provide deep pretty printing</span></code></span>
+<span class="codeline" id="line-209"><code><span class="comment">capabilities on structures, it intentionally does not return any errors.</span></code></span>
+<span class="codeline" id="line-210"><code><span class="comment">*/</span></code></span></div><span class="codeline" id="line-211"><code><span class="keyword">package</span> spew</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.6</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

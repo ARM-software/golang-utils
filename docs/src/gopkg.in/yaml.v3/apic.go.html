@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2021 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: apic.go in package gopkg.in/yaml.v3</title>
+<link href="../../../css/light-v0.3.6.css" rel="stylesheet">
+<script src="../../../jvs/golds-v0.3.6.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	apic.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../pkg/gopkg.in/yaml.v3.html">gopkg.in/yaml.v3</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60],
+input[id=r61]:checked ~pre label[for=r61],
+input[id=r62]:checked ~pre label[for=r62],
+input[id=r63]:checked ~pre label[for=r63],
+input[id=r64]:checked ~pre label[for=r64],
+input[id=r65]:checked ~pre label[for=r65],
+input[id=r66]:checked ~pre label[for=r66],
+input[id=r67]:checked ~pre label[for=r67],
+input[id=r68]:checked ~pre label[for=r68],
+input[id=r69]:checked ~pre label[for=r69],
+input[id=r70]:checked ~pre label[for=r70],
+input[id=r71]:checked ~pre label[for=r71],
+input[id=r72]:checked ~pre label[for=r72],
+input[id=r73]:checked ~pre label[for=r73],
+input[id=r74]:checked ~pre label[for=r74],
+input[id=r75]:checked ~pre label[for=r75],
+input[id=r76]:checked ~pre label[for=r76],
+input[id=r77]:checked ~pre label[for=r77],
+input[id=r78]:checked ~pre label[for=r78],
+input[id=r79]:checked ~pre label[for=r79],
+input[id=r80]:checked ~pre label[for=r80],
+input[id=r81]:checked ~pre label[for=r81],
+input[id=r82]:checked ~pre label[for=r82],
+input[id=r83]:checked ~pre label[for=r83],
+input[id=r84]:checked ~pre label[for=r84],
+input[id=r85]:checked ~pre label[for=r85],
+input[id=r86]:checked ~pre label[for=r86],
+input[id=r87]:checked ~pre label[for=r87],
+input[id=r88]:checked ~pre label[for=r88],
+input[id=r89]:checked ~pre label[for=r89],
+input[id=r90]:checked ~pre label[for=r90],
+input[id=r91]:checked ~pre label[for=r91],
+input[id=r92]:checked ~pre label[for=r92],
+input[id=r93]:checked ~pre label[for=r93],
+input[id=r94]:checked ~pre label[for=r94],
+input[id=r95]:checked ~pre label[for=r95],
+input[id=r96]:checked ~pre label[for=r96],
+input[id=r97]:checked ~pre label[for=r97],
+input[id=r98]:checked ~pre label[for=r98],
+input[id=r99]:checked ~pre label[for=r99],
+input[id=r100]:checked ~pre label[for=r100],
+input[id=r101]:checked ~pre label[for=r101],
+input[id=r102]:checked ~pre label[for=r102],
+input[id=r103]:checked ~pre label[for=r103],
+input[id=r104]:checked ~pre label[for=r104]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="r61" type="radio" name="g"/>
+<input id="r62" type="radio" name="g"/>
+<input id="r63" type="radio" name="g"/>
+<input id="r64" type="radio" name="g"/>
+<input id="r65" type="radio" name="g"/>
+<input id="r66" type="radio" name="g"/>
+<input id="r67" type="radio" name="g"/>
+<input id="r68" type="radio" name="g"/>
+<input id="r69" type="radio" name="g"/>
+<input id="r70" type="radio" name="g"/>
+<input id="r71" type="radio" name="g"/>
+<input id="r72" type="radio" name="g"/>
+<input id="r73" type="radio" name="g"/>
+<input id="r74" type="radio" name="g"/>
+<input id="r75" type="radio" name="g"/>
+<input id="r76" type="radio" name="g"/>
+<input id="r77" type="radio" name="g"/>
+<input id="r78" type="radio" name="g"/>
+<input id="r79" type="radio" name="g"/>
+<input id="r80" type="radio" name="g"/>
+<input id="r81" type="radio" name="g"/>
+<input id="r82" type="radio" name="g"/>
+<input id="r83" type="radio" name="g"/>
+<input id="r84" type="radio" name="g"/>
+<input id="r85" type="radio" name="g"/>
+<input id="r86" type="radio" name="g"/>
+<input id="r87" type="radio" name="g"/>
+<input id="r88" type="radio" name="g"/>
+<input id="r89" type="radio" name="g"/>
+<input id="r90" type="radio" name="g"/>
+<input id="r91" type="radio" name="g"/>
+<input id="r92" type="radio" name="g"/>
+<input id="r93" type="radio" name="g"/>
+<input id="r94" type="radio" name="g"/>
+<input id="r95" type="radio" name="g"/>
+<input id="r96" type="radio" name="g"/>
+<input id="r97" type="radio" name="g"/>
+<input id="r98" type="radio" name="g"/>
+<input id="r99" type="radio" name="g"/>
+<input id="r100" type="radio" name="g"/>
+<input id="r101" type="radio" name="g"/>
+<input id="r102" type="radio" name="g"/>
+<input id="r103" type="radio" name="g"/>
+<input id="r104" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="comment">// </span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment">// Copyright (c) 2011-2019 Canonical Ltd</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment">// Copyright (c) 2006-2010 Kirill Simonov</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment">// </span></code></span>
+<span class="codeline" id="line-5"><code><span class="comment">// Permission is hereby granted, free of charge, to any person obtaining a copy of</span></code></span>
+<span class="codeline" id="line-6"><code><span class="comment">// this software and associated documentation files (the "Software"), to deal in</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// the Software without restriction, including without limitation the rights to</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// of the Software, and to permit persons to whom the Software is furnished to do</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// so, subject to the following conditions:</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">// </span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">// The above copyright notice and this permission notice shall be included in all</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// copies or substantial portions of the Software.</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">// </span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span></code></span>
+<span class="codeline" id="line-18"><code><span class="comment">// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span></code></span>
+<span class="codeline" id="line-19"><code><span class="comment">// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span></code></span>
+<span class="codeline" id="line-20"><code><span class="comment">// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span></code></span>
+<span class="codeline" id="line-21"><code><span class="comment">// SOFTWARE.</span></code></span>
+<span class="codeline" id="line-22"><code></code></span>
+<span class="codeline" id="line-23"><code><span class="keyword">package</span> yaml</code></span>
+<span class="codeline" id="line-24"><code></code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-26"><code>	<label for="i0"><span class="lit-string i0">"io"</span></label></code></span>
+<span class="codeline" id="line-27"><code>)</code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_insert_token" class="ident">yaml_insert_token</a></label>(<label for="r1" class="ident">parser</label> *<a href="yamlh.go.html#line-555" class="ident">yaml_parser_t</a>, <label for="r2" class="ident">pos</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r3" class="ident">token</label> *<a href="yamlh.go.html#line-217" class="ident">yaml_token_t</a>) {</code></span>
+<span class="codeline" id="line-30"><code>	<span class="comment">//fmt.Println("yaml_insert_token", "pos:", pos, "typ:", token.typ, "head:", parser.tokens_head, "len:", len(parser.tokens))</span></code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code>	<span class="comment">// Check if we can move the queue at the beginning of the buffer.</span></code></span>
+<span class="codeline" id="line-33"><code>	<span class="keyword">if</span> <label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-616" class="ident">tokens_head</a> &gt; <span class="lit-number">0</span> &amp;&amp; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-615" class="ident">tokens</a>) == <a href="../../../pkg/builtin.html#name-cap" class="ident">cap</a>(<label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-615" class="ident">tokens</a>) {</code></span>
+<span class="codeline" id="line-34"><code>		<span class="keyword">if</span> <label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-616" class="ident">tokens_head</a> != <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-615" class="ident">tokens</a>) {</code></span>
+<span class="codeline" id="line-35"><code>			<a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-615" class="ident">tokens</a>, <label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-615" class="ident">tokens</a>[<label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-616" class="ident">tokens_head</a>:])</code></span>
+<span class="codeline" id="line-36"><code>		}</code></span>
+<span class="codeline" id="line-37"><code>		<label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-615" class="ident">tokens</a> = <label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-615" class="ident">tokens</a>[:<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-615" class="ident">tokens</a>)-<label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-616" class="ident">tokens_head</a>]</code></span>
+<span class="codeline" id="line-38"><code>		<label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-616" class="ident">tokens_head</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-39"><code>	}</code></span>
+<span class="codeline" id="line-40"><code>	<label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-615" class="ident">tokens</a> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-615" class="ident">tokens</a>, *<label for="r3" class="ident">token</label>)</code></span>
+<span class="codeline" id="line-41"><code>	<span class="keyword">if</span> <label for="r2" class="ident">pos</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-42"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-43"><code>	}</code></span>
+<span class="codeline" id="line-44"><code>	<a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-615" class="ident">tokens</a>[<label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-616" class="ident">tokens_head</a>+<label for="r2" class="ident">pos</label>+<span class="lit-number">1</span>:], <label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-615" class="ident">tokens</a>[<label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-616" class="ident">tokens_head</a>+<label for="r2" class="ident">pos</label>:])</code></span>
+<span class="codeline" id="line-45"><code>	<label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-615" class="ident">tokens</a>[<label for="r1" class="ident">parser</label>.<a href="yamlh.go.html#line-616" class="ident">tokens_head</a>+<label for="r2" class="ident">pos</label>] = *<label for="r3" class="ident">token</label></code></span>
+<span class="codeline" id="line-46"><code>}</code></span>
+<span class="codeline" id="line-47"><code></code></span>
+<span class="codeline" id="line-48"><code><span class="comment">// Create a new parser object.</span></code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_parser_initialize" class="ident">yaml_parser_initialize</a></label>(<label for="r5" class="ident">parser</label> *<a href="yamlh.go.html#line-555" class="ident">yaml_parser_t</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-50"><code>	*<label for="r5" class="ident">parser</label> = <a href="yamlh.go.html#line-555" class="ident">yaml_parser_t</a>{</code></span>
+<span class="codeline" id="line-51"><code>		<a href="yamlh.go.html#line-589" class="ident">raw_buffer</a>: <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>, <a href="yamlprivateh.go.html#line-27" class="ident">input_raw_buffer_size</a>),</code></span>
+<span class="codeline" id="line-52"><code>		<a href="yamlh.go.html#line-582" class="ident">buffer</a>:     <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>, <a href="yamlprivateh.go.html#line-31" class="ident">input_buffer_size</a>),</code></span>
+<span class="codeline" id="line-53"><code>	}</code></span>
+<span class="codeline" id="line-54"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-55"><code>}</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">// Destroy a parser object.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">func</span> <label for="r6" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_parser_delete" class="ident">yaml_parser_delete</a></label>(<label for="r7" class="ident">parser</label> *<a href="yamlh.go.html#line-555" class="ident">yaml_parser_t</a>) {</code></span>
+<span class="codeline" id="line-59"><code>	*<label for="r7" class="ident">parser</label> = <a href="yamlh.go.html#line-555" class="ident">yaml_parser_t</a>{}</code></span>
+<span class="codeline" id="line-60"><code>}</code></span>
+<span class="codeline" id="line-61"><code></code></span>
+<span class="codeline" id="line-62"><code><span class="comment">// String read handler.</span></code></span>
+<span class="codeline" id="line-63"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_string_read_handler" class="ident">yaml_string_read_handler</a></label>(<label for="r9" class="ident">parser</label> *<a href="yamlh.go.html#line-555" class="ident">yaml_parser_t</a>, <label for="r10" class="ident">buffer</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r11" class="ident">n</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r12" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-64"><code>	<span class="keyword">if</span> <label for="r9" class="ident">parser</label>.<a href="yamlh.go.html#line-578" class="ident">input_pos</a> == <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r9" class="ident">parser</label>.<a href="yamlh.go.html#line-577" class="ident">input</a>) {</code></span>
+<span class="codeline" id="line-65"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../pkg/io.html" class="ident i0">io</a>.<a href="../../io/io.go.html#line-44" class="ident">EOF</a></code></span>
+<span class="codeline" id="line-66"><code>	}</code></span>
+<span class="codeline" id="line-67"><code>	<label for="r11" class="ident">n</label> = <a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r10" class="ident">buffer</label>, <label for="r9" class="ident">parser</label>.<a href="yamlh.go.html#line-577" class="ident">input</a>[<label for="r9" class="ident">parser</label>.<a href="yamlh.go.html#line-578" class="ident">input_pos</a>:])</code></span>
+<span class="codeline" id="line-68"><code>	<label for="r9" class="ident">parser</label>.<a href="yamlh.go.html#line-578" class="ident">input_pos</a> += <label for="r11" class="ident">n</label></code></span>
+<span class="codeline" id="line-69"><code>	<span class="keyword">return</span> <label for="r11" class="ident">n</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-70"><code>}</code></span>
+<span class="codeline" id="line-71"><code></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">// Reader read handler.</span></code></span>
+<span class="codeline" id="line-73"><code><span class="keyword">func</span> <label for="r13" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_reader_read_handler" class="ident">yaml_reader_read_handler</a></label>(<label for="r14" class="ident">parser</label> *<a href="yamlh.go.html#line-555" class="ident">yaml_parser_t</a>, <label for="r15" class="ident">buffer</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r16" class="ident">n</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r17" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-74"><code>	<span class="keyword">return</span> <label for="r14" class="ident">parser</label>.<a href="yamlh.go.html#line-576" class="ident">input_reader</a>.<a href="../../io/io.go.html#line-84" class="ident">Read</a>(<label for="r15" class="ident">buffer</label>)</code></span>
+<span class="codeline" id="line-75"><code>}</code></span>
+<span class="codeline" id="line-76"><code></code></span>
+<span class="codeline" id="line-77"><code><span class="comment">// Set a string input.</span></code></span>
+<span class="codeline" id="line-78"><code><span class="keyword">func</span> <label for="r18" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_parser_set_input_string" class="ident">yaml_parser_set_input_string</a></label>(<label for="r19" class="ident">parser</label> *<a href="yamlh.go.html#line-555" class="ident">yaml_parser_t</a>, <label for="r20" class="ident">input</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) {</code></span>
+<span class="codeline" id="line-79"><code>	<span class="keyword">if</span> <label for="r19" class="ident">parser</label>.<a href="yamlh.go.html#line-574" class="ident">read_handler</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-80"><code>		<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"must set the input source only once"</span>)</code></span>
+<span class="codeline" id="line-81"><code>	}</code></span>
+<span class="codeline" id="line-82"><code>	<label for="r19" class="ident">parser</label>.<a href="yamlh.go.html#line-574" class="ident">read_handler</a> = <a href="#line-63" class="ident">yaml_string_read_handler</a></code></span>
+<span class="codeline" id="line-83"><code>	<label for="r19" class="ident">parser</label>.<a href="yamlh.go.html#line-577" class="ident">input</a> = <label for="r20" class="ident">input</label></code></span>
+<span class="codeline" id="line-84"><code>	<label for="r19" class="ident">parser</label>.<a href="yamlh.go.html#line-578" class="ident">input_pos</a> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-85"><code>}</code></span>
+<span class="codeline" id="line-86"><code></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// Set a file input.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="keyword">func</span> <label for="r21" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_parser_set_input_reader" class="ident">yaml_parser_set_input_reader</a></label>(<label for="r22" class="ident">parser</label> *<a href="yamlh.go.html#line-555" class="ident">yaml_parser_t</a>, <label for="r23" class="ident">r</label> <a href="../../../pkg/io.html" class="ident i0">io</a>.<a href="../../io/io.go.html#line-83" class="ident">Reader</a>) {</code></span>
+<span class="codeline" id="line-89"><code>	<span class="keyword">if</span> <label for="r22" class="ident">parser</label>.<a href="yamlh.go.html#line-574" class="ident">read_handler</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-90"><code>		<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"must set the input source only once"</span>)</code></span>
+<span class="codeline" id="line-91"><code>	}</code></span>
+<span class="codeline" id="line-92"><code>	<label for="r22" class="ident">parser</label>.<a href="yamlh.go.html#line-574" class="ident">read_handler</a> = <a href="#line-73" class="ident">yaml_reader_read_handler</a></code></span>
+<span class="codeline" id="line-93"><code>	<label for="r22" class="ident">parser</label>.<a href="yamlh.go.html#line-576" class="ident">input_reader</a> = <label for="r23" class="ident">r</label></code></span>
+<span class="codeline" id="line-94"><code>}</code></span>
+<span class="codeline" id="line-95"><code></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">// Set the source encoding.</span></code></span>
+<span class="codeline" id="line-97"><code><span class="keyword">func</span> <label for="r24" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_parser_set_encoding" class="ident">yaml_parser_set_encoding</a></label>(<label for="r25" class="ident">parser</label> *<a href="yamlh.go.html#line-555" class="ident">yaml_parser_t</a>, <label for="r26" class="ident">encoding</label> <a href="yamlh.go.html#line-42" class="ident">yaml_encoding_t</a>) {</code></span>
+<span class="codeline" id="line-98"><code>	<span class="keyword">if</span> <label for="r25" class="ident">parser</label>.<a href="yamlh.go.html#line-592" class="ident">encoding</a> != <a href="yamlh.go.html#line-47" class="ident">yaml_ANY_ENCODING</a> {</code></span>
+<span class="codeline" id="line-99"><code>		<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"must set the encoding only once"</span>)</code></span>
+<span class="codeline" id="line-100"><code>	}</code></span>
+<span class="codeline" id="line-101"><code>	<label for="r25" class="ident">parser</label>.<a href="yamlh.go.html#line-592" class="ident">encoding</a> = <label for="r26" class="ident">encoding</label></code></span>
+<span class="codeline" id="line-102"><code>}</code></span>
+<span class="codeline" id="line-103"><code></code></span>
+<span class="codeline" id="line-104"><code><span class="comment">// Create a new emitter object.</span></code></span>
+<span class="codeline" id="line-105"><code><span class="keyword">func</span> <label for="r27" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_emitter_initialize" class="ident">yaml_emitter_initialize</a></label>(<label for="r28" class="ident">emitter</label> *<a href="yamlh.go.html#line-703" class="ident">yaml_emitter_t</a>) {</code></span>
+<span class="codeline" id="line-106"><code>	*<label for="r28" class="ident">emitter</label> = <a href="yamlh.go.html#line-703" class="ident">yaml_emitter_t</a>{</code></span>
+<span class="codeline" id="line-107"><code>		<a href="yamlh.go.html#line-717" class="ident">buffer</a>:     <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <a href="yamlprivateh.go.html#line-34" class="ident">output_buffer_size</a>),</code></span>
+<span class="codeline" id="line-108"><code>		<a href="yamlh.go.html#line-720" class="ident">raw_buffer</a>: <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>, <a href="yamlprivateh.go.html#line-38" class="ident">output_raw_buffer_size</a>),</code></span>
+<span class="codeline" id="line-109"><code>		<a href="yamlh.go.html#line-734" class="ident">states</a>:     <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="yamlh.go.html#line-671" class="ident">yaml_emitter_state_t</a>, <span class="lit-number">0</span>, <a href="yamlprivateh.go.html#line-41" class="ident">initial_stack_size</a>),</code></span>
+<span class="codeline" id="line-110"><code>		<a href="yamlh.go.html#line-736" class="ident">events</a>:     <a href="../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>, <span class="lit-number">0</span>, <a href="yamlprivateh.go.html#line-42" class="ident">initial_queue_size</a>),</code></span>
+<span class="codeline" id="line-111"><code>		<a href="yamlh.go.html#line-729" class="ident">best_width</a>: -<span class="lit-number">1</span>,</code></span>
+<span class="codeline" id="line-112"><code>	}</code></span>
+<span class="codeline" id="line-113"><code>}</code></span>
+<span class="codeline" id="line-114"><code></code></span>
+<span class="codeline" id="line-115"><code><span class="comment">// Destroy an emitter object.</span></code></span>
+<span class="codeline" id="line-116"><code><span class="keyword">func</span> <label for="r29" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_emitter_delete" class="ident">yaml_emitter_delete</a></label>(<label for="r30" class="ident">emitter</label> *<a href="yamlh.go.html#line-703" class="ident">yaml_emitter_t</a>) {</code></span>
+<span class="codeline" id="line-117"><code>	*<label for="r30" class="ident">emitter</label> = <a href="yamlh.go.html#line-703" class="ident">yaml_emitter_t</a>{}</code></span>
+<span class="codeline" id="line-118"><code>}</code></span>
+<span class="codeline" id="line-119"><code></code></span>
+<span class="codeline" id="line-120"><code><span class="comment">// String write handler.</span></code></span>
+<span class="codeline" id="line-121"><code><span class="keyword">func</span> <label for="r31" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_string_write_handler" class="ident">yaml_string_write_handler</a></label>(<label for="r32" class="ident">emitter</label> *<a href="yamlh.go.html#line-703" class="ident">yaml_emitter_t</a>, <label for="r33" class="ident">buffer</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-122"><code>	*<label for="r32" class="ident">emitter</label>.<a href="yamlh.go.html#line-714" class="ident">output_buffer</a> = <a href="../../../pkg/builtin.html#name-append" class="ident">append</a>(*<label for="r32" class="ident">emitter</label>.<a href="yamlh.go.html#line-714" class="ident">output_buffer</a>, <label for="r33" class="ident">buffer</label>...)</code></span>
+<span class="codeline" id="line-123"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-124"><code>}</code></span>
+<span class="codeline" id="line-125"><code></code></span>
+<span class="codeline" id="line-126"><code><span class="comment">// yaml_writer_write_handler uses emitter.output_writer to write the</span></code></span>
+<span class="codeline" id="line-127"><code><span class="comment">// emitted text.</span></code></span>
+<span class="codeline" id="line-128"><code><span class="keyword">func</span> <label for="r34" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_writer_write_handler" class="ident">yaml_writer_write_handler</a></label>(<label for="r35" class="ident">emitter</label> *<a href="yamlh.go.html#line-703" class="ident">yaml_emitter_t</a>, <label for="r36" class="ident">buffer</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-129"><code>	<label for="r37" class="ident">_</label>, <label for="r38" class="ident">err</label> := <label for="r35" class="ident">emitter</label>.<a href="yamlh.go.html#line-715" class="ident">output_writer</a>.<a href="../../io/io.go.html#line-97" class="ident">Write</a>(<label for="r36" class="ident">buffer</label>)</code></span>
+<span class="codeline" id="line-130"><code>	<span class="keyword">return</span> <label for="r38" class="ident">err</label></code></span>
+<span class="codeline" id="line-131"><code>}</code></span>
+<span class="codeline" id="line-132"><code></code></span>
+<span class="codeline" id="line-133"><code><span class="comment">// Set a string output.</span></code></span>
+<span class="codeline" id="line-134"><code><span class="keyword">func</span> <label for="r39" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_emitter_set_output_string" class="ident">yaml_emitter_set_output_string</a></label>(<label for="r40" class="ident">emitter</label> *<a href="yamlh.go.html#line-703" class="ident">yaml_emitter_t</a>, <label for="r41" class="ident">output_buffer</label> *[]<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) {</code></span>
+<span class="codeline" id="line-135"><code>	<span class="keyword">if</span> <label for="r40" class="ident">emitter</label>.<a href="yamlh.go.html#line-712" class="ident">write_handler</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-136"><code>		<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"must set the output target only once"</span>)</code></span>
+<span class="codeline" id="line-137"><code>	}</code></span>
+<span class="codeline" id="line-138"><code>	<label for="r40" class="ident">emitter</label>.<a href="yamlh.go.html#line-712" class="ident">write_handler</a> = <a href="#line-121" class="ident">yaml_string_write_handler</a></code></span>
+<span class="codeline" id="line-139"><code>	<label for="r40" class="ident">emitter</label>.<a href="yamlh.go.html#line-714" class="ident">output_buffer</a> = <label for="r41" class="ident">output_buffer</label></code></span>
+<span class="codeline" id="line-140"><code>}</code></span>
+<span class="codeline" id="line-141"><code></code></span>
+<span class="codeline" id="line-142"><code><span class="comment">// Set a file output.</span></code></span>
+<span class="codeline" id="line-143"><code><span class="keyword">func</span> <label for="r42" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_emitter_set_output_writer" class="ident">yaml_emitter_set_output_writer</a></label>(<label for="r43" class="ident">emitter</label> *<a href="yamlh.go.html#line-703" class="ident">yaml_emitter_t</a>, <label for="r44" class="ident">w</label> <a href="../../../pkg/io.html" class="ident i0">io</a>.<a href="../../io/io.go.html#line-96" class="ident">Writer</a>) {</code></span>
+<span class="codeline" id="line-144"><code>	<span class="keyword">if</span> <label for="r43" class="ident">emitter</label>.<a href="yamlh.go.html#line-712" class="ident">write_handler</a> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-145"><code>		<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"must set the output target only once"</span>)</code></span>
+<span class="codeline" id="line-146"><code>	}</code></span>
+<span class="codeline" id="line-147"><code>	<label for="r43" class="ident">emitter</label>.<a href="yamlh.go.html#line-712" class="ident">write_handler</a> = <a href="#line-128" class="ident">yaml_writer_write_handler</a></code></span>
+<span class="codeline" id="line-148"><code>	<label for="r43" class="ident">emitter</label>.<a href="yamlh.go.html#line-715" class="ident">output_writer</a> = <label for="r44" class="ident">w</label></code></span>
+<span class="codeline" id="line-149"><code>}</code></span>
+<span class="codeline" id="line-150"><code></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">// Set the output encoding.</span></code></span>
+<span class="codeline" id="line-152"><code><span class="keyword">func</span> <label for="r45" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_emitter_set_encoding" class="ident">yaml_emitter_set_encoding</a></label>(<label for="r46" class="ident">emitter</label> *<a href="yamlh.go.html#line-703" class="ident">yaml_emitter_t</a>, <label for="r47" class="ident">encoding</label> <a href="yamlh.go.html#line-42" class="ident">yaml_encoding_t</a>) {</code></span>
+<span class="codeline" id="line-153"><code>	<span class="keyword">if</span> <label for="r46" class="ident">emitter</label>.<a href="yamlh.go.html#line-723" class="ident">encoding</a> != <a href="yamlh.go.html#line-47" class="ident">yaml_ANY_ENCODING</a> {</code></span>
+<span class="codeline" id="line-154"><code>		<a href="../../../pkg/builtin.html#name-panic" class="ident">panic</a>(<span class="lit-string">"must set the output encoding only once"</span>)</code></span>
+<span class="codeline" id="line-155"><code>	}</code></span>
+<span class="codeline" id="line-156"><code>	<label for="r46" class="ident">emitter</label>.<a href="yamlh.go.html#line-723" class="ident">encoding</a> = <label for="r47" class="ident">encoding</label></code></span>
+<span class="codeline" id="line-157"><code>}</code></span>
+<span class="codeline" id="line-158"><code></code></span>
+<span class="codeline" id="line-159"><code><span class="comment">// Set the canonical output style.</span></code></span>
+<span class="codeline" id="line-160"><code><span class="keyword">func</span> <label for="r48" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_emitter_set_canonical" class="ident">yaml_emitter_set_canonical</a></label>(<label for="r49" class="ident">emitter</label> *<a href="yamlh.go.html#line-703" class="ident">yaml_emitter_t</a>, <label for="r50" class="ident">canonical</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-161"><code>	<label for="r49" class="ident">emitter</label>.<a href="yamlh.go.html#line-727" class="ident">canonical</a> = <label for="r50" class="ident">canonical</label></code></span>
+<span class="codeline" id="line-162"><code>}</code></span>
+<span class="codeline" id="line-163"><code></code></span>
+<span class="codeline" id="line-164"><code><span class="comment">// Set the indentation increment.</span></code></span>
+<span class="codeline" id="line-165"><code><span class="keyword">func</span> <label for="r51" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_emitter_set_indent" class="ident">yaml_emitter_set_indent</a></label>(<label for="r52" class="ident">emitter</label> *<a href="yamlh.go.html#line-703" class="ident">yaml_emitter_t</a>, <label for="r53" class="ident">indent</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-166"><code>	<span class="keyword">if</span> <label for="r53" class="ident">indent</label> &lt; <span class="lit-number">2</span> || <label for="r53" class="ident">indent</label> &gt; <span class="lit-number">9</span> {</code></span>
+<span class="codeline" id="line-167"><code>		<label for="r53" class="ident">indent</label> = <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-168"><code>	}</code></span>
+<span class="codeline" id="line-169"><code>	<label for="r52" class="ident">emitter</label>.<a href="yamlh.go.html#line-728" class="ident">best_indent</a> = <label for="r53" class="ident">indent</label></code></span>
+<span class="codeline" id="line-170"><code>}</code></span>
+<span class="codeline" id="line-171"><code></code></span>
+<span class="codeline" id="line-172"><code><span class="comment">// Set the preferred line width.</span></code></span>
+<span class="codeline" id="line-173"><code><span class="keyword">func</span> <label for="r54" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_emitter_set_width" class="ident">yaml_emitter_set_width</a></label>(<label for="r55" class="ident">emitter</label> *<a href="yamlh.go.html#line-703" class="ident">yaml_emitter_t</a>, <label for="r56" class="ident">width</label> <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-174"><code>	<span class="keyword">if</span> <label for="r56" class="ident">width</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-175"><code>		<label for="r56" class="ident">width</label> = -<span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-176"><code>	}</code></span>
+<span class="codeline" id="line-177"><code>	<label for="r55" class="ident">emitter</label>.<a href="yamlh.go.html#line-729" class="ident">best_width</a> = <label for="r56" class="ident">width</label></code></span>
+<span class="codeline" id="line-178"><code>}</code></span>
+<span class="codeline" id="line-179"><code></code></span>
+<span class="codeline" id="line-180"><code><span class="comment">// Set if unescaped non-ASCII characters are allowed.</span></code></span>
+<span class="codeline" id="line-181"><code><span class="keyword">func</span> <label for="r57" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_emitter_set_unicode" class="ident">yaml_emitter_set_unicode</a></label>(<label for="r58" class="ident">emitter</label> *<a href="yamlh.go.html#line-703" class="ident">yaml_emitter_t</a>, <label for="r59" class="ident">unicode</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-182"><code>	<label for="r58" class="ident">emitter</label>.<a href="yamlh.go.html#line-730" class="ident">unicode</a> = <label for="r59" class="ident">unicode</label></code></span>
+<span class="codeline" id="line-183"><code>}</code></span>
+<span class="codeline" id="line-184"><code></code></span>
+<span class="codeline" id="line-185"><code><span class="comment">// Set the preferred line break character.</span></code></span>
+<span class="codeline" id="line-186"><code><span class="keyword">func</span> <label for="r60" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_emitter_set_break" class="ident">yaml_emitter_set_break</a></label>(<label for="r61" class="ident">emitter</label> *<a href="yamlh.go.html#line-703" class="ident">yaml_emitter_t</a>, <label for="r62" class="ident">line_break</label> <a href="yamlh.go.html#line-54" class="ident">yaml_break_t</a>) {</code></span>
+<span class="codeline" id="line-187"><code>	<label for="r61" class="ident">emitter</label>.<a href="yamlh.go.html#line-731" class="ident">line_break</a> = <label for="r62" class="ident">line_break</label></code></span>
+<span class="codeline" id="line-188"><code>}</code></span>
+<span class="codeline" id="line-189"><code></code></span>
+<span class="codeline" id="line-190"><code><span class="comment">///*</span></code></span>
+<span class="codeline" id="line-191"><code><span class="comment">// * Destroy a token object.</span></code></span>
+<span class="codeline" id="line-192"><code><span class="comment">// */</span></code></span>
+<span class="codeline" id="line-193"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-194"><code><span class="comment">//YAML_DECLARE(void)</span></code></span>
+<span class="codeline" id="line-195"><code><span class="comment">//yaml_token_delete(yaml_token_t *token)</span></code></span>
+<span class="codeline" id="line-196"><code><span class="comment">//{</span></code></span>
+<span class="codeline" id="line-197"><code><span class="comment">//    assert(token);  // Non-NULL token object expected.</span></code></span>
+<span class="codeline" id="line-198"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-199"><code><span class="comment">//    switch (token.type)</span></code></span>
+<span class="codeline" id="line-200"><code><span class="comment">//    {</span></code></span>
+<span class="codeline" id="line-201"><code><span class="comment">//        case YAML_TAG_DIRECTIVE_TOKEN:</span></code></span>
+<span class="codeline" id="line-202"><code><span class="comment">//            yaml_free(token.data.tag_directive.handle);</span></code></span>
+<span class="codeline" id="line-203"><code><span class="comment">//            yaml_free(token.data.tag_directive.prefix);</span></code></span>
+<span class="codeline" id="line-204"><code><span class="comment">//            break;</span></code></span>
+<span class="codeline" id="line-205"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-206"><code><span class="comment">//        case YAML_ALIAS_TOKEN:</span></code></span>
+<span class="codeline" id="line-207"><code><span class="comment">//            yaml_free(token.data.alias.value);</span></code></span>
+<span class="codeline" id="line-208"><code><span class="comment">//            break;</span></code></span>
+<span class="codeline" id="line-209"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-210"><code><span class="comment">//        case YAML_ANCHOR_TOKEN:</span></code></span>
+<span class="codeline" id="line-211"><code><span class="comment">//            yaml_free(token.data.anchor.value);</span></code></span>
+<span class="codeline" id="line-212"><code><span class="comment">//            break;</span></code></span>
+<span class="codeline" id="line-213"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-214"><code><span class="comment">//        case YAML_TAG_TOKEN:</span></code></span>
+<span class="codeline" id="line-215"><code><span class="comment">//            yaml_free(token.data.tag.handle);</span></code></span>
+<span class="codeline" id="line-216"><code><span class="comment">//            yaml_free(token.data.tag.suffix);</span></code></span>
+<span class="codeline" id="line-217"><code><span class="comment">//            break;</span></code></span>
+<span class="codeline" id="line-218"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-219"><code><span class="comment">//        case YAML_SCALAR_TOKEN:</span></code></span>
+<span class="codeline" id="line-220"><code><span class="comment">//            yaml_free(token.data.scalar.value);</span></code></span>
+<span class="codeline" id="line-221"><code><span class="comment">//            break;</span></code></span>
+<span class="codeline" id="line-222"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-223"><code><span class="comment">//        default:</span></code></span>
+<span class="codeline" id="line-224"><code><span class="comment">//            break;</span></code></span>
+<span class="codeline" id="line-225"><code><span class="comment">//    }</span></code></span>
+<span class="codeline" id="line-226"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-227"><code><span class="comment">//    memset(token, 0, sizeof(yaml_token_t));</span></code></span>
+<span class="codeline" id="line-228"><code><span class="comment">//}</span></code></span>
+<span class="codeline" id="line-229"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-230"><code><span class="comment">///*</span></code></span>
+<span class="codeline" id="line-231"><code><span class="comment">// * Check if a string is a valid UTF-8 sequence.</span></code></span>
+<span class="codeline" id="line-232"><code><span class="comment">// *</span></code></span>
+<span class="codeline" id="line-233"><code><span class="comment">// * Check 'reader.c' for more details on UTF-8 encoding.</span></code></span>
+<span class="codeline" id="line-234"><code><span class="comment">// */</span></code></span>
+<span class="codeline" id="line-235"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-236"><code><span class="comment">//static int</span></code></span>
+<span class="codeline" id="line-237"><code><span class="comment">//yaml_check_utf8(yaml_char_t *start, size_t length)</span></code></span>
+<span class="codeline" id="line-238"><code><span class="comment">//{</span></code></span>
+<span class="codeline" id="line-239"><code><span class="comment">//    yaml_char_t *end = start+length;</span></code></span>
+<span class="codeline" id="line-240"><code><span class="comment">//    yaml_char_t *pointer = start;</span></code></span>
+<span class="codeline" id="line-241"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-242"><code><span class="comment">//    while (pointer &lt; end) {</span></code></span>
+<span class="codeline" id="line-243"><code><span class="comment">//        unsigned char octet;</span></code></span>
+<span class="codeline" id="line-244"><code><span class="comment">//        unsigned int width;</span></code></span>
+<span class="codeline" id="line-245"><code><span class="comment">//        unsigned int value;</span></code></span>
+<span class="codeline" id="line-246"><code><span class="comment">//        size_t k;</span></code></span>
+<span class="codeline" id="line-247"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-248"><code><span class="comment">//        octet = pointer[0];</span></code></span>
+<span class="codeline" id="line-249"><code><span class="comment">//        width = (octet &amp; 0x80) == 0x00 ? 1 :</span></code></span>
+<span class="codeline" id="line-250"><code><span class="comment">//                (octet &amp; 0xE0) == 0xC0 ? 2 :</span></code></span>
+<span class="codeline" id="line-251"><code><span class="comment">//                (octet &amp; 0xF0) == 0xE0 ? 3 :</span></code></span>
+<span class="codeline" id="line-252"><code><span class="comment">//                (octet &amp; 0xF8) == 0xF0 ? 4 : 0;</span></code></span>
+<span class="codeline" id="line-253"><code><span class="comment">//        value = (octet &amp; 0x80) == 0x00 ? octet &amp; 0x7F :</span></code></span>
+<span class="codeline" id="line-254"><code><span class="comment">//                (octet &amp; 0xE0) == 0xC0 ? octet &amp; 0x1F :</span></code></span>
+<span class="codeline" id="line-255"><code><span class="comment">//                (octet &amp; 0xF0) == 0xE0 ? octet &amp; 0x0F :</span></code></span>
+<span class="codeline" id="line-256"><code><span class="comment">//                (octet &amp; 0xF8) == 0xF0 ? octet &amp; 0x07 : 0;</span></code></span>
+<span class="codeline" id="line-257"><code><span class="comment">//        if (!width) return 0;</span></code></span>
+<span class="codeline" id="line-258"><code><span class="comment">//        if (pointer+width &gt; end) return 0;</span></code></span>
+<span class="codeline" id="line-259"><code><span class="comment">//        for (k = 1; k &lt; width; k ++) {</span></code></span>
+<span class="codeline" id="line-260"><code><span class="comment">//            octet = pointer[k];</span></code></span>
+<span class="codeline" id="line-261"><code><span class="comment">//            if ((octet &amp; 0xC0) != 0x80) return 0;</span></code></span>
+<span class="codeline" id="line-262"><code><span class="comment">//            value = (value &lt;&lt; 6) + (octet &amp; 0x3F);</span></code></span>
+<span class="codeline" id="line-263"><code><span class="comment">//        }</span></code></span>
+<span class="codeline" id="line-264"><code><span class="comment">//        if (!((width == 1) ||</span></code></span>
+<span class="codeline" id="line-265"><code><span class="comment">//            (width == 2 &amp;&amp; value &gt;= 0x80) ||</span></code></span>
+<span class="codeline" id="line-266"><code><span class="comment">//            (width == 3 &amp;&amp; value &gt;= 0x800) ||</span></code></span>
+<span class="codeline" id="line-267"><code><span class="comment">//            (width == 4 &amp;&amp; value &gt;= 0x10000))) return 0;</span></code></span>
+<span class="codeline" id="line-268"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-269"><code><span class="comment">//        pointer += width;</span></code></span>
+<span class="codeline" id="line-270"><code><span class="comment">//    }</span></code></span>
+<span class="codeline" id="line-271"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-272"><code><span class="comment">//    return 1;</span></code></span>
+<span class="codeline" id="line-273"><code><span class="comment">//}</span></code></span>
+<span class="codeline" id="line-274"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-275"><code></code></span>
+<span class="codeline" id="line-276"><code><span class="comment">// Create STREAM-START.</span></code></span>
+<span class="codeline" id="line-277"><code><span class="keyword">func</span> <label for="r63" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_stream_start_event_initialize" class="ident">yaml_stream_start_event_initialize</a></label>(<label for="r64" class="ident">event</label> *<a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>, <label for="r65" class="ident">encoding</label> <a href="yamlh.go.html#line-42" class="ident">yaml_encoding_t</a>) {</code></span>
+<span class="codeline" id="line-278"><code>	*<label for="r64" class="ident">event</label> = <a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>{</code></span>
+<span class="codeline" id="line-279"><code>		<a href="yamlh.go.html#line-292" class="ident">typ</a>:      <a href="yamlh.go.html#line-253" class="ident">yaml_STREAM_START_EVENT</a>,</code></span>
+<span class="codeline" id="line-280"><code>		<a href="yamlh.go.html#line-298" class="ident">encoding</a>: <label for="r65" class="ident">encoding</label>,</code></span>
+<span class="codeline" id="line-281"><code>	}</code></span>
+<span class="codeline" id="line-282"><code>}</code></span>
+<span class="codeline" id="line-283"><code></code></span>
+<span class="codeline" id="line-284"><code><span class="comment">// Create STREAM-END.</span></code></span>
+<span class="codeline" id="line-285"><code><span class="keyword">func</span> <label for="r66" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_stream_end_event_initialize" class="ident">yaml_stream_end_event_initialize</a></label>(<label for="r67" class="ident">event</label> *<a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>) {</code></span>
+<span class="codeline" id="line-286"><code>	*<label for="r67" class="ident">event</label> = <a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>{</code></span>
+<span class="codeline" id="line-287"><code>		<a href="yamlh.go.html#line-292" class="ident">typ</a>: <a href="yamlh.go.html#line-254" class="ident">yaml_STREAM_END_EVENT</a>,</code></span>
+<span class="codeline" id="line-288"><code>	}</code></span>
+<span class="codeline" id="line-289"><code>}</code></span>
+<span class="codeline" id="line-290"><code></code></span>
+<span class="codeline" id="line-291"><code><span class="comment">// Create DOCUMENT-START.</span></code></span>
+<span class="codeline" id="line-292"><code><span class="keyword">func</span> <label for="r68" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_document_start_event_initialize" class="ident">yaml_document_start_event_initialize</a></label>(</code></span>
+<span class="codeline" id="line-293"><code>	<label for="r69" class="ident">event</label> *<a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>,</code></span>
+<span class="codeline" id="line-294"><code>	<label for="r70" class="ident">version_directive</label> *<a href="yamlh.go.html#line-31" class="ident">yaml_version_directive_t</a>,</code></span>
+<span class="codeline" id="line-295"><code>	<label for="r71" class="ident">tag_directives</label> []<a href="yamlh.go.html#line-37" class="ident">yaml_tag_directive_t</a>,</code></span>
+<span class="codeline" id="line-296"><code>	<label for="r72" class="ident">implicit</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>,</code></span>
+<span class="codeline" id="line-297"><code>) {</code></span>
+<span class="codeline" id="line-298"><code>	*<label for="r69" class="ident">event</label> = <a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>{</code></span>
+<span class="codeline" id="line-299"><code>		<a href="yamlh.go.html#line-292" class="ident">typ</a>:               <a href="yamlh.go.html#line-255" class="ident">yaml_DOCUMENT_START_EVENT</a>,</code></span>
+<span class="codeline" id="line-300"><code>		<a href="yamlh.go.html#line-301" class="ident">version_directive</a>: <label for="r70" class="ident">version_directive</label>,</code></span>
+<span class="codeline" id="line-301"><code>		<a href="yamlh.go.html#line-304" class="ident">tag_directives</a>:    <label for="r71" class="ident">tag_directives</label>,</code></span>
+<span class="codeline" id="line-302"><code>		<a href="yamlh.go.html#line-323" class="ident">implicit</a>:          <label for="r72" class="ident">implicit</label>,</code></span>
+<span class="codeline" id="line-303"><code>	}</code></span>
+<span class="codeline" id="line-304"><code>}</code></span>
+<span class="codeline" id="line-305"><code></code></span>
+<span class="codeline" id="line-306"><code><span class="comment">// Create DOCUMENT-END.</span></code></span>
+<span class="codeline" id="line-307"><code><span class="keyword">func</span> <label for="r73" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_document_end_event_initialize" class="ident">yaml_document_end_event_initialize</a></label>(<label for="r74" class="ident">event</label> *<a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>, <label for="r75" class="ident">implicit</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-308"><code>	*<label for="r74" class="ident">event</label> = <a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>{</code></span>
+<span class="codeline" id="line-309"><code>		<a href="yamlh.go.html#line-292" class="ident">typ</a>:      <a href="yamlh.go.html#line-256" class="ident">yaml_DOCUMENT_END_EVENT</a>,</code></span>
+<span class="codeline" id="line-310"><code>		<a href="yamlh.go.html#line-323" class="ident">implicit</a>: <label for="r75" class="ident">implicit</label>,</code></span>
+<span class="codeline" id="line-311"><code>	}</code></span>
+<span class="codeline" id="line-312"><code>}</code></span>
+<span class="codeline" id="line-313"><code></code></span>
+<span class="codeline" id="line-314"><code><span class="comment">// Create ALIAS.</span></code></span>
+<span class="codeline" id="line-315"><code><span class="keyword">func</span> <label for="r76" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_alias_event_initialize" class="ident">yaml_alias_event_initialize</a></label>(<label for="r77" class="ident">event</label> *<a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>, <label for="r78" class="ident">anchor</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-316"><code>	*<label for="r77" class="ident">event</label> = <a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>{</code></span>
+<span class="codeline" id="line-317"><code>		<a href="yamlh.go.html#line-292" class="ident">typ</a>:    <a href="yamlh.go.html#line-257" class="ident">yaml_ALIAS_EVENT</a>,</code></span>
+<span class="codeline" id="line-318"><code>		<a href="yamlh.go.html#line-313" class="ident">anchor</a>: <label for="r78" class="ident">anchor</label>,</code></span>
+<span class="codeline" id="line-319"><code>	}</code></span>
+<span class="codeline" id="line-320"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-321"><code>}</code></span>
+<span class="codeline" id="line-322"><code></code></span>
+<span class="codeline" id="line-323"><code><span class="comment">// Create SCALAR.</span></code></span>
+<span class="codeline" id="line-324"><code><span class="keyword">func</span> <label for="r79" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_scalar_event_initialize" class="ident">yaml_scalar_event_initialize</a></label>(<label for="r80" class="ident">event</label> *<a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>, <label for="r81" class="ident">anchor</label>, <label for="r82" class="ident">tag</label>, <label for="r83" class="ident">value</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r84" class="ident">plain_implicit</label>, <label for="r85" class="ident">quoted_implicit</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r86" class="ident">style</label> <a href="yamlh.go.html#line-93" class="ident">yaml_scalar_style_t</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-325"><code>	*<label for="r80" class="ident">event</label> = <a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>{</code></span>
+<span class="codeline" id="line-326"><code>		<a href="yamlh.go.html#line-292" class="ident">typ</a>:             <a href="yamlh.go.html#line-258" class="ident">yaml_SCALAR_EVENT</a>,</code></span>
+<span class="codeline" id="line-327"><code>		<a href="yamlh.go.html#line-313" class="ident">anchor</a>:          <label for="r81" class="ident">anchor</label>,</code></span>
+<span class="codeline" id="line-328"><code>		<a href="yamlh.go.html#line-316" class="ident">tag</a>:             <label for="r82" class="ident">tag</label>,</code></span>
+<span class="codeline" id="line-329"><code>		<a href="yamlh.go.html#line-319" class="ident">value</a>:           <label for="r83" class="ident">value</label>,</code></span>
+<span class="codeline" id="line-330"><code>		<a href="yamlh.go.html#line-323" class="ident">implicit</a>:        <label for="r84" class="ident">plain_implicit</label>,</code></span>
+<span class="codeline" id="line-331"><code>		<a href="yamlh.go.html#line-326" class="ident">quoted_implicit</a>: <label for="r85" class="ident">quoted_implicit</label>,</code></span>
+<span class="codeline" id="line-332"><code>		<a href="yamlh.go.html#line-329" class="ident">style</a>:           <a href="yamlh.go.html#line-91" class="ident">yaml_style_t</a>(<label for="r86" class="ident">style</label>),</code></span>
+<span class="codeline" id="line-333"><code>	}</code></span>
+<span class="codeline" id="line-334"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-335"><code>}</code></span>
+<span class="codeline" id="line-336"><code></code></span>
+<span class="codeline" id="line-337"><code><span class="comment">// Create SEQUENCE-START.</span></code></span>
+<span class="codeline" id="line-338"><code><span class="keyword">func</span> <label for="r87" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_sequence_start_event_initialize" class="ident">yaml_sequence_start_event_initialize</a></label>(<label for="r88" class="ident">event</label> *<a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>, <label for="r89" class="ident">anchor</label>, <label for="r90" class="ident">tag</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r91" class="ident">implicit</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r92" class="ident">style</label> <a href="yamlh.go.html#line-107" class="ident">yaml_sequence_style_t</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-339"><code>	*<label for="r88" class="ident">event</label> = <a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>{</code></span>
+<span class="codeline" id="line-340"><code>		<a href="yamlh.go.html#line-292" class="ident">typ</a>:      <a href="yamlh.go.html#line-259" class="ident">yaml_SEQUENCE_START_EVENT</a>,</code></span>
+<span class="codeline" id="line-341"><code>		<a href="yamlh.go.html#line-313" class="ident">anchor</a>:   <label for="r89" class="ident">anchor</label>,</code></span>
+<span class="codeline" id="line-342"><code>		<a href="yamlh.go.html#line-316" class="ident">tag</a>:      <label for="r90" class="ident">tag</label>,</code></span>
+<span class="codeline" id="line-343"><code>		<a href="yamlh.go.html#line-323" class="ident">implicit</a>: <label for="r91" class="ident">implicit</label>,</code></span>
+<span class="codeline" id="line-344"><code>		<a href="yamlh.go.html#line-329" class="ident">style</a>:    <a href="yamlh.go.html#line-91" class="ident">yaml_style_t</a>(<label for="r92" class="ident">style</label>),</code></span>
+<span class="codeline" id="line-345"><code>	}</code></span>
+<span class="codeline" id="line-346"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-347"><code>}</code></span>
+<span class="codeline" id="line-348"><code></code></span>
+<span class="codeline" id="line-349"><code><span class="comment">// Create SEQUENCE-END.</span></code></span>
+<span class="codeline" id="line-350"><code><span class="keyword">func</span> <label for="r93" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_sequence_end_event_initialize" class="ident">yaml_sequence_end_event_initialize</a></label>(<label for="r94" class="ident">event</label> *<a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-351"><code>	*<label for="r94" class="ident">event</label> = <a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>{</code></span>
+<span class="codeline" id="line-352"><code>		<a href="yamlh.go.html#line-292" class="ident">typ</a>: <a href="yamlh.go.html#line-260" class="ident">yaml_SEQUENCE_END_EVENT</a>,</code></span>
+<span class="codeline" id="line-353"><code>	}</code></span>
+<span class="codeline" id="line-354"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-355"><code>}</code></span>
+<span class="codeline" id="line-356"><code></code></span>
+<span class="codeline" id="line-357"><code><span class="comment">// Create MAPPING-START.</span></code></span>
+<span class="codeline" id="line-358"><code><span class="keyword">func</span> <label for="r95" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_mapping_start_event_initialize" class="ident">yaml_mapping_start_event_initialize</a></label>(<label for="r96" class="ident">event</label> *<a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>, <label for="r97" class="ident">anchor</label>, <label for="r98" class="ident">tag</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r99" class="ident">implicit</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r100" class="ident">style</label> <a href="yamlh.go.html#line-118" class="ident">yaml_mapping_style_t</a>) {</code></span>
+<span class="codeline" id="line-359"><code>	*<label for="r96" class="ident">event</label> = <a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>{</code></span>
+<span class="codeline" id="line-360"><code>		<a href="yamlh.go.html#line-292" class="ident">typ</a>:      <a href="yamlh.go.html#line-261" class="ident">yaml_MAPPING_START_EVENT</a>,</code></span>
+<span class="codeline" id="line-361"><code>		<a href="yamlh.go.html#line-313" class="ident">anchor</a>:   <label for="r97" class="ident">anchor</label>,</code></span>
+<span class="codeline" id="line-362"><code>		<a href="yamlh.go.html#line-316" class="ident">tag</a>:      <label for="r98" class="ident">tag</label>,</code></span>
+<span class="codeline" id="line-363"><code>		<a href="yamlh.go.html#line-323" class="ident">implicit</a>: <label for="r99" class="ident">implicit</label>,</code></span>
+<span class="codeline" id="line-364"><code>		<a href="yamlh.go.html#line-329" class="ident">style</a>:    <a href="yamlh.go.html#line-91" class="ident">yaml_style_t</a>(<label for="r100" class="ident">style</label>),</code></span>
+<span class="codeline" id="line-365"><code>	}</code></span>
+<span class="codeline" id="line-366"><code>}</code></span>
+<span class="codeline" id="line-367"><code></code></span>
+<span class="codeline" id="line-368"><code><span class="comment">// Create MAPPING-END.</span></code></span>
+<span class="codeline" id="line-369"><code><span class="keyword">func</span> <label for="r101" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_mapping_end_event_initialize" class="ident">yaml_mapping_end_event_initialize</a></label>(<label for="r102" class="ident">event</label> *<a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>) {</code></span>
+<span class="codeline" id="line-370"><code>	*<label for="r102" class="ident">event</label> = <a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>{</code></span>
+<span class="codeline" id="line-371"><code>		<a href="yamlh.go.html#line-292" class="ident">typ</a>: <a href="yamlh.go.html#line-262" class="ident">yaml_MAPPING_END_EVENT</a>,</code></span>
+<span class="codeline" id="line-372"><code>	}</code></span>
+<span class="codeline" id="line-373"><code>}</code></span>
+<span class="codeline" id="line-374"><code></code></span>
+<span class="codeline" id="line-375"><code><span class="comment">// Destroy an event object.</span></code></span>
+<span class="codeline" id="line-376"><code><span class="keyword">func</span> <label for="r103" class="ident"><a href="../../../pkg/gopkg.in/yaml.v3.html#name-yaml_event_delete" class="ident">yaml_event_delete</a></label>(<label for="r104" class="ident">event</label> *<a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>) {</code></span>
+<span class="codeline" id="line-377"><code>	*<label for="r104" class="ident">event</label> = <a href="yamlh.go.html#line-289" class="ident">yaml_event_t</a>{}</code></span>
+<span class="codeline" id="line-378"><code>}</code></span>
+<span class="codeline" id="line-379"><code></code></span>
+<span class="codeline" id="line-380"><code><span class="comment">///*</span></code></span>
+<span class="codeline" id="line-381"><code><span class="comment">// * Create a document object.</span></code></span>
+<span class="codeline" id="line-382"><code><span class="comment">// */</span></code></span>
+<span class="codeline" id="line-383"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-384"><code><span class="comment">//YAML_DECLARE(int)</span></code></span>
+<span class="codeline" id="line-385"><code><span class="comment">//yaml_document_initialize(document *yaml_document_t,</span></code></span>
+<span class="codeline" id="line-386"><code><span class="comment">//        version_directive *yaml_version_directive_t,</span></code></span>
+<span class="codeline" id="line-387"><code><span class="comment">//        tag_directives_start *yaml_tag_directive_t,</span></code></span>
+<span class="codeline" id="line-388"><code><span class="comment">//        tag_directives_end *yaml_tag_directive_t,</span></code></span>
+<span class="codeline" id="line-389"><code><span class="comment">//        start_implicit int, end_implicit int)</span></code></span>
+<span class="codeline" id="line-390"><code><span class="comment">//{</span></code></span>
+<span class="codeline" id="line-391"><code><span class="comment">//    struct {</span></code></span>
+<span class="codeline" id="line-392"><code><span class="comment">//        error yaml_error_type_t</span></code></span>
+<span class="codeline" id="line-393"><code><span class="comment">//    } context</span></code></span>
+<span class="codeline" id="line-394"><code><span class="comment">//    struct {</span></code></span>
+<span class="codeline" id="line-395"><code><span class="comment">//        start *yaml_node_t</span></code></span>
+<span class="codeline" id="line-396"><code><span class="comment">//        end *yaml_node_t</span></code></span>
+<span class="codeline" id="line-397"><code><span class="comment">//        top *yaml_node_t</span></code></span>
+<span class="codeline" id="line-398"><code><span class="comment">//    } nodes = { NULL, NULL, NULL }</span></code></span>
+<span class="codeline" id="line-399"><code><span class="comment">//    version_directive_copy *yaml_version_directive_t = NULL</span></code></span>
+<span class="codeline" id="line-400"><code><span class="comment">//    struct {</span></code></span>
+<span class="codeline" id="line-401"><code><span class="comment">//        start *yaml_tag_directive_t</span></code></span>
+<span class="codeline" id="line-402"><code><span class="comment">//        end *yaml_tag_directive_t</span></code></span>
+<span class="codeline" id="line-403"><code><span class="comment">//        top *yaml_tag_directive_t</span></code></span>
+<span class="codeline" id="line-404"><code><span class="comment">//    } tag_directives_copy = { NULL, NULL, NULL }</span></code></span>
+<span class="codeline" id="line-405"><code><span class="comment">//    value yaml_tag_directive_t = { NULL, NULL }</span></code></span>
+<span class="codeline" id="line-406"><code><span class="comment">//    mark yaml_mark_t = { 0, 0, 0 }</span></code></span>
+<span class="codeline" id="line-407"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-408"><code><span class="comment">//    assert(document) // Non-NULL document object is expected.</span></code></span>
+<span class="codeline" id="line-409"><code><span class="comment">//    assert((tag_directives_start &amp;&amp; tag_directives_end) ||</span></code></span>
+<span class="codeline" id="line-410"><code><span class="comment">//            (tag_directives_start == tag_directives_end))</span></code></span>
+<span class="codeline" id="line-411"><code><span class="comment">//                            // Valid tag directives are expected.</span></code></span>
+<span class="codeline" id="line-412"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-413"><code><span class="comment">//    if (!STACK_INIT(&amp;context, nodes, INITIAL_STACK_SIZE)) goto error</span></code></span>
+<span class="codeline" id="line-414"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-415"><code><span class="comment">//    if (version_directive) {</span></code></span>
+<span class="codeline" id="line-416"><code><span class="comment">//        version_directive_copy = yaml_malloc(sizeof(yaml_version_directive_t))</span></code></span>
+<span class="codeline" id="line-417"><code><span class="comment">//        if (!version_directive_copy) goto error</span></code></span>
+<span class="codeline" id="line-418"><code><span class="comment">//        version_directive_copy.major = version_directive.major</span></code></span>
+<span class="codeline" id="line-419"><code><span class="comment">//        version_directive_copy.minor = version_directive.minor</span></code></span>
+<span class="codeline" id="line-420"><code><span class="comment">//    }</span></code></span>
+<span class="codeline" id="line-421"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-422"><code><span class="comment">//    if (tag_directives_start != tag_directives_end) {</span></code></span>
+<span class="codeline" id="line-423"><code><span class="comment">//        tag_directive *yaml_tag_directive_t</span></code></span>
+<span class="codeline" id="line-424"><code><span class="comment">//        if (!STACK_INIT(&amp;context, tag_directives_copy, INITIAL_STACK_SIZE))</span></code></span>
+<span class="codeline" id="line-425"><code><span class="comment">//            goto error</span></code></span>
+<span class="codeline" id="line-426"><code><span class="comment">//        for (tag_directive = tag_directives_start</span></code></span>
+<span class="codeline" id="line-427"><code><span class="comment">//                tag_directive != tag_directives_end; tag_directive ++) {</span></code></span>
+<span class="codeline" id="line-428"><code><span class="comment">//            assert(tag_directive.handle)</span></code></span>
+<span class="codeline" id="line-429"><code><span class="comment">//            assert(tag_directive.prefix)</span></code></span>
+<span class="codeline" id="line-430"><code><span class="comment">//            if (!yaml_check_utf8(tag_directive.handle,</span></code></span>
+<span class="codeline" id="line-431"><code><span class="comment">//                        strlen((char *)tag_directive.handle)))</span></code></span>
+<span class="codeline" id="line-432"><code><span class="comment">//                goto error</span></code></span>
+<span class="codeline" id="line-433"><code><span class="comment">//            if (!yaml_check_utf8(tag_directive.prefix,</span></code></span>
+<span class="codeline" id="line-434"><code><span class="comment">//                        strlen((char *)tag_directive.prefix)))</span></code></span>
+<span class="codeline" id="line-435"><code><span class="comment">//                goto error</span></code></span>
+<span class="codeline" id="line-436"><code><span class="comment">//            value.handle = yaml_strdup(tag_directive.handle)</span></code></span>
+<span class="codeline" id="line-437"><code><span class="comment">//            value.prefix = yaml_strdup(tag_directive.prefix)</span></code></span>
+<span class="codeline" id="line-438"><code><span class="comment">//            if (!value.handle || !value.prefix) goto error</span></code></span>
+<span class="codeline" id="line-439"><code><span class="comment">//            if (!PUSH(&amp;context, tag_directives_copy, value))</span></code></span>
+<span class="codeline" id="line-440"><code><span class="comment">//                goto error</span></code></span>
+<span class="codeline" id="line-441"><code><span class="comment">//            value.handle = NULL</span></code></span>
+<span class="codeline" id="line-442"><code><span class="comment">//            value.prefix = NULL</span></code></span>
+<span class="codeline" id="line-443"><code><span class="comment">//        }</span></code></span>
+<span class="codeline" id="line-444"><code><span class="comment">//    }</span></code></span>
+<span class="codeline" id="line-445"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-446"><code><span class="comment">//    DOCUMENT_INIT(*document, nodes.start, nodes.end, version_directive_copy,</span></code></span>
+<span class="codeline" id="line-447"><code><span class="comment">//            tag_directives_copy.start, tag_directives_copy.top,</span></code></span>
+<span class="codeline" id="line-448"><code><span class="comment">//            start_implicit, end_implicit, mark, mark)</span></code></span>
+<span class="codeline" id="line-449"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-450"><code><span class="comment">//    return 1</span></code></span>
+<span class="codeline" id="line-451"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-452"><code><span class="comment">//error:</span></code></span>
+<span class="codeline" id="line-453"><code><span class="comment">//    STACK_DEL(&amp;context, nodes)</span></code></span>
+<span class="codeline" id="line-454"><code><span class="comment">//    yaml_free(version_directive_copy)</span></code></span>
+<span class="codeline" id="line-455"><code><span class="comment">//    while (!STACK_EMPTY(&amp;context, tag_directives_copy)) {</span></code></span>
+<span class="codeline" id="line-456"><code><span class="comment">//        value yaml_tag_directive_t = POP(&amp;context, tag_directives_copy)</span></code></span>
+<span class="codeline" id="line-457"><code><span class="comment">//        yaml_free(value.handle)</span></code></span>
+<span class="codeline" id="line-458"><code><span class="comment">//        yaml_free(value.prefix)</span></code></span>
+<span class="codeline" id="line-459"><code><span class="comment">//    }</span></code></span>
+<span class="codeline" id="line-460"><code><span class="comment">//    STACK_DEL(&amp;context, tag_directives_copy)</span></code></span>
+<span class="codeline" id="line-461"><code><span class="comment">//    yaml_free(value.handle)</span></code></span>
+<span class="codeline" id="line-462"><code><span class="comment">//    yaml_free(value.prefix)</span></code></span>
+<span class="codeline" id="line-463"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-464"><code><span class="comment">//    return 0</span></code></span>
+<span class="codeline" id="line-465"><code><span class="comment">//}</span></code></span>
+<span class="codeline" id="line-466"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-467"><code><span class="comment">///*</span></code></span>
+<span class="codeline" id="line-468"><code><span class="comment">// * Destroy a document object.</span></code></span>
+<span class="codeline" id="line-469"><code><span class="comment">// */</span></code></span>
+<span class="codeline" id="line-470"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-471"><code><span class="comment">//YAML_DECLARE(void)</span></code></span>
+<span class="codeline" id="line-472"><code><span class="comment">//yaml_document_delete(document *yaml_document_t)</span></code></span>
+<span class="codeline" id="line-473"><code><span class="comment">//{</span></code></span>
+<span class="codeline" id="line-474"><code><span class="comment">//    struct {</span></code></span>
+<span class="codeline" id="line-475"><code><span class="comment">//        error yaml_error_type_t</span></code></span>
+<span class="codeline" id="line-476"><code><span class="comment">//    } context</span></code></span>
+<span class="codeline" id="line-477"><code><span class="comment">//    tag_directive *yaml_tag_directive_t</span></code></span>
+<span class="codeline" id="line-478"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-479"><code><span class="comment">//    context.error = YAML_NO_ERROR // Eliminate a compiler warning.</span></code></span>
+<span class="codeline" id="line-480"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-481"><code><span class="comment">//    assert(document) // Non-NULL document object is expected.</span></code></span>
+<span class="codeline" id="line-482"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-483"><code><span class="comment">//    while (!STACK_EMPTY(&amp;context, document.nodes)) {</span></code></span>
+<span class="codeline" id="line-484"><code><span class="comment">//        node yaml_node_t = POP(&amp;context, document.nodes)</span></code></span>
+<span class="codeline" id="line-485"><code><span class="comment">//        yaml_free(node.tag)</span></code></span>
+<span class="codeline" id="line-486"><code><span class="comment">//        switch (node.type) {</span></code></span>
+<span class="codeline" id="line-487"><code><span class="comment">//            case YAML_SCALAR_NODE:</span></code></span>
+<span class="codeline" id="line-488"><code><span class="comment">//                yaml_free(node.data.scalar.value)</span></code></span>
+<span class="codeline" id="line-489"><code><span class="comment">//                break</span></code></span>
+<span class="codeline" id="line-490"><code><span class="comment">//            case YAML_SEQUENCE_NODE:</span></code></span>
+<span class="codeline" id="line-491"><code><span class="comment">//                STACK_DEL(&amp;context, node.data.sequence.items)</span></code></span>
+<span class="codeline" id="line-492"><code><span class="comment">//                break</span></code></span>
+<span class="codeline" id="line-493"><code><span class="comment">//            case YAML_MAPPING_NODE:</span></code></span>
+<span class="codeline" id="line-494"><code><span class="comment">//                STACK_DEL(&amp;context, node.data.mapping.pairs)</span></code></span>
+<span class="codeline" id="line-495"><code><span class="comment">//                break</span></code></span>
+<span class="codeline" id="line-496"><code><span class="comment">//            default:</span></code></span>
+<span class="codeline" id="line-497"><code><span class="comment">//                assert(0) // Should not happen.</span></code></span>
+<span class="codeline" id="line-498"><code><span class="comment">//        }</span></code></span>
+<span class="codeline" id="line-499"><code><span class="comment">//    }</span></code></span>
+<span class="codeline" id="line-500"><code><span class="comment">//    STACK_DEL(&amp;context, document.nodes)</span></code></span>
+<span class="codeline" id="line-501"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-502"><code><span class="comment">//    yaml_free(document.version_directive)</span></code></span>
+<span class="codeline" id="line-503"><code><span class="comment">//    for (tag_directive = document.tag_directives.start</span></code></span>
+<span class="codeline" id="line-504"><code><span class="comment">//            tag_directive != document.tag_directives.end</span></code></span>
+<span class="codeline" id="line-505"><code><span class="comment">//            tag_directive++) {</span></code></span>
+<span class="codeline" id="line-506"><code><span class="comment">//        yaml_free(tag_directive.handle)</span></code></span>
+<span class="codeline" id="line-507"><code><span class="comment">//        yaml_free(tag_directive.prefix)</span></code></span>
+<span class="codeline" id="line-508"><code><span class="comment">//    }</span></code></span>
+<span class="codeline" id="line-509"><code><span class="comment">//    yaml_free(document.tag_directives.start)</span></code></span>
+<span class="codeline" id="line-510"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-511"><code><span class="comment">//    memset(document, 0, sizeof(yaml_document_t))</span></code></span>
+<span class="codeline" id="line-512"><code><span class="comment">//}</span></code></span>
+<span class="codeline" id="line-513"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-514"><code><span class="comment">///**</span></code></span>
+<span class="codeline" id="line-515"><code><span class="comment">// * Get a document node.</span></code></span>
+<span class="codeline" id="line-516"><code><span class="comment">// */</span></code></span>
+<span class="codeline" id="line-517"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-518"><code><span class="comment">//YAML_DECLARE(yaml_node_t *)</span></code></span>
+<span class="codeline" id="line-519"><code><span class="comment">//yaml_document_get_node(document *yaml_document_t, index int)</span></code></span>
+<span class="codeline" id="line-520"><code><span class="comment">//{</span></code></span>
+<span class="codeline" id="line-521"><code><span class="comment">//    assert(document) // Non-NULL document object is expected.</span></code></span>
+<span class="codeline" id="line-522"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-523"><code><span class="comment">//    if (index &gt; 0 &amp;&amp; document.nodes.start + index &lt;= document.nodes.top) {</span></code></span>
+<span class="codeline" id="line-524"><code><span class="comment">//        return document.nodes.start + index - 1</span></code></span>
+<span class="codeline" id="line-525"><code><span class="comment">//    }</span></code></span>
+<span class="codeline" id="line-526"><code><span class="comment">//    return NULL</span></code></span>
+<span class="codeline" id="line-527"><code><span class="comment">//}</span></code></span>
+<span class="codeline" id="line-528"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-529"><code><span class="comment">///**</span></code></span>
+<span class="codeline" id="line-530"><code><span class="comment">// * Get the root object.</span></code></span>
+<span class="codeline" id="line-531"><code><span class="comment">// */</span></code></span>
+<span class="codeline" id="line-532"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-533"><code><span class="comment">//YAML_DECLARE(yaml_node_t *)</span></code></span>
+<span class="codeline" id="line-534"><code><span class="comment">//yaml_document_get_root_node(document *yaml_document_t)</span></code></span>
+<span class="codeline" id="line-535"><code><span class="comment">//{</span></code></span>
+<span class="codeline" id="line-536"><code><span class="comment">//    assert(document) // Non-NULL document object is expected.</span></code></span>
+<span class="codeline" id="line-537"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-538"><code><span class="comment">//    if (document.nodes.top != document.nodes.start) {</span></code></span>
+<span class="codeline" id="line-539"><code><span class="comment">//        return document.nodes.start</span></code></span>
+<span class="codeline" id="line-540"><code><span class="comment">//    }</span></code></span>
+<span class="codeline" id="line-541"><code><span class="comment">//    return NULL</span></code></span>
+<span class="codeline" id="line-542"><code><span class="comment">//}</span></code></span>
+<span class="codeline" id="line-543"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-544"><code><span class="comment">///*</span></code></span>
+<span class="codeline" id="line-545"><code><span class="comment">// * Add a scalar node to a document.</span></code></span>
+<span class="codeline" id="line-546"><code><span class="comment">// */</span></code></span>
+<span class="codeline" id="line-547"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-548"><code><span class="comment">//YAML_DECLARE(int)</span></code></span>
+<span class="codeline" id="line-549"><code><span class="comment">//yaml_document_add_scalar(document *yaml_document_t,</span></code></span>
+<span class="codeline" id="line-550"><code><span class="comment">//        tag *yaml_char_t, value *yaml_char_t, length int,</span></code></span>
+<span class="codeline" id="line-551"><code><span class="comment">//        style yaml_scalar_style_t)</span></code></span>
+<span class="codeline" id="line-552"><code><span class="comment">//{</span></code></span>
+<span class="codeline" id="line-553"><code><span class="comment">//    struct {</span></code></span>
+<span class="codeline" id="line-554"><code><span class="comment">//        error yaml_error_type_t</span></code></span>
+<span class="codeline" id="line-555"><code><span class="comment">//    } context</span></code></span>
+<span class="codeline" id="line-556"><code><span class="comment">//    mark yaml_mark_t = { 0, 0, 0 }</span></code></span>
+<span class="codeline" id="line-557"><code><span class="comment">//    tag_copy *yaml_char_t = NULL</span></code></span>
+<span class="codeline" id="line-558"><code><span class="comment">//    value_copy *yaml_char_t = NULL</span></code></span>
+<span class="codeline" id="line-559"><code><span class="comment">//    node yaml_node_t</span></code></span>
+<span class="codeline" id="line-560"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-561"><code><span class="comment">//    assert(document) // Non-NULL document object is expected.</span></code></span>
+<span class="codeline" id="line-562"><code><span class="comment">//    assert(value) // Non-NULL value is expected.</span></code></span>
+<span class="codeline" id="line-563"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-564"><code><span class="comment">//    if (!tag) {</span></code></span>
+<span class="codeline" id="line-565"><code><span class="comment">//        tag = (yaml_char_t *)YAML_DEFAULT_SCALAR_TAG</span></code></span>
+<span class="codeline" id="line-566"><code><span class="comment">//    }</span></code></span>
+<span class="codeline" id="line-567"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-568"><code><span class="comment">//    if (!yaml_check_utf8(tag, strlen((char *)tag))) goto error</span></code></span>
+<span class="codeline" id="line-569"><code><span class="comment">//    tag_copy = yaml_strdup(tag)</span></code></span>
+<span class="codeline" id="line-570"><code><span class="comment">//    if (!tag_copy) goto error</span></code></span>
+<span class="codeline" id="line-571"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-572"><code><span class="comment">//    if (length &lt; 0) {</span></code></span>
+<span class="codeline" id="line-573"><code><span class="comment">//        length = strlen((char *)value)</span></code></span>
+<span class="codeline" id="line-574"><code><span class="comment">//    }</span></code></span>
+<span class="codeline" id="line-575"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-576"><code><span class="comment">//    if (!yaml_check_utf8(value, length)) goto error</span></code></span>
+<span class="codeline" id="line-577"><code><span class="comment">//    value_copy = yaml_malloc(length+1)</span></code></span>
+<span class="codeline" id="line-578"><code><span class="comment">//    if (!value_copy) goto error</span></code></span>
+<span class="codeline" id="line-579"><code><span class="comment">//    memcpy(value_copy, value, length)</span></code></span>
+<span class="codeline" id="line-580"><code><span class="comment">//    value_copy[length] = '\0'</span></code></span>
+<span class="codeline" id="line-581"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-582"><code><span class="comment">//    SCALAR_NODE_INIT(node, tag_copy, value_copy, length, style, mark, mark)</span></code></span>
+<span class="codeline" id="line-583"><code><span class="comment">//    if (!PUSH(&amp;context, document.nodes, node)) goto error</span></code></span>
+<span class="codeline" id="line-584"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-585"><code><span class="comment">//    return document.nodes.top - document.nodes.start</span></code></span>
+<span class="codeline" id="line-586"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-587"><code><span class="comment">//error:</span></code></span>
+<span class="codeline" id="line-588"><code><span class="comment">//    yaml_free(tag_copy)</span></code></span>
+<span class="codeline" id="line-589"><code><span class="comment">//    yaml_free(value_copy)</span></code></span>
+<span class="codeline" id="line-590"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-591"><code><span class="comment">//    return 0</span></code></span>
+<span class="codeline" id="line-592"><code><span class="comment">//}</span></code></span>
+<span class="codeline" id="line-593"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-594"><code><span class="comment">///*</span></code></span>
+<span class="codeline" id="line-595"><code><span class="comment">// * Add a sequence node to a document.</span></code></span>
+<span class="codeline" id="line-596"><code><span class="comment">// */</span></code></span>
+<span class="codeline" id="line-597"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-598"><code><span class="comment">//YAML_DECLARE(int)</span></code></span>
+<span class="codeline" id="line-599"><code><span class="comment">//yaml_document_add_sequence(document *yaml_document_t,</span></code></span>
+<span class="codeline" id="line-600"><code><span class="comment">//        tag *yaml_char_t, style yaml_sequence_style_t)</span></code></span>
+<span class="codeline" id="line-601"><code><span class="comment">//{</span></code></span>
+<span class="codeline" id="line-602"><code><span class="comment">//    struct {</span></code></span>
+<span class="codeline" id="line-603"><code><span class="comment">//        error yaml_error_type_t</span></code></span>
+<span class="codeline" id="line-604"><code><span class="comment">//    } context</span></code></span>
+<span class="codeline" id="line-605"><code><span class="comment">//    mark yaml_mark_t = { 0, 0, 0 }</span></code></span>
+<span class="codeline" id="line-606"><code><span class="comment">//    tag_copy *yaml_char_t = NULL</span></code></span>
+<span class="codeline" id="line-607"><code><span class="comment">//    struct {</span></code></span>
+<span class="codeline" id="line-608"><code><span class="comment">//        start *yaml_node_item_t</span></code></span>
+<span class="codeline" id="line-609"><code><span class="comment">//        end *yaml_node_item_t</span></code></span>
+<span class="codeline" id="line-610"><code><span class="comment">//        top *yaml_node_item_t</span></code></span>
+<span class="codeline" id="line-611"><code><span class="comment">//    } items = { NULL, NULL, NULL }</span></code></span>
+<span class="codeline" id="line-612"><code><span class="comment">//    node yaml_node_t</span></code></span>
+<span class="codeline" id="line-613"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-614"><code><span class="comment">//    assert(document) // Non-NULL document object is expected.</span></code></span>
+<span class="codeline" id="line-615"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-616"><code><span class="comment">//    if (!tag) {</span></code></span>
+<span class="codeline" id="line-617"><code><span class="comment">//        tag = (yaml_char_t *)YAML_DEFAULT_SEQUENCE_TAG</span></code></span>
+<span class="codeline" id="line-618"><code><span class="comment">//    }</span></code></span>
+<span class="codeline" id="line-619"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-620"><code><span class="comment">//    if (!yaml_check_utf8(tag, strlen((char *)tag))) goto error</span></code></span>
+<span class="codeline" id="line-621"><code><span class="comment">//    tag_copy = yaml_strdup(tag)</span></code></span>
+<span class="codeline" id="line-622"><code><span class="comment">//    if (!tag_copy) goto error</span></code></span>
+<span class="codeline" id="line-623"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-624"><code><span class="comment">//    if (!STACK_INIT(&amp;context, items, INITIAL_STACK_SIZE)) goto error</span></code></span>
+<span class="codeline" id="line-625"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-626"><code><span class="comment">//    SEQUENCE_NODE_INIT(node, tag_copy, items.start, items.end,</span></code></span>
+<span class="codeline" id="line-627"><code><span class="comment">//            style, mark, mark)</span></code></span>
+<span class="codeline" id="line-628"><code><span class="comment">//    if (!PUSH(&amp;context, document.nodes, node)) goto error</span></code></span>
+<span class="codeline" id="line-629"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-630"><code><span class="comment">//    return document.nodes.top - document.nodes.start</span></code></span>
+<span class="codeline" id="line-631"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-632"><code><span class="comment">//error:</span></code></span>
+<span class="codeline" id="line-633"><code><span class="comment">//    STACK_DEL(&amp;context, items)</span></code></span>
+<span class="codeline" id="line-634"><code><span class="comment">//    yaml_free(tag_copy)</span></code></span>
+<span class="codeline" id="line-635"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-636"><code><span class="comment">//    return 0</span></code></span>
+<span class="codeline" id="line-637"><code><span class="comment">//}</span></code></span>
+<span class="codeline" id="line-638"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-639"><code><span class="comment">///*</span></code></span>
+<span class="codeline" id="line-640"><code><span class="comment">// * Add a mapping node to a document.</span></code></span>
+<span class="codeline" id="line-641"><code><span class="comment">// */</span></code></span>
+<span class="codeline" id="line-642"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-643"><code><span class="comment">//YAML_DECLARE(int)</span></code></span>
+<span class="codeline" id="line-644"><code><span class="comment">//yaml_document_add_mapping(document *yaml_document_t,</span></code></span>
+<span class="codeline" id="line-645"><code><span class="comment">//        tag *yaml_char_t, style yaml_mapping_style_t)</span></code></span>
+<span class="codeline" id="line-646"><code><span class="comment">//{</span></code></span>
+<span class="codeline" id="line-647"><code><span class="comment">//    struct {</span></code></span>
+<span class="codeline" id="line-648"><code><span class="comment">//        error yaml_error_type_t</span></code></span>
+<span class="codeline" id="line-649"><code><span class="comment">//    } context</span></code></span>
+<span class="codeline" id="line-650"><code><span class="comment">//    mark yaml_mark_t = { 0, 0, 0 }</span></code></span>
+<span class="codeline" id="line-651"><code><span class="comment">//    tag_copy *yaml_char_t = NULL</span></code></span>
+<span class="codeline" id="line-652"><code><span class="comment">//    struct {</span></code></span>
+<span class="codeline" id="line-653"><code><span class="comment">//        start *yaml_node_pair_t</span></code></span>
+<span class="codeline" id="line-654"><code><span class="comment">//        end *yaml_node_pair_t</span></code></span>
+<span class="codeline" id="line-655"><code><span class="comment">//        top *yaml_node_pair_t</span></code></span>
+<span class="codeline" id="line-656"><code><span class="comment">//    } pairs = { NULL, NULL, NULL }</span></code></span>
+<span class="codeline" id="line-657"><code><span class="comment">//    node yaml_node_t</span></code></span>
+<span class="codeline" id="line-658"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-659"><code><span class="comment">//    assert(document) // Non-NULL document object is expected.</span></code></span>
+<span class="codeline" id="line-660"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-661"><code><span class="comment">//    if (!tag) {</span></code></span>
+<span class="codeline" id="line-662"><code><span class="comment">//        tag = (yaml_char_t *)YAML_DEFAULT_MAPPING_TAG</span></code></span>
+<span class="codeline" id="line-663"><code><span class="comment">//    }</span></code></span>
+<span class="codeline" id="line-664"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-665"><code><span class="comment">//    if (!yaml_check_utf8(tag, strlen((char *)tag))) goto error</span></code></span>
+<span class="codeline" id="line-666"><code><span class="comment">//    tag_copy = yaml_strdup(tag)</span></code></span>
+<span class="codeline" id="line-667"><code><span class="comment">//    if (!tag_copy) goto error</span></code></span>
+<span class="codeline" id="line-668"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-669"><code><span class="comment">//    if (!STACK_INIT(&amp;context, pairs, INITIAL_STACK_SIZE)) goto error</span></code></span>
+<span class="codeline" id="line-670"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-671"><code><span class="comment">//    MAPPING_NODE_INIT(node, tag_copy, pairs.start, pairs.end,</span></code></span>
+<span class="codeline" id="line-672"><code><span class="comment">//            style, mark, mark)</span></code></span>
+<span class="codeline" id="line-673"><code><span class="comment">//    if (!PUSH(&amp;context, document.nodes, node)) goto error</span></code></span>
+<span class="codeline" id="line-674"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-675"><code><span class="comment">//    return document.nodes.top - document.nodes.start</span></code></span>
+<span class="codeline" id="line-676"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-677"><code><span class="comment">//error:</span></code></span>
+<span class="codeline" id="line-678"><code><span class="comment">//    STACK_DEL(&amp;context, pairs)</span></code></span>
+<span class="codeline" id="line-679"><code><span class="comment">//    yaml_free(tag_copy)</span></code></span>
+<span class="codeline" id="line-680"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-681"><code><span class="comment">//    return 0</span></code></span>
+<span class="codeline" id="line-682"><code><span class="comment">//}</span></code></span>
+<span class="codeline" id="line-683"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-684"><code><span class="comment">///*</span></code></span>
+<span class="codeline" id="line-685"><code><span class="comment">// * Append an item to a sequence node.</span></code></span>
+<span class="codeline" id="line-686"><code><span class="comment">// */</span></code></span>
+<span class="codeline" id="line-687"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-688"><code><span class="comment">//YAML_DECLARE(int)</span></code></span>
+<span class="codeline" id="line-689"><code><span class="comment">//yaml_document_append_sequence_item(document *yaml_document_t,</span></code></span>
+<span class="codeline" id="line-690"><code><span class="comment">//        sequence int, item int)</span></code></span>
+<span class="codeline" id="line-691"><code><span class="comment">//{</span></code></span>
+<span class="codeline" id="line-692"><code><span class="comment">//    struct {</span></code></span>
+<span class="codeline" id="line-693"><code><span class="comment">//        error yaml_error_type_t</span></code></span>
+<span class="codeline" id="line-694"><code><span class="comment">//    } context</span></code></span>
+<span class="codeline" id="line-695"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-696"><code><span class="comment">//    assert(document) // Non-NULL document is required.</span></code></span>
+<span class="codeline" id="line-697"><code><span class="comment">//    assert(sequence &gt; 0</span></code></span>
+<span class="codeline" id="line-698"><code><span class="comment">//            &amp;&amp; document.nodes.start + sequence &lt;= document.nodes.top)</span></code></span>
+<span class="codeline" id="line-699"><code><span class="comment">//                            // Valid sequence id is required.</span></code></span>
+<span class="codeline" id="line-700"><code><span class="comment">//    assert(document.nodes.start[sequence-1].type == YAML_SEQUENCE_NODE)</span></code></span>
+<span class="codeline" id="line-701"><code><span class="comment">//                            // A sequence node is required.</span></code></span>
+<span class="codeline" id="line-702"><code><span class="comment">//    assert(item &gt; 0 &amp;&amp; document.nodes.start + item &lt;= document.nodes.top)</span></code></span>
+<span class="codeline" id="line-703"><code><span class="comment">//                            // Valid item id is required.</span></code></span>
+<span class="codeline" id="line-704"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-705"><code><span class="comment">//    if (!PUSH(&amp;context,</span></code></span>
+<span class="codeline" id="line-706"><code><span class="comment">//                document.nodes.start[sequence-1].data.sequence.items, item))</span></code></span>
+<span class="codeline" id="line-707"><code><span class="comment">//        return 0</span></code></span>
+<span class="codeline" id="line-708"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-709"><code><span class="comment">//    return 1</span></code></span>
+<span class="codeline" id="line-710"><code><span class="comment">//}</span></code></span>
+<span class="codeline" id="line-711"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-712"><code><span class="comment">///*</span></code></span>
+<span class="codeline" id="line-713"><code><span class="comment">// * Append a pair of a key and a value to a mapping node.</span></code></span>
+<span class="codeline" id="line-714"><code><span class="comment">// */</span></code></span>
+<span class="codeline" id="line-715"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-716"><code><span class="comment">//YAML_DECLARE(int)</span></code></span>
+<span class="codeline" id="line-717"><code><span class="comment">//yaml_document_append_mapping_pair(document *yaml_document_t,</span></code></span>
+<span class="codeline" id="line-718"><code><span class="comment">//        mapping int, key int, value int)</span></code></span>
+<span class="codeline" id="line-719"><code><span class="comment">//{</span></code></span>
+<span class="codeline" id="line-720"><code><span class="comment">//    struct {</span></code></span>
+<span class="codeline" id="line-721"><code><span class="comment">//        error yaml_error_type_t</span></code></span>
+<span class="codeline" id="line-722"><code><span class="comment">//    } context</span></code></span>
+<span class="codeline" id="line-723"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-724"><code><span class="comment">//    pair yaml_node_pair_t</span></code></span>
+<span class="codeline" id="line-725"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-726"><code><span class="comment">//    assert(document) // Non-NULL document is required.</span></code></span>
+<span class="codeline" id="line-727"><code><span class="comment">//    assert(mapping &gt; 0</span></code></span>
+<span class="codeline" id="line-728"><code><span class="comment">//            &amp;&amp; document.nodes.start + mapping &lt;= document.nodes.top)</span></code></span>
+<span class="codeline" id="line-729"><code><span class="comment">//                            // Valid mapping id is required.</span></code></span>
+<span class="codeline" id="line-730"><code><span class="comment">//    assert(document.nodes.start[mapping-1].type == YAML_MAPPING_NODE)</span></code></span>
+<span class="codeline" id="line-731"><code><span class="comment">//                            // A mapping node is required.</span></code></span>
+<span class="codeline" id="line-732"><code><span class="comment">//    assert(key &gt; 0 &amp;&amp; document.nodes.start + key &lt;= document.nodes.top)</span></code></span>
+<span class="codeline" id="line-733"><code><span class="comment">//                            // Valid key id is required.</span></code></span>
+<span class="codeline" id="line-734"><code><span class="comment">//    assert(value &gt; 0 &amp;&amp; document.nodes.start + value &lt;= document.nodes.top)</span></code></span>
+<span class="codeline" id="line-735"><code><span class="comment">//                            // Valid value id is required.</span></code></span>
+<span class="codeline" id="line-736"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-737"><code><span class="comment">//    pair.key = key</span></code></span>
+<span class="codeline" id="line-738"><code><span class="comment">//    pair.value = value</span></code></span>
+<span class="codeline" id="line-739"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-740"><code><span class="comment">//    if (!PUSH(&amp;context,</span></code></span>
+<span class="codeline" id="line-741"><code><span class="comment">//                document.nodes.start[mapping-1].data.mapping.pairs, pair))</span></code></span>
+<span class="codeline" id="line-742"><code><span class="comment">//        return 0</span></code></span>
+<span class="codeline" id="line-743"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-744"><code><span class="comment">//    return 1</span></code></span>
+<span class="codeline" id="line-745"><code><span class="comment">//}</span></code></span>
+<span class="codeline" id="line-746"><code><span class="comment">//</span></code></span>
+<span class="codeline" id="line-747"><code><span class="comment">//</span></code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.6</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

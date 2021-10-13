@@ -1,1 +1,0 @@
-Made IClient implementations easily configurable
