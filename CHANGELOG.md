@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.3.0" (2021-10-13)
+=======================
+
+Features
+--------
+
+- Added mocks (#202110131847)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: viper-1.9.0 (#202110131703)
+
+
 "" "1.2.0" (2021-10-13)
 =======================
 
