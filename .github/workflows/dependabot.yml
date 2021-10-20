@@ -1,0 +1,39 @@
+name: Dependabot
+on: pull_request_target
+permissions:
+  pull-requests: write
+  issues: write
+  repository-projects: write
+  contents: write
+jobs:
+  dependabot:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    steps:
+      # Checkout with full history for to allow compare with base branch
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v2
+      - uses: FranzDiebold/github-env-vars-action@v2
+      - name: Install CI/CD tools
+        run: pip install continuous-delivery-scripts && pip list
+      - name: Assert news
+        run: cd-assert-news -b ${CI_ACTION_REF_NAME}
+        env:
+          GIT_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: Dependabot metadata
+        id: dependabot-metadata
+        uses: dependabot/fetch-metadata@v1.1.1
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Add a label
+        run: gh pr edit "$PR_URL" --add-label "bot"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}          
+      - name: Approve the PR
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
