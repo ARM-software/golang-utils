@@ -18,10 +18,6 @@ jobs:
       - uses: FranzDiebold/github-env-vars-action@v2
       - name: Install CI/CD tools
         run: pip install continuous-delivery-scripts && pip list
-      - name: Assert news
-        run: cd-assert-news -b ${CI_ACTION_REF_NAME}
-        env:
-          GIT_TOKEN: ${{ secrets.GIT_SECRET }}
       - name: Dependabot metadata
         id: dependabot-metadata
         uses: dependabot/fetch-metadata@v1.1.1
@@ -37,6 +33,10 @@ jobs:
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: Assert news
+        run: cd-assert-news -b ${CI_ACTION_REF_NAME}
+        env:
+          GIT_TOKEN: ${{ secrets.GIT_SECRET }}
       - name: Auto-merge the PR
         run: gh pr merge --auto --squash --body "Dependency upgrade $PR_URL" --merge "$PR_URL"
         env:
