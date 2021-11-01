@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
@@ -39,7 +40,7 @@ func TestLockStale(t *testing.T) {
 		},
 	}
 	test := func(t0 *testing.T, ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context) error) {
-		dirToLock, err := fs.TempDirInTempDir("test-lock-dir")
+		dirToLock, err := fs.TempDirInTempDir(fmt.Sprintf("test-lock-dir-%v", faker.DomainName()))
 		require.Nil(t0, err)
 		defer func() { _ = fs.Rm(dirToLock) }()
 
@@ -54,7 +55,11 @@ func TestLockStale(t *testing.T) {
 
 		assert.False(t0, lock.IsStale())
 
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(150 * time.Millisecond)
+
+		assert.False(t0, lock.IsStale())
+
+		time.Sleep(150 * time.Millisecond)
 
 		assert.False(t0, lock.IsStale())
 
@@ -104,7 +109,7 @@ func TestLockReleaseIfStale(t *testing.T) {
 		},
 	}
 	test := func(t0 *testing.T, ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context) error) {
-		dirToLock, err := fs.TempDirInTempDir("test-lock-dir")
+		dirToLock, err := fs.TempDirInTempDir(fmt.Sprintf("test-lock-dir-%v", faker.DomainName()))
 		require.Nil(t0, err)
 		defer func() { _ = fs.Rm(dirToLock) }()
 
@@ -175,7 +180,7 @@ func TestLockSimpleSequential(t *testing.T) { // Several lock/unlock sequences p
 		},
 	}
 	test := func(t0 *testing.T, ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context) error, expectedError error) {
-		dirToLock, err := fs.TempDirInTempDir("test-lock-dir")
+		dirToLock, err := fs.TempDirInTempDir(fmt.Sprintf("test-lock-dir-%v", faker.DomainName()))
 		require.Nil(t0, err)
 		defer func() { _ = fs.Rm(dirToLock) }()
 		id := "lock"
@@ -246,7 +251,7 @@ func TestLockSequential(t *testing.T) {
 		},
 	}
 	test := func(t0 *testing.T, ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context) error, expectedError error) {
-		dirToLock, err := fs.TempDirInTempDir("test-lock-dir")
+		dirToLock, err := fs.TempDirInTempDir(fmt.Sprintf("test-lock-dir-%v", faker.DomainName()))
 		require.Nil(t0, err)
 		defer func() { _ = fs.Rm(dirToLock) }()
 		id := "lock"
@@ -317,7 +322,7 @@ func TestLockConcurrentSafeguard(t *testing.T) {
 		},
 	}
 	test := func(t0 *testing.T, ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context) error, expectedError error) {
-		dirToLock, err := fs.TempDirInTempDir("test-lock-dir")
+		dirToLock, err := fs.TempDirInTempDir(fmt.Sprintf("test-lock-dir-%v", faker.DomainName()))
 		require.Nil(t0, err)
 		defer func() { _ = fs.Rm(dirToLock) }()
 		id := "lock"
@@ -398,7 +403,7 @@ func TestLockWithConcurrentAccess(t *testing.T) {
 		},
 	}
 	test := func(t0 *testing.T, ctx context.Context, fs FS, LockFunc func(l ILock, ctx context.Context, t *testing.T)) {
-		dirToLock, err := fs.TempDirInTempDir("test-lock-dir")
+		dirToLock, err := fs.TempDirInTempDir(fmt.Sprintf("test-lock-dir-%v", faker.DomainName()))
 		require.Nil(t0, err)
 		defer func() { _ = fs.Rm(dirToLock) }()
 
@@ -444,14 +449,18 @@ func TestLockWithConcurrentAccess(t *testing.T) {
 		lockFunc := lockFuncs[i]
 		for j := range FileSystemTypes {
 			fsType := FileSystemTypes[j]
-			t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
-				defer goleak.VerifyNone(t)
-				fs := NewFs(fsType)
-				ctx := context.Background()
-				for c := 0; c < 5; c++ {
-					test(t, ctx, fs, lockFunc.LockFunc)
-				}
-			})
+			// FIXME it was noticed that there could be some race conditions happening in the in-memory file system when dealing with concurrency
+			// see https://github.com/spf13/afero/issues/298
+			if fsType != InMemoryFS {
+				t.Run(fmt.Sprintf("%v_for_fs_%v_and_%v", t.Name(), fsType, lockFunc.Name), func(t *testing.T) {
+					defer goleak.VerifyNone(t)
+					fs := NewFs(fsType)
+					ctx := context.Background()
+					for c := 0; c < 5; c++ {
+						test(t, ctx, fs, lockFunc.LockFunc)
+					}
+				})
+			}
 		}
 	}
 }

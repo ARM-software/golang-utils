@@ -29,9 +29,9 @@ type result struct {
 func Parallelise(argList interface{}, action func(arg interface{}) (interface{}, error), resultType reflect.Type) (results interface{}, err error) {
 	keepReturn := resultType != nil
 	argListValue := reflect.ValueOf(argList)
-	len := argListValue.Len()
-	channel := make(chan result, len)
-	for i := 0; i < len; i++ {
+	length := argListValue.Len()
+	channel := make(chan result, length)
+	for i := 0; i < length; i++ {
 		go func(args reflect.Value, actionFunc func(arg interface{}) (interface{}, error)) {
 			var r result
 			r.Item, r.err = func(v reflect.Value) (interface{}, error) {
@@ -42,9 +42,9 @@ func Parallelise(argList interface{}, action func(arg interface{}) (interface{},
 	}
 	var v reflect.Value
 	if keepReturn {
-		v = reflect.MakeSlice(resultType, 0, len)
+		v = reflect.MakeSlice(resultType, 0, length)
 	}
-	for i := 0; i < len; i++ {
+	for i := 0; i < length; i++ {
 		r := <-channel
 		err = r.err
 		if err != nil {
@@ -167,20 +167,35 @@ func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Durati
 	if err != nil {
 		return err
 	}
-	timeoutContext, cancel := context.WithTimeout(ctx, timeout)
-	store.RegisterCancelFunction(cancel)
+	timeoutContext, timeoutCancel := context.WithTimeout(ctx, timeout)
+	store.RegisterCancelFunction(timeoutCancel)
+	defer timeoutCancel()
+	cancelCtx, actionCancel := context.WithCancel(ctx)
+	store.RegisterCancelFunction(actionCancel)
 	channel := make(chan error, 1)
-	go func() {
-		channel <- blockingAction(timeoutContext)
-	}()
+	go func(actionCtx context.Context, action func(context.Context) error) {
+		channel <- action(actionCtx)
+	}(cancelCtx, blockingAction)
 
-	err = <-channel
-	err2 := DetermineContextError(timeoutContext)
-
-	if err2 != nil {
-		return err2
+	select {
+	case err = <-channel:
+		if err != nil {
+			actionCancel()
+			<-cancelCtx.Done()
+		}
+		err2 := DetermineContextError(timeoutContext)
+		if err2 != nil {
+			return err2
+		}
+		timeoutCancel()
+		return err
+	case <-timeoutContext.Done():
+		actionCancel()
+		timeoutCancel()
+		<-cancelCtx.Done()
+		<-channel
+		return DetermineContextError(timeoutContext)
 	}
-	return err
 }
 
 // RunActionWithParallelCheck runs an action with a check in parallel
