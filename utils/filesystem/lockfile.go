@@ -84,7 +84,7 @@ func (l *RemoteLockFile) IsStale() bool {
 		return false
 	}
 	if len(heartBeatFiles) == 0 {
-		// if directory exists but no folder then it could be that the directory has been created
+		// if directory exists but no files are present, then it could be that the directory has been created
 		// but that the heart beat file hasn't yet. Therefore we check the age of the directory and deduce whether
 		// it is stale or not.
 		dirInfo, err := l.fs.StatTimes(lockPath)

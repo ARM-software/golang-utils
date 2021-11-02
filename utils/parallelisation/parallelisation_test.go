@@ -169,7 +169,7 @@ func TestRunBlockingActionWithTimeout(t *testing.T) {
 	}
 }
 
-func TestRunBlockingActionWithTimeoutAndContex(t *testing.T) {
+func TestRunBlockingActionWithTimeoutAndContext(t *testing.T) {
 	defer goleak.VerifyNone(t)
 	ctx := context.Background()
 	for i := 0; i < 200; i++ {
@@ -252,9 +252,9 @@ func testTimeout(t *testing.T) {
 
 func testTimeoutWithContext(t *testing.T, ctx context.Context) {
 	isrunning := atomic.NewBool(true)
-	blockingAction := func(ctx context.Context) error {
+	blockingAction := func(actionCtx context.Context) error {
 		isrunning.Store(true)
-		<-ctx.Done()
+		<-actionCtx.Done()
 		isrunning.Store(false)
 		return nil
 	}
@@ -262,7 +262,8 @@ func testTimeoutWithContext(t *testing.T, ctx context.Context) {
 	err := RunActionWithTimeoutAndContext(ctx, 10*time.Millisecond, blockingAction)
 	require.Nil(t, DetermineContextError(ctx))
 	require.NotNil(t, err)
-	assert.True(t, errors.Is(err, commonerrors.ErrTimeout))
+	assert.Error(t, err)
+	assert.True(t, commonerrors.Any(err, commonerrors.ErrTimeout))
 	assert.False(t, isrunning.Load())
 
 	isrunning.Store(true)
@@ -303,7 +304,31 @@ func testTimeoutWithContext(t *testing.T, ctx context.Context) {
 	err = RunActionWithTimeoutAndContext(ctx, 10*time.Millisecond, failingnonblockingAction)
 	require.Nil(t, DetermineContextError(ctx))
 	require.NotNil(t, err)
-	assert.True(t, errors.Is(err, anError))
+	assert.Error(t, err)
+	assert.True(t, commonerrors.Any(err, anError))
+	assert.False(t, isrunning.Load())
+
+	isrunning.Store(true)
+	var funcCtxatomic atomic.Value
+	nonblockingAction2 := func(funcCtx context.Context) error {
+		isrunning.Store(true)
+		isrunning.Store(false)
+		funcCtxatomic.Store(funcCtx)
+		return nil
+	}
+	assert.True(t, isrunning.Load())
+	err = RunActionWithTimeoutAndContext(ctx, 100*time.Millisecond, nonblockingAction2)
+	require.Nil(t, DetermineContextError(ctx))
+	require.Nil(t, err)
+	require.True(t, commonerrors.Any(DetermineContextError(funcCtxatomic.Load().(context.Context)), commonerrors.ErrCancelled))
+	assert.False(t, isrunning.Load())
+
+	isrunning.Store(true)
+	assert.True(t, isrunning.Load())
+	err = RunActionWithTimeoutAndCancelStore(ctx, 100*time.Millisecond, NewCancelFunctionsStore(), nonblockingAction2)
+	require.Nil(t, DetermineContextError(ctx))
+	require.Nil(t, err)
+	require.Nil(t, DetermineContextError(funcCtxatomic.Load().(context.Context)))
 	assert.False(t, isrunning.Load())
 }
 
