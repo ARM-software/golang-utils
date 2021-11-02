@@ -14,6 +14,24 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.3.1" (2021-11-02)
+=======================
+
+Bugfixes
+--------
+
+- Bumped go version required (#202110151126)
+- Fixed bug in `parallisation` which entailed a bug in file locking where the heartbeat was forced to stop after a timeout (#202111012244)
+- Dependency upgrade: zerolog-1.26.0 (#202111021125)
+- Dependency upgrade: v3-3.21.10 (#202111021326)
+
+
+Misc
+----
+
+- #202110201138
+
+
 "" "1.3.0" (2021-10-13)
 =======================
 
