@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.4.0" (2021-11-09)
+=======================
+
+Features
+--------
+
+- Added collection utilities for removing elements from slices (#202111091652)
+
+
 "" "1.3.1" (2021-11-02)
 =======================
 

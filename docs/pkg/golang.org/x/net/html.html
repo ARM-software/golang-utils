@@ -9,8 +9,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Package: golang.org/x/net/html</title>
-<link href="../../../../css/light-v0.3.6.css" rel="stylesheet">
-<script src="../../../../jvs/golds-v0.3.6.js"></script>
+<link href="../../../../css/light-v0.4.0.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.4.0.js"></script>
 <body onload="onPageLoad()"><div>
 
 <pre id="package-details"><code><span style="font-size:xx-large;">package <b>html</b></span>
@@ -30,86 +30,86 @@
 		Tokenization is done by creating a Tokenizer for an io.Reader r. It is the
 		caller's responsibility to ensure that r provides UTF-8 encoded HTML.
 
-			z := html.NewTokenizer(r)
+		z := html.NewTokenizer(r)
 
 		Given a Tokenizer z, the HTML is tokenized by repeatedly calling z.Next(),
 		which parses the next token and returns its type, or an error:
 
-			for {
-				tt := z.Next()
-				if tt == html.ErrorToken {
-					// ...
-					return ...
-				}
-				// Process the current token.
+		for {
+			tt := z.Next()
+			if tt == html.ErrorToken {
+				// ...
+				return ...
 			}
+			// Process the current token.
+		}
 
 		There are two APIs for retrieving the current token. The high-level API is to
 		call Token; the low-level API is to call Text or TagName / TagAttr. Both APIs
 		allow optionally calling Raw after Next but before Token, Text, TagName, or
 		TagAttr. In EBNF notation, the valid call sequence per token is:
 
-			Next {Raw} [ Token | Text | TagName {TagAttr} ]
+		Next {Raw} [ Token | Text | TagName {TagAttr} ]
 
 		Token returns an independent data structure that completely describes a token.
 		Entities (such as "&amp;lt;") are unescaped, tag names and attribute keys are
 		lower-cased, and attributes are collected into a []Attribute. For example:
 
-			for {
-				if z.Next() == html.ErrorToken {
-					// Returning io.EOF indicates success.
-					return z.Err()
-				}
-				emitToken(z.Token())
+		for {
+			if z.Next() == html.ErrorToken {
+				// Returning io.EOF indicates success.
+				return z.Err()
 			}
+			emitToken(z.Token())
+		}
 
 		The low-level API performs fewer allocations and copies, but the contents of
 		the []byte values returned by Text, TagName and TagAttr may change on the next
 		call to Next. For example, to extract an HTML page's anchor text:
 
-			depth := 0
-			for {
-				tt := z.Next()
-				switch tt {
-				case html.ErrorToken:
-					return z.Err()
-				case html.TextToken:
-					if depth &gt; 0 {
-						// emitBytes should copy the []byte it receives,
-						// if it doesn't process it immediately.
-						emitBytes(z.Text())
-					}
-				case html.StartTagToken, html.EndTagToken:
-					tn, _ := z.TagName()
-					if len(tn) == 1 &amp;&amp; tn[0] == 'a' {
-						if tt == html.StartTagToken {
-							depth++
-						} else {
-							depth--
-						}
+		depth := 0
+		for {
+			tt := z.Next()
+			switch tt {
+			case html.ErrorToken:
+				return z.Err()
+			case html.TextToken:
+				if depth &gt; 0 {
+					// emitBytes should copy the []byte it receives,
+					// if it doesn't process it immediately.
+					emitBytes(z.Text())
+				}
+			case html.StartTagToken, html.EndTagToken:
+				tn, _ := z.TagName()
+				if len(tn) == 1 &amp;&amp; tn[0] == 'a' {
+					if tt == html.StartTagToken {
+						depth++
+					} else {
+						depth--
 					}
 				}
 			}
+		}
 
 		Parsing is done by calling Parse with an io.Reader, which returns the root of
 		the parse tree (the document element) as a *Node. It is the caller's
 		responsibility to ensure that the Reader provides UTF-8 encoded HTML. For
 		example, to process each anchor node in depth-first order:
 
-			doc, err := html.Parse(r)
-			if err != nil {
-				// ...
+		doc, err := html.Parse(r)
+		if err != nil {
+			// ...
+		}
+		var f func(*html.Node)
+		f = func(n *html.Node) {
+			if n.Type == html.ElementNode &amp;&amp; n.Data == "a" {
+				// Do something with n...
 			}
-			var f func(*html.Node)
-			f = func(n *html.Node) {
-				if n.Type == html.ElementNode &amp;&amp; n.Data == "a" {
-					// Do something with n...
-				}
-				for c := n.FirstChild; c != nil; c = c.NextSibling {
-					f(c)
-				}
+			for c := n.FirstChild; c != nil; c = c.NextSibling {
+				f(c)
 			}
-			f(doc)
+		}
+		f(doc)
 
 		The relevant specifications include:
 		https://html.spec.whatwg.org/multipage/syntax.html and
@@ -1125,7 +1125,7 @@
 
 </span></i></div><div class="anchor value-res hidden" id="name-scopeMarkerNode"><i>	<span class="nodocs">const <a href="../../../../src/golang.org/x/net/html/node.go.html#line-26">scopeMarkerNode</a> <a href="#name-NodeType">NodeType</a> = 7</span></i></div><div class="anchor value-res hidden" id="name-selectScope"><i>	<span class="nodocs">const <a href="../../../../src/golang.org/x/net/html/parse.go.html#line-79">selectScope</a> <a href="#name-scope">scope</a> = 6</span></i></div><div class="anchor value-res hidden" id="name-tableBodyScope"><i>	<span class="nodocs">const <a href="../../../../src/golang.org/x/net/html/parse.go.html#line-78">tableBodyScope</a> <a href="#name-scope">scope</a> = 5</span></i></div><div class="anchor value-res hidden" id="name-tableRowScope"><i>	<span class="nodocs">const <a href="../../../../src/golang.org/x/net/html/parse.go.html#line-77">tableRowScope</a> <a href="#name-scope">scope</a> = 4</span></i></div><div class="anchor value-res hidden" id="name-tableScope"><i>	<span class="nodocs">const <a href="../../../../src/golang.org/x/net/html/parse.go.html#line-76">tableScope</a> <a href="#name-scope">scope</a> = 3</span></i></div><div class="anchor value-res hidden" id="name-whitespace"><i>	<span class="nodocs">const <a href="../../../../src/golang.org/x/net/html/parse.go.html#line-512">whitespace</a> = " \t\r\n\f"</span></i></div><div class="anchor value-res hidden" id="name-whitespaceOrNUL"><i>	<span class="nodocs">const <a href="../../../../src/golang.org/x/net/html/parse.go.html#line-2152">whitespaceOrNUL</a> = " \t\r\n\f\x00"</span></i></div></div></code></pre><pre id="footer">
 <table><tr><td><img src="../../../../png/go101-twitter.png"></td>
-<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.3.6</i>. (GOOS=linux GOARCH=amd64)
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.4.0</i>. (GOOS=linux GOARCH=amd64)
 <b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
 PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
 Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>
