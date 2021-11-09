@@ -4,7 +4,7 @@
  */
 package collection
 
-// Looks for an element in a slice. If found it will
+// Find looks for an element in a slice. If found it will
 // return its index and true; otherwise it will return -1 and false.
 func Find(slice *[]string, val string) (int, bool) {
 	for i, item := range *slice {
