@@ -9,8 +9,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Package: encoding/xml</title>
-<link href="../../css/light-v0.4.0.css" rel="stylesheet">
-<script src="../../jvs/golds-v0.4.0.js"></script>
+<link href="../../css/light-v0.4.1.css" rel="stylesheet">
+<script src="../../jvs/golds-v0.4.1.js"></script>
 <body onload="onPageLoad()"><div>
 
 <pre id="package-details"><code><span style="font-size:xx-large;">package <b>xml</b></span>
@@ -47,8 +47,8 @@
 			type Person struct {
 				XMLName   xml.Name `xml:"person"`
 				Id        int      `xml:"id,attr"`
-				FirstName string   `xml:"name>first"`
-				LastName  string   `xml:"name>last"`
+				FirstName string   `xml:"name&gt;first"`
+				LastName  string   `xml:"name&gt;last"`
 				Age       int      `xml:"age"`
 				Height    float32  `xml:"height,omitempty"`
 				Married   bool
@@ -56,7 +56,7 @@
 				Comment string `xml:",comment"`
 			}
 		
-			v := &Person{Id: 13, FirstName: "John", LastName: "Doe", Age: 42}
+			v := &amp;Person{Id: 13, FirstName: "John", LastName: "Doe", Age: 42}
 			v.Comment = " Need more details. "
 			v.Address = Address{"Hanga Roa", "Easter Island"}
 		
@@ -84,8 +84,8 @@
 			type Person struct {
 				XMLName   xml.Name `xml:"person"`
 				Id        int      `xml:"id,attr"`
-				FirstName string   `xml:"name>first"`
-				LastName  string   `xml:"name>last"`
+				FirstName string   `xml:"name&gt;first"`
+				LastName  string   `xml:"name&gt;last"`
 				Age       int      `xml:"age"`
 				Height    float32  `xml:"height,omitempty"`
 				Married   bool
@@ -93,7 +93,7 @@
 				Comment string `xml:",comment"`
 			}
 		
-			v := &Person{Id: 13, FirstName: "John", LastName: "Doe", Age: 42}
+			v := &amp;Person{Id: 13, FirstName: "John", LastName: "Doe", Age: 42}
 			v.Comment = " Need more details. "
 			v.Address = Address{"Hanga Roa", "Easter Island"}
 		
@@ -126,30 +126,30 @@
 				Name    string   `xml:"FullName"`
 				Phone   string
 				Email   []Email
-				Groups  []string `xml:"Group>Value"`
+				Groups  []string `xml:"Group&gt;Value"`
 				Address
 			}
 			v := Result{Name: "none", Phone: "none"}
 		
 			data := `
-				<Person>
-					<FullName>Grace R. Emlin</FullName>
-					<Company>Example Inc.</Company>
-					<Email where="home">
-						<Addr>gre@example.com</Addr>
-					</Email>
-					<Email where='work'>
-						<Addr>gre@work.com</Addr>
-					</Email>
-					<Group>
-						<Value>Friends</Value>
-						<Value>Squash</Value>
-					</Group>
-					<City>Hanga Roa</City>
-					<State>Easter Island</State>
-				</Person>
+				&lt;Person&gt;
+					&lt;FullName&gt;Grace R. Emlin&lt;/FullName&gt;
+					&lt;Company&gt;Example Inc.&lt;/Company&gt;
+					&lt;Email where="home"&gt;
+						&lt;Addr&gt;gre@example.com&lt;/Addr&gt;
+					&lt;/Email&gt;
+					&lt;Email where='work'&gt;
+						&lt;Addr&gt;gre@work.com&lt;/Addr&gt;
+					&lt;/Email&gt;
+					&lt;Group&gt;
+						&lt;Value&gt;Friends&lt;/Value&gt;
+						&lt;Value&gt;Squash&lt;/Value&gt;
+					&lt;/Group&gt;
+					&lt;City&gt;Hanga Roa&lt;/City&gt;
+					&lt;State&gt;Easter Island&lt;/State&gt;
+				&lt;/Person&gt;
 			`
-			err := xml.Unmarshal([]byte(data), &v)
+			err := xml.Unmarshal([]byte(data), &amp;v)
 			if err != nil {
 				fmt.Printf("error: %v", err)
 				return
@@ -182,7 +182,7 @@
 		
 		func (a *Animal) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 			var s string
-			if err := d.DecodeElement(&s, &start); err != nil {
+			if err := d.DecodeElement(&amp;s, &amp;start); err != nil {
 				return err
 			}
 			switch strings.ToLower(s) {
@@ -212,20 +212,20 @@
 		
 		func main() {
 			blob := `
-			<animals>
-				<animal>gopher</animal>
-				<animal>armadillo</animal>
-				<animal>zebra</animal>
-				<animal>unknown</animal>
-				<animal>gopher</animal>
-				<animal>bee</animal>
-				<animal>gopher</animal>
-				<animal>zebra</animal>
-			</animals>`
+			&lt;animals&gt;
+				&lt;animal&gt;gopher&lt;/animal&gt;
+				&lt;animal&gt;armadillo&lt;/animal&gt;
+				&lt;animal&gt;zebra&lt;/animal&gt;
+				&lt;animal&gt;unknown&lt;/animal&gt;
+				&lt;animal&gt;gopher&lt;/animal&gt;
+				&lt;animal&gt;bee&lt;/animal&gt;
+				&lt;animal&gt;gopher&lt;/animal&gt;
+				&lt;animal&gt;zebra&lt;/animal&gt;
+			&lt;/animals&gt;`
 			var zoo struct {
 				Animals []Animal `xml:"animal"`
 			}
-			if err := xml.Unmarshal([]byte(blob), &zoo); err != nil {
+			if err := xml.Unmarshal([]byte(blob), &amp;zoo); err != nil {
 				log.Fatal(err)
 			}
 		
@@ -284,20 +284,20 @@
 		
 		func main() {
 			blob := `
-			<sizes>
-				<size>small</size>
-				<size>regular</size>
-				<size>large</size>
-				<size>unrecognized</size>
-				<size>small</size>
-				<size>normal</size>
-				<size>small</size>
-				<size>large</size>
-			</sizes>`
+			&lt;sizes&gt;
+				&lt;size&gt;small&lt;/size&gt;
+				&lt;size&gt;regular&lt;/size&gt;
+				&lt;size&gt;large&lt;/size&gt;
+				&lt;size&gt;unrecognized&lt;/size&gt;
+				&lt;size&gt;small&lt;/size&gt;
+				&lt;size&gt;normal&lt;/size&gt;
+				&lt;size&gt;small&lt;/size&gt;
+				&lt;size&gt;large&lt;/size&gt;
+			&lt;/sizes&gt;`
 			var inventory struct {
 				Sizes []Size `xml:"size"`
 			}
-			if err := xml.Unmarshal([]byte(blob), &inventory); err != nil {
+			if err := xml.Unmarshal([]byte(blob), &amp;inventory); err != nil {
 				log.Fatal(err)
 			}
 		
@@ -879,7 +879,7 @@
 		that cannot be converted into XML.
 
 		<input type='checkbox' class="fold" id="UnsupportedTypeError-fold-fields"><label for="UnsupportedTypeError-fold-fields">Fields (<i>only one, which is exported</i>)</label><span id='UnsupportedTypeError-fold-fields-items' class="fold-items"><span>
-			<span class="nodocs"><a href="../../src/encoding/xml/marshal.go.html#line-1035">Type</a> <i><a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Type">Type</a></i></span></span></span>
+			<span class="nodocs"><a href="../../src/encoding/json/decode.go.html#line-156">Type</a> <i><a href="../reflect.html">reflect</a>.<a href="../reflect.html#name-Type">Type</a></i></span></span></span>
 		<input type='checkbox' class="fold" id="UnsupportedTypeError-fold-methods"><label for="UnsupportedTypeError-fold-methods">Methods (<i>only one, which is exported</i>)</label><span id='UnsupportedTypeError-fold-methods-items' class="fold-items"><span>
 			<span class="nodocs">(*T) <a href="../../src/encoding/xml/marshal.go.html#line-1038">Error</a>() <a href="../builtin.html#name-string">string</a></span></span></span>
 		<input type='checkbox' class="fold" id="UnsupportedTypeError-fold-impls"><label for="UnsupportedTypeError-fold-impls">Implements (<i>at least one exported</i>)</label><span id='UnsupportedTypeError-fold-impls-items' class="fold-items"><span>
@@ -1365,7 +1365,7 @@
 
 </span></div>	<input type='checkbox' class="showhide" id="unexported-constants-showhide"><i><label for="unexported-constants-showhide" class="show-inline">/* 18 unexporteds ... */</label><label for="unexported-constants-showhide" class="hide-inline">/* 18 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-dontInitNilPointers"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/typeinfo.go.html#line-349">dontInitNilPointers</a> = false</span></i></div><div class="anchor value-res hidden" id="name-fAny"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/typeinfo.go.html#line-38">fAny</a> <a href="#name-fieldFlags">fieldFlags</a> = 64</span></i></div><div class="anchor value-res hidden" id="name-fAttr"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/typeinfo.go.html#line-33">fAttr</a> <a href="#name-fieldFlags">fieldFlags</a> = 2</span></i></div><div class="anchor value-res hidden" id="name-fCDATA"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/typeinfo.go.html#line-34">fCDATA</a> <a href="#name-fieldFlags">fieldFlags</a> = 4</span></i></div><div class="anchor value-res hidden" id="name-fCharData"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/typeinfo.go.html#line-35">fCharData</a> <a href="#name-fieldFlags">fieldFlags</a> = 8</span></i></div><div class="anchor value-res hidden" id="name-fComment"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/typeinfo.go.html#line-37">fComment</a> <a href="#name-fieldFlags">fieldFlags</a> = 32</span></i></div><div class="anchor value-res hidden" id="name-fElement"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/typeinfo.go.html#line-32">fElement</a> <a href="#name-fieldFlags">fieldFlags</a> = 1</span></i></div><div class="anchor value-res hidden" id="name-fInnerXML"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/typeinfo.go.html#line-36">fInnerXML</a> <a href="#name-fieldFlags">fieldFlags</a> = 16</span></i></div><div class="anchor value-res hidden" id="name-fMode"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/typeinfo.go.html#line-42">fMode</a> <a href="#name-fieldFlags">fieldFlags</a> = 127</span></i></div><div class="anchor value-res hidden" id="name-fOmitEmpty"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/typeinfo.go.html#line-40">fOmitEmpty</a> <a href="#name-fieldFlags">fieldFlags</a> = 128</span></i></div><div class="anchor value-res hidden" id="name-initNilPointers"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/typeinfo.go.html#line-348">initNilPointers</a> = true</span></i></div><div class="anchor value-res hidden" id="name-stkEOF"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/xml.go.html#line-395">stkEOF</a> = 2</span></i></div><div class="anchor value-res hidden" id="name-stkNs"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/xml.go.html#line-394">stkNs</a> = 1</span></i></div><div class="anchor value-res hidden" id="name-stkStart"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/xml.go.html#line-393">stkStart</a> = 0</span></i></div><div class="anchor value-res hidden" id="name-xmlName"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/typeinfo.go.html#line-44">xmlName</a> = "XMLName"</span></i></div><div class="anchor value-res hidden" id="name-xmlnsPrefix"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/xml.go.html#line-344">xmlnsPrefix</a> = "xmlns"</span></i></div><div class="anchor value-res hidden" id="name-xmlPrefix"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/xml.go.html#line-345">xmlPrefix</a> = "xml"</span></i></div><div class="anchor value-res hidden" id="name-xmlURL"><i>	<span class="nodocs">const <a href="../../src/encoding/xml/xml.go.html#line-343">xmlURL</a> = "http://www.w3.org/XML/1998/namespace"</span></i></div></div></code></pre><pre id="footer">
 <table><tr><td><img src="../../png/go101-twitter.png"></td>
-<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.4.0</i>. (GOOS=linux GOARCH=amd64)
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.4.1</i>. (GOOS=linux GOARCH=amd64)
 <b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
 PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
 Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

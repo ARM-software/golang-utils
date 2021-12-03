@@ -14,6 +14,18 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.4.1" (2021-12-03)
+=======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: uuid-4.1.0incompatible (#202111241131)
+- Dependency upgrade: mapstructure-1.4.3 (#202112021129)
+- Dependency upgrade: uuid 4.2.0+incompatible (#202112031155)
+- Fixed the binding between CLI pflags and environment variables when it comes to nested configuration structures (#202112031255)
+
+
 "" "1.4.0" (2021-11-09)
 =======================
 

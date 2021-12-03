@@ -9,8 +9,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Package: sort</title>
-<link href="../css/light-v0.4.0.css" rel="stylesheet">
-<script src="../jvs/golds-v0.4.0.js"></script>
+<link href="../css/light-v0.4.1.css" rel="stylesheet">
+<script src="../jvs/golds-v0.4.1.js"></script>
 <body onload="onPageLoad()"><div>
 
 <pre id="package-details"><code><span style="font-size:xx-large;">package <b>sort</b></span>
@@ -55,7 +55,7 @@
 		
 		func (a ByAge) Len() int           { return len(a) }
 		func (a ByAge) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-		func (a ByAge) Less(i, j int) bool { return a[i].Age < a[j].Age }
+		func (a ByAge) Less(i, j int) bool { return a[i].Age &lt; a[j].Age }
 		
 		func main() {
 			people := []Person{
@@ -78,7 +78,7 @@
 			// are ignored.) Here we re-sort in reverse order: compare
 			// the closure with ByAge.Less.
 			sort.Slice(people, func(i, j int) bool {
-				return people[i].Age > people[j].Age
+				return people[i].Age &gt; people[j].Age
 			})
 			fmt.Println(people)
 		
@@ -184,8 +184,8 @@
 			a := []int{1, 3, 6, 10, 15, 21, 28, 36, 45, 55}
 			x := 6
 		
-			i := sort.Search(len(a), func(i int) bool { return a[i] >= x })
-			if i < len(a) && a[i] == x {
+			i := sort.Search(len(a), func(i int) bool { return a[i] &gt;= x })
+			if i &lt; len(a) &amp;&amp; a[i] == x {
 				fmt.Printf("found %d at index %d in %v\n", x, i, a)
 			} else {
 				fmt.Printf("%d not found in %v\n", x, a)
@@ -204,8 +204,8 @@
 			a := []int{55, 45, 36, 28, 21, 15, 10, 6, 3, 1}
 			x := 6
 		
-			i := sort.Search(len(a), func(i int) bool { return a[i] <= x })
-			if i < len(a) && a[i] == x {
+			i := sort.Search(len(a), func(i int) bool { return a[i] &lt;= x })
+			if i &lt; len(a) &amp;&amp; a[i] == x {
 				fmt.Printf("found %d at index %d in %v\n", x, i, a)
 			} else {
 				fmt.Printf("%d not found in %v\n", x, a)
@@ -230,10 +230,10 @@
 				{"Vera", 24},
 				{"Bob", 75},
 			}
-			sort.Slice(people, func(i, j int) bool { return people[i].Name < people[j].Name })
+			sort.Slice(people, func(i, j int) bool { return people[i].Name &lt; people[j].Name })
 			fmt.Println("By name:", people)
 		
-			sort.Slice(people, func(i, j int) bool { return people[i].Age < people[j].Age })
+			sort.Slice(people, func(i, j int) bool { return people[i].Age &lt; people[j].Age })
 			fmt.Println("By age:", people)
 		}
 </span>
@@ -262,11 +262,11 @@
 			}
 		
 			// Sort by name, preserving original order
-			sort.SliceStable(people, func(i, j int) bool { return people[i].Name < people[j].Name })
+			sort.SliceStable(people, func(i, j int) bool { return people[i].Name &lt; people[j].Name })
 			fmt.Println("By name:", people)
 		
 			// Sort by age preserving name order
-			sort.SliceStable(people, func(i, j int) bool { return people[i].Age < people[j].Age })
+			sort.SliceStable(people, func(i, j int) bool { return people[i].Age &lt; people[j].Age })
 			fmt.Println("By age,name:", people)
 		
 		}
@@ -309,7 +309,7 @@
 		
 		// Sort is a method on the function type, By, that sorts the argument slice according to the function.
 		func (by By) Sort(planets []Planet) {
-			ps := &planetSorter{
+			ps := &amp;planetSorter{
 				planets: planets,
 				by:      by, // The Sort method's receiver is the function (closure) that defines the sort order.
 			}
@@ -334,7 +334,7 @@
 		
 		// Less is part of sort.Interface. It is implemented by calling the "by" closure in the sorter.
 		func (s *planetSorter) Less(i, j int) bool {
-			return s.by(&s.planets[i], &s.planets[j])
+			return s.by(&amp;s.planets[i], &amp;s.planets[j])
 		}
 		
 		var planets = []Planet{
@@ -348,13 +348,13 @@
 		func main() {
 			// Closures that order the Planet structure.
 			name := func(p1, p2 *Planet) bool {
-				return p1.name < p2.name
+				return p1.name &lt; p2.name
 			}
 			mass := func(p1, p2 *Planet) bool {
-				return p1.mass < p2.mass
+				return p1.mass &lt; p2.mass
 			}
 			distance := func(p1, p2 *Planet) bool {
-				return p1.distance < p2.distance
+				return p1.distance &lt; p2.distance
 			}
 			decreasingDistance := func(p1, p2 *Planet) bool {
 				return distance(p2, p1)
@@ -407,7 +407,7 @@
 		// OrderedBy returns a Sorter that sorts using the less functions, in order.
 		// Call its Sort method to sort the data.
 		func OrderedBy(less ...lessFunc) *multiSorter {
-			return &multiSorter{
+			return &amp;multiSorter{
 				less: less,
 			}
 		}
@@ -429,17 +429,17 @@
 		// -1, 0, 1 and reduce the number of calls for greater efficiency: an
 		// exercise for the reader.
 		func (ms *multiSorter) Less(i, j int) bool {
-			p, q := &ms.changes[i], &ms.changes[j]
+			p, q := &amp;ms.changes[i], &amp;ms.changes[j]
 			// Try all but the last comparison.
 			var k int
-			for k = 0; k < len(ms.less)-1; k++ {
+			for k = 0; k &lt; len(ms.less)-1; k++ {
 				less := ms.less[k]
 				switch {
 				case less(p, q):
-					// p < q, so we have a decision.
+					// p &lt; q, so we have a decision.
 					return true
 				case less(q, p):
-					// p > q, so we have a decision.
+					// p &gt; q, so we have a decision.
 					return false
 				}
 				// p == q; try the next comparison.
@@ -467,16 +467,16 @@
 		func main() {
 			// Closures that order the Change structure.
 			user := func(c1, c2 *Change) bool {
-				return c1.user < c2.user
+				return c1.user &lt; c2.user
 			}
 			language := func(c1, c2 *Change) bool {
-				return c1.language < c2.language
+				return c1.language &lt; c2.language
 			}
 			increasingLines := func(c1, c2 *Change) bool {
-				return c1.lines < c2.lines
+				return c1.lines &lt; c2.lines
 			}
 			decreasingLines := func(c1, c2 *Change) bool {
-				return c1.lines > c2.lines // Note: > orders downwards.
+				return c1.lines &gt; c2.lines // Note: &gt; orders downwards.
 			}
 		
 			// Simple use: Sort by user.
@@ -485,16 +485,16 @@
 		
 			// More examples.
 			OrderedBy(user, increasingLines).Sort(changes)
-			fmt.Println("By user,<lines:", changes)
+			fmt.Println("By user,&lt;lines:", changes)
 		
 			OrderedBy(user, decreasingLines).Sort(changes)
-			fmt.Println("By user,>lines:", changes)
+			fmt.Println("By user,&gt;lines:", changes)
 		
 			OrderedBy(language, increasingLines).Sort(changes)
-			fmt.Println("By language,<lines:", changes)
+			fmt.Println("By language,&lt;lines:", changes)
 		
 			OrderedBy(language, increasingLines, user).Sort(changes)
-			fmt.Println("By language,<lines,user:", changes)
+			fmt.Println("By language,&lt;lines,user:", changes)
 		
 		}
 </span>
@@ -524,13 +524,13 @@
 		// Swap methods of the embedded Organs value.
 		type ByName struct{ Organs }
 		
-		func (s ByName) Less(i, j int) bool { return s.Organs[i].Name < s.Organs[j].Name }
+		func (s ByName) Less(i, j int) bool { return s.Organs[i].Name &lt; s.Organs[j].Name }
 		
 		// ByWeight implements sort.Interface by providing Less and using the Len and
 		// Swap methods of the embedded Organs value.
 		type ByWeight struct{ Organs }
 		
-		func (s ByWeight) Less(i, j int) bool { return s.Organs[i].Weight < s.Organs[j].Weight }
+		func (s ByWeight) Less(i, j int) bool { return s.Organs[i].Weight &lt; s.Organs[j].Weight }
 		
 		func main() {
 			s := []*Organ{
@@ -955,7 +955,7 @@
 
 	<input type='checkbox' class="showhide" id="unexported-variables-showhide"><i><label for="unexported-variables-showhide" class="show-inline">/* 2 unexporteds ... */</label><label for="unexported-variables-showhide" class="hide-inline">/* 2 unexporteds: */</label></i><div class="anchor value-res hidden" id="name-reflectSwapper"><i>	<span class="nodocs">  var <a href="../src/sort/slice_go113.go.html#line-12">reflectSwapper</a> func(slice interface{}) func(i <a href="builtin.html#name-int">int</a>, j <a href="builtin.html#name-int">int</a>)</span></i></div><div class="anchor value-res hidden" id="name-reflectValueOf"><i>	<span class="nodocs">  var <a href="../src/sort/slice_go113.go.html#line-11">reflectValueOf</a> func(i interface{}) <a href="internal/reflectlite.html">reflectlite</a>.<a href="internal/reflectlite.html#name-Value">Value</a></span></i></div></div></code></pre><pre id="footer">
 <table><tr><td><img src="../png/go101-twitter.png"></td>
-<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.4.0</i>. (GOOS=linux GOARCH=amd64)
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.4.1</i>. (GOOS=linux GOARCH=amd64)
 <b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
 PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
 Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>
