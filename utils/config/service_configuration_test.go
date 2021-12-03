@@ -5,20 +5,30 @@
 package config
 
 import (
+	"fmt"
 	"math/rand"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/bxcodec/faker/v3"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/magiconair/properties/assert"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	expectedString   = fmt.Sprintf("a test string %v", faker.Word())
+	expectedInt      = rand.Int() //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+	expectedDuration = time.Since(time.Date(1999, 2, 3, 4, 30, 45, 46, time.UTC))
+	expectedHost     = fmt.Sprintf("a test host %v", faker.Word())
+	expectedPassword = fmt.Sprintf("a test passwd %v", faker.Password())
+)
+
 type DummyConfiguration struct {
-	Host              string        `mapstructure:"host"`
+	Host              string        `mapstructure:"dummy_host"`
 	Port              int           `mapstructure:"port"`
 	DB                string        `mapstructure:"db"`
 	User              string        `mapstructure:"user"`
@@ -43,18 +53,12 @@ func DefaultDummyConfiguration() DummyConfiguration {
 	}
 }
 
-var (
-	expectedString   = "a test string"
-	expectedInt      = rand.Int() //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
-	expectedDuration = time.Hour
-	expectedHost     = "a test host"
-)
-
 type ConfigurationTest struct {
-	TestString string             `mapstructure:"build_artefact_dir"`
-	TestInt    int                `mapstructure:"cmsis_build_default_timeout"` // How long a build is allowed to queue
-	TestTime   time.Duration      `mapstructure:"default_build_ttl"`           // How long a build is kept around for
-	TestConfig DummyConfiguration `mapstructure:"dummyconfig"`
+	TestString  string             `mapstructure:"dummy_string"`
+	TestInt     int                `mapstructure:"dummy_int"`
+	TestTime    time.Duration      `mapstructure:"dummy_time"`
+	TestConfig  DummyConfiguration `mapstructure:"dummyconfig"`
+	TestConfig2 DummyConfiguration `mapstructure:"dummy_config"`
 }
 
 func (cfg *ConfigurationTest) Validate() error {
@@ -76,14 +80,15 @@ func (cfg *ConfigurationTest) Validate() error {
 
 func DefaultConfiguration() *ConfigurationTest {
 	return &ConfigurationTest{
-		TestString: expectedString,
-		TestInt:    expectedInt,
-		TestTime:   expectedDuration,
-		TestConfig: DefaultDummyConfiguration(),
-	}
+		TestString:  expectedString,
+		TestInt:     0,
+		TestTime:    time.Hour,
+		TestConfig:  DefaultDummyConfiguration(),
+		TestConfig2: DefaultDummyConfiguration()}
 }
 
 func TestServiceConfigurationLoad(t *testing.T) {
+	os.Clearenv()
 	configTest := &ConfigurationTest{}
 	defaults := DefaultConfiguration()
 	err := Load("test", configTest, defaults)
@@ -91,25 +96,41 @@ func TestServiceConfigurationLoad(t *testing.T) {
 	require.NotNil(t, err)
 	require.NotNil(t, configTest.Validate())
 	// Setting required entries in the environment.
-	err = os.Setenv("TEST_DUMMYCONFIG_HOST", expectedHost)
+	err = os.Setenv("TEST_DUMMYCONFIG_DUMMY_HOST", expectedHost)
+	require.Nil(t, err)
+	err = os.Setenv("TEST_DUMMY_CONFIG_DUMMY_HOST", "a test host")
 	require.Nil(t, err)
 	err = os.Setenv("TEST_DUMMYCONFIG_PASSWORD", "a test password")
 	require.Nil(t, err)
+	err = os.Setenv("TEST_DUMMY_CONFIG_PASSWORD", expectedPassword)
+	require.Nil(t, err)
 	err = os.Setenv("TEST_DUMMYCONFIG_USER", "a test user")
 	require.Nil(t, err)
+	err = os.Setenv("TEST_DUMMY_CONFIG_USER", "a test user")
+	require.Nil(t, err)
 	err = os.Setenv("TEST_DUMMYCONFIG_DB", "a test db")
+	require.Nil(t, err)
+	err = os.Setenv("TEST_DUMMY_CONFIG_DB", "a test db")
+	require.Nil(t, err)
+	err = os.Setenv("TEST_DUMMY_TIME", expectedDuration.String())
+	require.Nil(t, err)
+	err = os.Setenv("TEST_DUMMY_INT", fmt.Sprintf("%v", expectedInt))
 	require.Nil(t, err)
 	err = Load("test", configTest, defaults)
 	require.Nil(t, err)
 	require.Nil(t, configTest.Validate())
-	assert.Equal(t, configTest.TestString, expectedString)
-	assert.Equal(t, configTest.TestInt, expectedInt)
-	assert.Equal(t, configTest.TestTime, expectedDuration)
-	assert.Equal(t, configTest.TestConfig.Port, defaults.TestConfig.Port)
-	assert.Equal(t, configTest.TestConfig.Host, expectedHost)
+	assert.Equal(t, expectedString, configTest.TestString)
+	assert.Equal(t, expectedInt, configTest.TestInt)
+	assert.Equal(t, expectedDuration, configTest.TestTime)
+	assert.Equal(t, defaults.TestConfig.Port, configTest.TestConfig.Port)
+	assert.Equal(t, expectedHost, configTest.TestConfig.Host)
+	assert.NotEqual(t, expectedHost, configTest.TestConfig2.Host)
+	assert.NotEqual(t, expectedPassword, configTest.TestConfig.Password)
+	assert.Equal(t, expectedPassword, configTest.TestConfig2.Password)
 }
 
 func TestBinding(t *testing.T) {
+	os.Clearenv()
 	configTest := &ConfigurationTest{}
 	defaults := DefaultConfiguration()
 	session := viper.New()
@@ -120,21 +141,39 @@ func TestBinding(t *testing.T) {
 	flagSet.String("password", "a password", "dummy password")
 	flagSet.String("user", "a user", "dummy user")
 	flagSet.String("db", "a db", "dummy db")
-	err = BindFlagToEnv(session, prefix, "TEST_DUMMYCONFIG_HOST", flagSet.Lookup("host"))
+	flagSet.Int("int", 0, "dummy int")
+	flagSet.Duration("time", time.Second, "dummy time")
+	err = BindFlagToEnv(session, prefix, "TEST_DUMMYCONFIG_DUMMY_HOST", flagSet.Lookup("host"))
 	require.Nil(t, err)
-	err = BindFlagToEnv(session, prefix, "TEST_DUMMYCONFIG_PASSWORD", flagSet.Lookup("password"))
+	err = BindFlagToEnv(session, prefix, "TEST_DUMMY_CONFIG_DUMMY_HOST", flagSet.Lookup("host"))
 	require.Nil(t, err)
-	err = BindFlagToEnv(session, prefix, "TEST_DUMMYCONFIG_USER", flagSet.Lookup("user"))
+	err = BindFlagToEnv(session, prefix, "DUMMYCONFIG_PASSWORD", flagSet.Lookup("password"))
+	require.Nil(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMY_CONFIG_PASSWORD", flagSet.Lookup("password"))
+	require.Nil(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMYCONFIG_USER", flagSet.Lookup("user"))
+	require.Nil(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMY_CONFIG_USER", flagSet.Lookup("user"))
 	require.Nil(t, err)
 	err = BindFlagToEnv(session, prefix, "TEST_DUMMYCONFIG_DB", flagSet.Lookup("db"))
 	require.Nil(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMY_CONFIG_DB", flagSet.Lookup("db"))
+	require.Nil(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMY_INT", flagSet.Lookup("int"))
+	require.Nil(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMY_Time", flagSet.Lookup("time"))
+	require.Nil(t, err)
 	err = flagSet.Set("host", expectedHost)
 	require.Nil(t, err)
-	err = flagSet.Set("password", "another test password")
+	err = flagSet.Set("password", expectedPassword)
 	require.Nil(t, err)
 	err = flagSet.Set("user", "another test user")
 	require.Nil(t, err)
 	err = flagSet.Set("db", "another test db")
+	require.Nil(t, err)
+	err = flagSet.Set("int", fmt.Sprintf("%v", expectedInt))
+	require.Nil(t, err)
+	err = flagSet.Set("time", expectedDuration.String())
 	require.Nil(t, err)
 	err = LoadFromViper(session, prefix, configTest, defaults)
 	require.Nil(t, err)
@@ -144,4 +183,7 @@ func TestBinding(t *testing.T) {
 	assert.Equal(t, configTest.TestTime, expectedDuration)
 	assert.Equal(t, configTest.TestConfig.Port, defaults.TestConfig.Port)
 	assert.Equal(t, configTest.TestConfig.Host, expectedHost)
+	assert.Equal(t, configTest.TestConfig2.Host, expectedHost)
+	assert.Equal(t, configTest.TestConfig.Password, expectedPassword)
+	assert.Equal(t, configTest.TestConfig2.Password, expectedPassword)
 }
