@@ -201,15 +201,15 @@ func createTestFileTree(t *testing.T, fs FS, testDir, basePath string, withLinks
 	require.Nil(t, err)
 
 	var sLinks []string
-
-	for i := 0; i < rand.Intn(10); i++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+	rand.Seed(time.Now().UnixMilli())                                        //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+	for i := 0; i < int(math.Max(float64(1), float64(rand.Intn(10)))); i++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 		c := fmt.Sprint("test", i+1)
 		path := filepath.Join(testDir, c)
 
 		err := fs.MkDir(path)
 		require.Nil(t, err)
 
-		for j := 0; j < rand.Intn(10); j++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+		for j := 0; j < int(math.Max(float64(1), float64(rand.Intn(10)))); j++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 			c := fmt.Sprint("test", j+1)
 			path := filepath.Join(path, c)
 
@@ -230,7 +230,7 @@ func createTestFileTree(t *testing.T, fs FS, testDir, basePath string, withLinks
 				}
 			}
 
-			for k := 0; k < rand.Intn(10); k++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+			for k := 0; k < int(math.Max(float64(1), float64(rand.Intn(10)))); k++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 				c := fmt.Sprint("test", k+1, ".txt")
 				finalPath := filepath.Join(path, c)
 
