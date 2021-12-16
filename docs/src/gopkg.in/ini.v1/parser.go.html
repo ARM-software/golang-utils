@@ -126,9 +126,7 @@ input[id=r102]:checked ~pre label[for=r102],
 input[id=r103]:checked ~pre label[for=r103],
 input[id=r104]:checked ~pre label[for=r104],
 input[id=r105]:checked ~pre label[for=r105],
-input[id=r106]:checked ~pre label[for=r106],
-input[id=r107]:checked ~pre label[for=r107],
-input[id=r108]:checked ~pre label[for=r108]
+input[id=r106]:checked ~pre label[for=r106]
 {background: #226; color: #ff8;}
 input[id=i0]:checked ~pre .i0,
 input[id=i1]:checked ~pre .i1,
@@ -246,8 +244,6 @@ input[id=i7]:checked ~pre .i7
 <input id="r104" type="radio" name="g"/>
 <input id="r105" type="radio" name="g"/>
 <input id="r106" type="radio" name="g"/>
-<input id="r107" type="radio" name="g"/>
-<input id="r108" type="radio" name="g"/>
 <input id="i0" type="radio" name="i"/>
 <input id="i1" type="radio" name="i"/>
 <input id="i2" type="radio" name="i"/>
@@ -562,233 +558,215 @@ input[id=i7]:checked ~pre .i7
 <span class="codeline" id="line-302"><code>	<label for="r66" class="ident">parserBufferPeekResult</label>, <label for="r67" class="ident">_</label> := <label for="r62" class="ident">p</label>.<a href="#line-45" class="ident">buf</a>.<a href="../../bufio/bufio.go.html#line-130" class="ident">Peek</a>(<label for="r65" class="ident">bufferSize</label>)</code></span>
 <span class="codeline" id="line-303"><code>	<label for="r68" class="ident">peekBuffer</label> := <a href="../../../pkg/bytes.html" class="ident i1">bytes</a>.<a href="../../bytes/buffer.go.html#line-450" class="ident">NewBuffer</a>(<label for="r66" class="ident">parserBufferPeekResult</label>)</code></span>
 <span class="codeline" id="line-304"><code></code></span>
-<span class="codeline" id="line-305"><code>	<label for="r69" class="ident">indentSize</label> := <span class="lit-number">0</span></code></span>
-<span class="codeline" id="line-306"><code>	<span class="keyword">for</span> {</code></span>
-<span class="codeline" id="line-307"><code>		<label for="r70" class="ident">peekData</label>, <label for="r71" class="ident">peekErr</label> := <label for="r68" class="ident">peekBuffer</label>.<a href="../../bytes/buffer.go.html#line-408" class="ident">ReadBytes</a>(<span class="lit-number">'\n'</span>)</code></span>
-<span class="codeline" id="line-308"><code>		<span class="keyword">if</span> <label for="r71" class="ident">peekErr</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
-<span class="codeline" id="line-309"><code>			<span class="keyword">if</span> <label for="r71" class="ident">peekErr</label> == <a href="../../../pkg/io.html" class="ident i3">io</a>.<a href="../../io/io.go.html#line-44" class="ident">EOF</a> {</code></span>
-<span class="codeline" id="line-310"><code>				<label for="r62" class="ident">p</label>.<a href="#line-53" class="ident">debug</a>(<span class="lit-string">"readPythonMultilines: io.EOF, peekData: %q, line: %q"</span>, <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r70" class="ident">peekData</label>), <label for="r64" class="ident">line</label>)</code></span>
-<span class="codeline" id="line-311"><code>				<span class="keyword">return</span> <label for="r64" class="ident">line</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
-<span class="codeline" id="line-312"><code>			}</code></span>
+<span class="codeline" id="line-305"><code>	<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-306"><code>		<label for="r69" class="ident">peekData</label>, <label for="r70" class="ident">peekErr</label> := <label for="r68" class="ident">peekBuffer</label>.<a href="../../bytes/buffer.go.html#line-408" class="ident">ReadBytes</a>(<span class="lit-number">'\n'</span>)</code></span>
+<span class="codeline" id="line-307"><code>		<span class="keyword">if</span> <label for="r70" class="ident">peekErr</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <label for="r70" class="ident">peekErr</label> != <a href="../../../pkg/io.html" class="ident i3">io</a>.<a href="../../io/io.go.html#line-44" class="ident">EOF</a> {</code></span>
+<span class="codeline" id="line-308"><code>			<label for="r62" class="ident">p</label>.<a href="#line-53" class="ident">debug</a>(<span class="lit-string">"readPythonMultilines: failed to peek with error: %v"</span>, <label for="r70" class="ident">peekErr</label>)</code></span>
+<span class="codeline" id="line-309"><code>			<span class="keyword">return</span> <span class="lit-string">""</span>, <label for="r70" class="ident">peekErr</label></code></span>
+<span class="codeline" id="line-310"><code>		}</code></span>
+<span class="codeline" id="line-311"><code></code></span>
+<span class="codeline" id="line-312"><code>		<label for="r62" class="ident">p</label>.<a href="#line-53" class="ident">debug</a>(<span class="lit-string">"readPythonMultilines: parsing %q"</span>, <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r69" class="ident">peekData</label>))</code></span>
 <span class="codeline" id="line-313"><code></code></span>
-<span class="codeline" id="line-314"><code>			<label for="r62" class="ident">p</label>.<a href="#line-53" class="ident">debug</a>(<span class="lit-string">"readPythonMultilines: failed to peek with error: %v"</span>, <label for="r71" class="ident">peekErr</label>)</code></span>
-<span class="codeline" id="line-315"><code>			<span class="keyword">return</span> <span class="lit-string">""</span>, <label for="r71" class="ident">peekErr</label></code></span>
-<span class="codeline" id="line-316"><code>		}</code></span>
-<span class="codeline" id="line-317"><code></code></span>
-<span class="codeline" id="line-318"><code>		<label for="r62" class="ident">p</label>.<a href="#line-53" class="ident">debug</a>(<span class="lit-string">"readPythonMultilines: parsing %q"</span>, <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r70" class="ident">peekData</label>))</code></span>
+<span class="codeline" id="line-314"><code>		<label for="r71" class="ident">peekMatches</label> := <a href="#line-30" class="ident">pythonMultiline</a>.<a href="../../regexp/regexp.go.html#line-1037" class="ident">FindStringSubmatch</a>(<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r69" class="ident">peekData</label>))</code></span>
+<span class="codeline" id="line-315"><code>		<label for="r62" class="ident">p</label>.<a href="#line-53" class="ident">debug</a>(<span class="lit-string">"readPythonMultilines: matched %d parts"</span>, <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r71" class="ident">peekMatches</label>))</code></span>
+<span class="codeline" id="line-316"><code>		<span class="keyword">for</span> <label for="r72" class="ident">n</label>, <label for="r73" class="ident">v</label> := <span class="keyword">range</span> <label for="r71" class="ident">peekMatches</label> {</code></span>
+<span class="codeline" id="line-317"><code>			<label for="r62" class="ident">p</label>.<a href="#line-53" class="ident">debug</a>(<span class="lit-string">"   %d: %q"</span>, <label for="r72" class="ident">n</label>, <label for="r73" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-318"><code>		}</code></span>
 <span class="codeline" id="line-319"><code></code></span>
-<span class="codeline" id="line-320"><code>		<label for="r72" class="ident">peekMatches</label> := <a href="#line-30" class="ident">pythonMultiline</a>.<a href="../../regexp/regexp.go.html#line-1037" class="ident">FindStringSubmatch</a>(<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r70" class="ident">peekData</label>))</code></span>
-<span class="codeline" id="line-321"><code>		<label for="r62" class="ident">p</label>.<a href="#line-53" class="ident">debug</a>(<span class="lit-string">"readPythonMultilines: matched %d parts"</span>, <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r72" class="ident">peekMatches</label>))</code></span>
-<span class="codeline" id="line-322"><code>		<span class="keyword">for</span> <label for="r73" class="ident">n</label>, <label for="r74" class="ident">v</label> := <span class="keyword">range</span> <label for="r72" class="ident">peekMatches</label> {</code></span>
-<span class="codeline" id="line-323"><code>			<label for="r62" class="ident">p</label>.<a href="#line-53" class="ident">debug</a>(<span class="lit-string">"   %d: %q"</span>, <label for="r73" class="ident">n</label>, <label for="r74" class="ident">v</label>)</code></span>
+<span class="codeline" id="line-320"><code>		<span class="comment">// Return if not a Python multiline value.</span></code></span>
+<span class="codeline" id="line-321"><code>		<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r71" class="ident">peekMatches</label>) != <span class="lit-number">3</span> {</code></span>
+<span class="codeline" id="line-322"><code>			<label for="r62" class="ident">p</label>.<a href="#line-53" class="ident">debug</a>(<span class="lit-string">"readPythonMultilines: end of value, got: %q"</span>, <label for="r64" class="ident">line</label>)</code></span>
+<span class="codeline" id="line-323"><code>			<span class="keyword">return</span> <label for="r64" class="ident">line</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
 <span class="codeline" id="line-324"><code>		}</code></span>
 <span class="codeline" id="line-325"><code></code></span>
-<span class="codeline" id="line-326"><code>		<span class="comment">// Return if not a Python multiline value.</span></code></span>
-<span class="codeline" id="line-327"><code>		<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r72" class="ident">peekMatches</label>) != <span class="lit-number">3</span> {</code></span>
-<span class="codeline" id="line-328"><code>			<label for="r62" class="ident">p</label>.<a href="#line-53" class="ident">debug</a>(<span class="lit-string">"readPythonMultilines: end of value, got: %q"</span>, <label for="r64" class="ident">line</label>)</code></span>
-<span class="codeline" id="line-329"><code>			<span class="keyword">return</span> <label for="r64" class="ident">line</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
-<span class="codeline" id="line-330"><code>		}</code></span>
-<span class="codeline" id="line-331"><code></code></span>
-<span class="codeline" id="line-332"><code>		<span class="comment">// Determine indent size and line prefix.</span></code></span>
-<span class="codeline" id="line-333"><code>		<label for="r75" class="ident">currentIndentSize</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r72" class="ident">peekMatches</label>[<span class="lit-number">1</span>])</code></span>
-<span class="codeline" id="line-334"><code>		<span class="keyword">if</span> <label for="r69" class="ident">indentSize</label> &lt; <span class="lit-number">1</span> {</code></span>
-<span class="codeline" id="line-335"><code>			<label for="r69" class="ident">indentSize</label> = <label for="r75" class="ident">currentIndentSize</label></code></span>
-<span class="codeline" id="line-336"><code>			<label for="r62" class="ident">p</label>.<a href="#line-53" class="ident">debug</a>(<span class="lit-string">"readPythonMultilines: indent size is %d"</span>, <label for="r69" class="ident">indentSize</label>)</code></span>
-<span class="codeline" id="line-337"><code>		}</code></span>
-<span class="codeline" id="line-338"><code></code></span>
-<span class="codeline" id="line-339"><code>		<span class="comment">// Make sure each line is indented at least as far as first line.</span></code></span>
-<span class="codeline" id="line-340"><code>		<span class="keyword">if</span> <label for="r75" class="ident">currentIndentSize</label> &lt; <label for="r69" class="ident">indentSize</label> {</code></span>
-<span class="codeline" id="line-341"><code>			<label for="r62" class="ident">p</label>.<a href="#line-53" class="ident">debug</a>(<span class="lit-string">"readPythonMultilines: end of value, current indent: %d, expected indent: %d, line: %q"</span>, <label for="r75" class="ident">currentIndentSize</label>, <label for="r69" class="ident">indentSize</label>, <label for="r64" class="ident">line</label>)</code></span>
-<span class="codeline" id="line-342"><code>			<span class="keyword">return</span> <label for="r64" class="ident">line</label>, <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
-<span class="codeline" id="line-343"><code>		}</code></span>
-<span class="codeline" id="line-344"><code></code></span>
-<span class="codeline" id="line-345"><code>		<span class="comment">// Advance the parser reader (buffer) in-sync with the peek buffer.</span></code></span>
-<span class="codeline" id="line-346"><code>		<label for="r76" class="ident">_</label>, <label for="r77" class="ident">err</label> := <label for="r62" class="ident">p</label>.<a href="#line-45" class="ident">buf</a>.<a href="../../bufio/bufio.go.html#line-164" class="ident">Discard</a>(<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r70" class="ident">peekData</label>))</code></span>
-<span class="codeline" id="line-347"><code>		<span class="keyword">if</span> <label for="r77" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
-<span class="codeline" id="line-348"><code>			<label for="r62" class="ident">p</label>.<a href="#line-53" class="ident">debug</a>(<span class="lit-string">"readPythonMultilines: failed to skip to the end, returning error"</span>)</code></span>
-<span class="codeline" id="line-349"><code>			<span class="keyword">return</span> <span class="lit-string">""</span>, <label for="r77" class="ident">err</label></code></span>
-<span class="codeline" id="line-350"><code>		}</code></span>
-<span class="codeline" id="line-351"><code></code></span>
-<span class="codeline" id="line-352"><code>		<span class="comment">// Handle indented empty line.</span></code></span>
-<span class="codeline" id="line-353"><code>		<label for="r64" class="ident">line</label> += <span class="lit-string">"\n"</span> + <label for="r72" class="ident">peekMatches</label>[<span class="lit-number">1</span>][<label for="r69" class="ident">indentSize</label>:] + <label for="r72" class="ident">peekMatches</label>[<span class="lit-number">2</span>]</code></span>
-<span class="codeline" id="line-354"><code>	}</code></span>
-<span class="codeline" id="line-355"><code>}</code></span>
-<span class="codeline" id="line-356"><code></code></span>
-<span class="codeline" id="line-357"><code><span class="comment">// parse parses data through an io.Reader.</span></code></span>
-<span class="codeline" id="line-358"><code><span class="keyword">func</span> (<label for="r78" class="ident">f</label> *<a href="file.go.html#line-29" class="ident">File</a>) <label for="r79" class="ident">parse</label>(<label for="r80" class="ident">reader</label> <a href="../../../pkg/io.html" class="ident i3">io</a>.<a href="../../io/io.go.html#line-83" class="ident">Reader</a>) (<label for="r81" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
-<span class="codeline" id="line-359"><code>	<label for="r82" class="ident">p</label> := <a href="#line-59" class="ident">newParser</a>(<label for="r80" class="ident">reader</label>, <a href="#line-32" class="ident">parserOptions</a>{</code></span>
-<span class="codeline" id="line-360"><code>		<a href="#line-33" class="ident">IgnoreContinuation</a>:          <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-77" class="ident">IgnoreContinuation</a>,</code></span>
-<span class="codeline" id="line-361"><code>		<a href="#line-34" class="ident">IgnoreInlineComment</a>:         <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-79" class="ident">IgnoreInlineComment</a>,</code></span>
-<span class="codeline" id="line-362"><code>		<a href="#line-35" class="ident">AllowPythonMultilineValues</a>:  <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-96" class="ident">AllowPythonMultilineValues</a>,</code></span>
-<span class="codeline" id="line-363"><code>		<a href="#line-36" class="ident">SpaceBeforeInlineComment</a>:    <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-101" class="ident">SpaceBeforeInlineComment</a>,</code></span>
-<span class="codeline" id="line-364"><code>		<a href="#line-37" class="ident">UnescapeValueDoubleQuotes</a>:   <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-104" class="ident">UnescapeValueDoubleQuotes</a>,</code></span>
-<span class="codeline" id="line-365"><code>		<a href="#line-38" class="ident">UnescapeValueCommentSymbols</a>: <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-108" class="ident">UnescapeValueCommentSymbols</a>,</code></span>
-<span class="codeline" id="line-366"><code>		<a href="#line-39" class="ident">PreserveSurroundedQuote</a>:     <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-119" class="ident">PreserveSurroundedQuote</a>,</code></span>
-<span class="codeline" id="line-367"><code>		<a href="#line-40" class="ident">DebugFunc</a>:                   <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-121" class="ident">DebugFunc</a>,</code></span>
-<span class="codeline" id="line-368"><code>		<a href="#line-41" class="ident">ReaderBufferSize</a>:            <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-123" class="ident">ReaderBufferSize</a>,</code></span>
-<span class="codeline" id="line-369"><code>	})</code></span>
-<span class="codeline" id="line-370"><code>	<span class="keyword">if</span> <label for="r81" class="ident">err</label> = <label for="r82" class="ident">p</label>.<a href="#line-75" class="ident">BOM</a>(); <label for="r81" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
-<span class="codeline" id="line-371"><code>		<span class="keyword">return</span> <a href="../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"BOM: %v"</span>, <label for="r81" class="ident">err</label>)</code></span>
-<span class="codeline" id="line-372"><code>	}</code></span>
-<span class="codeline" id="line-373"><code></code></span>
-<span class="codeline" id="line-374"><code>	<span class="comment">// Ignore error because default section name is never empty string.</span></code></span>
-<span class="codeline" id="line-375"><code>	<label for="r83" class="ident">name</label> := <a href="ini.go.html#line-28" class="ident">DefaultSection</a></code></span>
-<span class="codeline" id="line-376"><code>	<span class="keyword">if</span> <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-71" class="ident">Insensitive</a> || <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-73" class="ident">InsensitiveSections</a> {</code></span>
-<span class="codeline" id="line-377"><code>		<label for="r83" class="ident">name</label> = <a href="../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../strings/strings.go.html#line-580" class="ident">ToLower</a>(<a href="ini.go.html#line-28" class="ident">DefaultSection</a>)</code></span>
-<span class="codeline" id="line-378"><code>	}</code></span>
-<span class="codeline" id="line-379"><code>	<label for="r84" class="ident">section</label>, <label for="r85" class="ident">_</label> := <label for="r78" class="ident">f</label>.<a href="file.go.html#line-83" class="ident">NewSection</a>(<label for="r83" class="ident">name</label>)</code></span>
-<span class="codeline" id="line-380"><code></code></span>
-<span class="codeline" id="line-381"><code>	<span class="comment">// This "last" is not strictly equivalent to "previous one" if current key is not the first nested key</span></code></span>
-<span class="codeline" id="line-382"><code>	<span class="keyword">var</span> <label for="r86" class="ident">isLastValueEmpty</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
-<span class="codeline" id="line-383"><code>	<span class="keyword">var</span> <label for="r87" class="ident">lastRegularKey</label> *<a href="key.go.html#line-27" class="ident">Key</a></code></span>
-<span class="codeline" id="line-384"><code></code></span>
-<span class="codeline" id="line-385"><code>	<span class="keyword">var</span> <label for="r88" class="ident">line</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
-<span class="codeline" id="line-386"><code>	<span class="keyword">var</span> <label for="r89" class="ident">inUnparseableSection</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
-<span class="codeline" id="line-387"><code></code></span>
-<span class="codeline" id="line-388"><code>	<span class="comment">// NOTE: Iterate and increase `currentPeekSize` until</span></code></span>
-<span class="codeline" id="line-389"><code><span class="comment">	// the size of the parser buffer is found.</span></code></span>
-<span class="codeline" id="line-390"><code><span class="comment">	// TODO(unknwon): When Golang 1.10 is the lowest version supported, replace with `parserBufferSize := p.buf.Size()`.</span></code></span>
-<span class="codeline" id="line-391"><code>	<label for="r90" class="ident">parserBufferSize</label> := <span class="lit-number">0</span></code></span>
-<span class="codeline" id="line-392"><code>	<span class="comment">// NOTE: Peek 4kb at a time.</span></code></span>
-<span class="codeline" id="line-393"><code>	<label for="r91" class="ident">currentPeekSize</label> := <a href="#line-28" class="ident">minReaderBufferSize</a></code></span>
+<span class="codeline" id="line-326"><code>		<span class="comment">// Advance the parser reader (buffer) in-sync with the peek buffer.</span></code></span>
+<span class="codeline" id="line-327"><code>		<label for="r74" class="ident">_</label>, <label for="r75" class="ident">err</label> := <label for="r62" class="ident">p</label>.<a href="#line-45" class="ident">buf</a>.<a href="../../bufio/bufio.go.html#line-164" class="ident">Discard</a>(<a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r69" class="ident">peekData</label>))</code></span>
+<span class="codeline" id="line-328"><code>		<span class="keyword">if</span> <label for="r75" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-329"><code>			<label for="r62" class="ident">p</label>.<a href="#line-53" class="ident">debug</a>(<span class="lit-string">"readPythonMultilines: failed to skip to the end, returning error"</span>)</code></span>
+<span class="codeline" id="line-330"><code>			<span class="keyword">return</span> <span class="lit-string">""</span>, <label for="r75" class="ident">err</label></code></span>
+<span class="codeline" id="line-331"><code>		}</code></span>
+<span class="codeline" id="line-332"><code></code></span>
+<span class="codeline" id="line-333"><code>		<label for="r64" class="ident">line</label> += <span class="lit-string">"\n"</span> + <label for="r71" class="ident">peekMatches</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-334"><code>	}</code></span>
+<span class="codeline" id="line-335"><code>}</code></span>
+<span class="codeline" id="line-336"><code></code></span>
+<span class="codeline" id="line-337"><code><span class="comment">// parse parses data through an io.Reader.</span></code></span>
+<span class="codeline" id="line-338"><code><span class="keyword">func</span> (<label for="r76" class="ident">f</label> *<a href="file.go.html#line-29" class="ident">File</a>) <label for="r77" class="ident">parse</label>(<label for="r78" class="ident">reader</label> <a href="../../../pkg/io.html" class="ident i3">io</a>.<a href="../../io/io.go.html#line-83" class="ident">Reader</a>) (<label for="r79" class="ident">err</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-339"><code>	<label for="r80" class="ident">p</label> := <a href="#line-59" class="ident">newParser</a>(<label for="r78" class="ident">reader</label>, <a href="#line-32" class="ident">parserOptions</a>{</code></span>
+<span class="codeline" id="line-340"><code>		<a href="#line-33" class="ident">IgnoreContinuation</a>:          <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-77" class="ident">IgnoreContinuation</a>,</code></span>
+<span class="codeline" id="line-341"><code>		<a href="#line-34" class="ident">IgnoreInlineComment</a>:         <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-79" class="ident">IgnoreInlineComment</a>,</code></span>
+<span class="codeline" id="line-342"><code>		<a href="#line-35" class="ident">AllowPythonMultilineValues</a>:  <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-96" class="ident">AllowPythonMultilineValues</a>,</code></span>
+<span class="codeline" id="line-343"><code>		<a href="#line-36" class="ident">SpaceBeforeInlineComment</a>:    <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-101" class="ident">SpaceBeforeInlineComment</a>,</code></span>
+<span class="codeline" id="line-344"><code>		<a href="#line-37" class="ident">UnescapeValueDoubleQuotes</a>:   <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-104" class="ident">UnescapeValueDoubleQuotes</a>,</code></span>
+<span class="codeline" id="line-345"><code>		<a href="#line-38" class="ident">UnescapeValueCommentSymbols</a>: <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-108" class="ident">UnescapeValueCommentSymbols</a>,</code></span>
+<span class="codeline" id="line-346"><code>		<a href="#line-39" class="ident">PreserveSurroundedQuote</a>:     <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-119" class="ident">PreserveSurroundedQuote</a>,</code></span>
+<span class="codeline" id="line-347"><code>		<a href="#line-40" class="ident">DebugFunc</a>:                   <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-121" class="ident">DebugFunc</a>,</code></span>
+<span class="codeline" id="line-348"><code>		<a href="#line-41" class="ident">ReaderBufferSize</a>:            <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-123" class="ident">ReaderBufferSize</a>,</code></span>
+<span class="codeline" id="line-349"><code>	})</code></span>
+<span class="codeline" id="line-350"><code>	<span class="keyword">if</span> <label for="r79" class="ident">err</label> = <label for="r80" class="ident">p</label>.<a href="#line-75" class="ident">BOM</a>(); <label for="r79" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-351"><code>		<span class="keyword">return</span> <a href="../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"BOM: %v"</span>, <label for="r79" class="ident">err</label>)</code></span>
+<span class="codeline" id="line-352"><code>	}</code></span>
+<span class="codeline" id="line-353"><code></code></span>
+<span class="codeline" id="line-354"><code>	<span class="comment">// Ignore error because default section name is never empty string.</span></code></span>
+<span class="codeline" id="line-355"><code>	<label for="r81" class="ident">name</label> := <a href="ini.go.html#line-28" class="ident">DefaultSection</a></code></span>
+<span class="codeline" id="line-356"><code>	<span class="keyword">if</span> <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-71" class="ident">Insensitive</a> || <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-73" class="ident">InsensitiveSections</a> {</code></span>
+<span class="codeline" id="line-357"><code>		<label for="r81" class="ident">name</label> = <a href="../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../strings/strings.go.html#line-580" class="ident">ToLower</a>(<a href="ini.go.html#line-28" class="ident">DefaultSection</a>)</code></span>
+<span class="codeline" id="line-358"><code>	}</code></span>
+<span class="codeline" id="line-359"><code>	<label for="r82" class="ident">section</label>, <label for="r83" class="ident">_</label> := <label for="r76" class="ident">f</label>.<a href="file.go.html#line-83" class="ident">NewSection</a>(<label for="r81" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-360"><code></code></span>
+<span class="codeline" id="line-361"><code>	<span class="comment">// This "last" is not strictly equivalent to "previous one" if current key is not the first nested key</span></code></span>
+<span class="codeline" id="line-362"><code>	<span class="keyword">var</span> <label for="r84" class="ident">isLastValueEmpty</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-363"><code>	<span class="keyword">var</span> <label for="r85" class="ident">lastRegularKey</label> *<a href="key.go.html#line-27" class="ident">Key</a></code></span>
+<span class="codeline" id="line-364"><code></code></span>
+<span class="codeline" id="line-365"><code>	<span class="keyword">var</span> <label for="r86" class="ident">line</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-366"><code>	<span class="keyword">var</span> <label for="r87" class="ident">inUnparseableSection</label> <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-367"><code></code></span>
+<span class="codeline" id="line-368"><code>	<span class="comment">// NOTE: Iterate and increase `currentPeekSize` until</span></code></span>
+<span class="codeline" id="line-369"><code><span class="comment">	// the size of the parser buffer is found.</span></code></span>
+<span class="codeline" id="line-370"><code><span class="comment">	// TODO(unknwon): When Golang 1.10 is the lowest version supported, replace with `parserBufferSize := p.buf.Size()`.</span></code></span>
+<span class="codeline" id="line-371"><code>	<label for="r88" class="ident">parserBufferSize</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-372"><code>	<span class="comment">// NOTE: Peek 4kb at a time.</span></code></span>
+<span class="codeline" id="line-373"><code>	<label for="r89" class="ident">currentPeekSize</label> := <a href="#line-28" class="ident">minReaderBufferSize</a></code></span>
+<span class="codeline" id="line-374"><code></code></span>
+<span class="codeline" id="line-375"><code>	<span class="keyword">if</span> <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-96" class="ident">AllowPythonMultilineValues</a> {</code></span>
+<span class="codeline" id="line-376"><code>		<span class="keyword">for</span> {</code></span>
+<span class="codeline" id="line-377"><code>			<label for="r90" class="ident">peekBytes</label>, <label for="r91" class="ident">_</label> := <label for="r80" class="ident">p</label>.<a href="#line-45" class="ident">buf</a>.<a href="../../bufio/bufio.go.html#line-130" class="ident">Peek</a>(<label for="r89" class="ident">currentPeekSize</label>)</code></span>
+<span class="codeline" id="line-378"><code>			<label for="r92" class="ident">peekBytesLength</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r90" class="ident">peekBytes</label>)</code></span>
+<span class="codeline" id="line-379"><code></code></span>
+<span class="codeline" id="line-380"><code>			<span class="keyword">if</span> <label for="r88" class="ident">parserBufferSize</label> &gt;= <label for="r92" class="ident">peekBytesLength</label> {</code></span>
+<span class="codeline" id="line-381"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-382"><code>			}</code></span>
+<span class="codeline" id="line-383"><code></code></span>
+<span class="codeline" id="line-384"><code>			<label for="r89" class="ident">currentPeekSize</label> *= <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-385"><code>			<label for="r88" class="ident">parserBufferSize</label> = <label for="r92" class="ident">peekBytesLength</label></code></span>
+<span class="codeline" id="line-386"><code>		}</code></span>
+<span class="codeline" id="line-387"><code>	}</code></span>
+<span class="codeline" id="line-388"><code></code></span>
+<span class="codeline" id="line-389"><code>	<span class="keyword">for</span> !<label for="r80" class="ident">p</label>.<a href="#line-48" class="ident">isEOF</a> {</code></span>
+<span class="codeline" id="line-390"><code>		<label for="r86" class="ident">line</label>, <label for="r79" class="ident">err</label> = <label for="r80" class="ident">p</label>.<a href="#line-108" class="ident">readUntil</a>(<span class="lit-number">'\n'</span>)</code></span>
+<span class="codeline" id="line-391"><code>		<span class="keyword">if</span> <label for="r79" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-392"><code>			<span class="keyword">return</span> <label for="r79" class="ident">err</label></code></span>
+<span class="codeline" id="line-393"><code>		}</code></span>
 <span class="codeline" id="line-394"><code></code></span>
-<span class="codeline" id="line-395"><code>	<span class="keyword">if</span> <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-96" class="ident">AllowPythonMultilineValues</a> {</code></span>
-<span class="codeline" id="line-396"><code>		<span class="keyword">for</span> {</code></span>
-<span class="codeline" id="line-397"><code>			<label for="r92" class="ident">peekBytes</label>, <label for="r93" class="ident">_</label> := <label for="r82" class="ident">p</label>.<a href="#line-45" class="ident">buf</a>.<a href="../../bufio/bufio.go.html#line-130" class="ident">Peek</a>(<label for="r91" class="ident">currentPeekSize</label>)</code></span>
-<span class="codeline" id="line-398"><code>			<label for="r94" class="ident">peekBytesLength</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r92" class="ident">peekBytes</label>)</code></span>
-<span class="codeline" id="line-399"><code></code></span>
-<span class="codeline" id="line-400"><code>			<span class="keyword">if</span> <label for="r90" class="ident">parserBufferSize</label> &gt;= <label for="r94" class="ident">peekBytesLength</label> {</code></span>
-<span class="codeline" id="line-401"><code>				<span class="keyword">break</span></code></span>
-<span class="codeline" id="line-402"><code>			}</code></span>
-<span class="codeline" id="line-403"><code></code></span>
-<span class="codeline" id="line-404"><code>			<label for="r91" class="ident">currentPeekSize</label> *= <span class="lit-number">2</span></code></span>
-<span class="codeline" id="line-405"><code>			<label for="r90" class="ident">parserBufferSize</label> = <label for="r94" class="ident">peekBytesLength</label></code></span>
-<span class="codeline" id="line-406"><code>		}</code></span>
-<span class="codeline" id="line-407"><code>	}</code></span>
-<span class="codeline" id="line-408"><code></code></span>
-<span class="codeline" id="line-409"><code>	<span class="keyword">for</span> !<label for="r82" class="ident">p</label>.<a href="#line-48" class="ident">isEOF</a> {</code></span>
-<span class="codeline" id="line-410"><code>		<label for="r88" class="ident">line</label>, <label for="r81" class="ident">err</label> = <label for="r82" class="ident">p</label>.<a href="#line-108" class="ident">readUntil</a>(<span class="lit-number">'\n'</span>)</code></span>
-<span class="codeline" id="line-411"><code>		<span class="keyword">if</span> <label for="r81" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
-<span class="codeline" id="line-412"><code>			<span class="keyword">return</span> <label for="r81" class="ident">err</label></code></span>
-<span class="codeline" id="line-413"><code>		}</code></span>
-<span class="codeline" id="line-414"><code></code></span>
-<span class="codeline" id="line-415"><code>		<span class="keyword">if</span> <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-91" class="ident">AllowNestedValues</a> &amp;&amp;</code></span>
-<span class="codeline" id="line-416"><code>			<label for="r86" class="ident">isLastValueEmpty</label> &amp;&amp; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r88" class="ident">line</label>) &gt; <span class="lit-number">0</span> {</code></span>
-<span class="codeline" id="line-417"><code>			<span class="keyword">if</span> <label for="r88" class="ident">line</label>[<span class="lit-number">0</span>] == <span class="lit-number">' '</span> || <label for="r88" class="ident">line</label>[<span class="lit-number">0</span>] == <span class="lit-number">'\t'</span> {</code></span>
-<span class="codeline" id="line-418"><code>				<label for="r81" class="ident">err</label> = <label for="r87" class="ident">lastRegularKey</label>.<a href="key.go.html#line-83" class="ident">addNestedValue</a>(<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<a href="../../../pkg/bytes.html" class="ident i1">bytes</a>.<a href="../../bytes/bytes.go.html#line-931" class="ident">TrimSpace</a>(<label for="r88" class="ident">line</label>)))</code></span>
-<span class="codeline" id="line-419"><code>				<span class="keyword">if</span> <label for="r81" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
-<span class="codeline" id="line-420"><code>					<span class="keyword">return</span> <label for="r81" class="ident">err</label></code></span>
-<span class="codeline" id="line-421"><code>				}</code></span>
-<span class="codeline" id="line-422"><code>				<span class="keyword">continue</span></code></span>
-<span class="codeline" id="line-423"><code>			}</code></span>
-<span class="codeline" id="line-424"><code>		}</code></span>
-<span class="codeline" id="line-425"><code></code></span>
-<span class="codeline" id="line-426"><code>		<label for="r88" class="ident">line</label> = <a href="../../../pkg/bytes.html" class="ident i1">bytes</a>.<a href="../../bytes/bytes.go.html#line-769" class="ident">TrimLeftFunc</a>(<label for="r88" class="ident">line</label>, <a href="../../../pkg/unicode.html" class="ident i7">unicode</a>.<a href="../../unicode/graphic.go.html#line-126" class="ident">IsSpace</a>)</code></span>
-<span class="codeline" id="line-427"><code>		<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r88" class="ident">line</label>) == <span class="lit-number">0</span> {</code></span>
-<span class="codeline" id="line-428"><code>			<span class="keyword">continue</span></code></span>
-<span class="codeline" id="line-429"><code>		}</code></span>
-<span class="codeline" id="line-430"><code></code></span>
-<span class="codeline" id="line-431"><code>		<span class="comment">// Comments</span></code></span>
-<span class="codeline" id="line-432"><code>		<span class="keyword">if</span> <label for="r88" class="ident">line</label>[<span class="lit-number">0</span>] == <span class="lit-number">'#'</span> || <label for="r88" class="ident">line</label>[<span class="lit-number">0</span>] == <span class="lit-number">';'</span> {</code></span>
-<span class="codeline" id="line-433"><code>			<span class="comment">// Note: we do not care ending line break,</span></code></span>
-<span class="codeline" id="line-434"><code><span class="comment">			// it is needed for adding second line,</span></code></span>
-<span class="codeline" id="line-435"><code><span class="comment">			// so just clean it once at the end when set to value.</span></code></span>
-<span class="codeline" id="line-436"><code>			<label for="r82" class="ident">p</label>.<a href="#line-50" class="ident">comment</a>.<a href="../../bytes/buffer.go.html#line-168" class="ident">Write</a>(<label for="r88" class="ident">line</label>)</code></span>
-<span class="codeline" id="line-437"><code>			<span class="keyword">continue</span></code></span>
-<span class="codeline" id="line-438"><code>		}</code></span>
-<span class="codeline" id="line-439"><code></code></span>
-<span class="codeline" id="line-440"><code>		<span class="comment">// Section</span></code></span>
-<span class="codeline" id="line-441"><code>		<span class="keyword">if</span> <label for="r88" class="ident">line</label>[<span class="lit-number">0</span>] == <span class="lit-number">'['</span> {</code></span>
-<span class="codeline" id="line-442"><code>			<span class="comment">// Read to the next ']' (TODO: support quoted strings)</span></code></span>
-<span class="codeline" id="line-443"><code>			<label for="r95" class="ident">closeIdx</label> := <a href="../../../pkg/bytes.html" class="ident i1">bytes</a>.<a href="../../bytes/bytes.go.html#line-141" class="ident">LastIndexByte</a>(<label for="r88" class="ident">line</label>, <span class="lit-number">']'</span>)</code></span>
-<span class="codeline" id="line-444"><code>			<span class="keyword">if</span> <label for="r95" class="ident">closeIdx</label> == -<span class="lit-number">1</span> {</code></span>
-<span class="codeline" id="line-445"><code>				<span class="keyword">return</span> <a href="../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"unclosed section: %s"</span>, <label for="r88" class="ident">line</label>)</code></span>
-<span class="codeline" id="line-446"><code>			}</code></span>
-<span class="codeline" id="line-447"><code></code></span>
-<span class="codeline" id="line-448"><code>			<label for="r96" class="ident">name</label> := <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r88" class="ident">line</label>[<span class="lit-number">1</span>:<label for="r95" class="ident">closeIdx</label>])</code></span>
-<span class="codeline" id="line-449"><code>			<label for="r84" class="ident">section</label>, <label for="r81" class="ident">err</label> = <label for="r78" class="ident">f</label>.<a href="file.go.html#line-83" class="ident">NewSection</a>(<label for="r96" class="ident">name</label>)</code></span>
-<span class="codeline" id="line-450"><code>			<span class="keyword">if</span> <label for="r81" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
-<span class="codeline" id="line-451"><code>				<span class="keyword">return</span> <label for="r81" class="ident">err</label></code></span>
-<span class="codeline" id="line-452"><code>			}</code></span>
-<span class="codeline" id="line-453"><code></code></span>
-<span class="codeline" id="line-454"><code>			<label for="r97" class="ident">comment</label>, <label for="r98" class="ident">has</label> := <a href="#line-120" class="ident">cleanComment</a>(<label for="r88" class="ident">line</label>[<label for="r95" class="ident">closeIdx</label>+<span class="lit-number">1</span>:])</code></span>
-<span class="codeline" id="line-455"><code>			<span class="keyword">if</span> <label for="r98" class="ident">has</label> {</code></span>
-<span class="codeline" id="line-456"><code>				<label for="r82" class="ident">p</label>.<a href="#line-50" class="ident">comment</a>.<a href="../../bytes/buffer.go.html#line-168" class="ident">Write</a>(<label for="r97" class="ident">comment</label>)</code></span>
-<span class="codeline" id="line-457"><code>			}</code></span>
-<span class="codeline" id="line-458"><code></code></span>
-<span class="codeline" id="line-459"><code>			<label for="r84" class="ident">section</label>.<a href="section.go.html#line-26" class="ident">Comment</a> = <a href="../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<label for="r82" class="ident">p</label>.<a href="#line-50" class="ident">comment</a>.<a href="../../bytes/buffer.go.html#line-60" class="ident">String</a>())</code></span>
-<span class="codeline" id="line-460"><code></code></span>
-<span class="codeline" id="line-461"><code>			<span class="comment">// Reset auto-counter and comments</span></code></span>
-<span class="codeline" id="line-462"><code>			<label for="r82" class="ident">p</label>.<a href="#line-50" class="ident">comment</a>.<a href="../../bytes/buffer.go.html#line-97" class="ident">Reset</a>()</code></span>
-<span class="codeline" id="line-463"><code>			<label for="r82" class="ident">p</label>.<a href="#line-49" class="ident">count</a> = <span class="lit-number">1</span></code></span>
-<span class="codeline" id="line-464"><code></code></span>
-<span class="codeline" id="line-465"><code>			<label for="r89" class="ident">inUnparseableSection</label> = <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
-<span class="codeline" id="line-466"><code>			<span class="keyword">for</span> <label for="r99" class="ident">i</label> := <span class="keyword">range</span> <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-111" class="ident">UnparseableSections</a> {</code></span>
-<span class="codeline" id="line-467"><code>				<span class="keyword">if</span> <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-111" class="ident">UnparseableSections</a>[<label for="r99" class="ident">i</label>] == <label for="r96" class="ident">name</label> ||</code></span>
-<span class="codeline" id="line-468"><code>					((<label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-71" class="ident">Insensitive</a> || <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-73" class="ident">InsensitiveSections</a>) &amp;&amp; <a href="../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../strings/strings.go.html#line-970" class="ident">EqualFold</a>(<label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-111" class="ident">UnparseableSections</a>[<label for="r99" class="ident">i</label>], <label for="r96" class="ident">name</label>)) {</code></span>
-<span class="codeline" id="line-469"><code>					<label for="r89" class="ident">inUnparseableSection</label> = <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
-<span class="codeline" id="line-470"><code>					<span class="keyword">continue</span></code></span>
-<span class="codeline" id="line-471"><code>				}</code></span>
-<span class="codeline" id="line-472"><code>			}</code></span>
-<span class="codeline" id="line-473"><code>			<span class="keyword">continue</span></code></span>
-<span class="codeline" id="line-474"><code>		}</code></span>
-<span class="codeline" id="line-475"><code></code></span>
-<span class="codeline" id="line-476"><code>		<span class="keyword">if</span> <label for="r89" class="ident">inUnparseableSection</label> {</code></span>
-<span class="codeline" id="line-477"><code>			<label for="r84" class="ident">section</label>.<a href="section.go.html#line-32" class="ident">isRawSection</a> = <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
-<span class="codeline" id="line-478"><code>			<label for="r84" class="ident">section</label>.<a href="section.go.html#line-33" class="ident">rawBody</a> += <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r88" class="ident">line</label>)</code></span>
-<span class="codeline" id="line-479"><code>			<span class="keyword">continue</span></code></span>
-<span class="codeline" id="line-480"><code>		}</code></span>
+<span class="codeline" id="line-395"><code>		<span class="keyword">if</span> <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-91" class="ident">AllowNestedValues</a> &amp;&amp;</code></span>
+<span class="codeline" id="line-396"><code>			<label for="r84" class="ident">isLastValueEmpty</label> &amp;&amp; <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r86" class="ident">line</label>) &gt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-397"><code>			<span class="keyword">if</span> <label for="r86" class="ident">line</label>[<span class="lit-number">0</span>] == <span class="lit-number">' '</span> || <label for="r86" class="ident">line</label>[<span class="lit-number">0</span>] == <span class="lit-number">'\t'</span> {</code></span>
+<span class="codeline" id="line-398"><code>				<label for="r79" class="ident">err</label> = <label for="r85" class="ident">lastRegularKey</label>.<a href="key.go.html#line-83" class="ident">addNestedValue</a>(<a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<a href="../../../pkg/bytes.html" class="ident i1">bytes</a>.<a href="../../bytes/bytes.go.html#line-931" class="ident">TrimSpace</a>(<label for="r86" class="ident">line</label>)))</code></span>
+<span class="codeline" id="line-399"><code>				<span class="keyword">if</span> <label for="r79" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-400"><code>					<span class="keyword">return</span> <label for="r79" class="ident">err</label></code></span>
+<span class="codeline" id="line-401"><code>				}</code></span>
+<span class="codeline" id="line-402"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-403"><code>			}</code></span>
+<span class="codeline" id="line-404"><code>		}</code></span>
+<span class="codeline" id="line-405"><code></code></span>
+<span class="codeline" id="line-406"><code>		<label for="r86" class="ident">line</label> = <a href="../../../pkg/bytes.html" class="ident i1">bytes</a>.<a href="../../bytes/bytes.go.html#line-769" class="ident">TrimLeftFunc</a>(<label for="r86" class="ident">line</label>, <a href="../../../pkg/unicode.html" class="ident i7">unicode</a>.<a href="../../unicode/graphic.go.html#line-126" class="ident">IsSpace</a>)</code></span>
+<span class="codeline" id="line-407"><code>		<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r86" class="ident">line</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-408"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-409"><code>		}</code></span>
+<span class="codeline" id="line-410"><code></code></span>
+<span class="codeline" id="line-411"><code>		<span class="comment">// Comments</span></code></span>
+<span class="codeline" id="line-412"><code>		<span class="keyword">if</span> <label for="r86" class="ident">line</label>[<span class="lit-number">0</span>] == <span class="lit-number">'#'</span> || <label for="r86" class="ident">line</label>[<span class="lit-number">0</span>] == <span class="lit-number">';'</span> {</code></span>
+<span class="codeline" id="line-413"><code>			<span class="comment">// Note: we do not care ending line break,</span></code></span>
+<span class="codeline" id="line-414"><code><span class="comment">			// it is needed for adding second line,</span></code></span>
+<span class="codeline" id="line-415"><code><span class="comment">			// so just clean it once at the end when set to value.</span></code></span>
+<span class="codeline" id="line-416"><code>			<label for="r80" class="ident">p</label>.<a href="#line-50" class="ident">comment</a>.<a href="../../bytes/buffer.go.html#line-168" class="ident">Write</a>(<label for="r86" class="ident">line</label>)</code></span>
+<span class="codeline" id="line-417"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-418"><code>		}</code></span>
+<span class="codeline" id="line-419"><code></code></span>
+<span class="codeline" id="line-420"><code>		<span class="comment">// Section</span></code></span>
+<span class="codeline" id="line-421"><code>		<span class="keyword">if</span> <label for="r86" class="ident">line</label>[<span class="lit-number">0</span>] == <span class="lit-number">'['</span> {</code></span>
+<span class="codeline" id="line-422"><code>			<span class="comment">// Read to the next ']' (TODO: support quoted strings)</span></code></span>
+<span class="codeline" id="line-423"><code>			<label for="r93" class="ident">closeIdx</label> := <a href="../../../pkg/bytes.html" class="ident i1">bytes</a>.<a href="../../bytes/bytes.go.html#line-141" class="ident">LastIndexByte</a>(<label for="r86" class="ident">line</label>, <span class="lit-number">']'</span>)</code></span>
+<span class="codeline" id="line-424"><code>			<span class="keyword">if</span> <label for="r93" class="ident">closeIdx</label> == -<span class="lit-number">1</span> {</code></span>
+<span class="codeline" id="line-425"><code>				<span class="keyword">return</span> <a href="../../../pkg/fmt.html" class="ident i2">fmt</a>.<a href="../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"unclosed section: %s"</span>, <label for="r86" class="ident">line</label>)</code></span>
+<span class="codeline" id="line-426"><code>			}</code></span>
+<span class="codeline" id="line-427"><code></code></span>
+<span class="codeline" id="line-428"><code>			<label for="r94" class="ident">name</label> := <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r86" class="ident">line</label>[<span class="lit-number">1</span>:<label for="r93" class="ident">closeIdx</label>])</code></span>
+<span class="codeline" id="line-429"><code>			<label for="r82" class="ident">section</label>, <label for="r79" class="ident">err</label> = <label for="r76" class="ident">f</label>.<a href="file.go.html#line-83" class="ident">NewSection</a>(<label for="r94" class="ident">name</label>)</code></span>
+<span class="codeline" id="line-430"><code>			<span class="keyword">if</span> <label for="r79" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-431"><code>				<span class="keyword">return</span> <label for="r79" class="ident">err</label></code></span>
+<span class="codeline" id="line-432"><code>			}</code></span>
+<span class="codeline" id="line-433"><code></code></span>
+<span class="codeline" id="line-434"><code>			<label for="r95" class="ident">comment</label>, <label for="r96" class="ident">has</label> := <a href="#line-120" class="ident">cleanComment</a>(<label for="r86" class="ident">line</label>[<label for="r93" class="ident">closeIdx</label>+<span class="lit-number">1</span>:])</code></span>
+<span class="codeline" id="line-435"><code>			<span class="keyword">if</span> <label for="r96" class="ident">has</label> {</code></span>
+<span class="codeline" id="line-436"><code>				<label for="r80" class="ident">p</label>.<a href="#line-50" class="ident">comment</a>.<a href="../../bytes/buffer.go.html#line-168" class="ident">Write</a>(<label for="r95" class="ident">comment</label>)</code></span>
+<span class="codeline" id="line-437"><code>			}</code></span>
+<span class="codeline" id="line-438"><code></code></span>
+<span class="codeline" id="line-439"><code>			<label for="r82" class="ident">section</label>.<a href="section.go.html#line-26" class="ident">Comment</a> = <a href="../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<label for="r80" class="ident">p</label>.<a href="#line-50" class="ident">comment</a>.<a href="../../bytes/buffer.go.html#line-60" class="ident">String</a>())</code></span>
+<span class="codeline" id="line-440"><code></code></span>
+<span class="codeline" id="line-441"><code>			<span class="comment">// Reset auto-counter and comments</span></code></span>
+<span class="codeline" id="line-442"><code>			<label for="r80" class="ident">p</label>.<a href="#line-50" class="ident">comment</a>.<a href="../../bytes/buffer.go.html#line-97" class="ident">Reset</a>()</code></span>
+<span class="codeline" id="line-443"><code>			<label for="r80" class="ident">p</label>.<a href="#line-49" class="ident">count</a> = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-444"><code>			<span class="comment">// Nested values can't span sections</span></code></span>
+<span class="codeline" id="line-445"><code>			<label for="r84" class="ident">isLastValueEmpty</label> = <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-446"><code></code></span>
+<span class="codeline" id="line-447"><code>			<label for="r87" class="ident">inUnparseableSection</label> = <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-448"><code>			<span class="keyword">for</span> <label for="r97" class="ident">i</label> := <span class="keyword">range</span> <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-111" class="ident">UnparseableSections</a> {</code></span>
+<span class="codeline" id="line-449"><code>				<span class="keyword">if</span> <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-111" class="ident">UnparseableSections</a>[<label for="r97" class="ident">i</label>] == <label for="r94" class="ident">name</label> ||</code></span>
+<span class="codeline" id="line-450"><code>					((<label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-71" class="ident">Insensitive</a> || <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-73" class="ident">InsensitiveSections</a>) &amp;&amp; <a href="../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../strings/strings.go.html#line-970" class="ident">EqualFold</a>(<label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-111" class="ident">UnparseableSections</a>[<label for="r97" class="ident">i</label>], <label for="r94" class="ident">name</label>)) {</code></span>
+<span class="codeline" id="line-451"><code>					<label for="r87" class="ident">inUnparseableSection</label> = <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-452"><code>					<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-453"><code>				}</code></span>
+<span class="codeline" id="line-454"><code>			}</code></span>
+<span class="codeline" id="line-455"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-456"><code>		}</code></span>
+<span class="codeline" id="line-457"><code></code></span>
+<span class="codeline" id="line-458"><code>		<span class="keyword">if</span> <label for="r87" class="ident">inUnparseableSection</label> {</code></span>
+<span class="codeline" id="line-459"><code>			<label for="r82" class="ident">section</label>.<a href="section.go.html#line-32" class="ident">isRawSection</a> = <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-460"><code>			<label for="r82" class="ident">section</label>.<a href="section.go.html#line-33" class="ident">rawBody</a> += <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r86" class="ident">line</label>)</code></span>
+<span class="codeline" id="line-461"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-462"><code>		}</code></span>
+<span class="codeline" id="line-463"><code></code></span>
+<span class="codeline" id="line-464"><code>		<label for="r98" class="ident">kname</label>, <label for="r99" class="ident">offset</label>, <label for="r100" class="ident">err</label> := <a href="#line-128" class="ident">readKeyName</a>(<label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-113" class="ident">KeyValueDelimiters</a>, <label for="r86" class="ident">line</label>)</code></span>
+<span class="codeline" id="line-465"><code>		<span class="keyword">if</span> <label for="r100" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-466"><code>			<span class="comment">// Treat as boolean key when desired, and whole line is key name.</span></code></span>
+<span class="codeline" id="line-467"><code>			<span class="keyword">if</span> <a href="error.go.html#line-27" class="ident">IsErrDelimiterNotFound</a>(<label for="r100" class="ident">err</label>) {</code></span>
+<span class="codeline" id="line-468"><code>				<span class="keyword">switch</span> {</code></span>
+<span class="codeline" id="line-469"><code>				<span class="keyword">case</span> <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-86" class="ident">AllowBooleanKeys</a>:</code></span>
+<span class="codeline" id="line-470"><code>					<label for="r101" class="ident">kname</label>, <label for="r102" class="ident">err</label> := <label for="r80" class="ident">p</label>.<a href="#line-224" class="ident">readValue</a>(<label for="r86" class="ident">line</label>, <label for="r88" class="ident">parserBufferSize</label>)</code></span>
+<span class="codeline" id="line-471"><code>					<span class="keyword">if</span> <label for="r102" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-472"><code>						<span class="keyword">return</span> <label for="r102" class="ident">err</label></code></span>
+<span class="codeline" id="line-473"><code>					}</code></span>
+<span class="codeline" id="line-474"><code>					<label for="r103" class="ident">key</label>, <label for="r102" class="ident">err</label> := <label for="r82" class="ident">section</label>.<a href="section.go.html#line-97" class="ident">NewBooleanKey</a>(<label for="r101" class="ident">kname</label>)</code></span>
+<span class="codeline" id="line-475"><code>					<span class="keyword">if</span> <label for="r102" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-476"><code>						<span class="keyword">return</span> <label for="r102" class="ident">err</label></code></span>
+<span class="codeline" id="line-477"><code>					}</code></span>
+<span class="codeline" id="line-478"><code>					<label for="r103" class="ident">key</label>.<a href="key.go.html#line-29" class="ident">Comment</a> = <a href="../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<label for="r80" class="ident">p</label>.<a href="#line-50" class="ident">comment</a>.<a href="../../bytes/buffer.go.html#line-60" class="ident">String</a>())</code></span>
+<span class="codeline" id="line-479"><code>					<label for="r80" class="ident">p</label>.<a href="#line-50" class="ident">comment</a>.<a href="../../bytes/buffer.go.html#line-97" class="ident">Reset</a>()</code></span>
+<span class="codeline" id="line-480"><code>					<span class="keyword">continue</span></code></span>
 <span class="codeline" id="line-481"><code></code></span>
-<span class="codeline" id="line-482"><code>		<label for="r100" class="ident">kname</label>, <label for="r101" class="ident">offset</label>, <label for="r102" class="ident">err</label> := <a href="#line-128" class="ident">readKeyName</a>(<label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-113" class="ident">KeyValueDelimiters</a>, <label for="r88" class="ident">line</label>)</code></span>
-<span class="codeline" id="line-483"><code>		<span class="keyword">if</span> <label for="r102" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
-<span class="codeline" id="line-484"><code>			<span class="comment">// Treat as boolean key when desired, and whole line is key name.</span></code></span>
-<span class="codeline" id="line-485"><code>			<span class="keyword">if</span> <a href="error.go.html#line-27" class="ident">IsErrDelimiterNotFound</a>(<label for="r102" class="ident">err</label>) {</code></span>
-<span class="codeline" id="line-486"><code>				<span class="keyword">switch</span> {</code></span>
-<span class="codeline" id="line-487"><code>				<span class="keyword">case</span> <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-86" class="ident">AllowBooleanKeys</a>:</code></span>
-<span class="codeline" id="line-488"><code>					<label for="r103" class="ident">kname</label>, <label for="r104" class="ident">err</label> := <label for="r82" class="ident">p</label>.<a href="#line-224" class="ident">readValue</a>(<label for="r88" class="ident">line</label>, <label for="r90" class="ident">parserBufferSize</label>)</code></span>
-<span class="codeline" id="line-489"><code>					<span class="keyword">if</span> <label for="r104" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
-<span class="codeline" id="line-490"><code>						<span class="keyword">return</span> <label for="r104" class="ident">err</label></code></span>
-<span class="codeline" id="line-491"><code>					}</code></span>
-<span class="codeline" id="line-492"><code>					<label for="r105" class="ident">key</label>, <label for="r104" class="ident">err</label> := <label for="r84" class="ident">section</label>.<a href="section.go.html#line-97" class="ident">NewBooleanKey</a>(<label for="r103" class="ident">kname</label>)</code></span>
-<span class="codeline" id="line-493"><code>					<span class="keyword">if</span> <label for="r104" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
-<span class="codeline" id="line-494"><code>						<span class="keyword">return</span> <label for="r104" class="ident">err</label></code></span>
-<span class="codeline" id="line-495"><code>					}</code></span>
-<span class="codeline" id="line-496"><code>					<label for="r105" class="ident">key</label>.<a href="key.go.html#line-29" class="ident">Comment</a> = <a href="../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<label for="r82" class="ident">p</label>.<a href="#line-50" class="ident">comment</a>.<a href="../../bytes/buffer.go.html#line-60" class="ident">String</a>())</code></span>
-<span class="codeline" id="line-497"><code>					<label for="r82" class="ident">p</label>.<a href="#line-50" class="ident">comment</a>.<a href="../../bytes/buffer.go.html#line-97" class="ident">Reset</a>()</code></span>
-<span class="codeline" id="line-498"><code>					<span class="keyword">continue</span></code></span>
-<span class="codeline" id="line-499"><code></code></span>
-<span class="codeline" id="line-500"><code>				<span class="keyword">case</span> <label for="r78" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-81" class="ident">SkipUnrecognizableLines</a>:</code></span>
-<span class="codeline" id="line-501"><code>					<span class="keyword">continue</span></code></span>
-<span class="codeline" id="line-502"><code>				}</code></span>
-<span class="codeline" id="line-503"><code>			}</code></span>
-<span class="codeline" id="line-504"><code>			<span class="keyword">return</span> <label for="r102" class="ident">err</label></code></span>
-<span class="codeline" id="line-505"><code>		}</code></span>
-<span class="codeline" id="line-506"><code></code></span>
-<span class="codeline" id="line-507"><code>		<span class="comment">// Auto increment.</span></code></span>
-<span class="codeline" id="line-508"><code>		<label for="r106" class="ident">isAutoIncr</label> := <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
-<span class="codeline" id="line-509"><code>		<span class="keyword">if</span> <label for="r100" class="ident">kname</label> == <span class="lit-string">"-"</span> {</code></span>
-<span class="codeline" id="line-510"><code>			<label for="r106" class="ident">isAutoIncr</label> = <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
-<span class="codeline" id="line-511"><code>			<label for="r100" class="ident">kname</label> = <span class="lit-string">"#"</span> + <a href="../../../pkg/strconv.html" class="ident i5">strconv</a>.<a href="../../strconv/itoa.go.html#line-34" class="ident">Itoa</a>(<label for="r82" class="ident">p</label>.<a href="#line-49" class="ident">count</a>)</code></span>
-<span class="codeline" id="line-512"><code>			<label for="r82" class="ident">p</label>.<a href="#line-49" class="ident">count</a>++</code></span>
-<span class="codeline" id="line-513"><code>		}</code></span>
-<span class="codeline" id="line-514"><code></code></span>
-<span class="codeline" id="line-515"><code>		<label for="r107" class="ident">value</label>, <label for="r102" class="ident">err</label> := <label for="r82" class="ident">p</label>.<a href="#line-224" class="ident">readValue</a>(<label for="r88" class="ident">line</label>[<label for="r101" class="ident">offset</label>:], <label for="r90" class="ident">parserBufferSize</label>)</code></span>
-<span class="codeline" id="line-516"><code>		<span class="keyword">if</span> <label for="r102" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
-<span class="codeline" id="line-517"><code>			<span class="keyword">return</span> <label for="r102" class="ident">err</label></code></span>
-<span class="codeline" id="line-518"><code>		}</code></span>
-<span class="codeline" id="line-519"><code>		<label for="r86" class="ident">isLastValueEmpty</label> = <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r107" class="ident">value</label>) == <span class="lit-number">0</span></code></span>
-<span class="codeline" id="line-520"><code></code></span>
-<span class="codeline" id="line-521"><code>		<label for="r108" class="ident">key</label>, <label for="r102" class="ident">err</label> := <label for="r84" class="ident">section</label>.<a href="section.go.html#line-66" class="ident">NewKey</a>(<label for="r100" class="ident">kname</label>, <label for="r107" class="ident">value</label>)</code></span>
-<span class="codeline" id="line-522"><code>		<span class="keyword">if</span> <label for="r102" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
-<span class="codeline" id="line-523"><code>			<span class="keyword">return</span> <label for="r102" class="ident">err</label></code></span>
-<span class="codeline" id="line-524"><code>		}</code></span>
-<span class="codeline" id="line-525"><code>		<label for="r108" class="ident">key</label>.<a href="key.go.html#line-32" class="ident">isAutoIncrement</a> = <label for="r106" class="ident">isAutoIncr</label></code></span>
-<span class="codeline" id="line-526"><code>		<label for="r108" class="ident">key</label>.<a href="key.go.html#line-29" class="ident">Comment</a> = <a href="../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<label for="r82" class="ident">p</label>.<a href="#line-50" class="ident">comment</a>.<a href="../../bytes/buffer.go.html#line-60" class="ident">String</a>())</code></span>
-<span class="codeline" id="line-527"><code>		<label for="r82" class="ident">p</label>.<a href="#line-50" class="ident">comment</a>.<a href="../../bytes/buffer.go.html#line-97" class="ident">Reset</a>()</code></span>
-<span class="codeline" id="line-528"><code>		<label for="r87" class="ident">lastRegularKey</label> = <label for="r108" class="ident">key</label></code></span>
-<span class="codeline" id="line-529"><code>	}</code></span>
-<span class="codeline" id="line-530"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
-<span class="codeline" id="line-531"><code>}</code></span>
+<span class="codeline" id="line-482"><code>				<span class="keyword">case</span> <label for="r76" class="ident">f</label>.<a href="file.go.html#line-30" class="ident">options</a>.<a href="ini.go.html#line-81" class="ident">SkipUnrecognizableLines</a>:</code></span>
+<span class="codeline" id="line-483"><code>					<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-484"><code>				}</code></span>
+<span class="codeline" id="line-485"><code>			}</code></span>
+<span class="codeline" id="line-486"><code>			<span class="keyword">return</span> <label for="r100" class="ident">err</label></code></span>
+<span class="codeline" id="line-487"><code>		}</code></span>
+<span class="codeline" id="line-488"><code></code></span>
+<span class="codeline" id="line-489"><code>		<span class="comment">// Auto increment.</span></code></span>
+<span class="codeline" id="line-490"><code>		<label for="r104" class="ident">isAutoIncr</label> := <a href="../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-491"><code>		<span class="keyword">if</span> <label for="r98" class="ident">kname</label> == <span class="lit-string">"-"</span> {</code></span>
+<span class="codeline" id="line-492"><code>			<label for="r104" class="ident">isAutoIncr</label> = <a href="../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-493"><code>			<label for="r98" class="ident">kname</label> = <span class="lit-string">"#"</span> + <a href="../../../pkg/strconv.html" class="ident i5">strconv</a>.<a href="../../strconv/itoa.go.html#line-34" class="ident">Itoa</a>(<label for="r80" class="ident">p</label>.<a href="#line-49" class="ident">count</a>)</code></span>
+<span class="codeline" id="line-494"><code>			<label for="r80" class="ident">p</label>.<a href="#line-49" class="ident">count</a>++</code></span>
+<span class="codeline" id="line-495"><code>		}</code></span>
+<span class="codeline" id="line-496"><code></code></span>
+<span class="codeline" id="line-497"><code>		<label for="r105" class="ident">value</label>, <label for="r100" class="ident">err</label> := <label for="r80" class="ident">p</label>.<a href="#line-224" class="ident">readValue</a>(<label for="r86" class="ident">line</label>[<label for="r99" class="ident">offset</label>:], <label for="r88" class="ident">parserBufferSize</label>)</code></span>
+<span class="codeline" id="line-498"><code>		<span class="keyword">if</span> <label for="r100" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-499"><code>			<span class="keyword">return</span> <label for="r100" class="ident">err</label></code></span>
+<span class="codeline" id="line-500"><code>		}</code></span>
+<span class="codeline" id="line-501"><code>		<label for="r84" class="ident">isLastValueEmpty</label> = <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r105" class="ident">value</label>) == <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-502"><code></code></span>
+<span class="codeline" id="line-503"><code>		<label for="r106" class="ident">key</label>, <label for="r100" class="ident">err</label> := <label for="r82" class="ident">section</label>.<a href="section.go.html#line-66" class="ident">NewKey</a>(<label for="r98" class="ident">kname</label>, <label for="r105" class="ident">value</label>)</code></span>
+<span class="codeline" id="line-504"><code>		<span class="keyword">if</span> <label for="r100" class="ident">err</label> != <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-505"><code>			<span class="keyword">return</span> <label for="r100" class="ident">err</label></code></span>
+<span class="codeline" id="line-506"><code>		}</code></span>
+<span class="codeline" id="line-507"><code>		<label for="r106" class="ident">key</label>.<a href="key.go.html#line-32" class="ident">isAutoIncrement</a> = <label for="r104" class="ident">isAutoIncr</label></code></span>
+<span class="codeline" id="line-508"><code>		<label for="r106" class="ident">key</label>.<a href="key.go.html#line-29" class="ident">Comment</a> = <a href="../../../pkg/strings.html" class="ident i6">strings</a>.<a href="../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<label for="r80" class="ident">p</label>.<a href="#line-50" class="ident">comment</a>.<a href="../../bytes/buffer.go.html#line-60" class="ident">String</a>())</code></span>
+<span class="codeline" id="line-509"><code>		<label for="r80" class="ident">p</label>.<a href="#line-50" class="ident">comment</a>.<a href="../../bytes/buffer.go.html#line-97" class="ident">Reset</a>()</code></span>
+<span class="codeline" id="line-510"><code>		<label for="r85" class="ident">lastRegularKey</label> = <label for="r106" class="ident">key</label></code></span>
+<span class="codeline" id="line-511"><code>	}</code></span>
+<span class="codeline" id="line-512"><code>	<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-513"><code>}</code></span>
 </pre><pre id="footer">
 <table><tr><td><img src="../../../png/go101-twitter.png"></td>
 <td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.4.1</i>. (GOOS=linux GOARCH=amd64)

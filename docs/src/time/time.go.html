@@ -2118,17 +2118,17 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-1373"><code></code></span>
 <span class="codeline" id="line-1374"><code>	<label for="r325" class="ident">unix</label> := <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r324" class="ident">abs</label>) + (<a href="#line-414" class="ident">absoluteToInternal</a> + <a href="#line-418" class="ident">internalToUnix</a>)</code></span>
 <span class="codeline" id="line-1375"><code></code></span>
-<span class="codeline" id="line-1376"><code>	<span class="comment">// Look for zone offset for t, so we can adjust to UTC.</span></code></span>
-<span class="codeline" id="line-1377"><code><span class="comment">	// The lookup function expects UTC, so we pass t in the</span></code></span>
+<span class="codeline" id="line-1376"><code>	<span class="comment">// Look for zone offset for expected time, so we can adjust to UTC.</span></code></span>
+<span class="codeline" id="line-1377"><code><span class="comment">	// The lookup function expects UTC, so first we pass unix in the</span></code></span>
 <span class="codeline" id="line-1378"><code><span class="comment">	// hope that it will not be too close to a zone transition,</span></code></span>
 <span class="codeline" id="line-1379"><code><span class="comment">	// and then adjust if it is.</span></code></span>
 <span class="codeline" id="line-1380"><code>	<label for="r326" class="ident">_</label>, <label for="r327" class="ident">offset</label>, <label for="r328" class="ident">start</label>, <label for="r329" class="ident">end</label> := <label for="r321" class="ident">loc</label>.<a href="zoneinfo.go.html#line-124" class="ident">lookup</a>(<label for="r325" class="ident">unix</label>)</code></span>
 <span class="codeline" id="line-1381"><code>	<span class="keyword">if</span> <label for="r327" class="ident">offset</label> != <span class="lit-number">0</span> {</code></span>
-<span class="codeline" id="line-1382"><code>		<span class="keyword">switch</span> <label for="r330" class="ident">utc</label> := <label for="r325" class="ident">unix</label> - <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r327" class="ident">offset</label>); {</code></span>
-<span class="codeline" id="line-1383"><code>		<span class="keyword">case</span> <label for="r330" class="ident">utc</label> &lt; <label for="r328" class="ident">start</label>:</code></span>
-<span class="codeline" id="line-1384"><code>			_, <label for="r327" class="ident">offset</label>, _, _ = <label for="r321" class="ident">loc</label>.<a href="zoneinfo.go.html#line-124" class="ident">lookup</a>(<label for="r328" class="ident">start</label> - <span class="lit-number">1</span>)</code></span>
-<span class="codeline" id="line-1385"><code>		<span class="keyword">case</span> <label for="r330" class="ident">utc</label> &gt;= <label for="r329" class="ident">end</label>:</code></span>
-<span class="codeline" id="line-1386"><code>			_, <label for="r327" class="ident">offset</label>, _, _ = <label for="r321" class="ident">loc</label>.<a href="zoneinfo.go.html#line-124" class="ident">lookup</a>(<label for="r329" class="ident">end</label>)</code></span>
+<span class="codeline" id="line-1382"><code>		<label for="r330" class="ident">utc</label> := <label for="r325" class="ident">unix</label> - <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r327" class="ident">offset</label>)</code></span>
+<span class="codeline" id="line-1383"><code>		<span class="comment">// If utc is valid for the time zone we found, then we have the right offset.</span></code></span>
+<span class="codeline" id="line-1384"><code><span class="comment">		// If not, we get the correct offset by looking up utc in the location.</span></code></span>
+<span class="codeline" id="line-1385"><code>		<span class="keyword">if</span> <label for="r330" class="ident">utc</label> &lt; <label for="r328" class="ident">start</label> || <label for="r330" class="ident">utc</label> &gt;= <label for="r329" class="ident">end</label> {</code></span>
+<span class="codeline" id="line-1386"><code>			_, <label for="r327" class="ident">offset</label>, _, _ = <label for="r321" class="ident">loc</label>.<a href="zoneinfo.go.html#line-124" class="ident">lookup</a>(<label for="r330" class="ident">utc</label>)</code></span>
 <span class="codeline" id="line-1387"><code>		}</code></span>
 <span class="codeline" id="line-1388"><code>		<label for="r325" class="ident">unix</label> -= <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r327" class="ident">offset</label>)</code></span>
 <span class="codeline" id="line-1389"><code>	}</code></span>

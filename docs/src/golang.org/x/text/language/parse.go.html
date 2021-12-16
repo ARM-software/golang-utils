@@ -221,189 +221,211 @@ input[id=i3]:checked ~pre .i3
 <span class="codeline" id="line-43"><code><span class="comment">// https://www.unicode.org/reports/tr35/#Unicode_Language_and_Locale_Identifiers.</span></code></span>
 <span class="codeline" id="line-44"><code><span class="comment">// The resulting tag is canonicalized using the canonicalization type c.</span></code></span>
 <span class="codeline" id="line-45"><code><span class="keyword">func</span> (<label for="r4" class="ident">c</label> <a href="language.go.html#line-67" class="ident">CanonType</a>) <label for="r5" class="ident">Parse</label>(<label for="r6" class="ident">s</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r7" class="ident">t</label> <a href="language.go.html#line-22" class="ident">Tag</a>, <label for="r8" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
-<span class="codeline" id="line-46"><code>	<label for="r9" class="ident">tt</label>, <label for="r8" class="ident">err</label> := <a href="../../../../../pkg/golang.org/x/text/internal/language.html" class="ident i3">language</a>.<a href="../internal/language/parse.go.html#line-230" class="ident">Parse</a>(<label for="r6" class="ident">s</label>)</code></span>
-<span class="codeline" id="line-47"><code>	<span class="keyword">if</span> <label for="r8" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
-<span class="codeline" id="line-48"><code>		<span class="keyword">return</span> <a href="language.go.html#line-24" class="ident">makeTag</a>(<label for="r9" class="ident">tt</label>), <label for="r8" class="ident">err</label></code></span>
-<span class="codeline" id="line-49"><code>	}</code></span>
-<span class="codeline" id="line-50"><code>	<label for="r9" class="ident">tt</label>, <label for="r10" class="ident">changed</label> := <a href="language.go.html#line-115" class="ident">canonicalize</a>(<label for="r4" class="ident">c</label>, <label for="r9" class="ident">tt</label>)</code></span>
-<span class="codeline" id="line-51"><code>	<span class="keyword">if</span> <label for="r10" class="ident">changed</label> {</code></span>
-<span class="codeline" id="line-52"><code>		<label for="r9" class="ident">tt</label>.<a href="../internal/language/language.go.html#line-95" class="ident">RemakeString</a>()</code></span>
-<span class="codeline" id="line-53"><code>	}</code></span>
-<span class="codeline" id="line-54"><code>	<span class="keyword">return</span> <a href="language.go.html#line-24" class="ident">makeTag</a>(<label for="r9" class="ident">tt</label>), <label for="r8" class="ident">err</label></code></span>
-<span class="codeline" id="line-55"><code>}</code></span>
-<span class="codeline" id="line-56"><code></code></span>
-<span class="codeline" id="line-57"><code><span class="comment">// Compose creates a Tag from individual parts, which may be of type Tag, Base,</span></code></span>
-<span class="codeline" id="line-58"><code><span class="comment">// Script, Region, Variant, []Variant, Extension, []Extension or error. If a</span></code></span>
-<span class="codeline" id="line-59"><code><span class="comment">// Base, Script or Region or slice of type Variant or Extension is passed more</span></code></span>
-<span class="codeline" id="line-60"><code><span class="comment">// than once, the latter will overwrite the former. Variants and Extensions are</span></code></span>
-<span class="codeline" id="line-61"><code><span class="comment">// accumulated, but if two extensions of the same type are passed, the latter</span></code></span>
-<span class="codeline" id="line-62"><code><span class="comment">// will replace the former. For -u extensions, though, the key-type pairs are</span></code></span>
-<span class="codeline" id="line-63"><code><span class="comment">// added, where later values overwrite older ones. A Tag overwrites all former</span></code></span>
-<span class="codeline" id="line-64"><code><span class="comment">// values and typically only makes sense as the first argument. The resulting</span></code></span>
-<span class="codeline" id="line-65"><code><span class="comment">// tag is returned after canonicalizing using the Default CanonType. If one or</span></code></span>
-<span class="codeline" id="line-66"><code><span class="comment">// more errors are encountered, one of the errors is returned.</span></code></span>
-<span class="codeline" id="line-67"><code><span class="keyword">func</span> <label for="r11" class="ident"><a href="../../../../../pkg/golang.org/x/text/language.html#name-Compose" class="ident">Compose</a></label>(<label for="r12" class="ident">part</label> ...<span class="keyword">interface</span>{}) (<label for="r13" class="ident">t</label> <a href="language.go.html#line-22" class="ident">Tag</a>, <label for="r14" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
-<span class="codeline" id="line-68"><code>	<span class="keyword">return</span> <a href="language.go.html#line-106" class="ident">Default</a>.<a href="#line-81" class="ident">Compose</a>(<label for="r12" class="ident">part</label>...)</code></span>
-<span class="codeline" id="line-69"><code>}</code></span>
-<span class="codeline" id="line-70"><code></code></span>
-<span class="codeline" id="line-71"><code><span class="comment">// Compose creates a Tag from individual parts, which may be of type Tag, Base,</span></code></span>
-<span class="codeline" id="line-72"><code><span class="comment">// Script, Region, Variant, []Variant, Extension, []Extension or error. If a</span></code></span>
-<span class="codeline" id="line-73"><code><span class="comment">// Base, Script or Region or slice of type Variant or Extension is passed more</span></code></span>
-<span class="codeline" id="line-74"><code><span class="comment">// than once, the latter will overwrite the former. Variants and Extensions are</span></code></span>
-<span class="codeline" id="line-75"><code><span class="comment">// accumulated, but if two extensions of the same type are passed, the latter</span></code></span>
-<span class="codeline" id="line-76"><code><span class="comment">// will replace the former. For -u extensions, though, the key-type pairs are</span></code></span>
-<span class="codeline" id="line-77"><code><span class="comment">// added, where later values overwrite older ones. A Tag overwrites all former</span></code></span>
-<span class="codeline" id="line-78"><code><span class="comment">// values and typically only makes sense as the first argument. The resulting</span></code></span>
-<span class="codeline" id="line-79"><code><span class="comment">// tag is returned after canonicalizing using CanonType c. If one or more errors</span></code></span>
-<span class="codeline" id="line-80"><code><span class="comment">// are encountered, one of the errors is returned.</span></code></span>
-<span class="codeline" id="line-81"><code><span class="keyword">func</span> (<label for="r15" class="ident">c</label> <a href="language.go.html#line-67" class="ident">CanonType</a>) <label for="r16" class="ident">Compose</label>(<label for="r17" class="ident">part</label> ...<span class="keyword">interface</span>{}) (<label for="r18" class="ident">t</label> <a href="language.go.html#line-22" class="ident">Tag</a>, <label for="r19" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
-<span class="codeline" id="line-82"><code>	<span class="keyword">var</span> <label for="r20" class="ident">b</label> <a href="../../../../../pkg/golang.org/x/text/internal/language.html" class="ident i3">language</a>.<a href="../internal/language/compose.go.html#line-14" class="ident">Builder</a></code></span>
-<span class="codeline" id="line-83"><code>	<span class="keyword">if</span> <label for="r19" class="ident">err</label> = <a href="#line-92" class="ident">update</a>(&amp;<label for="r20" class="ident">b</label>, <label for="r17" class="ident">part</label>...); <label for="r19" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
-<span class="codeline" id="line-84"><code>		<span class="keyword">return</span> <a href="tags.go.html#line-62" class="ident">und</a>, <label for="r19" class="ident">err</label></code></span>
-<span class="codeline" id="line-85"><code>	}</code></span>
-<span class="codeline" id="line-86"><code>	<label for="r20" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-15" class="ident">Tag</a>, _ = <a href="language.go.html#line-115" class="ident">canonicalize</a>(<label for="r15" class="ident">c</label>, <label for="r20" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-15" class="ident">Tag</a>)</code></span>
-<span class="codeline" id="line-87"><code>	<span class="keyword">return</span> <a href="language.go.html#line-24" class="ident">makeTag</a>(<label for="r20" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-23" class="ident">Make</a>()), <label for="r19" class="ident">err</label></code></span>
-<span class="codeline" id="line-88"><code>}</code></span>
-<span class="codeline" id="line-89"><code></code></span>
-<span class="codeline" id="line-90"><code><span class="keyword">var</span> <a href="../../../../../pkg/golang.org/x/text/language.html#name-errInvalidArgument" class="ident">errInvalidArgument</a> = <a href="../../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"invalid Extension or Variant"</span>)</code></span>
-<span class="codeline" id="line-91"><code></code></span>
-<span class="codeline" id="line-92"><code><span class="keyword">func</span> <label for="r21" class="ident"><a href="../../../../../pkg/golang.org/x/text/language.html#name-update" class="ident">update</a></label>(<label for="r22" class="ident">b</label> *<a href="../../../../../pkg/golang.org/x/text/internal/language.html" class="ident i3">language</a>.<a href="../internal/language/compose.go.html#line-14" class="ident">Builder</a>, <label for="r23" class="ident">part</label> ...<span class="keyword">interface</span>{}) (<label for="r24" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
-<span class="codeline" id="line-93"><code>	<span class="keyword">for</span> <label for="r25" class="ident">_</label>, <label for="r26" class="ident">x</label> := <span class="keyword">range</span> <label for="r23" class="ident">part</label> {</code></span>
-<span class="codeline" id="line-94"><code>		<span class="keyword">switch</span> v := <label for="r26" class="ident">x</label>.(<span class="keyword">type</span>) {</code></span>
-<span class="codeline" id="line-95"><code>		<span class="keyword">case</span> <a href="language.go.html#line-22" class="ident">Tag</a>:</code></span>
-<span class="codeline" id="line-96"><code>			<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-56" class="ident">SetTag</a>(<label for="r27" class="ident">v</label>.<a href="language.go.html#line-28" class="ident">tag</a>())</code></span>
-<span class="codeline" id="line-97"><code>		<span class="keyword">case</span> <a href="language.go.html#line-455" class="ident">Base</a>:</code></span>
-<span class="codeline" id="line-98"><code>			<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-15" class="ident">Tag</a>.<a href="../internal/language/language.go.html#line-41" class="ident">LangID</a> = <label for="r28" class="ident">v</label>.<a href="language.go.html#line-456" class="ident">langID</a></code></span>
-<span class="codeline" id="line-99"><code>		<span class="keyword">case</span> <a href="language.go.html#line-484" class="ident">Script</a>:</code></span>
-<span class="codeline" id="line-100"><code>			<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-15" class="ident">Tag</a>.<a href="../internal/language/language.go.html#line-50" class="ident">ScriptID</a> = <label for="r29" class="ident">v</label>.<a href="language.go.html#line-485" class="ident">scriptID</a></code></span>
-<span class="codeline" id="line-101"><code>		<span class="keyword">case</span> <a href="language.go.html#line-508" class="ident">Region</a>:</code></span>
-<span class="codeline" id="line-102"><code>			<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-15" class="ident">Tag</a>.<a href="../internal/language/language.go.html#line-42" class="ident">RegionID</a> = <label for="r30" class="ident">v</label>.<a href="language.go.html#line-509" class="ident">regionID</a></code></span>
-<span class="codeline" id="line-103"><code>		<span class="keyword">case</span> <a href="language.go.html#line-591" class="ident">Variant</a>:</code></span>
-<span class="codeline" id="line-104"><code>			<span class="keyword">if</span> <label for="r31" class="ident">v</label>.<a href="language.go.html#line-592" class="ident">variant</a> == <span class="lit-string">""</span> {</code></span>
-<span class="codeline" id="line-105"><code>				<label for="r24" class="ident">err</label> = <a href="#line-90" class="ident">errInvalidArgument</a></code></span>
-<span class="codeline" id="line-106"><code>				<span class="keyword">break</span></code></span>
-<span class="codeline" id="line-107"><code>			}</code></span>
-<span class="codeline" id="line-108"><code>			<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-117" class="ident">AddVariant</a>(<label for="r31" class="ident">v</label>.<a href="language.go.html#line-592" class="ident">variant</a>)</code></span>
-<span class="codeline" id="line-109"><code>		<span class="keyword">case</span> <a href="language.go.html#line-358" class="ident">Extension</a>:</code></span>
-<span class="codeline" id="line-110"><code>			<span class="keyword">if</span> <label for="r32" class="ident">v</label>.<a href="language.go.html#line-359" class="ident">s</a> == <span class="lit-string">""</span> {</code></span>
-<span class="codeline" id="line-111"><code>				<label for="r24" class="ident">err</label> = <a href="#line-90" class="ident">errInvalidArgument</a></code></span>
-<span class="codeline" id="line-112"><code>				<span class="keyword">break</span></code></span>
-<span class="codeline" id="line-113"><code>			}</code></span>
-<span class="codeline" id="line-114"><code>			<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-98" class="ident">SetExt</a>(<label for="r32" class="ident">v</label>.<a href="language.go.html#line-359" class="ident">s</a>)</code></span>
-<span class="codeline" id="line-115"><code>		<span class="keyword">case</span> []<a href="language.go.html#line-591" class="ident">Variant</a>:</code></span>
-<span class="codeline" id="line-116"><code>			<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-127" class="ident">ClearVariants</a>()</code></span>
-<span class="codeline" id="line-117"><code>			<span class="keyword">for</span> <label for="r33" class="ident">_</label>, <label for="r34" class="ident">v</label> := <span class="keyword">range</span> <label for="r35" class="ident">v</label> {</code></span>
-<span class="codeline" id="line-118"><code>				<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-117" class="ident">AddVariant</a>(<label for="r34" class="ident">v</label>.<a href="language.go.html#line-592" class="ident">variant</a>)</code></span>
-<span class="codeline" id="line-119"><code>			}</code></span>
-<span class="codeline" id="line-120"><code>		<span class="keyword">case</span> []<a href="language.go.html#line-358" class="ident">Extension</a>:</code></span>
-<span class="codeline" id="line-121"><code>			<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-133" class="ident">ClearExtensions</a>()</code></span>
-<span class="codeline" id="line-122"><code>			<span class="keyword">for</span> <label for="r36" class="ident">_</label>, <label for="r37" class="ident">e</label> := <span class="keyword">range</span> <label for="r38" class="ident">v</label> {</code></span>
-<span class="codeline" id="line-123"><code>				<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-98" class="ident">SetExt</a>(<label for="r37" class="ident">e</label>.<a href="language.go.html#line-359" class="ident">s</a>)</code></span>
-<span class="codeline" id="line-124"><code>			}</code></span>
-<span class="codeline" id="line-125"><code>		<span class="comment">// TODO: support parsing of raw strings based on morphology or just extensions?</span></code></span>
-<span class="codeline" id="line-126"><code>		<span class="keyword">case</span> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>:</code></span>
-<span class="codeline" id="line-127"><code>			<span class="keyword">if</span> <label for="r39" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
-<span class="codeline" id="line-128"><code>				<label for="r24" class="ident">err</label> = <label for="r39" class="ident">v</label></code></span>
-<span class="codeline" id="line-129"><code>			}</code></span>
-<span class="codeline" id="line-130"><code>		}</code></span>
-<span class="codeline" id="line-131"><code>	}</code></span>
-<span class="codeline" id="line-132"><code>	<span class="keyword">return</span></code></span>
-<span class="codeline" id="line-133"><code>}</code></span>
-<span class="codeline" id="line-134"><code></code></span>
-<span class="codeline" id="line-135"><code><span class="keyword">var</span> <a href="../../../../../pkg/golang.org/x/text/language.html#name-errInvalidWeight" class="ident">errInvalidWeight</a> = <a href="../../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"ParseAcceptLanguage: invalid weight"</span>)</code></span>
-<span class="codeline" id="line-136"><code></code></span>
-<span class="codeline" id="line-137"><code><span class="comment">// ParseAcceptLanguage parses the contents of an Accept-Language header as</span></code></span>
-<span class="codeline" id="line-138"><code><span class="comment">// defined in http://www.ietf.org/rfc/rfc2616.txt and returns a list of Tags and</span></code></span>
-<span class="codeline" id="line-139"><code><span class="comment">// a list of corresponding quality weights. It is more permissive than RFC 2616</span></code></span>
-<span class="codeline" id="line-140"><code><span class="comment">// and may return non-nil slices even if the input is not valid.</span></code></span>
-<span class="codeline" id="line-141"><code><span class="comment">// The Tags will be sorted by highest weight first and then by first occurrence.</span></code></span>
-<span class="codeline" id="line-142"><code><span class="comment">// Tags with a weight of zero will be dropped. An error will be returned if the</span></code></span>
-<span class="codeline" id="line-143"><code><span class="comment">// input could not be parsed.</span></code></span>
-<span class="codeline" id="line-144"><code><span class="keyword">func</span> <label for="r40" class="ident"><a href="../../../../../pkg/golang.org/x/text/language.html#name-ParseAcceptLanguage" class="ident">ParseAcceptLanguage</a></label>(<label for="r41" class="ident">s</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r42" class="ident">tag</label> []<a href="language.go.html#line-22" class="ident">Tag</a>, <label for="r43" class="ident">q</label> []<a href="../../../../../pkg/builtin.html#name-float32" class="ident">float32</a>, <label for="r44" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
-<span class="codeline" id="line-145"><code>	<span class="keyword">var</span> <label for="r45" class="ident">entry</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
-<span class="codeline" id="line-146"><code>	<span class="keyword">for</span> <label for="r41" class="ident">s</label> != <span class="lit-string">""</span> {</code></span>
-<span class="codeline" id="line-147"><code>		<span class="keyword">if</span> <label for="r45" class="ident">entry</label>, <label for="r41" class="ident">s</label> = <a href="#line-195" class="ident">split</a>(<label for="r41" class="ident">s</label>, <span class="lit-number">','</span>); <label for="r45" class="ident">entry</label> == <span class="lit-string">""</span> {</code></span>
-<span class="codeline" id="line-148"><code>			<span class="keyword">continue</span></code></span>
-<span class="codeline" id="line-149"><code>		}</code></span>
+<span class="codeline" id="line-46"><code>	<span class="keyword">defer</span> <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-47"><code>		<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-recover" class="ident">recover</a>() != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-48"><code>			<label for="r7" class="ident">t</label> = <a href="language.go.html#line-22" class="ident">Tag</a>{}</code></span>
+<span class="codeline" id="line-49"><code>			<label for="r8" class="ident">err</label> = <a href="../../../../../pkg/golang.org/x/text/internal/language.html" class="ident i3">language</a>.<a href="../internal/language/parse.go.html#line-35" class="ident">ErrSyntax</a></code></span>
+<span class="codeline" id="line-50"><code>		}</code></span>
+<span class="codeline" id="line-51"><code>	}()</code></span>
+<span class="codeline" id="line-52"><code></code></span>
+<span class="codeline" id="line-53"><code>	<label for="r9" class="ident">tt</label>, <label for="r8" class="ident">err</label> := <a href="../../../../../pkg/golang.org/x/text/internal/language.html" class="ident i3">language</a>.<a href="../internal/language/parse.go.html#line-230" class="ident">Parse</a>(<label for="r6" class="ident">s</label>)</code></span>
+<span class="codeline" id="line-54"><code>	<span class="keyword">if</span> <label for="r8" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-55"><code>		<span class="keyword">return</span> <a href="language.go.html#line-24" class="ident">makeTag</a>(<label for="r9" class="ident">tt</label>), <label for="r8" class="ident">err</label></code></span>
+<span class="codeline" id="line-56"><code>	}</code></span>
+<span class="codeline" id="line-57"><code>	<label for="r9" class="ident">tt</label>, <label for="r10" class="ident">changed</label> := <a href="language.go.html#line-115" class="ident">canonicalize</a>(<label for="r4" class="ident">c</label>, <label for="r9" class="ident">tt</label>)</code></span>
+<span class="codeline" id="line-58"><code>	<span class="keyword">if</span> <label for="r10" class="ident">changed</label> {</code></span>
+<span class="codeline" id="line-59"><code>		<label for="r9" class="ident">tt</label>.<a href="../internal/language/language.go.html#line-95" class="ident">RemakeString</a>()</code></span>
+<span class="codeline" id="line-60"><code>	}</code></span>
+<span class="codeline" id="line-61"><code>	<span class="keyword">return</span> <a href="language.go.html#line-24" class="ident">makeTag</a>(<label for="r9" class="ident">tt</label>), <label for="r8" class="ident">err</label></code></span>
+<span class="codeline" id="line-62"><code>}</code></span>
+<span class="codeline" id="line-63"><code></code></span>
+<span class="codeline" id="line-64"><code><span class="comment">// Compose creates a Tag from individual parts, which may be of type Tag, Base,</span></code></span>
+<span class="codeline" id="line-65"><code><span class="comment">// Script, Region, Variant, []Variant, Extension, []Extension or error. If a</span></code></span>
+<span class="codeline" id="line-66"><code><span class="comment">// Base, Script or Region or slice of type Variant or Extension is passed more</span></code></span>
+<span class="codeline" id="line-67"><code><span class="comment">// than once, the latter will overwrite the former. Variants and Extensions are</span></code></span>
+<span class="codeline" id="line-68"><code><span class="comment">// accumulated, but if two extensions of the same type are passed, the latter</span></code></span>
+<span class="codeline" id="line-69"><code><span class="comment">// will replace the former. For -u extensions, though, the key-type pairs are</span></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">// added, where later values overwrite older ones. A Tag overwrites all former</span></code></span>
+<span class="codeline" id="line-71"><code><span class="comment">// values and typically only makes sense as the first argument. The resulting</span></code></span>
+<span class="codeline" id="line-72"><code><span class="comment">// tag is returned after canonicalizing using the Default CanonType. If one or</span></code></span>
+<span class="codeline" id="line-73"><code><span class="comment">// more errors are encountered, one of the errors is returned.</span></code></span>
+<span class="codeline" id="line-74"><code><span class="keyword">func</span> <label for="r11" class="ident"><a href="../../../../../pkg/golang.org/x/text/language.html#name-Compose" class="ident">Compose</a></label>(<label for="r12" class="ident">part</label> ...<span class="keyword">interface</span>{}) (<label for="r13" class="ident">t</label> <a href="language.go.html#line-22" class="ident">Tag</a>, <label for="r14" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-75"><code>	<span class="keyword">return</span> <a href="language.go.html#line-106" class="ident">Default</a>.<a href="#line-88" class="ident">Compose</a>(<label for="r12" class="ident">part</label>...)</code></span>
+<span class="codeline" id="line-76"><code>}</code></span>
+<span class="codeline" id="line-77"><code></code></span>
+<span class="codeline" id="line-78"><code><span class="comment">// Compose creates a Tag from individual parts, which may be of type Tag, Base,</span></code></span>
+<span class="codeline" id="line-79"><code><span class="comment">// Script, Region, Variant, []Variant, Extension, []Extension or error. If a</span></code></span>
+<span class="codeline" id="line-80"><code><span class="comment">// Base, Script or Region or slice of type Variant or Extension is passed more</span></code></span>
+<span class="codeline" id="line-81"><code><span class="comment">// than once, the latter will overwrite the former. Variants and Extensions are</span></code></span>
+<span class="codeline" id="line-82"><code><span class="comment">// accumulated, but if two extensions of the same type are passed, the latter</span></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">// will replace the former. For -u extensions, though, the key-type pairs are</span></code></span>
+<span class="codeline" id="line-84"><code><span class="comment">// added, where later values overwrite older ones. A Tag overwrites all former</span></code></span>
+<span class="codeline" id="line-85"><code><span class="comment">// values and typically only makes sense as the first argument. The resulting</span></code></span>
+<span class="codeline" id="line-86"><code><span class="comment">// tag is returned after canonicalizing using CanonType c. If one or more errors</span></code></span>
+<span class="codeline" id="line-87"><code><span class="comment">// are encountered, one of the errors is returned.</span></code></span>
+<span class="codeline" id="line-88"><code><span class="keyword">func</span> (<label for="r15" class="ident">c</label> <a href="language.go.html#line-67" class="ident">CanonType</a>) <label for="r16" class="ident">Compose</label>(<label for="r17" class="ident">part</label> ...<span class="keyword">interface</span>{}) (<label for="r18" class="ident">t</label> <a href="language.go.html#line-22" class="ident">Tag</a>, <label for="r19" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-89"><code>	<span class="keyword">defer</span> <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-90"><code>		<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-recover" class="ident">recover</a>() != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-91"><code>			<label for="r18" class="ident">t</label> = <a href="language.go.html#line-22" class="ident">Tag</a>{}</code></span>
+<span class="codeline" id="line-92"><code>			<label for="r19" class="ident">err</label> = <a href="../../../../../pkg/golang.org/x/text/internal/language.html" class="ident i3">language</a>.<a href="../internal/language/parse.go.html#line-35" class="ident">ErrSyntax</a></code></span>
+<span class="codeline" id="line-93"><code>		}</code></span>
+<span class="codeline" id="line-94"><code>	}()</code></span>
+<span class="codeline" id="line-95"><code></code></span>
+<span class="codeline" id="line-96"><code>	<span class="keyword">var</span> <label for="r20" class="ident">b</label> <a href="../../../../../pkg/golang.org/x/text/internal/language.html" class="ident i3">language</a>.<a href="../internal/language/compose.go.html#line-14" class="ident">Builder</a></code></span>
+<span class="codeline" id="line-97"><code>	<span class="keyword">if</span> <label for="r19" class="ident">err</label> = <a href="#line-106" class="ident">update</a>(&amp;<label for="r20" class="ident">b</label>, <label for="r17" class="ident">part</label>...); <label for="r19" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-98"><code>		<span class="keyword">return</span> <a href="tags.go.html#line-62" class="ident">und</a>, <label for="r19" class="ident">err</label></code></span>
+<span class="codeline" id="line-99"><code>	}</code></span>
+<span class="codeline" id="line-100"><code>	<label for="r20" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-15" class="ident">Tag</a>, _ = <a href="language.go.html#line-115" class="ident">canonicalize</a>(<label for="r15" class="ident">c</label>, <label for="r20" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-15" class="ident">Tag</a>)</code></span>
+<span class="codeline" id="line-101"><code>	<span class="keyword">return</span> <a href="language.go.html#line-24" class="ident">makeTag</a>(<label for="r20" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-23" class="ident">Make</a>()), <label for="r19" class="ident">err</label></code></span>
+<span class="codeline" id="line-102"><code>}</code></span>
+<span class="codeline" id="line-103"><code></code></span>
+<span class="codeline" id="line-104"><code><span class="keyword">var</span> <a href="../../../../../pkg/golang.org/x/text/language.html#name-errInvalidArgument" class="ident">errInvalidArgument</a> = <a href="../../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"invalid Extension or Variant"</span>)</code></span>
+<span class="codeline" id="line-105"><code></code></span>
+<span class="codeline" id="line-106"><code><span class="keyword">func</span> <label for="r21" class="ident"><a href="../../../../../pkg/golang.org/x/text/language.html#name-update" class="ident">update</a></label>(<label for="r22" class="ident">b</label> *<a href="../../../../../pkg/golang.org/x/text/internal/language.html" class="ident i3">language</a>.<a href="../internal/language/compose.go.html#line-14" class="ident">Builder</a>, <label for="r23" class="ident">part</label> ...<span class="keyword">interface</span>{}) (<label for="r24" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-107"><code>	<span class="keyword">for</span> <label for="r25" class="ident">_</label>, <label for="r26" class="ident">x</label> := <span class="keyword">range</span> <label for="r23" class="ident">part</label> {</code></span>
+<span class="codeline" id="line-108"><code>		<span class="keyword">switch</span> v := <label for="r26" class="ident">x</label>.(<span class="keyword">type</span>) {</code></span>
+<span class="codeline" id="line-109"><code>		<span class="keyword">case</span> <a href="language.go.html#line-22" class="ident">Tag</a>:</code></span>
+<span class="codeline" id="line-110"><code>			<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-56" class="ident">SetTag</a>(<label for="r27" class="ident">v</label>.<a href="language.go.html#line-28" class="ident">tag</a>())</code></span>
+<span class="codeline" id="line-111"><code>		<span class="keyword">case</span> <a href="language.go.html#line-455" class="ident">Base</a>:</code></span>
+<span class="codeline" id="line-112"><code>			<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-15" class="ident">Tag</a>.<a href="../internal/language/language.go.html#line-41" class="ident">LangID</a> = <label for="r28" class="ident">v</label>.<a href="language.go.html#line-456" class="ident">langID</a></code></span>
+<span class="codeline" id="line-113"><code>		<span class="keyword">case</span> <a href="language.go.html#line-484" class="ident">Script</a>:</code></span>
+<span class="codeline" id="line-114"><code>			<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-15" class="ident">Tag</a>.<a href="../internal/language/language.go.html#line-50" class="ident">ScriptID</a> = <label for="r29" class="ident">v</label>.<a href="language.go.html#line-485" class="ident">scriptID</a></code></span>
+<span class="codeline" id="line-115"><code>		<span class="keyword">case</span> <a href="language.go.html#line-508" class="ident">Region</a>:</code></span>
+<span class="codeline" id="line-116"><code>			<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-15" class="ident">Tag</a>.<a href="../internal/language/language.go.html#line-42" class="ident">RegionID</a> = <label for="r30" class="ident">v</label>.<a href="language.go.html#line-509" class="ident">regionID</a></code></span>
+<span class="codeline" id="line-117"><code>		<span class="keyword">case</span> <a href="language.go.html#line-591" class="ident">Variant</a>:</code></span>
+<span class="codeline" id="line-118"><code>			<span class="keyword">if</span> <label for="r31" class="ident">v</label>.<a href="language.go.html#line-592" class="ident">variant</a> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-119"><code>				<label for="r24" class="ident">err</label> = <a href="#line-104" class="ident">errInvalidArgument</a></code></span>
+<span class="codeline" id="line-120"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-121"><code>			}</code></span>
+<span class="codeline" id="line-122"><code>			<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-117" class="ident">AddVariant</a>(<label for="r31" class="ident">v</label>.<a href="language.go.html#line-592" class="ident">variant</a>)</code></span>
+<span class="codeline" id="line-123"><code>		<span class="keyword">case</span> <a href="language.go.html#line-358" class="ident">Extension</a>:</code></span>
+<span class="codeline" id="line-124"><code>			<span class="keyword">if</span> <label for="r32" class="ident">v</label>.<a href="language.go.html#line-359" class="ident">s</a> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-125"><code>				<label for="r24" class="ident">err</label> = <a href="#line-104" class="ident">errInvalidArgument</a></code></span>
+<span class="codeline" id="line-126"><code>				<span class="keyword">break</span></code></span>
+<span class="codeline" id="line-127"><code>			}</code></span>
+<span class="codeline" id="line-128"><code>			<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-98" class="ident">SetExt</a>(<label for="r32" class="ident">v</label>.<a href="language.go.html#line-359" class="ident">s</a>)</code></span>
+<span class="codeline" id="line-129"><code>		<span class="keyword">case</span> []<a href="language.go.html#line-591" class="ident">Variant</a>:</code></span>
+<span class="codeline" id="line-130"><code>			<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-127" class="ident">ClearVariants</a>()</code></span>
+<span class="codeline" id="line-131"><code>			<span class="keyword">for</span> <label for="r33" class="ident">_</label>, <label for="r34" class="ident">v</label> := <span class="keyword">range</span> <label for="r35" class="ident">v</label> {</code></span>
+<span class="codeline" id="line-132"><code>				<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-117" class="ident">AddVariant</a>(<label for="r34" class="ident">v</label>.<a href="language.go.html#line-592" class="ident">variant</a>)</code></span>
+<span class="codeline" id="line-133"><code>			}</code></span>
+<span class="codeline" id="line-134"><code>		<span class="keyword">case</span> []<a href="language.go.html#line-358" class="ident">Extension</a>:</code></span>
+<span class="codeline" id="line-135"><code>			<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-133" class="ident">ClearExtensions</a>()</code></span>
+<span class="codeline" id="line-136"><code>			<span class="keyword">for</span> <label for="r36" class="ident">_</label>, <label for="r37" class="ident">e</label> := <span class="keyword">range</span> <label for="r38" class="ident">v</label> {</code></span>
+<span class="codeline" id="line-137"><code>				<label for="r22" class="ident">b</label>.<a href="../internal/language/compose.go.html#line-98" class="ident">SetExt</a>(<label for="r37" class="ident">e</label>.<a href="language.go.html#line-359" class="ident">s</a>)</code></span>
+<span class="codeline" id="line-138"><code>			}</code></span>
+<span class="codeline" id="line-139"><code>		<span class="comment">// TODO: support parsing of raw strings based on morphology or just extensions?</span></code></span>
+<span class="codeline" id="line-140"><code>		<span class="keyword">case</span> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>:</code></span>
+<span class="codeline" id="line-141"><code>			<span class="keyword">if</span> <label for="r39" class="ident">v</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-142"><code>				<label for="r24" class="ident">err</label> = <label for="r39" class="ident">v</label></code></span>
+<span class="codeline" id="line-143"><code>			}</code></span>
+<span class="codeline" id="line-144"><code>		}</code></span>
+<span class="codeline" id="line-145"><code>	}</code></span>
+<span class="codeline" id="line-146"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-147"><code>}</code></span>
+<span class="codeline" id="line-148"><code></code></span>
+<span class="codeline" id="line-149"><code><span class="keyword">var</span> <a href="../../../../../pkg/golang.org/x/text/language.html#name-errInvalidWeight" class="ident">errInvalidWeight</a> = <a href="../../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"ParseAcceptLanguage: invalid weight"</span>)</code></span>
 <span class="codeline" id="line-150"><code></code></span>
-<span class="codeline" id="line-151"><code>		<label for="r46" class="ident">entry</label>, <label for="r47" class="ident">weight</label> := <a href="#line-195" class="ident">split</a>(<label for="r45" class="ident">entry</label>, <span class="lit-number">';'</span>)</code></span>
-<span class="codeline" id="line-152"><code></code></span>
-<span class="codeline" id="line-153"><code>		<span class="comment">// Scan the language.</span></code></span>
-<span class="codeline" id="line-154"><code>		<label for="r48" class="ident">t</label>, <label for="r49" class="ident">err</label> := <a href="#line-33" class="ident">Parse</a>(<label for="r46" class="ident">entry</label>)</code></span>
-<span class="codeline" id="line-155"><code>		<span class="keyword">if</span> <label for="r49" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
-<span class="codeline" id="line-156"><code>			<label for="r50" class="ident">id</label>, <label for="r51" class="ident">ok</label> := <a href="#line-204" class="ident">acceptFallback</a>[<label for="r46" class="ident">entry</label>]</code></span>
-<span class="codeline" id="line-157"><code>			<span class="keyword">if</span> !<label for="r51" class="ident">ok</label> {</code></span>
-<span class="codeline" id="line-158"><code>				<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r49" class="ident">err</label></code></span>
-<span class="codeline" id="line-159"><code>			}</code></span>
-<span class="codeline" id="line-160"><code>			<label for="r48" class="ident">t</label> = <a href="language.go.html#line-24" class="ident">makeTag</a>(<a href="../../../../../pkg/golang.org/x/text/internal/language.html" class="ident i3">language</a>.<a href="../internal/language/language.go.html#line-35" class="ident">Tag</a>{<a href="../internal/language/language.go.html#line-41" class="ident">LangID</a>: <label for="r50" class="ident">id</label>})</code></span>
-<span class="codeline" id="line-161"><code>		}</code></span>
-<span class="codeline" id="line-162"><code></code></span>
-<span class="codeline" id="line-163"><code>		<span class="comment">// Scan the optional weight.</span></code></span>
-<span class="codeline" id="line-164"><code>		<label for="r52" class="ident">w</label> := <span class="lit-number">1.0</span></code></span>
-<span class="codeline" id="line-165"><code>		<span class="keyword">if</span> <label for="r47" class="ident">weight</label> != <span class="lit-string">""</span> {</code></span>
-<span class="codeline" id="line-166"><code>			<label for="r47" class="ident">weight</label> = <a href="#line-188" class="ident">consume</a>(<label for="r47" class="ident">weight</label>, <span class="lit-number">'q'</span>)</code></span>
-<span class="codeline" id="line-167"><code>			<label for="r47" class="ident">weight</label> = <a href="#line-188" class="ident">consume</a>(<label for="r47" class="ident">weight</label>, <span class="lit-number">'='</span>)</code></span>
-<span class="codeline" id="line-168"><code>			<span class="comment">// consume returns the empty string when a token could not be</span></code></span>
-<span class="codeline" id="line-169"><code><span class="comment">			// consumed, resulting in an error for ParseFloat.</span></code></span>
-<span class="codeline" id="line-170"><code>			<span class="keyword">if</span> <label for="r52" class="ident">w</label>, <label for="r49" class="ident">err</label> = <a href="../../../../../pkg/strconv.html" class="ident i1">strconv</a>.<a href="../../../../strconv/atof.go.html#line-690" class="ident">ParseFloat</a>(<label for="r47" class="ident">weight</label>, <span class="lit-number">32</span>); <label for="r49" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
-<span class="codeline" id="line-171"><code>				<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-135" class="ident">errInvalidWeight</a></code></span>
-<span class="codeline" id="line-172"><code>			}</code></span>
-<span class="codeline" id="line-173"><code>			<span class="comment">// Drop tags with a quality weight of 0.</span></code></span>
-<span class="codeline" id="line-174"><code>			<span class="keyword">if</span> <label for="r52" class="ident">w</label> &lt;= <span class="lit-number">0</span> {</code></span>
-<span class="codeline" id="line-175"><code>				<span class="keyword">continue</span></code></span>
-<span class="codeline" id="line-176"><code>			}</code></span>
-<span class="codeline" id="line-177"><code>		}</code></span>
-<span class="codeline" id="line-178"><code></code></span>
-<span class="codeline" id="line-179"><code>		<label for="r42" class="ident">tag</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r42" class="ident">tag</label>, <label for="r48" class="ident">t</label>)</code></span>
-<span class="codeline" id="line-180"><code>		<label for="r43" class="ident">q</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r43" class="ident">q</label>, <a href="../../../../../pkg/builtin.html#name-float32" class="ident">float32</a>(<label for="r52" class="ident">w</label>))</code></span>
-<span class="codeline" id="line-181"><code>	}</code></span>
-<span class="codeline" id="line-182"><code>	<a href="go1_2.go.html#line-12" class="ident">sortStable</a>(&amp;<a href="#line-212" class="ident">tagSort</a>{<label for="r42" class="ident">tag</label>, <label for="r43" class="ident">q</label>})</code></span>
-<span class="codeline" id="line-183"><code>	<span class="keyword">return</span> <label for="r42" class="ident">tag</label>, <label for="r43" class="ident">q</label>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
-<span class="codeline" id="line-184"><code>}</code></span>
-<span class="codeline" id="line-185"><code></code></span>
-<span class="codeline" id="line-186"><code><span class="comment">// consume removes a leading token c from s and returns the result or the empty</span></code></span>
-<span class="codeline" id="line-187"><code><span class="comment">// string if there is no such token.</span></code></span>
-<span class="codeline" id="line-188"><code><span class="keyword">func</span> <label for="r53" class="ident"><a href="../../../../../pkg/golang.org/x/text/language.html#name-consume" class="ident">consume</a></label>(<label for="r54" class="ident">s</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r55" class="ident">c</label> <a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
-<span class="codeline" id="line-189"><code>	<span class="keyword">if</span> <label for="r54" class="ident">s</label> == <span class="lit-string">""</span> || <label for="r54" class="ident">s</label>[<span class="lit-number">0</span>] != <label for="r55" class="ident">c</label> {</code></span>
-<span class="codeline" id="line-190"><code>		<span class="keyword">return</span> <span class="lit-string">""</span></code></span>
-<span class="codeline" id="line-191"><code>	}</code></span>
-<span class="codeline" id="line-192"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<label for="r54" class="ident">s</label>[<span class="lit-number">1</span>:])</code></span>
-<span class="codeline" id="line-193"><code>}</code></span>
-<span class="codeline" id="line-194"><code></code></span>
-<span class="codeline" id="line-195"><code><span class="keyword">func</span> <label for="r56" class="ident"><a href="../../../../../pkg/golang.org/x/text/language.html#name-split" class="ident">split</a></label>(<label for="r57" class="ident">s</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r58" class="ident">c</label> <a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r59" class="ident">head</label>, <label for="r60" class="ident">tail</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
-<span class="codeline" id="line-196"><code>	<span class="keyword">if</span> <label for="r61" class="ident">i</label> := <a href="../../../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../../../strings/strings.go.html#line-113" class="ident">IndexByte</a>(<label for="r57" class="ident">s</label>, <label for="r58" class="ident">c</label>); <label for="r61" class="ident">i</label> &gt;= <span class="lit-number">0</span> {</code></span>
-<span class="codeline" id="line-197"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<label for="r57" class="ident">s</label>[:<label for="r61" class="ident">i</label>]), <a href="../../../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<label for="r57" class="ident">s</label>[<label for="r61" class="ident">i</label>+<span class="lit-number">1</span>:])</code></span>
-<span class="codeline" id="line-198"><code>	}</code></span>
-<span class="codeline" id="line-199"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<label for="r57" class="ident">s</label>), <span class="lit-string">""</span></code></span>
-<span class="codeline" id="line-200"><code>}</code></span>
-<span class="codeline" id="line-201"><code></code></span>
-<span class="codeline" id="line-202"><code><span class="comment">// Add hack mapping to deal with a small number of cases that occur</span></code></span>
-<span class="codeline" id="line-203"><code><span class="comment">// in Accept-Language (with reasonable frequency).</span></code></span>
-<span class="codeline" id="line-204"><code><span class="keyword">var</span> <a href="../../../../../pkg/golang.org/x/text/language.html#name-acceptFallback" class="ident">acceptFallback</a> = <span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../../../../pkg/golang.org/x/text/internal/language.html" class="ident i3">language</a>.<a href="../internal/language/lookup.go.html#line-35" class="ident">Language</a>{</code></span>
-<span class="codeline" id="line-205"><code>	<span class="lit-string">"english"</span>: <a href="tables.go.html#line-10" class="ident">_en</a>,</code></span>
-<span class="codeline" id="line-206"><code>	<span class="lit-string">"deutsch"</span>: <a href="tables.go.html#line-9" class="ident">_de</a>,</code></span>
-<span class="codeline" id="line-207"><code>	<span class="lit-string">"italian"</span>: <a href="tables.go.html#line-12" class="ident">_it</a>,</code></span>
-<span class="codeline" id="line-208"><code>	<span class="lit-string">"french"</span>:  <a href="tables.go.html#line-11" class="ident">_fr</a>,</code></span>
-<span class="codeline" id="line-209"><code>	<span class="lit-string">"*"</span>:       <a href="tables.go.html#line-18" class="ident">_mul</a>, <span class="comment">// defined in the spec to match all languages.</span></code></span>
-<span class="codeline" id="line-210"><code>}</code></span>
-<span class="codeline" id="line-211"><code></code></span>
-<span class="codeline" id="line-212"><code><span class="keyword">type</span> <a href="../../../../../pkg/golang.org/x/text/language.html#name-tagSort" class="ident">tagSort</a> <span class="keyword">struct</span> {</code></span>
-<span class="codeline" id="line-213"><code>	tag []<a href="language.go.html#line-22" class="ident">Tag</a></code></span>
-<span class="codeline" id="line-214"><code>	q   []<a href="../../../../../pkg/builtin.html#name-float32" class="ident">float32</a></code></span>
+<span class="codeline" id="line-151"><code><span class="comment">// ParseAcceptLanguage parses the contents of an Accept-Language header as</span></code></span>
+<span class="codeline" id="line-152"><code><span class="comment">// defined in http://www.ietf.org/rfc/rfc2616.txt and returns a list of Tags and</span></code></span>
+<span class="codeline" id="line-153"><code><span class="comment">// a list of corresponding quality weights. It is more permissive than RFC 2616</span></code></span>
+<span class="codeline" id="line-154"><code><span class="comment">// and may return non-nil slices even if the input is not valid.</span></code></span>
+<span class="codeline" id="line-155"><code><span class="comment">// The Tags will be sorted by highest weight first and then by first occurrence.</span></code></span>
+<span class="codeline" id="line-156"><code><span class="comment">// Tags with a weight of zero will be dropped. An error will be returned if the</span></code></span>
+<span class="codeline" id="line-157"><code><span class="comment">// input could not be parsed.</span></code></span>
+<span class="codeline" id="line-158"><code><span class="keyword">func</span> <label for="r40" class="ident"><a href="../../../../../pkg/golang.org/x/text/language.html#name-ParseAcceptLanguage" class="ident">ParseAcceptLanguage</a></label>(<label for="r41" class="ident">s</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r42" class="ident">tag</label> []<a href="language.go.html#line-22" class="ident">Tag</a>, <label for="r43" class="ident">q</label> []<a href="../../../../../pkg/builtin.html#name-float32" class="ident">float32</a>, <label for="r44" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-159"><code>	<span class="keyword">defer</span> <span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-160"><code>		<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-recover" class="ident">recover</a>() != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-161"><code>			<label for="r42" class="ident">tag</label> = <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-162"><code>			<label for="r43" class="ident">q</label> = <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-163"><code>			<label for="r44" class="ident">err</label> = <a href="../../../../../pkg/golang.org/x/text/internal/language.html" class="ident i3">language</a>.<a href="../internal/language/parse.go.html#line-35" class="ident">ErrSyntax</a></code></span>
+<span class="codeline" id="line-164"><code>		}</code></span>
+<span class="codeline" id="line-165"><code>	}()</code></span>
+<span class="codeline" id="line-166"><code></code></span>
+<span class="codeline" id="line-167"><code>	<span class="keyword">var</span> <label for="r45" class="ident">entry</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-168"><code>	<span class="keyword">for</span> <label for="r41" class="ident">s</label> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-169"><code>		<span class="keyword">if</span> <label for="r45" class="ident">entry</label>, <label for="r41" class="ident">s</label> = <a href="#line-217" class="ident">split</a>(<label for="r41" class="ident">s</label>, <span class="lit-number">','</span>); <label for="r45" class="ident">entry</label> == <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-170"><code>			<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-171"><code>		}</code></span>
+<span class="codeline" id="line-172"><code></code></span>
+<span class="codeline" id="line-173"><code>		<label for="r46" class="ident">entry</label>, <label for="r47" class="ident">weight</label> := <a href="#line-217" class="ident">split</a>(<label for="r45" class="ident">entry</label>, <span class="lit-number">';'</span>)</code></span>
+<span class="codeline" id="line-174"><code></code></span>
+<span class="codeline" id="line-175"><code>		<span class="comment">// Scan the language.</span></code></span>
+<span class="codeline" id="line-176"><code>		<label for="r48" class="ident">t</label>, <label for="r49" class="ident">err</label> := <a href="#line-33" class="ident">Parse</a>(<label for="r46" class="ident">entry</label>)</code></span>
+<span class="codeline" id="line-177"><code>		<span class="keyword">if</span> <label for="r49" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-178"><code>			<label for="r50" class="ident">id</label>, <label for="r51" class="ident">ok</label> := <a href="#line-226" class="ident">acceptFallback</a>[<label for="r46" class="ident">entry</label>]</code></span>
+<span class="codeline" id="line-179"><code>			<span class="keyword">if</span> !<label for="r51" class="ident">ok</label> {</code></span>
+<span class="codeline" id="line-180"><code>				<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r49" class="ident">err</label></code></span>
+<span class="codeline" id="line-181"><code>			}</code></span>
+<span class="codeline" id="line-182"><code>			<label for="r48" class="ident">t</label> = <a href="language.go.html#line-24" class="ident">makeTag</a>(<a href="../../../../../pkg/golang.org/x/text/internal/language.html" class="ident i3">language</a>.<a href="../internal/language/language.go.html#line-35" class="ident">Tag</a>{<a href="../internal/language/language.go.html#line-41" class="ident">LangID</a>: <label for="r50" class="ident">id</label>})</code></span>
+<span class="codeline" id="line-183"><code>		}</code></span>
+<span class="codeline" id="line-184"><code></code></span>
+<span class="codeline" id="line-185"><code>		<span class="comment">// Scan the optional weight.</span></code></span>
+<span class="codeline" id="line-186"><code>		<label for="r52" class="ident">w</label> := <span class="lit-number">1.0</span></code></span>
+<span class="codeline" id="line-187"><code>		<span class="keyword">if</span> <label for="r47" class="ident">weight</label> != <span class="lit-string">""</span> {</code></span>
+<span class="codeline" id="line-188"><code>			<label for="r47" class="ident">weight</label> = <a href="#line-210" class="ident">consume</a>(<label for="r47" class="ident">weight</label>, <span class="lit-number">'q'</span>)</code></span>
+<span class="codeline" id="line-189"><code>			<label for="r47" class="ident">weight</label> = <a href="#line-210" class="ident">consume</a>(<label for="r47" class="ident">weight</label>, <span class="lit-number">'='</span>)</code></span>
+<span class="codeline" id="line-190"><code>			<span class="comment">// consume returns the empty string when a token could not be</span></code></span>
+<span class="codeline" id="line-191"><code><span class="comment">			// consumed, resulting in an error for ParseFloat.</span></code></span>
+<span class="codeline" id="line-192"><code>			<span class="keyword">if</span> <label for="r52" class="ident">w</label>, <label for="r49" class="ident">err</label> = <a href="../../../../../pkg/strconv.html" class="ident i1">strconv</a>.<a href="../../../../strconv/atof.go.html#line-690" class="ident">ParseFloat</a>(<label for="r47" class="ident">weight</label>, <span class="lit-number">32</span>); <label for="r49" class="ident">err</label> != <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-193"><code>				<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-149" class="ident">errInvalidWeight</a></code></span>
+<span class="codeline" id="line-194"><code>			}</code></span>
+<span class="codeline" id="line-195"><code>			<span class="comment">// Drop tags with a quality weight of 0.</span></code></span>
+<span class="codeline" id="line-196"><code>			<span class="keyword">if</span> <label for="r52" class="ident">w</label> &lt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-197"><code>				<span class="keyword">continue</span></code></span>
+<span class="codeline" id="line-198"><code>			}</code></span>
+<span class="codeline" id="line-199"><code>		}</code></span>
+<span class="codeline" id="line-200"><code></code></span>
+<span class="codeline" id="line-201"><code>		<label for="r42" class="ident">tag</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r42" class="ident">tag</label>, <label for="r48" class="ident">t</label>)</code></span>
+<span class="codeline" id="line-202"><code>		<label for="r43" class="ident">q</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<label for="r43" class="ident">q</label>, <a href="../../../../../pkg/builtin.html#name-float32" class="ident">float32</a>(<label for="r52" class="ident">w</label>))</code></span>
+<span class="codeline" id="line-203"><code>	}</code></span>
+<span class="codeline" id="line-204"><code>	<a href="go1_2.go.html#line-12" class="ident">sortStable</a>(&amp;<a href="#line-234" class="ident">tagSort</a>{<label for="r42" class="ident">tag</label>, <label for="r43" class="ident">q</label>})</code></span>
+<span class="codeline" id="line-205"><code>	<span class="keyword">return</span> <label for="r42" class="ident">tag</label>, <label for="r43" class="ident">q</label>, <a href="../../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-206"><code>}</code></span>
+<span class="codeline" id="line-207"><code></code></span>
+<span class="codeline" id="line-208"><code><span class="comment">// consume removes a leading token c from s and returns the result or the empty</span></code></span>
+<span class="codeline" id="line-209"><code><span class="comment">// string if there is no such token.</span></code></span>
+<span class="codeline" id="line-210"><code><span class="keyword">func</span> <label for="r53" class="ident"><a href="../../../../../pkg/golang.org/x/text/language.html#name-consume" class="ident">consume</a></label>(<label for="r54" class="ident">s</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r55" class="ident">c</label> <a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-211"><code>	<span class="keyword">if</span> <label for="r54" class="ident">s</label> == <span class="lit-string">""</span> || <label for="r54" class="ident">s</label>[<span class="lit-number">0</span>] != <label for="r55" class="ident">c</label> {</code></span>
+<span class="codeline" id="line-212"><code>		<span class="keyword">return</span> <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-213"><code>	}</code></span>
+<span class="codeline" id="line-214"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<label for="r54" class="ident">s</label>[<span class="lit-number">1</span>:])</code></span>
 <span class="codeline" id="line-215"><code>}</code></span>
 <span class="codeline" id="line-216"><code></code></span>
-<span class="codeline" id="line-217"><code><span class="keyword">func</span> (<label for="r62" class="ident">s</label> *<a href="#line-212" class="ident">tagSort</a>) <label for="r63" class="ident"><a href="../../../../../imp/golang.org/x/text/language.tagSort^13547.html#name-.Len" class="ident">Len</a></label>() <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
-<span class="codeline" id="line-218"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r62" class="ident">s</label>.<a href="#line-214" class="ident">q</a>)</code></span>
-<span class="codeline" id="line-219"><code>}</code></span>
-<span class="codeline" id="line-220"><code></code></span>
-<span class="codeline" id="line-221"><code><span class="keyword">func</span> (<label for="r64" class="ident">s</label> *<a href="#line-212" class="ident">tagSort</a>) <label for="r65" class="ident"><a href="../../../../../imp/golang.org/x/text/language.tagSort^13547.html#name-.Less" class="ident">Less</a></label>(<label for="r66" class="ident">i</label>, <label for="r67" class="ident">j</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
-<span class="codeline" id="line-222"><code>	<span class="keyword">return</span> <label for="r64" class="ident">s</label>.<a href="#line-214" class="ident">q</a>[<label for="r66" class="ident">i</label>] &gt; <label for="r64" class="ident">s</label>.<a href="#line-214" class="ident">q</a>[<label for="r67" class="ident">j</label>]</code></span>
-<span class="codeline" id="line-223"><code>}</code></span>
-<span class="codeline" id="line-224"><code></code></span>
-<span class="codeline" id="line-225"><code><span class="keyword">func</span> (<label for="r68" class="ident">s</label> *<a href="#line-212" class="ident">tagSort</a>) <label for="r69" class="ident"><a href="../../../../../imp/golang.org/x/text/language.tagSort^13547.html#name-.Swap" class="ident">Swap</a></label>(<label for="r70" class="ident">i</label>, <label for="r71" class="ident">j</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
-<span class="codeline" id="line-226"><code>	<label for="r68" class="ident">s</label>.<a href="#line-213" class="ident">tag</a>[<label for="r70" class="ident">i</label>], <label for="r68" class="ident">s</label>.<a href="#line-213" class="ident">tag</a>[<label for="r71" class="ident">j</label>] = <label for="r68" class="ident">s</label>.<a href="#line-213" class="ident">tag</a>[<label for="r71" class="ident">j</label>], <label for="r68" class="ident">s</label>.<a href="#line-213" class="ident">tag</a>[<label for="r70" class="ident">i</label>]</code></span>
-<span class="codeline" id="line-227"><code>	<label for="r68" class="ident">s</label>.<a href="#line-214" class="ident">q</a>[<label for="r70" class="ident">i</label>], <label for="r68" class="ident">s</label>.<a href="#line-214" class="ident">q</a>[<label for="r71" class="ident">j</label>] = <label for="r68" class="ident">s</label>.<a href="#line-214" class="ident">q</a>[<label for="r71" class="ident">j</label>], <label for="r68" class="ident">s</label>.<a href="#line-214" class="ident">q</a>[<label for="r70" class="ident">i</label>]</code></span>
-<span class="codeline" id="line-228"><code>}</code></span>
+<span class="codeline" id="line-217"><code><span class="keyword">func</span> <label for="r56" class="ident"><a href="../../../../../pkg/golang.org/x/text/language.html#name-split" class="ident">split</a></label>(<label for="r57" class="ident">s</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r58" class="ident">c</label> <a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r59" class="ident">head</label>, <label for="r60" class="ident">tail</label> <a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-218"><code>	<span class="keyword">if</span> <label for="r61" class="ident">i</label> := <a href="../../../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../../../strings/strings.go.html#line-113" class="ident">IndexByte</a>(<label for="r57" class="ident">s</label>, <label for="r58" class="ident">c</label>); <label for="r61" class="ident">i</label> &gt;= <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-219"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<label for="r57" class="ident">s</label>[:<label for="r61" class="ident">i</label>]), <a href="../../../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<label for="r57" class="ident">s</label>[<label for="r61" class="ident">i</label>+<span class="lit-number">1</span>:])</code></span>
+<span class="codeline" id="line-220"><code>	}</code></span>
+<span class="codeline" id="line-221"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/strings.html" class="ident i2">strings</a>.<a href="../../../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<label for="r57" class="ident">s</label>), <span class="lit-string">""</span></code></span>
+<span class="codeline" id="line-222"><code>}</code></span>
+<span class="codeline" id="line-223"><code></code></span>
+<span class="codeline" id="line-224"><code><span class="comment">// Add hack mapping to deal with a small number of cases that occur</span></code></span>
+<span class="codeline" id="line-225"><code><span class="comment">// in Accept-Language (with reasonable frequency).</span></code></span>
+<span class="codeline" id="line-226"><code><span class="keyword">var</span> <a href="../../../../../pkg/golang.org/x/text/language.html#name-acceptFallback" class="ident">acceptFallback</a> = <span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../../../../pkg/golang.org/x/text/internal/language.html" class="ident i3">language</a>.<a href="../internal/language/lookup.go.html#line-35" class="ident">Language</a>{</code></span>
+<span class="codeline" id="line-227"><code>	<span class="lit-string">"english"</span>: <a href="tables.go.html#line-10" class="ident">_en</a>,</code></span>
+<span class="codeline" id="line-228"><code>	<span class="lit-string">"deutsch"</span>: <a href="tables.go.html#line-9" class="ident">_de</a>,</code></span>
+<span class="codeline" id="line-229"><code>	<span class="lit-string">"italian"</span>: <a href="tables.go.html#line-12" class="ident">_it</a>,</code></span>
+<span class="codeline" id="line-230"><code>	<span class="lit-string">"french"</span>:  <a href="tables.go.html#line-11" class="ident">_fr</a>,</code></span>
+<span class="codeline" id="line-231"><code>	<span class="lit-string">"*"</span>:       <a href="tables.go.html#line-18" class="ident">_mul</a>, <span class="comment">// defined in the spec to match all languages.</span></code></span>
+<span class="codeline" id="line-232"><code>}</code></span>
+<span class="codeline" id="line-233"><code></code></span>
+<span class="codeline" id="line-234"><code><span class="keyword">type</span> <a href="../../../../../pkg/golang.org/x/text/language.html#name-tagSort" class="ident">tagSort</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-235"><code>	tag []<a href="language.go.html#line-22" class="ident">Tag</a></code></span>
+<span class="codeline" id="line-236"><code>	q   []<a href="../../../../../pkg/builtin.html#name-float32" class="ident">float32</a></code></span>
+<span class="codeline" id="line-237"><code>}</code></span>
+<span class="codeline" id="line-238"><code></code></span>
+<span class="codeline" id="line-239"><code><span class="keyword">func</span> (<label for="r62" class="ident">s</label> *<a href="#line-234" class="ident">tagSort</a>) <label for="r63" class="ident"><a href="../../../../../imp/golang.org/x/text/language.tagSort^13547.html#name-.Len" class="ident">Len</a></label>() <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-240"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r62" class="ident">s</label>.<a href="#line-236" class="ident">q</a>)</code></span>
+<span class="codeline" id="line-241"><code>}</code></span>
+<span class="codeline" id="line-242"><code></code></span>
+<span class="codeline" id="line-243"><code><span class="keyword">func</span> (<label for="r64" class="ident">s</label> *<a href="#line-234" class="ident">tagSort</a>) <label for="r65" class="ident"><a href="../../../../../imp/golang.org/x/text/language.tagSort^13547.html#name-.Less" class="ident">Less</a></label>(<label for="r66" class="ident">i</label>, <label for="r67" class="ident">j</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-244"><code>	<span class="keyword">return</span> <label for="r64" class="ident">s</label>.<a href="#line-236" class="ident">q</a>[<label for="r66" class="ident">i</label>] &gt; <label for="r64" class="ident">s</label>.<a href="#line-236" class="ident">q</a>[<label for="r67" class="ident">j</label>]</code></span>
+<span class="codeline" id="line-245"><code>}</code></span>
+<span class="codeline" id="line-246"><code></code></span>
+<span class="codeline" id="line-247"><code><span class="keyword">func</span> (<label for="r68" class="ident">s</label> *<a href="#line-234" class="ident">tagSort</a>) <label for="r69" class="ident"><a href="../../../../../imp/golang.org/x/text/language.tagSort^13547.html#name-.Swap" class="ident">Swap</a></label>(<label for="r70" class="ident">i</label>, <label for="r71" class="ident">j</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-248"><code>	<label for="r68" class="ident">s</label>.<a href="#line-235" class="ident">tag</a>[<label for="r70" class="ident">i</label>], <label for="r68" class="ident">s</label>.<a href="#line-235" class="ident">tag</a>[<label for="r71" class="ident">j</label>] = <label for="r68" class="ident">s</label>.<a href="#line-235" class="ident">tag</a>[<label for="r71" class="ident">j</label>], <label for="r68" class="ident">s</label>.<a href="#line-235" class="ident">tag</a>[<label for="r70" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-249"><code>	<label for="r68" class="ident">s</label>.<a href="#line-236" class="ident">q</a>[<label for="r70" class="ident">i</label>], <label for="r68" class="ident">s</label>.<a href="#line-236" class="ident">q</a>[<label for="r71" class="ident">j</label>] = <label for="r68" class="ident">s</label>.<a href="#line-236" class="ident">q</a>[<label for="r71" class="ident">j</label>], <label for="r68" class="ident">s</label>.<a href="#line-236" class="ident">q</a>[<label for="r70" class="ident">i</label>]</code></span>
+<span class="codeline" id="line-250"><code>}</code></span>
 </pre><pre id="footer">
 <table><tr><td><img src="../../../../../png/go101-twitter.png"></td>
 <td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.4.1</i>. (GOOS=linux GOARCH=amd64)

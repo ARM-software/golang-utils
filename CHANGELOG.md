@@ -14,6 +14,24 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.4.2" (2021-12-16)
+=======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: viper-1.10.0 (#202112131127)
+- Dependency upgrade: viper-1.10.1 (#202112161134)
+- Dependency upgrade: zerolog-1.26.1 (#202112161135)
+- Fixes the CLI to environment variable binding which did not work well with default values provided as part of the CLI flag definition (#202112161725)
+
+
+Misc
+----
+
+- #202112161834
+
+
 "" "1.4.1" (2021-12-03)
 =======================
 
