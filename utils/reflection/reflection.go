@@ -38,7 +38,7 @@ func fetchStructureField(structure interface{}, fieldName string) reflect.Value 
 	return reflect.ValueOf(structure).Elem().FieldByName(fieldName)
 }
 
-// Check if the given structure has a given field. The structure should be passed by reference.
+// GetStructField checks if the given structure has a given field. The structure should be passed by reference.
 // It returns an interface and a boolean, the field's content and a boolean denoting whether or not the field exists.
 // If the boolean is false then there is no such field on the structure.
 // If the boolean is true but the interface stores "" then the field exists but is not set.
@@ -59,7 +59,7 @@ func GetStructField(structure interface{}, FieldName string) (interface{}, bool)
 	}
 }
 
-// Attempts to set a field of a structure to the given vaule
+// SetStructField attempts to set a field of a structure to the given vaule
 // It returns nil or an error, in case the field doesn't exist on the structure
 // or the value and the field have different types
 func SetStructField(structure interface{}, FieldName string, value interface{}) error {
@@ -120,7 +120,7 @@ func SetStructField(structure interface{}, FieldName string, value interface{}) 
 	return nil
 }
 
-// Use reflection to find if a struct "inherits" from a certain type.
+// InheritsFrom uses reflection to find if a struct "inherits" from a certain type.
 // In other words it checks whether the struct embeds a struct of that type.
 func InheritsFrom(object interface{}, parentType reflect.Type) bool {
 	if parentType == nil {
@@ -189,4 +189,25 @@ func InheritsFrom(object interface{}, parentType reflect.Type) bool {
 		}
 	}
 	return false
+}
+
+//IsEmpty checks whether a value is empty i.e. "", nil, 0, [], {}, false, etc.
+func IsEmpty(value interface{}) bool {
+	if value == nil {
+		return true
+	}
+	objValue := reflect.ValueOf(value)
+	switch objValue.Kind() {
+	case reflect.Array, reflect.Chan, reflect.Map, reflect.Slice:
+		return objValue.Len() == 0
+	case reflect.Ptr:
+		if objValue.IsNil() {
+			return true
+		}
+		deref := objValue.Elem().Interface()
+		return IsEmpty(deref)
+	default:
+		zero := reflect.Zero(objValue.Type())
+		return reflect.DeepEqual(value, zero.Interface())
+	}
 }

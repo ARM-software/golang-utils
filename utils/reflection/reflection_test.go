@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -385,6 +386,104 @@ func TestInheritsFrom(t *testing.T) {
 			assert.Equal(t, test.inherits, InheritsFrom(test.object, A0Type))
 			assert.Equal(t, test.inherits, InheritsFrom(test.object, AType))
 			assert.Equal(t, test.inherits, InheritsFrom(test.object, AstarType))
+		})
+	}
+}
+
+func TestIsEmpty(t *testing.T) {
+	aFilledChannel := make(chan struct{}, 1)
+	aFilledChannel <- struct{}{}
+	tests := []struct {
+		value   interface{}
+		isEmpty bool
+	}{
+		{
+			value:   nil,
+			isEmpty: true,
+		},
+		{
+			value:   0,
+			isEmpty: true,
+		},
+		{
+			value:   uint(0),
+			isEmpty: true,
+		},
+		{
+			value:   float64(0),
+			isEmpty: true,
+		},
+		{
+			value:   "",
+			isEmpty: true,
+		},
+		{
+			value:   false,
+			isEmpty: true,
+		},
+		{
+			value:   []string{},
+			isEmpty: true,
+		},
+		{
+			value:   []int64{},
+			isEmpty: true,
+		},
+		{
+			value:   []int64{int64(0)},
+			isEmpty: false,
+		},
+		{
+			value:   "blah",
+			isEmpty: false,
+		},
+		{
+			value:   1,
+			isEmpty: false,
+		},
+		{
+			value:   true,
+			isEmpty: false,
+		},
+		{
+			value:   map[string]string{},
+			isEmpty: true,
+		},
+		{
+			value:   map[string]interface{}{},
+			isEmpty: true,
+		},
+		{
+			value:   map[string]interface{}{"foo": "bar"},
+			isEmpty: false,
+		},
+		{
+			value:   time.Time{},
+			isEmpty: true,
+		},
+		{
+			value:   time.Now(),
+			isEmpty: false,
+		},
+		{
+			value:   make(chan struct{}),
+			isEmpty: true,
+		},
+		{
+			value:   aFilledChannel,
+			isEmpty: false,
+		},
+	}
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(fmt.Sprintf("subtest #%v", i), func(t *testing.T) {
+			assert.Equal(t, test.isEmpty, IsEmpty(test.value))
+			if test.isEmpty {
+				assert.Empty(t, test.value)
+			} else {
+				assert.NotEmpty(t, test.value)
+			}
 		})
 	}
 }

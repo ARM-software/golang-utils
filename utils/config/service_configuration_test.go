@@ -39,15 +39,15 @@ type DummyConfiguration struct {
 func (cfg *DummyConfiguration) Validate() error {
 	return validation.ValidateStruct(cfg,
 		validation.Field(&cfg.Host, validation.Required),
-		validation.Field(&cfg.Port, validation.Required),
+		validation.Field(&cfg.Port, validation.Required, validation.Min(0)),
 		validation.Field(&cfg.DB, validation.Required),
 		validation.Field(&cfg.User, validation.Required),
 		validation.Field(&cfg.Password, validation.Required),
 	)
 }
 
-func DefaultDummyConfiguration() DummyConfiguration {
-	return DummyConfiguration{
+func DefaultDummyConfiguration() *DummyConfiguration {
+	return &DummyConfiguration{
 		Port:              5432,
 		HealthCheckPeriod: time.Second,
 	}
@@ -83,8 +83,9 @@ func DefaultConfiguration() *ConfigurationTest {
 		TestString:  expectedString,
 		TestInt:     0,
 		TestTime:    time.Hour,
-		TestConfig:  DefaultDummyConfiguration(),
-		TestConfig2: DefaultDummyConfiguration()}
+		TestConfig:  *DefaultDummyConfiguration(),
+		TestConfig2: *DefaultDummyConfiguration(),
+	}
 }
 
 func TestServiceConfigurationLoad(t *testing.T) {
@@ -93,32 +94,32 @@ func TestServiceConfigurationLoad(t *testing.T) {
 	defaults := DefaultConfiguration()
 	err := Load("test", configTest, defaults)
 	// Some required values are missing.
-	require.NotNil(t, err)
+	require.Error(t, err)
 	require.NotNil(t, configTest.Validate())
 	// Setting required entries in the environment.
 	err = os.Setenv("TEST_DUMMYCONFIG_DUMMY_HOST", expectedHost)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMY_CONFIG_DUMMY_HOST", "a test host")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMYCONFIG_PASSWORD", "a test password")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMY_CONFIG_PASSWORD", expectedPassword)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMYCONFIG_USER", "a test user")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMY_CONFIG_USER", "a test user")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMYCONFIG_DB", "a test db")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMY_CONFIG_DB", "a test db")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMY_TIME", expectedDuration.String())
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMY_INT", fmt.Sprintf("%v", expectedInt))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = Load("test", configTest, defaults)
-	require.Nil(t, err)
-	require.Nil(t, configTest.Validate())
+	require.NoError(t, err)
+	require.NoError(t, configTest.Validate())
 	assert.Equal(t, expectedString, configTest.TestString)
 	assert.Equal(t, expectedInt, configTest.TestInt)
 	assert.Equal(t, expectedDuration, configTest.TestTime)
@@ -144,46 +145,97 @@ func TestBinding(t *testing.T) {
 	flagSet.Int("int", 0, "dummy int")
 	flagSet.Duration("time", time.Second, "dummy time")
 	err = BindFlagToEnv(session, prefix, "TEST_DUMMYCONFIG_DUMMY_HOST", flagSet.Lookup("host"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "TEST_DUMMY_CONFIG_DUMMY_HOST", flagSet.Lookup("host"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "DUMMYCONFIG_PASSWORD", flagSet.Lookup("password"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "DUMMY_CONFIG_PASSWORD", flagSet.Lookup("password"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "DUMMYCONFIG_USER", flagSet.Lookup("user"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "DUMMY_CONFIG_USER", flagSet.Lookup("user"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "TEST_DUMMYCONFIG_DB", flagSet.Lookup("db"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "DUMMY_CONFIG_DB", flagSet.Lookup("db"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "DUMMY_INT", flagSet.Lookup("int"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "DUMMY_Time", flagSet.Lookup("time"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = flagSet.Set("host", expectedHost)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = flagSet.Set("password", expectedPassword)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = flagSet.Set("user", "another test user")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = flagSet.Set("db", "another test db")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = flagSet.Set("int", fmt.Sprintf("%v", expectedInt))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = flagSet.Set("time", expectedDuration.String())
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = LoadFromViper(session, prefix, configTest, defaults)
-	require.Nil(t, err)
-	require.Nil(t, configTest.Validate())
+	require.NoError(t, err)
+	require.NoError(t, configTest.Validate())
 	assert.Equal(t, configTest.TestString, expectedString)
 	assert.Equal(t, configTest.TestInt, expectedInt)
 	assert.Equal(t, configTest.TestTime, expectedDuration)
 	assert.Equal(t, configTest.TestConfig.Port, defaults.TestConfig.Port)
 	assert.Equal(t, configTest.TestConfig.Host, expectedHost)
 	assert.Equal(t, configTest.TestConfig2.Host, expectedHost)
+	assert.Equal(t, configTest.TestConfig.Password, expectedPassword)
+	assert.Equal(t, configTest.TestConfig2.Password, expectedPassword)
+}
+
+func TestBindingDefaults(t *testing.T) {
+	os.Clearenv()
+	configTest := &ConfigurationTest{}
+	defaults := DefaultConfiguration()
+	session := viper.New()
+	var err error
+	flagSet := pflag.FlagSet{}
+	prefix := "test"
+	anotherHostName := fmt.Sprintf("another host %v", faker.DomainName())
+	flagSet.String("host", expectedHost, "dummy host")
+	flagSet.String("host2", anotherHostName, "dummy host")
+	flagSet.String("password", expectedPassword, "dummy password")
+	flagSet.String("user", "a user", "dummy user")
+	flagSet.String("db", "a db", "dummy db")
+	flagSet.Int("int", expectedInt, "dummy int")
+	flagSet.Duration("time", expectedDuration, "dummy time")
+	err = BindFlagToEnv(session, prefix, "TEST_DUMMYCONFIG_DUMMY_HOST", flagSet.Lookup("host"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "TEST_DUMMY_CONFIG_DUMMY_HOST", flagSet.Lookup("host2"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMYCONFIG_PASSWORD", flagSet.Lookup("password"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMY_CONFIG_PASSWORD", flagSet.Lookup("password"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMYCONFIG_USER", flagSet.Lookup("user"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMY_CONFIG_USER", flagSet.Lookup("user"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "TEST_DUMMYCONFIG_DB", flagSet.Lookup("db"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMY_CONFIG_DB", flagSet.Lookup("db"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMY_INT", flagSet.Lookup("int"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMY_Time", flagSet.Lookup("time"))
+	require.NoError(t, err)
+	
+	err = LoadFromViper(session, prefix, configTest, defaults)
+	require.NoError(t, err)
+	require.NoError(t, configTest.Validate())
+	assert.Equal(t, configTest.TestString, expectedString)
+	assert.Equal(t, configTest.TestInt, expectedInt)
+	assert.Equal(t, configTest.TestTime, expectedDuration)
+	assert.Equal(t, configTest.TestConfig.Port, defaults.TestConfig.Port)
+	assert.NotEqual(t, expectedHost, anotherHostName)
+	assert.Equal(t, configTest.TestConfig.Host, expectedHost)
+	assert.Equal(t, configTest.TestConfig2.Host, anotherHostName)
 	assert.Equal(t, configTest.TestConfig.Password, expectedPassword)
 	assert.Equal(t, configTest.TestConfig2.Password, expectedPassword)
 }
