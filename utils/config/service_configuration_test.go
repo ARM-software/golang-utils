@@ -225,7 +225,7 @@ func TestBindingDefaults(t *testing.T) {
 	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "DUMMY_Time", flagSet.Lookup("time"))
 	require.NoError(t, err)
-	
+
 	err = LoadFromViper(session, prefix, configTest, defaults)
 	require.NoError(t, err)
 	require.NoError(t, configTest.Validate())
