@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.4.3" (2021-12-19)
+=======================
+
+Bugfixes
+--------
+
+- Fix how configuration is loaded from flags and environment and clarifies how default values are chosen. (#202112191650)
+
+
 "" "1.4.2" (2021-12-16)
 =======================
 
