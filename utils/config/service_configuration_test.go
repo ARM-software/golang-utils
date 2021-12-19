@@ -25,7 +25,7 @@ var (
 	expectedDuration = time.Since(time.Date(1999, 2, 3, 4, 30, 45, 46, time.UTC))
 	expectedHost     = fmt.Sprintf("a test host %v", faker.Word())
 	expectedPassword = fmt.Sprintf("a test passwd %v", faker.Password())
-	expectedDb       = fmt.Sprintf("a db %v", faker.Word())
+	expectedDB       = fmt.Sprintf("a db %v", faker.Word())
 )
 
 type DummyConfiguration struct {
@@ -114,7 +114,7 @@ func TestServiceConfigurationLoad(t *testing.T) {
 	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMYCONFIG_DB", "a test db")
 	require.NoError(t, err)
-	err = os.Setenv("TEST_DUMMY_CONFIG_DB", expectedDb)
+	err = os.Setenv("TEST_DUMMY_CONFIG_DB", expectedDB)
 	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMY_CONFIG_FLAG", "false")
 	require.NoError(t, err)
@@ -131,10 +131,10 @@ func TestServiceConfigurationLoad(t *testing.T) {
 	assert.Equal(t, defaults.TestConfig.Port, configTest.TestConfig.Port)
 	assert.Equal(t, expectedHost, configTest.TestConfig.Host)
 	assert.Equal(t, expectedPassword, configTest.TestConfig2.Password)
-	assert.Equal(t, expectedDb, configTest.TestConfig2.DB)
+	assert.Equal(t, expectedDB, configTest.TestConfig2.DB)
 	assert.NotEqual(t, expectedHost, configTest.TestConfig2.Host)
 	assert.NotEqual(t, expectedPassword, configTest.TestConfig.Password)
-	assert.NotEqual(t, expectedDb, configTest.TestConfig.DB)
+	assert.NotEqual(t, expectedDB, configTest.TestConfig.DB)
 	assert.True(t, configTest.TestConfig.Flag)
 	assert.False(t, configTest.TestConfig2.Flag)
 }
@@ -178,7 +178,7 @@ func TestSimpleFlagBinding(t *testing.T) {
 	require.NoError(t, err)
 	err = flagSet.Set("password", expectedPassword)
 	require.NoError(t, err)
-	err = flagSet.Set("db", expectedDb)
+	err = flagSet.Set("db", expectedDB)
 	require.NoError(t, err)
 	err = LoadFromViper(session, prefix, configTest, defaults)
 	require.NoError(t, err)
@@ -186,7 +186,7 @@ func TestSimpleFlagBinding(t *testing.T) {
 	assert.Equal(t, defaults.Port, configTest.Port)
 	assert.Equal(t, expectedHost, configTest.Host)
 	assert.Equal(t, expectedPassword, configTest.Password)
-	assert.Equal(t, expectedDb, configTest.DB)
+	assert.Equal(t, expectedDB, configTest.DB)
 	assert.True(t, configTest.Flag)
 }
 
@@ -234,13 +234,13 @@ func TestFlagBinding(t *testing.T) {
 	require.NoError(t, err)
 	err = flagSet.Set("user", "another test user")
 	require.NoError(t, err)
-	err = flagSet.Set("db", expectedDb) //Should take precedence over environment
+	err = flagSet.Set("db", expectedDB) //Should take precedence over environment
 	require.NoError(t, err)
-	aDifferentDb := "another test db"
-	assert.NotEqual(t, expectedDb, aDifferentDb)
-	err = os.Setenv("TEST_DUMMY_CONFIG_DB", aDifferentDb)
+	aDifferentDB := "another test db"
+	assert.NotEqual(t, expectedDB, aDifferentDB)
+	err = os.Setenv("TEST_DUMMY_CONFIG_DB", aDifferentDB)
 	require.NoError(t, err)
-	err = os.Setenv("TEST_DUMMYCONFIG_DB", aDifferentDb)
+	err = os.Setenv("TEST_DUMMYCONFIG_DB", aDifferentDB)
 	require.NoError(t, err)
 	err = flagSet.Set("int", fmt.Sprintf("%v", expectedInt))
 	require.NoError(t, err)
@@ -263,9 +263,9 @@ func TestFlagBinding(t *testing.T) {
 	assert.Equal(t, expectedHost, configTest.TestConfig2.Host)
 	assert.Equal(t, expectedPassword, configTest.TestConfig.Password)
 	assert.Equal(t, expectedPassword, configTest.TestConfig2.Password)
-	assert.Equal(t, expectedDb, configTest.TestConfig.DB)
-	assert.Equal(t, aDifferentDb, configTest.TestConfig2.DB)
-	assert.NotEqual(t, expectedDb, configTest.TestConfig2.DB)
+	assert.Equal(t, expectedDB, configTest.TestConfig.DB)
+	assert.Equal(t, aDifferentDB, configTest.TestConfig2.DB)
+	assert.NotEqual(t, expectedDB, configTest.TestConfig2.DB)
 	assert.True(t, configTest.TestConfig.Flag)
 	assert.False(t, configTest.TestConfig2.Flag)
 }
@@ -283,9 +283,9 @@ func TestFlagBindingDefaults(t *testing.T) {
 	flagSet.String("host2", anotherHostName, "dummy host")
 	flagSet.String("password", expectedPassword, "dummy password")
 	flagSet.String("user", "a user", "dummy user")
-	aDifferentDb := "A different db"
-	assert.NotEqual(t, expectedDb, aDifferentDb)
-	flagSet.String("db", aDifferentDb, "dummy db")
+	aDifferentDB := "A different db"
+	assert.NotEqual(t, expectedDB, aDifferentDB)
+	flagSet.String("db", aDifferentDB, "dummy db")
 	flagSet.Int("int", expectedInt, "dummy int")
 	flagSet.Duration("time", expectedDuration, "dummy time")
 	flagSet.Bool("flag", !DefaultDummyConfiguration().Flag, "dummy flag")
@@ -311,7 +311,7 @@ func TestFlagBindingDefaults(t *testing.T) {
 	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "DUMMY_Time", flagSet.Lookup("time"))
 	require.NoError(t, err)
-	err = os.Setenv("TEST_DUMMY_CONFIG_DB", expectedDb) //Should take precedence over flag default
+	err = os.Setenv("TEST_DUMMY_CONFIG_DB", expectedDB) //Should take precedence over flag default
 	require.NoError(t, err)
 	err = LoadFromViper(session, prefix, configTest, defaults)
 	require.NoError(t, err)
@@ -327,8 +327,8 @@ func TestFlagBindingDefaults(t *testing.T) {
 	assert.Equal(t, anotherHostName, configTest.TestConfig2.Host)
 	assert.Equal(t, expectedPassword, configTest.TestConfig.Password)
 	assert.Equal(t, expectedPassword, configTest.TestConfig2.Password)
-	assert.Equal(t, aDifferentDb, configTest.TestConfig.DB)
-	assert.Equal(t, expectedDb, configTest.TestConfig2.DB)
+	assert.Equal(t, aDifferentDB, configTest.TestConfig.DB)
+	assert.Equal(t, expectedDB, configTest.TestConfig2.DB)
 	// Defaults from the default structure provided take precedence over defaults from flags when empty.
 	assert.Equal(t, DefaultConfiguration().TestConfig.Flag, configTest.TestConfig.Flag)
 	assert.Equal(t, DefaultConfiguration().TestConfig.Flag, configTest.TestConfig2.Flag)
