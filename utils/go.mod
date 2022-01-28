@@ -10,6 +10,7 @@ require (
 	github.com/djherbis/times v1.5.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/gofrs/uuid v4.2.0+incompatible
+	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f
 	github.com/golang/mock v1.6.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-retryablehttp v0.7.0
@@ -29,5 +30,6 @@ require (
 	go.uber.org/atomic v1.9.0
 	go.uber.org/goleak v1.1.12
 	golang.org/x/net v0.0.0-20210813160813-60bc85c4be6d
+	golang.org/x/text v0.3.7
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 )
