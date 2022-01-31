@@ -3,14 +3,15 @@ package charset
 import (
 	"bufio"
 	"fmt"
-	"github.com/ARM-software/golang-utils/utils/charset/iconv"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/htmlindex"
+	"golang.org/x/text/encoding/ianaindex"
 	"io"
 	"unicode/utf8"
 
 	"github.com/gogs/chardet"
 
+	"github.com/ARM-software/golang-utils/utils/charset/iconv"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
@@ -41,20 +42,47 @@ func DetectTextEncodingFromReader(reader io.Reader) (encoding.Encoding, string, 
 // name. Matching is case-insensitive and ignores
 // leading and trailing whitespace.
 func LookupCharset(charsetLabel string) (charsetEnc encoding.Encoding, charsetName string, err error) {
-	charsetEnc, err = htmlindex.Get(charsetLabel)
-	var tempErr error
+	charsetEnc, err = findCharsetEncoding(charsetLabel)
 	if err != nil {
-		otherLabel, tempErr := getEncodingMapping().GetCanonicalName(charsetLabel)
-		if tempErr == nil {
-			charsetEnc, tempErr = htmlindex.Get(otherLabel)
+		if commonerrors.Any(err, commonerrors.ErrUnsupported) {
+			err = fmt.Errorf("%w: charset [%v] is not supported by go: %v", commonerrors.ErrUnsupported, charsetLabel, err.Error())
+		} else {
+			err = fmt.Errorf("%w: charset [%v] is invalid: %v", commonerrors.ErrInvalid, charsetLabel, err.Error())
 		}
-	}
-	err=tempErr
-	if err != nil {
-		err = fmt.Errorf("%w: charset [%v] is not supported by go: %v", commonerrors.ErrUnsupported, charsetLabel, err.Error())
 		return
 	}
 	charsetName, err = htmlindex.Name(charsetEnc)
+	if err == nil {
+		return
+	}
+	charsetName, err = ianaindex.IANA.Name(charsetEnc)
+	return
+}
+
+func findCharsetEncoding(charsetLabel string) (charsetEnc encoding.Encoding, err error) {
+	// Checks  in http://www.w3.org/TR/encoding
+	charsetEnc, err = findCharsetEncodingInAnIndex(htmlindex.Get, charsetLabel)
+	if err == nil {
+		return
+	}
+	// Looks at this index https://www.iana.org/assignments/character-sets/character-sets.xhtml
+	charsetEnc, err = findCharsetEncodingInAnIndex(ianaindex.IANA.Encoding, charsetLabel)
+	return
+}
+
+func findCharsetEncodingInAnIndex(indexSearch func(string) (encoding.Encoding, error), charsetLabel string) (charsetEnc encoding.Encoding, err error) {
+	charsetEnc, err = indexSearch(charsetLabel)
+	if err == nil {
+		if charsetEnc == nil {
+			err = fmt.Errorf("%w charset encoding", commonerrors.ErrUnsupported)
+		}
+		return
+	}
+	otherLabel, err := getEncodingMapping().GetCanonicalName(charsetLabel)
+	if err != nil {
+		return
+	}
+	charsetEnc, err = indexSearch(otherLabel)
 	return
 }
 

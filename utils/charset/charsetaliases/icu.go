@@ -636,8 +636,8 @@ var (
 		"csCP50220",
 	}
 
-	// ICUCharsetAliases came from the `names` column of the list described in RFC2978 https://www.rfc-editor.org/rfc/rfc2978.html#section-4
-	//https://www.iana.org/assignments/character-sets/character-sets.xhtml
+	// ICUCharsetNames came from the `names` column of the list described in RFC2978 https://www.rfc-editor.org/rfc/rfc2978.html#section-4
+	// https://www.iana.org/assignments/character-sets/character-sets.xhtml
 	ICUCharsetNames = []string{
 		"US-ASCII",
 		"ISO_8859-1:1987",

@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/charset/charsetaliases"
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 func TestIconv(t *testing.T) {
@@ -65,23 +66,24 @@ func TestLookUp(t *testing.T) {
 		list []string
 		desc string
 	}{
-		//{charsetaliases.IconvCharsetAliases, "Aliases from iconv built-in list"},
-		//{charsetaliases.ICUCharsetAliases, "Aliases from ICU list"},
-		{charsetaliases.ICUCharsetNames, "Names from ICU list"},
+		{charsetaliases.IconvCharsetAliases, "Aliases from iconv built-in list"},
+		{charsetaliases.ICUCharsetAliases, "Aliases from ICU/IANA list"},
+		{charsetaliases.ICUCharsetNames, "Names from ICU/IANA list"},
 	}
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.desc, func(t *testing.T) {
 			for i := range test.list {
 				charset := test.list[i]
-				_, name, err := LookupCharset(charset)
-				assert.NoError(t, nil)
-				if err != nil {
-					fmt.Println(charset, " ", name, " ", err)
+				encoding, name, err := LookupCharset(charset)
+				if err == nil {
+					assert.NotEmpty(t, name)
+					assert.NotNil(t, encoding)
+				} else {
+					assert.True(t, commonerrors.Any(err, commonerrors.ErrUnsupported), fmt.Sprintf("charset with alias [%v] could not be found", charset))
+					assert.Empty(t, name)
+					assert.Nil(t, encoding)
 				}
-				//assert.NoError(t, err, fmt.Sprintf("charset with aliase [%v] could not be found", charset))
-				//assert.NotEmpty(t, name)
-				//assert.NotNil(t, encoding)
 			}
 		})
 	}
