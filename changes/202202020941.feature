@@ -1,0 +1,1 @@
+Ability to convert strings from one charset to another in a similar way to [iconv](https://linux.die.net/man/1/iconv) or [uconv](https://linux.die.net/man/1/uconv)
