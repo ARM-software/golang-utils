@@ -1004,6 +1004,8 @@ func TestUnzip(t *testing.T) {
 		filepath.Join(outPath, "test.txt"),
 		filepath.Join(outPath, "todo.txt"),
 		filepath.Join(outPath, "child.zip"),
+		filepath.Join(outPath, "L'irrǸsolution est toujours une marque de faiblesse.txt"),
+		filepath.Join(outPath, "ไป ไหน มา.txt"),
 	}
 	sort.Strings(expectedfileList)
 
@@ -1011,34 +1013,87 @@ func TestUnzip(t *testing.T) {
 	fileList, err := fs.Unzip(srcPath, destPath)
 
 	sort.Strings(fileList)
-	assert.Nil(t, err)
-	assert.Equal(t, len(fileList), 4)
+	assert.NoError(t, err)
+	assert.Equal(t, len(fileList), 6)
 	assert.Equal(t, expectedfileList, fileList)
 
 	/* Source zip file not available */
 	srcPath = filepath.Join(testInDir, "unknownfile.zip")
 	_, err = fs.Unzip(srcPath, destPath)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	/* Invalid source path */
 	srcPath = filepath.Join(testInDir, "invalidzipfile.zip")
 	_, err = fs.Unzip(srcPath, destPath)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
-func TestInvalidUnzip(t *testing.T) {
+func TestUnzipWithNonUTF8Filenames(t *testing.T) {
 	fs := NewFs(StandardFS)
 	// Testing zip file attached to https://github.com/golang/go/issues/10741
 	testInDir := "testdata"
-	testFile := "zipwithnonutf8.zip"
-	srcPath := filepath.Join(testInDir, testFile)
-	destPath, err := fs.TempDirInTempDir("unzip")
-	require.Nil(t, err)
-	defer func() { _ = fs.Rm(destPath) }()
-	/* Check Unzip */
-	_, err = fs.Unzip(srcPath, destPath)
-	require.NotNil(t, err)
-	assert.True(t, commonerrors.Any(err, commonerrors.ErrInvalid))
+	tests := []struct {
+		zipFile       string
+		expectedFiles []string
+		expectedError error
+	}{
+		{
+			zipFile: "zipwithnonutf8.zip",
+			expectedFiles: []string{
+				"La douceur du miel ne console pas de la piq�re de l'abeille.txt",
+				"\x83T\x83\x93\x83v\x83\x8b.txt",
+			},
+			expectedError: nil,
+		},
+		{
+			zipFile: "zipwithnonutf8filenames2.zip",
+			expectedFiles: []string{"examples",
+				filepath.Join("examples", "AN-32013 FT32F0XX\xb2\xce\xca\xfd.pdf"),
+				filepath.Join("examples", "BAT32G133_Packʹ\xd3\xc3˵\xc3\xf7.pdf"),
+				filepath.Join("examples", "OpenAtomFoundation_TencentOS-tiny_ \xcc\xdaѶ\xce\xef\xc1\xaa\xcd\xf8\xd6ն˲\xd9\xd7\xf7ϵͳ.html"),
+				filepath.Join("examples", "hello_world.c"),
+				filepath.Join("examples", "main.c"),
+			},
+			expectedError: nil,
+		},
+		//TODO create a zip file with non supported encoding
+		//{
+		//	zipFile:       ,
+		//	expectedFiles: nil,
+		//	expectedError: commonerrors.ErrInvalid,
+		//},
+	}
+	for i := range tests {
+		test := tests[i]
+		t.Run(fmt.Sprintf("zipfile_%v", test.zipFile), func(t *testing.T) {
+			srcPath := filepath.Join(testInDir, test.zipFile)
+			destPath, err := fs.TempDirInTempDir("unzip")
+			require.Nil(t, err)
+			defer func() { _ = fs.Rm(destPath) }()
+			/* Check Unzip */
+			fileList, err := fs.Unzip(srcPath, destPath)
+			if test.expectedError != nil {
+				fmt.Println(fileList)
+				require.Error(t, err)
+				assert.True(t, commonerrors.Any(err, test.expectedError))
+				assert.Empty(t, fileList)
+			} else {
+				require.NoError(t, err)
+				sort.Strings(fileList)
+				var expectedFiles []string
+				for j := range test.expectedFiles {
+					expectedFiles = append(expectedFiles, filepath.Join(destPath, test.expectedFiles[j]))
+				}
+				sort.Strings(expectedFiles)
+				assert.NoError(t, err)
+
+				assert.Equal(t, len(fileList), len(test.expectedFiles))
+				assert.Equal(t, expectedFiles, fileList)
+			}
+			_ = fs.Rm(destPath)
+		})
+	}
+
 }
 
 func TestSubDirectories(t *testing.T) {

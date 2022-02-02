@@ -20,7 +20,9 @@ import (
 	"github.com/bmatcuk/doublestar/v3"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/spf13/afero"
+	"golang.org/x/text/encoding/unicode"
 
+	"github.com/ARM-software/golang-utils/utils/charset"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 	"github.com/ARM-software/golang-utils/utils/platform"
@@ -183,6 +185,10 @@ func GenericOpen(name string) (File, error) {
 }
 func (fs *VFS) GenericOpen(name string) (File, error) {
 	return convertFile(func() (afero.File, error) { return fs.vfs.Open(name) }, func() error { return nil })
+}
+
+func OpenFile(name string, flag int, perm os.FileMode) (File, error) {
+	return globalFileSystem.OpenFile(name, flag, perm)
 }
 
 func (fs *VFS) OpenFile(name string, flag int, perm os.FileMode) (File, error) {
@@ -1101,7 +1107,7 @@ func (fs *VFS) Unzip(source string, destination string) (fileList []string, err 
 			return fileList, fmt.Errorf("unable to create directory '%s': %w", directoryPath, err)
 		}
 
-		err = fs.copyZipFile(filePath, zippedFile)
+		err = fs.unzipZipFile(filePath, zippedFile)
 		if err != nil {
 			return fileList, err
 		}
@@ -1119,8 +1125,8 @@ func (fs *VFS) Unzip(source string, destination string) (fileList []string, err 
 	return fileList, nil
 }
 
-// Copy zipped file to destination directory
-func (fs *VFS) copyZipFile(dest string, zippedFile *zip.File) (err error) {
+// unzipZipFile unzips file to destination directory
+func (fs *VFS) unzipZipFile(dest string, zippedFile *zip.File) (err error) {
 	destinationPath := dest
 
 	// Currently an error is raised when non-UTF8 characters are present in filepath
@@ -1133,9 +1139,18 @@ func (fs *VFS) copyZipFile(dest string, zippedFile *zip.File) (err error) {
 	//to ensure that the target system is expecting the encoding used
 	//(e.g., producing a ZIP file you know is used on a Chinese version of Windows).
 	if !utf8.ValidString(destinationPath) {
-		return fmt.Errorf("%w: file path [%s] is not a valid UTF8 string", commonerrors.ErrInvalid, destinationPath)
-		//If zip files must be accepted even when their encoding is unknown, then the following can be done.
-		//destinationPath = strings.ToValidUTF8(dest, serialization.InvalidUTF8CharacterReplacement)
+		// trying to guess the encoding and converting the string to UTF-8
+		encoding, charsetName, err := charset.DetectTextEncoding([]byte(destinationPath))
+		if err != nil {
+			return fmt.Errorf("%w: file path [%s] is not a valid utf-8 string and charset could not be detected: %v", commonerrors.ErrInvalid, destinationPath, err.Error())
+		}
+		fmt.Println("encoding ", charsetName, " text ", destinationPath)
+		destinationPath, err = charset.IconvString(destinationPath, encoding, unicode.UTF8)
+		if err != nil {
+			return fmt.Errorf("%w: file path [%s] is encoded using charset [%v] but could not be converted to valid utf-8: %v", commonerrors.ErrUnexpected, destinationPath, charsetName, err.Error())
+			//If zip file paths must be accepted even when their encoding is unknown, or conversion to utf-8 failed, then the following can be done.
+			//destinationPath = strings.ToValidUTF8(dest, charset.InvalidUTF8CharacterReplacement)
+		}
 	}
 
 	destinationFile, err := fs.OpenFile(destinationPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, zippedFile.Mode())
