@@ -3,13 +3,13 @@ package charset
 import (
 	"bufio"
 	"fmt"
-	"golang.org/x/text/encoding"
-	"golang.org/x/text/encoding/htmlindex"
-	"golang.org/x/text/encoding/ianaindex"
 	"io"
 	"unicode/utf8"
 
 	"github.com/gogs/chardet"
+	"golang.org/x/text/encoding"
+	"golang.org/x/text/encoding/htmlindex"
+	"golang.org/x/text/encoding/ianaindex"
 
 	"github.com/ARM-software/golang-utils/utils/charset/iconv"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"

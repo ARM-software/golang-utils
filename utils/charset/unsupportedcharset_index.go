@@ -2,8 +2,9 @@ package charset
 
 import (
 	"fmt"
-	"golang.org/x/text/encoding"
 	"strings"
+
+	"golang.org/x/text/encoding"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
