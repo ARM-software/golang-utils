@@ -23,7 +23,7 @@ func DetectTextEncoding(content []byte) (encoding.Encoding, string, error) {
 
 	result, err := chardet.NewTextDetector().DetectBest(content)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("%w: %v", commonerrors.ErrNotFound, err)
 	}
 
 	return LookupCharset(result.Charset)
@@ -32,7 +32,7 @@ func DetectTextEncoding(content []byte) (encoding.Encoding, string, error) {
 // DetectTextEncodingFromReader returns best guess of encoding of given reader content. Looks at the first 1024 bytes in the same way as https://pkg.go.dev/golang.org/x/net/html/charset#DetermineEncoding
 func DetectTextEncodingFromReader(reader io.Reader) (encoding.Encoding, string, error) {
 	bytes, err := bufio.NewReader(reader).Peek(1024)
-	if err != nil {
+	if !commonerrors.Any(err, nil, io.EOF) {
 		return nil, "", err
 	}
 	return DetectTextEncoding(bytes)
@@ -60,30 +60,43 @@ func LookupCharset(charsetLabel string) (charsetEnc encoding.Encoding, charsetNa
 }
 
 func findCharsetEncoding(charsetLabel string) (charsetEnc encoding.Encoding, err error) {
-	// Checks  in http://www.w3.org/TR/encoding
+	// Check in http://www.w3.org/TR/encoding
 	charsetEnc, err = findCharsetEncodingInAnIndex(htmlindex.Get, charsetLabel)
-	if err == nil {
+	if commonerrors.Any(err, nil, commonerrors.ErrUnsupported) {
 		return
 	}
-	// Looks at this index https://www.iana.org/assignments/character-sets/character-sets.xhtml
+	// Look at this index https://www.iana.org/assignments/character-sets/character-sets.xhtml
 	charsetEnc, err = findCharsetEncodingInAnIndex(ianaindex.IANA.Encoding, charsetLabel)
+	if commonerrors.Any(err, nil, commonerrors.ErrUnsupported) {
+		return
+	}
+	// Look at the list of known unsupported charsets
+	charsetEnc, err = findCharsetEncodingInAnIndex(GetUnsupported, charsetLabel)
 	return
 }
 
 func findCharsetEncodingInAnIndex(indexSearch func(string) (encoding.Encoding, error), charsetLabel string) (charsetEnc encoding.Encoding, err error) {
-	charsetEnc, err = indexSearch(charsetLabel)
-	if err == nil {
-		if charsetEnc == nil {
-			err = fmt.Errorf("%w charset encoding", commonerrors.ErrUnsupported)
-		}
+	charsetEnc, err = checkEncodingSupport(indexSearch(charsetLabel))
+	if commonerrors.Any(err, nil, commonerrors.ErrUnsupported) {
 		return
 	}
 	otherLabel, err := getEncodingMapping().GetCanonicalName(charsetLabel)
 	if err != nil {
 		return
 	}
-	charsetEnc, err = indexSearch(otherLabel)
+	charsetEnc, err = checkEncodingSupport(indexSearch(otherLabel))
 	return
+}
+
+func checkEncodingSupport(charsetEnc encoding.Encoding, err error) (encoding.Encoding, error) {
+	// according to index documentation, if the error is nil but the encoding as well, then the encoding should be considered as unsupported by the language
+	newErr := err
+	if err == nil {
+		if charsetEnc == nil {
+			newErr = fmt.Errorf("%w charset encoding", commonerrors.ErrUnsupported)
+		}
+	}
+	return charsetEnc, newErr
 }
 
 // IconvString converts string from one text encoding charset to another.
