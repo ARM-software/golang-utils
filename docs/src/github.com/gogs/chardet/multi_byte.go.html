@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: multi_byte.go in package github.com/gogs/chardet</title>
+<link href="../../../../css/light-v0.4.1.css" rel="stylesheet">
+<script src="../../../../jvs/golds-v0.4.1.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	multi_byte.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../pkg/github.com/gogs/chardet.html">github.com/gogs/chardet</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7],
+input[id=r8]:checked ~pre label[for=r8],
+input[id=r9]:checked ~pre label[for=r9],
+input[id=r10]:checked ~pre label[for=r10],
+input[id=r11]:checked ~pre label[for=r11],
+input[id=r12]:checked ~pre label[for=r12],
+input[id=r13]:checked ~pre label[for=r13],
+input[id=r14]:checked ~pre label[for=r14],
+input[id=r15]:checked ~pre label[for=r15],
+input[id=r16]:checked ~pre label[for=r16],
+input[id=r17]:checked ~pre label[for=r17],
+input[id=r18]:checked ~pre label[for=r18],
+input[id=r19]:checked ~pre label[for=r19],
+input[id=r20]:checked ~pre label[for=r20],
+input[id=r21]:checked ~pre label[for=r21],
+input[id=r22]:checked ~pre label[for=r22],
+input[id=r23]:checked ~pre label[for=r23],
+input[id=r24]:checked ~pre label[for=r24],
+input[id=r25]:checked ~pre label[for=r25],
+input[id=r26]:checked ~pre label[for=r26],
+input[id=r27]:checked ~pre label[for=r27],
+input[id=r28]:checked ~pre label[for=r28],
+input[id=r29]:checked ~pre label[for=r29],
+input[id=r30]:checked ~pre label[for=r30],
+input[id=r31]:checked ~pre label[for=r31],
+input[id=r32]:checked ~pre label[for=r32],
+input[id=r33]:checked ~pre label[for=r33],
+input[id=r34]:checked ~pre label[for=r34],
+input[id=r35]:checked ~pre label[for=r35],
+input[id=r36]:checked ~pre label[for=r36],
+input[id=r37]:checked ~pre label[for=r37],
+input[id=r38]:checked ~pre label[for=r38],
+input[id=r39]:checked ~pre label[for=r39],
+input[id=r40]:checked ~pre label[for=r40],
+input[id=r41]:checked ~pre label[for=r41],
+input[id=r42]:checked ~pre label[for=r42],
+input[id=r43]:checked ~pre label[for=r43],
+input[id=r44]:checked ~pre label[for=r44],
+input[id=r45]:checked ~pre label[for=r45],
+input[id=r46]:checked ~pre label[for=r46],
+input[id=r47]:checked ~pre label[for=r47],
+input[id=r48]:checked ~pre label[for=r48],
+input[id=r49]:checked ~pre label[for=r49],
+input[id=r50]:checked ~pre label[for=r50],
+input[id=r51]:checked ~pre label[for=r51],
+input[id=r52]:checked ~pre label[for=r52],
+input[id=r53]:checked ~pre label[for=r53],
+input[id=r54]:checked ~pre label[for=r54],
+input[id=r55]:checked ~pre label[for=r55],
+input[id=r56]:checked ~pre label[for=r56],
+input[id=r57]:checked ~pre label[for=r57],
+input[id=r58]:checked ~pre label[for=r58],
+input[id=r59]:checked ~pre label[for=r59],
+input[id=r60]:checked ~pre label[for=r60]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="r8" type="radio" name="g"/>
+<input id="r9" type="radio" name="g"/>
+<input id="r10" type="radio" name="g"/>
+<input id="r11" type="radio" name="g"/>
+<input id="r12" type="radio" name="g"/>
+<input id="r13" type="radio" name="g"/>
+<input id="r14" type="radio" name="g"/>
+<input id="r15" type="radio" name="g"/>
+<input id="r16" type="radio" name="g"/>
+<input id="r17" type="radio" name="g"/>
+<input id="r18" type="radio" name="g"/>
+<input id="r19" type="radio" name="g"/>
+<input id="r20" type="radio" name="g"/>
+<input id="r21" type="radio" name="g"/>
+<input id="r22" type="radio" name="g"/>
+<input id="r23" type="radio" name="g"/>
+<input id="r24" type="radio" name="g"/>
+<input id="r25" type="radio" name="g"/>
+<input id="r26" type="radio" name="g"/>
+<input id="r27" type="radio" name="g"/>
+<input id="r28" type="radio" name="g"/>
+<input id="r29" type="radio" name="g"/>
+<input id="r30" type="radio" name="g"/>
+<input id="r31" type="radio" name="g"/>
+<input id="r32" type="radio" name="g"/>
+<input id="r33" type="radio" name="g"/>
+<input id="r34" type="radio" name="g"/>
+<input id="r35" type="radio" name="g"/>
+<input id="r36" type="radio" name="g"/>
+<input id="r37" type="radio" name="g"/>
+<input id="r38" type="radio" name="g"/>
+<input id="r39" type="radio" name="g"/>
+<input id="r40" type="radio" name="g"/>
+<input id="r41" type="radio" name="g"/>
+<input id="r42" type="radio" name="g"/>
+<input id="r43" type="radio" name="g"/>
+<input id="r44" type="radio" name="g"/>
+<input id="r45" type="radio" name="g"/>
+<input id="r46" type="radio" name="g"/>
+<input id="r47" type="radio" name="g"/>
+<input id="r48" type="radio" name="g"/>
+<input id="r49" type="radio" name="g"/>
+<input id="r50" type="radio" name="g"/>
+<input id="r51" type="radio" name="g"/>
+<input id="r52" type="radio" name="g"/>
+<input id="r53" type="radio" name="g"/>
+<input id="r54" type="radio" name="g"/>
+<input id="r55" type="radio" name="g"/>
+<input id="r56" type="radio" name="g"/>
+<input id="r57" type="radio" name="g"/>
+<input id="r58" type="radio" name="g"/>
+<input id="r59" type="radio" name="g"/>
+<input id="r60" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<span class="codeline" id="line-1"><code><span class="keyword">package</span> chardet</code></span>
+<span class="codeline" id="line-2"><code></code></span>
+<span class="codeline" id="line-3"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-4"><code>	<label for="i0"><span class="lit-string i0">"errors"</span></label></code></span>
+<span class="codeline" id="line-5"><code>	<label for="i1"><span class="lit-string i1">"math"</span></label></code></span>
+<span class="codeline" id="line-6"><code>)</code></span>
+<span class="codeline" id="line-7"><code></code></span>
+<span class="codeline" id="line-8"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/gogs/chardet.html#name-recognizerMultiByte" class="ident">recognizerMultiByte</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-9"><code>	charset     <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-10"><code>	language    <a href="../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-11"><code>	decoder     <a href="#line-15" class="ident">charDecoder</a></code></span>
+<span class="codeline" id="line-12"><code>	commonChars []<a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a></code></span>
+<span class="codeline" id="line-13"><code>}</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/gogs/chardet.html#name-charDecoder" class="ident">charDecoder</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-16"><code>	<a href="../../../../imp/github.com/gogs/chardet.charDecoder^c712b.html#name-DecodeOneChar" class="ident">DecodeOneChar</a>([]<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (c <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>, remain []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, err <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-17"><code>}</code></span>
+<span class="codeline" id="line-18"><code></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">func</span> (<label for="r0" class="ident">r</label> *<a href="#line-8" class="ident">recognizerMultiByte</a>) <label for="r1" class="ident"><a href="../../../../imp/github.com/gogs/chardet.recognizerMultiByte^a7318.html#name-.Match" class="ident">Match</a></label>(<label for="r2" class="ident">input</label> *<a href="recognizer.go.html#line-9" class="ident">recognizerInput</a>) (<label for="r3" class="ident">output</label> <a href="recognizer.go.html#line-7" class="ident">recognizerOutput</a>) {</code></span>
+<span class="codeline" id="line-20"><code>	<span class="keyword">return</span> <a href="recognizer.go.html#line-7" class="ident">recognizerOutput</a>{</code></span>
+<span class="codeline" id="line-21"><code>		<a href="detector.go.html#line-12" class="ident">Charset</a>:    <label for="r0" class="ident">r</label>.<a href="#line-9" class="ident">charset</a>,</code></span>
+<span class="codeline" id="line-22"><code>		<a href="detector.go.html#line-14" class="ident">Language</a>:   <label for="r0" class="ident">r</label>.<a href="#line-10" class="ident">language</a>,</code></span>
+<span class="codeline" id="line-23"><code>		<a href="detector.go.html#line-16" class="ident">Confidence</a>: <label for="r0" class="ident">r</label>.<a href="#line-27" class="ident">matchConfidence</a>(<label for="r2" class="ident">input</label>),</code></span>
+<span class="codeline" id="line-24"><code>	}</code></span>
+<span class="codeline" id="line-25"><code>}</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="keyword">func</span> (<label for="r4" class="ident">r</label> *<a href="#line-8" class="ident">recognizerMultiByte</a>) <label for="r5" class="ident">matchConfidence</label>(<label for="r6" class="ident">input</label> *<a href="recognizer.go.html#line-9" class="ident">recognizerInput</a>) <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-28"><code>	<label for="r7" class="ident">raw</label> := <label for="r6" class="ident">input</label>.<a href="recognizer.go.html#line-10" class="ident">raw</a></code></span>
+<span class="codeline" id="line-29"><code>	<span class="keyword">var</span> <label for="r8" class="ident">c</label> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a></code></span>
+<span class="codeline" id="line-30"><code>	<span class="keyword">var</span> <label for="r9" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a></code></span>
+<span class="codeline" id="line-31"><code>	<span class="keyword">var</span> <label for="r10" class="ident">totalCharCount</label>, <label for="r11" class="ident">badCharCount</label>, <label for="r12" class="ident">singleByteCharCount</label>, <label for="r13" class="ident">doubleByteCharCount</label>, <label for="r14" class="ident">commonCharCount</label> <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-32"><code>	<span class="keyword">for</span> <label for="r8" class="ident">c</label>, <label for="r7" class="ident">raw</label>, <label for="r9" class="ident">err</label> = <label for="r4" class="ident">r</label>.<a href="#line-11" class="ident">decoder</a>.<a href="#line-16" class="ident">DecodeOneChar</a>(<label for="r7" class="ident">raw</label>); <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r7" class="ident">raw</label>) &gt; <span class="lit-number">0</span>; <label for="r8" class="ident">c</label>, <label for="r7" class="ident">raw</label>, <label for="r9" class="ident">err</label> = <label for="r4" class="ident">r</label>.<a href="#line-11" class="ident">decoder</a>.<a href="#line-16" class="ident">DecodeOneChar</a>(<label for="r7" class="ident">raw</label>) {</code></span>
+<span class="codeline" id="line-33"><code>		<label for="r10" class="ident">totalCharCount</label>++</code></span>
+<span class="codeline" id="line-34"><code>		<span class="keyword">if</span> <label for="r9" class="ident">err</label> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-35"><code>			<label for="r11" class="ident">badCharCount</label>++</code></span>
+<span class="codeline" id="line-36"><code>		} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r8" class="ident">c</label> &lt;= <span class="lit-number">0xFF</span> {</code></span>
+<span class="codeline" id="line-37"><code>			<label for="r12" class="ident">singleByteCharCount</label>++</code></span>
+<span class="codeline" id="line-38"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-39"><code>			<label for="r13" class="ident">doubleByteCharCount</label>++</code></span>
+<span class="codeline" id="line-40"><code>			<span class="keyword">if</span> <label for="r4" class="ident">r</label>.<a href="#line-12" class="ident">commonChars</a> != <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> &amp;&amp; <a href="#line-79" class="ident">binarySearch</a>(<label for="r4" class="ident">r</label>.<a href="#line-12" class="ident">commonChars</a>, <label for="r8" class="ident">c</label>) {</code></span>
+<span class="codeline" id="line-41"><code>				<label for="r14" class="ident">commonCharCount</label>++</code></span>
+<span class="codeline" id="line-42"><code>			}</code></span>
+<span class="codeline" id="line-43"><code>		}</code></span>
+<span class="codeline" id="line-44"><code>		<span class="keyword">if</span> <label for="r11" class="ident">badCharCount</label> &gt;= <span class="lit-number">2</span> &amp;&amp; <label for="r11" class="ident">badCharCount</label>*<span class="lit-number">5</span> &gt;= <label for="r13" class="ident">doubleByteCharCount</label> {</code></span>
+<span class="codeline" id="line-45"><code>			<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-46"><code>		}</code></span>
+<span class="codeline" id="line-47"><code>	}</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code>	<span class="keyword">if</span> <label for="r13" class="ident">doubleByteCharCount</label> &lt;= <span class="lit-number">10</span> &amp;&amp; <label for="r11" class="ident">badCharCount</label> == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-50"><code>		<span class="keyword">if</span> <label for="r13" class="ident">doubleByteCharCount</label> == <span class="lit-number">0</span> &amp;&amp; <label for="r10" class="ident">totalCharCount</label> &lt; <span class="lit-number">10</span> {</code></span>
+<span class="codeline" id="line-51"><code>			<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-52"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-53"><code>			<span class="keyword">return</span> <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-54"><code>		}</code></span>
+<span class="codeline" id="line-55"><code>	}</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code>	<span class="keyword">if</span> <label for="r13" class="ident">doubleByteCharCount</label> &lt; <span class="lit-number">20</span>*<label for="r11" class="ident">badCharCount</label> {</code></span>
+<span class="codeline" id="line-58"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-59"><code>	}</code></span>
+<span class="codeline" id="line-60"><code>	<span class="keyword">if</span> <label for="r4" class="ident">r</label>.<a href="#line-12" class="ident">commonChars</a> == <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-61"><code>		<label for="r15" class="ident">confidence</label> := <span class="lit-number">30</span> + <label for="r13" class="ident">doubleByteCharCount</label> - <span class="lit-number">20</span>*<label for="r11" class="ident">badCharCount</label></code></span>
+<span class="codeline" id="line-62"><code>		<span class="keyword">if</span> <label for="r15" class="ident">confidence</label> &gt; <span class="lit-number">100</span> {</code></span>
+<span class="codeline" id="line-63"><code>			<label for="r15" class="ident">confidence</label> = <span class="lit-number">100</span></code></span>
+<span class="codeline" id="line-64"><code>		}</code></span>
+<span class="codeline" id="line-65"><code>		<span class="keyword">return</span> <label for="r15" class="ident">confidence</label></code></span>
+<span class="codeline" id="line-66"><code>	}</code></span>
+<span class="codeline" id="line-67"><code>	<label for="r16" class="ident">maxVal</label> := <a href="../../../../pkg/math.html" class="ident i1">math</a>.<a href="../../../math/log.go.html#line-80" class="ident">Log</a>(<a href="../../../../pkg/builtin.html#name-float64" class="ident">float64</a>(<label for="r13" class="ident">doubleByteCharCount</label>) / <span class="lit-number">4</span>)</code></span>
+<span class="codeline" id="line-68"><code>	<label for="r17" class="ident">scaleFactor</label> := <span class="lit-number">90</span> / <label for="r16" class="ident">maxVal</label></code></span>
+<span class="codeline" id="line-69"><code>	<label for="r18" class="ident">confidence</label> := <a href="../../../../pkg/builtin.html#name-int" class="ident">int</a>(<a href="../../../../pkg/math.html" class="ident i1">math</a>.<a href="../../../math/log.go.html#line-80" class="ident">Log</a>(<a href="../../../../pkg/builtin.html#name-float64" class="ident">float64</a>(<label for="r14" class="ident">commonCharCount</label>)+<span class="lit-number">1</span>)*<label for="r17" class="ident">scaleFactor</label> + <span class="lit-number">10</span>)</code></span>
+<span class="codeline" id="line-70"><code>	<span class="keyword">if</span> <label for="r18" class="ident">confidence</label> &gt; <span class="lit-number">100</span> {</code></span>
+<span class="codeline" id="line-71"><code>		<label for="r18" class="ident">confidence</label> = <span class="lit-number">100</span></code></span>
+<span class="codeline" id="line-72"><code>	}</code></span>
+<span class="codeline" id="line-73"><code>	<span class="keyword">if</span> <label for="r18" class="ident">confidence</label> &lt; <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-74"><code>		<label for="r18" class="ident">confidence</label> = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-75"><code>	}</code></span>
+<span class="codeline" id="line-76"><code>	<span class="keyword">return</span> <label for="r18" class="ident">confidence</label></code></span>
+<span class="codeline" id="line-77"><code>}</code></span>
+<span class="codeline" id="line-78"><code></code></span>
+<span class="codeline" id="line-79"><code><span class="keyword">func</span> <label for="r19" class="ident"><a href="../../../../pkg/github.com/gogs/chardet.html#name-binarySearch" class="ident">binarySearch</a></label>(<label for="r20" class="ident">l</label> []<a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>, <label for="r21" class="ident">c</label> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>) <a href="../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-80"><code>	<label for="r22" class="ident">start</label> := <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-81"><code>	<label for="r23" class="ident">end</label> := <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r20" class="ident">l</label>) - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-82"><code>	<span class="keyword">for</span> <label for="r22" class="ident">start</label> &lt;= <label for="r23" class="ident">end</label> {</code></span>
+<span class="codeline" id="line-83"><code>		<label for="r24" class="ident">mid</label> := (<label for="r22" class="ident">start</label> + <label for="r23" class="ident">end</label>) / <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-84"><code>		<span class="keyword">if</span> <label for="r21" class="ident">c</label> == <label for="r20" class="ident">l</label>[<label for="r24" class="ident">mid</label>] {</code></span>
+<span class="codeline" id="line-85"><code>			<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
+<span class="codeline" id="line-86"><code>		} <span class="keyword">else</span> <span class="keyword">if</span> <label for="r21" class="ident">c</label> &lt; <label for="r20" class="ident">l</label>[<label for="r24" class="ident">mid</label>] {</code></span>
+<span class="codeline" id="line-87"><code>			<label for="r23" class="ident">end</label> = <label for="r24" class="ident">mid</label> - <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-88"><code>		} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-89"><code>			<label for="r22" class="ident">start</label> = <label for="r24" class="ident">mid</label> + <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-90"><code>		}</code></span>
+<span class="codeline" id="line-91"><code>	}</code></span>
+<span class="codeline" id="line-92"><code>	<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-93"><code>}</code></span>
+<span class="codeline" id="line-94"><code></code></span>
+<span class="codeline" id="line-95"><code><span class="keyword">var</span> <a href="../../../../pkg/github.com/gogs/chardet.html#name-eobError" class="ident">eobError</a> = <a href="../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"End of input buffer"</span>)</code></span>
+<span class="codeline" id="line-96"><code><span class="keyword">var</span> <a href="../../../../pkg/github.com/gogs/chardet.html#name-badCharError" class="ident">badCharError</a> = <a href="../../../../pkg/errors.html" class="ident i0">errors</a>.<a href="../../../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"Decode a bad char"</span>)</code></span>
+<span class="codeline" id="line-97"><code></code></span>
+<span class="codeline" id="line-98"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/gogs/chardet.html#name-charDecoder_sjis" class="ident">charDecoder_sjis</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-99"><code>}</code></span>
+<span class="codeline" id="line-100"><code></code></span>
+<span class="codeline" id="line-101"><code><span class="keyword">func</span> (<a href="#line-98" class="ident">charDecoder_sjis</a>) <label for="r25" class="ident"><a href="../../../../imp/github.com/gogs/chardet.charDecoder_sjis^e567c.html#name-.DecodeOneChar" class="ident">DecodeOneChar</a></label>(<label for="r26" class="ident">input</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r27" class="ident">c</label> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>, <label for="r28" class="ident">remain</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r29" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-102"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r26" class="ident">input</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-103"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-95" class="ident">eobError</a></code></span>
+<span class="codeline" id="line-104"><code>	}</code></span>
+<span class="codeline" id="line-105"><code>	<label for="r30" class="ident">first</label> := <label for="r26" class="ident">input</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-106"><code>	<label for="r27" class="ident">c</label> = <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r30" class="ident">first</label>)</code></span>
+<span class="codeline" id="line-107"><code>	<label for="r28" class="ident">remain</label> = <label for="r26" class="ident">input</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-108"><code>	<span class="keyword">if</span> <label for="r30" class="ident">first</label> &lt;= <span class="lit-number">0x7F</span> || (<label for="r30" class="ident">first</label> &gt; <span class="lit-number">0xA0</span> &amp;&amp; <label for="r30" class="ident">first</label> &lt;= <span class="lit-number">0xDF</span>) {</code></span>
+<span class="codeline" id="line-109"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-110"><code>	}</code></span>
+<span class="codeline" id="line-111"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r28" class="ident">remain</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-112"><code>		<span class="keyword">return</span> <label for="r27" class="ident">c</label>, <label for="r28" class="ident">remain</label>, <a href="#line-96" class="ident">badCharError</a></code></span>
+<span class="codeline" id="line-113"><code>	}</code></span>
+<span class="codeline" id="line-114"><code>	<label for="r31" class="ident">second</label> := <label for="r28" class="ident">remain</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-115"><code>	<label for="r28" class="ident">remain</label> = <label for="r28" class="ident">remain</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-116"><code>	<label for="r27" class="ident">c</label> = <label for="r27" class="ident">c</label>&lt;&lt;<span class="lit-number">8</span> | <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r31" class="ident">second</label>)</code></span>
+<span class="codeline" id="line-117"><code>	<span class="keyword">if</span> (<label for="r31" class="ident">second</label> &gt;= <span class="lit-number">0x40</span> &amp;&amp; <label for="r31" class="ident">second</label> &lt;= <span class="lit-number">0x7F</span>) || (<label for="r31" class="ident">second</label> &gt;= <span class="lit-number">0x80</span> &amp;&amp; <label for="r31" class="ident">second</label> &lt;= <span class="lit-number">0xFE</span>) {</code></span>
+<span class="codeline" id="line-118"><code>	} <span class="keyword">else</span> {</code></span>
+<span class="codeline" id="line-119"><code>		<label for="r29" class="ident">err</label> = <a href="#line-96" class="ident">badCharError</a></code></span>
+<span class="codeline" id="line-120"><code>	}</code></span>
+<span class="codeline" id="line-121"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-122"><code>}</code></span>
+<span class="codeline" id="line-123"><code></code></span>
+<span class="codeline" id="line-124"><code><span class="keyword">var</span> <a href="../../../../pkg/github.com/gogs/chardet.html#name-commonChars_sjis" class="ident">commonChars_sjis</a> = []<a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>{</code></span>
+<span class="codeline" id="line-125"><code>	<span class="lit-number">0x8140</span>, <span class="lit-number">0x8141</span>, <span class="lit-number">0x8142</span>, <span class="lit-number">0x8145</span>, <span class="lit-number">0x815b</span>, <span class="lit-number">0x8169</span>, <span class="lit-number">0x816a</span>, <span class="lit-number">0x8175</span>, <span class="lit-number">0x8176</span>, <span class="lit-number">0x82a0</span>,</code></span>
+<span class="codeline" id="line-126"><code>	<span class="lit-number">0x82a2</span>, <span class="lit-number">0x82a4</span>, <span class="lit-number">0x82a9</span>, <span class="lit-number">0x82aa</span>, <span class="lit-number">0x82ab</span>, <span class="lit-number">0x82ad</span>, <span class="lit-number">0x82af</span>, <span class="lit-number">0x82b1</span>, <span class="lit-number">0x82b3</span>, <span class="lit-number">0x82b5</span>,</code></span>
+<span class="codeline" id="line-127"><code>	<span class="lit-number">0x82b7</span>, <span class="lit-number">0x82bd</span>, <span class="lit-number">0x82be</span>, <span class="lit-number">0x82c1</span>, <span class="lit-number">0x82c4</span>, <span class="lit-number">0x82c5</span>, <span class="lit-number">0x82c6</span>, <span class="lit-number">0x82c8</span>, <span class="lit-number">0x82c9</span>, <span class="lit-number">0x82cc</span>,</code></span>
+<span class="codeline" id="line-128"><code>	<span class="lit-number">0x82cd</span>, <span class="lit-number">0x82dc</span>, <span class="lit-number">0x82e0</span>, <span class="lit-number">0x82e7</span>, <span class="lit-number">0x82e8</span>, <span class="lit-number">0x82e9</span>, <span class="lit-number">0x82ea</span>, <span class="lit-number">0x82f0</span>, <span class="lit-number">0x82f1</span>, <span class="lit-number">0x8341</span>,</code></span>
+<span class="codeline" id="line-129"><code>	<span class="lit-number">0x8343</span>, <span class="lit-number">0x834e</span>, <span class="lit-number">0x834f</span>, <span class="lit-number">0x8358</span>, <span class="lit-number">0x835e</span>, <span class="lit-number">0x8362</span>, <span class="lit-number">0x8367</span>, <span class="lit-number">0x8375</span>, <span class="lit-number">0x8376</span>, <span class="lit-number">0x8389</span>,</code></span>
+<span class="codeline" id="line-130"><code>	<span class="lit-number">0x838a</span>, <span class="lit-number">0x838b</span>, <span class="lit-number">0x838d</span>, <span class="lit-number">0x8393</span>, <span class="lit-number">0x8e96</span>, <span class="lit-number">0x93fa</span>, <span class="lit-number">0x95aa</span>,</code></span>
+<span class="codeline" id="line-131"><code>}</code></span>
+<span class="codeline" id="line-132"><code></code></span>
+<span class="codeline" id="line-133"><code><span class="keyword">func</span> <label for="r32" class="ident"><a href="../../../../pkg/github.com/gogs/chardet.html#name-newRecognizer_sjis" class="ident">newRecognizer_sjis</a></label>() *<a href="#line-8" class="ident">recognizerMultiByte</a> {</code></span>
+<span class="codeline" id="line-134"><code>	<span class="keyword">return</span> &amp;<a href="#line-8" class="ident">recognizerMultiByte</a>{</code></span>
+<span class="codeline" id="line-135"><code>		<span class="lit-string">"Shift_JIS"</span>,</code></span>
+<span class="codeline" id="line-136"><code>		<span class="lit-string">"ja"</span>,</code></span>
+<span class="codeline" id="line-137"><code>		<a href="#line-98" class="ident">charDecoder_sjis</a>{},</code></span>
+<span class="codeline" id="line-138"><code>		<a href="#line-124" class="ident">commonChars_sjis</a>,</code></span>
+<span class="codeline" id="line-139"><code>	}</code></span>
+<span class="codeline" id="line-140"><code>}</code></span>
+<span class="codeline" id="line-141"><code></code></span>
+<span class="codeline" id="line-142"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/gogs/chardet.html#name-charDecoder_euc" class="ident">charDecoder_euc</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-143"><code>}</code></span>
+<span class="codeline" id="line-144"><code></code></span>
+<span class="codeline" id="line-145"><code><span class="keyword">func</span> (<a href="#line-142" class="ident">charDecoder_euc</a>) <label for="r33" class="ident"><a href="../../../../imp/github.com/gogs/chardet.charDecoder_euc^fd5f4.html#name-.DecodeOneChar" class="ident">DecodeOneChar</a></label>(<label for="r34" class="ident">input</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r35" class="ident">c</label> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>, <label for="r36" class="ident">remain</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r37" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-146"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r34" class="ident">input</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-147"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-95" class="ident">eobError</a></code></span>
+<span class="codeline" id="line-148"><code>	}</code></span>
+<span class="codeline" id="line-149"><code>	<label for="r38" class="ident">first</label> := <label for="r34" class="ident">input</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-150"><code>	<label for="r36" class="ident">remain</label> = <label for="r34" class="ident">input</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-151"><code>	<label for="r35" class="ident">c</label> = <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r38" class="ident">first</label>)</code></span>
+<span class="codeline" id="line-152"><code>	<span class="keyword">if</span> <label for="r38" class="ident">first</label> &lt;= <span class="lit-number">0x8D</span> {</code></span>
+<span class="codeline" id="line-153"><code>		<span class="keyword">return</span> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r38" class="ident">first</label>), <label for="r36" class="ident">remain</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
+<span class="codeline" id="line-154"><code>	}</code></span>
+<span class="codeline" id="line-155"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r36" class="ident">remain</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-156"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-95" class="ident">eobError</a></code></span>
+<span class="codeline" id="line-157"><code>	}</code></span>
+<span class="codeline" id="line-158"><code>	<label for="r39" class="ident">second</label> := <label for="r36" class="ident">remain</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-159"><code>	<label for="r36" class="ident">remain</label> = <label for="r36" class="ident">remain</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-160"><code>	<label for="r35" class="ident">c</label> = <label for="r35" class="ident">c</label>&lt;&lt;<span class="lit-number">8</span> | <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r39" class="ident">second</label>)</code></span>
+<span class="codeline" id="line-161"><code>	<span class="keyword">if</span> <label for="r38" class="ident">first</label> &gt;= <span class="lit-number">0xA1</span> &amp;&amp; <label for="r38" class="ident">first</label> &lt;= <span class="lit-number">0xFE</span> {</code></span>
+<span class="codeline" id="line-162"><code>		<span class="keyword">if</span> <label for="r39" class="ident">second</label> &lt; <span class="lit-number">0xA1</span> {</code></span>
+<span class="codeline" id="line-163"><code>			<label for="r37" class="ident">err</label> = <a href="#line-96" class="ident">badCharError</a></code></span>
+<span class="codeline" id="line-164"><code>		}</code></span>
+<span class="codeline" id="line-165"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-166"><code>	}</code></span>
+<span class="codeline" id="line-167"><code>	<span class="keyword">if</span> <label for="r38" class="ident">first</label> == <span class="lit-number">0x8E</span> {</code></span>
+<span class="codeline" id="line-168"><code>		<span class="keyword">if</span> <label for="r39" class="ident">second</label> &lt; <span class="lit-number">0xA1</span> {</code></span>
+<span class="codeline" id="line-169"><code>			<label for="r37" class="ident">err</label> = <a href="#line-96" class="ident">badCharError</a></code></span>
+<span class="codeline" id="line-170"><code>		}</code></span>
+<span class="codeline" id="line-171"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-172"><code>	}</code></span>
+<span class="codeline" id="line-173"><code>	<span class="keyword">if</span> <label for="r38" class="ident">first</label> == <span class="lit-number">0x8F</span> {</code></span>
+<span class="codeline" id="line-174"><code>		<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r36" class="ident">remain</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-175"><code>			<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-95" class="ident">eobError</a></code></span>
+<span class="codeline" id="line-176"><code>		}</code></span>
+<span class="codeline" id="line-177"><code>		<label for="r40" class="ident">third</label> := <label for="r36" class="ident">remain</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-178"><code>		<label for="r36" class="ident">remain</label> = <label for="r36" class="ident">remain</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-179"><code>		<label for="r35" class="ident">c</label> = <label for="r35" class="ident">c</label>&lt;&lt;<span class="lit-number">0</span> | <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r40" class="ident">third</label>)</code></span>
+<span class="codeline" id="line-180"><code>		<span class="keyword">if</span> <label for="r40" class="ident">third</label> &lt; <span class="lit-number">0xa1</span> {</code></span>
+<span class="codeline" id="line-181"><code>			<label for="r37" class="ident">err</label> = <a href="#line-96" class="ident">badCharError</a></code></span>
+<span class="codeline" id="line-182"><code>		}</code></span>
+<span class="codeline" id="line-183"><code>	}</code></span>
+<span class="codeline" id="line-184"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-185"><code>}</code></span>
+<span class="codeline" id="line-186"><code></code></span>
+<span class="codeline" id="line-187"><code><span class="keyword">var</span> <a href="../../../../pkg/github.com/gogs/chardet.html#name-commonChars_euc_jp" class="ident">commonChars_euc_jp</a> = []<a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>{</code></span>
+<span class="codeline" id="line-188"><code>	<span class="lit-number">0xa1a1</span>, <span class="lit-number">0xa1a2</span>, <span class="lit-number">0xa1a3</span>, <span class="lit-number">0xa1a6</span>, <span class="lit-number">0xa1bc</span>, <span class="lit-number">0xa1ca</span>, <span class="lit-number">0xa1cb</span>, <span class="lit-number">0xa1d6</span>, <span class="lit-number">0xa1d7</span>, <span class="lit-number">0xa4a2</span>,</code></span>
+<span class="codeline" id="line-189"><code>	<span class="lit-number">0xa4a4</span>, <span class="lit-number">0xa4a6</span>, <span class="lit-number">0xa4a8</span>, <span class="lit-number">0xa4aa</span>, <span class="lit-number">0xa4ab</span>, <span class="lit-number">0xa4ac</span>, <span class="lit-number">0xa4ad</span>, <span class="lit-number">0xa4af</span>, <span class="lit-number">0xa4b1</span>, <span class="lit-number">0xa4b3</span>,</code></span>
+<span class="codeline" id="line-190"><code>	<span class="lit-number">0xa4b5</span>, <span class="lit-number">0xa4b7</span>, <span class="lit-number">0xa4b9</span>, <span class="lit-number">0xa4bb</span>, <span class="lit-number">0xa4bd</span>, <span class="lit-number">0xa4bf</span>, <span class="lit-number">0xa4c0</span>, <span class="lit-number">0xa4c1</span>, <span class="lit-number">0xa4c3</span>, <span class="lit-number">0xa4c4</span>,</code></span>
+<span class="codeline" id="line-191"><code>	<span class="lit-number">0xa4c6</span>, <span class="lit-number">0xa4c7</span>, <span class="lit-number">0xa4c8</span>, <span class="lit-number">0xa4c9</span>, <span class="lit-number">0xa4ca</span>, <span class="lit-number">0xa4cb</span>, <span class="lit-number">0xa4ce</span>, <span class="lit-number">0xa4cf</span>, <span class="lit-number">0xa4d0</span>, <span class="lit-number">0xa4de</span>,</code></span>
+<span class="codeline" id="line-192"><code>	<span class="lit-number">0xa4df</span>, <span class="lit-number">0xa4e1</span>, <span class="lit-number">0xa4e2</span>, <span class="lit-number">0xa4e4</span>, <span class="lit-number">0xa4e8</span>, <span class="lit-number">0xa4e9</span>, <span class="lit-number">0xa4ea</span>, <span class="lit-number">0xa4eb</span>, <span class="lit-number">0xa4ec</span>, <span class="lit-number">0xa4ef</span>,</code></span>
+<span class="codeline" id="line-193"><code>	<span class="lit-number">0xa4f2</span>, <span class="lit-number">0xa4f3</span>, <span class="lit-number">0xa5a2</span>, <span class="lit-number">0xa5a3</span>, <span class="lit-number">0xa5a4</span>, <span class="lit-number">0xa5a6</span>, <span class="lit-number">0xa5a7</span>, <span class="lit-number">0xa5aa</span>, <span class="lit-number">0xa5ad</span>, <span class="lit-number">0xa5af</span>,</code></span>
+<span class="codeline" id="line-194"><code>	<span class="lit-number">0xa5b0</span>, <span class="lit-number">0xa5b3</span>, <span class="lit-number">0xa5b5</span>, <span class="lit-number">0xa5b7</span>, <span class="lit-number">0xa5b8</span>, <span class="lit-number">0xa5b9</span>, <span class="lit-number">0xa5bf</span>, <span class="lit-number">0xa5c3</span>, <span class="lit-number">0xa5c6</span>, <span class="lit-number">0xa5c7</span>,</code></span>
+<span class="codeline" id="line-195"><code>	<span class="lit-number">0xa5c8</span>, <span class="lit-number">0xa5c9</span>, <span class="lit-number">0xa5cb</span>, <span class="lit-number">0xa5d0</span>, <span class="lit-number">0xa5d5</span>, <span class="lit-number">0xa5d6</span>, <span class="lit-number">0xa5d7</span>, <span class="lit-number">0xa5de</span>, <span class="lit-number">0xa5e0</span>, <span class="lit-number">0xa5e1</span>,</code></span>
+<span class="codeline" id="line-196"><code>	<span class="lit-number">0xa5e5</span>, <span class="lit-number">0xa5e9</span>, <span class="lit-number">0xa5ea</span>, <span class="lit-number">0xa5eb</span>, <span class="lit-number">0xa5ec</span>, <span class="lit-number">0xa5ed</span>, <span class="lit-number">0xa5f3</span>, <span class="lit-number">0xb8a9</span>, <span class="lit-number">0xb9d4</span>, <span class="lit-number">0xbaee</span>,</code></span>
+<span class="codeline" id="line-197"><code>	<span class="lit-number">0xbbc8</span>, <span class="lit-number">0xbef0</span>, <span class="lit-number">0xbfb7</span>, <span class="lit-number">0xc4ea</span>, <span class="lit-number">0xc6fc</span>, <span class="lit-number">0xc7bd</span>, <span class="lit-number">0xcab8</span>, <span class="lit-number">0xcaf3</span>, <span class="lit-number">0xcbdc</span>, <span class="lit-number">0xcdd1</span>,</code></span>
+<span class="codeline" id="line-198"><code>}</code></span>
+<span class="codeline" id="line-199"><code></code></span>
+<span class="codeline" id="line-200"><code><span class="keyword">var</span> <a href="../../../../pkg/github.com/gogs/chardet.html#name-commonChars_euc_kr" class="ident">commonChars_euc_kr</a> = []<a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>{</code></span>
+<span class="codeline" id="line-201"><code>	<span class="lit-number">0xb0a1</span>, <span class="lit-number">0xb0b3</span>, <span class="lit-number">0xb0c5</span>, <span class="lit-number">0xb0cd</span>, <span class="lit-number">0xb0d4</span>, <span class="lit-number">0xb0e6</span>, <span class="lit-number">0xb0ed</span>, <span class="lit-number">0xb0f8</span>, <span class="lit-number">0xb0fa</span>, <span class="lit-number">0xb0fc</span>,</code></span>
+<span class="codeline" id="line-202"><code>	<span class="lit-number">0xb1b8</span>, <span class="lit-number">0xb1b9</span>, <span class="lit-number">0xb1c7</span>, <span class="lit-number">0xb1d7</span>, <span class="lit-number">0xb1e2</span>, <span class="lit-number">0xb3aa</span>, <span class="lit-number">0xb3bb</span>, <span class="lit-number">0xb4c2</span>, <span class="lit-number">0xb4cf</span>, <span class="lit-number">0xb4d9</span>,</code></span>
+<span class="codeline" id="line-203"><code>	<span class="lit-number">0xb4eb</span>, <span class="lit-number">0xb5a5</span>, <span class="lit-number">0xb5b5</span>, <span class="lit-number">0xb5bf</span>, <span class="lit-number">0xb5c7</span>, <span class="lit-number">0xb5e9</span>, <span class="lit-number">0xb6f3</span>, <span class="lit-number">0xb7af</span>, <span class="lit-number">0xb7c2</span>, <span class="lit-number">0xb7ce</span>,</code></span>
+<span class="codeline" id="line-204"><code>	<span class="lit-number">0xb8a6</span>, <span class="lit-number">0xb8ae</span>, <span class="lit-number">0xb8b6</span>, <span class="lit-number">0xb8b8</span>, <span class="lit-number">0xb8bb</span>, <span class="lit-number">0xb8e9</span>, <span class="lit-number">0xb9ab</span>, <span class="lit-number">0xb9ae</span>, <span class="lit-number">0xb9cc</span>, <span class="lit-number">0xb9ce</span>,</code></span>
+<span class="codeline" id="line-205"><code>	<span class="lit-number">0xb9fd</span>, <span class="lit-number">0xbab8</span>, <span class="lit-number">0xbace</span>, <span class="lit-number">0xbad0</span>, <span class="lit-number">0xbaf1</span>, <span class="lit-number">0xbbe7</span>, <span class="lit-number">0xbbf3</span>, <span class="lit-number">0xbbfd</span>, <span class="lit-number">0xbcad</span>, <span class="lit-number">0xbcba</span>,</code></span>
+<span class="codeline" id="line-206"><code>	<span class="lit-number">0xbcd2</span>, <span class="lit-number">0xbcf6</span>, <span class="lit-number">0xbdba</span>, <span class="lit-number">0xbdc0</span>, <span class="lit-number">0xbdc3</span>, <span class="lit-number">0xbdc5</span>, <span class="lit-number">0xbec6</span>, <span class="lit-number">0xbec8</span>, <span class="lit-number">0xbedf</span>, <span class="lit-number">0xbeee</span>,</code></span>
+<span class="codeline" id="line-207"><code>	<span class="lit-number">0xbef8</span>, <span class="lit-number">0xbefa</span>, <span class="lit-number">0xbfa1</span>, <span class="lit-number">0xbfa9</span>, <span class="lit-number">0xbfc0</span>, <span class="lit-number">0xbfe4</span>, <span class="lit-number">0xbfeb</span>, <span class="lit-number">0xbfec</span>, <span class="lit-number">0xbff8</span>, <span class="lit-number">0xc0a7</span>,</code></span>
+<span class="codeline" id="line-208"><code>	<span class="lit-number">0xc0af</span>, <span class="lit-number">0xc0b8</span>, <span class="lit-number">0xc0ba</span>, <span class="lit-number">0xc0bb</span>, <span class="lit-number">0xc0bd</span>, <span class="lit-number">0xc0c7</span>, <span class="lit-number">0xc0cc</span>, <span class="lit-number">0xc0ce</span>, <span class="lit-number">0xc0cf</span>, <span class="lit-number">0xc0d6</span>,</code></span>
+<span class="codeline" id="line-209"><code>	<span class="lit-number">0xc0da</span>, <span class="lit-number">0xc0e5</span>, <span class="lit-number">0xc0fb</span>, <span class="lit-number">0xc0fc</span>, <span class="lit-number">0xc1a4</span>, <span class="lit-number">0xc1a6</span>, <span class="lit-number">0xc1b6</span>, <span class="lit-number">0xc1d6</span>, <span class="lit-number">0xc1df</span>, <span class="lit-number">0xc1f6</span>,</code></span>
+<span class="codeline" id="line-210"><code>	<span class="lit-number">0xc1f8</span>, <span class="lit-number">0xc4a1</span>, <span class="lit-number">0xc5cd</span>, <span class="lit-number">0xc6ae</span>, <span class="lit-number">0xc7cf</span>, <span class="lit-number">0xc7d1</span>, <span class="lit-number">0xc7d2</span>, <span class="lit-number">0xc7d8</span>, <span class="lit-number">0xc7e5</span>, <span class="lit-number">0xc8ad</span>,</code></span>
+<span class="codeline" id="line-211"><code>}</code></span>
+<span class="codeline" id="line-212"><code></code></span>
+<span class="codeline" id="line-213"><code><span class="keyword">func</span> <label for="r41" class="ident"><a href="../../../../pkg/github.com/gogs/chardet.html#name-newRecognizer_euc_jp" class="ident">newRecognizer_euc_jp</a></label>() *<a href="#line-8" class="ident">recognizerMultiByte</a> {</code></span>
+<span class="codeline" id="line-214"><code>	<span class="keyword">return</span> &amp;<a href="#line-8" class="ident">recognizerMultiByte</a>{</code></span>
+<span class="codeline" id="line-215"><code>		<span class="lit-string">"EUC-JP"</span>,</code></span>
+<span class="codeline" id="line-216"><code>		<span class="lit-string">"ja"</span>,</code></span>
+<span class="codeline" id="line-217"><code>		<a href="#line-142" class="ident">charDecoder_euc</a>{},</code></span>
+<span class="codeline" id="line-218"><code>		<a href="#line-187" class="ident">commonChars_euc_jp</a>,</code></span>
+<span class="codeline" id="line-219"><code>	}</code></span>
+<span class="codeline" id="line-220"><code>}</code></span>
+<span class="codeline" id="line-221"><code></code></span>
+<span class="codeline" id="line-222"><code><span class="keyword">func</span> <label for="r42" class="ident"><a href="../../../../pkg/github.com/gogs/chardet.html#name-newRecognizer_euc_kr" class="ident">newRecognizer_euc_kr</a></label>() *<a href="#line-8" class="ident">recognizerMultiByte</a> {</code></span>
+<span class="codeline" id="line-223"><code>	<span class="keyword">return</span> &amp;<a href="#line-8" class="ident">recognizerMultiByte</a>{</code></span>
+<span class="codeline" id="line-224"><code>		<span class="lit-string">"EUC-KR"</span>,</code></span>
+<span class="codeline" id="line-225"><code>		<span class="lit-string">"ko"</span>,</code></span>
+<span class="codeline" id="line-226"><code>		<a href="#line-142" class="ident">charDecoder_euc</a>{},</code></span>
+<span class="codeline" id="line-227"><code>		<a href="#line-200" class="ident">commonChars_euc_kr</a>,</code></span>
+<span class="codeline" id="line-228"><code>	}</code></span>
+<span class="codeline" id="line-229"><code>}</code></span>
+<span class="codeline" id="line-230"><code></code></span>
+<span class="codeline" id="line-231"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/gogs/chardet.html#name-charDecoder_big5" class="ident">charDecoder_big5</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-232"><code>}</code></span>
+<span class="codeline" id="line-233"><code></code></span>
+<span class="codeline" id="line-234"><code><span class="keyword">func</span> (<a href="#line-231" class="ident">charDecoder_big5</a>) <label for="r43" class="ident"><a href="../../../../imp/github.com/gogs/chardet.charDecoder_big5^7c14b.html#name-.DecodeOneChar" class="ident">DecodeOneChar</a></label>(<label for="r44" class="ident">input</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r45" class="ident">c</label> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>, <label for="r46" class="ident">remain</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r47" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-235"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r44" class="ident">input</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-236"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-95" class="ident">eobError</a></code></span>
+<span class="codeline" id="line-237"><code>	}</code></span>
+<span class="codeline" id="line-238"><code>	<label for="r48" class="ident">first</label> := <label for="r44" class="ident">input</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-239"><code>	<label for="r46" class="ident">remain</label> = <label for="r44" class="ident">input</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-240"><code>	<label for="r45" class="ident">c</label> = <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r48" class="ident">first</label>)</code></span>
+<span class="codeline" id="line-241"><code>	<span class="keyword">if</span> <label for="r48" class="ident">first</label> &lt;= <span class="lit-number">0x7F</span> || <label for="r48" class="ident">first</label> == <span class="lit-number">0xFF</span> {</code></span>
+<span class="codeline" id="line-242"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-243"><code>	}</code></span>
+<span class="codeline" id="line-244"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r46" class="ident">remain</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-245"><code>		<span class="keyword">return</span> <label for="r45" class="ident">c</label>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-95" class="ident">eobError</a></code></span>
+<span class="codeline" id="line-246"><code>	}</code></span>
+<span class="codeline" id="line-247"><code>	<label for="r49" class="ident">second</label> := <label for="r46" class="ident">remain</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-248"><code>	<label for="r46" class="ident">remain</label> = <label for="r46" class="ident">remain</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-249"><code>	<label for="r45" class="ident">c</label> = <label for="r45" class="ident">c</label>&lt;&lt;<span class="lit-number">8</span> | <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r49" class="ident">second</label>)</code></span>
+<span class="codeline" id="line-250"><code>	<span class="keyword">if</span> <label for="r49" class="ident">second</label> &lt; <span class="lit-number">0x40</span> || <label for="r49" class="ident">second</label> == <span class="lit-number">0x7F</span> || <label for="r49" class="ident">second</label> == <span class="lit-number">0xFF</span> {</code></span>
+<span class="codeline" id="line-251"><code>		<label for="r47" class="ident">err</label> = <a href="#line-96" class="ident">badCharError</a></code></span>
+<span class="codeline" id="line-252"><code>	}</code></span>
+<span class="codeline" id="line-253"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-254"><code>}</code></span>
+<span class="codeline" id="line-255"><code></code></span>
+<span class="codeline" id="line-256"><code><span class="keyword">var</span> <a href="../../../../pkg/github.com/gogs/chardet.html#name-commonChars_big5" class="ident">commonChars_big5</a> = []<a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>{</code></span>
+<span class="codeline" id="line-257"><code>	<span class="lit-number">0xa140</span>, <span class="lit-number">0xa141</span>, <span class="lit-number">0xa142</span>, <span class="lit-number">0xa143</span>, <span class="lit-number">0xa147</span>, <span class="lit-number">0xa149</span>, <span class="lit-number">0xa175</span>, <span class="lit-number">0xa176</span>, <span class="lit-number">0xa440</span>, <span class="lit-number">0xa446</span>,</code></span>
+<span class="codeline" id="line-258"><code>	<span class="lit-number">0xa447</span>, <span class="lit-number">0xa448</span>, <span class="lit-number">0xa451</span>, <span class="lit-number">0xa454</span>, <span class="lit-number">0xa457</span>, <span class="lit-number">0xa464</span>, <span class="lit-number">0xa46a</span>, <span class="lit-number">0xa46c</span>, <span class="lit-number">0xa477</span>, <span class="lit-number">0xa4a3</span>,</code></span>
+<span class="codeline" id="line-259"><code>	<span class="lit-number">0xa4a4</span>, <span class="lit-number">0xa4a7</span>, <span class="lit-number">0xa4c1</span>, <span class="lit-number">0xa4ce</span>, <span class="lit-number">0xa4d1</span>, <span class="lit-number">0xa4df</span>, <span class="lit-number">0xa4e8</span>, <span class="lit-number">0xa4fd</span>, <span class="lit-number">0xa540</span>, <span class="lit-number">0xa548</span>,</code></span>
+<span class="codeline" id="line-260"><code>	<span class="lit-number">0xa558</span>, <span class="lit-number">0xa569</span>, <span class="lit-number">0xa5cd</span>, <span class="lit-number">0xa5e7</span>, <span class="lit-number">0xa657</span>, <span class="lit-number">0xa661</span>, <span class="lit-number">0xa662</span>, <span class="lit-number">0xa668</span>, <span class="lit-number">0xa670</span>, <span class="lit-number">0xa6a8</span>,</code></span>
+<span class="codeline" id="line-261"><code>	<span class="lit-number">0xa6b3</span>, <span class="lit-number">0xa6b9</span>, <span class="lit-number">0xa6d3</span>, <span class="lit-number">0xa6db</span>, <span class="lit-number">0xa6e6</span>, <span class="lit-number">0xa6f2</span>, <span class="lit-number">0xa740</span>, <span class="lit-number">0xa751</span>, <span class="lit-number">0xa759</span>, <span class="lit-number">0xa7da</span>,</code></span>
+<span class="codeline" id="line-262"><code>	<span class="lit-number">0xa8a3</span>, <span class="lit-number">0xa8a5</span>, <span class="lit-number">0xa8ad</span>, <span class="lit-number">0xa8d1</span>, <span class="lit-number">0xa8d3</span>, <span class="lit-number">0xa8e4</span>, <span class="lit-number">0xa8fc</span>, <span class="lit-number">0xa9c0</span>, <span class="lit-number">0xa9d2</span>, <span class="lit-number">0xa9f3</span>,</code></span>
+<span class="codeline" id="line-263"><code>	<span class="lit-number">0xaa6b</span>, <span class="lit-number">0xaaba</span>, <span class="lit-number">0xaabe</span>, <span class="lit-number">0xaacc</span>, <span class="lit-number">0xaafc</span>, <span class="lit-number">0xac47</span>, <span class="lit-number">0xac4f</span>, <span class="lit-number">0xacb0</span>, <span class="lit-number">0xacd2</span>, <span class="lit-number">0xad59</span>,</code></span>
+<span class="codeline" id="line-264"><code>	<span class="lit-number">0xaec9</span>, <span class="lit-number">0xafe0</span>, <span class="lit-number">0xb0ea</span>, <span class="lit-number">0xb16f</span>, <span class="lit-number">0xb2b3</span>, <span class="lit-number">0xb2c4</span>, <span class="lit-number">0xb36f</span>, <span class="lit-number">0xb44c</span>, <span class="lit-number">0xb44e</span>, <span class="lit-number">0xb54c</span>,</code></span>
+<span class="codeline" id="line-265"><code>	<span class="lit-number">0xb5a5</span>, <span class="lit-number">0xb5bd</span>, <span class="lit-number">0xb5d0</span>, <span class="lit-number">0xb5d8</span>, <span class="lit-number">0xb671</span>, <span class="lit-number">0xb7ed</span>, <span class="lit-number">0xb867</span>, <span class="lit-number">0xb944</span>, <span class="lit-number">0xbad8</span>, <span class="lit-number">0xbb44</span>,</code></span>
+<span class="codeline" id="line-266"><code>	<span class="lit-number">0xbba1</span>, <span class="lit-number">0xbdd1</span>, <span class="lit-number">0xc2c4</span>, <span class="lit-number">0xc3b9</span>, <span class="lit-number">0xc440</span>, <span class="lit-number">0xc45f</span>,</code></span>
+<span class="codeline" id="line-267"><code>}</code></span>
+<span class="codeline" id="line-268"><code></code></span>
+<span class="codeline" id="line-269"><code><span class="keyword">func</span> <label for="r50" class="ident"><a href="../../../../pkg/github.com/gogs/chardet.html#name-newRecognizer_big5" class="ident">newRecognizer_big5</a></label>() *<a href="#line-8" class="ident">recognizerMultiByte</a> {</code></span>
+<span class="codeline" id="line-270"><code>	<span class="keyword">return</span> &amp;<a href="#line-8" class="ident">recognizerMultiByte</a>{</code></span>
+<span class="codeline" id="line-271"><code>		<span class="lit-string">"Big5"</span>,</code></span>
+<span class="codeline" id="line-272"><code>		<span class="lit-string">"zh"</span>,</code></span>
+<span class="codeline" id="line-273"><code>		<a href="#line-231" class="ident">charDecoder_big5</a>{},</code></span>
+<span class="codeline" id="line-274"><code>		<a href="#line-256" class="ident">commonChars_big5</a>,</code></span>
+<span class="codeline" id="line-275"><code>	}</code></span>
+<span class="codeline" id="line-276"><code>}</code></span>
+<span class="codeline" id="line-277"><code></code></span>
+<span class="codeline" id="line-278"><code><span class="keyword">type</span> <a href="../../../../pkg/github.com/gogs/chardet.html#name-charDecoder_gb_18030" class="ident">charDecoder_gb_18030</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-279"><code>}</code></span>
+<span class="codeline" id="line-280"><code></code></span>
+<span class="codeline" id="line-281"><code><span class="keyword">func</span> (<a href="#line-278" class="ident">charDecoder_gb_18030</a>) <label for="r51" class="ident"><a href="../../../../imp/github.com/gogs/chardet.charDecoder_gb_18030^0ce67.html#name-.DecodeOneChar" class="ident">DecodeOneChar</a></label>(<label for="r52" class="ident">input</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r53" class="ident">c</label> <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>, <label for="r54" class="ident">remain</label> []<a href="../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r55" class="ident">err</label> <a href="../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-282"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r52" class="ident">input</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-283"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-95" class="ident">eobError</a></code></span>
+<span class="codeline" id="line-284"><code>	}</code></span>
+<span class="codeline" id="line-285"><code>	<label for="r56" class="ident">first</label> := <label for="r52" class="ident">input</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-286"><code>	<label for="r54" class="ident">remain</label> = <label for="r52" class="ident">input</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-287"><code>	<label for="r53" class="ident">c</label> = <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r56" class="ident">first</label>)</code></span>
+<span class="codeline" id="line-288"><code>	<span class="keyword">if</span> <label for="r56" class="ident">first</label> &lt;= <span class="lit-number">0x80</span> {</code></span>
+<span class="codeline" id="line-289"><code>		<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-290"><code>	}</code></span>
+<span class="codeline" id="line-291"><code>	<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r54" class="ident">remain</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-292"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-95" class="ident">eobError</a></code></span>
+<span class="codeline" id="line-293"><code>	}</code></span>
+<span class="codeline" id="line-294"><code>	<label for="r57" class="ident">second</label> := <label for="r54" class="ident">remain</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-295"><code>	<label for="r54" class="ident">remain</label> = <label for="r54" class="ident">remain</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-296"><code>	<label for="r53" class="ident">c</label> = <label for="r53" class="ident">c</label>&lt;&lt;<span class="lit-number">8</span> | <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r57" class="ident">second</label>)</code></span>
+<span class="codeline" id="line-297"><code>	<span class="keyword">if</span> <label for="r56" class="ident">first</label> &gt;= <span class="lit-number">0x81</span> &amp;&amp; <label for="r56" class="ident">first</label> &lt;= <span class="lit-number">0xFE</span> {</code></span>
+<span class="codeline" id="line-298"><code>		<span class="keyword">if</span> (<label for="r57" class="ident">second</label> &gt;= <span class="lit-number">0x40</span> &amp;&amp; <label for="r57" class="ident">second</label> &lt;= <span class="lit-number">0x7E</span>) || (<label for="r57" class="ident">second</label> &gt;= <span class="lit-number">0x80</span> &amp;&amp; <label for="r57" class="ident">second</label> &lt;= <span class="lit-number">0xFE</span>) {</code></span>
+<span class="codeline" id="line-299"><code>			<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-300"><code>		}</code></span>
+<span class="codeline" id="line-301"><code></code></span>
+<span class="codeline" id="line-302"><code>		<span class="keyword">if</span> <label for="r57" class="ident">second</label> &gt;= <span class="lit-number">0x30</span> &amp;&amp; <label for="r57" class="ident">second</label> &lt;= <span class="lit-number">0x39</span> {</code></span>
+<span class="codeline" id="line-303"><code>			<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r54" class="ident">remain</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-304"><code>				<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-95" class="ident">eobError</a></code></span>
+<span class="codeline" id="line-305"><code>			}</code></span>
+<span class="codeline" id="line-306"><code>			<label for="r58" class="ident">third</label> := <label for="r54" class="ident">remain</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-307"><code>			<label for="r54" class="ident">remain</label> = <label for="r54" class="ident">remain</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-308"><code>			<span class="keyword">if</span> <label for="r58" class="ident">third</label> &gt;= <span class="lit-number">0x81</span> &amp;&amp; <label for="r58" class="ident">third</label> &lt;= <span class="lit-number">0xFE</span> {</code></span>
+<span class="codeline" id="line-309"><code>				<span class="keyword">if</span> <a href="../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r54" class="ident">remain</label>) == <span class="lit-number">0</span> {</code></span>
+<span class="codeline" id="line-310"><code>					<span class="keyword">return</span> <span class="lit-number">0</span>, <a href="../../../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="#line-95" class="ident">eobError</a></code></span>
+<span class="codeline" id="line-311"><code>				}</code></span>
+<span class="codeline" id="line-312"><code>				<label for="r59" class="ident">fourth</label> := <label for="r54" class="ident">remain</label>[<span class="lit-number">0</span>]</code></span>
+<span class="codeline" id="line-313"><code>				<label for="r54" class="ident">remain</label> = <label for="r54" class="ident">remain</label>[<span class="lit-number">1</span>:]</code></span>
+<span class="codeline" id="line-314"><code>				<span class="keyword">if</span> <label for="r59" class="ident">fourth</label> &gt;= <span class="lit-number">0x30</span> &amp;&amp; <label for="r59" class="ident">fourth</label> &lt;= <span class="lit-number">0x39</span> {</code></span>
+<span class="codeline" id="line-315"><code>					<label for="r53" class="ident">c</label> = <label for="r53" class="ident">c</label>&lt;&lt;<span class="lit-number">16</span> | <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r58" class="ident">third</label>)&lt;&lt;<span class="lit-number">8</span> | <a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>(<label for="r59" class="ident">fourth</label>)</code></span>
+<span class="codeline" id="line-316"><code>					<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-317"><code>				}</code></span>
+<span class="codeline" id="line-318"><code>			}</code></span>
+<span class="codeline" id="line-319"><code>		}</code></span>
+<span class="codeline" id="line-320"><code>		<label for="r55" class="ident">err</label> = <a href="#line-96" class="ident">badCharError</a></code></span>
+<span class="codeline" id="line-321"><code>	}</code></span>
+<span class="codeline" id="line-322"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-323"><code>}</code></span>
+<span class="codeline" id="line-324"><code></code></span>
+<span class="codeline" id="line-325"><code><span class="keyword">var</span> <a href="../../../../pkg/github.com/gogs/chardet.html#name-commonChars_gb_18030" class="ident">commonChars_gb_18030</a> = []<a href="../../../../pkg/builtin.html#name-uint16" class="ident">uint16</a>{</code></span>
+<span class="codeline" id="line-326"><code>	<span class="lit-number">0xa1a1</span>, <span class="lit-number">0xa1a2</span>, <span class="lit-number">0xa1a3</span>, <span class="lit-number">0xa1a4</span>, <span class="lit-number">0xa1b0</span>, <span class="lit-number">0xa1b1</span>, <span class="lit-number">0xa1f1</span>, <span class="lit-number">0xa1f3</span>, <span class="lit-number">0xa3a1</span>, <span class="lit-number">0xa3ac</span>,</code></span>
+<span class="codeline" id="line-327"><code>	<span class="lit-number">0xa3ba</span>, <span class="lit-number">0xb1a8</span>, <span class="lit-number">0xb1b8</span>, <span class="lit-number">0xb1be</span>, <span class="lit-number">0xb2bb</span>, <span class="lit-number">0xb3c9</span>, <span class="lit-number">0xb3f6</span>, <span class="lit-number">0xb4f3</span>, <span class="lit-number">0xb5bd</span>, <span class="lit-number">0xb5c4</span>,</code></span>
+<span class="codeline" id="line-328"><code>	<span class="lit-number">0xb5e3</span>, <span class="lit-number">0xb6af</span>, <span class="lit-number">0xb6d4</span>, <span class="lit-number">0xb6e0</span>, <span class="lit-number">0xb7a2</span>, <span class="lit-number">0xb7a8</span>, <span class="lit-number">0xb7bd</span>, <span class="lit-number">0xb7d6</span>, <span class="lit-number">0xb7dd</span>, <span class="lit-number">0xb8b4</span>,</code></span>
+<span class="codeline" id="line-329"><code>	<span class="lit-number">0xb8df</span>, <span class="lit-number">0xb8f6</span>, <span class="lit-number">0xb9ab</span>, <span class="lit-number">0xb9c9</span>, <span class="lit-number">0xb9d8</span>, <span class="lit-number">0xb9fa</span>, <span class="lit-number">0xb9fd</span>, <span class="lit-number">0xbacd</span>, <span class="lit-number">0xbba7</span>, <span class="lit-number">0xbbd6</span>,</code></span>
+<span class="codeline" id="line-330"><code>	<span class="lit-number">0xbbe1</span>, <span class="lit-number">0xbbfa</span>, <span class="lit-number">0xbcbc</span>, <span class="lit-number">0xbcdb</span>, <span class="lit-number">0xbcfe</span>, <span class="lit-number">0xbdcc</span>, <span class="lit-number">0xbecd</span>, <span class="lit-number">0xbedd</span>, <span class="lit-number">0xbfb4</span>, <span class="lit-number">0xbfc6</span>,</code></span>
+<span class="codeline" id="line-331"><code>	<span class="lit-number">0xbfc9</span>, <span class="lit-number">0xc0b4</span>, <span class="lit-number">0xc0ed</span>, <span class="lit-number">0xc1cb</span>, <span class="lit-number">0xc2db</span>, <span class="lit-number">0xc3c7</span>, <span class="lit-number">0xc4dc</span>, <span class="lit-number">0xc4ea</span>, <span class="lit-number">0xc5cc</span>, <span class="lit-number">0xc6f7</span>,</code></span>
+<span class="codeline" id="line-332"><code>	<span class="lit-number">0xc7f8</span>, <span class="lit-number">0xc8ab</span>, <span class="lit-number">0xc8cb</span>, <span class="lit-number">0xc8d5</span>, <span class="lit-number">0xc8e7</span>, <span class="lit-number">0xc9cf</span>, <span class="lit-number">0xc9fa</span>, <span class="lit-number">0xcab1</span>, <span class="lit-number">0xcab5</span>, <span class="lit-number">0xcac7</span>,</code></span>
+<span class="codeline" id="line-333"><code>	<span class="lit-number">0xcad0</span>, <span class="lit-number">0xcad6</span>, <span class="lit-number">0xcaf5</span>, <span class="lit-number">0xcafd</span>, <span class="lit-number">0xccec</span>, <span class="lit-number">0xcdf8</span>, <span class="lit-number">0xceaa</span>, <span class="lit-number">0xcec4</span>, <span class="lit-number">0xced2</span>, <span class="lit-number">0xcee5</span>,</code></span>
+<span class="codeline" id="line-334"><code>	<span class="lit-number">0xcfb5</span>, <span class="lit-number">0xcfc2</span>, <span class="lit-number">0xcfd6</span>, <span class="lit-number">0xd0c2</span>, <span class="lit-number">0xd0c5</span>, <span class="lit-number">0xd0d0</span>, <span class="lit-number">0xd0d4</span>, <span class="lit-number">0xd1a7</span>, <span class="lit-number">0xd2aa</span>, <span class="lit-number">0xd2b2</span>,</code></span>
+<span class="codeline" id="line-335"><code>	<span class="lit-number">0xd2b5</span>, <span class="lit-number">0xd2bb</span>, <span class="lit-number">0xd2d4</span>, <span class="lit-number">0xd3c3</span>, <span class="lit-number">0xd3d0</span>, <span class="lit-number">0xd3fd</span>, <span class="lit-number">0xd4c2</span>, <span class="lit-number">0xd4da</span>, <span class="lit-number">0xd5e2</span>, <span class="lit-number">0xd6d0</span>,</code></span>
+<span class="codeline" id="line-336"><code>}</code></span>
+<span class="codeline" id="line-337"><code></code></span>
+<span class="codeline" id="line-338"><code><span class="keyword">func</span> <label for="r60" class="ident"><a href="../../../../pkg/github.com/gogs/chardet.html#name-newRecognizer_gb_18030" class="ident">newRecognizer_gb_18030</a></label>() *<a href="#line-8" class="ident">recognizerMultiByte</a> {</code></span>
+<span class="codeline" id="line-339"><code>	<span class="keyword">return</span> &amp;<a href="#line-8" class="ident">recognizerMultiByte</a>{</code></span>
+<span class="codeline" id="line-340"><code>		<span class="lit-string">"GB18030"</span>,</code></span>
+<span class="codeline" id="line-341"><code>		<span class="lit-string">"zh"</span>,</code></span>
+<span class="codeline" id="line-342"><code>		<a href="#line-278" class="ident">charDecoder_gb_18030</a>{},</code></span>
+<span class="codeline" id="line-343"><code>		<a href="#line-325" class="ident">commonChars_gb_18030</a>,</code></span>
+<span class="codeline" id="line-344"><code>	}</code></span>
+<span class="codeline" id="line-345"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.4.1</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

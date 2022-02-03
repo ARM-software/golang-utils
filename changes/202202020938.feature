@@ -1,1 +1,0 @@
-Ability to detect the charset of a string using a similar algorithm to [ICU](https://icu.unicode.org/)

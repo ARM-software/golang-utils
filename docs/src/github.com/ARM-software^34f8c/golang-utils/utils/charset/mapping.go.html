@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: mapping.go in package github.com/ARM-software/golang-utils/utils/charset</title>
+<link href="../../../../../../css/light-v0.4.1.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.4.1.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	mapping.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/charset.html">github.com/ARM-software/golang-utils/utils/charset</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<div class="anchor" id="doc"><span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * SPDX-License-Identifier: Apache-2.0</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> */</span></code></span></div><span class="codeline" id="line-5"><code><span class="keyword">package</span> charset</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"fmt"</span></label></code></span>
+<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"strings"</span></label></code></span>
+<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"sync"</span></label></code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i3"><span class="lit-string i3">"github.com/ARM-software/golang-utils/utils/commonerrors"</span></label></code></span>
+<span class="codeline" id="line-13"><code>)</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="keyword">var</span> (</code></span>
+<span class="codeline" id="line-16"><code>	<a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/charset.html#name-mapping" class="ident">mapping</a>     <a href="#line-24" class="ident">charsetEncodingMapping</a></code></span>
+<span class="codeline" id="line-17"><code>	<a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/charset.html#name-mappingOnce" class="ident">mappingOnce</a> <a href="../../../../../../pkg/sync.html" class="ident i2">sync</a>.<a href="../../../../../sync/once.go.html#line-14" class="ident">Once</a></code></span>
+<span class="codeline" id="line-18"><code>)</code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/charset.html#name-ICharsetEncodingMapping" class="ident">ICharsetEncodingMapping</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-21"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/charset.ICharsetEncodingMapping.html#name-GetCanonicalName" class="ident">GetCanonicalName</a>(alias <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-22"><code>}</code></span>
+<span class="codeline" id="line-23"><code></code></span>
+<span class="codeline" id="line-24"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/charset.html#name-charsetEncodingMapping" class="ident">charsetEncodingMapping</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-25"><code>	mapping <span class="keyword">map</span>[<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-26"><code>}</code></span>
+<span class="codeline" id="line-27"><code></code></span>
+<span class="codeline" id="line-28"><code><span class="keyword">func</span> (<label for="r0" class="ident">m</label> *<a href="#line-24" class="ident">charsetEncodingMapping</a>) <label for="r1" class="ident"><a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/charset.charsetEncodingMapping^4d162.html#name-.GetCanonicalName" class="ident">GetCanonicalName</a></label>(<label for="r2" class="ident">alias</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r3" class="ident">name</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r4" class="ident">err</label> <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-29"><code>	<label for="r3" class="ident">name</label>, <label for="r5" class="ident">found</label> := <label for="r0" class="ident">m</label>.<a href="#line-25" class="ident">mapping</a>[<a href="../../../../../../pkg/strings.html" class="ident i1">strings</a>.<a href="../../../../../strings/strings.go.html#line-580" class="ident">ToLower</a>(<a href="../../../../../../pkg/strings.html" class="ident i1">strings</a>.<a href="../../../../../strings/strings.go.html#line-867" class="ident">TrimSpace</a>(<label for="r2" class="ident">alias</label>))]</code></span>
+<span class="codeline" id="line-30"><code>	<span class="keyword">if</span> !<label for="r5" class="ident">found</label> {</code></span>
+<span class="codeline" id="line-31"><code>		<label for="r4" class="ident">err</label> = <a href="../../../../../../pkg/fmt.html" class="ident i0">fmt</a>.<a href="../../../../../fmt/errors.go.html#line-17" class="ident">Errorf</a>(<span class="lit-string">"%w: charset alias [%v] was not found in the list of supported Charsets"</span>, <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/commonerrors.html" class="ident i3">commonerrors</a>.<a href="../commonerrors/errors.go.html#line-24" class="ident">ErrNotFound</a>, <label for="r2" class="ident">alias</label>)</code></span>
+<span class="codeline" id="line-32"><code>	}</code></span>
+<span class="codeline" id="line-33"><code>	<span class="keyword">return</span></code></span>
+<span class="codeline" id="line-34"><code>}</code></span>
+<span class="codeline" id="line-35"><code></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">func</span> <label for="r6" class="ident"><a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/charset.html#name-initialiseMapping" class="ident">initialiseMapping</a></label>() {</code></span>
+<span class="codeline" id="line-37"><code>	<a href="#line-17" class="ident">mappingOnce</a>.<a href="../../../../../sync/once.go.html#line-42" class="ident">Do</a>(<span class="keyword">func</span>() {</code></span>
+<span class="codeline" id="line-38"><code>		<span class="comment">// This mapping list was created based on the following indexes:</span></code></span>
+<span class="codeline" id="line-39"><code><span class="comment">		// - https://www.iana.org/assignments/character-sets/character-sets.xhtml</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">		// - https://encoding.spec.whatwg.org/encodings.json</span></code></span>
+<span class="codeline" id="line-41"><code><span class="comment">		// - https://www.forcs.com/en/documentation-query/reference_charset_enabled_alias.htm</span></code></span>
+<span class="codeline" id="line-42"><code>		<a href="#line-16" class="ident">mapping</a> = <a href="#line-24" class="ident">charsetEncodingMapping</a>{<a href="#line-25" class="ident">mapping</a>: <span class="keyword">map</span>[<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>{</code></span>
+<span class="codeline" id="line-43"><code>			<span class="lit-string">"iso-ir-6"</span>:         <span class="lit-string">"US-ASCII"</span>,</code></span>
+<span class="codeline" id="line-44"><code>			<span class="lit-string">"ansi_x3.4-1968"</span>:   <span class="lit-string">"US-ASCII"</span>,</code></span>
+<span class="codeline" id="line-45"><code>			<span class="lit-string">"ansi_x3.4-1986"</span>:   <span class="lit-string">"US-ASCII"</span>,</code></span>
+<span class="codeline" id="line-46"><code>			<span class="lit-string">"iso_646.irv:1991"</span>: <span class="lit-string">"US-ASCII"</span>,</code></span>
+<span class="codeline" id="line-47"><code>			<span class="lit-string">"iso646-US"</span>:        <span class="lit-string">"US-ASCII"</span>,</code></span>
+<span class="codeline" id="line-48"><code>			<span class="lit-string">"us-ascii"</span>:         <span class="lit-string">"US-ASCII"</span>,</code></span>
+<span class="codeline" id="line-49"><code>			<span class="lit-string">"us"</span>:               <span class="lit-string">"US-ASCII"</span>,</code></span>
+<span class="codeline" id="line-50"><code>			<span class="lit-string">"ibm367"</span>:           <span class="lit-string">"US-ASCII"</span>,</code></span>
+<span class="codeline" id="line-51"><code>			<span class="lit-string">"csibm367"</span>:         <span class="lit-string">"US-ASCII"</span>,</code></span>
+<span class="codeline" id="line-52"><code>			<span class="lit-string">"ibm-367"</span>:          <span class="lit-string">"US-ASCII"</span>,</code></span>
+<span class="codeline" id="line-53"><code>			<span class="lit-string">"cp367"</span>:            <span class="lit-string">"US-ASCII"</span>,</code></span>
+<span class="codeline" id="line-54"><code>			<span class="lit-string">"csascii"</span>:          <span class="lit-string">"US-ASCII"</span>,</code></span>
+<span class="codeline" id="line-55"><code></code></span>
+<span class="codeline" id="line-56"><code>			<span class="lit-string">"iso-ir-100"</span>:  <span class="lit-string">"ISO_8859-1:1987"</span>,</code></span>
+<span class="codeline" id="line-57"><code>			<span class="lit-string">"iso_8859-1"</span>:  <span class="lit-string">"ISO_8859-1:1987"</span>,</code></span>
+<span class="codeline" id="line-58"><code>			<span class="lit-string">"iso-8859-1"</span>:  <span class="lit-string">"ISO_8859-1:1987"</span>,</code></span>
+<span class="codeline" id="line-59"><code>			<span class="lit-string">"latin1"</span>:      <span class="lit-string">"ISO_8859-1:1987"</span>,</code></span>
+<span class="codeline" id="line-60"><code>			<span class="lit-string">"l1"</span>:          <span class="lit-string">"ISO_8859-1:1987"</span>,</code></span>
+<span class="codeline" id="line-61"><code>			<span class="lit-string">"ibm819"</span>:      <span class="lit-string">"ISO_8859-1:1987"</span>,</code></span>
+<span class="codeline" id="line-62"><code>			<span class="lit-string">"csibm819"</span>:    <span class="lit-string">"ISO_8859-1:1987"</span>,</code></span>
+<span class="codeline" id="line-63"><code>			<span class="lit-string">"cp819"</span>:       <span class="lit-string">"ISO_8859-1:1987"</span>,</code></span>
+<span class="codeline" id="line-64"><code>			<span class="lit-string">"csisolatin1"</span>: <span class="lit-string">"ISO_8859-1:1987"</span>,</code></span>
+<span class="codeline" id="line-65"><code>			<span class="lit-string">"8859_1"</span>:      <span class="lit-string">"ISO_8859-1:1987"</span>,</code></span>
+<span class="codeline" id="line-66"><code>			<span class="lit-string">"iso8859-1"</span>:   <span class="lit-string">"ISO_8859-1:1987"</span>,</code></span>
+<span class="codeline" id="line-67"><code>			<span class="lit-string">"ibm-819"</span>:     <span class="lit-string">"ISO_8859-1:1987"</span>,</code></span>
+<span class="codeline" id="line-68"><code>			<span class="lit-string">"819"</span>:         <span class="lit-string">"ISO_8859-1:1987"</span>,</code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code>			<span class="lit-string">"iso-ir-101"</span>:  <span class="lit-string">"ISO_8859-2:1987"</span>,</code></span>
+<span class="codeline" id="line-71"><code>			<span class="lit-string">"iso_8859-2"</span>:  <span class="lit-string">"ISO_8859-2:1987"</span>,</code></span>
+<span class="codeline" id="line-72"><code>			<span class="lit-string">"iso-8859-2"</span>:  <span class="lit-string">"ISO_8859-2:1987"</span>,</code></span>
+<span class="codeline" id="line-73"><code>			<span class="lit-string">"latin2"</span>:      <span class="lit-string">"ISO_8859-2:1987"</span>,</code></span>
+<span class="codeline" id="line-74"><code>			<span class="lit-string">"l2"</span>:          <span class="lit-string">"ISO_8859-2:1987"</span>,</code></span>
+<span class="codeline" id="line-75"><code>			<span class="lit-string">"csisolatin2"</span>: <span class="lit-string">"ISO_8859-2:1987"</span>,</code></span>
+<span class="codeline" id="line-76"><code>			<span class="lit-string">"8859_2"</span>:      <span class="lit-string">"ISO_8859-2:1987"</span>,</code></span>
+<span class="codeline" id="line-77"><code>			<span class="lit-string">"iso8859-2"</span>:   <span class="lit-string">"ISO_8859-2:1987"</span>,</code></span>
+<span class="codeline" id="line-78"><code>			<span class="lit-string">"ibm912"</span>:      <span class="lit-string">"ISO_8859-2:1987"</span>,</code></span>
+<span class="codeline" id="line-79"><code>			<span class="lit-string">"csibm912"</span>:    <span class="lit-string">"ISO_8859-2:1987"</span>,</code></span>
+<span class="codeline" id="line-80"><code>			<span class="lit-string">"ibm-912"</span>:     <span class="lit-string">"ISO_8859-2:1987"</span>,</code></span>
+<span class="codeline" id="line-81"><code>			<span class="lit-string">"cp912"</span>:       <span class="lit-string">"ISO_8859-2:1987"</span>,</code></span>
+<span class="codeline" id="line-82"><code>			<span class="lit-string">"912"</span>:         <span class="lit-string">"ISO_8859-2:1987"</span>,</code></span>
+<span class="codeline" id="line-83"><code></code></span>
+<span class="codeline" id="line-84"><code>			<span class="lit-string">"iso-ir-109"</span>:  <span class="lit-string">"ISO_8859-3:1988"</span>,</code></span>
+<span class="codeline" id="line-85"><code>			<span class="lit-string">"iso_8859-3"</span>:  <span class="lit-string">"ISO_8859-3:1988"</span>,</code></span>
+<span class="codeline" id="line-86"><code>			<span class="lit-string">"iso-8859-3"</span>:  <span class="lit-string">"ISO_8859-3:1988"</span>,</code></span>
+<span class="codeline" id="line-87"><code>			<span class="lit-string">"latin3"</span>:      <span class="lit-string">"ISO_8859-3:1988"</span>,</code></span>
+<span class="codeline" id="line-88"><code>			<span class="lit-string">"l3"</span>:          <span class="lit-string">"ISO_8859-3:1988"</span>,</code></span>
+<span class="codeline" id="line-89"><code>			<span class="lit-string">"csisolatin3"</span>: <span class="lit-string">"ISO_8859-3:1988"</span>,</code></span>
+<span class="codeline" id="line-90"><code>			<span class="lit-string">"8859_3"</span>:      <span class="lit-string">"ISO_8859-3:1988"</span>,</code></span>
+<span class="codeline" id="line-91"><code>			<span class="lit-string">"iso8859-3"</span>:   <span class="lit-string">"ISO_8859-3:1988"</span>,</code></span>
+<span class="codeline" id="line-92"><code>			<span class="lit-string">"ibm913"</span>:      <span class="lit-string">"ISO_8859-3:1988"</span>,</code></span>
+<span class="codeline" id="line-93"><code>			<span class="lit-string">"csibm913"</span>:    <span class="lit-string">"ISO_8859-3:1988"</span>,</code></span>
+<span class="codeline" id="line-94"><code>			<span class="lit-string">"ibm-913"</span>:     <span class="lit-string">"ISO_8859-3:1988"</span>,</code></span>
+<span class="codeline" id="line-95"><code>			<span class="lit-string">"cp913"</span>:       <span class="lit-string">"ISO_8859-3:1988"</span>,</code></span>
+<span class="codeline" id="line-96"><code>			<span class="lit-string">"913"</span>:         <span class="lit-string">"ISO_8859-3:1988"</span>,</code></span>
+<span class="codeline" id="line-97"><code></code></span>
+<span class="codeline" id="line-98"><code>			<span class="lit-string">"iso-ir-110"</span>:  <span class="lit-string">"ISO_8859-4:1988"</span>,</code></span>
+<span class="codeline" id="line-99"><code>			<span class="lit-string">"iso_8859-4"</span>:  <span class="lit-string">"ISO_8859-4:1988"</span>,</code></span>
+<span class="codeline" id="line-100"><code>			<span class="lit-string">"iso-8859-4"</span>:  <span class="lit-string">"ISO_8859-4:1988"</span>,</code></span>
+<span class="codeline" id="line-101"><code>			<span class="lit-string">"latin4"</span>:      <span class="lit-string">"ISO_8859-4:1988"</span>,</code></span>
+<span class="codeline" id="line-102"><code>			<span class="lit-string">"l4"</span>:          <span class="lit-string">"ISO_8859-4:1988"</span>,</code></span>
+<span class="codeline" id="line-103"><code>			<span class="lit-string">"csisolatin4"</span>: <span class="lit-string">"ISO_8859-4:1988"</span>,</code></span>
+<span class="codeline" id="line-104"><code>			<span class="lit-string">"8859_4"</span>:      <span class="lit-string">"ISO_8859-4:1988"</span>,</code></span>
+<span class="codeline" id="line-105"><code>			<span class="lit-string">"iso8859-4"</span>:   <span class="lit-string">"ISO_8859-4:1988"</span>,</code></span>
+<span class="codeline" id="line-106"><code>			<span class="lit-string">"ibm914"</span>:      <span class="lit-string">"ISO_8859-4:1988"</span>,</code></span>
+<span class="codeline" id="line-107"><code>			<span class="lit-string">"csibm914"</span>:    <span class="lit-string">"ISO_8859-4:1988"</span>,</code></span>
+<span class="codeline" id="line-108"><code>			<span class="lit-string">"ibm-914"</span>:     <span class="lit-string">"ISO_8859-4:1988"</span>,</code></span>
+<span class="codeline" id="line-109"><code>			<span class="lit-string">"cp914"</span>:       <span class="lit-string">"ISO_8859-4:1988"</span>,</code></span>
+<span class="codeline" id="line-110"><code>			<span class="lit-string">"914"</span>:         <span class="lit-string">"ISO_8859-4:1988"</span>,</code></span>
+<span class="codeline" id="line-111"><code></code></span>
+<span class="codeline" id="line-112"><code>			<span class="lit-string">"iso-ir-144"</span>:         <span class="lit-string">"ISO_8859-5:1988"</span>,</code></span>
+<span class="codeline" id="line-113"><code>			<span class="lit-string">"iso_8859-5"</span>:         <span class="lit-string">"ISO_8859-5:1988"</span>,</code></span>
+<span class="codeline" id="line-114"><code>			<span class="lit-string">"iso-8859-5"</span>:         <span class="lit-string">"ISO_8859-5:1988"</span>,</code></span>
+<span class="codeline" id="line-115"><code>			<span class="lit-string">"cyrillic"</span>:           <span class="lit-string">"ISO_8859-5:1988"</span>,</code></span>
+<span class="codeline" id="line-116"><code>			<span class="lit-string">"csisolatincyrillic"</span>: <span class="lit-string">"ISO_8859-5:1988"</span>,</code></span>
+<span class="codeline" id="line-117"><code>			<span class="lit-string">"8859_5"</span>:             <span class="lit-string">"ISO_8859-5:1988"</span>,</code></span>
+<span class="codeline" id="line-118"><code>			<span class="lit-string">"iso8859-5"</span>:          <span class="lit-string">"ISO_8859-5:1988"</span>,</code></span>
+<span class="codeline" id="line-119"><code>			<span class="lit-string">"ibm915"</span>:             <span class="lit-string">"ISO_8859-5:1988"</span>,</code></span>
+<span class="codeline" id="line-120"><code>			<span class="lit-string">"csibm915"</span>:           <span class="lit-string">"ISO_8859-5:1988"</span>,</code></span>
+<span class="codeline" id="line-121"><code>			<span class="lit-string">"ibm-915"</span>:            <span class="lit-string">"ISO_8859-5:1988"</span>,</code></span>
+<span class="codeline" id="line-122"><code>			<span class="lit-string">"cp915"</span>:              <span class="lit-string">"ISO_8859-5:1988"</span>,</code></span>
+<span class="codeline" id="line-123"><code>			<span class="lit-string">"915"</span>:                <span class="lit-string">"ISO_8859-5:1988"</span>,</code></span>
+<span class="codeline" id="line-124"><code></code></span>
+<span class="codeline" id="line-125"><code>			<span class="lit-string">"iso-ir-127"</span>:       <span class="lit-string">"ISO_8859-6:1987"</span>,</code></span>
+<span class="codeline" id="line-126"><code>			<span class="lit-string">"iso_8859-6"</span>:       <span class="lit-string">"ISO_8859-6:1987"</span>,</code></span>
+<span class="codeline" id="line-127"><code>			<span class="lit-string">"iso-8859-6"</span>:       <span class="lit-string">"ISO_8859-6:1987"</span>,</code></span>
+<span class="codeline" id="line-128"><code>			<span class="lit-string">"ecma-114"</span>:         <span class="lit-string">"ISO_8859-6:1987"</span>,</code></span>
+<span class="codeline" id="line-129"><code>			<span class="lit-string">"asmo-708"</span>:         <span class="lit-string">"ISO_8859-6:1987"</span>,</code></span>
+<span class="codeline" id="line-130"><code>			<span class="lit-string">"arabic"</span>:           <span class="lit-string">"ISO_8859-6:1987"</span>,</code></span>
+<span class="codeline" id="line-131"><code>			<span class="lit-string">"csisolatinarabic"</span>: <span class="lit-string">"ISO_8859-6:1987"</span>,</code></span>
+<span class="codeline" id="line-132"><code>			<span class="lit-string">"8859_6"</span>:           <span class="lit-string">"ISO_8859-6:1987"</span>,</code></span>
+<span class="codeline" id="line-133"><code>			<span class="lit-string">"iso8859-6"</span>:        <span class="lit-string">"ISO_8859-6:1987"</span>,</code></span>
+<span class="codeline" id="line-134"><code>			<span class="lit-string">"ibm1089"</span>:          <span class="lit-string">"ISO_8859-6:1987"</span>,</code></span>
+<span class="codeline" id="line-135"><code>			<span class="lit-string">"csibm1089"</span>:        <span class="lit-string">"ISO_8859-6:1987"</span>,</code></span>
+<span class="codeline" id="line-136"><code>			<span class="lit-string">"ibm-1089"</span>:         <span class="lit-string">"ISO_8859-6:1987"</span>,</code></span>
+<span class="codeline" id="line-137"><code>			<span class="lit-string">"cp1089"</span>:           <span class="lit-string">"ISO_8859-6:1987"</span>,</code></span>
+<span class="codeline" id="line-138"><code>			<span class="lit-string">"1089"</span>:             <span class="lit-string">"ISO_8859-6:1987"</span>,</code></span>
+<span class="codeline" id="line-139"><code></code></span>
+<span class="codeline" id="line-140"><code>			<span class="lit-string">"iso-ir-126"</span>:      <span class="lit-string">"ISO_8859-7:1987"</span>,</code></span>
+<span class="codeline" id="line-141"><code>			<span class="lit-string">"iso_8859-7"</span>:      <span class="lit-string">"ISO_8859-7:1987"</span>,</code></span>
+<span class="codeline" id="line-142"><code>			<span class="lit-string">"iso-8859-7"</span>:      <span class="lit-string">"ISO_8859-7:1987"</span>,</code></span>
+<span class="codeline" id="line-143"><code>			<span class="lit-string">"elot_928"</span>:        <span class="lit-string">"ISO_8859-7:1987"</span>,</code></span>
+<span class="codeline" id="line-144"><code>			<span class="lit-string">"ecma-118"</span>:        <span class="lit-string">"ISO_8859-7:1987"</span>,</code></span>
+<span class="codeline" id="line-145"><code>			<span class="lit-string">"greek"</span>:           <span class="lit-string">"ISO_8859-7:1987"</span>,</code></span>
+<span class="codeline" id="line-146"><code>			<span class="lit-string">"greek8"</span>:          <span class="lit-string">"ISO_8859-7:1987"</span>,</code></span>
+<span class="codeline" id="line-147"><code>			<span class="lit-string">"csisolatingreek"</span>: <span class="lit-string">"ISO_8859-7:1987"</span>,</code></span>
+<span class="codeline" id="line-148"><code>			<span class="lit-string">"8859_7"</span>:          <span class="lit-string">"ISO_8859-7:1987"</span>,</code></span>
+<span class="codeline" id="line-149"><code>			<span class="lit-string">"iso8859-7"</span>:       <span class="lit-string">"ISO_8859-7:1987"</span>,</code></span>
+<span class="codeline" id="line-150"><code>			<span class="lit-string">"ibm813"</span>:          <span class="lit-string">"ISO_8859-7:1987"</span>,</code></span>
+<span class="codeline" id="line-151"><code>			<span class="lit-string">"csibm813"</span>:        <span class="lit-string">"ISO_8859-7:1987"</span>,</code></span>
+<span class="codeline" id="line-152"><code>			<span class="lit-string">"ibm-813"</span>:         <span class="lit-string">"ISO_8859-7:1987"</span>,</code></span>
+<span class="codeline" id="line-153"><code>			<span class="lit-string">"cp813"</span>:           <span class="lit-string">"ISO_8859-7:1987"</span>,</code></span>
+<span class="codeline" id="line-154"><code>			<span class="lit-string">"813"</span>:             <span class="lit-string">"ISO_8859-7:1987"</span>,</code></span>
+<span class="codeline" id="line-155"><code></code></span>
+<span class="codeline" id="line-156"><code>			<span class="lit-string">"iso-ir-138"</span>:       <span class="lit-string">"ISO_8859-8:1988"</span>,</code></span>
+<span class="codeline" id="line-157"><code>			<span class="lit-string">"iso_8859-8"</span>:       <span class="lit-string">"ISO_8859-8:1988"</span>,</code></span>
+<span class="codeline" id="line-158"><code>			<span class="lit-string">"iso-8859-8"</span>:       <span class="lit-string">"ISO_8859-8:1988"</span>,</code></span>
+<span class="codeline" id="line-159"><code>			<span class="lit-string">"hebrew"</span>:           <span class="lit-string">"ISO_8859-8:1988"</span>,</code></span>
+<span class="codeline" id="line-160"><code>			<span class="lit-string">"csisolatinhebrew"</span>: <span class="lit-string">"ISO_8859-8:1988"</span>,</code></span>
+<span class="codeline" id="line-161"><code>			<span class="lit-string">"8859_8"</span>:           <span class="lit-string">"ISO_8859-8:1988"</span>,</code></span>
+<span class="codeline" id="line-162"><code>			<span class="lit-string">"iso8859-8"</span>:        <span class="lit-string">"ISO_8859-8:1988"</span>,</code></span>
+<span class="codeline" id="line-163"><code>			<span class="lit-string">"ibm916"</span>:           <span class="lit-string">"ISO_8859-8:1988"</span>,</code></span>
+<span class="codeline" id="line-164"><code>			<span class="lit-string">"csibm916"</span>:         <span class="lit-string">"ISO_8859-8:1988"</span>,</code></span>
+<span class="codeline" id="line-165"><code>			<span class="lit-string">"ibm-916"</span>:          <span class="lit-string">"ISO_8859-8:1988"</span>,</code></span>
+<span class="codeline" id="line-166"><code>			<span class="lit-string">"cp916"</span>:            <span class="lit-string">"ISO_8859-8:1988"</span>,</code></span>
+<span class="codeline" id="line-167"><code>			<span class="lit-string">"916"</span>:              <span class="lit-string">"ISO_8859-8:1988"</span>,</code></span>
+<span class="codeline" id="line-168"><code></code></span>
+<span class="codeline" id="line-169"><code>			<span class="lit-string">"iso-ir-148"</span>:  <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-170"><code>			<span class="lit-string">"iso_8859-9"</span>:  <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-171"><code>			<span class="lit-string">"iso-8859-9"</span>:  <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-172"><code>			<span class="lit-string">"iso8859-9"</span>:   <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-173"><code>			<span class="lit-string">"iso88599"</span>:    <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-174"><code>			<span class="lit-string">"iso8859-9e"</span>:  <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-175"><code>			<span class="lit-string">"iso-8859-9e"</span>: <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-176"><code>			<span class="lit-string">"iso_8859-9e"</span>: <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-177"><code>			<span class="lit-string">"iso88599e"</span>:   <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-178"><code>			<span class="lit-string">"latin5"</span>:      <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-179"><code>			<span class="lit-string">"l5"</span>:          <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-180"><code>			<span class="lit-string">"csisolatin5"</span>: <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-181"><code>			<span class="lit-string">"8859_9"</span>:      <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-182"><code>			<span class="lit-string">"ibm920"</span>:      <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-183"><code>			<span class="lit-string">"csibm920"</span>:    <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-184"><code>			<span class="lit-string">"ibm-920"</span>:     <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-185"><code>			<span class="lit-string">"cp920"</span>:       <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-186"><code>			<span class="lit-string">"920"</span>:         <span class="lit-string">"ISO_8859-9:1989"</span>,</code></span>
+<span class="codeline" id="line-187"><code></code></span>
+<span class="codeline" id="line-188"><code>			<span class="lit-string">"iso-ir-157"</span>:       <span class="lit-string">"ISO-8859-10"</span>,</code></span>
+<span class="codeline" id="line-189"><code>			<span class="lit-string">"l6"</span>:               <span class="lit-string">"ISO-8859-10"</span>,</code></span>
+<span class="codeline" id="line-190"><code>			<span class="lit-string">"iso_8859-10:1992"</span>: <span class="lit-string">"ISO-8859-10"</span>,</code></span>
+<span class="codeline" id="line-191"><code>			<span class="lit-string">"iso_8859-10"</span>:      <span class="lit-string">"ISO-8859-10"</span>,</code></span>
+<span class="codeline" id="line-192"><code>			<span class="lit-string">"csisolatin6"</span>:      <span class="lit-string">"ISO-8859-10"</span>,</code></span>
+<span class="codeline" id="line-193"><code>			<span class="lit-string">"latin6"</span>:           <span class="lit-string">"ISO-8859-10"</span>,</code></span>
+<span class="codeline" id="line-194"><code></code></span>
+<span class="codeline" id="line-195"><code>			<span class="lit-string">"latin7"</span>: <span class="lit-string">"ISO-8859-13"</span>,</code></span>
+<span class="codeline" id="line-196"><code>			<span class="lit-string">"l7"</span>:     <span class="lit-string">"ISO-8859-13"</span>,</code></span>
+<span class="codeline" id="line-197"><code></code></span>
+<span class="codeline" id="line-198"><code>			<span class="lit-string">"ms_kanji"</span>:       <span class="lit-string">"Shift_JIS"</span>,</code></span>
+<span class="codeline" id="line-199"><code>			<span class="lit-string">"csshiftjis"</span>:     <span class="lit-string">"Shift_JIS"</span>,</code></span>
+<span class="codeline" id="line-200"><code>			<span class="lit-string">"sjis"</span>:           <span class="lit-string">"Shift_JIS"</span>,</code></span>
+<span class="codeline" id="line-201"><code>			<span class="lit-string">"pck"</span>:            <span class="lit-string">"Shift_JIS"</span>,</code></span>
+<span class="codeline" id="line-202"><code>			<span class="lit-string">"windows-31j"</span>:    <span class="lit-string">"Shift_JIS"</span>,</code></span>
+<span class="codeline" id="line-203"><code>			<span class="lit-string">"ibm943"</span>:         <span class="lit-string">"Shift_JIS"</span>,</code></span>
+<span class="codeline" id="line-204"><code>			<span class="lit-string">"csibm943"</span>:       <span class="lit-string">"Shift_JIS"</span>,</code></span>
+<span class="codeline" id="line-205"><code>			<span class="lit-string">"ibm-943"</span>:        <span class="lit-string">"Shift_JIS"</span>,</code></span>
+<span class="codeline" id="line-206"><code>			<span class="lit-string">"cp943"</span>:          <span class="lit-string">"Shift_JIS"</span>,</code></span>
+<span class="codeline" id="line-207"><code>			<span class="lit-string">"943"</span>:            <span class="lit-string">"Shift_JIS"</span>,</code></span>
+<span class="codeline" id="line-208"><code>			<span class="lit-string">"shift_jisx0213"</span>: <span class="lit-string">"Shift_JIS"</span>,</code></span>
+<span class="codeline" id="line-209"><code></code></span>
+<span class="codeline" id="line-210"><code>			<span class="lit-string">"cseucpkdfmtjapanese"</span>: <span class="lit-string">"EUC-JP"</span>,</code></span>
+<span class="codeline" id="line-211"><code>			<span class="lit-string">"euc-jp"</span>:              <span class="lit-string">"EUC-JP"</span>,</code></span>
+<span class="codeline" id="line-212"><code>			<span class="lit-string">"eucjp"</span>:               <span class="lit-string">"EUC-JP"</span>,</code></span>
+<span class="codeline" id="line-213"><code>			<span class="lit-string">"eucjis"</span>:              <span class="lit-string">"EUC-JP"</span>,</code></span>
+<span class="codeline" id="line-214"><code>			<span class="lit-string">"euc-jis"</span>:             <span class="lit-string">"EUC-JP"</span>,</code></span>
+<span class="codeline" id="line-215"><code>			<span class="lit-string">"eucjisx0213"</span>:         <span class="lit-string">"EUC-JP"</span>,</code></span>
+<span class="codeline" id="line-216"><code>			<span class="lit-string">"euc-jisx0213"</span>:        <span class="lit-string">"EUC-JP"</span>,</code></span>
+<span class="codeline" id="line-217"><code>			<span class="lit-string">"extended_unix_code_packed_format_for_japanese"</span>: <span class="lit-string">"EUC-JP"</span>,</code></span>
+<span class="codeline" id="line-218"><code>			<span class="lit-string">"x-euc-jp"</span>: <span class="lit-string">"EUC-JP"</span>,</code></span>
+<span class="codeline" id="line-219"><code>			<span class="lit-string">"x-eucjp"</span>:  <span class="lit-string">"EUC-JP"</span>,</code></span>
+<span class="codeline" id="line-220"><code></code></span>
+<span class="codeline" id="line-221"><code>			<span class="lit-string">"iso-ir-149"</span>:     <span class="lit-string">"KS_C_5601-1987"</span>,</code></span>
+<span class="codeline" id="line-222"><code>			<span class="lit-string">"ks_c_5601-1989"</span>: <span class="lit-string">"KS_C_5601-1987"</span>,</code></span>
+<span class="codeline" id="line-223"><code>			<span class="lit-string">"ksc_5601"</span>:       <span class="lit-string">"KS_C_5601-1987"</span>,</code></span>
+<span class="codeline" id="line-224"><code>			<span class="lit-string">"korean"</span>:         <span class="lit-string">"KS_C_5601-1987"</span>,</code></span>
+<span class="codeline" id="line-225"><code>			<span class="lit-string">"csksc56011987"</span>:  <span class="lit-string">"KS_C_5601-1987"</span>,</code></span>
+<span class="codeline" id="line-226"><code>			<span class="lit-string">"windows-949"</span>:    <span class="lit-string">"KS_C_5601-1987"</span>,</code></span>
+<span class="codeline" id="line-227"><code>			<span class="lit-string">"ks_c_5601-1987"</span>: <span class="lit-string">"KS_C_5601-1987"</span>,</code></span>
+<span class="codeline" id="line-228"><code>			<span class="lit-string">"ksc5601-1987"</span>:   <span class="lit-string">"KS_C_5601-1987"</span>,</code></span>
+<span class="codeline" id="line-229"><code>			<span class="lit-string">"ksc5601_1987"</span>:   <span class="lit-string">"KS_C_5601-1987"</span>,</code></span>
+<span class="codeline" id="line-230"><code>			<span class="lit-string">"5601"</span>:           <span class="lit-string">"KS_C_5601-1987"</span>,</code></span>
+<span class="codeline" id="line-231"><code>			<span class="lit-string">"ibm949"</span>:         <span class="lit-string">"KS_C_5601-1987"</span>,</code></span>
+<span class="codeline" id="line-232"><code>			<span class="lit-string">"csibm949"</span>:       <span class="lit-string">"KS_C_5601-1987"</span>,</code></span>
+<span class="codeline" id="line-233"><code>			<span class="lit-string">"ibm-949"</span>:        <span class="lit-string">"KS_C_5601-1987"</span>,</code></span>
+<span class="codeline" id="line-234"><code>			<span class="lit-string">"cp949"</span>:          <span class="lit-string">"KS_C_5601-1987"</span>,</code></span>
+<span class="codeline" id="line-235"><code>			<span class="lit-string">"949"</span>:            <span class="lit-string">"KS_C_5601-1987"</span>,</code></span>
+<span class="codeline" id="line-236"><code></code></span>
+<span class="codeline" id="line-237"><code>			<span class="lit-string">"csiso2022kr"</span>: <span class="lit-string">"ISO-2022-KR"</span>,</code></span>
+<span class="codeline" id="line-238"><code>			<span class="lit-string">"iso2022kr"</span>:   <span class="lit-string">"ISO-2022-KR"</span>,</code></span>
+<span class="codeline" id="line-239"><code>			<span class="lit-string">"iso_2022_kr"</span>: <span class="lit-string">"ISO-2022-KR"</span>,</code></span>
+<span class="codeline" id="line-240"><code></code></span>
+<span class="codeline" id="line-241"><code>			<span class="lit-string">"cseuckr"</span>: <span class="lit-string">" EUC-KR"</span>,</code></span>
+<span class="codeline" id="line-242"><code>			<span class="lit-string">"ksc5601"</span>: <span class="lit-string">" EUC-KR"</span>,</code></span>
+<span class="codeline" id="line-243"><code>			<span class="lit-string">"euckr"</span>:   <span class="lit-string">" EUC-KR"</span>,</code></span>
+<span class="codeline" id="line-244"><code></code></span>
+<span class="codeline" id="line-245"><code>			<span class="lit-string">"csiso2022jp"</span>:   <span class="lit-string">"ISO-2022-JP"</span>,</code></span>
+<span class="codeline" id="line-246"><code>			<span class="lit-string">"jis"</span>:           <span class="lit-string">"ISO-2022-JP"</span>,</code></span>
+<span class="codeline" id="line-247"><code>			<span class="lit-string">"iso-2022-jp"</span>:   <span class="lit-string">"ISO-2022-JP"</span>,</code></span>
+<span class="codeline" id="line-248"><code>			<span class="lit-string">"iso-2022-jp-3"</span>: <span class="lit-string">"ISO-2022-JP"</span>,</code></span>
+<span class="codeline" id="line-249"><code>			<span class="lit-string">"iso2022jp"</span>:     <span class="lit-string">"ISO-2022-JP"</span>,</code></span>
+<span class="codeline" id="line-250"><code>			<span class="lit-string">"iso2022jp2"</span>:    <span class="lit-string">"ISO-2022-JP"</span>,</code></span>
+<span class="codeline" id="line-251"><code>			<span class="lit-string">"jis_encoding"</span>:  <span class="lit-string">"ISO-2022-JP"</span>,</code></span>
+<span class="codeline" id="line-252"><code>			<span class="lit-string">"csjisencoding"</span>: <span class="lit-string">"ISO-2022-JP"</span>,</code></span>
+<span class="codeline" id="line-253"><code></code></span>
+<span class="codeline" id="line-254"><code>			<span class="lit-string">"latingreek1"</span>:        <span class="lit-string">"Latin-greek-1"</span>,</code></span>
+<span class="codeline" id="line-255"><code>			<span class="lit-string">"iso-ir-27"</span>:          <span class="lit-string">"Latin-greek-1"</span>,</code></span>
+<span class="codeline" id="line-256"><code>			<span class="lit-string">"csiso27latingreek1"</span>: <span class="lit-string">"Latin-greek-1"</span>,</code></span>
+<span class="codeline" id="line-257"><code></code></span>
+<span class="codeline" id="line-258"><code>			<span class="lit-string">"iso-ir-58"</span>:        <span class="lit-string">"GB_2312-80"</span>,</code></span>
+<span class="codeline" id="line-259"><code>			<span class="lit-string">"chinese"</span>:          <span class="lit-string">"GB_2312-80"</span>,</code></span>
+<span class="codeline" id="line-260"><code>			<span class="lit-string">"csiso58gb231280"</span>:  <span class="lit-string">"GB_2312-80"</span>,</code></span>
+<span class="codeline" id="line-261"><code>			<span class="lit-string">"gb2312 gb2312-80"</span>: <span class="lit-string">"GB_2312-80"</span>,</code></span>
+<span class="codeline" id="line-262"><code>			<span class="lit-string">"gb2312-1980"</span>:      <span class="lit-string">"GB_2312-80"</span>,</code></span>
+<span class="codeline" id="line-263"><code>			<span class="lit-string">"euc-cn"</span>:           <span class="lit-string">"GB_2312-80"</span>,</code></span>
+<span class="codeline" id="line-264"><code>			<span class="lit-string">"euccn"</span>:            <span class="lit-string">"GB_2312-80"</span>,</code></span>
+<span class="codeline" id="line-265"><code></code></span>
+<span class="codeline" id="line-266"><code>			<span class="lit-string">"iso-ir-111"</span>:           <span class="lit-string">"ECMA-cyrillic"</span>,</code></span>
+<span class="codeline" id="line-267"><code>			<span class="lit-string">"koi8-e"</span>:               <span class="lit-string">"ECMA-cyrillic"</span>,</code></span>
+<span class="codeline" id="line-268"><code>			<span class="lit-string">"csiso111ecmacyrillic"</span>: <span class="lit-string">"ECMA-cyrillic"</span>,</code></span>
+<span class="codeline" id="line-269"><code>			<span class="lit-string">"ecmacyrillic"</span>:         <span class="lit-string">"ECMA-cyrillic"</span>,</code></span>
+<span class="codeline" id="line-270"><code></code></span>
+<span class="codeline" id="line-271"><code>			<span class="lit-string">"csiso2022cn"</span>: <span class="lit-string">"ISO-2022-CN"</span>,</code></span>
+<span class="codeline" id="line-272"><code>			<span class="lit-string">"iso2022cn"</span>:   <span class="lit-string">"ISO-2022-CN"</span>,</code></span>
+<span class="codeline" id="line-273"><code></code></span>
+<span class="codeline" id="line-274"><code>			<span class="lit-string">"csiso2022cnext"</span>: <span class="lit-string">"ISO-2022-CN-EXT"</span>,</code></span>
+<span class="codeline" id="line-275"><code>			<span class="lit-string">"iso2022cnext"</span>:   <span class="lit-string">"ISO-2022-CN-EXT"</span>,</code></span>
+<span class="codeline" id="line-276"><code></code></span>
+<span class="codeline" id="line-277"><code>			<span class="lit-string">"csutf8"</span>:            <span class="lit-string">"UTF-8"</span>,</code></span>
+<span class="codeline" id="line-278"><code>			<span class="lit-string">"unicode-1-1-utf-8"</span>: <span class="lit-string">"UTF-8"</span>,</code></span>
+<span class="codeline" id="line-279"><code>			<span class="lit-string">"unicode11utf8"</span>:     <span class="lit-string">"UTF-8"</span>,</code></span>
+<span class="codeline" id="line-280"><code>			<span class="lit-string">"unicode20utf8"</span>:     <span class="lit-string">"UTF-8"</span>,</code></span>
+<span class="codeline" id="line-281"><code>			<span class="lit-string">"utf8"</span>:              <span class="lit-string">"UTF-8"</span>,</code></span>
+<span class="codeline" id="line-282"><code>			<span class="lit-string">"x-unicode20utf8"</span>:   <span class="lit-string">"UTF-8"</span>,</code></span>
+<span class="codeline" id="line-283"><code></code></span>
+<span class="codeline" id="line-284"><code>			<span class="lit-string">"csiso885913"</span>: <span class="lit-string">"ISO-8859-13"</span>,</code></span>
+<span class="codeline" id="line-285"><code></code></span>
+<span class="codeline" id="line-286"><code>			<span class="lit-string">"iso-ir-199"</span>:       <span class="lit-string">"ISO-8859-14"</span>,</code></span>
+<span class="codeline" id="line-287"><code>			<span class="lit-string">"iso_8859-14:1998"</span>: <span class="lit-string">"ISO-8859-14"</span>,</code></span>
+<span class="codeline" id="line-288"><code>			<span class="lit-string">"iso_8859-14"</span>:      <span class="lit-string">"ISO-8859-14"</span>,</code></span>
+<span class="codeline" id="line-289"><code>			<span class="lit-string">"latin8"</span>:           <span class="lit-string">"ISO-8859-14"</span>,</code></span>
+<span class="codeline" id="line-290"><code>			<span class="lit-string">"iso-celtic"</span>:       <span class="lit-string">"ISO-8859-14"</span>,</code></span>
+<span class="codeline" id="line-291"><code>			<span class="lit-string">"l8"</span>:               <span class="lit-string">"ISO-8859-14"</span>,</code></span>
+<span class="codeline" id="line-292"><code>			<span class="lit-string">"csiso885914"</span>:      <span class="lit-string">"ISO-8859-14"</span>,</code></span>
+<span class="codeline" id="line-293"><code></code></span>
+<span class="codeline" id="line-294"><code>			<span class="lit-string">"iso_8859-15"</span>:      <span class="lit-string">"ISO-8859-15"</span>,</code></span>
+<span class="codeline" id="line-295"><code>			<span class="lit-string">"iso_8859-15:1998"</span>: <span class="lit-string">"ISO-8859-15"</span>,</code></span>
+<span class="codeline" id="line-296"><code>			<span class="lit-string">"latin-9"</span>:          <span class="lit-string">"ISO-8859-15"</span>,</code></span>
+<span class="codeline" id="line-297"><code>			<span class="lit-string">"latin9"</span>:           <span class="lit-string">"ISO-8859-15"</span>,</code></span>
+<span class="codeline" id="line-298"><code>			<span class="lit-string">"csiso885915"</span>:      <span class="lit-string">"ISO-8859-15"</span>,</code></span>
+<span class="codeline" id="line-299"><code></code></span>
+<span class="codeline" id="line-300"><code>			<span class="lit-string">"iso-ir-226"</span>:       <span class="lit-string">"ISO-8859-16"</span>,</code></span>
+<span class="codeline" id="line-301"><code>			<span class="lit-string">"iso_8859-16:2001"</span>: <span class="lit-string">"ISO-8859-16"</span>,</code></span>
+<span class="codeline" id="line-302"><code>			<span class="lit-string">"iso_8859-16"</span>:      <span class="lit-string">"ISO-8859-16"</span>,</code></span>
+<span class="codeline" id="line-303"><code>			<span class="lit-string">"latin10"</span>:          <span class="lit-string">"ISO-8859-16"</span>,</code></span>
+<span class="codeline" id="line-304"><code>			<span class="lit-string">"l10"</span>:              <span class="lit-string">"ISO-8859-16"</span>,</code></span>
+<span class="codeline" id="line-305"><code>			<span class="lit-string">"csiso885916"</span>:      <span class="lit-string">"ISO-8859-16"</span>,</code></span>
+<span class="codeline" id="line-306"><code>			<span class="lit-string">"iso885916"</span>:        <span class="lit-string">"ISO-8859-16"</span>,</code></span>
+<span class="codeline" id="line-307"><code>			<span class="lit-string">"iso8859-16"</span>:       <span class="lit-string">"ISO-8859-16"</span>,</code></span>
+<span class="codeline" id="line-308"><code></code></span>
+<span class="codeline" id="line-309"><code>			<span class="lit-string">"cp936"</span>:       <span class="lit-string">"GBK"</span>,</code></span>
+<span class="codeline" id="line-310"><code>			<span class="lit-string">"ms936"</span>:       <span class="lit-string">"GBK"</span>,</code></span>
+<span class="codeline" id="line-311"><code>			<span class="lit-string">"windows-936"</span>: <span class="lit-string">"GBK"</span>,</code></span>
+<span class="codeline" id="line-312"><code>			<span class="lit-string">"csgbk"</span>:       <span class="lit-string">"GBK"</span>,</code></span>
+<span class="codeline" id="line-313"><code></code></span>
+<span class="codeline" id="line-314"><code>			<span class="lit-string">"csgb18030"</span>: <span class="lit-string">"GB18030"</span>,</code></span>
+<span class="codeline" id="line-315"><code></code></span>
+<span class="codeline" id="line-316"><code>			<span class="lit-string">"csutf7"</span>: <span class="lit-string">"UTF-7"</span>,</code></span>
+<span class="codeline" id="line-317"><code>			<span class="lit-string">"utf7"</span>:   <span class="lit-string">"UTF-7"</span>,</code></span>
+<span class="codeline" id="line-318"><code></code></span>
+<span class="codeline" id="line-319"><code>			<span class="lit-string">"csutf7imap"</span>: <span class="lit-string">"UTF-7-IMAP"</span>,</code></span>
+<span class="codeline" id="line-320"><code></code></span>
+<span class="codeline" id="line-321"><code>			<span class="lit-string">"unicodefffe"</span>: <span class="lit-string">"UTF-16BE"</span>,</code></span>
+<span class="codeline" id="line-322"><code>			<span class="lit-string">"csutf16be"</span>:   <span class="lit-string">"UTF-16BE"</span>,</code></span>
+<span class="codeline" id="line-323"><code>			<span class="lit-string">"utf16be"</span>:     <span class="lit-string">"UTF-16BE"</span>,</code></span>
+<span class="codeline" id="line-324"><code>			<span class="lit-string">"unicodebig"</span>:  <span class="lit-string">"UTF-16BE"</span>,</code></span>
+<span class="codeline" id="line-325"><code>			<span class="lit-string">"unicode-1-1"</span>: <span class="lit-string">"UTF-16BE"</span>,</code></span>
+<span class="codeline" id="line-326"><code>			<span class="lit-string">"x-utf-16be"</span>:  <span class="lit-string">"UTF-16BE"</span>,</code></span>
+<span class="codeline" id="line-327"><code></code></span>
+<span class="codeline" id="line-328"><code>			<span class="lit-string">"ucs-2"</span>:         <span class="lit-string">"UTF-16LE"</span>,</code></span>
+<span class="codeline" id="line-329"><code>			<span class="lit-string">"unicodefeff"</span>:   <span class="lit-string">"UTF-16LE"</span>,</code></span>
+<span class="codeline" id="line-330"><code>			<span class="lit-string">"csutf16le"</span>:     <span class="lit-string">"UTF-16LE"</span>,</code></span>
+<span class="codeline" id="line-331"><code>			<span class="lit-string">"utf16le"</span>:       <span class="lit-string">"UTF-16LE"</span>,</code></span>
+<span class="codeline" id="line-332"><code>			<span class="lit-string">"unicodelittle"</span>: <span class="lit-string">"UTF-16LE"</span>,</code></span>
+<span class="codeline" id="line-333"><code>			<span class="lit-string">"x-utf-16le"</span>:    <span class="lit-string">"UTF-16LE"</span>,</code></span>
+<span class="codeline" id="line-334"><code></code></span>
+<span class="codeline" id="line-335"><code>			<span class="lit-string">"csutf16"</span>: <span class="lit-string">"UTF-16"</span>,</code></span>
+<span class="codeline" id="line-336"><code>			<span class="lit-string">"utf16"</span>:   <span class="lit-string">"UTF-16"</span>,</code></span>
+<span class="codeline" id="line-337"><code></code></span>
+<span class="codeline" id="line-338"><code>			<span class="lit-string">"csutf32"</span>: <span class="lit-string">"UTF-32"</span>,</code></span>
+<span class="codeline" id="line-339"><code>			<span class="lit-string">"utf32"</span>:   <span class="lit-string">"UTF-32"</span>,</code></span>
+<span class="codeline" id="line-340"><code></code></span>
+<span class="codeline" id="line-341"><code>			<span class="lit-string">"csutf32be"</span>: <span class="lit-string">"UTF-32BE"</span>,</code></span>
+<span class="codeline" id="line-342"><code>			<span class="lit-string">"utf32be"</span>:   <span class="lit-string">"UTF-32BE"</span>,</code></span>
+<span class="codeline" id="line-343"><code></code></span>
+<span class="codeline" id="line-344"><code>			<span class="lit-string">"csutf32le"</span>: <span class="lit-string">"UTF-32LE"</span>,</code></span>
+<span class="codeline" id="line-345"><code>			<span class="lit-string">"utf32le"</span>:   <span class="lit-string">"UTF-32LE"</span>,</code></span>
+<span class="codeline" id="line-346"><code></code></span>
+<span class="codeline" id="line-347"><code>			<span class="lit-string">"cswindows31j"</span>: <span class="lit-string">"Windows-31J"</span>,</code></span>
+<span class="codeline" id="line-348"><code></code></span>
+<span class="codeline" id="line-349"><code>			<span class="lit-string">"csgb2312"</span>:   <span class="lit-string">"GB2312"</span>,</code></span>
+<span class="codeline" id="line-350"><code>			<span class="lit-string">"hz-gb-2312"</span>: <span class="lit-string">"GB2312"</span>,</code></span>
+<span class="codeline" id="line-351"><code></code></span>
+<span class="codeline" id="line-352"><code>			<span class="lit-string">"csbig5"</span>:   <span class="lit-string">"Big5"</span>,</code></span>
+<span class="codeline" id="line-353"><code>			<span class="lit-string">"big-5"</span>:    <span class="lit-string">"Big5"</span>,</code></span>
+<span class="codeline" id="line-354"><code>			<span class="lit-string">"big-five"</span>: <span class="lit-string">"Big5"</span>,</code></span>
+<span class="codeline" id="line-355"><code>			<span class="lit-string">"bigfive"</span>:  <span class="lit-string">"Big5"</span>,</code></span>
+<span class="codeline" id="line-356"><code>			<span class="lit-string">"ibm950"</span>:   <span class="lit-string">"Big5"</span>,</code></span>
+<span class="codeline" id="line-357"><code>			<span class="lit-string">"csibm950"</span>: <span class="lit-string">"Big5"</span>,</code></span>
+<span class="codeline" id="line-358"><code>			<span class="lit-string">"ibm-950"</span>:  <span class="lit-string">"Big5"</span>,</code></span>
+<span class="codeline" id="line-359"><code>			<span class="lit-string">"cp950"</span>:    <span class="lit-string">"Big5"</span>,</code></span>
+<span class="codeline" id="line-360"><code>			<span class="lit-string">"950"</span>:      <span class="lit-string">"Big5"</span>,</code></span>
+<span class="codeline" id="line-361"><code></code></span>
+<span class="codeline" id="line-362"><code>			<span class="lit-string">"mac"</span>:         <span class="lit-string">"macintosh"</span>,</code></span>
+<span class="codeline" id="line-363"><code>			<span class="lit-string">"csmacintosh"</span>: <span class="lit-string">"macintosh"</span>,</code></span>
+<span class="codeline" id="line-364"><code></code></span>
+<span class="codeline" id="line-365"><code>			<span class="lit-string">"cskoi8r"</span>: <span class="lit-string">"KOI8-R"</span>,</code></span>
+<span class="codeline" id="line-366"><code>			<span class="lit-string">"koi8r"</span>:   <span class="lit-string">"KOI8-R"</span>,</code></span>
+<span class="codeline" id="line-367"><code></code></span>
+<span class="codeline" id="line-368"><code>			<span class="lit-string">"cp866"</span>:    <span class="lit-string">"IBM866"</span>,</code></span>
+<span class="codeline" id="line-369"><code>			<span class="lit-string">"866"</span>:      <span class="lit-string">"IBM866"</span>,</code></span>
+<span class="codeline" id="line-370"><code>			<span class="lit-string">"csibm866"</span>: <span class="lit-string">"IBM866"</span>,</code></span>
+<span class="codeline" id="line-371"><code>			<span class="lit-string">"ibm-866"</span>:  <span class="lit-string">"IBM866"</span>,</code></span>
+<span class="codeline" id="line-372"><code>			<span class="lit-string">"ibm866"</span>:   <span class="lit-string">"IBM866"</span>,</code></span>
+<span class="codeline" id="line-373"><code></code></span>
+<span class="codeline" id="line-374"><code>			<span class="lit-string">"cskoi8u"</span>: <span class="lit-string">"KOI8-U"</span>,</code></span>
+<span class="codeline" id="line-375"><code>			<span class="lit-string">"koi8u"</span>:   <span class="lit-string">"KOI8-U"</span>,</code></span>
+<span class="codeline" id="line-376"><code></code></span>
+<span class="codeline" id="line-377"><code>			<span class="lit-string">"csbig5hkscs"</span>: <span class="lit-string">"Big5-HKSCS"</span>,</code></span>
+<span class="codeline" id="line-378"><code>			<span class="lit-string">"big5hkscs"</span>:   <span class="lit-string">"Big5-HKSCS"</span>,</code></span>
+<span class="codeline" id="line-379"><code></code></span>
+<span class="codeline" id="line-380"><code>			<span class="lit-string">"ami1251"</span>:     <span class="lit-string">"Amiga-1251"</span>,</code></span>
+<span class="codeline" id="line-381"><code>			<span class="lit-string">"amiga1251"</span>:   <span class="lit-string">"Amiga-1251"</span>,</code></span>
+<span class="codeline" id="line-382"><code>			<span class="lit-string">"ami-1251"</span>:    <span class="lit-string">"Amiga-1251"</span>,</code></span>
+<span class="codeline" id="line-383"><code>			<span class="lit-string">"csamiga1251"</span>: <span class="lit-string">"Amiga-1251"</span>,</code></span>
+<span class="codeline" id="line-384"><code></code></span>
+<span class="codeline" id="line-385"><code>			<span class="lit-string">"cswindows874"</span>: <span class="lit-string">"windows-874"</span>,</code></span>
+<span class="codeline" id="line-386"><code></code></span>
+<span class="codeline" id="line-387"><code>			<span class="lit-string">"cswindows1250"</span>: <span class="lit-string">"windows-1250"</span>,</code></span>
+<span class="codeline" id="line-388"><code></code></span>
+<span class="codeline" id="line-389"><code>			<span class="lit-string">"cswindows1251"</span>: <span class="lit-string">"windows-1251"</span>,</code></span>
+<span class="codeline" id="line-390"><code></code></span>
+<span class="codeline" id="line-391"><code>			<span class="lit-string">"cswindows1252"</span>: <span class="lit-string">"windows-1252"</span>,</code></span>
+<span class="codeline" id="line-392"><code></code></span>
+<span class="codeline" id="line-393"><code>			<span class="lit-string">"cswindows1253"</span>: <span class="lit-string">"windows-1253"</span>,</code></span>
+<span class="codeline" id="line-394"><code></code></span>
+<span class="codeline" id="line-395"><code>			<span class="lit-string">"cswindows1254"</span>: <span class="lit-string">"windows-1254"</span>,</code></span>
+<span class="codeline" id="line-396"><code></code></span>
+<span class="codeline" id="line-397"><code>			<span class="lit-string">"cswindows1255"</span>: <span class="lit-string">"windows-1255"</span>,</code></span>
+<span class="codeline" id="line-398"><code></code></span>
+<span class="codeline" id="line-399"><code>			<span class="lit-string">"cswindows1256"</span>: <span class="lit-string">"windows-1256"</span>,</code></span>
+<span class="codeline" id="line-400"><code></code></span>
+<span class="codeline" id="line-401"><code>			<span class="lit-string">"cswindows1257"</span>: <span class="lit-string">"windows-1257"</span>,</code></span>
+<span class="codeline" id="line-402"><code></code></span>
+<span class="codeline" id="line-403"><code>			<span class="lit-string">"cswindows1258"</span>: <span class="lit-string">"windows-1258"</span>,</code></span>
+<span class="codeline" id="line-404"><code></code></span>
+<span class="codeline" id="line-405"><code>			<span class="lit-string">"cstis620"</span>:      <span class="lit-string">"TIS-620"</span>,</code></span>
+<span class="codeline" id="line-406"><code>			<span class="lit-string">"iso-8859-11"</span>:   <span class="lit-string">"TIS-620"</span>,</code></span>
+<span class="codeline" id="line-407"><code>			<span class="lit-string">"tis620.2533"</span>:   <span class="lit-string">"TIS-620"</span>,</code></span>
+<span class="codeline" id="line-408"><code>			<span class="lit-string">"tis620.2533-0"</span>: <span class="lit-string">"TIS-620"</span>,</code></span>
+<span class="codeline" id="line-409"><code>			<span class="lit-string">"ibm874"</span>:        <span class="lit-string">"TIS-620"</span>,</code></span>
+<span class="codeline" id="line-410"><code>			<span class="lit-string">"csibm874"</span>:      <span class="lit-string">"TIS-620"</span>,</code></span>
+<span class="codeline" id="line-411"><code>			<span class="lit-string">"ibm-874"</span>:       <span class="lit-string">"TIS-620"</span>,</code></span>
+<span class="codeline" id="line-412"><code>			<span class="lit-string">"cp874"</span>:         <span class="lit-string">"TIS-620"</span>,</code></span>
+<span class="codeline" id="line-413"><code>			<span class="lit-string">"874"</span>:           <span class="lit-string">"TIS-620"</span>,</code></span>
+<span class="codeline" id="line-414"><code>			<span class="lit-string">"windows-28601"</span>: <span class="lit-string">"TIS-620"</span>,</code></span>
+<span class="codeline" id="line-415"><code>			<span class="lit-string">"tis620-0"</span>:      <span class="lit-string">"TIS-620"</span>,</code></span>
+<span class="codeline" id="line-416"><code>			<span class="lit-string">"tis620"</span>:        <span class="lit-string">"TIS-620"</span>,</code></span>
+<span class="codeline" id="line-417"><code></code></span>
+<span class="codeline" id="line-418"><code>			<span class="lit-string">"iso5428"</span>:        <span class="lit-string">"ISO_5428:1980"</span>,</code></span>
+<span class="codeline" id="line-419"><code>			<span class="lit-string">"iso-5428"</span>:       <span class="lit-string">"ISO_5428:1980"</span>,</code></span>
+<span class="codeline" id="line-420"><code>			<span class="lit-string">"iso_5428"</span>:       <span class="lit-string">"ISO_5428:1980"</span>,</code></span>
+<span class="codeline" id="line-421"><code>			<span class="lit-string">"iso-ir-55"</span>:      <span class="lit-string">"ISO_5428:1980"</span>,</code></span>
+<span class="codeline" id="line-422"><code>			<span class="lit-string">"csiso5428greek"</span>: <span class="lit-string">"ISO_5428:1980"</span>,</code></span>
+<span class="codeline" id="line-423"><code></code></span>
+<span class="codeline" id="line-424"><code>			<span class="lit-string">"iso_2033"</span>:  <span class="lit-string">"ISO_2033-1983"</span>,</code></span>
+<span class="codeline" id="line-425"><code>			<span class="lit-string">"iso2033"</span>:   <span class="lit-string">"ISO_2033-1983"</span>,</code></span>
+<span class="codeline" id="line-426"><code>			<span class="lit-string">"iso-2033"</span>:  <span class="lit-string">"ISO_2033-1983"</span>,</code></span>
+<span class="codeline" id="line-427"><code>			<span class="lit-string">"iso-ir-98"</span>: <span class="lit-string">"ISO_2033-1983"</span>,</code></span>
+<span class="codeline" id="line-428"><code>			<span class="lit-string">"e13b"</span>:      <span class="lit-string">"ISO_2033-1983"</span>,</code></span>
+<span class="codeline" id="line-429"><code>			<span class="lit-string">"csiso2033"</span>: <span class="lit-string">"ISO_2033-1983"</span>,</code></span>
+<span class="codeline" id="line-430"><code></code></span>
+<span class="codeline" id="line-431"><code>			<span class="lit-string">"iso11548-1"</span>:     <span class="lit-string">"ISO-11548-1"</span>,</code></span>
+<span class="codeline" id="line-432"><code>			<span class="lit-string">"iso_11548-1"</span>:    <span class="lit-string">"ISO-11548-1"</span>,</code></span>
+<span class="codeline" id="line-433"><code>			<span class="lit-string">"iso_tr_11548-1"</span>: <span class="lit-string">"ISO-11548-1"</span>,</code></span>
+<span class="codeline" id="line-434"><code>			<span class="lit-string">"csiso115481"</span>:    <span class="lit-string">"ISO-11548-1"</span>,</code></span>
+<span class="codeline" id="line-435"><code>			<span class="lit-string">"iso/tr_11548-1"</span>: <span class="lit-string">"ISO-11548-1"</span>,</code></span>
+<span class="codeline" id="line-436"><code></code></span>
+<span class="codeline" id="line-437"><code>			<span class="lit-string">"csiso10646utf1"</span>:  <span class="lit-string">"ISO-10646-UTF-1"</span>,</code></span>
+<span class="codeline" id="line-438"><code>			<span class="lit-string">"iso-10646/utf-8"</span>: <span class="lit-string">"ISO-10646-UTF-1"</span>,</code></span>
+<span class="codeline" id="line-439"><code>			<span class="lit-string">"iso-10646/utf8"</span>:  <span class="lit-string">"ISO-10646-UTF-1"</span>,</code></span>
+<span class="codeline" id="line-440"><code></code></span>
+<span class="codeline" id="line-441"><code>			<span class="lit-string">"csucs4"</span>:            <span class="lit-string">"ISO-10646-UCS-4"</span>,</code></span>
+<span class="codeline" id="line-442"><code>			<span class="lit-string">"iso-10646/ucs4"</span>:    <span class="lit-string">"ISO-10646-UCS-4"</span>,</code></span>
+<span class="codeline" id="line-443"><code>			<span class="lit-string">"10646-1:1993/ucs4"</span>: <span class="lit-string">"ISO-10646-UCS-4"</span>,</code></span>
+<span class="codeline" id="line-444"><code>			<span class="lit-string">"10646-1:1993"</span>:      <span class="lit-string">"ISO-10646-UCS-4"</span>,</code></span>
+<span class="codeline" id="line-445"><code>			<span class="lit-string">"ucs4"</span>:              <span class="lit-string">"ISO-10646-UCS-4"</span>,</code></span>
+<span class="codeline" id="line-446"><code>			<span class="lit-string">"ucs-4"</span>:             <span class="lit-string">"ISO-10646-UCS-4"</span>,</code></span>
+<span class="codeline" id="line-447"><code></code></span>
+<span class="codeline" id="line-448"><code>			<span class="lit-string">"csunicode"</span>:      <span class="lit-string">"ISO-10646-UCS-2"</span>,</code></span>
+<span class="codeline" id="line-449"><code>			<span class="lit-string">"unicode"</span>:        <span class="lit-string">"ISO-10646-UCS-2"</span>,</code></span>
+<span class="codeline" id="line-450"><code>			<span class="lit-string">"iso-10646/ucs2"</span>: <span class="lit-string">"ISO-10646-UCS-2"</span>,</code></span>
+<span class="codeline" id="line-451"><code>			<span class="lit-string">"ucs2"</span>:           <span class="lit-string">"ISO-10646-UCS-2"</span>,</code></span>
+<span class="codeline" id="line-452"><code></code></span>
+<span class="codeline" id="line-453"><code>			<span class="lit-string">"iso-ir-18"</span>:        <span class="lit-string">"greek7-old"</span>,</code></span>
+<span class="codeline" id="line-454"><code>			<span class="lit-string">"csiso18greek7old"</span>: <span class="lit-string">"greek7-old"</span>,</code></span>
+<span class="codeline" id="line-455"><code>			<span class="lit-string">"greek7old"</span>:        <span class="lit-string">"greek7-old"</span>,</code></span>
+<span class="codeline" id="line-456"><code></code></span>
+<span class="codeline" id="line-457"><code>			<span class="lit-string">"iso-ir-19"</span>:         <span class="lit-string">"latin-greek"</span>,</code></span>
+<span class="codeline" id="line-458"><code>			<span class="lit-string">"csiso19latingreek"</span>: <span class="lit-string">"latin-greek"</span>,</code></span>
+<span class="codeline" id="line-459"><code>			<span class="lit-string">"latingreek"</span>:        <span class="lit-string">"latin-greek"</span>,</code></span>
+<span class="codeline" id="line-460"><code></code></span>
+<span class="codeline" id="line-461"><code>			<span class="lit-string">"iso-ir-57"</span>:     <span class="lit-string">"GB_1988-80"</span>,</code></span>
+<span class="codeline" id="line-462"><code>			<span class="lit-string">"cn"</span>:            <span class="lit-string">"GB_1988-80"</span>,</code></span>
+<span class="codeline" id="line-463"><code>			<span class="lit-string">"iso646-cn"</span>:     <span class="lit-string">"GB_1988-80"</span>,</code></span>
+<span class="codeline" id="line-464"><code>			<span class="lit-string">"csiso57gb1988"</span>: <span class="lit-string">"GB_1988-80"</span>,</code></span>
+<span class="codeline" id="line-465"><code>			<span class="lit-string">"gb_198880"</span>:     <span class="lit-string">"GB_1988-80"</span>,</code></span>
+<span class="codeline" id="line-466"><code>			<span class="lit-string">"cn-gb"</span>:         <span class="lit-string">"GB_1988-80"</span>,</code></span>
+<span class="codeline" id="line-467"><code></code></span>
+<span class="codeline" id="line-468"><code>			<span class="lit-string">"iso-ir-37"</span>:             <span class="lit-string">"ISO_5427"</span>,</code></span>
+<span class="codeline" id="line-469"><code>			<span class="lit-string">"csiso5427cyrillic"</span>:     <span class="lit-string">"ISO_5427"</span>,</code></span>
+<span class="codeline" id="line-470"><code>			<span class="lit-string">"csiso5427cyrillic1981"</span>: <span class="lit-string">"ISO_5427"</span>,</code></span>
+<span class="codeline" id="line-471"><code></code></span>
+<span class="codeline" id="line-472"><code>			<span class="lit-string">"iso-ir-155"</span>:    <span class="lit-string">"ISO_10367-box"</span>,</code></span>
+<span class="codeline" id="line-473"><code>			<span class="lit-string">"csiso10367box"</span>: <span class="lit-string">"ISO_10367-box"</span>,</code></span>
+<span class="codeline" id="line-474"><code>			<span class="lit-string">"iso10367box"</span>:   <span class="lit-string">"ISO_10367-box"</span>,</code></span>
+<span class="codeline" id="line-475"><code>			<span class="lit-string">"iso_10367box"</span>:  <span class="lit-string">"ISO_10367-box"</span>,</code></span>
+<span class="codeline" id="line-476"><code></code></span>
+<span class="codeline" id="line-477"><code>			<span class="lit-string">"iso-ir-14"</span>:         <span class="lit-string">"JIS_C6220-1969-ro"</span>,</code></span>
+<span class="codeline" id="line-478"><code>			<span class="lit-string">"jp"</span>:                <span class="lit-string">"JIS_C6220-1969-ro"</span>,</code></span>
+<span class="codeline" id="line-479"><code>			<span class="lit-string">"iso646-jp"</span>:         <span class="lit-string">"JIS_C6220-1969-ro"</span>,</code></span>
+<span class="codeline" id="line-480"><code>			<span class="lit-string">"csiso14jisc6220ro"</span>: <span class="lit-string">"JIS_C6220-1969-ro"</span>,</code></span>
+<span class="codeline" id="line-481"><code>			<span class="lit-string">"jis_c6220ro"</span>:       <span class="lit-string">"JIS_C6220-1969-ro"</span>,</code></span>
+<span class="codeline" id="line-482"><code></code></span>
+<span class="codeline" id="line-483"><code>			<span class="lit-string">"iso-ir-92"</span>:            <span class="lit-string">"JIS_C6229-1984-b"</span>,</code></span>
+<span class="codeline" id="line-484"><code>			<span class="lit-string">"iso646-jp-ocr-b"</span>:      <span class="lit-string">"JIS_C6229-1984-b"</span>,</code></span>
+<span class="codeline" id="line-485"><code>			<span class="lit-string">"jp-ocr-b"</span>:             <span class="lit-string">"JIS_C6229-1984-b"</span>,</code></span>
+<span class="codeline" id="line-486"><code>			<span class="lit-string">"csiso92jisc62991984b"</span>: <span class="lit-string">"JIS_C6229-1984-b"</span>,</code></span>
+<span class="codeline" id="line-487"><code>			<span class="lit-string">"jis_c62991984b"</span>:       <span class="lit-string">"JIS_C6229-1984-b"</span>,</code></span>
+<span class="codeline" id="line-488"><code>		},</code></span>
+<span class="codeline" id="line-489"><code>		}</code></span>
+<span class="codeline" id="line-490"><code>	})</code></span>
+<span class="codeline" id="line-491"><code>}</code></span>
+<span class="codeline" id="line-492"><code></code></span>
+<span class="codeline" id="line-493"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/charset.html#name-getEncodingMapping" class="ident">getEncodingMapping</a></label>() <a href="#line-20" class="ident">ICharsetEncodingMapping</a> {</code></span>
+<span class="codeline" id="line-494"><code>	<a href="#line-36" class="ident">initialiseMapping</a>()</code></span>
+<span class="codeline" id="line-495"><code>	<span class="keyword">return</span> &amp;<a href="#line-16" class="ident">mapping</a></code></span>
+<span class="codeline" id="line-496"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.4.1</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>

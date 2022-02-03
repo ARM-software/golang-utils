@@ -14,6 +14,33 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.5.0" (2022-02-03)
+=======================
+
+Features
+--------
+
+- Ability to detect the charset of a string using a similar algorithm to [ICU](https://icu.unicode.org/) (#202202020938)
+- Ability to convert strings from one charset to another in a similar way to [iconv](https://linux.die.net/man/1/iconv) or [uconv](https://linux.die.net/man/1/uconv) (#202202020941)
+- `filesystem.OpenFile` is now available as a module function and not just as a method. (#202202031230)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v3-3.7.0 (#202112291129)
+- Dependency upgrade: v3-3.21.12 (#202201031132)
+- Dependency upgrade: afero-1.8.0 (#202201280944)
+- Dependency upgrade: v3-3.22.1 (#202202021122)
+- Modified `unzip` to behave like `7zip` and handle non UTF-8 filenames by converting them after detection (#202202021956)
+
+
+Improved Documentation
+----------------------
+
+- Updated file copyright (#202202021119)
+
+
 "" "1.4.3" (2021-12-19)
 =======================
 
