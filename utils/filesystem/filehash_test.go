@@ -70,7 +70,7 @@ func TestFileHash2(t *testing.T) {
 		},
 		{
 			Path: "testunzip.zip",
-			Hash: "F5CAF5513A796443914288CF2A2586F3CCE1730AADA8DD397822FFECBBA5BA26",
+			Hash: "730C835A762AD6E52FCB38A9BC4D46BBF43BBE5C2DD7C912F4256F230104413C",
 		},
 	}
 	for _, test := range tests {
