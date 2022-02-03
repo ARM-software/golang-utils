@@ -1159,10 +1159,8 @@ func (fs *VFS) unzipZipFile(dest string, zippedFile *zip.File) (err error) {
 	return
 }
 
-func determineUnzippedFilepath(dest string) (string, error) {
-	destinationPath := dest
+func determineUnzippedFilepath(destinationPath string) (string, error) {
 
-	// Currently an error is raised when non-UTF8 characters are present in filepath
 	// See https://go-review.googlesource.com/c/go/+/75592/
 	// Character encodings other than CP-437 and UTF-8
 	//are not officially supported by the ZIP specification, pragmatically
@@ -1171,20 +1169,22 @@ func determineUnzippedFilepath(dest string) (string, error) {
 	//When a non-standard encoding is used, it is the user's responsibility
 	//to ensure that the target system is expecting the encoding used
 	//(e.g., producing a ZIP file you know is used on a Chinese version of Windows).
-	if !utf8.ValidString(destinationPath) {
-		// trying to guess the encoding and converting the string to UTF-8
-		encoding, charsetName, err := charset.DetectTextEncoding([]byte(destinationPath))
-		if err != nil {
-			return "", fmt.Errorf("%w: file path [%s] is not a valid utf-8 string and charset could not be detected: %v", commonerrors.ErrInvalid, destinationPath, err.Error())
-		}
-		destinationPath, err = charset.IconvString(destinationPath, encoding, unicode.UTF8)
-		if err != nil {
-			return "", fmt.Errorf("%w: file path [%s] is encoded using charset [%v] but could not be converted to valid utf-8: %v", commonerrors.ErrUnexpected, destinationPath, charsetName, err.Error())
-			//If zip file paths must be accepted even when their encoding is unknown, or conversion to utf-8 failed, then the following can be done.
-			//destinationPath = strings.ToValidUTF8(dest, charset.InvalidUTF8CharacterReplacement)
-		}
+	if utf8.ValidString(destinationPath) {
+		return destinationPath, nil
 	}
-	return destinationPath, nil
+	// Nonetheless, instead of raising an error when non-UTF8 characters are present in filepath,
+	// we try to guess the encoding and then, convert the string to UTF-8.
+	encoding, charsetName, err := charset.DetectTextEncoding([]byte(destinationPath))
+	if err != nil {
+		return "", fmt.Errorf("%w: file path [%s] is not a valid utf-8 string and charset could not be detected: %v", commonerrors.ErrInvalid, destinationPath, err.Error())
+	}
+	convertedDestinationPath, err := charset.IconvString(destinationPath, encoding, unicode.UTF8)
+	if err != nil {
+		return "", fmt.Errorf("%w: file path [%s] is encoded using charset [%v] but could not be converted to valid utf-8: %v", commonerrors.ErrUnexpected, destinationPath, charsetName, err.Error())
+		//If zip file paths must be accepted even when their encoding is unknown, or conversion to utf-8 failed, then the following can be done.
+		//destinationPath = strings.ToValidUTF8(dest, charset.InvalidUTF8CharacterReplacement)
+	}
+	return convertedDestinationPath, err
 }
 
 func SubDirectories(directory string) ([]string, error) {
