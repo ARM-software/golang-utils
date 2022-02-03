@@ -1073,7 +1073,6 @@ func TestUnzipWithNonUTF8Filenames(t *testing.T) {
 			/* Check Unzip */
 			fileList, err := fs.Unzip(srcPath, destPath)
 			if test.expectedError != nil {
-				fmt.Println(fileList)
 				require.Error(t, err)
 				assert.True(t, commonerrors.Any(err, test.expectedError))
 				assert.Empty(t, fileList)

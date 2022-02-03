@@ -1144,7 +1144,6 @@ func (fs *VFS) unzipZipFile(dest string, zippedFile *zip.File) (err error) {
 		if err != nil {
 			return fmt.Errorf("%w: file path [%s] is not a valid utf-8 string and charset could not be detected: %v", commonerrors.ErrInvalid, destinationPath, err.Error())
 		}
-		fmt.Println("encoding ", charsetName, " text ", destinationPath)
 		destinationPath, err = charset.IconvString(destinationPath, encoding, unicode.UTF8)
 		if err != nil {
 			return fmt.Errorf("%w: file path [%s] is encoded using charset [%v] but could not be converted to valid utf-8: %v", commonerrors.ErrUnexpected, destinationPath, charsetName, err.Error())
