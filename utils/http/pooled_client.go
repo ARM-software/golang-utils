@@ -15,26 +15,26 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
-//  PooledClient is an HTTP client similar to
+// PooledClient is an HTTP client similar to
 // http.Client, but with a shared Transport and different configuration values.
 // It is based on https://github.com/hashicorp/go-cleanhttp which ensures the client configuration is only set for the current use case and not the whole project (i.e. no global variable)
 type PooledClient struct {
 	client *http.Client
 }
 
-//  NewDefaultPooledClient returns a new HTTP client with similar default values to
+// NewDefaultPooledClient returns a new HTTP client with similar default values to
 // http.Client, but with a shared Transport.
 func NewDefaultPooledClient() IClient {
 	return NewPooledClient(DefaultHTTPClientConfiguration())
 }
 
-//  NewFastPooledClient returns a new HTTP client with similar default values to
+// NewFastPooledClient returns a new HTTP client with similar default values to
 // fast http client https://github.com/valyala/fasthttp.
 func NewFastPooledClient() IClient {
 	return NewPooledClient(FastHTTPClientConfiguration())
 }
 
-//  NewPooledClient returns a new HTTP client using the configuration passed as argument.
+// NewPooledClient returns a new HTTP client using the configuration passed as argument.
 // Do not use this function for
 // transient clients as it can leak file descriptors over time. Only use this
 // for clients that will be re-used for the same host(s).
@@ -77,7 +77,7 @@ func (c *PooledClient) Do(req *http.Request) (*http.Response, error) {
 }
 
 func (c *PooledClient) Delete(url string) (*http.Response, error) {
-	req, err := http.NewRequest("DELETE", url, nil)
+	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -88,11 +88,11 @@ func (c *PooledClient) Put(url string, rawBody interface{}) (*http.Response, err
 	var req *http.Request
 	var err error
 	if rawBody == nil {
-		req, err = http.NewRequest("PUT", url, nil)
+		req, err = http.NewRequest(http.MethodPut, url, nil)
 	} else {
 		b, ok := rawBody.(io.Reader)
 		if ok {
-			req, err = http.NewRequest("PUT", url, b)
+			req, err = http.NewRequest(http.MethodPut, url, b)
 		} else {
 			err = fmt.Errorf("%w: body is not an io.Reader", commonerrors.ErrInvalid)
 		}

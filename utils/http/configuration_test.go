@@ -12,10 +12,20 @@ import (
 
 func TestHttpClientConfiguration(t *testing.T) {
 	configTest := DefaultHTTPClientConfiguration()
-	require.Nil(t, configTest.Validate())
+	require.NoError(t, configTest.Validate())
 }
 
 func TestFastHttpClientConfiguration(t *testing.T) {
 	configTest := FastHTTPClientConfiguration()
-	require.Nil(t, configTest.Validate())
+	require.NoError(t, configTest.Validate())
+}
+
+func TestHttpClientConfigurationWithRetry(t *testing.T) {
+	configTest := DefaultRobustHTTPClientConfiguration()
+	require.NoError(t, configTest.Validate())
+}
+
+func TestHttpClientConfigurationWithBackoff(t *testing.T) {
+	configTest := DefaultRobustHTTPClientConfigurationWithExponentialBackOff()
+	require.NoError(t, configTest.Validate())
 }

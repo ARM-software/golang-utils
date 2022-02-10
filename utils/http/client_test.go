@@ -41,9 +41,27 @@ func TestClient(t *testing.T) {
 			},
 		},
 		{
-			clientName: "retryable client",
+			clientName: "client with no retry",
 			client: func() IClient {
 				return NewConfigurableRetryableClient(DefaultHTTPClientConfiguration())
+			},
+		},
+		{
+			clientName: "client with basic retry",
+			client: func() IClient {
+				return NewConfigurableRetryableClient(DefaultRobustHTTPClientConfiguration())
+			},
+		},
+		{
+			clientName: "client with exponential backoff",
+			client: func() IClient {
+				return NewConfigurableRetryableClient(DefaultRobustHTTPClientConfigurationWithExponentialBackOff())
+			},
+		},
+		{
+			clientName: "client with linear backoff",
+			client: func() IClient {
+				return NewConfigurableRetryableClient(DefaultRobustHTTPClientConfigurationWithLinearBackOff())
 			},
 		},
 	}

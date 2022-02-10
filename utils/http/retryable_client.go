@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/hashicorp/go-cleanhttp"
 	"github.com/hashicorp/go-retryablehttp"
 )
 
@@ -15,14 +16,22 @@ type RetryableClient struct {
 	client *retryablehttp.Client
 }
 
-// NewRetryableClient creates a new http client which will retry failed requests with exponential backoff
+// NewRetryableClient creates a new http client which will retry failed requests with exponential backoff.
 func NewRetryableClient() IClient {
 	return &RetryableClient{client: retryablehttp.NewClient()}
 }
 
-// NewRetryableClient creates a new http client which will retry failed requests with exponential backoff
+// NewConfigurableRetryableClient creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff).
 func NewConfigurableRetryableClient(cfg *HTTPClientConfiguration) IClient {
-	subClient := retryablehttp.NewClient()
+	subClient := &retryablehttp.Client{
+		HTTPClient:   cleanhttp.DefaultPooledClient(),
+		Logger:       nil,
+		RetryWaitMin: cfg.RetryPolicy.RetryWaitMin,
+		RetryWaitMax: cfg.RetryPolicy.RetryWaitMax,
+		RetryMax:     cfg.RetryPolicy.RetryMax,
+		CheckRetry:   retryablehttp.DefaultRetryPolicy,
+		Backoff:      BackOffPolicyFactory(&cfg.RetryPolicy),
+	}
 	if t, ok := subClient.HTTPClient.Transport.(*http.Transport); ok {
 		setTransportConfiguration(cfg, t)
 	}
@@ -58,7 +67,7 @@ func (c *RetryableClient) Do(req *http.Request) (*http.Response, error) {
 }
 
 func (c *RetryableClient) Delete(url string) (*http.Response, error) {
-	req, err := retryablehttp.NewRequest("DELETE", url, nil)
+	req, err := retryablehttp.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +75,7 @@ func (c *RetryableClient) Delete(url string) (*http.Response, error) {
 }
 
 func (c *RetryableClient) Put(url string, rawBody interface{}) (*http.Response, error) {
-	req, err := retryablehttp.NewRequest("PUT", url, rawBody)
+	req, err := retryablehttp.NewRequest(http.MethodPut, url, rawBody)
 	if err != nil {
 		return nil, err
 	}
