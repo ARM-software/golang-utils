@@ -111,7 +111,97 @@ func TestFindRetryAfter(t *testing.T) {
 
 }
 
-//func TestRetryPolicyFactory(t *testing.T) {
-//
-//
-//}
+func TestRetryPolicyFactory(t *testing.T) {
+	tests := []struct {
+		expectedPolicy IRetryWaitPolicy
+		config         *RetryPolicyConfiguration
+		policy         string
+	}{
+		{
+			expectedPolicy: &BasicRetryPolicy{},
+			config:         DefaultNoRetryPolicyConfiguration(),
+			policy:         "basic retry",
+		},
+		{
+			expectedPolicy: &BasicRetryPolicy{},
+			config:         DefaultBasicRetryPolicyConfiguration(),
+			policy:         "basic retry",
+		},
+		{
+			expectedPolicy: &BasicRetryPolicy{},
+			config:         nil,
+			policy:         "basic retry",
+		},
+		{
+			expectedPolicy: &BasicRetryPolicy{
+				RetryWaitPolicy: RetryWaitPolicy{
+					ConsiderRetryAfter: true,
+				},
+			},
+			config: &RetryPolicyConfiguration{
+				Enabled: false,
+			},
+			policy: "basic retry with retry after",
+		},
+		{
+			expectedPolicy: &BasicRetryPolicy{
+				RetryWaitPolicy: RetryWaitPolicy{
+					ConsiderRetryAfter: true,
+				},
+			},
+			config: DefaultRobustRetryPolicyConfiguration(),
+			policy: "basic retry with retry after",
+		},
+		{
+			expectedPolicy: &ExponentialBackoffPolicy{
+				RetryWaitPolicy: RetryWaitPolicy{
+					ConsiderRetryAfter: false,
+				},
+			},
+			config: &RetryPolicyConfiguration{
+				Enabled:            true,
+				RetryAfterDisabled: true,
+				BackOffEnabled:     true,
+			},
+			policy: "exponential backoff with no retry-after",
+		},
+		{
+			expectedPolicy: &ExponentialBackoffPolicy{
+				RetryWaitPolicy: RetryWaitPolicy{
+					ConsiderRetryAfter: true,
+				},
+			},
+			config: DefaultExponentialBackoffRetryPolicyConfiguration(),
+			policy: "exponential backoff with retry-after",
+		},
+		{
+			expectedPolicy: &LinearBackoffPolicy{
+				RetryWaitPolicy: RetryWaitPolicy{
+					ConsiderRetryAfter: false,
+				},
+			},
+			config: &RetryPolicyConfiguration{
+				Enabled:              true,
+				RetryAfterDisabled:   true,
+				BackOffEnabled:       true,
+				LinearBackOffEnabled: true,
+			},
+			policy: "linear backoff with no retry-after",
+		},
+		{
+			expectedPolicy: &LinearBackoffPolicy{
+				RetryWaitPolicy: RetryWaitPolicy{
+					ConsiderRetryAfter: true,
+				},
+			},
+			config: DefaultLinearBackoffRetryPolicyConfiguration(),
+			policy: "linear backoff with retry-after",
+		},
+	}
+	for i := range tests {
+		test := tests[i]
+		t.Run(fmt.Sprintf("assert policy %v", test.policy), func(t *testing.T) {
+			assert.Equal(t, test.expectedPolicy, BackOffPolicyFactory(test.config))
+		})
+	}
+}

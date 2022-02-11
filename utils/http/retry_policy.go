@@ -10,26 +10,53 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 )
 
-// NoBackOff defines a no backoff retry policy.
-// It is similar to a BasicRetry but also looks at the `Retry-After` header in the case of 429/503 HTTP errors (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After).
-func NoBackOff(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
-	sleep, found := findRetryAfter(resp)
-	if found {
-		return sleep
-	}
-	return BasicRetry(min, max, attemptNum, resp)
+// RetryWaitPolicy defines an `abstract` retry wait policy
+type RetryWaitPolicy struct {
+	ConsiderRetryAfter bool
 }
 
-// BasicRetry defines a basic retry policy.
-func BasicRetry(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
+// NewRetryWaitPolicy creates an generic RetryWaitPolicy based on configuration.
+func NewRetryWaitPolicy(cfg *RetryPolicyConfiguration) *RetryWaitPolicy {
+	if cfg == nil {
+		return &RetryWaitPolicy{}
+	}
+	return &RetryWaitPolicy{
+		ConsiderRetryAfter: !cfg.RetryAfterDisabled,
+	}
+}
+
+// BasicRetryPolicy defines a basic retry policy i.e. it only waits a constant `min` amount of time between attempts.
+// If enabled, it also looks at the `Retry-After` header in the case of 429/503 HTTP errors (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After).
+type BasicRetryPolicy struct {
+	RetryWaitPolicy
+}
+
+func (p *BasicRetryPolicy) Apply(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
+	if p.ConsiderRetryAfter {
+		sleep, found := findRetryAfter(resp)
+		if found {
+			return sleep
+		}
+	}
 	return min
 }
 
-// LinearBackoff defines a linear backoff retry policy based on the attempt number and with jitter to
+// NewBasicRetryPolicy creates a BasicRetryPolicy.
+func NewBasicRetryPolicy(cfg *RetryPolicyConfiguration) IRetryWaitPolicy {
+	return &BasicRetryPolicy{
+		RetryWaitPolicy: *NewRetryWaitPolicy(cfg),
+	}
+}
+
+// LinearBackoffPolicy defines a linear backoff retry policy based on the attempt number and with jitter to
 // prevent a thundering herd.
-// It is similar to retryablehttp.LinearJitterBackoff but it also looks at the `Retry-After` header in the case of 429/503 HTTP errors (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After).
-func LinearBackoff(min, max time.Duration, attemptNum int, resp *http.Response, considerRetryAfter bool) time.Duration {
-	if considerRetryAfter {
+// It is similar to retryablehttp.LinearJitterBackoff but if enabled, it also looks at the `Retry-After` header in the case of 429/503 HTTP errors (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After).
+type LinearBackoffPolicy struct {
+	RetryWaitPolicy
+}
+
+func (p *LinearBackoffPolicy) Apply(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
+	if p.ConsiderRetryAfter {
 		sleep, found := findRetryAfter(resp)
 		if found {
 			return sleep
@@ -38,10 +65,21 @@ func LinearBackoff(min, max time.Duration, attemptNum int, resp *http.Response, 
 	return retryablehttp.LinearJitterBackoff(min, max, attemptNum, resp)
 }
 
-// ExponentialBackoff defines an exponential backoff retry policy.
+// NewLinearBackoffPolicy creates a LinearBackoffPolicy.
+func NewLinearBackoffPolicy(cfg *RetryPolicyConfiguration) IRetryWaitPolicy {
+	return &LinearBackoffPolicy{
+		RetryWaitPolicy: *NewRetryWaitPolicy(cfg),
+	}
+}
+
+// ExponentialBackoffPolicy defines an exponential backoff retry policy.
 // It is exactly the same as retryablehttp.DefaultBackoff although the `Retry-After` header is checked differently to accept dates as well as time.
-func ExponentialBackoff(min, max time.Duration, attemptNum int, resp *http.Response, considerRetryAfter bool) time.Duration {
-	if considerRetryAfter {
+type ExponentialBackoffPolicy struct {
+	RetryWaitPolicy
+}
+
+func (p *ExponentialBackoffPolicy) Apply(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
+	if p.ConsiderRetryAfter {
 		sleep, found := findRetryAfter(resp)
 		if found {
 			return sleep
@@ -56,25 +94,25 @@ func ExponentialBackoff(min, max time.Duration, attemptNum int, resp *http.Respo
 	return sleep
 }
 
+// NewExponentialBackoffPolicy creates a ExponentialBackoffPolicy.
+func NewExponentialBackoffPolicy(cfg *RetryPolicyConfiguration) IRetryWaitPolicy {
+	return &ExponentialBackoffPolicy{
+		RetryWaitPolicy: *NewRetryWaitPolicy(cfg),
+	}
+}
+
 // BackOffPolicyFactory generates a backoff policy based on configuration.
-func BackOffPolicyFactory(cfg *RetryPolicyConfiguration) (policy retryablehttp.Backoff) {
+func BackOffPolicyFactory(cfg *RetryPolicyConfiguration) (policy IRetryWaitPolicy) {
 	if cfg == nil || !cfg.Enabled || !cfg.BackOffEnabled {
-		if cfg.RetryAfterDisabled {
-			policy = BasicRetry
-		} else {
-			policy = NoBackOff
-		}
+		policy = NewBasicRetryPolicy(cfg)
 		return
 	}
-	policy = func(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration {
-		if cfg.LinearBackOffEnabled {
-			return LinearBackoff(min, max, attemptNum, resp, !cfg.RetryAfterDisabled)
-		} else {
-			return ExponentialBackoff(min, max, attemptNum, resp, !cfg.RetryAfterDisabled)
-		}
+	if cfg.LinearBackOffEnabled {
+		policy = NewLinearBackoffPolicy(cfg)
+	} else {
+		policy = NewExponentialBackoffPolicy(cfg)
 	}
 	return
-
 }
 
 func findRetryAfter(resp *http.Response) (wait time.Duration, found bool) {

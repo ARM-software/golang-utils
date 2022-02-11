@@ -17,7 +17,8 @@ import (
 	"github.com/ARM-software/golang-utils/utils/http/httptest"
 )
 
-func TestClient(t *testing.T) {
+// TestClientHappy tests that all requests are correctly populated and sent to the server. If requests are not as expected, an error is returned.
+func TestClientHappy(t *testing.T) {
 	clientsToTest := []struct {
 		clientName string
 		client     func() IClient

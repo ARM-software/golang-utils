@@ -49,7 +49,8 @@ func (cfg *RetryPolicyConfiguration) Validate() error {
 //DefaultNoRetryPolicyConfiguration defines a configuration for no retry being performed.
 func DefaultNoRetryPolicyConfiguration() *RetryPolicyConfiguration {
 	return &RetryPolicyConfiguration{
-		Enabled: false,
+		Enabled:            false,
+		RetryAfterDisabled: true,
 	}
 }
 
@@ -99,8 +100,8 @@ func DefaultLinearBackoffRetryPolicyConfiguration() *RetryPolicyConfiguration {
 		RetryMax:             4,
 		RetryAfterDisabled:   false,
 		RetryWaitMin:         time.Second,
-		RetryWaitMax:         30 * time.Second,
+		RetryWaitMax:         time.Second, //See https://github.com/hashicorp/go-retryablehttp/blob/ff6d014e72d968e0f328637b209477ee09393175/client.go#L505
 		BackOffEnabled:       true,
-		LinearBackOffEnabled: false,
+		LinearBackOffEnabled: true,
 	}
 }

@@ -103,6 +103,13 @@ func DefaultRobustHTTPClientConfiguration() *HTTPClientConfiguration {
 	return cfg
 }
 
+// DefaultRobustHTTPClientConfigurationWithRetryAfter is similar to DefaultRobustHTTPClientConfiguration but considers `Retry-After` header.
+func DefaultRobustHTTPClientConfigurationWithRetryAfter() *HTTPClientConfiguration {
+	cfg := DefaultHTTPClientConfiguration()
+	cfg.RetryPolicy = *DefaultRobustRetryPolicyConfiguration()
+	return cfg
+}
+
 // DefaultRobustHTTPClientConfigurationWithExponentialBackOff is similar to DefaultHTTPClientConfiguration but performs exponential backoff.
 func DefaultRobustHTTPClientConfigurationWithExponentialBackOff() *HTTPClientConfiguration {
 	cfg := DefaultHTTPClientConfiguration()

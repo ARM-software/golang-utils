@@ -25,7 +25,17 @@ func TestHttpClientConfigurationWithRetry(t *testing.T) {
 	require.NoError(t, configTest.Validate())
 }
 
+func TestHttpClientConfigurationWithRetryAndRetryAfter(t *testing.T) {
+	configTest := DefaultRobustHTTPClientConfigurationWithRetryAfter()
+	require.NoError(t, configTest.Validate())
+}
+
 func TestHttpClientConfigurationWithBackoff(t *testing.T) {
 	configTest := DefaultRobustHTTPClientConfigurationWithExponentialBackOff()
+	require.NoError(t, configTest.Validate())
+}
+
+func TestHttpClientConfigurationWithLinearBackoff(t *testing.T) {
+	configTest := DefaultRobustHTTPClientConfigurationWithLinearBackOff()
 	require.NoError(t, configTest.Validate())
 }
