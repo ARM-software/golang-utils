@@ -23,48 +23,71 @@
 {background: #226; color: #ff8;}
 input[id=i0]:checked ~pre .i0,
 input[id=i1]:checked ~pre .i1,
-input[id=i2]:checked ~pre .i2
+input[id=i2]:checked ~pre .i2,
+input[id=i3]:checked ~pre .i3
 {background: brown; color: #eed;}
 </style><input id="i0" type="radio" name="i"/>
 <input id="i1" type="radio" name="i"/>
 <input id="i2" type="radio" name="i"/>
+<input id="i3" type="radio" name="i"/>
 
 <pre class="line-numbers">
-<div class="anchor" id="doc"><span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
 <span class="codeline" id="line-2"><code><span class="comment"> * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.</span></code></span>
 <span class="codeline" id="line-3"><code><span class="comment"> * SPDX-License-Identifier: Apache-2.0</span></code></span>
-<span class="codeline" id="line-4"><code><span class="comment"> */</span></code></span></div><span class="codeline" id="line-5"><code><span class="keyword">package</span> http</code></span>
-<span class="codeline" id="line-6"><code></code></span>
-<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
-<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"io"</span></label></code></span>
-<span class="codeline" id="line-9"><code>	<label for="i1"><span class="lit-string i1">"net/http"</span></label></code></span>
-<span class="codeline" id="line-10"><code>	<label for="i2"><span class="lit-string i2">"net/url"</span></label></code></span>
-<span class="codeline" id="line-11"><code>)</code></span>
-<span class="codeline" id="line-12"><code></code></span>
-<span class="codeline" id="line-13"><code><span class="comment">//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IClient</span></code></span>
-<span class="codeline" id="line-14"><code></code></span>
-<span class="codeline" id="line-15"><code><span class="comment">// IClient provides a familiar HTTP client interface with automatic retries and exponential backoff.</span></code></span>
-<span class="codeline" id="line-16"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/http.html#name-IClient" class="ident">IClient</a> <span class="keyword">interface</span> {</code></span>
-<span class="codeline" id="line-17"><code>	<a href="../../../../../../pkg/io.html" class="ident i0">io</a>.<a href="../../../../../io/io.go.html#line-104" class="ident">Closer</a></code></span>
-<span class="codeline" id="line-18"><code>	<span class="comment">// Get is a convenience helper for doing simple GET requests.</span></code></span>
-<span class="codeline" id="line-19"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.IClient.html#name-Get" class="ident">Get</a>(url <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (*<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/response.go.html#line-35" class="ident">Response</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
-<span class="codeline" id="line-20"><code>	<span class="comment">// Head is a convenience method for doing simple HEAD requests.</span></code></span>
-<span class="codeline" id="line-21"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.IClient.html#name-Head" class="ident">Head</a>(url <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (*<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/response.go.html#line-35" class="ident">Response</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
-<span class="codeline" id="line-22"><code>	<span class="comment">// Post is a convenience method for doing simple POST requests.</span></code></span>
-<span class="codeline" id="line-23"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.IClient.html#name-Post" class="ident">Post</a>(url, bodyType <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, body <span class="keyword">interface</span>{}) (*<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/response.go.html#line-35" class="ident">Response</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
-<span class="codeline" id="line-24"><code>	<span class="comment">// PostForm is a convenience method for doing simple POST operations using</span></code></span>
-<span class="codeline" id="line-25"><code><span class="comment">	// pre-filled url.Values form data.</span></code></span>
-<span class="codeline" id="line-26"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.IClient.html#name-PostForm" class="ident">PostForm</a>(url <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, data <a href="../../../../../../pkg/net/url.html" class="ident i2">url</a>.<a href="../../../../../net/url/url.go.html#line-878" class="ident">Values</a>) (*<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/response.go.html#line-35" class="ident">Response</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
-<span class="codeline" id="line-27"><code>	<span class="comment">// StandardClient returns a stdlib *http.Client with a custom Transport, which</span></code></span>
-<span class="codeline" id="line-28"><code><span class="comment">	// shims in a *retryablehttp.Client for added retries.</span></code></span>
-<span class="codeline" id="line-29"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.IClient.html#name-StandardClient" class="ident">StandardClient</a>() *<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/client.go.html#line-57" class="ident">Client</a></code></span>
-<span class="codeline" id="line-30"><code>	<span class="comment">// Perform a PUT request.</span></code></span>
-<span class="codeline" id="line-31"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.IClient.html#name-Put" class="ident">Put</a>(url <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, rawBody <span class="keyword">interface</span>{}) (*<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/response.go.html#line-35" class="ident">Response</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
-<span class="codeline" id="line-32"><code>	<span class="comment">// Perform a DELETE request.</span></code></span>
-<span class="codeline" id="line-33"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.IClient.html#name-Delete" class="ident">Delete</a>(url <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (*<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/response.go.html#line-35" class="ident">Response</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
-<span class="codeline" id="line-34"><code>	<span class="comment">// Perform a generic request with exponential backoff</span></code></span>
-<span class="codeline" id="line-35"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.IClient.html#name-Do" class="ident">Do</a>(req *<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/request.go.html#line-102" class="ident">Request</a>) (*<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/response.go.html#line-35" class="ident">Response</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
-<span class="codeline" id="line-36"><code>}</code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> */</span></code></span>
+<span class="codeline" id="line-5"><code></code></span>
+<div class="anchor" id="doc"><span class="codeline" id="line-6"><code><span class="comment">// Package http provides a familiar HTTP client interface with</span></code></span>
+<span class="codeline" id="line-7"><code><span class="comment">// various implementations in order to answer common use cases: e.g. need for a robust client (performs retries on server errors with different retry policies depending on configuration),</span></code></span>
+<span class="codeline" id="line-8"><code><span class="comment">// for a fast client which leverages connection pools.</span></code></span>
+<span class="codeline" id="line-9"><code><span class="comment">// For the robust client, it is possible to set its configuration fully but this package also come with a set of preset configuration to answer most usecases</span></code></span>
+<span class="codeline" id="line-10"><code><span class="comment">// e.g. to create a client which performs exponential backoff and listens to `Retry-After` headers, the following can be done:</span></code></span>
+<span class="codeline" id="line-11"><code><span class="comment">//  robustClient := NewConfigurableRetryableClient(DefaultRobustHTTPClientConfigurationWithExponentialBackOff())</span></code></span>
+<span class="codeline" id="line-12"><code><span class="comment">//  resp, err := robustClient.Get("https://somehost.com")</span></code></span>
+<span class="codeline" id="line-13"><code><span class="comment">// Whereas to create a client which will only perform 4 retries without backoff, the following can be done:</span></code></span>
+<span class="codeline" id="line-14"><code><span class="comment">//  retriableClient := NewConfigurableRetryableClient(DefaultRobustHTTPClientConfiguration())</span></code></span>
+<span class="codeline" id="line-15"><code><span class="comment">//  resp, err := retriableClient.Get("https://somehost.com")</span></code></span>
+<span class="codeline" id="line-16"><code><span class="comment">// It is a thin wrapper over some hashicorp implementations and hence over the standard net/http client library.</span></code></span>
+<span class="codeline" id="line-17"><code><span class="comment">// This makes the client implementations very easy to drop into existing programs in lieu of standard library default client.</span></code></span></div><span class="codeline" id="line-18"><code><span class="keyword">package</span> http</code></span>
+<span class="codeline" id="line-19"><code></code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-21"><code>	<label for="i0"><span class="lit-string i0">"io"</span></label></code></span>
+<span class="codeline" id="line-22"><code>	<label for="i1"><span class="lit-string i1">"net/http"</span></label></code></span>
+<span class="codeline" id="line-23"><code>	<label for="i2"><span class="lit-string i2">"net/url"</span></label></code></span>
+<span class="codeline" id="line-24"><code>	<label for="i3"><span class="lit-string i3">"time"</span></label></code></span>
+<span class="codeline" id="line-25"><code>)</code></span>
+<span class="codeline" id="line-26"><code></code></span>
+<span class="codeline" id="line-27"><code><span class="comment">//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IClient,IRetryWaitPolicy</span></code></span>
+<span class="codeline" id="line-28"><code></code></span>
+<span class="codeline" id="line-29"><code><span class="comment">// IClient defines an HTTP client similar to http.Client but without shared state with other clients used in the same program.</span></code></span>
+<span class="codeline" id="line-30"><code><span class="comment">// See https://github.com/hashicorp/go-cleanhttp for more details.</span></code></span>
+<span class="codeline" id="line-31"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/http.html#name-IClient" class="ident">IClient</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-32"><code>	<a href="../../../../../../pkg/io.html" class="ident i0">io</a>.<a href="../../../../../io/io.go.html#line-104" class="ident">Closer</a></code></span>
+<span class="codeline" id="line-33"><code>	<span class="comment">// Get is a convenience helper for doing simple GET requests.</span></code></span>
+<span class="codeline" id="line-34"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.IClient.html#name-Get" class="ident">Get</a>(url <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (*<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/response.go.html#line-35" class="ident">Response</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-35"><code>	<span class="comment">// Head is a convenience method for doing simple HEAD requests.</span></code></span>
+<span class="codeline" id="line-36"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.IClient.html#name-Head" class="ident">Head</a>(url <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (*<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/response.go.html#line-35" class="ident">Response</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-37"><code>	<span class="comment">// Post is a convenience method for doing simple POST requests.</span></code></span>
+<span class="codeline" id="line-38"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.IClient.html#name-Post" class="ident">Post</a>(url, bodyType <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, body <span class="keyword">interface</span>{}) (*<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/response.go.html#line-35" class="ident">Response</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-39"><code>	<span class="comment">// PostForm is a convenience method for doing simple POST operations using</span></code></span>
+<span class="codeline" id="line-40"><code><span class="comment">	// pre-filled url.Values form data.</span></code></span>
+<span class="codeline" id="line-41"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.IClient.html#name-PostForm" class="ident">PostForm</a>(url <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, data <a href="../../../../../../pkg/net/url.html" class="ident i2">url</a>.<a href="../../../../../net/url/url.go.html#line-878" class="ident">Values</a>) (*<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/response.go.html#line-35" class="ident">Response</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-42"><code>	<span class="comment">// StandardClient returns a standard library *http.Client with a custom Transport layer.</span></code></span>
+<span class="codeline" id="line-43"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.IClient.html#name-StandardClient" class="ident">StandardClient</a>() *<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/client.go.html#line-57" class="ident">Client</a></code></span>
+<span class="codeline" id="line-44"><code>	<span class="comment">// Put performs a PUT request.</span></code></span>
+<span class="codeline" id="line-45"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.IClient.html#name-Put" class="ident">Put</a>(url <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>, rawBody <span class="keyword">interface</span>{}) (*<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/response.go.html#line-35" class="ident">Response</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-46"><code>	<span class="comment">// Delete performs a DELETE request.</span></code></span>
+<span class="codeline" id="line-47"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.IClient.html#name-Delete" class="ident">Delete</a>(url <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) (*<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/response.go.html#line-35" class="ident">Response</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-48"><code>	<span class="comment">// Do performs a generic request.</span></code></span>
+<span class="codeline" id="line-49"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.IClient.html#name-Do" class="ident">Do</a>(req *<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/request.go.html#line-102" class="ident">Request</a>) (*<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/response.go.html#line-35" class="ident">Response</a>, <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a>)</code></span>
+<span class="codeline" id="line-50"><code>}</code></span>
+<span class="codeline" id="line-51"><code></code></span>
+<span class="codeline" id="line-52"><code><span class="comment">// IRetryWaitPolicy defines the policy which specifies how much wait/sleep should happen between retry attempts.</span></code></span>
+<span class="codeline" id="line-53"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/http.html#name-IRetryWaitPolicy" class="ident">IRetryWaitPolicy</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-54"><code>	<span class="comment">// Apply determines the amount of time to wait before the next retry attempt.</span></code></span>
+<span class="codeline" id="line-55"><code><span class="comment">	// the time will be comprised between the `min` and `max` value unless other information are retrieved from the server response e.g. `Retry-After` header.</span></code></span>
+<span class="codeline" id="line-56"><code>	<a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.IRetryWaitPolicy.html#name-Apply" class="ident">Apply</a>(min, max <a href="../../../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../../../time/time.go.html#line-583" class="ident">Duration</a>, attemptNum <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a>, resp *<a href="../../../../../../pkg/net/http.html" class="ident i1">http</a>.<a href="../../../../../net/http/response.go.html#line-35" class="ident">Response</a>) <a href="../../../../../../pkg/time.html" class="ident i3">time</a>.<a href="../../../../../time/time.go.html#line-583" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-57"><code>}</code></span>
 </pre><pre id="footer">
 <table><tr><td><img src="../../../../../../png/go101-twitter.png"></td>
 <td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.4.1</i>. (GOOS=linux GOARCH=amd64)

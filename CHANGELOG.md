@@ -14,6 +14,23 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.6.0" (2022-02-11)
+=======================
+
+Features
+--------
+
+- Possibility to define the HTTP client retry policy from configuration (#202202102044)
+- Possibility to use an HTTP client with basic retry policy (policy can take into account the `Retry-After` header in response or not) (#202202102046)
+- Possibility to use an HTTP client with linear back-off (policy can take into account the `Retry-After` header in response or not) (#202202102049)
+
+
+Improved Documentation
+----------------------
+
+- Documented the different HTTP client implementations and their configuration (#202202102042)
+
+
 "" "1.5.0" (2022-02-03)
 =======================
 

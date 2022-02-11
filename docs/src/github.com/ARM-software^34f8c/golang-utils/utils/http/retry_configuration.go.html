@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<!--
+-- Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
+-- SPDX-License-Identifier: Apache-2.0
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source: retry_configuration.go in package github.com/ARM-software/golang-utils/utils/http</title>
+<link href="../../../../../../css/light-v0.4.1.css" rel="stylesheet">
+<script src="../../../../../../jvs/golds-v0.4.1.js"></script>
+<body onload="onPageLoad()"><div>
+
+<pre id="header"><code><span class="title">Source File</span>
+	retry_configuration.go
+
+<span class="title">Belonging Package</span>
+	<a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/http.html">github.com/ARM-software/golang-utils/utils/http</a>
+</code></pre>
+<style>input[type=radio] {display: none;}
+input[id=r0]:checked ~pre label[for=r0],
+input[id=r1]:checked ~pre label[for=r1],
+input[id=r2]:checked ~pre label[for=r2],
+input[id=r3]:checked ~pre label[for=r3],
+input[id=r4]:checked ~pre label[for=r4],
+input[id=r5]:checked ~pre label[for=r5],
+input[id=r6]:checked ~pre label[for=r6],
+input[id=r7]:checked ~pre label[for=r7]
+{background: #226; color: #ff8;}
+input[id=i0]:checked ~pre .i0,
+input[id=i1]:checked ~pre .i1,
+input[id=i2]:checked ~pre .i2
+{background: brown; color: #eed;}
+</style><input id="r0" type="radio" name="g"/>
+<input id="r1" type="radio" name="g"/>
+<input id="r2" type="radio" name="g"/>
+<input id="r3" type="radio" name="g"/>
+<input id="r4" type="radio" name="g"/>
+<input id="r5" type="radio" name="g"/>
+<input id="r6" type="radio" name="g"/>
+<input id="r7" type="radio" name="g"/>
+<input id="i0" type="radio" name="i"/>
+<input id="i1" type="radio" name="i"/>
+<input id="i2" type="radio" name="i"/>
+
+<pre class="line-numbers">
+<div class="anchor" id="doc"><span class="codeline" id="line-1"><code><span class="comment">/*</span></code></span>
+<span class="codeline" id="line-2"><code><span class="comment"> * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.</span></code></span>
+<span class="codeline" id="line-3"><code><span class="comment"> * SPDX-License-Identifier: Apache-2.0</span></code></span>
+<span class="codeline" id="line-4"><code><span class="comment"> */</span></code></span></div><span class="codeline" id="line-5"><code><span class="keyword">package</span> http</code></span>
+<span class="codeline" id="line-6"><code></code></span>
+<span class="codeline" id="line-7"><code><span class="keyword">import</span> (</code></span>
+<span class="codeline" id="line-8"><code>	<label for="i0"><span class="lit-string i0">"time"</span></label></code></span>
+<span class="codeline" id="line-9"><code></code></span>
+<span class="codeline" id="line-10"><code>	<a href="../../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html" class="ident i1">validation</a> <label for="i1"><span class="lit-string i1">"github.com/go-ozzo/ozzo-validation/v4"</span></label></code></span>
+<span class="codeline" id="line-11"><code></code></span>
+<span class="codeline" id="line-12"><code>	<label for="i2"><span class="lit-string i2">"github.com/ARM-software/golang-utils/utils/config"</span></label></code></span>
+<span class="codeline" id="line-13"><code>)</code></span>
+<span class="codeline" id="line-14"><code></code></span>
+<span class="codeline" id="line-15"><code><span class="keyword">type</span> <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/http.html#name-RetryPolicyConfiguration" class="ident">RetryPolicyConfiguration</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-16"><code>	<span class="comment">// Enabled specifies whether this retry policy is enabled or not. If not, no retry will be performed.</span></code></span>
+<span class="codeline" id="line-17"><code>	Enabled <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="lit-string">`mapstructure:"enabled"`</span></code></span>
+<span class="codeline" id="line-18"><code>	<span class="comment">// RetryMax represents the maximum number of retries</span></code></span>
+<span class="codeline" id="line-19"><code>	RetryMax <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a> <span class="lit-string">`mapstructure:"max_retry"`</span></code></span>
+<span class="codeline" id="line-20"><code>	<span class="comment">// RetryAfterDisabled tells the client not to consider the `Retry-After` header (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After) returned by server.</span></code></span>
+<span class="codeline" id="line-21"><code>	RetryAfterDisabled <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="lit-string">`mapstructure:"retry_after_disabled"`</span></code></span>
+<span class="codeline" id="line-22"><code>	<span class="comment">// RetryWaitMin specifies the minimum time to wait between retries.</span></code></span>
+<span class="codeline" id="line-23"><code>	RetryWaitMin <a href="../../../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../../../time/time.go.html#line-583" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-24"><code>	<span class="comment">// RetryWaitMax represents the maximum time to wait (only necessary if backoff is enabled).</span></code></span>
+<span class="codeline" id="line-25"><code>	RetryWaitMax <a href="../../../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../../../time/time.go.html#line-583" class="ident">Duration</a></code></span>
+<span class="codeline" id="line-26"><code>	<span class="comment">// BackOffEnabled states whether backoff must be performed during retries (by default, exponential backoff is performed unless LinearBackoff is enabled).</span></code></span>
+<span class="codeline" id="line-27"><code>	BackOffEnabled <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="lit-string">`mapstructure:"backoff_enabled"`</span></code></span>
+<span class="codeline" id="line-28"><code>	<span class="comment">//LinearBackOffEnabled forces to perform linear backoff instead of exponential backoff provided BackOffEnabled is set to true.</span></code></span>
+<span class="codeline" id="line-29"><code>	LinearBackOffEnabled <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> <span class="lit-string">`mapstructure:"linear_backoff_enabled"`</span></code></span>
+<span class="codeline" id="line-30"><code>}</code></span>
+<span class="codeline" id="line-31"><code></code></span>
+<span class="codeline" id="line-32"><code><span class="keyword">func</span> (<label for="r0" class="ident">cfg</label> *<a href="#line-15" class="ident">RetryPolicyConfiguration</a>) <label for="r1" class="ident"><a href="../../../../../../imp/github.com/ARM-software^34f8c/golang-utils/utils/http.RetryPolicyConfiguration.html#name-.Validate" class="ident">Validate</a></label>() <a href="../../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-33"><code></code></span>
+<span class="codeline" id="line-34"><code>	<span class="comment">// Validate Embedded Structs</span></code></span>
+<span class="codeline" id="line-35"><code>	<label for="r2" class="ident">err</label> := <a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/config.html" class="ident i2">config</a>.<a href="../config/validation.go.html#line-14" class="ident">ValidateEmbedded</a>(<label for="r0" class="ident">cfg</label>)</code></span>
+<span class="codeline" id="line-36"><code>	<span class="keyword">if</span> <label for="r2" class="ident">err</label> != <a href="../../../../../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
+<span class="codeline" id="line-37"><code>		<span class="keyword">return</span> <label for="r2" class="ident">err</label></code></span>
+<span class="codeline" id="line-38"><code>	}</code></span>
+<span class="codeline" id="line-39"><code></code></span>
+<span class="codeline" id="line-40"><code>	<span class="keyword">return</span> <a href="../../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html" class="ident i1">validation</a>.<a href="../../../../go-ozzo/ozzo-validation/v4/struct.go.html#line-62" class="ident">ValidateStruct</a>(<label for="r0" class="ident">cfg</label>,</code></span>
+<span class="codeline" id="line-41"><code>		<a href="../../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html" class="ident i1">validation</a>.<a href="../../../../go-ozzo/ozzo-validation/v4/struct.go.html#line-124" class="ident">Field</a>(&amp;<label for="r0" class="ident">cfg</label>.<a href="#line-17" class="ident">Enabled</a>, <a href="../../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html" class="ident i1">validation</a>.<a href="../../../../go-ozzo/ozzo-validation/v4/required.go.html#line-21" class="ident">Required</a>.<a href="../../../../go-ozzo/ozzo-validation/v4/required.go.html#line-52" class="ident">When</a>(<label for="r0" class="ident">cfg</label>.<a href="#line-27" class="ident">BackOffEnabled</a> || <label for="r0" class="ident">cfg</label>.<a href="#line-29" class="ident">LinearBackOffEnabled</a>)),</code></span>
+<span class="codeline" id="line-42"><code>		<a href="../../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html" class="ident i1">validation</a>.<a href="../../../../go-ozzo/ozzo-validation/v4/struct.go.html#line-124" class="ident">Field</a>(&amp;<label for="r0" class="ident">cfg</label>.<a href="#line-19" class="ident">RetryMax</a>, <a href="../../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html" class="ident i1">validation</a>.<a href="../../../../go-ozzo/ozzo-validation/v4/minmax.go.html#line-43" class="ident">Min</a>(<span class="lit-number">0</span>), <a href="../../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html" class="ident i1">validation</a>.<a href="../../../../go-ozzo/ozzo-validation/v4/required.go.html#line-21" class="ident">Required</a>.<a href="../../../../go-ozzo/ozzo-validation/v4/required.go.html#line-52" class="ident">When</a>(<label for="r0" class="ident">cfg</label>.<a href="#line-27" class="ident">BackOffEnabled</a>)),</code></span>
+<span class="codeline" id="line-43"><code>		<a href="../../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html" class="ident i1">validation</a>.<a href="../../../../go-ozzo/ozzo-validation/v4/struct.go.html#line-124" class="ident">Field</a>(&amp;<label for="r0" class="ident">cfg</label>.<a href="#line-23" class="ident">RetryWaitMin</a>, <a href="../../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html" class="ident i1">validation</a>.<a href="../../../../go-ozzo/ozzo-validation/v4/minmax.go.html#line-43" class="ident">Min</a>(<a href="../../../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../../../time/time.go.html#line-583" class="ident">Duration</a>(<span class="lit-number">0</span>))),</code></span>
+<span class="codeline" id="line-44"><code>		<a href="../../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html" class="ident i1">validation</a>.<a href="../../../../go-ozzo/ozzo-validation/v4/struct.go.html#line-124" class="ident">Field</a>(&amp;<label for="r0" class="ident">cfg</label>.<a href="#line-25" class="ident">RetryWaitMax</a>, <a href="../../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html" class="ident i1">validation</a>.<a href="../../../../go-ozzo/ozzo-validation/v4/required.go.html#line-21" class="ident">Required</a>.<a href="../../../../go-ozzo/ozzo-validation/v4/required.go.html#line-52" class="ident">When</a>(<label for="r0" class="ident">cfg</label>.<a href="#line-27" class="ident">BackOffEnabled</a>), <a href="../../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html" class="ident i1">validation</a>.<a href="../../../../go-ozzo/ozzo-validation/v4/minmax.go.html#line-43" class="ident">Min</a>(<a href="../../../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../../../time/time.go.html#line-583" class="ident">Duration</a>(<span class="lit-number">0</span>))),</code></span>
+<span class="codeline" id="line-45"><code>		<a href="../../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html" class="ident i1">validation</a>.<a href="../../../../go-ozzo/ozzo-validation/v4/struct.go.html#line-124" class="ident">Field</a>(&amp;<label for="r0" class="ident">cfg</label>.<a href="#line-27" class="ident">BackOffEnabled</a>, <a href="../../../../../../pkg/github.com/go-ozzo/ozzo-validation/v4.html" class="ident i1">validation</a>.<a href="../../../../go-ozzo/ozzo-validation/v4/required.go.html#line-21" class="ident">Required</a>.<a href="../../../../go-ozzo/ozzo-validation/v4/required.go.html#line-52" class="ident">When</a>(<label for="r0" class="ident">cfg</label>.<a href="#line-29" class="ident">LinearBackOffEnabled</a>)),</code></span>
+<span class="codeline" id="line-46"><code>	)</code></span>
+<span class="codeline" id="line-47"><code>}</code></span>
+<span class="codeline" id="line-48"><code></code></span>
+<span class="codeline" id="line-49"><code><span class="comment">//DefaultNoRetryPolicyConfiguration defines a configuration for no retry being performed.</span></code></span>
+<span class="codeline" id="line-50"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/http.html#name-DefaultNoRetryPolicyConfiguration" class="ident">DefaultNoRetryPolicyConfiguration</a></label>() *<a href="#line-15" class="ident">RetryPolicyConfiguration</a> {</code></span>
+<span class="codeline" id="line-51"><code>	<span class="keyword">return</span> &amp;<a href="#line-15" class="ident">RetryPolicyConfiguration</a>{</code></span>
+<span class="codeline" id="line-52"><code>		<a href="#line-17" class="ident">Enabled</a>:            <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a>,</code></span>
+<span class="codeline" id="line-53"><code>		<a href="#line-21" class="ident">RetryAfterDisabled</a>: <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-54"><code>	}</code></span>
+<span class="codeline" id="line-55"><code>}</code></span>
+<span class="codeline" id="line-56"><code></code></span>
+<span class="codeline" id="line-57"><code><span class="comment">//DefaultBasicRetryPolicyConfiguration defines a configuration for basic retries i.e. retrying straight after a failure for maximum 4 attempts.</span></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/http.html#name-DefaultBasicRetryPolicyConfiguration" class="ident">DefaultBasicRetryPolicyConfiguration</a></label>() *<a href="#line-15" class="ident">RetryPolicyConfiguration</a> {</code></span>
+<span class="codeline" id="line-59"><code>	<span class="keyword">return</span> &amp;<a href="#line-15" class="ident">RetryPolicyConfiguration</a>{</code></span>
+<span class="codeline" id="line-60"><code>		<a href="#line-17" class="ident">Enabled</a>:              <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-61"><code>		<a href="#line-19" class="ident">RetryMax</a>:             <span class="lit-number">4</span>,</code></span>
+<span class="codeline" id="line-62"><code>		<a href="#line-21" class="ident">RetryAfterDisabled</a>:   <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-63"><code>		<a href="#line-23" class="ident">RetryWaitMin</a>:         <span class="lit-number">0</span>,</code></span>
+<span class="codeline" id="line-64"><code>		<a href="#line-25" class="ident">RetryWaitMax</a>:         <span class="lit-number">0</span>,</code></span>
+<span class="codeline" id="line-65"><code>		<a href="#line-27" class="ident">BackOffEnabled</a>:       <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a>,</code></span>
+<span class="codeline" id="line-66"><code>		<a href="#line-29" class="ident">LinearBackOffEnabled</a>: <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a>,</code></span>
+<span class="codeline" id="line-67"><code>	}</code></span>
+<span class="codeline" id="line-68"><code>}</code></span>
+<span class="codeline" id="line-69"><code></code></span>
+<span class="codeline" id="line-70"><code><span class="comment">//DefaultRobustRetryPolicyConfiguration defines a configuration for basic retries but considering any `Retry-After` being returned by server.</span></code></span>
+<span class="codeline" id="line-71"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/http.html#name-DefaultRobustRetryPolicyConfiguration" class="ident">DefaultRobustRetryPolicyConfiguration</a></label>() *<a href="#line-15" class="ident">RetryPolicyConfiguration</a> {</code></span>
+<span class="codeline" id="line-72"><code>	<span class="keyword">return</span> &amp;<a href="#line-15" class="ident">RetryPolicyConfiguration</a>{</code></span>
+<span class="codeline" id="line-73"><code>		<a href="#line-17" class="ident">Enabled</a>:              <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-74"><code>		<a href="#line-19" class="ident">RetryMax</a>:             <span class="lit-number">4</span>,</code></span>
+<span class="codeline" id="line-75"><code>		<a href="#line-21" class="ident">RetryAfterDisabled</a>:   <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a>,</code></span>
+<span class="codeline" id="line-76"><code>		<a href="#line-23" class="ident">RetryWaitMin</a>:         <span class="lit-number">0</span>,</code></span>
+<span class="codeline" id="line-77"><code>		<a href="#line-25" class="ident">RetryWaitMax</a>:         <span class="lit-number">0</span>,</code></span>
+<span class="codeline" id="line-78"><code>		<a href="#line-27" class="ident">BackOffEnabled</a>:       <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a>,</code></span>
+<span class="codeline" id="line-79"><code>		<a href="#line-29" class="ident">LinearBackOffEnabled</a>: <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a>,</code></span>
+<span class="codeline" id="line-80"><code>	}</code></span>
+<span class="codeline" id="line-81"><code>}</code></span>
+<span class="codeline" id="line-82"><code></code></span>
+<span class="codeline" id="line-83"><code><span class="comment">//DefaultExponentialBackoffRetryPolicyConfiguration defines a configuration for retries with exponential backoff.</span></code></span>
+<span class="codeline" id="line-84"><code><span class="keyword">func</span> <label for="r6" class="ident"><a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/http.html#name-DefaultExponentialBackoffRetryPolicyConfiguration" class="ident">DefaultExponentialBackoffRetryPolicyConfiguration</a></label>() *<a href="#line-15" class="ident">RetryPolicyConfiguration</a> {</code></span>
+<span class="codeline" id="line-85"><code>	<span class="keyword">return</span> &amp;<a href="#line-15" class="ident">RetryPolicyConfiguration</a>{</code></span>
+<span class="codeline" id="line-86"><code>		<a href="#line-17" class="ident">Enabled</a>:              <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-87"><code>		<a href="#line-19" class="ident">RetryMax</a>:             <span class="lit-number">4</span>,</code></span>
+<span class="codeline" id="line-88"><code>		<a href="#line-21" class="ident">RetryAfterDisabled</a>:   <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a>,</code></span>
+<span class="codeline" id="line-89"><code>		<a href="#line-23" class="ident">RetryWaitMin</a>:         <a href="../../../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../../../time/time.go.html#line-605" class="ident">Second</a>,</code></span>
+<span class="codeline" id="line-90"><code>		<a href="#line-25" class="ident">RetryWaitMax</a>:         <span class="lit-number">30</span> * <a href="../../../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../../../time/time.go.html#line-605" class="ident">Second</a>,</code></span>
+<span class="codeline" id="line-91"><code>		<a href="#line-27" class="ident">BackOffEnabled</a>:       <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-92"><code>		<a href="#line-29" class="ident">LinearBackOffEnabled</a>: <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a>,</code></span>
+<span class="codeline" id="line-93"><code>	}</code></span>
+<span class="codeline" id="line-94"><code>}</code></span>
+<span class="codeline" id="line-95"><code></code></span>
+<span class="codeline" id="line-96"><code><span class="comment">//DefaultLinearBackoffRetryPolicyConfiguration defines a configuration for retries with linear backoff.</span></code></span>
+<span class="codeline" id="line-97"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../../../../../pkg/github.com/ARM-software^34f8c/golang-utils/utils/http.html#name-DefaultLinearBackoffRetryPolicyConfiguration" class="ident">DefaultLinearBackoffRetryPolicyConfiguration</a></label>() *<a href="#line-15" class="ident">RetryPolicyConfiguration</a> {</code></span>
+<span class="codeline" id="line-98"><code>	<span class="keyword">return</span> &amp;<a href="#line-15" class="ident">RetryPolicyConfiguration</a>{</code></span>
+<span class="codeline" id="line-99"><code>		<a href="#line-17" class="ident">Enabled</a>:              <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-100"><code>		<a href="#line-19" class="ident">RetryMax</a>:             <span class="lit-number">4</span>,</code></span>
+<span class="codeline" id="line-101"><code>		<a href="#line-21" class="ident">RetryAfterDisabled</a>:   <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a>,</code></span>
+<span class="codeline" id="line-102"><code>		<a href="#line-23" class="ident">RetryWaitMin</a>:         <a href="../../../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../../../time/time.go.html#line-605" class="ident">Second</a>,</code></span>
+<span class="codeline" id="line-103"><code>		<a href="#line-25" class="ident">RetryWaitMax</a>:         <a href="../../../../../../pkg/time.html" class="ident i0">time</a>.<a href="../../../../../time/time.go.html#line-605" class="ident">Second</a>, <span class="comment">//See https://github.com/hashicorp/go-retryablehttp/blob/ff6d014e72d968e0f328637b209477ee09393175/client.go#L505</span></code></span>
+<span class="codeline" id="line-104"><code>		<a href="#line-27" class="ident">BackOffEnabled</a>:       <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-105"><code>		<a href="#line-29" class="ident">LinearBackOffEnabled</a>: <a href="../../../../../../pkg/builtin.html#name-true" class="ident">true</a>,</code></span>
+<span class="codeline" id="line-106"><code>	}</code></span>
+<span class="codeline" id="line-107"><code>}</code></span>
+</pre><pre id="footer">
+<table><tr><td><img src="../../../../../../png/go101-twitter.png"></td>
+<td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.4.1</i>. (GOOS=linux GOARCH=amd64)
+<b>Golds</b> is a <a href="https://go101.org">Go 101</a> project developed by <a href="https://tapirgames.com">Tapir Liu</a>.
+PR and bug reports are welcome and can be submitted to <a href="https://github.com/go101/golds">the issue list</a>.
+Please follow <a href="https://twitter.com/go100and1">@Go100and1</a> (reachable from the left QR code) to get the latest news of <b>Golds</b>.</td></tr></table></pre>
