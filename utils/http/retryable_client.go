@@ -5,24 +5,47 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 
+	"github.com/go-logr/logr"
+	"github.com/hashicorp/go-cleanhttp"
 	"github.com/hashicorp/go-retryablehttp"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 type RetryableClient struct {
 	client *retryablehttp.Client
 }
 
-// NewRetryableClient creates a new http client which will retry failed requests with exponential backoff
+// NewRetryableClient creates a new http client which will retry failed requests with exponential backoff.
+// It is based on `retryablehttp` default client
 func NewRetryableClient() IClient {
 	return &RetryableClient{client: retryablehttp.NewClient()}
 }
 
-// NewRetryableClient creates a new http client which will retry failed requests with exponential backoff
+// NewConfigurableRetryableClient creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff).
 func NewConfigurableRetryableClient(cfg *HTTPClientConfiguration) IClient {
-	subClient := retryablehttp.NewClient()
+	return NewConfigurableRetryableClientWithLogger(cfg, nil)
+}
+
+// NewConfigurableRetryableClientWithLogger creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff).
+// It is also possible to supply a logger for debug purposes
+func NewConfigurableRetryableClientWithLogger(cfg *HTTPClientConfiguration, logger logr.Logger) IClient {
+	subClient := &retryablehttp.Client{
+		HTTPClient:      cleanhttp.DefaultPooledClient(),
+		Logger:          newLogger(logger),
+		RetryWaitMin:    cfg.RetryPolicy.RetryWaitMin,
+		RetryWaitMax:    cfg.RetryPolicy.RetryWaitMax,
+		RetryMax:        cfg.RetryPolicy.RetryMax,
+		RequestLogHook:  nil,
+		ResponseLogHook: nil,
+		CheckRetry:      retryablehttp.DefaultRetryPolicy,
+		Backoff:         BackOffPolicyFactory(&cfg.RetryPolicy).Apply,
+		ErrorHandler:    nil,
+	}
 	if t, ok := subClient.HTTPClient.Transport.(*http.Transport); ok {
 		setTransportConfiguration(cfg, t)
 	}
@@ -58,7 +81,7 @@ func (c *RetryableClient) Do(req *http.Request) (*http.Response, error) {
 }
 
 func (c *RetryableClient) Delete(url string) (*http.Response, error) {
-	req, err := retryablehttp.NewRequest("DELETE", url, nil)
+	req, err := retryablehttp.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +89,7 @@ func (c *RetryableClient) Delete(url string) (*http.Response, error) {
 }
 
 func (c *RetryableClient) Put(url string, rawBody interface{}) (*http.Response, error) {
-	req, err := retryablehttp.NewRequest("PUT", url, rawBody)
+	req, err := retryablehttp.NewRequest(http.MethodPut, url, rawBody)
 	if err != nil {
 		return nil, err
 	}
@@ -76,4 +99,33 @@ func (c *RetryableClient) Put(url string, rawBody interface{}) (*http.Response, 
 func (c *RetryableClient) Close() error {
 	c.StandardClient().CloseIdleConnections()
 	return nil
+}
+
+type leveledLogger struct {
+	logger logr.Logger
+}
+
+func (l *leveledLogger) Error(msg string, keysAndValues ...interface{}) {
+	l.logger.Error(commonerrors.ErrUnexpected, msg, keysAndValues...)
+}
+
+func (l *leveledLogger) Info(msg string, keysAndValues ...interface{}) {
+	l.logger.Info(msg, keysAndValues...)
+}
+
+func (l *leveledLogger) Debug(msg string, keysAndValues ...interface{}) {
+	l.logger.V(1).Info(msg, keysAndValues...)
+}
+
+func (l *leveledLogger) Warn(msg string, keysAndValues ...interface{}) {
+	l.logger.V(0).Info(fmt.Sprintf("WARNING: %v", msg), keysAndValues...)
+}
+
+func newLogger(logger logr.Logger) retryablehttp.LeveledLogger {
+	if logger == nil {
+		return nil
+	}
+	return &leveledLogger{
+		logger: logger,
+	}
 }

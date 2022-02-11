@@ -1,0 +1,1 @@
+Possibility to define the HTTP client retry policy from configuration

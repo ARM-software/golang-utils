@@ -1,0 +1,1 @@
+Possibility to use an HTTP client with basic retry policy (policy can take into account the `Retry-After` header in response or not)

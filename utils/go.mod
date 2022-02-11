@@ -6,8 +6,11 @@ require (
 	github.com/OneOfOne/xxhash v1.2.8
 	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/bmatcuk/doublestar/v3 v3.0.0
+	github.com/bombsimon/logrusr v1.1.0
 	github.com/bxcodec/faker/v3 v3.7.0
 	github.com/djherbis/times v1.5.0
+	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
+	github.com/go-logr/logr v0.4.0 // Staying on this version until kubernetes uses a more recent one
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f

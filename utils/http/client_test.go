@@ -17,7 +17,8 @@ import (
 	"github.com/ARM-software/golang-utils/utils/http/httptest"
 )
 
-func TestClient(t *testing.T) {
+// TestClientHappy tests that all requests are correctly populated and sent to the server. If requests are not as expected, an error is returned.
+func TestClientHappy(t *testing.T) {
 	clientsToTest := []struct {
 		clientName string
 		client     func() IClient
@@ -41,9 +42,27 @@ func TestClient(t *testing.T) {
 			},
 		},
 		{
-			clientName: "retryable client",
+			clientName: "client with no retry",
 			client: func() IClient {
 				return NewConfigurableRetryableClient(DefaultHTTPClientConfiguration())
+			},
+		},
+		{
+			clientName: "client with basic retry",
+			client: func() IClient {
+				return NewConfigurableRetryableClient(DefaultRobustHTTPClientConfiguration())
+			},
+		},
+		{
+			clientName: "client with exponential backoff",
+			client: func() IClient {
+				return NewConfigurableRetryableClient(DefaultRobustHTTPClientConfigurationWithExponentialBackOff())
+			},
+		},
+		{
+			clientName: "client with linear backoff",
+			client: func() IClient {
+				return NewConfigurableRetryableClient(DefaultRobustHTTPClientConfigurationWithLinearBackOff())
 			},
 		},
 	}
