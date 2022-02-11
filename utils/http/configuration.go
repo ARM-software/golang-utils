@@ -15,7 +15,7 @@ import (
 
 //HTTPClientConfiguration defines the client configuration. It can be used to tweak low level transport
 //parameters in order to adapt the client to your usecase.
-// If ensure about the values to set, use the DefaultHTTPClientConfiguration or FastHTTPClientConfiguration depending on
+// If unsure about the values to set, use the DefaultHTTPClientConfiguration or FastHTTPClientConfiguration depending on
 // what flow you are dealing with.
 type HTTPClientConfiguration struct {
 	// MaxConnsPerHost optionally limits the total number of
