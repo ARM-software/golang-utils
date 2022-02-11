@@ -97,7 +97,8 @@ func TestFindRetryAfter(t *testing.T) {
 			if test.includeHeader {
 				responseRecorder.Header().Add(headers.RetryAfter, test.retryAfter)
 			}
-			wait, found := findRetryAfter(responseRecorder.Result())
+			wait, found := findRetryAfter(responseRecorder.Result()) //nolint:bodyclose // False Positive: Is closed below
+			_ = responseRecorder.Result().Body.Close()
 			if test.has {
 				assert.True(t, found)
 				assert.GreaterOrEqual(t, wait, time.Duration(0))

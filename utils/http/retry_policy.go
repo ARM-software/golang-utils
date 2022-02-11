@@ -130,7 +130,7 @@ func findRetryAfter(resp *http.Response) (wait time.Duration, found bool) {
 				if afterTime, err := parseDate(retryAfter); err == nil {
 					found = true
 					if afterTime.After(time.Now()) {
-						wait = afterTime.Sub(time.Now())
+						wait = time.Until(afterTime)
 					} else {
 						wait = time.Duration(0)
 					}
