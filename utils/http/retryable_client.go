@@ -89,8 +89,8 @@ func (c *RetryableClient) Delete(url string) (*http.Response, error) {
 	return c.doRetriableRequest(http.MethodDelete, url, nil)
 }
 
-func (c *RetryableClient) Put(url string, rawBody interface{}) (*http.Response, error) {
-	return c.doRetriableRequest(http.MethodPut, url, rawBody)
+func (c *RetryableClient) Put(url string, body interface{}) (*http.Response, error) {
+	return c.doRetriableRequest(http.MethodPut, url, body)
 }
 
 func (c *RetryableClient) Close() error {
@@ -98,12 +98,12 @@ func (c *RetryableClient) Close() error {
 	return nil
 }
 
-func (c *RetryableClient) doRetriableRequest(method, url string, rawBody interface{}) (*http.Response, error) {
-	body, err := determineBodyReader(rawBody)
+func (c *RetryableClient) doRetriableRequest(method, url string, body interface{}) (*http.Response, error) {
+	bodyReader, err := determineBodyReader(body)
 	if err != nil {
 		return nil, err
 	}
-	req, err := retryablehttp.NewRequest(method, url, body)
+	req, err := retryablehttp.NewRequest(method, url, bodyReader)
 	if err != nil {
 		return nil, err
 	}
