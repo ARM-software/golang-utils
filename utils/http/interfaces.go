@@ -35,16 +35,18 @@ type IClient interface {
 	// Head is a convenience method for doing simple HEAD requests.
 	Head(url string) (*http.Response, error)
 	// Post is a convenience method for doing simple POST requests.
-	Post(url, bodyType string, body interface{}) (*http.Response, error)
+	Post(url, contentType string, body interface{}) (*http.Response, error)
 	// PostForm is a convenience method for doing simple POST operations using
 	// pre-filled url.Values form data.
 	PostForm(url string, data url.Values) (*http.Response, error)
 	// StandardClient returns a standard library *http.Client with a custom Transport layer.
 	StandardClient() *http.Client
 	// Put performs a PUT request.
-	Put(url string, rawBody interface{}) (*http.Response, error)
+	Put(url string, body interface{}) (*http.Response, error)
 	// Delete performs a DELETE request.
 	Delete(url string) (*http.Response, error)
+	//Options performs an OPTIONS request.
+	Options(url string) (*http.Response, error)
 	// Do performs a generic request.
 	Do(req *http.Request) (*http.Response, error)
 }

@@ -1,0 +1,1 @@
+Possibility to use standard library http.DefaultClient as a http.IClient
