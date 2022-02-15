@@ -14,6 +14,17 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.7.0" (2022-02-15)
+=======================
+
+Features
+--------
+
+- Possibility to use standard library http.DefaultClient as a http.IClient (#202202151232)
+- Possibility to create `OPTIONS` requests using an http.IClient (#202202151234)
+- Added missing mocks (#202202151235)
+
+
 "" "1.6.0" (2022-02-11)
 =======================
 
