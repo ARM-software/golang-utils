@@ -5,10 +5,10 @@
 package http
 
 import (
-	"runtime"
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/hashicorp/go-cleanhttp"
 
 	"github.com/ARM-software/golang-utils/utils/config"
 )
@@ -71,13 +71,14 @@ func (cfg *HTTPClientConfiguration) Validate() error {
 // DefaultHTTPClientConfiguration uses default values similar to https://github.com/hashicorp/go-cleanhttp/blob/6d9e2ac5d828e5f8594b97f88c4bde14a67bb6d2/cleanhttp.go#L23
 // Similar default values to http.DefaultTransport
 func DefaultHTTPClientConfiguration() *HTTPClientConfiguration {
+	defaultCfg := cleanhttp.DefaultPooledTransport()
 	return &HTTPClientConfiguration{
-		MaxConnsPerHost:       0,
-		MaxIdleConns:          100,
-		MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
+		MaxConnsPerHost:       defaultCfg.MaxConnsPerHost,
+		MaxIdleConns:          defaultCfg.MaxIdleConns,
+		MaxIdleConnsPerHost:   defaultCfg.MaxIdleConnsPerHost,
+		IdleConnTimeout:       defaultCfg.IdleConnTimeout,
+		TLSHandshakeTimeout:   defaultCfg.TLSHandshakeTimeout,
+		ExpectContinueTimeout: defaultCfg.ExpectContinueTimeout,
 		RetryPolicy:           *DefaultNoRetryPolicyConfiguration(),
 	}
 }

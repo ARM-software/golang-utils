@@ -16,6 +16,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
+// RetryableClient is an http client which will retry failed requests according to the retry configuration.
 type RetryableClient struct {
 	client *retryablehttp.Client
 }
@@ -56,8 +57,12 @@ func (c *RetryableClient) Head(url string) (*http.Response, error) {
 	return c.client.Head(url)
 }
 
-func (c *RetryableClient) Post(url, bodyType string, body interface{}) (*http.Response, error) {
-	return c.client.Post(url, bodyType, body)
+func (c *RetryableClient) Options(url string) (*http.Response, error) {
+	return c.doRetriableRequest(http.MethodOptions, url, nil)
+}
+
+func (c *RetryableClient) Post(url, contentType string, body interface{}) (*http.Response, error) {
+	return c.client.Post(url, contentType, body)
 }
 
 func (c *RetryableClient) PostForm(url string, data url.Values) (*http.Response, error) {
@@ -81,24 +86,28 @@ func (c *RetryableClient) Do(req *http.Request) (*http.Response, error) {
 }
 
 func (c *RetryableClient) Delete(url string) (*http.Response, error) {
-	req, err := retryablehttp.NewRequest(http.MethodDelete, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	return c.client.Do(req)
+	return c.doRetriableRequest(http.MethodDelete, url, nil)
 }
 
 func (c *RetryableClient) Put(url string, rawBody interface{}) (*http.Response, error) {
-	req, err := retryablehttp.NewRequest(http.MethodPut, url, rawBody)
-	if err != nil {
-		return nil, err
-	}
-	return c.client.Do(req)
+	return c.doRetriableRequest(http.MethodPut, url, rawBody)
 }
 
 func (c *RetryableClient) Close() error {
 	c.StandardClient().CloseIdleConnections()
 	return nil
+}
+
+func (c *RetryableClient) doRetriableRequest(method, url string, rawBody interface{}) (*http.Response, error) {
+	body, err := determineBodyReader(rawBody)
+	if err != nil {
+		return nil, err
+	}
+	req, err := retryablehttp.NewRequest(method, url, body)
+	if err != nil {
+		return nil, err
+	}
+	return c.client.Do(req)
 }
 
 type leveledLogger struct {
