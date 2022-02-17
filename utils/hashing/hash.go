@@ -5,10 +5,8 @@
 package hashing
 
 import (
-
 	// nolint:gosec
 	"crypto/md5"
-
 	// nolint:gosec
 	"crypto/sha1"
 	"crypto/sha256"
