@@ -353,14 +353,14 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-43"><code>}</code></span>
 <span class="codeline" id="line-44"><code></code></span>
 <span class="codeline" id="line-45"><code><span class="comment">// A zone represents a single time zone such as CET.</span></code></span>
-<span class="codeline" id="line-46"><code><span class="keyword">type</span> <a href="../../pkg/time.html#name-zone" class="ident">zone</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-46"><code><span class="keyword">type</span> zone <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-47"><code>	name   <a href="../../pkg/builtin.html#name-string" class="ident">string</a> <span class="comment">// abbreviated name, "CET"</span></code></span>
 <span class="codeline" id="line-48"><code>	offset <a href="../../pkg/builtin.html#name-int" class="ident">int</a>    <span class="comment">// seconds east of UTC</span></code></span>
 <span class="codeline" id="line-49"><code>	isDST  <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>   <span class="comment">// is this zone Daylight Savings Time?</span></code></span>
 <span class="codeline" id="line-50"><code>}</code></span>
 <span class="codeline" id="line-51"><code></code></span>
 <span class="codeline" id="line-52"><code><span class="comment">// A zoneTrans represents a single time zone transition.</span></code></span>
-<span class="codeline" id="line-53"><code><span class="keyword">type</span> <a href="../../pkg/time.html#name-zoneTrans" class="ident">zoneTrans</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-53"><code><span class="keyword">type</span> zoneTrans <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-54"><code>	when         <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a> <span class="comment">// transition time, in seconds since 1970 GMT</span></code></span>
 <span class="codeline" id="line-55"><code>	index        <a href="../../pkg/builtin.html#name-uint8" class="ident">uint8</a> <span class="comment">// the index of the zone that goes into effect at that time</span></code></span>
 <span class="codeline" id="line-56"><code>	isstd, isutc <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>  <span class="comment">// ignored - no idea what these mean</span></code></span>
@@ -369,8 +369,8 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-59"><code><span class="comment">// alpha and omega are the beginning and end of time for zone</span></code></span>
 <span class="codeline" id="line-60"><code><span class="comment">// transitions.</span></code></span>
 <span class="codeline" id="line-61"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-62"><code>	<a href="../../pkg/time.html#name-alpha" class="ident">alpha</a> = -<span class="lit-number">1</span> &lt;&lt; <span class="lit-number">63</span>  <span class="comment">// math.MinInt64</span></code></span>
-<span class="codeline" id="line-63"><code>	<a href="../../pkg/time.html#name-omega" class="ident">omega</a> = <span class="lit-number">1</span>&lt;&lt;<span class="lit-number">63</span> - <span class="lit-number">1</span> <span class="comment">// math.MaxInt64</span></code></span>
+<span class="codeline" id="line-62"><code>	alpha = -<span class="lit-number">1</span> &lt;&lt; <span class="lit-number">63</span>  <span class="comment">// math.MinInt64</span></code></span>
+<span class="codeline" id="line-63"><code>	omega = <span class="lit-number">1</span>&lt;&lt;<span class="lit-number">63</span> - <span class="lit-number">1</span> <span class="comment">// math.MaxInt64</span></code></span>
 <span class="codeline" id="line-64"><code>)</code></span>
 <span class="codeline" id="line-65"><code></code></span>
 <span class="codeline" id="line-66"><code><span class="comment">// UTC represents Universal Coordinated Time (UTC).</span></code></span>
@@ -379,7 +379,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-69"><code><span class="comment">// utcLoc is separate so that get can refer to &amp;utcLoc</span></code></span>
 <span class="codeline" id="line-70"><code><span class="comment">// and ensure that it never returns a nil *Location,</span></code></span>
 <span class="codeline" id="line-71"><code><span class="comment">// even if a badly behaved client has changed UTC.</span></code></span>
-<span class="codeline" id="line-72"><code><span class="keyword">var</span> <a href="../../pkg/time.html#name-utcLoc" class="ident">utcLoc</a> = <a href="#line-19" class="ident">Location</a>{<a href="#line-20" class="ident">name</a>: <span class="lit-string">"UTC"</span>}</code></span>
+<span class="codeline" id="line-72"><code><span class="keyword">var</span> utcLoc = <a href="#line-19" class="ident">Location</a>{<a href="#line-20" class="ident">name</a>: <span class="lit-string">"UTC"</span>}</code></span>
 <span class="codeline" id="line-73"><code></code></span>
 <span class="codeline" id="line-74"><code><span class="comment">// Local represents the system's local time zone.</span></code></span>
 <span class="codeline" id="line-75"><code><span class="comment">// On Unix systems, Local consults the TZ environment</span></code></span>
@@ -391,8 +391,8 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-81"><code></code></span>
 <span class="codeline" id="line-82"><code><span class="comment">// localLoc is separate so that initLocal can initialize</span></code></span>
 <span class="codeline" id="line-83"><code><span class="comment">// it even if a client has changed Local.</span></code></span>
-<span class="codeline" id="line-84"><code><span class="keyword">var</span> <a href="../../pkg/time.html#name-localLoc" class="ident">localLoc</a> <a href="#line-19" class="ident">Location</a></code></span>
-<span class="codeline" id="line-85"><code><span class="keyword">var</span> <a href="../../pkg/time.html#name-localOnce" class="ident">localOnce</a> <a href="../../pkg/sync.html" class="ident i1">sync</a>.<a href="../sync/once.go.html#line-14" class="ident">Once</a></code></span>
+<span class="codeline" id="line-84"><code><span class="keyword">var</span> localLoc <a href="#line-19" class="ident">Location</a></code></span>
+<span class="codeline" id="line-85"><code><span class="keyword">var</span> localOnce <a href="../../pkg/sync.html" class="ident i1">sync</a>.<a href="../sync/once.go.html#line-14" class="ident">Once</a></code></span>
 <span class="codeline" id="line-86"><code></code></span>
 <span class="codeline" id="line-87"><code><span class="keyword">func</span> (<label for="r0" class="ident">l</label> *<a href="#line-19" class="ident">Location</a>) <label for="r1" class="ident">get</label>() *<a href="#line-19" class="ident">Location</a> {</code></span>
 <span class="codeline" id="line-88"><code>	<span class="keyword">if</span> <label for="r0" class="ident">l</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
@@ -406,7 +406,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-96"><code></code></span>
 <span class="codeline" id="line-97"><code><span class="comment">// String returns a descriptive name for the time zone information,</span></code></span>
 <span class="codeline" id="line-98"><code><span class="comment">// corresponding to the name argument to LoadLocation or FixedZone.</span></code></span>
-<span class="codeline" id="line-99"><code><span class="keyword">func</span> (<label for="r2" class="ident">l</label> *<a href="#line-19" class="ident">Location</a>) <label for="r3" class="ident"><a href="../../imp/time.Location.html#name-.String" class="ident">String</a></label>() <a href="../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-99"><code><span class="keyword">func</span> (<label for="r2" class="ident">l</label> *<a href="#line-19" class="ident">Location</a>) <label for="r3" class="ident">String</label>() <a href="../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
 <span class="codeline" id="line-100"><code>	<span class="keyword">return</span> <label for="r2" class="ident">l</label>.<a href="#line-87" class="ident">get</a>().<a href="#line-20" class="ident">name</a></code></span>
 <span class="codeline" id="line-101"><code>}</code></span>
 <span class="codeline" id="line-102"><code></code></span>
@@ -554,7 +554,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-244"><code><span class="comment">// We call this a tzset string since in C the function tzset reads TZ.</span></code></span>
 <span class="codeline" id="line-245"><code><span class="comment">// The return values are as for lookup, plus ok which reports whether the</span></code></span>
 <span class="codeline" id="line-246"><code><span class="comment">// parse succeeded.</span></code></span>
-<span class="codeline" id="line-247"><code><span class="keyword">func</span> <label for="r37" class="ident"><a href="../../pkg/time.html#name-tzset" class="ident">tzset</a></label>(<label for="r38" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r39" class="ident">initEnd</label>, <label for="r40" class="ident">sec</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) (<label for="r41" class="ident">name</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r42" class="ident">offset</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r43" class="ident">start</label>, <label for="r44" class="ident">end</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>, <label for="r45" class="ident">isDST</label>, <label for="r46" class="ident">ok</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-247"><code><span class="keyword">func</span> tzset(<label for="r38" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r39" class="ident">initEnd</label>, <label for="r40" class="ident">sec</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) (<label for="r41" class="ident">name</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r42" class="ident">offset</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r43" class="ident">start</label>, <label for="r44" class="ident">end</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>, <label for="r45" class="ident">isDST</label>, <label for="r46" class="ident">ok</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
 <span class="codeline" id="line-248"><code>	<span class="keyword">var</span> (</code></span>
 <span class="codeline" id="line-249"><code>		<label for="r47" class="ident">stdName</label>, <label for="r48" class="ident">dstName</label>     <a href="../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
 <span class="codeline" id="line-250"><code>		<label for="r49" class="ident">stdOffset</label>, <label for="r50" class="ident">dstOffset</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
@@ -649,7 +649,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-339"><code></code></span>
 <span class="codeline" id="line-340"><code><span class="comment">// tzsetName returns the timezone name at the start of the tzset string s,</span></code></span>
 <span class="codeline" id="line-341"><code><span class="comment">// and the remainder of s, and reports whether the parsing is OK.</span></code></span>
-<span class="codeline" id="line-342"><code><span class="keyword">func</span> <label for="r64" class="ident"><a href="../../pkg/time.html#name-tzsetName" class="ident">tzsetName</a></label>(<label for="r65" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-342"><code><span class="keyword">func</span> tzsetName(<label for="r65" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
 <span class="codeline" id="line-343"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r65" class="ident">s</label>) == <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-344"><code>		<span class="keyword">return</span> <span class="lit-string">""</span>, <span class="lit-string">""</span>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
 <span class="codeline" id="line-345"><code>	}</code></span>
@@ -680,7 +680,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-370"><code><span class="comment">// tzsetOffset returns the timezone offset at the start of the tzset string s,</span></code></span>
 <span class="codeline" id="line-371"><code><span class="comment">// and the remainder of s, and reports whether the parsing is OK.</span></code></span>
 <span class="codeline" id="line-372"><code><span class="comment">// The timezone offset is returned as a number of seconds.</span></code></span>
-<span class="codeline" id="line-373"><code><span class="keyword">func</span> <label for="r70" class="ident"><a href="../../pkg/time.html#name-tzsetOffset" class="ident">tzsetOffset</a></label>(<label for="r71" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r72" class="ident">offset</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r73" class="ident">rest</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r74" class="ident">ok</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-373"><code><span class="keyword">func</span> tzsetOffset(<label for="r71" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r72" class="ident">offset</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r73" class="ident">rest</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r74" class="ident">ok</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
 <span class="codeline" id="line-374"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r71" class="ident">s</label>) == <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-375"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <span class="lit-string">""</span>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
 <span class="codeline" id="line-376"><code>	}</code></span>
@@ -734,16 +734,16 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-424"><code>}</code></span>
 <span class="codeline" id="line-425"><code></code></span>
 <span class="codeline" id="line-426"><code><span class="comment">// ruleKind is the kinds of rules that can be seen in a tzset string.</span></code></span>
-<span class="codeline" id="line-427"><code><span class="keyword">type</span> <a href="../../pkg/time.html#name-ruleKind" class="ident">ruleKind</a> <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-427"><code><span class="keyword">type</span> ruleKind <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
 <span class="codeline" id="line-428"><code></code></span>
 <span class="codeline" id="line-429"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-430"><code>	<a href="../../pkg/time.html#name-ruleJulian" class="ident">ruleJulian</a> <a href="#line-427" class="ident">ruleKind</a> = <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
-<span class="codeline" id="line-431"><code>	<a href="../../pkg/time.html#name-ruleDOY" class="ident">ruleDOY</a></code></span>
-<span class="codeline" id="line-432"><code>	<a href="../../pkg/time.html#name-ruleMonthWeekDay" class="ident">ruleMonthWeekDay</a></code></span>
+<span class="codeline" id="line-430"><code>	ruleJulian <a href="#line-427" class="ident">ruleKind</a> = <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-431"><code>	ruleDOY</code></span>
+<span class="codeline" id="line-432"><code>	ruleMonthWeekDay</code></span>
 <span class="codeline" id="line-433"><code>)</code></span>
 <span class="codeline" id="line-434"><code></code></span>
 <span class="codeline" id="line-435"><code><span class="comment">// rule is a rule read from a tzset string.</span></code></span>
-<span class="codeline" id="line-436"><code><span class="keyword">type</span> <a href="../../pkg/time.html#name-rule" class="ident">rule</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-436"><code><span class="keyword">type</span> rule <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-437"><code>	kind <a href="#line-427" class="ident">ruleKind</a></code></span>
 <span class="codeline" id="line-438"><code>	day  <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
 <span class="codeline" id="line-439"><code>	week <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
@@ -753,7 +753,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-443"><code></code></span>
 <span class="codeline" id="line-444"><code><span class="comment">// tzsetRule parses a rule from a tzset string.</span></code></span>
 <span class="codeline" id="line-445"><code><span class="comment">// It returns the rule, and the remainder of the string, and reports success.</span></code></span>
-<span class="codeline" id="line-446"><code><span class="keyword">func</span> <label for="r80" class="ident"><a href="../../pkg/time.html#name-tzsetRule" class="ident">tzsetRule</a></label>(<label for="r81" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="#line-436" class="ident">rule</a>, <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-446"><code><span class="keyword">func</span> tzsetRule(<label for="r81" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="#line-436" class="ident">rule</a>, <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
 <span class="codeline" id="line-447"><code>	<span class="keyword">var</span> <label for="r82" class="ident">r</label> <a href="#line-436" class="ident">rule</a></code></span>
 <span class="codeline" id="line-448"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r81" class="ident">s</label>) == <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-449"><code>		<span class="keyword">return</span> <a href="#line-436" class="ident">rule</a>{}, <span class="lit-string">""</span>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
@@ -815,7 +815,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-505"><code><span class="comment">// tzsetNum parses a number from a tzset string.</span></code></span>
 <span class="codeline" id="line-506"><code><span class="comment">// It returns the number, and the remainder of the string, and reports success.</span></code></span>
 <span class="codeline" id="line-507"><code><span class="comment">// The number must be between min and max.</span></code></span>
-<span class="codeline" id="line-508"><code><span class="keyword">func</span> <label for="r90" class="ident"><a href="../../pkg/time.html#name-tzsetNum" class="ident">tzsetNum</a></label>(<label for="r91" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r92" class="ident">min</label>, <label for="r93" class="ident">max</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) (<label for="r94" class="ident">num</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r95" class="ident">rest</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r96" class="ident">ok</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-508"><code><span class="keyword">func</span> tzsetNum(<label for="r91" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r92" class="ident">min</label>, <label for="r93" class="ident">max</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) (<label for="r94" class="ident">num</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r95" class="ident">rest</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r96" class="ident">ok</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
 <span class="codeline" id="line-509"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r91" class="ident">s</label>) == <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-510"><code>		<span class="keyword">return</span> <span class="lit-number">0</span>, <span class="lit-string">""</span>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
 <span class="codeline" id="line-511"><code>	}</code></span>
@@ -842,7 +842,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-532"><code><span class="comment">// tzruleTime takes a year, a rule, and a timezone offset,</span></code></span>
 <span class="codeline" id="line-533"><code><span class="comment">// and returns the number of seconds since the start of the year</span></code></span>
 <span class="codeline" id="line-534"><code><span class="comment">// that the rule takes effect.</span></code></span>
-<span class="codeline" id="line-535"><code><span class="keyword">func</span> <label for="r99" class="ident"><a href="../../pkg/time.html#name-tzruleTime" class="ident">tzruleTime</a></label>(<label for="r100" class="ident">year</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r101" class="ident">r</label> <a href="#line-436" class="ident">rule</a>, <label for="r102" class="ident">off</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-535"><code><span class="keyword">func</span> tzruleTime(<label for="r100" class="ident">year</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r101" class="ident">r</label> <a href="#line-436" class="ident">rule</a>, <label for="r102" class="ident">off</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) <a href="../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-536"><code>	<span class="keyword">var</span> <label for="r103" class="ident">s</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
 <span class="codeline" id="line-537"><code>	<span class="keyword">switch</span> <label for="r101" class="ident">r</label>.<a href="#line-437" class="ident">kind</a> {</code></span>
 <span class="codeline" id="line-538"><code>	<span class="keyword">case</span> <a href="#line-430" class="ident">ruleJulian</a>:</code></span>
@@ -924,10 +924,10 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-614"><code><span class="comment">// NOTE(rsc): Eventually we will need to accept the POSIX TZ environment</span></code></span>
 <span class="codeline" id="line-615"><code><span class="comment">// syntax too, but I don't feel like implementing it today.</span></code></span>
 <span class="codeline" id="line-616"><code></code></span>
-<span class="codeline" id="line-617"><code><span class="keyword">var</span> <a href="../../pkg/time.html#name-errLocation" class="ident">errLocation</a> = <a href="../../pkg/errors.html" class="ident i0">errors</a>.<a href="../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"time: invalid location name"</span>)</code></span>
+<span class="codeline" id="line-617"><code><span class="keyword">var</span> errLocation = <a href="../../pkg/errors.html" class="ident i0">errors</a>.<a href="../errors/errors.go.html#line-58" class="ident">New</a>(<span class="lit-string">"time: invalid location name"</span>)</code></span>
 <span class="codeline" id="line-618"><code></code></span>
-<span class="codeline" id="line-619"><code><span class="keyword">var</span> <a href="../../pkg/time.html#name-zoneinfo" class="ident">zoneinfo</a> *<a href="../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
-<span class="codeline" id="line-620"><code><span class="keyword">var</span> <a href="../../pkg/time.html#name-zoneinfoOnce" class="ident">zoneinfoOnce</a> <a href="../../pkg/sync.html" class="ident i1">sync</a>.<a href="../sync/once.go.html#line-14" class="ident">Once</a></code></span>
+<span class="codeline" id="line-619"><code><span class="keyword">var</span> zoneinfo *<a href="../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
+<span class="codeline" id="line-620"><code><span class="keyword">var</span> zoneinfoOnce <a href="../../pkg/sync.html" class="ident i1">sync</a>.<a href="../sync/once.go.html#line-14" class="ident">Once</a></code></span>
 <span class="codeline" id="line-621"><code></code></span>
 <span class="codeline" id="line-622"><code><span class="comment">// LoadLocation returns the Location with the given name.</span></code></span>
 <span class="codeline" id="line-623"><code><span class="comment">//</span></code></span>
@@ -979,7 +979,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-669"><code>}</code></span>
 <span class="codeline" id="line-670"><code></code></span>
 <span class="codeline" id="line-671"><code><span class="comment">// containsDotDot reports whether s contains "..".</span></code></span>
-<span class="codeline" id="line-672"><code><span class="keyword">func</span> <label for="r136" class="ident"><a href="../../pkg/time.html#name-containsDotDot" class="ident">containsDotDot</a></label>(<label for="r137" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-672"><code><span class="keyword">func</span> containsDotDot(<label for="r137" class="ident">s</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-673"><code>	<span class="keyword">if</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r137" class="ident">s</label>) &lt; <span class="lit-number">2</span> {</code></span>
 <span class="codeline" id="line-674"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
 <span class="codeline" id="line-675"><code>	}</code></span>

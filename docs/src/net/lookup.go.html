@@ -414,7 +414,7 @@ input[id=i3]:checked ~pre .i3
 <span class="codeline" id="line-18"><code><span class="comment">// See https://www.iana.org/assignments/protocol-numbers</span></code></span>
 <span class="codeline" id="line-19"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-20"><code><span class="comment">// On Unix, this map is augmented by readProtocols via lookupProtocol.</span></code></span>
-<span class="codeline" id="line-21"><code><span class="keyword">var</span> <a href="../../pkg/net.html#name-protocols" class="ident">protocols</a> = <span class="keyword">map</span>[<a href="../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../pkg/builtin.html#name-int" class="ident">int</a>{</code></span>
+<span class="codeline" id="line-21"><code><span class="keyword">var</span> protocols = <span class="keyword">map</span>[<a href="../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../pkg/builtin.html#name-int" class="ident">int</a>{</code></span>
 <span class="codeline" id="line-22"><code>	<span class="lit-string">"icmp"</span>:      <span class="lit-number">1</span>,</code></span>
 <span class="codeline" id="line-23"><code>	<span class="lit-string">"igmp"</span>:      <span class="lit-number">2</span>,</code></span>
 <span class="codeline" id="line-24"><code>	<span class="lit-string">"tcp"</span>:       <span class="lit-number">6</span>,</code></span>
@@ -428,7 +428,7 @@ input[id=i3]:checked ~pre .i3
 <span class="codeline" id="line-32"><code><span class="comment">// See https://www.iana.org/assignments/service-names-port-numbers</span></code></span>
 <span class="codeline" id="line-33"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-34"><code><span class="comment">// On Unix, this map is augmented by readServices via goLookupPort.</span></code></span>
-<span class="codeline" id="line-35"><code><span class="keyword">var</span> <a href="../../pkg/net.html#name-services" class="ident">services</a> = <span class="keyword">map</span>[<a href="../../pkg/builtin.html#name-string" class="ident">string</a>]<span class="keyword">map</span>[<a href="../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../pkg/builtin.html#name-int" class="ident">int</a>{</code></span>
+<span class="codeline" id="line-35"><code><span class="keyword">var</span> services = <span class="keyword">map</span>[<a href="../../pkg/builtin.html#name-string" class="ident">string</a>]<span class="keyword">map</span>[<a href="../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="../../pkg/builtin.html#name-int" class="ident">int</a>{</code></span>
 <span class="codeline" id="line-36"><code>	<span class="lit-string">"udp"</span>: {</code></span>
 <span class="codeline" id="line-37"><code>		<span class="lit-string">"domain"</span>: <span class="lit-number">53</span>,</code></span>
 <span class="codeline" id="line-38"><code>	},</code></span>
@@ -451,11 +451,11 @@ input[id=i3]:checked ~pre .i3
 <span class="codeline" id="line-55"><code></code></span>
 <span class="codeline" id="line-56"><code><span class="comment">// dnsWaitGroup can be used by tests to wait for all DNS goroutines to</span></code></span>
 <span class="codeline" id="line-57"><code><span class="comment">// complete. This avoids races on the test hooks.</span></code></span>
-<span class="codeline" id="line-58"><code><span class="keyword">var</span> <a href="../../pkg/net.html#name-dnsWaitGroup" class="ident">dnsWaitGroup</a> <a href="../../pkg/sync.html" class="ident i3">sync</a>.<a href="../sync/waitgroup.go.html#line-20" class="ident">WaitGroup</a></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">var</span> dnsWaitGroup <a href="../../pkg/sync.html" class="ident i3">sync</a>.<a href="../sync/waitgroup.go.html#line-20" class="ident">WaitGroup</a></code></span>
 <span class="codeline" id="line-59"><code></code></span>
-<span class="codeline" id="line-60"><code><span class="keyword">const</span> <a href="../../pkg/net.html#name-maxProtoLength" class="ident">maxProtoLength</a> = <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<span class="lit-string">"RSVP-E2E-IGNORE"</span>) + <span class="lit-number">10</span> <span class="comment">// with room to grow</span></code></span>
+<span class="codeline" id="line-60"><code><span class="keyword">const</span> maxProtoLength = <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<span class="lit-string">"RSVP-E2E-IGNORE"</span>) + <span class="lit-number">10</span> <span class="comment">// with room to grow</span></code></span>
 <span class="codeline" id="line-61"><code></code></span>
-<span class="codeline" id="line-62"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/net.html#name-lookupProtocolMap" class="ident">lookupProtocolMap</a></label>(<label for="r1" class="ident">name</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-62"><code><span class="keyword">func</span> lookupProtocolMap(<label for="r1" class="ident">name</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
 <span class="codeline" id="line-63"><code>	<span class="keyword">var</span> <label for="r2" class="ident">lowerProtocol</label> [<a href="#line-60" class="ident">maxProtoLength</a>]<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
 <span class="codeline" id="line-64"><code>	<label for="r3" class="ident">n</label> := <a href="../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r2" class="ident">lowerProtocol</label>[:], <label for="r1" class="ident">name</label>)</code></span>
 <span class="codeline" id="line-65"><code>	<a href="parse.go.html#line-238" class="ident">lowerASCIIBytes</a>(<label for="r2" class="ident">lowerProtocol</label>[:<label for="r3" class="ident">n</label>])</code></span>
@@ -471,9 +471,9 @@ input[id=i3]:checked ~pre .i3
 <span class="codeline" id="line-75"><code><span class="comment">// Currently the longest known IANA-unregistered name is</span></code></span>
 <span class="codeline" id="line-76"><code><span class="comment">// "mobility-header", so we use that length, plus some slop in case</span></code></span>
 <span class="codeline" id="line-77"><code><span class="comment">// something longer is added in the future.</span></code></span>
-<span class="codeline" id="line-78"><code><span class="keyword">const</span> <a href="../../pkg/net.html#name-maxPortBufSize" class="ident">maxPortBufSize</a> = <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<span class="lit-string">"mobility-header"</span>) + <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-78"><code><span class="keyword">const</span> maxPortBufSize = <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<span class="lit-string">"mobility-header"</span>) + <span class="lit-number">10</span></code></span>
 <span class="codeline" id="line-79"><code></code></span>
-<span class="codeline" id="line-80"><code><span class="keyword">func</span> <label for="r6" class="ident"><a href="../../pkg/net.html#name-lookupPortMap" class="ident">lookupPortMap</a></label>(<label for="r7" class="ident">network</label>, <label for="r8" class="ident">service</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r9" class="ident">port</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r10" class="ident">error</label> <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-80"><code><span class="keyword">func</span> lookupPortMap(<label for="r7" class="ident">network</label>, <label for="r8" class="ident">service</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r9" class="ident">port</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r10" class="ident">error</label> <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
 <span class="codeline" id="line-81"><code>	<span class="keyword">switch</span> <label for="r7" class="ident">network</label> {</code></span>
 <span class="codeline" id="line-82"><code>	<span class="keyword">case</span> <span class="lit-string">"tcp4"</span>, <span class="lit-string">"tcp6"</span>:</code></span>
 <span class="codeline" id="line-83"><code>		<label for="r7" class="ident">network</label> = <span class="lit-string">"tcp"</span></code></span>
@@ -494,7 +494,7 @@ input[id=i3]:checked ~pre .i3
 <span class="codeline" id="line-98"><code></code></span>
 <span class="codeline" id="line-99"><code><span class="comment">// ipVersion returns the provided network's IP version: '4', '6' or 0</span></code></span>
 <span class="codeline" id="line-100"><code><span class="comment">// if network does not end in a '4' or '6' byte.</span></code></span>
-<span class="codeline" id="line-101"><code><span class="keyword">func</span> <label for="r17" class="ident"><a href="../../pkg/net.html#name-ipVersion" class="ident">ipVersion</a></label>(<label for="r18" class="ident">network</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
+<span class="codeline" id="line-101"><code><span class="keyword">func</span> ipVersion(<label for="r18" class="ident">network</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../pkg/builtin.html#name-byte" class="ident">byte</a> {</code></span>
 <span class="codeline" id="line-102"><code>	<span class="keyword">if</span> <label for="r18" class="ident">network</label> == <span class="lit-string">""</span> {</code></span>
 <span class="codeline" id="line-103"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
 <span class="codeline" id="line-104"><code>	}</code></span>
@@ -627,7 +627,7 @@ input[id=i3]:checked ~pre .i3
 <span class="codeline" id="line-231"><code></code></span>
 <span class="codeline" id="line-232"><code><span class="comment">// onlyValuesCtx is a context that uses an underlying context</span></code></span>
 <span class="codeline" id="line-233"><code><span class="comment">// for value lookup if the underlying context hasn't yet expired.</span></code></span>
-<span class="codeline" id="line-234"><code><span class="keyword">type</span> <a href="../../pkg/net.html#name-onlyValuesCtx" class="ident">onlyValuesCtx</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-234"><code><span class="keyword">type</span> onlyValuesCtx <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-235"><code>	<a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a></code></span>
 <span class="codeline" id="line-236"><code>	lookupValues <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a></code></span>
 <span class="codeline" id="line-237"><code>}</code></span>
@@ -635,7 +635,7 @@ input[id=i3]:checked ~pre .i3
 <span class="codeline" id="line-239"><code><span class="keyword">var</span> _ <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a> = (*<a href="#line-234" class="ident">onlyValuesCtx</a>)(<a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>)</code></span>
 <span class="codeline" id="line-240"><code></code></span>
 <span class="codeline" id="line-241"><code><span class="comment">// Value performs a lookup if the original context hasn't expired.</span></code></span>
-<span class="codeline" id="line-242"><code><span class="keyword">func</span> (<label for="r61" class="ident">ovc</label> *<a href="#line-234" class="ident">onlyValuesCtx</a>) <label for="r62" class="ident"><a href="../../imp/net.onlyValuesCtx^d2215.html#name-.Value" class="ident">Value</a></label>(<label for="r63" class="ident">key</label> <span class="keyword">interface</span>{}) <span class="keyword">interface</span>{} {</code></span>
+<span class="codeline" id="line-242"><code><span class="keyword">func</span> (<label for="r61" class="ident">ovc</label> *<a href="#line-234" class="ident">onlyValuesCtx</a>) <label for="r62" class="ident">Value</label>(<label for="r63" class="ident">key</label> <span class="keyword">interface</span>{}) <span class="keyword">interface</span>{} {</code></span>
 <span class="codeline" id="line-243"><code>	<a href="../runtime/chan.go.html#line-707"><span class="keyword">select</span></a> {</code></span>
 <span class="codeline" id="line-244"><code>	<span class="keyword">case</span> <a href="../runtime/chan.go.html#line-438">&lt;-</a><label for="r61" class="ident">ovc</label>.<a href="#line-236" class="ident">lookupValues</a>.<a href="../context/context.go.html#line-99" class="ident">Done</a>():</code></span>
 <span class="codeline" id="line-245"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
@@ -648,7 +648,7 @@ input[id=i3]:checked ~pre .i3
 <span class="codeline" id="line-252"><code><span class="comment">// for its values, otherwise it is never canceled and has no deadline.</span></code></span>
 <span class="codeline" id="line-253"><code><span class="comment">// If the lookup context expires, any looked up values will return nil.</span></code></span>
 <span class="codeline" id="line-254"><code><span class="comment">// See Issue 28600.</span></code></span>
-<span class="codeline" id="line-255"><code><span class="keyword">func</span> <label for="r64" class="ident"><a href="../../pkg/net.html#name-withUnexpiredValuesPreserved" class="ident">withUnexpiredValuesPreserved</a></label>(<label for="r65" class="ident">lookupCtx</label> <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a>) <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a> {</code></span>
+<span class="codeline" id="line-255"><code><span class="keyword">func</span> withUnexpiredValuesPreserved(<label for="r65" class="ident">lookupCtx</label> <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a>) <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-62" class="ident">Context</a> {</code></span>
 <span class="codeline" id="line-256"><code>	<span class="keyword">return</span> &amp;<a href="#line-234" class="ident">onlyValuesCtx</a>{<a href="#line-235" class="ident">Context</a>: <a href="../../pkg/context.html" class="ident i0">context</a>.<a href="../context/context.go.html#line-208" class="ident">Background</a>(), <a href="#line-236" class="ident">lookupValues</a>: <label for="r65" class="ident">lookupCtx</label>}</code></span>
 <span class="codeline" id="line-257"><code>}</code></span>
 <span class="codeline" id="line-258"><code></code></span>
@@ -726,7 +726,7 @@ input[id=i3]:checked ~pre .i3
 <span class="codeline" id="line-330"><code></code></span>
 <span class="codeline" id="line-331"><code><span class="comment">// lookupIPReturn turns the return values from singleflight.Do into</span></code></span>
 <span class="codeline" id="line-332"><code><span class="comment">// the return values from LookupIP.</span></code></span>
-<span class="codeline" id="line-333"><code><span class="keyword">func</span> <label for="r87" class="ident"><a href="../../pkg/net.html#name-lookupIPReturn" class="ident">lookupIPReturn</a></label>(<label for="r88" class="ident">addrsi</label> <span class="keyword">interface</span>{}, <label for="r89" class="ident">err</label> <a href="../../pkg/builtin.html#name-error" class="ident">error</a>, <label for="r90" class="ident">shared</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) ([]<a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-333"><code><span class="keyword">func</span> lookupIPReturn(<label for="r88" class="ident">addrsi</label> <span class="keyword">interface</span>{}, <label for="r89" class="ident">err</label> <a href="../../pkg/builtin.html#name-error" class="ident">error</a>, <label for="r90" class="ident">shared</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) ([]<a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>, <a href="../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
 <span class="codeline" id="line-334"><code>	<span class="keyword">if</span> <label for="r89" class="ident">err</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
 <span class="codeline" id="line-335"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <label for="r89" class="ident">err</label></code></span>
 <span class="codeline" id="line-336"><code>	}</code></span>
@@ -740,7 +740,7 @@ input[id=i3]:checked ~pre .i3
 <span class="codeline" id="line-344"><code>}</code></span>
 <span class="codeline" id="line-345"><code></code></span>
 <span class="codeline" id="line-346"><code><span class="comment">// ipAddrsEface returns an empty interface slice of addrs.</span></code></span>
-<span class="codeline" id="line-347"><code><span class="keyword">func</span> <label for="r93" class="ident"><a href="../../pkg/net.html#name-ipAddrsEface" class="ident">ipAddrsEface</a></label>(<label for="r94" class="ident">addrs</label> []<a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>) []<span class="keyword">interface</span>{} {</code></span>
+<span class="codeline" id="line-347"><code><span class="keyword">func</span> ipAddrsEface(<label for="r94" class="ident">addrs</label> []<a href="iprawsock.go.html#line-31" class="ident">IPAddr</a>) []<span class="keyword">interface</span>{} {</code></span>
 <span class="codeline" id="line-348"><code>	<label for="r95" class="ident">s</label> := <a href="../../pkg/builtin.html#name-make" class="ident">make</a>([]<span class="keyword">interface</span>{}, <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r94" class="ident">addrs</label>))</code></span>
 <span class="codeline" id="line-349"><code>	<span class="keyword">for</span> <label for="r96" class="ident">i</label>, <label for="r97" class="ident">v</label> := <span class="keyword">range</span> <label for="r94" class="ident">addrs</label> {</code></span>
 <span class="codeline" id="line-350"><code>		<label for="r95" class="ident">s</label>[<label for="r96" class="ident">i</label>] = <label for="r97" class="ident">v</label></code></span>
@@ -1003,7 +1003,7 @@ input[id=i3]:checked ~pre .i3
 <span class="codeline" id="line-607"><code><span class="comment">// errMalformedDNSRecordsDetail is the DNSError detail which is returned when a Resolver.Lookup...</span></code></span>
 <span class="codeline" id="line-608"><code><span class="comment">// method recieves DNS records which contain invalid DNS names. This may be returned alongside</span></code></span>
 <span class="codeline" id="line-609"><code><span class="comment">// results which have had the malformed records filtered out.</span></code></span>
-<span class="codeline" id="line-610"><code><span class="keyword">var</span> <a href="../../pkg/net.html#name-errMalformedDNSRecordsDetail" class="ident">errMalformedDNSRecordsDetail</a> = <span class="lit-string">"DNS response contained records which contain invalid names"</span></code></span>
+<span class="codeline" id="line-610"><code><span class="keyword">var</span> errMalformedDNSRecordsDetail = <span class="lit-string">"DNS response contained records which contain invalid names"</span></code></span>
 </pre><pre id="footer">
 <table><tr><td><img src="../../png/go101-twitter.png"></td>
 <td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.4.1</i>. (GOOS=linux GOARCH=amd64)

@@ -115,10 +115,10 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-51"><code><span class="comment">	// have any buckets for higher values, so the highest sub-bucket will</span></code></span>
 <span class="codeline" id="line-52"><code><span class="comment">	// contain values of 2^48-1 nanoseconds or approx. 3 days. This range is</span></code></span>
 <span class="codeline" id="line-53"><code><span class="comment">	// more than enough to handle durations produced by the runtime.</span></code></span>
-<span class="codeline" id="line-54"><code>	<a href="../../pkg/runtime.html#name-timeHistSubBucketBits" class="ident">timeHistSubBucketBits</a>   = <span class="lit-number">4</span></code></span>
-<span class="codeline" id="line-55"><code>	<a href="../../pkg/runtime.html#name-timeHistNumSubBuckets" class="ident">timeHistNumSubBuckets</a>   = <span class="lit-number">1</span> &lt;&lt; <a href="#line-54" class="ident">timeHistSubBucketBits</a></code></span>
-<span class="codeline" id="line-56"><code>	<a href="../../pkg/runtime.html#name-timeHistNumSuperBuckets" class="ident">timeHistNumSuperBuckets</a> = <span class="lit-number">45</span></code></span>
-<span class="codeline" id="line-57"><code>	<a href="../../pkg/runtime.html#name-timeHistTotalBuckets" class="ident">timeHistTotalBuckets</a>    = <a href="#line-56" class="ident">timeHistNumSuperBuckets</a>*<a href="#line-55" class="ident">timeHistNumSubBuckets</a> + <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-54"><code>	timeHistSubBucketBits   = <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-55"><code>	timeHistNumSubBuckets   = <span class="lit-number">1</span> &lt;&lt; <a href="#line-54" class="ident">timeHistSubBucketBits</a></code></span>
+<span class="codeline" id="line-56"><code>	timeHistNumSuperBuckets = <span class="lit-number">45</span></code></span>
+<span class="codeline" id="line-57"><code>	timeHistTotalBuckets    = <a href="#line-56" class="ident">timeHistNumSuperBuckets</a>*<a href="#line-55" class="ident">timeHistNumSubBuckets</a> + <span class="lit-number">1</span></code></span>
 <span class="codeline" id="line-58"><code>)</code></span>
 <span class="codeline" id="line-59"><code></code></span>
 <span class="codeline" id="line-60"><code><span class="comment">// timeHistogram represents a distribution of durations in</span></code></span>
@@ -133,7 +133,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-69"><code><span class="comment">// Counts in the histogram are updated atomically, so it is safe</span></code></span>
 <span class="codeline" id="line-70"><code><span class="comment">// for concurrent use. It is also safe to read all the values</span></code></span>
 <span class="codeline" id="line-71"><code><span class="comment">// atomically.</span></code></span>
-<span class="codeline" id="line-72"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-timeHistogram" class="ident">timeHistogram</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-72"><code><span class="keyword">type</span> timeHistogram <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-73"><code>	counts [<a href="#line-56" class="ident">timeHistNumSuperBuckets</a> * <a href="#line-55" class="ident">timeHistNumSubBuckets</a>]<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
 <span class="codeline" id="line-74"><code></code></span>
 <span class="codeline" id="line-75"><code>	<span class="comment">// underflow counts all the times we got a negative duration</span></code></span>
@@ -179,16 +179,16 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-115"><code>}</code></span>
 <span class="codeline" id="line-116"><code></code></span>
 <span class="codeline" id="line-117"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-118"><code>	<a href="../../pkg/runtime.html#name-fInf" class="ident">fInf</a>    = <span class="lit-number">0x7FF0000000000000</span></code></span>
-<span class="codeline" id="line-119"><code>	<a href="../../pkg/runtime.html#name-fNegInf" class="ident">fNegInf</a> = <span class="lit-number">0xFFF0000000000000</span></code></span>
+<span class="codeline" id="line-118"><code>	fInf    = <span class="lit-number">0x7FF0000000000000</span></code></span>
+<span class="codeline" id="line-119"><code>	fNegInf = <span class="lit-number">0xFFF0000000000000</span></code></span>
 <span class="codeline" id="line-120"><code>)</code></span>
 <span class="codeline" id="line-121"><code></code></span>
-<span class="codeline" id="line-122"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../pkg/runtime.html#name-float64Inf" class="ident">float64Inf</a></label>() <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a> {</code></span>
+<span class="codeline" id="line-122"><code><span class="keyword">func</span> float64Inf() <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a> {</code></span>
 <span class="codeline" id="line-123"><code>	<label for="r6" class="ident">inf</label> := <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="#line-118" class="ident">fInf</a>)</code></span>
 <span class="codeline" id="line-124"><code>	<span class="keyword">return</span> *(*<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>)(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r6" class="ident">inf</label>))</code></span>
 <span class="codeline" id="line-125"><code>}</code></span>
 <span class="codeline" id="line-126"><code></code></span>
-<span class="codeline" id="line-127"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../pkg/runtime.html#name-float64NegInf" class="ident">float64NegInf</a></label>() <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a> {</code></span>
+<span class="codeline" id="line-127"><code><span class="keyword">func</span> float64NegInf() <a href="../../pkg/builtin.html#name-float64" class="ident">float64</a> {</code></span>
 <span class="codeline" id="line-128"><code>	<label for="r8" class="ident">inf</label> := <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="#line-119" class="ident">fNegInf</a>)</code></span>
 <span class="codeline" id="line-129"><code>	<span class="keyword">return</span> *(*<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>)(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r8" class="ident">inf</label>))</code></span>
 <span class="codeline" id="line-130"><code>}</code></span>
@@ -196,7 +196,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-132"><code><span class="comment">// timeHistogramMetricsBuckets generates a slice of boundaries for</span></code></span>
 <span class="codeline" id="line-133"><code><span class="comment">// the timeHistogram. These boundaries are represented in seconds,</span></code></span>
 <span class="codeline" id="line-134"><code><span class="comment">// not nanoseconds like the timeHistogram represents durations.</span></code></span>
-<span class="codeline" id="line-135"><code><span class="keyword">func</span> <label for="r9" class="ident"><a href="../../pkg/runtime.html#name-timeHistogramMetricsBuckets" class="ident">timeHistogramMetricsBuckets</a></label>() []<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a> {</code></span>
+<span class="codeline" id="line-135"><code><span class="keyword">func</span> timeHistogramMetricsBuckets() []<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a> {</code></span>
 <span class="codeline" id="line-136"><code>	<label for="r10" class="ident">b</label> := <a href="../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a>, <a href="#line-57" class="ident">timeHistTotalBuckets</a>+<span class="lit-number">1</span>)</code></span>
 <span class="codeline" id="line-137"><code>	<label for="r10" class="ident">b</label>[<span class="lit-number">0</span>] = <a href="#line-127" class="ident">float64NegInf</a>()</code></span>
 <span class="codeline" id="line-138"><code>	<span class="keyword">for</span> <label for="r11" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r11" class="ident">i</label> &lt; <a href="#line-56" class="ident">timeHistNumSuperBuckets</a>; <label for="r11" class="ident">i</label>++ {</code></span>

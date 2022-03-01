@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.8.0" (2022-03-01)
+=======================
+
+Features
+--------
+
+- [reflection] Possibility to get hold of a pointer (e.g. interface) to any value: `ToStructPtr()` function (#202203011026)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v3-3.22.2 (#202203011118)
+
+
 "" "1.7.0" (2022-02-15)
 =======================
 

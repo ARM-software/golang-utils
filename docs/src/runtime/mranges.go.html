@@ -211,7 +211,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-17"><code><span class="comment">// addrRange represents a region of address space.</span></code></span>
 <span class="codeline" id="line-18"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-19"><code><span class="comment">// An addrRange must never span a gap in the address space.</span></code></span>
-<span class="codeline" id="line-20"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-addrRange" class="ident">addrRange</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">type</span> addrRange <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-21"><code>	<span class="comment">// base and limit together represent the region of address space</span></code></span>
 <span class="codeline" id="line-22"><code><span class="comment">	// [base, limit). That is, base is inclusive, limit is exclusive.</span></code></span>
 <span class="codeline" id="line-23"><code><span class="comment">	// These are address over an offset view of the address space on</span></code></span>
@@ -223,7 +223,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-29"><code><span class="comment">// makeAddrRange creates a new address range from two virtual addresses.</span></code></span>
 <span class="codeline" id="line-30"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-31"><code><span class="comment">// Throws if the base and limit are not in the same memory segment.</span></code></span>
-<span class="codeline" id="line-32"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-makeAddrRange" class="ident">makeAddrRange</a></label>(<label for="r1" class="ident">base</label>, <label for="r2" class="ident">limit</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) <a href="#line-20" class="ident">addrRange</a> {</code></span>
+<span class="codeline" id="line-32"><code><span class="keyword">func</span> makeAddrRange(<label for="r1" class="ident">base</label>, <label for="r2" class="ident">limit</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) <a href="#line-20" class="ident">addrRange</a> {</code></span>
 <span class="codeline" id="line-33"><code>	<label for="r3" class="ident">r</label> := <a href="#line-20" class="ident">addrRange</a>{<a href="#line-98" class="ident">offAddr</a>{<label for="r1" class="ident">base</label>}, <a href="#line-98" class="ident">offAddr</a>{<label for="r2" class="ident">limit</label>}}</code></span>
 <span class="codeline" id="line-34"><code>	<span class="keyword">if</span> (<label for="r1" class="ident">base</label>-<a href="malloc.go.html#line-311" class="ident">arenaBaseOffset</a> &gt;= <label for="r1" class="ident">base</label>) != (<label for="r2" class="ident">limit</label>-<a href="malloc.go.html#line-311" class="ident">arenaBaseOffset</a> &gt;= <label for="r2" class="ident">limit</label>) {</code></span>
 <span class="codeline" id="line-35"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"addr range base and limit are not in the same memory segment"</span>)</code></span>
@@ -278,18 +278,18 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-84"><code><span class="keyword">var</span> (</code></span>
 <span class="codeline" id="line-85"><code>	<span class="comment">// minOffAddr is the minimum address in the offset space, and</span></code></span>
 <span class="codeline" id="line-86"><code><span class="comment">	// it corresponds to the virtual address arenaBaseOffset.</span></code></span>
-<span class="codeline" id="line-87"><code>	<a href="../../pkg/runtime.html#name-minOffAddr" class="ident">minOffAddr</a> = <a href="#line-98" class="ident">offAddr</a>{<a href="malloc.go.html#line-311" class="ident">arenaBaseOffset</a>}</code></span>
+<span class="codeline" id="line-87"><code>	minOffAddr = <a href="#line-98" class="ident">offAddr</a>{<a href="malloc.go.html#line-311" class="ident">arenaBaseOffset</a>}</code></span>
 <span class="codeline" id="line-88"><code></code></span>
 <span class="codeline" id="line-89"><code>	<span class="comment">// maxOffAddr is the maximum address in the offset address</span></code></span>
 <span class="codeline" id="line-90"><code><span class="comment">	// space. It corresponds to the highest virtual address representable</span></code></span>
 <span class="codeline" id="line-91"><code><span class="comment">	// by the page alloc chunk and heap arena maps.</span></code></span>
-<span class="codeline" id="line-92"><code>	<a href="../../pkg/runtime.html#name-maxOffAddr" class="ident">maxOffAddr</a> = <a href="#line-98" class="ident">offAddr</a>{(((<span class="lit-number">1</span> &lt;&lt; <a href="malloc.go.html#line-216" class="ident">heapAddrBits</a>) - <span class="lit-number">1</span>) + <a href="malloc.go.html#line-311" class="ident">arenaBaseOffset</a>) &amp; <a href="stack.go.html#line-123" class="ident">uintptrMask</a>}</code></span>
+<span class="codeline" id="line-92"><code>	maxOffAddr = <a href="#line-98" class="ident">offAddr</a>{(((<span class="lit-number">1</span> &lt;&lt; <a href="malloc.go.html#line-216" class="ident">heapAddrBits</a>) - <span class="lit-number">1</span>) + <a href="malloc.go.html#line-311" class="ident">arenaBaseOffset</a>) &amp; <a href="stack.go.html#line-123" class="ident">uintptrMask</a>}</code></span>
 <span class="codeline" id="line-93"><code>)</code></span>
 <span class="codeline" id="line-94"><code></code></span>
 <span class="codeline" id="line-95"><code><span class="comment">// offAddr represents an address in a contiguous view</span></code></span>
 <span class="codeline" id="line-96"><code><span class="comment">// of the address space on systems where the address space is</span></code></span>
 <span class="codeline" id="line-97"><code><span class="comment">// segmented. On other systems, it's just a normal address.</span></code></span>
-<span class="codeline" id="line-98"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-offAddr" class="ident">offAddr</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-98"><code><span class="keyword">type</span> offAddr <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-99"><code>	<span class="comment">// a is just the virtual address, but should never be used</span></code></span>
 <span class="codeline" id="line-100"><code><span class="comment">	// directly. Call addr() to get this value instead.</span></code></span>
 <span class="codeline" id="line-101"><code>	a <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a></code></span>
@@ -345,7 +345,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-151"><code><span class="comment">// and thus there is no way to free it.</span></code></span>
 <span class="codeline" id="line-152"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-153"><code><span class="comment">// addrRanges is not thread-safe.</span></code></span>
-<span class="codeline" id="line-154"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-addrRanges" class="ident">addrRanges</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-154"><code><span class="keyword">type</span> addrRanges <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-155"><code>	<span class="comment">// ranges is a slice of ranges sorted by base.</span></code></span>
 <span class="codeline" id="line-156"><code>	ranges []<a href="#line-20" class="ident">addrRange</a></code></span>
 <span class="codeline" id="line-157"><code></code></span>

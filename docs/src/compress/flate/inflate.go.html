@@ -313,30 +313,30 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-16"><code>)</code></span>
 <span class="codeline" id="line-17"><code></code></span>
 <span class="codeline" id="line-18"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-19"><code>	<a href="../../../pkg/compress/flate.html#name-maxCodeLen" class="ident">maxCodeLen</a> = <span class="lit-number">16</span> <span class="comment">// max length of Huffman code</span></code></span>
+<span class="codeline" id="line-19"><code>	maxCodeLen = <span class="lit-number">16</span> <span class="comment">// max length of Huffman code</span></code></span>
 <span class="codeline" id="line-20"><code>	<span class="comment">// The next three numbers come from the RFC section 3.2.7, with the</span></code></span>
 <span class="codeline" id="line-21"><code><span class="comment">	// additional proviso in section 3.2.5 which implies that distance codes</span></code></span>
 <span class="codeline" id="line-22"><code><span class="comment">	// 30 and 31 should never occur in compressed data.</span></code></span>
-<span class="codeline" id="line-23"><code>	<a href="../../../pkg/compress/flate.html#name-maxNumLit" class="ident">maxNumLit</a>  = <span class="lit-number">286</span></code></span>
-<span class="codeline" id="line-24"><code>	<a href="../../../pkg/compress/flate.html#name-maxNumDist" class="ident">maxNumDist</a> = <span class="lit-number">30</span></code></span>
-<span class="codeline" id="line-25"><code>	<a href="../../../pkg/compress/flate.html#name-numCodes" class="ident">numCodes</a>   = <span class="lit-number">19</span> <span class="comment">// number of codes in Huffman meta-code</span></code></span>
+<span class="codeline" id="line-23"><code>	maxNumLit  = <span class="lit-number">286</span></code></span>
+<span class="codeline" id="line-24"><code>	maxNumDist = <span class="lit-number">30</span></code></span>
+<span class="codeline" id="line-25"><code>	numCodes   = <span class="lit-number">19</span> <span class="comment">// number of codes in Huffman meta-code</span></code></span>
 <span class="codeline" id="line-26"><code>)</code></span>
 <span class="codeline" id="line-27"><code></code></span>
 <span class="codeline" id="line-28"><code><span class="comment">// Initialize the fixedHuffmanDecoder only once upon first use.</span></code></span>
-<span class="codeline" id="line-29"><code><span class="keyword">var</span> <a href="../../../pkg/compress/flate.html#name-fixedOnce" class="ident">fixedOnce</a> <a href="../../../pkg/sync.html" class="ident i4">sync</a>.<a href="../../sync/once.go.html#line-14" class="ident">Once</a></code></span>
-<span class="codeline" id="line-30"><code><span class="keyword">var</span> <a href="../../../pkg/compress/flate.html#name-fixedHuffmanDecoder" class="ident">fixedHuffmanDecoder</a> <a href="#line-104" class="ident">huffmanDecoder</a></code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">var</span> fixedOnce <a href="../../../pkg/sync.html" class="ident i4">sync</a>.<a href="../../sync/once.go.html#line-14" class="ident">Once</a></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">var</span> fixedHuffmanDecoder <a href="#line-104" class="ident">huffmanDecoder</a></code></span>
 <span class="codeline" id="line-31"><code></code></span>
 <span class="codeline" id="line-32"><code><span class="comment">// A CorruptInputError reports the presence of corrupt input at a given offset.</span></code></span>
 <span class="codeline" id="line-33"><code><span class="keyword">type</span> <a href="../../../pkg/compress/flate.html#name-CorruptInputError" class="ident">CorruptInputError</a> <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a></code></span>
 <span class="codeline" id="line-34"><code></code></span>
-<span class="codeline" id="line-35"><code><span class="keyword">func</span> (<label for="r0" class="ident">e</label> <a href="#line-33" class="ident">CorruptInputError</a>) <label for="r1" class="ident"><a href="../../../imp/compress/flate.CorruptInputError.html#name-.Error" class="ident">Error</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-35"><code><span class="keyword">func</span> (<label for="r0" class="ident">e</label> <a href="#line-33" class="ident">CorruptInputError</a>) <label for="r1" class="ident">Error</label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
 <span class="codeline" id="line-36"><code>	<span class="keyword">return</span> <span class="lit-string">"flate: corrupt input before offset "</span> + <a href="../../../pkg/strconv.html" class="ident i3">strconv</a>.<a href="../../strconv/itoa.go.html#line-25" class="ident">FormatInt</a>(<a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>(<label for="r0" class="ident">e</label>), <span class="lit-number">10</span>)</code></span>
 <span class="codeline" id="line-37"><code>}</code></span>
 <span class="codeline" id="line-38"><code></code></span>
 <span class="codeline" id="line-39"><code><span class="comment">// An InternalError reports an error in the flate code itself.</span></code></span>
 <span class="codeline" id="line-40"><code><span class="keyword">type</span> <a href="../../../pkg/compress/flate.html#name-InternalError" class="ident">InternalError</a> <a href="../../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
 <span class="codeline" id="line-41"><code></code></span>
-<span class="codeline" id="line-42"><code><span class="keyword">func</span> (<label for="r2" class="ident">e</label> <a href="#line-40" class="ident">InternalError</a>) <label for="r3" class="ident"><a href="../../../imp/compress/flate.InternalError.html#name-.Error" class="ident">Error</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> { <span class="keyword">return</span> <span class="lit-string">"flate: internal error: "</span> + <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r2" class="ident">e</label>) }</code></span>
+<span class="codeline" id="line-42"><code><span class="keyword">func</span> (<label for="r2" class="ident">e</label> <a href="#line-40" class="ident">InternalError</a>) <label for="r3" class="ident">Error</label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> { <span class="keyword">return</span> <span class="lit-string">"flate: internal error: "</span> + <a href="../../../pkg/builtin.html#name-string" class="ident">string</a>(<label for="r2" class="ident">e</label>) }</code></span>
 <span class="codeline" id="line-43"><code></code></span>
 <span class="codeline" id="line-44"><code><span class="comment">// A ReadError reports an error encountered while reading input.</span></code></span>
 <span class="codeline" id="line-45"><code><span class="comment">//</span></code></span>
@@ -346,7 +346,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-49"><code>	Err    <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> <span class="comment">// error returned by underlying Read</span></code></span>
 <span class="codeline" id="line-50"><code>}</code></span>
 <span class="codeline" id="line-51"><code></code></span>
-<span class="codeline" id="line-52"><code><span class="keyword">func</span> (<label for="r4" class="ident">e</label> *<a href="#line-47" class="ident">ReadError</a>) <label for="r5" class="ident"><a href="../../../imp/compress/flate.ReadError.html#name-.Error" class="ident">Error</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-52"><code><span class="keyword">func</span> (<label for="r4" class="ident">e</label> *<a href="#line-47" class="ident">ReadError</a>) <label for="r5" class="ident">Error</label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
 <span class="codeline" id="line-53"><code>	<span class="keyword">return</span> <span class="lit-string">"flate: read error at offset "</span> + <a href="../../../pkg/strconv.html" class="ident i3">strconv</a>.<a href="../../strconv/itoa.go.html#line-25" class="ident">FormatInt</a>(<label for="r4" class="ident">e</label>.<a href="#line-48" class="ident">Offset</a>, <span class="lit-number">10</span>) + <span class="lit-string">": "</span> + <label for="r4" class="ident">e</label>.<a href="#line-49" class="ident">Err</a>.Error()</code></span>
 <span class="codeline" id="line-54"><code>}</code></span>
 <span class="codeline" id="line-55"><code></code></span>
@@ -358,7 +358,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-61"><code>	Err    <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> <span class="comment">// error returned by underlying Write</span></code></span>
 <span class="codeline" id="line-62"><code>}</code></span>
 <span class="codeline" id="line-63"><code></code></span>
-<span class="codeline" id="line-64"><code><span class="keyword">func</span> (<label for="r6" class="ident">e</label> *<a href="#line-59" class="ident">WriteError</a>) <label for="r7" class="ident"><a href="../../../imp/compress/flate.WriteError.html#name-.Error" class="ident">Error</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-64"><code><span class="keyword">func</span> (<label for="r6" class="ident">e</label> *<a href="#line-59" class="ident">WriteError</a>) <label for="r7" class="ident">Error</label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
 <span class="codeline" id="line-65"><code>	<span class="keyword">return</span> <span class="lit-string">"flate: write error at offset "</span> + <a href="../../../pkg/strconv.html" class="ident i3">strconv</a>.<a href="../../strconv/itoa.go.html#line-25" class="ident">FormatInt</a>(<label for="r6" class="ident">e</label>.<a href="#line-60" class="ident">Offset</a>, <span class="lit-number">10</span>) + <span class="lit-string">": "</span> + <label for="r6" class="ident">e</label>.<a href="#line-61" class="ident">Err</a>.Error()</code></span>
 <span class="codeline" id="line-66"><code>}</code></span>
 <span class="codeline" id="line-67"><code></code></span>
@@ -392,13 +392,13 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-95"><code><span class="comment">// chunk &gt;&gt; 4 is value, including table link</span></code></span>
 <span class="codeline" id="line-96"><code></code></span>
 <span class="codeline" id="line-97"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-98"><code>	<a href="../../../pkg/compress/flate.html#name-huffmanChunkBits" class="ident">huffmanChunkBits</a>  = <span class="lit-number">9</span></code></span>
-<span class="codeline" id="line-99"><code>	<a href="../../../pkg/compress/flate.html#name-huffmanNumChunks" class="ident">huffmanNumChunks</a>  = <span class="lit-number">1</span> &lt;&lt; <a href="#line-98" class="ident">huffmanChunkBits</a></code></span>
-<span class="codeline" id="line-100"><code>	<a href="../../../pkg/compress/flate.html#name-huffmanCountMask" class="ident">huffmanCountMask</a>  = <span class="lit-number">15</span></code></span>
-<span class="codeline" id="line-101"><code>	<a href="../../../pkg/compress/flate.html#name-huffmanValueShift" class="ident">huffmanValueShift</a> = <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-98"><code>	huffmanChunkBits  = <span class="lit-number">9</span></code></span>
+<span class="codeline" id="line-99"><code>	huffmanNumChunks  = <span class="lit-number">1</span> &lt;&lt; <a href="#line-98" class="ident">huffmanChunkBits</a></code></span>
+<span class="codeline" id="line-100"><code>	huffmanCountMask  = <span class="lit-number">15</span></code></span>
+<span class="codeline" id="line-101"><code>	huffmanValueShift = <span class="lit-number">4</span></code></span>
 <span class="codeline" id="line-102"><code>)</code></span>
 <span class="codeline" id="line-103"><code></code></span>
-<span class="codeline" id="line-104"><code><span class="keyword">type</span> <a href="../../../pkg/compress/flate.html#name-huffmanDecoder" class="ident">huffmanDecoder</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-104"><code><span class="keyword">type</span> huffmanDecoder <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-105"><code>	min      <a href="../../../pkg/builtin.html#name-int" class="ident">int</a>                      <span class="comment">// the minimum code length</span></code></span>
 <span class="codeline" id="line-106"><code>	chunks   [<a href="#line-99" class="ident">huffmanNumChunks</a>]<a href="../../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">// chunks as described above</span></code></span>
 <span class="codeline" id="line-107"><code>	links    [][]<a href="../../../pkg/builtin.html#name-uint32" class="ident">uint32</a>               <span class="comment">// overflow links</span></code></span>
@@ -561,7 +561,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-264"><code>}</code></span>
 <span class="codeline" id="line-265"><code></code></span>
 <span class="codeline" id="line-266"><code><span class="comment">// Decompress state.</span></code></span>
-<span class="codeline" id="line-267"><code><span class="keyword">type</span> <a href="../../../pkg/compress/flate.html#name-decompressor" class="ident">decompressor</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-267"><code><span class="keyword">type</span> decompressor <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-268"><code>	<span class="comment">// Input source.</span></code></span>
 <span class="codeline" id="line-269"><code>	r       <a href="#line-261" class="ident">Reader</a></code></span>
 <span class="codeline" id="line-270"><code>	roffset <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a></code></span>
@@ -628,7 +628,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-331"><code>	}</code></span>
 <span class="codeline" id="line-332"><code>}</code></span>
 <span class="codeline" id="line-333"><code></code></span>
-<span class="codeline" id="line-334"><code><span class="keyword">func</span> (<label for="r44" class="ident">f</label> *<a href="#line-267" class="ident">decompressor</a>) <label for="r45" class="ident"><a href="../../../imp/compress/flate.decompressor^7ba47.html#name-.Read" class="ident">Read</a></label>(<label for="r46" class="ident">b</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-334"><code><span class="keyword">func</span> (<label for="r44" class="ident">f</label> *<a href="#line-267" class="ident">decompressor</a>) <label for="r45" class="ident">Read</label>(<label for="r46" class="ident">b</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<a href="../../../pkg/builtin.html#name-int" class="ident">int</a>, <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
 <span class="codeline" id="line-335"><code>	<span class="keyword">for</span> {</code></span>
 <span class="codeline" id="line-336"><code>		<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r44" class="ident">f</label>.<a href="#line-295" class="ident">toRead</a>) &gt; <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-337"><code>			<label for="r47" class="ident">n</label> := <a href="../../../pkg/builtin.html#name-copy" class="ident">copy</a>(<label for="r46" class="ident">b</label>, <label for="r44" class="ident">f</label>.<a href="#line-295" class="ident">toRead</a>)</code></span>
@@ -648,7 +648,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-351"><code>	}</code></span>
 <span class="codeline" id="line-352"><code>}</code></span>
 <span class="codeline" id="line-353"><code></code></span>
-<span class="codeline" id="line-354"><code><span class="keyword">func</span> (<label for="r48" class="ident">f</label> *<a href="#line-267" class="ident">decompressor</a>) <label for="r49" class="ident"><a href="../../../imp/compress/flate.decompressor^7ba47.html#name-.Close" class="ident">Close</a></label>() <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-354"><code><span class="keyword">func</span> (<label for="r48" class="ident">f</label> *<a href="#line-267" class="ident">decompressor</a>) <label for="r49" class="ident">Close</label>() <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
 <span class="codeline" id="line-355"><code>	<span class="keyword">if</span> <label for="r48" class="ident">f</label>.<a href="#line-294" class="ident">err</a> == <a href="../../../pkg/io.html" class="ident i1">io</a>.<a href="../../io/io.go.html#line-44" class="ident">EOF</a> {</code></span>
 <span class="codeline" id="line-356"><code>		<span class="keyword">return</span> <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
 <span class="codeline" id="line-357"><code>	}</code></span>
@@ -658,7 +658,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-361"><code><span class="comment">// RFC 1951 section 3.2.7.</span></code></span>
 <span class="codeline" id="line-362"><code><span class="comment">// Compression with dynamic Huffman codes</span></code></span>
 <span class="codeline" id="line-363"><code></code></span>
-<span class="codeline" id="line-364"><code><span class="keyword">var</span> <a href="../../../pkg/compress/flate.html#name-codeOrder" class="ident">codeOrder</a> = [...]<a href="../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">16</span>, <span class="lit-number">17</span>, <span class="lit-number">18</span>, <span class="lit-number">0</span>, <span class="lit-number">8</span>, <span class="lit-number">7</span>, <span class="lit-number">9</span>, <span class="lit-number">6</span>, <span class="lit-number">10</span>, <span class="lit-number">5</span>, <span class="lit-number">11</span>, <span class="lit-number">4</span>, <span class="lit-number">12</span>, <span class="lit-number">3</span>, <span class="lit-number">13</span>, <span class="lit-number">2</span>, <span class="lit-number">14</span>, <span class="lit-number">1</span>, <span class="lit-number">15</span>}</code></span>
+<span class="codeline" id="line-364"><code><span class="keyword">var</span> codeOrder = [...]<a href="../../../pkg/builtin.html#name-int" class="ident">int</a>{<span class="lit-number">16</span>, <span class="lit-number">17</span>, <span class="lit-number">18</span>, <span class="lit-number">0</span>, <span class="lit-number">8</span>, <span class="lit-number">7</span>, <span class="lit-number">9</span>, <span class="lit-number">6</span>, <span class="lit-number">10</span>, <span class="lit-number">5</span>, <span class="lit-number">11</span>, <span class="lit-number">4</span>, <span class="lit-number">12</span>, <span class="lit-number">3</span>, <span class="lit-number">13</span>, <span class="lit-number">2</span>, <span class="lit-number">14</span>, <span class="lit-number">1</span>, <span class="lit-number">15</span>}</code></span>
 <span class="codeline" id="line-365"><code></code></span>
 <span class="codeline" id="line-366"><code><span class="keyword">func</span> (<label for="r50" class="ident">f</label> *<a href="#line-267" class="ident">decompressor</a>) <label for="r51" class="ident">readHuffman</label>() <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
 <span class="codeline" id="line-367"><code>	<span class="comment">// HLIT[5], HDIST[5], HCLEN[4].</span></code></span>
@@ -982,7 +982,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-685"><code>}</code></span>
 <span class="codeline" id="line-686"><code></code></span>
 <span class="codeline" id="line-687"><code><span class="comment">// noEOF returns err, unless err == io.EOF, in which case it returns io.ErrUnexpectedEOF.</span></code></span>
-<span class="codeline" id="line-688"><code><span class="keyword">func</span> <label for="r95" class="ident"><a href="../../../pkg/compress/flate.html#name-noEOF" class="ident">noEOF</a></label>(<label for="r96" class="ident">e</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-688"><code><span class="keyword">func</span> noEOF(<label for="r96" class="ident">e</label> <a href="../../../pkg/builtin.html#name-error" class="ident">error</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
 <span class="codeline" id="line-689"><code>	<span class="keyword">if</span> <label for="r96" class="ident">e</label> == <a href="../../../pkg/io.html" class="ident i1">io</a>.<a href="../../io/io.go.html#line-44" class="ident">EOF</a> {</code></span>
 <span class="codeline" id="line-690"><code>		<span class="keyword">return</span> <a href="../../../pkg/io.html" class="ident i1">io</a>.<a href="../../io/io.go.html#line-48" class="ident">ErrUnexpectedEOF</a></code></span>
 <span class="codeline" id="line-691"><code>	}</code></span>
@@ -1043,14 +1043,14 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-746"><code>	}</code></span>
 <span class="codeline" id="line-747"><code>}</code></span>
 <span class="codeline" id="line-748"><code></code></span>
-<span class="codeline" id="line-749"><code><span class="keyword">func</span> <label for="r110" class="ident"><a href="../../../pkg/compress/flate.html#name-makeReader" class="ident">makeReader</a></label>(<label for="r111" class="ident">r</label> <a href="../../../pkg/io.html" class="ident i1">io</a>.<a href="../../io/io.go.html#line-83" class="ident">Reader</a>) <a href="#line-261" class="ident">Reader</a> {</code></span>
+<span class="codeline" id="line-749"><code><span class="keyword">func</span> makeReader(<label for="r111" class="ident">r</label> <a href="../../../pkg/io.html" class="ident i1">io</a>.<a href="../../io/io.go.html#line-83" class="ident">Reader</a>) <a href="#line-261" class="ident">Reader</a> {</code></span>
 <span class="codeline" id="line-750"><code>	<span class="keyword">if</span> <label for="r112" class="ident">rr</label>, <label for="r113" class="ident">ok</label> := <label for="r111" class="ident">r</label>.(<a href="#line-261" class="ident">Reader</a>); <label for="r113" class="ident">ok</label> {</code></span>
 <span class="codeline" id="line-751"><code>		<span class="keyword">return</span> <label for="r112" class="ident">rr</label></code></span>
 <span class="codeline" id="line-752"><code>	}</code></span>
 <span class="codeline" id="line-753"><code>	<span class="keyword">return</span> <a href="../../../pkg/bufio.html" class="ident i0">bufio</a>.<a href="../../bufio/bufio.go.html#line-62" class="ident">NewReader</a>(<label for="r111" class="ident">r</label>)</code></span>
 <span class="codeline" id="line-754"><code>}</code></span>
 <span class="codeline" id="line-755"><code></code></span>
-<span class="codeline" id="line-756"><code><span class="keyword">func</span> <label for="r114" class="ident"><a href="../../../pkg/compress/flate.html#name-fixedHuffmanDecoderInit" class="ident">fixedHuffmanDecoderInit</a></label>() {</code></span>
+<span class="codeline" id="line-756"><code><span class="keyword">func</span> fixedHuffmanDecoderInit() {</code></span>
 <span class="codeline" id="line-757"><code>	<a href="#line-29" class="ident">fixedOnce</a>.<a href="../../sync/once.go.html#line-42" class="ident">Do</a>(<span class="keyword">func</span>() {</code></span>
 <span class="codeline" id="line-758"><code>		<span class="comment">// These come from the RFC section 3.2.6.</span></code></span>
 <span class="codeline" id="line-759"><code>		<span class="keyword">var</span> <label for="r115" class="ident">bits</label> [<span class="lit-number">288</span>]<a href="../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
@@ -1070,7 +1070,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-773"><code>	})</code></span>
 <span class="codeline" id="line-774"><code>}</code></span>
 <span class="codeline" id="line-775"><code></code></span>
-<span class="codeline" id="line-776"><code><span class="keyword">func</span> (<label for="r120" class="ident">f</label> *<a href="#line-267" class="ident">decompressor</a>) <label for="r121" class="ident"><a href="../../../imp/compress/flate.decompressor^7ba47.html#name-.Reset" class="ident">Reset</a></label>(<label for="r122" class="ident">r</label> <a href="../../../pkg/io.html" class="ident i1">io</a>.<a href="../../io/io.go.html#line-83" class="ident">Reader</a>, <label for="r123" class="ident">dict</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-776"><code><span class="keyword">func</span> (<label for="r120" class="ident">f</label> *<a href="#line-267" class="ident">decompressor</a>) <label for="r121" class="ident">Reset</label>(<label for="r122" class="ident">r</label> <a href="../../../pkg/io.html" class="ident i1">io</a>.<a href="../../io/io.go.html#line-83" class="ident">Reader</a>, <label for="r123" class="ident">dict</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
 <span class="codeline" id="line-777"><code>	*<label for="r120" class="ident">f</label> = <a href="#line-267" class="ident">decompressor</a>{</code></span>
 <span class="codeline" id="line-778"><code>		<a href="#line-269" class="ident">r</a>:        <a href="#line-749" class="ident">makeReader</a>(<label for="r122" class="ident">r</label>),</code></span>
 <span class="codeline" id="line-779"><code>		<a href="#line-280" class="ident">bits</a>:     <label for="r120" class="ident">f</label>.<a href="#line-280" class="ident">bits</a>,</code></span>

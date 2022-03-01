@@ -423,11 +423,11 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-23"><code><span class="comment">// debugLogBytes is the size of each per-M ring buffer. This is</span></code></span>
 <span class="codeline" id="line-24"><code><span class="comment">// allocated off-heap to avoid blowing up the M and hence the GC'd</span></code></span>
 <span class="codeline" id="line-25"><code><span class="comment">// heap size.</span></code></span>
-<span class="codeline" id="line-26"><code><span class="keyword">const</span> <a href="../../pkg/runtime.html#name-debugLogBytes" class="ident">debugLogBytes</a> = <span class="lit-number">16</span> &lt;&lt; <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-26"><code><span class="keyword">const</span> debugLogBytes = <span class="lit-number">16</span> &lt;&lt; <span class="lit-number">10</span></code></span>
 <span class="codeline" id="line-27"><code></code></span>
 <span class="codeline" id="line-28"><code><span class="comment">// debugLogStringLimit is the maximum number of bytes in a string.</span></code></span>
 <span class="codeline" id="line-29"><code><span class="comment">// Above this, the string will be truncated with "..(n more bytes).."</span></code></span>
-<span class="codeline" id="line-30"><code><span class="keyword">const</span> <a href="../../pkg/runtime.html#name-debugLogStringLimit" class="ident">debugLogStringLimit</a> = <a href="#line-26" class="ident">debugLogBytes</a> / <span class="lit-number">8</span></code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">const</span> debugLogStringLimit = <a href="#line-26" class="ident">debugLogBytes</a> / <span class="lit-number">8</span></code></span>
 <span class="codeline" id="line-31"><code></code></span>
 <span class="codeline" id="line-32"><code><span class="comment">// dlog returns a debug logger. The caller can use methods on the</span></code></span>
 <span class="codeline" id="line-33"><code><span class="comment">// returned logger to add values, which will be space-separated in the</span></code></span>
@@ -446,7 +446,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-46"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-47"><code><span class="comment">//go:nosplit</span></code></span>
 <span class="codeline" id="line-48"><code><span class="comment">//go:nowritebarrierrec</span></code></span>
-<span class="codeline" id="line-49"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-dlog" class="ident">dlog</a></label>() *<a href="#line-124" class="ident">dlogger</a> {</code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">func</span> dlog() *<a href="#line-124" class="ident">dlogger</a> {</code></span>
 <span class="codeline" id="line-50"><code>	<span class="keyword">if</span> !<a href="debuglog_off.go.html#line-9" class="ident">dlogEnabled</a> {</code></span>
 <span class="codeline" id="line-51"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
 <span class="codeline" id="line-52"><code>	}</code></span>
@@ -521,7 +521,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-121"><code><span class="comment">// end().</span></code></span>
 <span class="codeline" id="line-122"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-123"><code><span class="comment">//go:notinheap</span></code></span>
-<span class="codeline" id="line-124"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-dlogger" class="ident">dlogger</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-124"><code><span class="keyword">type</span> dlogger <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-125"><code>	w <a href="#line-359" class="ident">debugLogWriter</a></code></span>
 <span class="codeline" id="line-126"><code></code></span>
 <span class="codeline" id="line-127"><code>	<span class="comment">// allLink is the next dlogger in the allDloggers list.</span></code></span>
@@ -535,7 +535,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-135"><code><span class="comment">// allDloggers is a list of all dloggers, linked through</span></code></span>
 <span class="codeline" id="line-136"><code><span class="comment">// dlogger.allLink. This is accessed atomically. This is prepend only,</span></code></span>
 <span class="codeline" id="line-137"><code><span class="comment">// so it doesn't need to protect against ABA races.</span></code></span>
-<span class="codeline" id="line-138"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-allDloggers" class="ident">allDloggers</a> *<a href="#line-124" class="ident">dlogger</a></code></span>
+<span class="codeline" id="line-138"><code><span class="keyword">var</span> allDloggers *<a href="#line-124" class="ident">dlogger</a></code></span>
 <span class="codeline" id="line-139"><code></code></span>
 <span class="codeline" id="line-140"><code><span class="comment">//go:nosplit</span></code></span>
 <span class="codeline" id="line-141"><code><span class="keyword">func</span> (<label for="r11" class="ident">l</label> *<a href="#line-124" class="ident">dlogger</a>) <label for="r12" class="ident">end</label>() {</code></span>
@@ -562,19 +562,19 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-162"><code>}</code></span>
 <span class="codeline" id="line-163"><code></code></span>
 <span class="codeline" id="line-164"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-165"><code>	<a href="../../pkg/runtime.html#name-debugLogUnknown" class="ident">debugLogUnknown</a> = <span class="lit-number">1</span> + <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
-<span class="codeline" id="line-166"><code>	<a href="../../pkg/runtime.html#name-debugLogBoolTrue" class="ident">debugLogBoolTrue</a></code></span>
-<span class="codeline" id="line-167"><code>	<a href="../../pkg/runtime.html#name-debugLogBoolFalse" class="ident">debugLogBoolFalse</a></code></span>
-<span class="codeline" id="line-168"><code>	<a href="../../pkg/runtime.html#name-debugLogInt" class="ident">debugLogInt</a></code></span>
-<span class="codeline" id="line-169"><code>	<a href="../../pkg/runtime.html#name-debugLogUint" class="ident">debugLogUint</a></code></span>
-<span class="codeline" id="line-170"><code>	<a href="../../pkg/runtime.html#name-debugLogHex" class="ident">debugLogHex</a></code></span>
-<span class="codeline" id="line-171"><code>	<a href="../../pkg/runtime.html#name-debugLogPtr" class="ident">debugLogPtr</a></code></span>
-<span class="codeline" id="line-172"><code>	<a href="../../pkg/runtime.html#name-debugLogString" class="ident">debugLogString</a></code></span>
-<span class="codeline" id="line-173"><code>	<a href="../../pkg/runtime.html#name-debugLogConstString" class="ident">debugLogConstString</a></code></span>
-<span class="codeline" id="line-174"><code>	<a href="../../pkg/runtime.html#name-debugLogStringOverflow" class="ident">debugLogStringOverflow</a></code></span>
+<span class="codeline" id="line-165"><code>	debugLogUnknown = <span class="lit-number">1</span> + <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-166"><code>	debugLogBoolTrue</code></span>
+<span class="codeline" id="line-167"><code>	debugLogBoolFalse</code></span>
+<span class="codeline" id="line-168"><code>	debugLogInt</code></span>
+<span class="codeline" id="line-169"><code>	debugLogUint</code></span>
+<span class="codeline" id="line-170"><code>	debugLogHex</code></span>
+<span class="codeline" id="line-171"><code>	debugLogPtr</code></span>
+<span class="codeline" id="line-172"><code>	debugLogString</code></span>
+<span class="codeline" id="line-173"><code>	debugLogConstString</code></span>
+<span class="codeline" id="line-174"><code>	debugLogStringOverflow</code></span>
 <span class="codeline" id="line-175"><code></code></span>
-<span class="codeline" id="line-176"><code>	<a href="../../pkg/runtime.html#name-debugLogPC" class="ident">debugLogPC</a></code></span>
-<span class="codeline" id="line-177"><code>	<a href="../../pkg/runtime.html#name-debugLogTraceback" class="ident">debugLogTraceback</a></code></span>
+<span class="codeline" id="line-176"><code>	debugLogPC</code></span>
+<span class="codeline" id="line-177"><code>	debugLogTraceback</code></span>
 <span class="codeline" id="line-178"><code>)</code></span>
 <span class="codeline" id="line-179"><code></code></span>
 <span class="codeline" id="line-180"><code><span class="comment">//go:nosplit</span></code></span>
@@ -756,7 +756,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-356"><code><span class="comment">// actual log reader would start.</span></code></span>
 <span class="codeline" id="line-357"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-358"><code><span class="comment">//go:notinheap</span></code></span>
-<span class="codeline" id="line-359"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-debugLogWriter" class="ident">debugLogWriter</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-359"><code><span class="keyword">type</span> debugLogWriter <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-360"><code>	write <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
 <span class="codeline" id="line-361"><code>	data  <a href="#line-378" class="ident">debugLogBuf</a></code></span>
 <span class="codeline" id="line-362"><code></code></span>
@@ -775,15 +775,15 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-375"><code>}</code></span>
 <span class="codeline" id="line-376"><code></code></span>
 <span class="codeline" id="line-377"><code><span class="comment">//go:notinheap</span></code></span>
-<span class="codeline" id="line-378"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-debugLogBuf" class="ident">debugLogBuf</a> [<a href="#line-26" class="ident">debugLogBytes</a>]<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
+<span class="codeline" id="line-378"><code><span class="keyword">type</span> debugLogBuf [<a href="#line-26" class="ident">debugLogBytes</a>]<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
 <span class="codeline" id="line-379"><code></code></span>
 <span class="codeline" id="line-380"><code><span class="keyword">const</span> (</code></span>
 <span class="codeline" id="line-381"><code>	<span class="comment">// debugLogHeaderSize is the number of bytes in the framing</span></code></span>
 <span class="codeline" id="line-382"><code><span class="comment">	// header of every dlog record.</span></code></span>
-<span class="codeline" id="line-383"><code>	<a href="../../pkg/runtime.html#name-debugLogHeaderSize" class="ident">debugLogHeaderSize</a> = <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-383"><code>	debugLogHeaderSize = <span class="lit-number">2</span></code></span>
 <span class="codeline" id="line-384"><code></code></span>
 <span class="codeline" id="line-385"><code>	<span class="comment">// debugLogSyncSize is the number of bytes in a sync record.</span></code></span>
-<span class="codeline" id="line-386"><code>	<a href="../../pkg/runtime.html#name-debugLogSyncSize" class="ident">debugLogSyncSize</a> = <a href="#line-383" class="ident">debugLogHeaderSize</a> + <span class="lit-number">2</span>*<span class="lit-number">8</span></code></span>
+<span class="codeline" id="line-386"><code>	debugLogSyncSize = <a href="#line-383" class="ident">debugLogHeaderSize</a> + <span class="lit-number">2</span>*<span class="lit-number">8</span></code></span>
 <span class="codeline" id="line-387"><code>)</code></span>
 <span class="codeline" id="line-388"><code></code></span>
 <span class="codeline" id="line-389"><code><span class="comment">//go:nosplit</span></code></span>
@@ -878,7 +878,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-478"><code>	<label for="r100" class="ident">l</label>.<a href="#line-446" class="ident">bytes</a>(<label for="r100" class="ident">l</label>.<a href="#line-374" class="ident">buf</a>[:<label for="r103" class="ident">i</label>])</code></span>
 <span class="codeline" id="line-479"><code>}</code></span>
 <span class="codeline" id="line-480"><code></code></span>
-<span class="codeline" id="line-481"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-debugLogReader" class="ident">debugLogReader</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-481"><code><span class="keyword">type</span> debugLogReader <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-482"><code>	data *<a href="#line-378" class="ident">debugLogBuf</a></code></span>
 <span class="codeline" id="line-483"><code></code></span>
 <span class="codeline" id="line-484"><code>	<span class="comment">// begin and end are the positions in the log of the beginning</span></code></span>
@@ -1083,7 +1083,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-683"><code>}</code></span>
 <span class="codeline" id="line-684"><code></code></span>
 <span class="codeline" id="line-685"><code><span class="comment">// printDebugLog prints the debug log.</span></code></span>
-<span class="codeline" id="line-686"><code><span class="keyword">func</span> <label for="r150" class="ident"><a href="../../pkg/runtime.html#name-printDebugLog" class="ident">printDebugLog</a></label>() {</code></span>
+<span class="codeline" id="line-686"><code><span class="keyword">func</span> printDebugLog() {</code></span>
 <span class="codeline" id="line-687"><code>	<span class="keyword">if</span> !<a href="debuglog_off.go.html#line-9" class="ident">dlogEnabled</a> {</code></span>
 <span class="codeline" id="line-688"><code>		<span class="keyword">return</span></code></span>
 <span class="codeline" id="line-689"><code>	}</code></span>
@@ -1200,7 +1200,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-800"><code></code></span>
 <span class="codeline" id="line-801"><code><span class="comment">// printDebugLogPC prints a single symbolized PC. If returnPC is true,</span></code></span>
 <span class="codeline" id="line-802"><code><span class="comment">// pc is a return PC that must first be converted to a call PC.</span></code></span>
-<span class="codeline" id="line-803"><code><span class="keyword">func</span> <label for="r178" class="ident"><a href="../../pkg/runtime.html#name-printDebugLogPC" class="ident">printDebugLogPC</a></label>(<label for="r179" class="ident">pc</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r180" class="ident">returnPC</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-803"><code><span class="keyword">func</span> printDebugLogPC(<label for="r179" class="ident">pc</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r180" class="ident">returnPC</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
 <span class="codeline" id="line-804"><code>	<label for="r181" class="ident">fn</label> := <a href="symtab.go.html#line-673" class="ident">findfunc</a>(<label for="r179" class="ident">pc</label>)</code></span>
 <span class="codeline" id="line-805"><code>	<span class="keyword">if</span> <label for="r180" class="ident">returnPC</label> &amp;&amp; (!<label for="r181" class="ident">fn</label>.<a href="symtab.go.html#line-665" class="ident">valid</a>() || <label for="r179" class="ident">pc</label> &gt; <label for="r181" class="ident">fn</label>.<a href="runtime2.go.html#line-823" class="ident">entry</a>) {</code></span>
 <span class="codeline" id="line-806"><code>		<span class="comment">// TODO(austin): Don't back up if the previous frame</span></code></span>

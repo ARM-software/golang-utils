@@ -117,7 +117,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-17"><code><span class="comment">// must be specially handled.</span></code></span>
 <span class="codeline" id="line-18"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-19"><code><span class="comment">//go:notinheap</span></code></span>
-<span class="codeline" id="line-20"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-mcache" class="ident">mcache</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-20"><code><span class="keyword">type</span> mcache <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-21"><code>	<span class="comment">// The following members are accessed on every malloc,</span></code></span>
 <span class="codeline" id="line-22"><code><span class="comment">	// so they are grouped here for better caching.</span></code></span>
 <span class="codeline" id="line-23"><code>	nextSample <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a> <span class="comment">// trigger heap sample after allocating this many bytes</span></code></span>
@@ -158,13 +158,13 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-58"><code><span class="comment">// and the compiler does not emit write barriers for assignments</span></code></span>
 <span class="codeline" id="line-59"><code><span class="comment">// of gclinkptr values. Code should store references to gclinks</span></code></span>
 <span class="codeline" id="line-60"><code><span class="comment">// as gclinkptr, not as *gclink.</span></code></span>
-<span class="codeline" id="line-61"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-gclink" class="ident">gclink</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-61"><code><span class="keyword">type</span> gclink <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-62"><code>	next <a href="#line-67" class="ident">gclinkptr</a></code></span>
 <span class="codeline" id="line-63"><code>}</code></span>
 <span class="codeline" id="line-64"><code></code></span>
 <span class="codeline" id="line-65"><code><span class="comment">// A gclinkptr is a pointer to a gclink, but it is opaque</span></code></span>
 <span class="codeline" id="line-66"><code><span class="comment">// to the garbage collector.</span></code></span>
-<span class="codeline" id="line-67"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-gclinkptr" class="ident">gclinkptr</a> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a></code></span>
+<span class="codeline" id="line-67"><code><span class="keyword">type</span> gclinkptr <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a></code></span>
 <span class="codeline" id="line-68"><code></code></span>
 <span class="codeline" id="line-69"><code><span class="comment">// ptr returns the *gclink form of p.</span></code></span>
 <span class="codeline" id="line-70"><code><span class="comment">// The result should be used for accessing fields, not stored</span></code></span>
@@ -173,15 +173,15 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-73"><code>	<span class="keyword">return</span> (*<a href="#line-61" class="ident">gclink</a>)(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r0" class="ident">p</label>))</code></span>
 <span class="codeline" id="line-74"><code>}</code></span>
 <span class="codeline" id="line-75"><code></code></span>
-<span class="codeline" id="line-76"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-stackfreelist" class="ident">stackfreelist</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-76"><code><span class="keyword">type</span> stackfreelist <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-77"><code>	list <a href="#line-67" class="ident">gclinkptr</a> <span class="comment">// linked list of free stacks</span></code></span>
 <span class="codeline" id="line-78"><code>	size <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>   <span class="comment">// total size of stacks in list</span></code></span>
 <span class="codeline" id="line-79"><code>}</code></span>
 <span class="codeline" id="line-80"><code></code></span>
 <span class="codeline" id="line-81"><code><span class="comment">// dummy mspan that contains no free objects.</span></code></span>
-<span class="codeline" id="line-82"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-emptymspan" class="ident">emptymspan</a> <a href="mheap.go.html#line-382" class="ident">mspan</a></code></span>
+<span class="codeline" id="line-82"><code><span class="keyword">var</span> emptymspan <a href="mheap.go.html#line-382" class="ident">mspan</a></code></span>
 <span class="codeline" id="line-83"><code></code></span>
-<span class="codeline" id="line-84"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../pkg/runtime.html#name-allocmcache" class="ident">allocmcache</a></label>() *<a href="#line-20" class="ident">mcache</a> {</code></span>
+<span class="codeline" id="line-84"><code><span class="keyword">func</span> allocmcache() *<a href="#line-20" class="ident">mcache</a> {</code></span>
 <span class="codeline" id="line-85"><code>	<span class="keyword">var</span> <label for="r3" class="ident">c</label> *<a href="#line-20" class="ident">mcache</a></code></span>
 <span class="codeline" id="line-86"><code>	<a href="stubs.go.html#line-54" class="ident">systemstack</a>(<span class="keyword">func</span>() {</code></span>
 <span class="codeline" id="line-87"><code>		<a href="lock_futex.go.html#line-46" class="ident">lock</a>(&amp;<a href="mheap.go.html#line-221" class="ident">mheap_</a>.<a href="mheap.go.html#line-65" class="ident">lock</a>)</code></span>
@@ -202,7 +202,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-102"><code><span class="comment">// In some cases there is no way to simply release</span></code></span>
 <span class="codeline" id="line-103"><code><span class="comment">// resources, such as statistics, so donate them to</span></code></span>
 <span class="codeline" id="line-104"><code><span class="comment">// a different mcache (the recipient).</span></code></span>
-<span class="codeline" id="line-105"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../pkg/runtime.html#name-freemcache" class="ident">freemcache</a></label>(<label for="r6" class="ident">c</label> *<a href="#line-20" class="ident">mcache</a>) {</code></span>
+<span class="codeline" id="line-105"><code><span class="keyword">func</span> freemcache(<label for="r6" class="ident">c</label> *<a href="#line-20" class="ident">mcache</a>) {</code></span>
 <span class="codeline" id="line-106"><code>	<a href="stubs.go.html#line-54" class="ident">systemstack</a>(<span class="keyword">func</span>() {</code></span>
 <span class="codeline" id="line-107"><code>		<label for="r6" class="ident">c</label>.<a href="#line-251" class="ident">releaseAll</a>()</code></span>
 <span class="codeline" id="line-108"><code>		<a href="stack.go.html#line-303" class="ident">stackcache_clear</a>(<label for="r6" class="ident">c</label>)</code></span>
@@ -222,7 +222,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-122"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-123"><code><span class="comment">// Returns nil if we're not bootstrapping or we don't have a P. The caller's</span></code></span>
 <span class="codeline" id="line-124"><code><span class="comment">// P must not change, so we must be in a non-preemptible state.</span></code></span>
-<span class="codeline" id="line-125"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../pkg/runtime.html#name-getMCache" class="ident">getMCache</a></label>() *<a href="#line-20" class="ident">mcache</a> {</code></span>
+<span class="codeline" id="line-125"><code><span class="keyword">func</span> getMCache() *<a href="#line-20" class="ident">mcache</a> {</code></span>
 <span class="codeline" id="line-126"><code>	<span class="comment">// Grab the mcache, since that's where stats live.</span></code></span>
 <span class="codeline" id="line-127"><code>	<label for="r8" class="ident">pp</label> := <a href="stubs.go.html#line-18" class="ident">getg</a>().<a href="runtime2.go.html#line-418" class="ident">m</a>.<a href="runtime2.go.html#line-500" class="ident">p</a>.<a href="runtime2.go.html#line-283" class="ident">ptr</a>()</code></span>
 <span class="codeline" id="line-128"><code>	<span class="keyword">var</span> <label for="r9" class="ident">c</label> *<a href="#line-20" class="ident">mcache</a></code></span>

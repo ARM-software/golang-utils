@@ -185,20 +185,20 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-21"><code></code></span>
 <span class="codeline" id="line-22"><code><span class="comment">// A job is an entry on the backtracker's job stack. It holds</span></code></span>
 <span class="codeline" id="line-23"><code><span class="comment">// the instruction pc and the position in the input.</span></code></span>
-<span class="codeline" id="line-24"><code><span class="keyword">type</span> <a href="../../pkg/regexp.html#name-job" class="ident">job</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-24"><code><span class="keyword">type</span> job <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-25"><code>	pc  <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
 <span class="codeline" id="line-26"><code>	arg <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
 <span class="codeline" id="line-27"><code>	pos <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
 <span class="codeline" id="line-28"><code>}</code></span>
 <span class="codeline" id="line-29"><code></code></span>
 <span class="codeline" id="line-30"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-31"><code>	<a href="../../pkg/regexp.html#name-visitedBits" class="ident">visitedBits</a>        = <span class="lit-number">32</span></code></span>
-<span class="codeline" id="line-32"><code>	<a href="../../pkg/regexp.html#name-maxBacktrackProg" class="ident">maxBacktrackProg</a>   = <span class="lit-number">500</span>        <span class="comment">// len(prog.Inst) &lt;= max</span></code></span>
-<span class="codeline" id="line-33"><code>	<a href="../../pkg/regexp.html#name-maxBacktrackVector" class="ident">maxBacktrackVector</a> = <span class="lit-number">256</span> * <span class="lit-number">1024</span> <span class="comment">// bit vector size &lt;= max (bits)</span></code></span>
+<span class="codeline" id="line-31"><code>	visitedBits        = <span class="lit-number">32</span></code></span>
+<span class="codeline" id="line-32"><code>	maxBacktrackProg   = <span class="lit-number">500</span>        <span class="comment">// len(prog.Inst) &lt;= max</span></code></span>
+<span class="codeline" id="line-33"><code>	maxBacktrackVector = <span class="lit-number">256</span> * <span class="lit-number">1024</span> <span class="comment">// bit vector size &lt;= max (bits)</span></code></span>
 <span class="codeline" id="line-34"><code>)</code></span>
 <span class="codeline" id="line-35"><code></code></span>
 <span class="codeline" id="line-36"><code><span class="comment">// bitState holds state for the backtracker.</span></code></span>
-<span class="codeline" id="line-37"><code><span class="keyword">type</span> <a href="../../pkg/regexp.html#name-bitState" class="ident">bitState</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-37"><code><span class="keyword">type</span> bitState <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-38"><code>	end      <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
 <span class="codeline" id="line-39"><code>	cap      []<a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
 <span class="codeline" id="line-40"><code>	matchcap []<a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
@@ -208,9 +208,9 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-44"><code>	inputs <a href="exec.go.html#line-49" class="ident">inputs</a></code></span>
 <span class="codeline" id="line-45"><code>}</code></span>
 <span class="codeline" id="line-46"><code></code></span>
-<span class="codeline" id="line-47"><code><span class="keyword">var</span> <a href="../../pkg/regexp.html#name-bitStatePool" class="ident">bitStatePool</a> <a href="../../pkg/sync.html" class="ident i1">sync</a>.<a href="../sync/pool.go.html#line-44" class="ident">Pool</a></code></span>
+<span class="codeline" id="line-47"><code><span class="keyword">var</span> bitStatePool <a href="../../pkg/sync.html" class="ident i1">sync</a>.<a href="../sync/pool.go.html#line-44" class="ident">Pool</a></code></span>
 <span class="codeline" id="line-48"><code></code></span>
-<span class="codeline" id="line-49"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/regexp.html#name-newBitState" class="ident">newBitState</a></label>() *<a href="#line-37" class="ident">bitState</a> {</code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">func</span> newBitState() *<a href="#line-37" class="ident">bitState</a> {</code></span>
 <span class="codeline" id="line-50"><code>	<label for="r1" class="ident">b</label>, <label for="r2" class="ident">ok</label> := <a href="#line-47" class="ident">bitStatePool</a>.<a href="../sync/pool.go.html#line-124" class="ident">Get</a>().(*<a href="#line-37" class="ident">bitState</a>)</code></span>
 <span class="codeline" id="line-51"><code>	<span class="keyword">if</span> !<label for="r2" class="ident">ok</label> {</code></span>
 <span class="codeline" id="line-52"><code>		<label for="r1" class="ident">b</label> = <a href="../../pkg/builtin.html#name-new" class="ident">new</a>(<a href="#line-37" class="ident">bitState</a>)</code></span>
@@ -218,14 +218,14 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-54"><code>	<span class="keyword">return</span> <label for="r1" class="ident">b</label></code></span>
 <span class="codeline" id="line-55"><code>}</code></span>
 <span class="codeline" id="line-56"><code></code></span>
-<span class="codeline" id="line-57"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../pkg/regexp.html#name-freeBitState" class="ident">freeBitState</a></label>(<label for="r4" class="ident">b</label> *<a href="#line-37" class="ident">bitState</a>) {</code></span>
+<span class="codeline" id="line-57"><code><span class="keyword">func</span> freeBitState(<label for="r4" class="ident">b</label> *<a href="#line-37" class="ident">bitState</a>) {</code></span>
 <span class="codeline" id="line-58"><code>	<label for="r4" class="ident">b</label>.<a href="#line-44" class="ident">inputs</a>.<a href="exec.go.html#line-73" class="ident">clear</a>()</code></span>
 <span class="codeline" id="line-59"><code>	<a href="#line-47" class="ident">bitStatePool</a>.<a href="../sync/pool.go.html#line-90" class="ident">Put</a>(<label for="r4" class="ident">b</label>)</code></span>
 <span class="codeline" id="line-60"><code>}</code></span>
 <span class="codeline" id="line-61"><code></code></span>
 <span class="codeline" id="line-62"><code><span class="comment">// maxBitStateLen returns the maximum length of a string to search with</span></code></span>
 <span class="codeline" id="line-63"><code><span class="comment">// the backtracker using prog.</span></code></span>
-<span class="codeline" id="line-64"><code><span class="keyword">func</span> <label for="r5" class="ident"><a href="../../pkg/regexp.html#name-maxBitStateLen" class="ident">maxBitStateLen</a></label>(<label for="r6" class="ident">prog</label> *<a href="../../pkg/regexp/syntax.html" class="ident i0">syntax</a>.<a href="syntax/prog.go.html#line-17" class="ident">Prog</a>) <a href="../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-64"><code><span class="keyword">func</span> maxBitStateLen(<label for="r6" class="ident">prog</label> *<a href="../../pkg/regexp/syntax.html" class="ident i0">syntax</a>.<a href="syntax/prog.go.html#line-17" class="ident">Prog</a>) <a href="../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-65"><code>	<span class="keyword">if</span> !<a href="#line-73" class="ident">shouldBacktrack</a>(<label for="r6" class="ident">prog</label>) {</code></span>
 <span class="codeline" id="line-66"><code>		<span class="keyword">return</span> <span class="lit-number">0</span></code></span>
 <span class="codeline" id="line-67"><code>	}</code></span>
@@ -234,7 +234,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-70"><code></code></span>
 <span class="codeline" id="line-71"><code><span class="comment">// shouldBacktrack reports whether the program is too</span></code></span>
 <span class="codeline" id="line-72"><code><span class="comment">// long for the backtracker to run.</span></code></span>
-<span class="codeline" id="line-73"><code><span class="keyword">func</span> <label for="r7" class="ident"><a href="../../pkg/regexp.html#name-shouldBacktrack" class="ident">shouldBacktrack</a></label>(<label for="r8" class="ident">prog</label> *<a href="../../pkg/regexp/syntax.html" class="ident i0">syntax</a>.<a href="syntax/prog.go.html#line-17" class="ident">Prog</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-73"><code><span class="keyword">func</span> shouldBacktrack(<label for="r8" class="ident">prog</label> *<a href="../../pkg/regexp/syntax.html" class="ident i0">syntax</a>.<a href="syntax/prog.go.html#line-17" class="ident">Prog</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-74"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r8" class="ident">prog</label>.<a href="syntax/prog.go.html#line-18" class="ident">Inst</a>) &lt;= <a href="#line-32" class="ident">maxBacktrackProg</a></code></span>
 <span class="codeline" id="line-75"><code>}</code></span>
 <span class="codeline" id="line-76"><code></code></span>

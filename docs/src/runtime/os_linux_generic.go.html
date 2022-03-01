@@ -55,33 +55,33 @@ input[id=r7]:checked ~pre label[for=r7]
 <span class="codeline" id="line-13"><code><span class="keyword">package</span> runtime</code></span>
 <span class="codeline" id="line-14"><code></code></span>
 <span class="codeline" id="line-15"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-16"><code>	<a href="../../pkg/runtime.html#name-_SS_DISABLE" class="ident">_SS_DISABLE</a>  = <span class="lit-number">2</span></code></span>
-<span class="codeline" id="line-17"><code>	<a href="../../pkg/runtime.html#name-_NSIG" class="ident">_NSIG</a>        = <span class="lit-number">65</span></code></span>
-<span class="codeline" id="line-18"><code>	<a href="../../pkg/runtime.html#name-_SI_USER" class="ident">_SI_USER</a>     = <span class="lit-number">0</span></code></span>
-<span class="codeline" id="line-19"><code>	<a href="../../pkg/runtime.html#name-_SIG_BLOCK" class="ident">_SIG_BLOCK</a>   = <span class="lit-number">0</span></code></span>
-<span class="codeline" id="line-20"><code>	<a href="../../pkg/runtime.html#name-_SIG_UNBLOCK" class="ident">_SIG_UNBLOCK</a> = <span class="lit-number">1</span></code></span>
-<span class="codeline" id="line-21"><code>	<a href="../../pkg/runtime.html#name-_SIG_SETMASK" class="ident">_SIG_SETMASK</a> = <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-16"><code>	_SS_DISABLE  = <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-17"><code>	_NSIG        = <span class="lit-number">65</span></code></span>
+<span class="codeline" id="line-18"><code>	_SI_USER     = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-19"><code>	_SIG_BLOCK   = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-20"><code>	_SIG_UNBLOCK = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-21"><code>	_SIG_SETMASK = <span class="lit-number">2</span></code></span>
 <span class="codeline" id="line-22"><code>)</code></span>
 <span class="codeline" id="line-23"><code></code></span>
 <span class="codeline" id="line-24"><code><span class="comment">// It's hard to tease out exactly how big a Sigset is, but</span></code></span>
 <span class="codeline" id="line-25"><code><span class="comment">// rt_sigprocmask crashes if we get it wrong, so if binaries</span></code></span>
 <span class="codeline" id="line-26"><code><span class="comment">// are running, this is right.</span></code></span>
-<span class="codeline" id="line-27"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-sigset" class="ident">sigset</a> [<span class="lit-number">2</span>]<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-27"><code><span class="keyword">type</span> sigset [<span class="lit-number">2</span>]<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
 <span class="codeline" id="line-28"><code></code></span>
-<span class="codeline" id="line-29"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-sigset_all" class="ident">sigset_all</a> = <a href="#line-27" class="ident">sigset</a>{^<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<span class="lit-number">0</span>), ^<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<span class="lit-number">0</span>)}</code></span>
+<span class="codeline" id="line-29"><code><span class="keyword">var</span> sigset_all = <a href="#line-27" class="ident">sigset</a>{^<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<span class="lit-number">0</span>), ^<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<span class="lit-number">0</span>)}</code></span>
 <span class="codeline" id="line-30"><code></code></span>
 <span class="codeline" id="line-31"><code><span class="comment">//go:nosplit</span></code></span>
 <span class="codeline" id="line-32"><code><span class="comment">//go:nowritebarrierrec</span></code></span>
-<span class="codeline" id="line-33"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-sigaddset" class="ident">sigaddset</a></label>(<label for="r1" class="ident">mask</label> *<a href="#line-27" class="ident">sigset</a>, <label for="r2" class="ident">i</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">func</span> sigaddset(<label for="r1" class="ident">mask</label> *<a href="#line-27" class="ident">sigset</a>, <label for="r2" class="ident">i</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
 <span class="codeline" id="line-34"><code>	(*<label for="r1" class="ident">mask</label>)[(<label for="r2" class="ident">i</label>-<span class="lit-number">1</span>)/<span class="lit-number">32</span>] |= <span class="lit-number">1</span> &lt;&lt; ((<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r2" class="ident">i</label>) - <span class="lit-number">1</span>) &amp; <span class="lit-number">31</span>)</code></span>
 <span class="codeline" id="line-35"><code>}</code></span>
 <span class="codeline" id="line-36"><code></code></span>
-<span class="codeline" id="line-37"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../pkg/runtime.html#name-sigdelset" class="ident">sigdelset</a></label>(<label for="r4" class="ident">mask</label> *<a href="#line-27" class="ident">sigset</a>, <label for="r5" class="ident">i</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-37"><code><span class="keyword">func</span> sigdelset(<label for="r4" class="ident">mask</label> *<a href="#line-27" class="ident">sigset</a>, <label for="r5" class="ident">i</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
 <span class="codeline" id="line-38"><code>	(*<label for="r4" class="ident">mask</label>)[(<label for="r5" class="ident">i</label>-<span class="lit-number">1</span>)/<span class="lit-number">32</span>] &amp;^= <span class="lit-number">1</span> &lt;&lt; ((<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<label for="r5" class="ident">i</label>) - <span class="lit-number">1</span>) &amp; <span class="lit-number">31</span>)</code></span>
 <span class="codeline" id="line-39"><code>}</code></span>
 <span class="codeline" id="line-40"><code></code></span>
 <span class="codeline" id="line-41"><code><span class="comment">//go:nosplit</span></code></span>
-<span class="codeline" id="line-42"><code><span class="keyword">func</span> <label for="r6" class="ident"><a href="../../pkg/runtime.html#name-sigfillset" class="ident">sigfillset</a></label>(<label for="r7" class="ident">mask</label> *<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) {</code></span>
+<span class="codeline" id="line-42"><code><span class="keyword">func</span> sigfillset(<label for="r7" class="ident">mask</label> *<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) {</code></span>
 <span class="codeline" id="line-43"><code>	*<label for="r7" class="ident">mask</label> = ^<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<span class="lit-number">0</span>)</code></span>
 <span class="codeline" id="line-44"><code>}</code></span>
 </pre><pre id="footer">

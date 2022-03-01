@@ -92,7 +92,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-11"><code>	<label for="i4"><span class="lit-string i4">"github.com/rs/zerolog/diode/internal/diodes"</span></label></code></span>
 <span class="codeline" id="line-12"><code>)</code></span>
 <span class="codeline" id="line-13"><code></code></span>
-<span class="codeline" id="line-14"><code><span class="keyword">var</span> <a href="../../../../../pkg/github.com/rs/zerolog/diode.html#name-bufPool" class="ident">bufPool</a> = &amp;<a href="../../../../../pkg/sync.html" class="ident i2">sync</a>.<a href="../../../../sync/pool.go.html#line-44" class="ident">Pool</a>{</code></span>
+<span class="codeline" id="line-14"><code><span class="keyword">var</span> bufPool = &amp;<a href="../../../../../pkg/sync.html" class="ident i2">sync</a>.<a href="../../../../sync/pool.go.html#line-44" class="ident">Pool</a>{</code></span>
 <span class="codeline" id="line-15"><code>	<a href="../../../../sync/pool.go.html#line-56" class="ident">New</a>: <span class="keyword">func</span>() <span class="keyword">interface</span>{} {</code></span>
 <span class="codeline" id="line-16"><code>		<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-make" class="ident">make</a>([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <span class="lit-number">0</span>, <span class="lit-number">500</span>)</code></span>
 <span class="codeline" id="line-17"><code>	},</code></span>
@@ -100,9 +100,9 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-19"><code></code></span>
 <span class="codeline" id="line-20"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/rs/zerolog/diode.html#name-Alerter" class="ident">Alerter</a> <span class="keyword">func</span>(missed <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>)</code></span>
 <span class="codeline" id="line-21"><code></code></span>
-<span class="codeline" id="line-22"><code><span class="keyword">type</span> <a href="../../../../../pkg/github.com/rs/zerolog/diode.html#name-diodeFetcher" class="ident">diodeFetcher</a> <span class="keyword">interface</span> {</code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">type</span> diodeFetcher <span class="keyword">interface</span> {</code></span>
 <span class="codeline" id="line-23"><code>	<a href="../../../../../pkg/github.com/rs/zerolog/diode/internal/diodes.html" class="ident i4">diodes</a>.<a href="internal/diodes/poller.go.html#line-9" class="ident">Diode</a></code></span>
-<span class="codeline" id="line-24"><code>	<a href="../../../../../imp/github.com/rs/zerolog/diode.diodeFetcher^a24f1.html#name-Next" class="ident">Next</a>() <a href="../../../../../pkg/github.com/rs/zerolog/diode/internal/diodes.html" class="ident i4">diodes</a>.<a href="internal/diodes/one_to_one.go.html#line-9" class="ident">GenericDataType</a></code></span>
+<span class="codeline" id="line-24"><code>	Next() <a href="../../../../../pkg/github.com/rs/zerolog/diode/internal/diodes.html" class="ident i4">diodes</a>.<a href="internal/diodes/one_to_one.go.html#line-9" class="ident">GenericDataType</a></code></span>
 <span class="codeline" id="line-25"><code>}</code></span>
 <span class="codeline" id="line-26"><code></code></span>
 <span class="codeline" id="line-27"><code><span class="comment">// Writer is a io.Writer wrapper that uses a diode to make Write lock-free,</span></code></span>
@@ -152,7 +152,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-71"><code>	<span class="keyword">return</span> <label for="r7" class="ident">dw</label></code></span>
 <span class="codeline" id="line-72"><code>}</code></span>
 <span class="codeline" id="line-73"><code></code></span>
-<span class="codeline" id="line-74"><code><span class="keyword">func</span> (<label for="r9" class="ident">dw</label> <a href="#line-29" class="ident">Writer</a>) <label for="r10" class="ident"><a href="../../../../../imp/github.com/rs/zerolog/diode.Writer.html#name-.Write" class="ident">Write</a></label>(<label for="r11" class="ident">p</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r12" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r13" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
+<span class="codeline" id="line-74"><code><span class="keyword">func</span> (<label for="r9" class="ident">dw</label> <a href="#line-29" class="ident">Writer</a>) <label for="r10" class="ident">Write</label>(<label for="r11" class="ident">p</label> []<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) (<label for="r12" class="ident">n</label> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r13" class="ident">err</label> <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a>) {</code></span>
 <span class="codeline" id="line-75"><code>	<span class="comment">// p is pooled in zerolog so we can't hold it passed this call, hence the</span></code></span>
 <span class="codeline" id="line-76"><code><span class="comment">	// copy.</span></code></span>
 <span class="codeline" id="line-77"><code>	<label for="r11" class="ident">p</label> = <a href="../../../../../pkg/builtin.html#name-append" class="ident">append</a>(<a href="#line-14" class="ident">bufPool</a>.<a href="../../../../sync/pool.go.html#line-124" class="ident">Get</a>().([]<a href="../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>), <label for="r11" class="ident">p</label>...)</code></span>
@@ -162,7 +162,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-81"><code></code></span>
 <span class="codeline" id="line-82"><code><span class="comment">// Close releases the diode poller and call Close on the wrapped writer if</span></code></span>
 <span class="codeline" id="line-83"><code><span class="comment">// io.Closer is implemented.</span></code></span>
-<span class="codeline" id="line-84"><code><span class="keyword">func</span> (<label for="r14" class="ident">dw</label> <a href="#line-29" class="ident">Writer</a>) <label for="r15" class="ident"><a href="../../../../../imp/github.com/rs/zerolog/diode.Writer.html#name-.Close" class="ident">Close</a></label>() <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-84"><code><span class="keyword">func</span> (<label for="r14" class="ident">dw</label> <a href="#line-29" class="ident">Writer</a>) <label for="r15" class="ident">Close</label>() <a href="../../../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
 <span class="codeline" id="line-85"><code>	<label for="r14" class="ident">dw</label>.<a href="#line-32" class="ident">c</a>()</code></span>
 <span class="codeline" id="line-86"><code>	&lt;-<label for="r14" class="ident">dw</label>.<a href="#line-33" class="ident">done</a></code></span>
 <span class="codeline" id="line-87"><code>	<span class="keyword">if</span> <label for="r16" class="ident">w</label>, <label for="r17" class="ident">ok</label> := <label for="r14" class="ident">dw</label>.<a href="#line-30" class="ident">w</a>.(<a href="../../../../../pkg/io.html" class="ident i1">io</a>.<a href="../../../../io/io.go.html#line-104" class="ident">Closer</a>); <label for="r17" class="ident">ok</label> {</code></span>

@@ -162,7 +162,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-16"><code><span class="comment">// It has the added feature that it nils out unused slots to avoid</span></code></span>
 <span class="codeline" id="line-17"><code><span class="comment">// unnecessary retention of objects. This is important for sync.Pool,</span></code></span>
 <span class="codeline" id="line-18"><code><span class="comment">// but not typically a property considered in the literature.</span></code></span>
-<span class="codeline" id="line-19"><code><span class="keyword">type</span> <a href="../../pkg/sync.html#name-poolDequeue" class="ident">poolDequeue</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">type</span> poolDequeue <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-20"><code>	<span class="comment">// headTail packs together a 32-bit head index and a 32-bit</span></code></span>
 <span class="codeline" id="line-21"><code><span class="comment">	// tail index. Both are indexes into vals modulo len(vals)-1.</span></code></span>
 <span class="codeline" id="line-22"><code><span class="comment">	//</span></code></span>
@@ -190,23 +190,23 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-44"><code>	vals []<a href="#line-47" class="ident">eface</a></code></span>
 <span class="codeline" id="line-45"><code>}</code></span>
 <span class="codeline" id="line-46"><code></code></span>
-<span class="codeline" id="line-47"><code><span class="keyword">type</span> <a href="../../pkg/sync.html#name-eface" class="ident">eface</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-47"><code><span class="keyword">type</span> eface <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-48"><code>	typ, val <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a></code></span>
 <span class="codeline" id="line-49"><code>}</code></span>
 <span class="codeline" id="line-50"><code></code></span>
-<span class="codeline" id="line-51"><code><span class="keyword">const</span> <a href="../../pkg/sync.html#name-dequeueBits" class="ident">dequeueBits</a> = <span class="lit-number">32</span></code></span>
+<span class="codeline" id="line-51"><code><span class="keyword">const</span> dequeueBits = <span class="lit-number">32</span></code></span>
 <span class="codeline" id="line-52"><code></code></span>
 <span class="codeline" id="line-53"><code><span class="comment">// dequeueLimit is the maximum size of a poolDequeue.</span></code></span>
 <span class="codeline" id="line-54"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-55"><code><span class="comment">// This must be at most (1&lt;&lt;dequeueBits)/2 because detecting fullness</span></code></span>
 <span class="codeline" id="line-56"><code><span class="comment">// depends on wrapping around the ring buffer without wrapping around</span></code></span>
 <span class="codeline" id="line-57"><code><span class="comment">// the index. We divide by 4 so this fits in an int on 32-bit.</span></code></span>
-<span class="codeline" id="line-58"><code><span class="keyword">const</span> <a href="../../pkg/sync.html#name-dequeueLimit" class="ident">dequeueLimit</a> = (<span class="lit-number">1</span> &lt;&lt; <a href="#line-51" class="ident">dequeueBits</a>) / <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-58"><code><span class="keyword">const</span> dequeueLimit = (<span class="lit-number">1</span> &lt;&lt; <a href="#line-51" class="ident">dequeueBits</a>) / <span class="lit-number">4</span></code></span>
 <span class="codeline" id="line-59"><code></code></span>
 <span class="codeline" id="line-60"><code><span class="comment">// dequeueNil is used in poolDequeue to represent interface{}(nil).</span></code></span>
 <span class="codeline" id="line-61"><code><span class="comment">// Since we use nil to represent empty slots, we need a sentinel value</span></code></span>
 <span class="codeline" id="line-62"><code><span class="comment">// to represent nil.</span></code></span>
-<span class="codeline" id="line-63"><code><span class="keyword">type</span> <a href="../../pkg/sync.html#name-dequeueNil" class="ident">dequeueNil</a> *<span class="keyword">struct</span>{}</code></span>
+<span class="codeline" id="line-63"><code><span class="keyword">type</span> dequeueNil *<span class="keyword">struct</span>{}</code></span>
 <span class="codeline" id="line-64"><code></code></span>
 <span class="codeline" id="line-65"><code><span class="keyword">func</span> (<label for="r0" class="ident">d</label> *<a href="#line-19" class="ident">poolDequeue</a>) <label for="r1" class="ident">unpack</label>(<label for="r2" class="ident">ptrs</label> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) (<label for="r3" class="ident">head</label>, <label for="r4" class="ident">tail</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
 <span class="codeline" id="line-66"><code>	<span class="keyword">const</span> <label for="r5" class="ident">mask</label> = <span class="lit-number">1</span>&lt;&lt;<a href="#line-51" class="ident">dequeueBits</a> - <span class="lit-number">1</span></code></span>
@@ -337,7 +337,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-191"><code><span class="comment">// dequeue fills up, this allocates a new one and only ever pushes to</span></code></span>
 <span class="codeline" id="line-192"><code><span class="comment">// the latest dequeue. Pops happen from the other end of the list and</span></code></span>
 <span class="codeline" id="line-193"><code><span class="comment">// once a dequeue is exhausted, it gets removed from the list.</span></code></span>
-<span class="codeline" id="line-194"><code><span class="keyword">type</span> <a href="../../pkg/sync.html#name-poolChain" class="ident">poolChain</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-194"><code><span class="keyword">type</span> poolChain <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-195"><code>	<span class="comment">// head is the poolDequeue to push to. This is only accessed</span></code></span>
 <span class="codeline" id="line-196"><code><span class="comment">	// by the producer, so doesn't need to be synchronized.</span></code></span>
 <span class="codeline" id="line-197"><code>	head *<a href="#line-204" class="ident">poolChainElt</a></code></span>
@@ -347,7 +347,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-201"><code>	tail *<a href="#line-204" class="ident">poolChainElt</a></code></span>
 <span class="codeline" id="line-202"><code>}</code></span>
 <span class="codeline" id="line-203"><code></code></span>
-<span class="codeline" id="line-204"><code><span class="keyword">type</span> <a href="../../pkg/sync.html#name-poolChainElt" class="ident">poolChainElt</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-204"><code><span class="keyword">type</span> poolChainElt <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-205"><code>	<a href="#line-19" class="ident">poolDequeue</a></code></span>
 <span class="codeline" id="line-206"><code></code></span>
 <span class="codeline" id="line-207"><code>	<span class="comment">// next and prev link to the adjacent poolChainElts in this</span></code></span>
@@ -363,11 +363,11 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-217"><code>	next, prev *<a href="#line-204" class="ident">poolChainElt</a></code></span>
 <span class="codeline" id="line-218"><code>}</code></span>
 <span class="codeline" id="line-219"><code></code></span>
-<span class="codeline" id="line-220"><code><span class="keyword">func</span> <label for="r35" class="ident"><a href="../../pkg/sync.html#name-storePoolChainElt" class="ident">storePoolChainElt</a></label>(<label for="r36" class="ident">pp</label> **<a href="#line-204" class="ident">poolChainElt</a>, <label for="r37" class="ident">v</label> *<a href="#line-204" class="ident">poolChainElt</a>) {</code></span>
+<span class="codeline" id="line-220"><code><span class="keyword">func</span> storePoolChainElt(<label for="r36" class="ident">pp</label> **<a href="#line-204" class="ident">poolChainElt</a>, <label for="r37" class="ident">v</label> *<a href="#line-204" class="ident">poolChainElt</a>) {</code></span>
 <span class="codeline" id="line-221"><code>	<a href="../../pkg/sync/atomic.html" class="ident i0">atomic</a>.<a href="atomic/doc.go.html#line-144" class="ident">StorePointer</a>((*<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>)(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r36" class="ident">pp</label>)), <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r37" class="ident">v</label>))</code></span>
 <span class="codeline" id="line-222"><code>}</code></span>
 <span class="codeline" id="line-223"><code></code></span>
-<span class="codeline" id="line-224"><code><span class="keyword">func</span> <label for="r38" class="ident"><a href="../../pkg/sync.html#name-loadPoolChainElt" class="ident">loadPoolChainElt</a></label>(<label for="r39" class="ident">pp</label> **<a href="#line-204" class="ident">poolChainElt</a>) *<a href="#line-204" class="ident">poolChainElt</a> {</code></span>
+<span class="codeline" id="line-224"><code><span class="keyword">func</span> loadPoolChainElt(<label for="r39" class="ident">pp</label> **<a href="#line-204" class="ident">poolChainElt</a>) *<a href="#line-204" class="ident">poolChainElt</a> {</code></span>
 <span class="codeline" id="line-225"><code>	<span class="keyword">return</span> (*<a href="#line-204" class="ident">poolChainElt</a>)(<a href="../../pkg/sync/atomic.html" class="ident i0">atomic</a>.<a href="atomic/doc.go.html#line-126" class="ident">LoadPointer</a>((*<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>)(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r39" class="ident">pp</label>))))</code></span>
 <span class="codeline" id="line-226"><code>}</code></span>
 <span class="codeline" id="line-227"><code></code></span>

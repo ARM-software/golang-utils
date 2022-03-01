@@ -128,7 +128,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-30"><code></code></span>
 <span class="codeline" id="line-31"><code><span class="comment">// testSmallBuf forces a small write barrier buffer to stress write</span></code></span>
 <span class="codeline" id="line-32"><code><span class="comment">// barrier flushing.</span></code></span>
-<span class="codeline" id="line-33"><code><span class="keyword">const</span> <a href="../../pkg/runtime.html#name-testSmallBuf" class="ident">testSmallBuf</a> = <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
+<span class="codeline" id="line-33"><code><span class="keyword">const</span> testSmallBuf = <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
 <span class="codeline" id="line-34"><code></code></span>
 <span class="codeline" id="line-35"><code><span class="comment">// wbBuf is a per-P buffer of pointers queued by the write barrier.</span></code></span>
 <span class="codeline" id="line-36"><code><span class="comment">// This buffer is flushed to the GC workbufs when it fills up and on</span></code></span>
@@ -137,7 +137,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-39"><code><span class="comment">// This is closely related to a "sequential store buffer" (SSB),</span></code></span>
 <span class="codeline" id="line-40"><code><span class="comment">// except that SSBs are usually used for maintaining remembered sets,</span></code></span>
 <span class="codeline" id="line-41"><code><span class="comment">// while this is used for marking.</span></code></span>
-<span class="codeline" id="line-42"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-wbBuf" class="ident">wbBuf</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-42"><code><span class="keyword">type</span> wbBuf <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-43"><code>	<span class="comment">// next points to the next slot in buf. It must not be a</span></code></span>
 <span class="codeline" id="line-44"><code><span class="comment">	// pointer type because it can point past the end of buf and</span></code></span>
 <span class="codeline" id="line-45"><code><span class="comment">	// must be updated without write barriers.</span></code></span>
@@ -167,11 +167,11 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-69"><code><span class="comment">	// footprint of the buffer.</span></code></span>
 <span class="codeline" id="line-70"><code><span class="comment">	//</span></code></span>
 <span class="codeline" id="line-71"><code><span class="comment">	// TODO: What is the latency cost of this? Tune this value.</span></code></span>
-<span class="codeline" id="line-72"><code>	<a href="../../pkg/runtime.html#name-wbBufEntries" class="ident">wbBufEntries</a> = <span class="lit-number">256</span></code></span>
+<span class="codeline" id="line-72"><code>	wbBufEntries = <span class="lit-number">256</span></code></span>
 <span class="codeline" id="line-73"><code></code></span>
 <span class="codeline" id="line-74"><code>	<span class="comment">// wbBufEntryPointers is the number of pointers added to the</span></code></span>
 <span class="codeline" id="line-75"><code><span class="comment">	// buffer by each write barrier.</span></code></span>
-<span class="codeline" id="line-76"><code>	<a href="../../pkg/runtime.html#name-wbBufEntryPointers" class="ident">wbBufEntryPointers</a> = <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-76"><code>	wbBufEntryPointers = <span class="lit-number">2</span></code></span>
 <span class="codeline" id="line-77"><code>)</code></span>
 <span class="codeline" id="line-78"><code></code></span>
 <span class="codeline" id="line-79"><code><span class="comment">// reset empties b by resetting its next and end pointers.</span></code></span>
@@ -263,7 +263,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-165"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-166"><code><span class="comment">//go:nowritebarrierrec</span></code></span>
 <span class="codeline" id="line-167"><code><span class="comment">//go:nosplit</span></code></span>
-<span class="codeline" id="line-168"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../pkg/runtime.html#name-wbBufFlush" class="ident">wbBufFlush</a></label>(<label for="r13" class="ident">dst</label> *<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r14" class="ident">src</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-168"><code><span class="keyword">func</span> wbBufFlush(<label for="r13" class="ident">dst</label> *<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r14" class="ident">src</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
 <span class="codeline" id="line-169"><code>	<span class="comment">// Note: Every possible return from this function must reset</span></code></span>
 <span class="codeline" id="line-170"><code><span class="comment">	// the buffer's next pointer to prevent buffer overflow.</span></code></span>
 <span class="codeline" id="line-171"><code></code></span>
@@ -310,7 +310,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-212"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-213"><code><span class="comment">//go:nowritebarrierrec</span></code></span>
 <span class="codeline" id="line-214"><code><span class="comment">//go:systemstack</span></code></span>
-<span class="codeline" id="line-215"><code><span class="keyword">func</span> <label for="r15" class="ident"><a href="../../pkg/runtime.html#name-wbBufFlush1" class="ident">wbBufFlush1</a></label>(<label for="r16" class="ident">_p_</label> *<a href="runtime2.go.html#line-579" class="ident">p</a>) {</code></span>
+<span class="codeline" id="line-215"><code><span class="keyword">func</span> wbBufFlush1(<label for="r16" class="ident">_p_</label> *<a href="runtime2.go.html#line-579" class="ident">p</a>) {</code></span>
 <span class="codeline" id="line-216"><code>	<span class="comment">// Get the buffered pointers.</span></code></span>
 <span class="codeline" id="line-217"><code>	<label for="r17" class="ident">start</label> := <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r16" class="ident">_p_</label>.<a href="runtime2.go.html#line-681" class="ident">wbBuf</a>.<a href="#line-59" class="ident">buf</a>[<span class="lit-number">0</span>]))</code></span>
 <span class="codeline" id="line-218"><code>	<label for="r18" class="ident">n</label> := (<label for="r16" class="ident">_p_</label>.<a href="runtime2.go.html#line-681" class="ident">wbBuf</a>.<a href="#line-49" class="ident">next</a> - <label for="r17" class="ident">start</label>) / <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(<label for="r16" class="ident">_p_</label>.<a href="runtime2.go.html#line-681" class="ident">wbBuf</a>.<a href="#line-59" class="ident">buf</a>[<span class="lit-number">0</span>])</code></span>

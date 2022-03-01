@@ -251,15 +251,15 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-15"><code>	<span class="comment">// metrics is a map of runtime/metrics keys to</span></code></span>
 <span class="codeline" id="line-16"><code><span class="comment">	// data used by the runtime to sample each metric's</span></code></span>
 <span class="codeline" id="line-17"><code><span class="comment">	// value.</span></code></span>
-<span class="codeline" id="line-18"><code>	<a href="../../pkg/runtime.html#name-metricsSema" class="ident">metricsSema</a> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> = <span class="lit-number">1</span></code></span>
-<span class="codeline" id="line-19"><code>	<a href="../../pkg/runtime.html#name-metricsInit" class="ident">metricsInit</a> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
-<span class="codeline" id="line-20"><code>	<a href="../../pkg/runtime.html#name-metrics" class="ident">metrics</a>     <span class="keyword">map</span>[<a href="../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="#line-26" class="ident">metricData</a></code></span>
+<span class="codeline" id="line-18"><code>	metricsSema <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-19"><code>	metricsInit <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-20"><code>	metrics     <span class="keyword">map</span>[<a href="../../pkg/builtin.html#name-string" class="ident">string</a>]<a href="#line-26" class="ident">metricData</a></code></span>
 <span class="codeline" id="line-21"><code></code></span>
-<span class="codeline" id="line-22"><code>	<a href="../../pkg/runtime.html#name-sizeClassBuckets" class="ident">sizeClassBuckets</a> []<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a></code></span>
-<span class="codeline" id="line-23"><code>	<a href="../../pkg/runtime.html#name-timeHistBuckets" class="ident">timeHistBuckets</a>  []<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a></code></span>
+<span class="codeline" id="line-22"><code>	sizeClassBuckets []<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a></code></span>
+<span class="codeline" id="line-23"><code>	timeHistBuckets  []<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a></code></span>
 <span class="codeline" id="line-24"><code>)</code></span>
 <span class="codeline" id="line-25"><code></code></span>
-<span class="codeline" id="line-26"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-metricData" class="ident">metricData</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-26"><code><span class="keyword">type</span> metricData <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-27"><code>	<span class="comment">// deps is the set of runtime statistics that this metric</span></code></span>
 <span class="codeline" id="line-28"><code><span class="comment">	// depends on. Before compute is called, the statAggregate</span></code></span>
 <span class="codeline" id="line-29"><code><span class="comment">	// which will be passed must ensure() these dependencies.</span></code></span>
@@ -273,7 +273,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-37"><code><span class="comment">// initMetrics initializes the metrics map if it hasn't been yet.</span></code></span>
 <span class="codeline" id="line-38"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-39"><code><span class="comment">// metricsSema must be held.</span></code></span>
-<span class="codeline" id="line-40"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-initMetrics" class="ident">initMetrics</a></label>() {</code></span>
+<span class="codeline" id="line-40"><code><span class="keyword">func</span> initMetrics() {</code></span>
 <span class="codeline" id="line-41"><code>	<span class="keyword">if</span> <a href="#line-19" class="ident">metricsInit</a> {</code></span>
 <span class="codeline" id="line-42"><code>		<span class="keyword">return</span></code></span>
 <span class="codeline" id="line-43"><code>	}</code></span>
@@ -487,21 +487,21 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-251"><code></code></span>
 <span class="codeline" id="line-252"><code><span class="comment">// statDep is a dependency on a group of statistics</span></code></span>
 <span class="codeline" id="line-253"><code><span class="comment">// that a metric might have.</span></code></span>
-<span class="codeline" id="line-254"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-statDep" class="ident">statDep</a> <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a></code></span>
+<span class="codeline" id="line-254"><code><span class="keyword">type</span> statDep <a href="../../pkg/builtin.html#name-uint" class="ident">uint</a></code></span>
 <span class="codeline" id="line-255"><code></code></span>
 <span class="codeline" id="line-256"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-257"><code>	<a href="../../pkg/runtime.html#name-heapStatsDep" class="ident">heapStatsDep</a> <a href="#line-254" class="ident">statDep</a> = <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a> <span class="comment">// corresponds to heapStatsAggregate</span></code></span>
-<span class="codeline" id="line-258"><code>	<a href="../../pkg/runtime.html#name-sysStatsDep" class="ident">sysStatsDep</a>                 <span class="comment">// corresponds to sysStatsAggregate</span></code></span>
-<span class="codeline" id="line-259"><code>	<a href="../../pkg/runtime.html#name-numStatsDeps" class="ident">numStatsDeps</a></code></span>
+<span class="codeline" id="line-257"><code>	heapStatsDep <a href="#line-254" class="ident">statDep</a> = <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a> <span class="comment">// corresponds to heapStatsAggregate</span></code></span>
+<span class="codeline" id="line-258"><code>	sysStatsDep                 <span class="comment">// corresponds to sysStatsAggregate</span></code></span>
+<span class="codeline" id="line-259"><code>	numStatsDeps</code></span>
 <span class="codeline" id="line-260"><code>)</code></span>
 <span class="codeline" id="line-261"><code></code></span>
 <span class="codeline" id="line-262"><code><span class="comment">// statDepSet represents a set of statDeps.</span></code></span>
 <span class="codeline" id="line-263"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-264"><code><span class="comment">// Under the hood, it's a bitmap.</span></code></span>
-<span class="codeline" id="line-265"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-statDepSet" class="ident">statDepSet</a> [<span class="lit-number">1</span>]<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-265"><code><span class="keyword">type</span> statDepSet [<span class="lit-number">1</span>]<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
 <span class="codeline" id="line-266"><code></code></span>
 <span class="codeline" id="line-267"><code><span class="comment">// makeStatDepSet creates a new statDepSet from a list of statDeps.</span></code></span>
-<span class="codeline" id="line-268"><code><span class="keyword">func</span> <label for="r56" class="ident"><a href="../../pkg/runtime.html#name-makeStatDepSet" class="ident">makeStatDepSet</a></label>(<label for="r57" class="ident">deps</label> ...<a href="#line-254" class="ident">statDep</a>) <a href="#line-265" class="ident">statDepSet</a> {</code></span>
+<span class="codeline" id="line-268"><code><span class="keyword">func</span> makeStatDepSet(<label for="r57" class="ident">deps</label> ...<a href="#line-254" class="ident">statDep</a>) <a href="#line-265" class="ident">statDepSet</a> {</code></span>
 <span class="codeline" id="line-269"><code>	<span class="keyword">var</span> <label for="r58" class="ident">s</label> <a href="#line-265" class="ident">statDepSet</a></code></span>
 <span class="codeline" id="line-270"><code>	<span class="keyword">for</span> <label for="r59" class="ident">_</label>, <label for="r60" class="ident">d</label> := <span class="keyword">range</span> <label for="r57" class="ident">deps</label> {</code></span>
 <span class="codeline" id="line-271"><code>		<label for="r58" class="ident">s</label>[<label for="r60" class="ident">d</label>/<span class="lit-number">64</span>] |= <span class="lit-number">1</span> &lt;&lt; (<label for="r60" class="ident">d</label> % <span class="lit-number">64</span>)</code></span>
@@ -547,7 +547,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-311"><code><span class="comment">// depend on each other in some way to make sense of the runtime's</span></code></span>
 <span class="codeline" id="line-312"><code><span class="comment">// current heap memory use. They're also sharded across Ps, so it</span></code></span>
 <span class="codeline" id="line-313"><code><span class="comment">// makes sense to grab them all at once.</span></code></span>
-<span class="codeline" id="line-314"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-heapStatsAggregate" class="ident">heapStatsAggregate</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-314"><code><span class="keyword">type</span> heapStatsAggregate <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-315"><code>	<a href="mstats.go.html#line-766" class="ident">heapStatsDelta</a></code></span>
 <span class="codeline" id="line-316"><code></code></span>
 <span class="codeline" id="line-317"><code>	<span class="comment">// Derived from values in heapStatsDelta.</span></code></span>
@@ -580,7 +580,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-344"><code><span class="comment">// may be acquired at different times, especially with respect to</span></code></span>
 <span class="codeline" id="line-345"><code><span class="comment">// heapStatsAggregate, means there could be some skew, but because of</span></code></span>
 <span class="codeline" id="line-346"><code><span class="comment">// these stats are independent, there's no real consistency issue here.</span></code></span>
-<span class="codeline" id="line-347"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-sysStatsAggregate" class="ident">sysStatsAggregate</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-347"><code><span class="keyword">type</span> sysStatsAggregate <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-348"><code>	stacksSys      <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
 <span class="codeline" id="line-349"><code>	mSpanSys       <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
 <span class="codeline" id="line-350"><code>	mSpanInUse     <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
@@ -619,7 +619,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-383"><code><span class="comment">// It contains multiple aggregates of runtime statistics, as well</span></code></span>
 <span class="codeline" id="line-384"><code><span class="comment">// as a set of these aggregates that it has populated. The aggergates</span></code></span>
 <span class="codeline" id="line-385"><code><span class="comment">// are populated lazily by its ensure method.</span></code></span>
-<span class="codeline" id="line-386"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-statAggregate" class="ident">statAggregate</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-386"><code><span class="keyword">type</span> statAggregate <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-387"><code>	ensured   <a href="#line-265" class="ident">statDepSet</a></code></span>
 <span class="codeline" id="line-388"><code>	heapStats <a href="#line-314" class="ident">heapStatsAggregate</a></code></span>
 <span class="codeline" id="line-389"><code>	sysStats  <a href="#line-347" class="ident">sysStatsAggregate</a></code></span>
@@ -648,27 +648,27 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-412"><code></code></span>
 <span class="codeline" id="line-413"><code><span class="comment">// metricValidKind is a runtime copy of runtime/metrics.ValueKind and</span></code></span>
 <span class="codeline" id="line-414"><code><span class="comment">// must be kept structurally identical to that type.</span></code></span>
-<span class="codeline" id="line-415"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-metricKind" class="ident">metricKind</a> <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-415"><code><span class="keyword">type</span> metricKind <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
 <span class="codeline" id="line-416"><code></code></span>
 <span class="codeline" id="line-417"><code><span class="keyword">const</span> (</code></span>
 <span class="codeline" id="line-418"><code>	<span class="comment">// These values must be kept identical to their corresponding Kind* values</span></code></span>
 <span class="codeline" id="line-419"><code><span class="comment">	// in the runtime/metrics package.</span></code></span>
-<span class="codeline" id="line-420"><code>	<a href="../../pkg/runtime.html#name-metricKindBad" class="ident">metricKindBad</a> <a href="#line-415" class="ident">metricKind</a> = <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
-<span class="codeline" id="line-421"><code>	<a href="../../pkg/runtime.html#name-metricKindUint64" class="ident">metricKindUint64</a></code></span>
-<span class="codeline" id="line-422"><code>	<a href="../../pkg/runtime.html#name-metricKindFloat64" class="ident">metricKindFloat64</a></code></span>
-<span class="codeline" id="line-423"><code>	<a href="../../pkg/runtime.html#name-metricKindFloat64Histogram" class="ident">metricKindFloat64Histogram</a></code></span>
+<span class="codeline" id="line-420"><code>	metricKindBad <a href="#line-415" class="ident">metricKind</a> = <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-421"><code>	metricKindUint64</code></span>
+<span class="codeline" id="line-422"><code>	metricKindFloat64</code></span>
+<span class="codeline" id="line-423"><code>	metricKindFloat64Histogram</code></span>
 <span class="codeline" id="line-424"><code>)</code></span>
 <span class="codeline" id="line-425"><code></code></span>
 <span class="codeline" id="line-426"><code><span class="comment">// metricSample is a runtime copy of runtime/metrics.Sample and</span></code></span>
 <span class="codeline" id="line-427"><code><span class="comment">// must be kept structurally identical to that type.</span></code></span>
-<span class="codeline" id="line-428"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-metricSample" class="ident">metricSample</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-428"><code><span class="keyword">type</span> metricSample <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-429"><code>	name  <a href="../../pkg/builtin.html#name-string" class="ident">string</a></code></span>
 <span class="codeline" id="line-430"><code>	value <a href="#line-435" class="ident">metricValue</a></code></span>
 <span class="codeline" id="line-431"><code>}</code></span>
 <span class="codeline" id="line-432"><code></code></span>
 <span class="codeline" id="line-433"><code><span class="comment">// metricValue is a runtime copy of runtime/metrics.Sample and</span></code></span>
 <span class="codeline" id="line-434"><code><span class="comment">// must be kept structurally identical to that type.</span></code></span>
-<span class="codeline" id="line-435"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-metricValue" class="ident">metricValue</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-435"><code><span class="keyword">type</span> metricValue <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-436"><code>	kind    <a href="#line-415" class="ident">metricKind</a></code></span>
 <span class="codeline" id="line-437"><code>	scalar  <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>         <span class="comment">// contains scalar values for scalar Kinds.</span></code></span>
 <span class="codeline" id="line-438"><code>	pointer <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a> <span class="comment">// contains non-scalar values.</span></code></span>
@@ -695,7 +695,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-459"><code></code></span>
 <span class="codeline" id="line-460"><code><span class="comment">// metricFloat64Histogram is a runtime copy of runtime/metrics.Float64Histogram</span></code></span>
 <span class="codeline" id="line-461"><code><span class="comment">// and must be kept structurally identical to that type.</span></code></span>
-<span class="codeline" id="line-462"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-metricFloat64Histogram" class="ident">metricFloat64Histogram</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-462"><code><span class="keyword">type</span> metricFloat64Histogram <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-463"><code>	counts  []<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
 <span class="codeline" id="line-464"><code>	buckets []<a href="../../pkg/builtin.html#name-float64" class="ident">float64</a></code></span>
 <span class="codeline" id="line-465"><code>}</code></span>
@@ -705,12 +705,12 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-469"><code><span class="comment">// Managed as a global variable because its pointer will be</span></code></span>
 <span class="codeline" id="line-470"><code><span class="comment">// an argument to a dynamically-defined function, and we'd</span></code></span>
 <span class="codeline" id="line-471"><code><span class="comment">// like to avoid it escaping to the heap.</span></code></span>
-<span class="codeline" id="line-472"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-agg" class="ident">agg</a> <a href="#line-386" class="ident">statAggregate</a></code></span>
+<span class="codeline" id="line-472"><code><span class="keyword">var</span> agg <a href="#line-386" class="ident">statAggregate</a></code></span>
 <span class="codeline" id="line-473"><code></code></span>
 <span class="codeline" id="line-474"><code><span class="comment">// readMetrics is the implementation of runtime/metrics.Read.</span></code></span>
 <span class="codeline" id="line-475"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-476"><code><span class="comment">//go:linkname readMetrics runtime/metrics.runtime_readMetrics</span></code></span>
-<span class="codeline" id="line-477"><code><span class="keyword">func</span> <label for="r93" class="ident"><a href="../../pkg/runtime.html#name-readMetrics" class="ident">readMetrics</a></label>(<label for="r94" class="ident">samplesp</label> <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r95" class="ident">len</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r96" class="ident">cap</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-477"><code><span class="keyword">func</span> readMetrics(<label for="r94" class="ident">samplesp</label> <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r95" class="ident">len</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>, <label for="r96" class="ident">cap</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
 <span class="codeline" id="line-478"><code>	<span class="comment">// Construct a slice from the args.</span></code></span>
 <span class="codeline" id="line-479"><code>	<label for="r97" class="ident">sl</label> := <a href="slice.go.html#line-13" class="ident">slice</a>{<label for="r94" class="ident">samplesp</label>, <label for="r95" class="ident">len</label>, <label for="r96" class="ident">cap</label>}</code></span>
 <span class="codeline" id="line-480"><code>	<label for="r98" class="ident">samples</label> := *(*[]<a href="#line-428" class="ident">metricSample</a>)(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r97" class="ident">sl</label>))</code></span>

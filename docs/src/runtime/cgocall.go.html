@@ -294,10 +294,10 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-92"><code></code></span>
 <span class="codeline" id="line-93"><code><span class="comment">// Addresses collected in a cgo backtrace when crashing.</span></code></span>
 <span class="codeline" id="line-94"><code><span class="comment">// Length must match arg.Max in x_cgo_callers in runtime/cgo/gcc_traceback.c.</span></code></span>
-<span class="codeline" id="line-95"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-cgoCallers" class="ident">cgoCallers</a> [<span class="lit-number">32</span>]<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a></code></span>
+<span class="codeline" id="line-95"><code><span class="keyword">type</span> cgoCallers [<span class="lit-number">32</span>]<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a></code></span>
 <span class="codeline" id="line-96"><code></code></span>
 <span class="codeline" id="line-97"><code><span class="comment">// argset matches runtime/cgo/linux_syscall.c:argset_t</span></code></span>
-<span class="codeline" id="line-98"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-argset" class="ident">argset</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-98"><code><span class="keyword">type</span> argset <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-99"><code>	args   <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a></code></span>
 <span class="codeline" id="line-100"><code>	retval <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a></code></span>
 <span class="codeline" id="line-101"><code>}</code></span>
@@ -306,7 +306,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-104"><code><span class="comment">//go:linkname syscall_cgocaller syscall.cgocaller</span></code></span>
 <span class="codeline" id="line-105"><code><span class="comment">//go:nosplit</span></code></span>
 <span class="codeline" id="line-106"><code><span class="comment">//go:uintptrescapes</span></code></span>
-<span class="codeline" id="line-107"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-syscall_cgocaller" class="ident">syscall_cgocaller</a></label>(<label for="r1" class="ident">fn</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r2" class="ident">args</label> ...<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a> {</code></span>
+<span class="codeline" id="line-107"><code><span class="keyword">func</span> syscall_cgocaller(<label for="r1" class="ident">fn</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r2" class="ident">args</label> ...<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a> {</code></span>
 <span class="codeline" id="line-108"><code>	<label for="r3" class="ident">as</label> := <a href="#line-98" class="ident">argset</a>{<a href="#line-99" class="ident">args</a>: <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r2" class="ident">args</label>[<span class="lit-number">0</span>])}</code></span>
 <span class="codeline" id="line-109"><code>	<a href="#line-120" class="ident">cgocall</a>(<label for="r1" class="ident">fn</label>, <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r3" class="ident">as</label>))</code></span>
 <span class="codeline" id="line-110"><code>	<span class="keyword">return</span> <label for="r3" class="ident">as</label>.<a href="#line-100" class="ident">retval</a></code></span>
@@ -319,7 +319,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-117"><code><span class="comment">// it's not safe to grow or scan the stack.</span></code></span>
 <span class="codeline" id="line-118"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-119"><code><span class="comment">//go:nosplit</span></code></span>
-<span class="codeline" id="line-120"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../pkg/runtime.html#name-cgocall" class="ident">cgocall</a></label>(<label for="r5" class="ident">fn</label>, <label for="r6" class="ident">arg</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a> {</code></span>
+<span class="codeline" id="line-120"><code><span class="keyword">func</span> cgocall(<label for="r5" class="ident">fn</label>, <label for="r6" class="ident">arg</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a> {</code></span>
 <span class="codeline" id="line-121"><code>	<span class="keyword">if</span> !<a href="cgo.go.html#line-32" class="ident">iscgo</a> &amp;&amp; <a href="extern.go.html#line-253" class="ident">GOOS</a> != <span class="lit-string">"solaris"</span> &amp;&amp; <a href="extern.go.html#line-253" class="ident">GOOS</a> != <span class="lit-string">"illumos"</span> &amp;&amp; <a href="extern.go.html#line-253" class="ident">GOOS</a> != <span class="lit-string">"windows"</span> {</code></span>
 <span class="codeline" id="line-122"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"cgocall unavailable"</span>)</code></span>
 <span class="codeline" id="line-123"><code>	}</code></span>
@@ -399,7 +399,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-197"><code></code></span>
 <span class="codeline" id="line-198"><code><span class="comment">// Call from C back to Go.</span></code></span>
 <span class="codeline" id="line-199"><code><span class="comment">//go:nosplit</span></code></span>
-<span class="codeline" id="line-200"><code><span class="keyword">func</span> <label for="r9" class="ident"><a href="../../pkg/runtime.html#name-cgocallbackg" class="ident">cgocallbackg</a></label>(<label for="r10" class="ident">fn</label>, <label for="r11" class="ident">frame</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r12" class="ident">ctxt</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-200"><code><span class="keyword">func</span> cgocallbackg(<label for="r10" class="ident">fn</label>, <label for="r11" class="ident">frame</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r12" class="ident">ctxt</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
 <span class="codeline" id="line-201"><code>	<label for="r13" class="ident">gp</label> := <a href="stubs.go.html#line-18" class="ident">getg</a>()</code></span>
 <span class="codeline" id="line-202"><code>	<span class="keyword">if</span> <label for="r13" class="ident">gp</label> != <label for="r13" class="ident">gp</label>.<a href="runtime2.go.html#line-418" class="ident">m</a>.<a href="runtime2.go.html#line-498" class="ident">curg</a> {</code></span>
 <span class="codeline" id="line-203"><code>		<a href="../../pkg/builtin.html#name-println" class="ident">println</a>(<span class="lit-string">"runtime: bad g in cgocallback"</span>)</code></span>
@@ -442,7 +442,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-240"><code>	<label for="r13" class="ident">gp</label>.<a href="runtime2.go.html#line-418" class="ident">m</a>.<a href="runtime2.go.html#line-556" class="ident">syscall</a> = <label for="r14" class="ident">syscall</label></code></span>
 <span class="codeline" id="line-241"><code>}</code></span>
 <span class="codeline" id="line-242"><code></code></span>
-<span class="codeline" id="line-243"><code><span class="keyword">func</span> <label for="r17" class="ident"><a href="../../pkg/runtime.html#name-cgocallbackg1" class="ident">cgocallbackg1</a></label>(<label for="r18" class="ident">fn</label>, <label for="r19" class="ident">frame</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r20" class="ident">ctxt</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-243"><code><span class="keyword">func</span> cgocallbackg1(<label for="r18" class="ident">fn</label>, <label for="r19" class="ident">frame</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r20" class="ident">ctxt</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
 <span class="codeline" id="line-244"><code>	<label for="r21" class="ident">gp</label> := <a href="stubs.go.html#line-18" class="ident">getg</a>()</code></span>
 <span class="codeline" id="line-245"><code>	<span class="keyword">if</span> <label for="r21" class="ident">gp</label>.<a href="runtime2.go.html#line-418" class="ident">m</a>.<a href="runtime2.go.html#line-517" class="ident">needextram</a> || <a href="../../pkg/runtime/internal/atomic.html" class="ident i0">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-16" class="ident">Load</a>(&amp;<a href="proc.go.html#line-2020" class="ident">extraMWaiters</a>) &gt; <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-246"><code>		<label for="r21" class="ident">gp</label>.<a href="runtime2.go.html#line-418" class="ident">m</a>.<a href="runtime2.go.html#line-517" class="ident">needextram</a> = <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
@@ -502,7 +502,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-300"><code>	<label for="r26" class="ident">restore</label> = <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
 <span class="codeline" id="line-301"><code>}</code></span>
 <span class="codeline" id="line-302"><code></code></span>
-<span class="codeline" id="line-303"><code><span class="keyword">func</span> <label for="r30" class="ident"><a href="../../pkg/runtime.html#name-unwindm" class="ident">unwindm</a></label>(<label for="r31" class="ident">restore</label> *<a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-303"><code><span class="keyword">func</span> unwindm(<label for="r31" class="ident">restore</label> *<a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
 <span class="codeline" id="line-304"><code>	<span class="keyword">if</span> *<label for="r31" class="ident">restore</label> {</code></span>
 <span class="codeline" id="line-305"><code>		<span class="comment">// Restore sp saved by cgocallback during</span></code></span>
 <span class="codeline" id="line-306"><code><span class="comment">		// unwind of g's stack (see comment at top of file).</span></code></span>
@@ -537,16 +537,16 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-335"><code>}</code></span>
 <span class="codeline" id="line-336"><code></code></span>
 <span class="codeline" id="line-337"><code><span class="comment">// called from assembly</span></code></span>
-<span class="codeline" id="line-338"><code><span class="keyword">func</span> <label for="r34" class="ident"><a href="../../pkg/runtime.html#name-badcgocallback" class="ident">badcgocallback</a></label>() {</code></span>
+<span class="codeline" id="line-338"><code><span class="keyword">func</span> badcgocallback() {</code></span>
 <span class="codeline" id="line-339"><code>	<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"misaligned stack in cgocallback"</span>)</code></span>
 <span class="codeline" id="line-340"><code>}</code></span>
 <span class="codeline" id="line-341"><code></code></span>
 <span class="codeline" id="line-342"><code><span class="comment">// called from (incomplete) assembly</span></code></span>
-<span class="codeline" id="line-343"><code><span class="keyword">func</span> <label for="r35" class="ident"><a href="../../pkg/runtime.html#name-cgounimpl" class="ident">cgounimpl</a></label>() {</code></span>
+<span class="codeline" id="line-343"><code><span class="keyword">func</span> cgounimpl() {</code></span>
 <span class="codeline" id="line-344"><code>	<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"cgo not implemented"</span>)</code></span>
 <span class="codeline" id="line-345"><code>}</code></span>
 <span class="codeline" id="line-346"><code></code></span>
-<span class="codeline" id="line-347"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-racecgosync" class="ident">racecgosync</a> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> <span class="comment">// represents possible synchronization in C code</span></code></span>
+<span class="codeline" id="line-347"><code><span class="keyword">var</span> racecgosync <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> <span class="comment">// represents possible synchronization in C code</span></code></span>
 <span class="codeline" id="line-348"><code></code></span>
 <span class="codeline" id="line-349"><code><span class="comment">// Pointer checking for cgo code.</span></code></span>
 <span class="codeline" id="line-350"><code></code></span>
@@ -580,7 +580,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-378"><code></code></span>
 <span class="codeline" id="line-379"><code><span class="comment">// cgoCheckPointer checks if the argument contains a Go pointer that</span></code></span>
 <span class="codeline" id="line-380"><code><span class="comment">// points to a Go pointer, and panics if it does.</span></code></span>
-<span class="codeline" id="line-381"><code><span class="keyword">func</span> <label for="r36" class="ident"><a href="../../pkg/runtime.html#name-cgoCheckPointer" class="ident">cgoCheckPointer</a></label>(<label for="r37" class="ident">ptr</label> <span class="keyword">interface</span>{}, <label for="r38" class="ident">arg</label> <span class="keyword">interface</span>{}) {</code></span>
+<span class="codeline" id="line-381"><code><span class="keyword">func</span> cgoCheckPointer(<label for="r37" class="ident">ptr</label> <span class="keyword">interface</span>{}, <label for="r38" class="ident">arg</label> <span class="keyword">interface</span>{}) {</code></span>
 <span class="codeline" id="line-382"><code>	<span class="keyword">if</span> <a href="runtime1.go.html#line-302" class="ident">debug</a>.<a href="runtime1.go.html#line-303" class="ident">cgocheck</a> == <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-383"><code>		<span class="keyword">return</span></code></span>
 <span class="codeline" id="line-384"><code>	}</code></span>
@@ -626,14 +626,14 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-424"><code>	<a href="#line-434" class="ident">cgoCheckArg</a>(<label for="r40" class="ident">t</label>, <label for="r39" class="ident">ep</label>.<a href="runtime2.go.html#line-210" class="ident">data</a>, <label for="r40" class="ident">t</label>.<a href="type.go.html#line-38" class="ident">kind</a>&amp;<a href="typekind.go.html#line-35" class="ident">kindDirectIface</a> == <span class="lit-number">0</span>, <label for="r41" class="ident">top</label>, <a href="#line-427" class="ident">cgoCheckPointerFail</a>)</code></span>
 <span class="codeline" id="line-425"><code>}</code></span>
 <span class="codeline" id="line-426"><code></code></span>
-<span class="codeline" id="line-427"><code><span class="keyword">const</span> <a href="../../pkg/runtime.html#name-cgoCheckPointerFail" class="ident">cgoCheckPointerFail</a> = <span class="lit-string">"cgo argument has Go pointer to Go pointer"</span></code></span>
-<span class="codeline" id="line-428"><code><span class="keyword">const</span> <a href="../../pkg/runtime.html#name-cgoResultFail" class="ident">cgoResultFail</a> = <span class="lit-string">"cgo result has Go pointer"</span></code></span>
+<span class="codeline" id="line-427"><code><span class="keyword">const</span> cgoCheckPointerFail = <span class="lit-string">"cgo argument has Go pointer to Go pointer"</span></code></span>
+<span class="codeline" id="line-428"><code><span class="keyword">const</span> cgoResultFail = <span class="lit-string">"cgo result has Go pointer"</span></code></span>
 <span class="codeline" id="line-429"><code></code></span>
 <span class="codeline" id="line-430"><code><span class="comment">// cgoCheckArg is the real work of cgoCheckPointer. The argument p</span></code></span>
 <span class="codeline" id="line-431"><code><span class="comment">// is either a pointer to the value (of type t), or the value itself,</span></code></span>
 <span class="codeline" id="line-432"><code><span class="comment">// depending on indir. The top parameter is whether we are at the top</span></code></span>
 <span class="codeline" id="line-433"><code><span class="comment">// level, where Go pointers are allowed.</span></code></span>
-<span class="codeline" id="line-434"><code><span class="keyword">func</span> <label for="r45" class="ident"><a href="../../pkg/runtime.html#name-cgoCheckArg" class="ident">cgoCheckArg</a></label>(<label for="r46" class="ident">t</label> *<a href="type.go.html#line-31" class="ident">_type</a>, <label for="r47" class="ident">p</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r48" class="ident">indir</label>, <label for="r49" class="ident">top</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r50" class="ident">msg</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
+<span class="codeline" id="line-434"><code><span class="keyword">func</span> cgoCheckArg(<label for="r46" class="ident">t</label> *<a href="type.go.html#line-31" class="ident">_type</a>, <label for="r47" class="ident">p</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r48" class="ident">indir</label>, <label for="r49" class="ident">top</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r50" class="ident">msg</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) {</code></span>
 <span class="codeline" id="line-435"><code>	<span class="keyword">if</span> <label for="r46" class="ident">t</label>.<a href="type.go.html#line-33" class="ident">ptrdata</a> == <span class="lit-number">0</span> || <label for="r47" class="ident">p</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
 <span class="codeline" id="line-436"><code>		<span class="comment">// If the type has no pointers there is nothing to do.</span></code></span>
 <span class="codeline" id="line-437"><code>		<span class="keyword">return</span></code></span>
@@ -750,7 +750,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-548"><code><span class="comment">// memory. It checks whether that Go memory contains any other</span></code></span>
 <span class="codeline" id="line-549"><code><span class="comment">// pointer into Go memory. If it does, we panic.</span></code></span>
 <span class="codeline" id="line-550"><code><span class="comment">// The return values are unused but useful to see in panic tracebacks.</span></code></span>
-<span class="codeline" id="line-551"><code><span class="keyword">func</span> <label for="r61" class="ident"><a href="../../pkg/runtime.html#name-cgoCheckUnknownPointer" class="ident">cgoCheckUnknownPointer</a></label>(<label for="r62" class="ident">p</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r63" class="ident">msg</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r64" class="ident">base</label>, <label for="r65" class="ident">i</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-551"><code><span class="keyword">func</span> cgoCheckUnknownPointer(<label for="r62" class="ident">p</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r63" class="ident">msg</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>) (<label for="r64" class="ident">base</label>, <label for="r65" class="ident">i</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
 <span class="codeline" id="line-552"><code>	<span class="keyword">if</span> <a href="mheap.go.html#line-598" class="ident">inheap</a>(<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r62" class="ident">p</label>)) {</code></span>
 <span class="codeline" id="line-553"><code>		<label for="r66" class="ident">b</label>, <label for="r67" class="ident">span</label>, <label for="r68" class="ident">_</label> := <a href="mbitmap.go.html#line-368" class="ident">findObject</a>(<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r62" class="ident">p</label>), <span class="lit-number">0</span>, <span class="lit-number">0</span>)</code></span>
 <span class="codeline" id="line-554"><code>		<label for="r64" class="ident">base</label> = <label for="r66" class="ident">b</label></code></span>
@@ -791,7 +791,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-589"><code><span class="comment">// contain pointers.</span></code></span>
 <span class="codeline" id="line-590"><code><span class="comment">//go:nosplit</span></code></span>
 <span class="codeline" id="line-591"><code><span class="comment">//go:nowritebarrierrec</span></code></span>
-<span class="codeline" id="line-592"><code><span class="keyword">func</span> <label for="r73" class="ident"><a href="../../pkg/runtime.html#name-cgoIsGoPointer" class="ident">cgoIsGoPointer</a></label>(<label for="r74" class="ident">p</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-592"><code><span class="keyword">func</span> cgoIsGoPointer(<label for="r74" class="ident">p</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-593"><code>	<span class="keyword">if</span> <label for="r74" class="ident">p</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
 <span class="codeline" id="line-594"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
 <span class="codeline" id="line-595"><code>	}</code></span>
@@ -812,14 +812,14 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-610"><code><span class="comment">// cgoInRange reports whether p is between start and end.</span></code></span>
 <span class="codeline" id="line-611"><code><span class="comment">//go:nosplit</span></code></span>
 <span class="codeline" id="line-612"><code><span class="comment">//go:nowritebarrierrec</span></code></span>
-<span class="codeline" id="line-613"><code><span class="keyword">func</span> <label for="r77" class="ident"><a href="../../pkg/runtime.html#name-cgoInRange" class="ident">cgoInRange</a></label>(<label for="r78" class="ident">p</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r79" class="ident">start</label>, <label for="r80" class="ident">end</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-613"><code><span class="keyword">func</span> cgoInRange(<label for="r78" class="ident">p</label> <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r79" class="ident">start</label>, <label for="r80" class="ident">end</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-614"><code>	<span class="keyword">return</span> <label for="r79" class="ident">start</label> &lt;= <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r78" class="ident">p</label>) &amp;&amp; <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<label for="r78" class="ident">p</label>) &lt; <label for="r80" class="ident">end</label></code></span>
 <span class="codeline" id="line-615"><code>}</code></span>
 <span class="codeline" id="line-616"><code></code></span>
 <span class="codeline" id="line-617"><code><span class="comment">// cgoCheckResult is called to check the result parameter of an</span></code></span>
 <span class="codeline" id="line-618"><code><span class="comment">// exported Go function. It panics if the result is or contains a Go</span></code></span>
 <span class="codeline" id="line-619"><code><span class="comment">// pointer.</span></code></span>
-<span class="codeline" id="line-620"><code><span class="keyword">func</span> <label for="r81" class="ident"><a href="../../pkg/runtime.html#name-cgoCheckResult" class="ident">cgoCheckResult</a></label>(<label for="r82" class="ident">val</label> <span class="keyword">interface</span>{}) {</code></span>
+<span class="codeline" id="line-620"><code><span class="keyword">func</span> cgoCheckResult(<label for="r82" class="ident">val</label> <span class="keyword">interface</span>{}) {</code></span>
 <span class="codeline" id="line-621"><code>	<span class="keyword">if</span> <a href="runtime1.go.html#line-302" class="ident">debug</a>.<a href="runtime1.go.html#line-303" class="ident">cgocheck</a> == <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-622"><code>		<span class="keyword">return</span></code></span>
 <span class="codeline" id="line-623"><code>	}</code></span>

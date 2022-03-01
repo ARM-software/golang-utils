@@ -259,65 +259,65 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-37"><code><span class="comment">// See golang.org/issue/17953 for a program that worked badly</span></code></span>
 <span class="codeline" id="line-38"><code><span class="comment">// before we introduced the second level of list, and test/locklinear.go</span></code></span>
 <span class="codeline" id="line-39"><code><span class="comment">// for a test that exercises this.</span></code></span>
-<span class="codeline" id="line-40"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-semaRoot" class="ident">semaRoot</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-40"><code><span class="keyword">type</span> semaRoot <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-41"><code>	lock  <a href="runtime2.go.html#line-162" class="ident">mutex</a></code></span>
 <span class="codeline" id="line-42"><code>	treap *<a href="runtime2.go.html#line-345" class="ident">sudog</a> <span class="comment">// root of balanced tree of unique waiters.</span></code></span>
 <span class="codeline" id="line-43"><code>	nwait <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> <span class="comment">// Number of waiters. Read w/o the lock.</span></code></span>
 <span class="codeline" id="line-44"><code>}</code></span>
 <span class="codeline" id="line-45"><code></code></span>
 <span class="codeline" id="line-46"><code><span class="comment">// Prime to not correlate with any user patterns.</span></code></span>
-<span class="codeline" id="line-47"><code><span class="keyword">const</span> <a href="../../pkg/runtime.html#name-semTabSize" class="ident">semTabSize</a> = <span class="lit-number">251</span></code></span>
+<span class="codeline" id="line-47"><code><span class="keyword">const</span> semTabSize = <span class="lit-number">251</span></code></span>
 <span class="codeline" id="line-48"><code></code></span>
-<span class="codeline" id="line-49"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-semtable" class="ident">semtable</a> [<a href="#line-47" class="ident">semTabSize</a>]<span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-49"><code><span class="keyword">var</span> semtable [<a href="#line-47" class="ident">semTabSize</a>]<span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-50"><code>	root <a href="#line-40" class="ident">semaRoot</a></code></span>
 <span class="codeline" id="line-51"><code>	pad  [<a href="../../pkg/internal/cpu.html" class="ident i0">cpu</a>.<a href="../internal/cpu/cpu_x86.go.html#line-9" class="ident">CacheLinePadSize</a> - <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(<a href="#line-40" class="ident">semaRoot</a>{})]<a href="../../pkg/builtin.html#name-byte" class="ident">byte</a></code></span>
 <span class="codeline" id="line-52"><code>}</code></span>
 <span class="codeline" id="line-53"><code></code></span>
 <span class="codeline" id="line-54"><code><span class="comment">//go:linkname sync_runtime_Semacquire sync.runtime_Semacquire</span></code></span>
-<span class="codeline" id="line-55"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-sync_runtime_Semacquire" class="ident">sync_runtime_Semacquire</a></label>(<label for="r1" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
+<span class="codeline" id="line-55"><code><span class="keyword">func</span> sync_runtime_Semacquire(<label for="r1" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
 <span class="codeline" id="line-56"><code>	<a href="#line-98" class="ident">semacquire1</a>(<label for="r1" class="ident">addr</label>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a>, <a href="#line-89" class="ident">semaBlockProfile</a>, <span class="lit-number">0</span>)</code></span>
 <span class="codeline" id="line-57"><code>}</code></span>
 <span class="codeline" id="line-58"><code></code></span>
 <span class="codeline" id="line-59"><code><span class="comment">//go:linkname poll_runtime_Semacquire internal/poll.runtime_Semacquire</span></code></span>
-<span class="codeline" id="line-60"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../pkg/runtime.html#name-poll_runtime_Semacquire" class="ident">poll_runtime_Semacquire</a></label>(<label for="r3" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
+<span class="codeline" id="line-60"><code><span class="keyword">func</span> poll_runtime_Semacquire(<label for="r3" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
 <span class="codeline" id="line-61"><code>	<a href="#line-98" class="ident">semacquire1</a>(<label for="r3" class="ident">addr</label>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a>, <a href="#line-89" class="ident">semaBlockProfile</a>, <span class="lit-number">0</span>)</code></span>
 <span class="codeline" id="line-62"><code>}</code></span>
 <span class="codeline" id="line-63"><code></code></span>
 <span class="codeline" id="line-64"><code><span class="comment">//go:linkname sync_runtime_Semrelease sync.runtime_Semrelease</span></code></span>
-<span class="codeline" id="line-65"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../pkg/runtime.html#name-sync_runtime_Semrelease" class="ident">sync_runtime_Semrelease</a></label>(<label for="r5" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r6" class="ident">handoff</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r7" class="ident">skipframes</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-65"><code><span class="keyword">func</span> sync_runtime_Semrelease(<label for="r5" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r6" class="ident">handoff</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r7" class="ident">skipframes</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
 <span class="codeline" id="line-66"><code>	<a href="#line-159" class="ident">semrelease1</a>(<label for="r5" class="ident">addr</label>, <label for="r6" class="ident">handoff</label>, <label for="r7" class="ident">skipframes</label>)</code></span>
 <span class="codeline" id="line-67"><code>}</code></span>
 <span class="codeline" id="line-68"><code></code></span>
 <span class="codeline" id="line-69"><code><span class="comment">//go:linkname sync_runtime_SemacquireMutex sync.runtime_SemacquireMutex</span></code></span>
-<span class="codeline" id="line-70"><code><span class="keyword">func</span> <label for="r8" class="ident"><a href="../../pkg/runtime.html#name-sync_runtime_SemacquireMutex" class="ident">sync_runtime_SemacquireMutex</a></label>(<label for="r9" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r10" class="ident">lifo</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r11" class="ident">skipframes</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-70"><code><span class="keyword">func</span> sync_runtime_SemacquireMutex(<label for="r9" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r10" class="ident">lifo</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r11" class="ident">skipframes</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
 <span class="codeline" id="line-71"><code>	<a href="#line-98" class="ident">semacquire1</a>(<label for="r9" class="ident">addr</label>, <label for="r10" class="ident">lifo</label>, <a href="#line-89" class="ident">semaBlockProfile</a>|<a href="#line-90" class="ident">semaMutexProfile</a>, <label for="r11" class="ident">skipframes</label>)</code></span>
 <span class="codeline" id="line-72"><code>}</code></span>
 <span class="codeline" id="line-73"><code></code></span>
 <span class="codeline" id="line-74"><code><span class="comment">//go:linkname poll_runtime_Semrelease internal/poll.runtime_Semrelease</span></code></span>
-<span class="codeline" id="line-75"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../pkg/runtime.html#name-poll_runtime_Semrelease" class="ident">poll_runtime_Semrelease</a></label>(<label for="r13" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
+<span class="codeline" id="line-75"><code><span class="keyword">func</span> poll_runtime_Semrelease(<label for="r13" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
 <span class="codeline" id="line-76"><code>	<a href="#line-155" class="ident">semrelease</a>(<label for="r13" class="ident">addr</label>)</code></span>
 <span class="codeline" id="line-77"><code>}</code></span>
 <span class="codeline" id="line-78"><code></code></span>
-<span class="codeline" id="line-79"><code><span class="keyword">func</span> <label for="r14" class="ident"><a href="../../pkg/runtime.html#name-readyWithTime" class="ident">readyWithTime</a></label>(<label for="r15" class="ident">s</label> *<a href="runtime2.go.html#line-345" class="ident">sudog</a>, <label for="r16" class="ident">traceskip</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-79"><code><span class="keyword">func</span> readyWithTime(<label for="r15" class="ident">s</label> *<a href="runtime2.go.html#line-345" class="ident">sudog</a>, <label for="r16" class="ident">traceskip</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
 <span class="codeline" id="line-80"><code>	<span class="keyword">if</span> <label for="r15" class="ident">s</label>.<a href="runtime2.go.html#line-362" class="ident">releasetime</a> != <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-81"><code>		<label for="r15" class="ident">s</label>.<a href="runtime2.go.html#line-362" class="ident">releasetime</a> = <a href="cputicks.go.html#line-17" class="ident">cputicks</a>()</code></span>
 <span class="codeline" id="line-82"><code>	}</code></span>
 <span class="codeline" id="line-83"><code>	<a href="proc.go.html#line-345" class="ident">goready</a>(<label for="r15" class="ident">s</label>.<a href="runtime2.go.html#line-350" class="ident">g</a>, <label for="r16" class="ident">traceskip</label>)</code></span>
 <span class="codeline" id="line-84"><code>}</code></span>
 <span class="codeline" id="line-85"><code></code></span>
-<span class="codeline" id="line-86"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-semaProfileFlags" class="ident">semaProfileFlags</a> <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-86"><code><span class="keyword">type</span> semaProfileFlags <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
 <span class="codeline" id="line-87"><code></code></span>
 <span class="codeline" id="line-88"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-89"><code>	<a href="../../pkg/runtime.html#name-semaBlockProfile" class="ident">semaBlockProfile</a> <a href="#line-86" class="ident">semaProfileFlags</a> = <span class="lit-number">1</span> &lt;&lt; <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
-<span class="codeline" id="line-90"><code>	<a href="../../pkg/runtime.html#name-semaMutexProfile" class="ident">semaMutexProfile</a></code></span>
+<span class="codeline" id="line-89"><code>	semaBlockProfile <a href="#line-86" class="ident">semaProfileFlags</a> = <span class="lit-number">1</span> &lt;&lt; <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-90"><code>	semaMutexProfile</code></span>
 <span class="codeline" id="line-91"><code>)</code></span>
 <span class="codeline" id="line-92"><code></code></span>
 <span class="codeline" id="line-93"><code><span class="comment">// Called from runtime.</span></code></span>
-<span class="codeline" id="line-94"><code><span class="keyword">func</span> <label for="r17" class="ident"><a href="../../pkg/runtime.html#name-semacquire" class="ident">semacquire</a></label>(<label for="r18" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
+<span class="codeline" id="line-94"><code><span class="keyword">func</span> semacquire(<label for="r18" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
 <span class="codeline" id="line-95"><code>	<a href="#line-98" class="ident">semacquire1</a>(<label for="r18" class="ident">addr</label>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a>, <span class="lit-number">0</span>, <span class="lit-number">0</span>)</code></span>
 <span class="codeline" id="line-96"><code>}</code></span>
 <span class="codeline" id="line-97"><code></code></span>
-<span class="codeline" id="line-98"><code><span class="keyword">func</span> <label for="r19" class="ident"><a href="../../pkg/runtime.html#name-semacquire1" class="ident">semacquire1</a></label>(<label for="r20" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r21" class="ident">lifo</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r22" class="ident">profile</label> <a href="#line-86" class="ident">semaProfileFlags</a>, <label for="r23" class="ident">skipframes</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-98"><code><span class="keyword">func</span> semacquire1(<label for="r20" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r21" class="ident">lifo</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r22" class="ident">profile</label> <a href="#line-86" class="ident">semaProfileFlags</a>, <label for="r23" class="ident">skipframes</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
 <span class="codeline" id="line-99"><code>	<label for="r24" class="ident">gp</label> := <a href="stubs.go.html#line-18" class="ident">getg</a>()</code></span>
 <span class="codeline" id="line-100"><code>	<span class="keyword">if</span> <label for="r24" class="ident">gp</label> != <label for="r24" class="ident">gp</label>.<a href="runtime2.go.html#line-418" class="ident">m</a>.<a href="runtime2.go.html#line-498" class="ident">curg</a> {</code></span>
 <span class="codeline" id="line-101"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"semacquire not on the G stack"</span>)</code></span>
@@ -374,11 +374,11 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-152"><code>	<a href="proc.go.html#line-390" class="ident">releaseSudog</a>(<label for="r25" class="ident">s</label>)</code></span>
 <span class="codeline" id="line-153"><code>}</code></span>
 <span class="codeline" id="line-154"><code></code></span>
-<span class="codeline" id="line-155"><code><span class="keyword">func</span> <label for="r28" class="ident"><a href="../../pkg/runtime.html#name-semrelease" class="ident">semrelease</a></label>(<label for="r29" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
+<span class="codeline" id="line-155"><code><span class="keyword">func</span> semrelease(<label for="r29" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
 <span class="codeline" id="line-156"><code>	<a href="#line-159" class="ident">semrelease1</a>(<label for="r29" class="ident">addr</label>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a>, <span class="lit-number">0</span>)</code></span>
 <span class="codeline" id="line-157"><code>}</code></span>
 <span class="codeline" id="line-158"><code></code></span>
-<span class="codeline" id="line-159"><code><span class="keyword">func</span> <label for="r30" class="ident"><a href="../../pkg/runtime.html#name-semrelease1" class="ident">semrelease1</a></label>(<label for="r31" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r32" class="ident">handoff</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r33" class="ident">skipframes</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-159"><code><span class="keyword">func</span> semrelease1(<label for="r31" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>, <label for="r32" class="ident">handoff</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>, <label for="r33" class="ident">skipframes</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
 <span class="codeline" id="line-160"><code>	<label for="r34" class="ident">root</label> := <a href="#line-217" class="ident">semroot</a>(<label for="r31" class="ident">addr</label>)</code></span>
 <span class="codeline" id="line-161"><code>	<a href="../../pkg/runtime/internal/atomic.html" class="ident i1">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-51" class="ident">Xadd</a>(<label for="r31" class="ident">addr</label>, <span class="lit-number">1</span>)</code></span>
 <span class="codeline" id="line-162"><code></code></span>
@@ -436,11 +436,11 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-214"><code>	}</code></span>
 <span class="codeline" id="line-215"><code>}</code></span>
 <span class="codeline" id="line-216"><code></code></span>
-<span class="codeline" id="line-217"><code><span class="keyword">func</span> <label for="r38" class="ident"><a href="../../pkg/runtime.html#name-semroot" class="ident">semroot</a></label>(<label for="r39" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) *<a href="#line-40" class="ident">semaRoot</a> {</code></span>
+<span class="codeline" id="line-217"><code><span class="keyword">func</span> semroot(<label for="r39" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) *<a href="#line-40" class="ident">semaRoot</a> {</code></span>
 <span class="codeline" id="line-218"><code>	<span class="keyword">return</span> &amp;<a href="#line-49" class="ident">semtable</a>[(<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r39" class="ident">addr</label>))&gt;&gt;<span class="lit-number">3</span>)%<a href="#line-47" class="ident">semTabSize</a>].<a href="#line-50" class="ident">root</a></code></span>
 <span class="codeline" id="line-219"><code>}</code></span>
 <span class="codeline" id="line-220"><code></code></span>
-<span class="codeline" id="line-221"><code><span class="keyword">func</span> <label for="r40" class="ident"><a href="../../pkg/runtime.html#name-cansemacquire" class="ident">cansemacquire</a></label>(<label for="r41" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-221"><code><span class="keyword">func</span> cansemacquire(<label for="r41" class="ident">addr</label> *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-222"><code>	<span class="keyword">for</span> {</code></span>
 <span class="codeline" id="line-223"><code>		<label for="r42" class="ident">v</label> := <a href="../../pkg/runtime/internal/atomic.html" class="ident i1">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-16" class="ident">Load</a>(<label for="r41" class="ident">addr</label>)</code></span>
 <span class="codeline" id="line-224"><code>		<span class="keyword">if</span> <label for="r42" class="ident">v</label> == <span class="lit-number">0</span> {</code></span>
@@ -668,7 +668,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-446"><code><span class="comment">// notifyList is a ticket-based notification list used to implement sync.Cond.</span></code></span>
 <span class="codeline" id="line-447"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-448"><code><span class="comment">// It must be kept in sync with the sync package.</span></code></span>
-<span class="codeline" id="line-449"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-notifyList" class="ident">notifyList</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-449"><code><span class="keyword">type</span> notifyList <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-450"><code>	<span class="comment">// wait is the ticket number of the next waiter. It is atomically</span></code></span>
 <span class="codeline" id="line-451"><code><span class="comment">	// incremented outside the lock.</span></code></span>
 <span class="codeline" id="line-452"><code>	wait <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
@@ -690,7 +690,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-468"><code></code></span>
 <span class="codeline" id="line-469"><code><span class="comment">// less checks if a &lt; b, considering a &amp; b running counts that may overflow the</span></code></span>
 <span class="codeline" id="line-470"><code><span class="comment">// 32-bit range, and that their "unwrapped" difference is always less than 2^31.</span></code></span>
-<span class="codeline" id="line-471"><code><span class="keyword">func</span> <label for="r72" class="ident"><a href="../../pkg/runtime.html#name-less" class="ident">less</a></label>(<label for="r73" class="ident">a</label>, <label for="r74" class="ident">b</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-471"><code><span class="keyword">func</span> less(<label for="r73" class="ident">a</label>, <label for="r74" class="ident">b</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-472"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r73" class="ident">a</label>-<label for="r74" class="ident">b</label>) &lt; <span class="lit-number">0</span></code></span>
 <span class="codeline" id="line-473"><code>}</code></span>
 <span class="codeline" id="line-474"><code></code></span>
@@ -698,7 +698,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-476"><code><span class="comment">// notifications. The caller must eventually call notifyListWait to wait for</span></code></span>
 <span class="codeline" id="line-477"><code><span class="comment">// such a notification, passing the returned ticket number.</span></code></span>
 <span class="codeline" id="line-478"><code><span class="comment">//go:linkname notifyListAdd sync.runtime_notifyListAdd</span></code></span>
-<span class="codeline" id="line-479"><code><span class="keyword">func</span> <label for="r75" class="ident"><a href="../../pkg/runtime.html#name-notifyListAdd" class="ident">notifyListAdd</a></label>(<label for="r76" class="ident">l</label> *<a href="#line-449" class="ident">notifyList</a>) <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> {</code></span>
+<span class="codeline" id="line-479"><code><span class="keyword">func</span> notifyListAdd(<label for="r76" class="ident">l</label> *<a href="#line-449" class="ident">notifyList</a>) <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> {</code></span>
 <span class="codeline" id="line-480"><code>	<span class="comment">// This may be called concurrently, for example, when called from</span></code></span>
 <span class="codeline" id="line-481"><code><span class="comment">	// sync.Cond.Wait while holding a RWMutex in read mode.</span></code></span>
 <span class="codeline" id="line-482"><code>	<span class="keyword">return</span> <a href="../../pkg/runtime/internal/atomic.html" class="ident i1">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-51" class="ident">Xadd</a>(&amp;<label for="r76" class="ident">l</label>.<a href="#line-452" class="ident">wait</a>, <span class="lit-number">1</span>) - <span class="lit-number">1</span></code></span>
@@ -707,7 +707,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-485"><code><span class="comment">// notifyListWait waits for a notification. If one has been sent since</span></code></span>
 <span class="codeline" id="line-486"><code><span class="comment">// notifyListAdd was called, it returns immediately. Otherwise, it blocks.</span></code></span>
 <span class="codeline" id="line-487"><code><span class="comment">//go:linkname notifyListWait sync.runtime_notifyListWait</span></code></span>
-<span class="codeline" id="line-488"><code><span class="keyword">func</span> <label for="r77" class="ident"><a href="../../pkg/runtime.html#name-notifyListWait" class="ident">notifyListWait</a></label>(<label for="r78" class="ident">l</label> *<a href="#line-449" class="ident">notifyList</a>, <label for="r79" class="ident">t</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
+<span class="codeline" id="line-488"><code><span class="keyword">func</span> notifyListWait(<label for="r78" class="ident">l</label> *<a href="#line-449" class="ident">notifyList</a>, <label for="r79" class="ident">t</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
 <span class="codeline" id="line-489"><code>	<a href="lockrank_off.go.html#line-21" class="ident">lockWithRank</a>(&amp;<label for="r78" class="ident">l</label>.<a href="#line-464" class="ident">lock</a>, <a href="lockrank.go.html#line-56" class="ident">lockRankNotifyList</a>)</code></span>
 <span class="codeline" id="line-490"><code></code></span>
 <span class="codeline" id="line-491"><code>	<span class="comment">// Return right away if this ticket has already been notified.</span></code></span>
@@ -741,7 +741,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-519"><code></code></span>
 <span class="codeline" id="line-520"><code><span class="comment">// notifyListNotifyAll notifies all entries in the list.</span></code></span>
 <span class="codeline" id="line-521"><code><span class="comment">//go:linkname notifyListNotifyAll sync.runtime_notifyListNotifyAll</span></code></span>
-<span class="codeline" id="line-522"><code><span class="keyword">func</span> <label for="r82" class="ident"><a href="../../pkg/runtime.html#name-notifyListNotifyAll" class="ident">notifyListNotifyAll</a></label>(<label for="r83" class="ident">l</label> *<a href="#line-449" class="ident">notifyList</a>) {</code></span>
+<span class="codeline" id="line-522"><code><span class="keyword">func</span> notifyListNotifyAll(<label for="r83" class="ident">l</label> *<a href="#line-449" class="ident">notifyList</a>) {</code></span>
 <span class="codeline" id="line-523"><code>	<span class="comment">// Fast-path: if there are no new waiters since the last notification</span></code></span>
 <span class="codeline" id="line-524"><code><span class="comment">	// we don't need to acquire the lock.</span></code></span>
 <span class="codeline" id="line-525"><code>	<span class="keyword">if</span> <a href="../../pkg/runtime/internal/atomic.html" class="ident i1">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-16" class="ident">Load</a>(&amp;<label for="r83" class="ident">l</label>.<a href="#line-452" class="ident">wait</a>) == <a href="../../pkg/runtime/internal/atomic.html" class="ident i1">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-16" class="ident">Load</a>(&amp;<label for="r83" class="ident">l</label>.<a href="#line-461" class="ident">notify</a>) {</code></span>
@@ -773,7 +773,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-551"><code></code></span>
 <span class="codeline" id="line-552"><code><span class="comment">// notifyListNotifyOne notifies one entry in the list.</span></code></span>
 <span class="codeline" id="line-553"><code><span class="comment">//go:linkname notifyListNotifyOne sync.runtime_notifyListNotifyOne</span></code></span>
-<span class="codeline" id="line-554"><code><span class="keyword">func</span> <label for="r86" class="ident"><a href="../../pkg/runtime.html#name-notifyListNotifyOne" class="ident">notifyListNotifyOne</a></label>(<label for="r87" class="ident">l</label> *<a href="#line-449" class="ident">notifyList</a>) {</code></span>
+<span class="codeline" id="line-554"><code><span class="keyword">func</span> notifyListNotifyOne(<label for="r87" class="ident">l</label> *<a href="#line-449" class="ident">notifyList</a>) {</code></span>
 <span class="codeline" id="line-555"><code>	<span class="comment">// Fast-path: if there are no new waiters since the last notification</span></code></span>
 <span class="codeline" id="line-556"><code><span class="comment">	// we don't need to acquire the lock at all.</span></code></span>
 <span class="codeline" id="line-557"><code>	<span class="keyword">if</span> <a href="../../pkg/runtime/internal/atomic.html" class="ident i1">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-16" class="ident">Load</a>(&amp;<label for="r87" class="ident">l</label>.<a href="#line-452" class="ident">wait</a>) == <a href="../../pkg/runtime/internal/atomic.html" class="ident i1">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-16" class="ident">Load</a>(&amp;<label for="r87" class="ident">l</label>.<a href="#line-461" class="ident">notify</a>) {</code></span>
@@ -826,7 +826,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-604"><code>}</code></span>
 <span class="codeline" id="line-605"><code></code></span>
 <span class="codeline" id="line-606"><code><span class="comment">//go:linkname notifyListCheck sync.runtime_notifyListCheck</span></code></span>
-<span class="codeline" id="line-607"><code><span class="keyword">func</span> <label for="r92" class="ident"><a href="../../pkg/runtime.html#name-notifyListCheck" class="ident">notifyListCheck</a></label>(<label for="r93" class="ident">sz</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-607"><code><span class="keyword">func</span> notifyListCheck(<label for="r93" class="ident">sz</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
 <span class="codeline" id="line-608"><code>	<span class="keyword">if</span> <label for="r93" class="ident">sz</label> != <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(<a href="#line-449" class="ident">notifyList</a>{}) {</code></span>
 <span class="codeline" id="line-609"><code>		<a href="../../pkg/builtin.html#name-print" class="ident">print</a>(<span class="lit-string">"runtime: bad notifyList size - sync="</span>, <label for="r93" class="ident">sz</label>, <span class="lit-string">" runtime="</span>, <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(<a href="#line-449" class="ident">notifyList</a>{}), <span class="lit-string">"\n"</span>)</code></span>
 <span class="codeline" id="line-610"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"bad notifyList size"</span>)</code></span>
@@ -834,7 +834,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-612"><code>}</code></span>
 <span class="codeline" id="line-613"><code></code></span>
 <span class="codeline" id="line-614"><code><span class="comment">//go:linkname sync_nanotime sync.runtime_nanotime</span></code></span>
-<span class="codeline" id="line-615"><code><span class="keyword">func</span> <label for="r94" class="ident"><a href="../../pkg/runtime.html#name-sync_nanotime" class="ident">sync_nanotime</a></label>() <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a> {</code></span>
+<span class="codeline" id="line-615"><code><span class="keyword">func</span> sync_nanotime() <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a> {</code></span>
 <span class="codeline" id="line-616"><code>	<span class="keyword">return</span> <a href="time_nofake.go.html#line-18" class="ident">nanotime</a>()</code></span>
 <span class="codeline" id="line-617"><code>}</code></span>
 </pre><pre id="footer">

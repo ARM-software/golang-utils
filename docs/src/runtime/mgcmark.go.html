@@ -529,13 +529,13 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-13"><code>)</code></span>
 <span class="codeline" id="line-14"><code></code></span>
 <span class="codeline" id="line-15"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-16"><code>	<a href="../../pkg/runtime.html#name-fixedRootFinalizers" class="ident">fixedRootFinalizers</a> = <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
-<span class="codeline" id="line-17"><code>	<a href="../../pkg/runtime.html#name-fixedRootFreeGStacks" class="ident">fixedRootFreeGStacks</a></code></span>
-<span class="codeline" id="line-18"><code>	<a href="../../pkg/runtime.html#name-fixedRootCount" class="ident">fixedRootCount</a></code></span>
+<span class="codeline" id="line-16"><code>	fixedRootFinalizers = <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-17"><code>	fixedRootFreeGStacks</code></span>
+<span class="codeline" id="line-18"><code>	fixedRootCount</code></span>
 <span class="codeline" id="line-19"><code></code></span>
 <span class="codeline" id="line-20"><code>	<span class="comment">// rootBlockBytes is the number of bytes to scan per data or</span></code></span>
 <span class="codeline" id="line-21"><code><span class="comment">	// BSS root.</span></code></span>
-<span class="codeline" id="line-22"><code>	<a href="../../pkg/runtime.html#name-rootBlockBytes" class="ident">rootBlockBytes</a> = <span class="lit-number">256</span> &lt;&lt; <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-22"><code>	rootBlockBytes = <span class="lit-number">256</span> &lt;&lt; <span class="lit-number">10</span></code></span>
 <span class="codeline" id="line-23"><code></code></span>
 <span class="codeline" id="line-24"><code>	<span class="comment">// maxObletBytes is the maximum bytes of an object to scan at</span></code></span>
 <span class="codeline" id="line-25"><code><span class="comment">	// once. Larger objects will be split up into "oblets" of at</span></code></span>
@@ -544,7 +544,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-28"><code><span class="comment">	//</span></code></span>
 <span class="codeline" id="line-29"><code><span class="comment">	// This must be &gt; _MaxSmallSize so that the object base is the</span></code></span>
 <span class="codeline" id="line-30"><code><span class="comment">	// span base.</span></code></span>
-<span class="codeline" id="line-31"><code>	<a href="../../pkg/runtime.html#name-maxObletBytes" class="ident">maxObletBytes</a> = <span class="lit-number">128</span> &lt;&lt; <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-31"><code>	maxObletBytes = <span class="lit-number">128</span> &lt;&lt; <span class="lit-number">10</span></code></span>
 <span class="codeline" id="line-32"><code></code></span>
 <span class="codeline" id="line-33"><code>	<span class="comment">// drainCheckThreshold specifies how many units of work to do</span></code></span>
 <span class="codeline" id="line-34"><code><span class="comment">	// between self-preemption checks in gcDrain. Assuming a scan</span></code></span>
@@ -552,7 +552,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-36"><code><span class="comment">	// overhead in the scan loop (the scheduler check may perform</span></code></span>
 <span class="codeline" id="line-37"><code><span class="comment">	// a syscall, so its overhead is nontrivial). Higher values</span></code></span>
 <span class="codeline" id="line-38"><code><span class="comment">	// make the system less responsive to incoming work.</span></code></span>
-<span class="codeline" id="line-39"><code>	<a href="../../pkg/runtime.html#name-drainCheckThreshold" class="ident">drainCheckThreshold</a> = <span class="lit-number">100000</span></code></span>
+<span class="codeline" id="line-39"><code>	drainCheckThreshold = <span class="lit-number">100000</span></code></span>
 <span class="codeline" id="line-40"><code></code></span>
 <span class="codeline" id="line-41"><code>	<span class="comment">// pagesPerSpanRoot indicates how many pages to scan from a span root</span></code></span>
 <span class="codeline" id="line-42"><code><span class="comment">	// at a time. Used by special root marking.</span></code></span>
@@ -562,14 +562,14 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-46"><code><span class="comment">	//</span></code></span>
 <span class="codeline" id="line-47"><code><span class="comment">	// Must be a multiple of the pageInUse bitmap element size and</span></code></span>
 <span class="codeline" id="line-48"><code><span class="comment">	// must also evenly divide pagesPerArena.</span></code></span>
-<span class="codeline" id="line-49"><code>	<a href="../../pkg/runtime.html#name-pagesPerSpanRoot" class="ident">pagesPerSpanRoot</a> = <span class="lit-number">512</span></code></span>
+<span class="codeline" id="line-49"><code>	pagesPerSpanRoot = <span class="lit-number">512</span></code></span>
 <span class="codeline" id="line-50"><code>)</code></span>
 <span class="codeline" id="line-51"><code></code></span>
 <span class="codeline" id="line-52"><code><span class="comment">// gcMarkRootPrepare queues root scanning jobs (stacks, globals, and</span></code></span>
 <span class="codeline" id="line-53"><code><span class="comment">// some miscellany) and initializes scanning-related state.</span></code></span>
 <span class="codeline" id="line-54"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-55"><code><span class="comment">// The world must be stopped.</span></code></span>
-<span class="codeline" id="line-56"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-gcMarkRootPrepare" class="ident">gcMarkRootPrepare</a></label>() {</code></span>
+<span class="codeline" id="line-56"><code><span class="keyword">func</span> gcMarkRootPrepare() {</code></span>
 <span class="codeline" id="line-57"><code>	<a href="lockrank_off.go.html#line-59" class="ident">assertWorldStopped</a>()</code></span>
 <span class="codeline" id="line-58"><code></code></span>
 <span class="codeline" id="line-59"><code>	<a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1051" class="ident">nFlushCacheRoots</a> = <span class="lit-number">0</span></code></span>
@@ -626,7 +626,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-110"><code></code></span>
 <span class="codeline" id="line-111"><code><span class="comment">// gcMarkRootCheck checks that all roots have been scanned. It is</span></code></span>
 <span class="codeline" id="line-112"><code><span class="comment">// purely for debugging.</span></code></span>
-<span class="codeline" id="line-113"><code><span class="keyword">func</span> <label for="r9" class="ident"><a href="../../pkg/runtime.html#name-gcMarkRootCheck" class="ident">gcMarkRootCheck</a></label>() {</code></span>
+<span class="codeline" id="line-113"><code><span class="keyword">func</span> gcMarkRootCheck() {</code></span>
 <span class="codeline" id="line-114"><code>	<span class="keyword">if</span> <a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1043" class="ident">markrootNext</a> &lt; <a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1044" class="ident">markrootJobs</a> {</code></span>
 <span class="codeline" id="line-115"><code>		<a href="../../pkg/builtin.html#name-print" class="ident">print</a>(<a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1043" class="ident">markrootNext</a>, <span class="lit-string">" of "</span>, <a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1044" class="ident">markrootJobs</a>, <span class="lit-string">" markroot jobs done\n"</span>)</code></span>
 <span class="codeline" id="line-116"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"left over markroot jobs"</span>)</code></span>
@@ -652,7 +652,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-136"><code>}</code></span>
 <span class="codeline" id="line-137"><code></code></span>
 <span class="codeline" id="line-138"><code><span class="comment">// ptrmask for an allocation containing a single pointer.</span></code></span>
-<span class="codeline" id="line-139"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-oneptrmask" class="ident">oneptrmask</a> = [...]<a href="../../pkg/builtin.html#name-uint8" class="ident">uint8</a>{<span class="lit-number">1</span>}</code></span>
+<span class="codeline" id="line-139"><code><span class="keyword">var</span> oneptrmask = [...]<a href="../../pkg/builtin.html#name-uint8" class="ident">uint8</a>{<span class="lit-number">1</span>}</code></span>
 <span class="codeline" id="line-140"><code></code></span>
 <span class="codeline" id="line-141"><code><span class="comment">// markroot scans the i'th root.</span></code></span>
 <span class="codeline" id="line-142"><code><span class="comment">//</span></code></span>
@@ -661,7 +661,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-145"><code><span class="comment">// nowritebarrier is only advisory here.</span></code></span>
 <span class="codeline" id="line-146"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-147"><code><span class="comment">//go:nowritebarrier</span></code></span>
-<span class="codeline" id="line-148"><code><span class="keyword">func</span> <label for="r13" class="ident"><a href="../../pkg/runtime.html#name-markroot" class="ident">markroot</a></label>(<label for="r14" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>, <label for="r15" class="ident">i</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
+<span class="codeline" id="line-148"><code><span class="keyword">func</span> markroot(<label for="r14" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>, <label for="r15" class="ident">i</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) {</code></span>
 <span class="codeline" id="line-149"><code>	<span class="comment">// TODO(austin): This is a bit ridiculous. Compute and store</span></code></span>
 <span class="codeline" id="line-150"><code><span class="comment">	// the bases in gcMarkRootPrepare instead of the counts.</span></code></span>
 <span class="codeline" id="line-151"><code>	<label for="r16" class="ident">baseFlushCache</label> := <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<a href="#line-18" class="ident">fixedRootCount</a>)</code></span>
@@ -761,7 +761,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-245"><code><span class="comment">// b0+n0), with the given pointer mask.</span></code></span>
 <span class="codeline" id="line-246"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-247"><code><span class="comment">//go:nowritebarrier</span></code></span>
-<span class="codeline" id="line-248"><code><span class="keyword">func</span> <label for="r33" class="ident"><a href="../../pkg/runtime.html#name-markrootBlock" class="ident">markrootBlock</a></label>(<label for="r34" class="ident">b0</label>, <label for="r35" class="ident">n0</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r36" class="ident">ptrmask0</label> *<a href="../../pkg/builtin.html#name-uint8" class="ident">uint8</a>, <label for="r37" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>, <label for="r38" class="ident">shard</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-248"><code><span class="keyword">func</span> markrootBlock(<label for="r34" class="ident">b0</label>, <label for="r35" class="ident">n0</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r36" class="ident">ptrmask0</label> *<a href="../../pkg/builtin.html#name-uint8" class="ident">uint8</a>, <label for="r37" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>, <label for="r38" class="ident">shard</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
 <span class="codeline" id="line-249"><code>	<span class="keyword">if</span> <a href="#line-22" class="ident">rootBlockBytes</a>%(<span class="lit-number">8</span>*<a href="../../pkg/runtime/internal/sys.html" class="ident i1">sys</a>.<a href="internal/sys/stubs.go.html#line-9" class="ident">PtrSize</a>) != <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-250"><code>		<span class="comment">// This is necessary to pick byte offsets in ptrmask0.</span></code></span>
 <span class="codeline" id="line-251"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"rootBlockBytes must be a multiple of 8*ptrSize"</span>)</code></span>
@@ -789,7 +789,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-273"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-274"><code><span class="comment">// This does not free stacks of dead Gs cached on Ps, but having a few</span></code></span>
 <span class="codeline" id="line-275"><code><span class="comment">// cached stacks around isn't a problem.</span></code></span>
-<span class="codeline" id="line-276"><code><span class="keyword">func</span> <label for="r43" class="ident"><a href="../../pkg/runtime.html#name-markrootFreeGStacks" class="ident">markrootFreeGStacks</a></label>() {</code></span>
+<span class="codeline" id="line-276"><code><span class="keyword">func</span> markrootFreeGStacks() {</code></span>
 <span class="codeline" id="line-277"><code>	<span class="comment">// Take list of dead Gs with stacks.</span></code></span>
 <span class="codeline" id="line-278"><code>	<a href="lock_futex.go.html#line-46" class="ident">lock</a>(&amp;<a href="runtime2.go.html#line-1056" class="ident">sched</a>.<a href="runtime2.go.html#line-758" class="ident">gFree</a>.<a href="runtime2.go.html#line-759" class="ident">lock</a>)</code></span>
 <span class="codeline" id="line-279"><code>	<label for="r44" class="ident">list</label> := <a href="runtime2.go.html#line-1056" class="ident">sched</a>.<a href="runtime2.go.html#line-758" class="ident">gFree</a>.<a href="runtime2.go.html#line-760" class="ident">stack</a></code></span>
@@ -819,7 +819,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-303"><code><span class="comment">// markrootSpans marks roots for one shard of markArenas.</span></code></span>
 <span class="codeline" id="line-304"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-305"><code><span class="comment">//go:nowritebarrier</span></code></span>
-<span class="codeline" id="line-306"><code><span class="keyword">func</span> <label for="r47" class="ident"><a href="../../pkg/runtime.html#name-markrootSpans" class="ident">markrootSpans</a></label>(<label for="r48" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>, <label for="r49" class="ident">shard</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-306"><code><span class="keyword">func</span> markrootSpans(<label for="r48" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>, <label for="r49" class="ident">shard</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
 <span class="codeline" id="line-307"><code>	<span class="comment">// Objects with finalizers have two GC-related invariants:</span></code></span>
 <span class="codeline" id="line-308"><code><span class="comment">	//</span></code></span>
 <span class="codeline" id="line-309"><code><span class="comment">	// 1) Everything reachable from the object must be marked.</span></code></span>
@@ -900,7 +900,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-384"><code><span class="comment">// gp must be the calling user gorountine.</span></code></span>
 <span class="codeline" id="line-385"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-386"><code><span class="comment">// This must be called with preemption enabled.</span></code></span>
-<span class="codeline" id="line-387"><code><span class="keyword">func</span> <label for="r63" class="ident"><a href="../../pkg/runtime.html#name-gcAssistAlloc" class="ident">gcAssistAlloc</a></label>(<label for="r64" class="ident">gp</label> *<a href="runtime2.go.html#line-404" class="ident">g</a>) {</code></span>
+<span class="codeline" id="line-387"><code><span class="keyword">func</span> gcAssistAlloc(<label for="r64" class="ident">gp</label> *<a href="runtime2.go.html#line-404" class="ident">g</a>) {</code></span>
 <span class="codeline" id="line-388"><code>	<span class="comment">// Don't assist in non-preemptible contexts. These are</span></code></span>
 <span class="codeline" id="line-389"><code><span class="comment">	// generally fragile and won't allow the assist to block.</span></code></span>
 <span class="codeline" id="line-390"><code>	<span class="keyword">if</span> <a href="stubs.go.html#line-18" class="ident">getg</a>() == <label for="r64" class="ident">gp</label>.<a href="runtime2.go.html#line-418" class="ident">m</a>.<a href="runtime2.go.html#line-487" class="ident">g0</a> {</code></span>
@@ -1017,7 +1017,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-501"><code><span class="comment">// the stack since it may move.</span></code></span>
 <span class="codeline" id="line-502"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-503"><code><span class="comment">//go:systemstack</span></code></span>
-<span class="codeline" id="line-504"><code><span class="keyword">func</span> <label for="r75" class="ident"><a href="../../pkg/runtime.html#name-gcAssistAlloc1" class="ident">gcAssistAlloc1</a></label>(<label for="r76" class="ident">gp</label> *<a href="runtime2.go.html#line-404" class="ident">g</a>, <label for="r77" class="ident">scanWork</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) {</code></span>
+<span class="codeline" id="line-504"><code><span class="keyword">func</span> gcAssistAlloc1(<label for="r76" class="ident">gp</label> *<a href="runtime2.go.html#line-404" class="ident">g</a>, <label for="r77" class="ident">scanWork</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) {</code></span>
 <span class="codeline" id="line-505"><code>	<span class="comment">// Clear the flag indicating that this assist completed the</span></code></span>
 <span class="codeline" id="line-506"><code><span class="comment">	// mark phase.</span></code></span>
 <span class="codeline" id="line-507"><code>	<label for="r76" class="ident">gp</label>.<a href="runtime2.go.html#line-423" class="ident">param</a> = <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
@@ -1092,7 +1092,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-576"><code><span class="comment">// gcWakeAllAssists wakes all currently blocked assists. This is used</span></code></span>
 <span class="codeline" id="line-577"><code><span class="comment">// at the end of a GC cycle. gcBlackenEnabled must be false to prevent</span></code></span>
 <span class="codeline" id="line-578"><code><span class="comment">// new assists from going to sleep after this point.</span></code></span>
-<span class="codeline" id="line-579"><code><span class="keyword">func</span> <label for="r86" class="ident"><a href="../../pkg/runtime.html#name-gcWakeAllAssists" class="ident">gcWakeAllAssists</a></label>() {</code></span>
+<span class="codeline" id="line-579"><code><span class="keyword">func</span> gcWakeAllAssists() {</code></span>
 <span class="codeline" id="line-580"><code>	<a href="lock_futex.go.html#line-46" class="ident">lock</a>(&amp;<a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1094" class="ident">assistQueue</a>.<a href="mgc.go.html#line-1095" class="ident">lock</a>)</code></span>
 <span class="codeline" id="line-581"><code>	<label for="r87" class="ident">list</label> := <a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1094" class="ident">assistQueue</a>.<a href="mgc.go.html#line-1096" class="ident">q</a>.<a href="proc.go.html#line-6065" class="ident">popList</a>()</code></span>
 <span class="codeline" id="line-582"><code>	<a href="proc.go.html#line-3031" class="ident">injectglist</a>(&amp;<label for="r87" class="ident">list</label>)</code></span>
@@ -1105,7 +1105,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-589"><code><span class="comment">// returns false, the caller must retry the assist.</span></code></span>
 <span class="codeline" id="line-590"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-591"><code><span class="comment">//go:nowritebarrier</span></code></span>
-<span class="codeline" id="line-592"><code><span class="keyword">func</span> <label for="r88" class="ident"><a href="../../pkg/runtime.html#name-gcParkAssist" class="ident">gcParkAssist</a></label>() <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-592"><code><span class="keyword">func</span> gcParkAssist() <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-593"><code>	<a href="lock_futex.go.html#line-46" class="ident">lock</a>(&amp;<a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1094" class="ident">assistQueue</a>.<a href="mgc.go.html#line-1095" class="ident">lock</a>)</code></span>
 <span class="codeline" id="line-594"><code>	<span class="comment">// If the GC cycle finished while we were getting the lock,</span></code></span>
 <span class="codeline" id="line-595"><code><span class="comment">	// exit the assist. The cycle can't finish while we hold the</span></code></span>
@@ -1146,7 +1146,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-630"><code><span class="comment">// condition.</span></code></span>
 <span class="codeline" id="line-631"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-632"><code><span class="comment">//go:nowritebarrierrec</span></code></span>
-<span class="codeline" id="line-633"><code><span class="keyword">func</span> <label for="r91" class="ident"><a href="../../pkg/runtime.html#name-gcFlushBgCredit" class="ident">gcFlushBgCredit</a></label>(<label for="r92" class="ident">scanWork</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) {</code></span>
+<span class="codeline" id="line-633"><code><span class="keyword">func</span> gcFlushBgCredit(<label for="r92" class="ident">scanWork</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) {</code></span>
 <span class="codeline" id="line-634"><code>	<span class="keyword">if</span> <a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1094" class="ident">assistQueue</a>.<a href="mgc.go.html#line-1096" class="ident">q</a>.<a href="proc.go.html#line-6012" class="ident">empty</a>() {</code></span>
 <span class="codeline" id="line-635"><code>		<span class="comment">// Fast path; there are no blocked assists. There's a</span></code></span>
 <span class="codeline" id="line-636"><code><span class="comment">		// small window here where an assist may add itself to</span></code></span>
@@ -1208,7 +1208,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-692"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-693"><code><span class="comment">//go:nowritebarrier</span></code></span>
 <span class="codeline" id="line-694"><code><span class="comment">//go:systemstack</span></code></span>
-<span class="codeline" id="line-695"><code><span class="keyword">func</span> <label for="r97" class="ident"><a href="../../pkg/runtime.html#name-scanstack" class="ident">scanstack</a></label>(<label for="r98" class="ident">gp</label> *<a href="runtime2.go.html#line-404" class="ident">g</a>, <label for="r99" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>) {</code></span>
+<span class="codeline" id="line-695"><code><span class="keyword">func</span> scanstack(<label for="r98" class="ident">gp</label> *<a href="runtime2.go.html#line-404" class="ident">g</a>, <label for="r99" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>) {</code></span>
 <span class="codeline" id="line-696"><code>	<span class="keyword">if</span> <a href="proc.go.html#line-829" class="ident">readgstatus</a>(<label for="r98" class="ident">gp</label>)&amp;<a href="runtime2.go.html#line-99" class="ident">_Gscan</a> == <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-697"><code>		<a href="../../pkg/builtin.html#name-print" class="ident">print</a>(<span class="lit-string">"runtime:scanstack: gp="</span>, <label for="r98" class="ident">gp</label>, <span class="lit-string">", goid="</span>, <label for="r98" class="ident">gp</label>.<a href="runtime2.go.html#line-426" class="ident">goid</a>, <span class="lit-string">", gp-&gt;atomicstatus="</span>, <a href="print.go.html#line-15" class="ident">hex</a>(<a href="proc.go.html#line-829" class="ident">readgstatus</a>(<label for="r98" class="ident">gp</label>)), <span class="lit-string">"\n"</span>)</code></span>
 <span class="codeline" id="line-698"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"scanstack - bad status"</span>)</code></span>
@@ -1377,7 +1377,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-861"><code></code></span>
 <span class="codeline" id="line-862"><code><span class="comment">// Scan a stack frame: local variables and function arguments/results.</span></code></span>
 <span class="codeline" id="line-863"><code><span class="comment">//go:nowritebarrier</span></code></span>
-<span class="codeline" id="line-864"><code><span class="keyword">func</span> <label for="r115" class="ident"><a href="../../pkg/runtime.html#name-scanframeworker" class="ident">scanframeworker</a></label>(<label for="r116" class="ident">frame</label> *<a href="runtime2.go.html#line-951" class="ident">stkframe</a>, <label for="r117" class="ident">state</label> *<a href="mgcstack.go.html#line-170" class="ident">stackScanState</a>, <label for="r118" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>) {</code></span>
+<span class="codeline" id="line-864"><code><span class="keyword">func</span> scanframeworker(<label for="r116" class="ident">frame</label> *<a href="runtime2.go.html#line-951" class="ident">stkframe</a>, <label for="r117" class="ident">state</label> *<a href="mgcstack.go.html#line-170" class="ident">stackScanState</a>, <label for="r118" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>) {</code></span>
 <span class="codeline" id="line-865"><code>	<span class="keyword">if</span> <a href="mgc.go.html#line-138" class="ident">_DebugGC</a> &gt; <span class="lit-number">1</span> &amp;&amp; <label for="r116" class="ident">frame</label>.<a href="runtime2.go.html#line-954" class="ident">continpc</a> != <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-866"><code>		<a href="../../pkg/builtin.html#name-print" class="ident">print</a>(<span class="lit-string">"scanframe "</span>, <a href="symtab.go.html#line-842" class="ident">funcname</a>(<label for="r116" class="ident">frame</label>.<a href="runtime2.go.html#line-952" class="ident">fn</a>), <span class="lit-string">"\n"</span>)</code></span>
 <span class="codeline" id="line-867"><code>	}</code></span>
@@ -1463,13 +1463,13 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-947"><code>	}</code></span>
 <span class="codeline" id="line-948"><code>}</code></span>
 <span class="codeline" id="line-949"><code></code></span>
-<span class="codeline" id="line-950"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-gcDrainFlags" class="ident">gcDrainFlags</a> <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-950"><code><span class="keyword">type</span> gcDrainFlags <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
 <span class="codeline" id="line-951"><code></code></span>
 <span class="codeline" id="line-952"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-953"><code>	<a href="../../pkg/runtime.html#name-gcDrainUntilPreempt" class="ident">gcDrainUntilPreempt</a> <a href="#line-950" class="ident">gcDrainFlags</a> = <span class="lit-number">1</span> &lt;&lt; <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
-<span class="codeline" id="line-954"><code>	<a href="../../pkg/runtime.html#name-gcDrainFlushBgCredit" class="ident">gcDrainFlushBgCredit</a></code></span>
-<span class="codeline" id="line-955"><code>	<a href="../../pkg/runtime.html#name-gcDrainIdle" class="ident">gcDrainIdle</a></code></span>
-<span class="codeline" id="line-956"><code>	<a href="../../pkg/runtime.html#name-gcDrainFractional" class="ident">gcDrainFractional</a></code></span>
+<span class="codeline" id="line-953"><code>	gcDrainUntilPreempt <a href="#line-950" class="ident">gcDrainFlags</a> = <span class="lit-number">1</span> &lt;&lt; <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-954"><code>	gcDrainFlushBgCredit</code></span>
+<span class="codeline" id="line-955"><code>	gcDrainIdle</code></span>
+<span class="codeline" id="line-956"><code>	gcDrainFractional</code></span>
 <span class="codeline" id="line-957"><code>)</code></span>
 <span class="codeline" id="line-958"><code></code></span>
 <span class="codeline" id="line-959"><code><span class="comment">// gcDrain scans roots and objects in work buffers, blackening grey</span></code></span>
@@ -1494,7 +1494,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-978"><code><span class="comment">// gcDrain will always return if there is a pending STW.</span></code></span>
 <span class="codeline" id="line-979"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-980"><code><span class="comment">//go:nowritebarrier</span></code></span>
-<span class="codeline" id="line-981"><code><span class="keyword">func</span> <label for="r131" class="ident"><a href="../../pkg/runtime.html#name-gcDrain" class="ident">gcDrain</a></label>(<label for="r132" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>, <label for="r133" class="ident">flags</label> <a href="#line-950" class="ident">gcDrainFlags</a>) {</code></span>
+<span class="codeline" id="line-981"><code><span class="keyword">func</span> gcDrain(<label for="r132" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>, <label for="r133" class="ident">flags</label> <a href="#line-950" class="ident">gcDrainFlags</a>) {</code></span>
 <span class="codeline" id="line-982"><code>	<span class="keyword">if</span> !<a href="mgc.go.html#line-257" class="ident">writeBarrier</a>.<a href="mgc.go.html#line-260" class="ident">needed</a> {</code></span>
 <span class="codeline" id="line-983"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"gcDrain phase incorrect"</span>)</code></span>
 <span class="codeline" id="line-984"><code>	}</code></span>
@@ -1608,7 +1608,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-1092"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-1093"><code><span class="comment">//go:nowritebarrier</span></code></span>
 <span class="codeline" id="line-1094"><code><span class="comment">//go:systemstack</span></code></span>
-<span class="codeline" id="line-1095"><code><span class="keyword">func</span> <label for="r144" class="ident"><a href="../../pkg/runtime.html#name-gcDrainN" class="ident">gcDrainN</a></label>(<label for="r145" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>, <label for="r146" class="ident">scanWork</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a> {</code></span>
+<span class="codeline" id="line-1095"><code><span class="keyword">func</span> gcDrainN(<label for="r145" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>, <label for="r146" class="ident">scanWork</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a> {</code></span>
 <span class="codeline" id="line-1096"><code>	<span class="keyword">if</span> !<a href="mgc.go.html#line-257" class="ident">writeBarrier</a>.<a href="mgc.go.html#line-260" class="ident">needed</a> {</code></span>
 <span class="codeline" id="line-1097"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"gcDrainN phase incorrect"</span>)</code></span>
 <span class="codeline" id="line-1098"><code>	}</code></span>
@@ -1680,7 +1680,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-1164"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-1165"><code><span class="comment">// If stk != nil, possible stack pointers are also reported to stk.putPtr.</span></code></span>
 <span class="codeline" id="line-1166"><code><span class="comment">//go:nowritebarrier</span></code></span>
-<span class="codeline" id="line-1167"><code><span class="keyword">func</span> <label for="r151" class="ident"><a href="../../pkg/runtime.html#name-scanblock" class="ident">scanblock</a></label>(<label for="r152" class="ident">b0</label>, <label for="r153" class="ident">n0</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r154" class="ident">ptrmask</label> *<a href="../../pkg/builtin.html#name-uint8" class="ident">uint8</a>, <label for="r155" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>, <label for="r156" class="ident">stk</label> *<a href="mgcstack.go.html#line-170" class="ident">stackScanState</a>) {</code></span>
+<span class="codeline" id="line-1167"><code><span class="keyword">func</span> scanblock(<label for="r152" class="ident">b0</label>, <label for="r153" class="ident">n0</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r154" class="ident">ptrmask</label> *<a href="../../pkg/builtin.html#name-uint8" class="ident">uint8</a>, <label for="r155" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>, <label for="r156" class="ident">stk</label> *<a href="mgcstack.go.html#line-170" class="ident">stackScanState</a>) {</code></span>
 <span class="codeline" id="line-1168"><code>	<span class="comment">// Use local copies of original parameters, so that a stack trace</span></code></span>
 <span class="codeline" id="line-1169"><code><span class="comment">	// due to one of the throws below shows the original block</span></code></span>
 <span class="codeline" id="line-1170"><code><span class="comment">	// base and extent.</span></code></span>
@@ -1718,7 +1718,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-1202"><code><span class="comment">// spans for the size of the object.</span></code></span>
 <span class="codeline" id="line-1203"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-1204"><code><span class="comment">//go:nowritebarrier</span></code></span>
-<span class="codeline" id="line-1205"><code><span class="keyword">func</span> <label for="r166" class="ident"><a href="../../pkg/runtime.html#name-scanobject" class="ident">scanobject</a></label>(<label for="r167" class="ident">b</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r168" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>) {</code></span>
+<span class="codeline" id="line-1205"><code><span class="keyword">func</span> scanobject(<label for="r167" class="ident">b</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r168" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>) {</code></span>
 <span class="codeline" id="line-1206"><code>	<span class="comment">// Find the bits for b and the size of the object at b.</span></code></span>
 <span class="codeline" id="line-1207"><code><span class="comment">	//</span></code></span>
 <span class="codeline" id="line-1208"><code><span class="comment">	// b is either the beginning of an object, in which case this</span></code></span>
@@ -1816,7 +1816,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-1300"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-1301"><code><span class="comment">// If state != nil, it's assumed that [b, b+n) is a block in the stack</span></code></span>
 <span class="codeline" id="line-1302"><code><span class="comment">// and may contain pointers to stack objects.</span></code></span>
-<span class="codeline" id="line-1303"><code><span class="keyword">func</span> <label for="r179" class="ident"><a href="../../pkg/runtime.html#name-scanConservative" class="ident">scanConservative</a></label>(<label for="r180" class="ident">b</label>, <label for="r181" class="ident">n</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r182" class="ident">ptrmask</label> *<a href="../../pkg/builtin.html#name-uint8" class="ident">uint8</a>, <label for="r183" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>, <label for="r184" class="ident">state</label> *<a href="mgcstack.go.html#line-170" class="ident">stackScanState</a>) {</code></span>
+<span class="codeline" id="line-1303"><code><span class="keyword">func</span> scanConservative(<label for="r180" class="ident">b</label>, <label for="r181" class="ident">n</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r182" class="ident">ptrmask</label> *<a href="../../pkg/builtin.html#name-uint8" class="ident">uint8</a>, <label for="r183" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>, <label for="r184" class="ident">state</label> *<a href="mgcstack.go.html#line-170" class="ident">stackScanState</a>) {</code></span>
 <span class="codeline" id="line-1304"><code>	<span class="keyword">if</span> <a href="mgc.go.html#line-144" class="ident">debugScanConservative</a> {</code></span>
 <span class="codeline" id="line-1305"><code>		<a href="print.go.html#line-66" class="ident">printlock</a>()</code></span>
 <span class="codeline" id="line-1306"><code>		<a href="../../pkg/builtin.html#name-print" class="ident">print</a>(<span class="lit-string">"conservatively scanning ["</span>, <a href="print.go.html#line-15" class="ident">hex</a>(<label for="r180" class="ident">b</label>), <span class="lit-string">","</span>, <a href="print.go.html#line-15" class="ident">hex</a>(<label for="r180" class="ident">b</label>+<label for="r181" class="ident">n</label>), <span class="lit-string">")\n"</span>)</code></span>
@@ -1907,7 +1907,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-1391"><code><span class="comment">// The object is not nil and known to be in the heap.</span></code></span>
 <span class="codeline" id="line-1392"><code><span class="comment">// Preemption must be disabled.</span></code></span>
 <span class="codeline" id="line-1393"><code><span class="comment">//go:nowritebarrier</span></code></span>
-<span class="codeline" id="line-1394"><code><span class="keyword">func</span> <label for="r198" class="ident"><a href="../../pkg/runtime.html#name-shade" class="ident">shade</a></label>(<label for="r199" class="ident">b</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-1394"><code><span class="keyword">func</span> shade(<label for="r199" class="ident">b</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
 <span class="codeline" id="line-1395"><code>	<span class="keyword">if</span> <label for="r200" class="ident">obj</label>, <label for="r201" class="ident">span</label>, <label for="r202" class="ident">objIndex</label> := <a href="mbitmap.go.html#line-368" class="ident">findObject</a>(<label for="r199" class="ident">b</label>, <span class="lit-number">0</span>, <span class="lit-number">0</span>); <label for="r200" class="ident">obj</label> != <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-1396"><code>		<label for="r203" class="ident">gcw</label> := &amp;<a href="stubs.go.html#line-18" class="ident">getg</a>().<a href="runtime2.go.html#line-418" class="ident">m</a>.<a href="runtime2.go.html#line-500" class="ident">p</a>.<a href="runtime2.go.html#line-283" class="ident">ptr</a>().<a href="runtime2.go.html#line-676" class="ident">gcw</a></code></span>
 <span class="codeline" id="line-1397"><code>		<a href="#line-1408" class="ident">greyobject</a>(<label for="r200" class="ident">obj</label>, <span class="lit-number">0</span>, <span class="lit-number">0</span>, <label for="r201" class="ident">span</label>, <label for="r203" class="ident">gcw</label>, <label for="r202" class="ident">objIndex</label>)</code></span>
@@ -1921,7 +1921,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-1405"><code><span class="comment">// See also wbBufFlush1, which partially duplicates this logic.</span></code></span>
 <span class="codeline" id="line-1406"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-1407"><code><span class="comment">//go:nowritebarrierrec</span></code></span>
-<span class="codeline" id="line-1408"><code><span class="keyword">func</span> <label for="r204" class="ident"><a href="../../pkg/runtime.html#name-greyobject" class="ident">greyobject</a></label>(<label for="r205" class="ident">obj</label>, <label for="r206" class="ident">base</label>, <label for="r207" class="ident">off</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r208" class="ident">span</label> *<a href="mheap.go.html#line-382" class="ident">mspan</a>, <label for="r209" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>, <label for="r210" class="ident">objIndex</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-1408"><code><span class="keyword">func</span> greyobject(<label for="r205" class="ident">obj</label>, <label for="r206" class="ident">base</label>, <label for="r207" class="ident">off</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r208" class="ident">span</label> *<a href="mheap.go.html#line-382" class="ident">mspan</a>, <label for="r209" class="ident">gcw</label> *<a href="mgcwork.go.html#line-55" class="ident">gcWork</a>, <label for="r210" class="ident">objIndex</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
 <span class="codeline" id="line-1409"><code>	<span class="comment">// obj should be start of allocation, and so must be at least pointer-aligned.</span></code></span>
 <span class="codeline" id="line-1410"><code>	<span class="keyword">if</span> <label for="r205" class="ident">obj</label>&amp;(<a href="../../pkg/runtime/internal/sys.html" class="ident i1">sys</a>.<a href="internal/sys/stubs.go.html#line-9" class="ident">PtrSize</a>-<span class="lit-number">1</span>) != <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-1411"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"greyobject: obj not pointer-aligned"</span>)</code></span>
@@ -1975,7 +1975,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-1459"><code></code></span>
 <span class="codeline" id="line-1460"><code><span class="comment">// gcDumpObject dumps the contents of obj for debugging and marks the</span></code></span>
 <span class="codeline" id="line-1461"><code><span class="comment">// field at byte offset off in obj.</span></code></span>
-<span class="codeline" id="line-1462"><code><span class="keyword">func</span> <label for="r215" class="ident"><a href="../../pkg/runtime.html#name-gcDumpObject" class="ident">gcDumpObject</a></label>(<label for="r216" class="ident">label</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r217" class="ident">obj</label>, <label for="r218" class="ident">off</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-1462"><code><span class="keyword">func</span> gcDumpObject(<label for="r216" class="ident">label</label> <a href="../../pkg/builtin.html#name-string" class="ident">string</a>, <label for="r217" class="ident">obj</label>, <label for="r218" class="ident">off</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
 <span class="codeline" id="line-1463"><code>	<label for="r219" class="ident">s</label> := <a href="mheap.go.html#line-631" class="ident">spanOf</a>(<label for="r217" class="ident">obj</label>)</code></span>
 <span class="codeline" id="line-1464"><code>	<a href="../../pkg/builtin.html#name-print" class="ident">print</a>(<label for="r216" class="ident">label</label>, <span class="lit-string">"="</span>, <a href="print.go.html#line-15" class="ident">hex</a>(<label for="r217" class="ident">obj</label>))</code></span>
 <span class="codeline" id="line-1465"><code>	<span class="keyword">if</span> <label for="r219" class="ident">s</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
@@ -2027,7 +2027,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-1511"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-1512"><code><span class="comment">//go:nowritebarrier</span></code></span>
 <span class="codeline" id="line-1513"><code><span class="comment">//go:nosplit</span></code></span>
-<span class="codeline" id="line-1514"><code><span class="keyword">func</span> <label for="r224" class="ident"><a href="../../pkg/runtime.html#name-gcmarknewobject" class="ident">gcmarknewobject</a></label>(<label for="r225" class="ident">span</label> *<a href="mheap.go.html#line-382" class="ident">mspan</a>, <label for="r226" class="ident">obj</label>, <label for="r227" class="ident">size</label>, <label for="r228" class="ident">scanSize</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-1514"><code><span class="keyword">func</span> gcmarknewobject(<label for="r225" class="ident">span</label> *<a href="mheap.go.html#line-382" class="ident">mspan</a>, <label for="r226" class="ident">obj</label>, <label for="r227" class="ident">size</label>, <label for="r228" class="ident">scanSize</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
 <span class="codeline" id="line-1515"><code>	<span class="keyword">if</span> <a href="mcheckmark.go.html#line-31" class="ident">useCheckmark</a> { <span class="comment">// The world should be stopped so this should not happen.</span></code></span>
 <span class="codeline" id="line-1516"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"gcmarknewobject called while doing checkmark"</span>)</code></span>
 <span class="codeline" id="line-1517"><code>	}</code></span>
@@ -2050,7 +2050,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-1534"><code><span class="comment">// gcMarkTinyAllocs greys all active tiny alloc blocks.</span></code></span>
 <span class="codeline" id="line-1535"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-1536"><code><span class="comment">// The world must be stopped.</span></code></span>
-<span class="codeline" id="line-1537"><code><span class="keyword">func</span> <label for="r234" class="ident"><a href="../../pkg/runtime.html#name-gcMarkTinyAllocs" class="ident">gcMarkTinyAllocs</a></label>() {</code></span>
+<span class="codeline" id="line-1537"><code><span class="keyword">func</span> gcMarkTinyAllocs() {</code></span>
 <span class="codeline" id="line-1538"><code>	<a href="lockrank_off.go.html#line-59" class="ident">assertWorldStopped</a>()</code></span>
 <span class="codeline" id="line-1539"><code></code></span>
 <span class="codeline" id="line-1540"><code>	<span class="keyword">for</span> <label for="r235" class="ident">_</label>, <label for="r236" class="ident">p</label> := <span class="keyword">range</span> <a href="runtime2.go.html#line-1064" class="ident">allp</a> {</code></span>

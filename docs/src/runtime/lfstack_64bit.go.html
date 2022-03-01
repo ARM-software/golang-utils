@@ -60,30 +60,30 @@ input[id=i0]:checked ~pre .i0
 <span class="codeline" id="line-22"><code><span class="comment">	// On s390x, virtual addresses are 64-bit. There's not much we</span></code></span>
 <span class="codeline" id="line-23"><code><span class="comment">	// can do about this, so we just hope that the kernel doesn't</span></code></span>
 <span class="codeline" id="line-24"><code><span class="comment">	// get to really high addresses and panic if it does.</span></code></span>
-<span class="codeline" id="line-25"><code>	<a href="../../pkg/runtime.html#name-addrBits" class="ident">addrBits</a> = <span class="lit-number">48</span></code></span>
+<span class="codeline" id="line-25"><code>	addrBits = <span class="lit-number">48</span></code></span>
 <span class="codeline" id="line-26"><code></code></span>
 <span class="codeline" id="line-27"><code>	<span class="comment">// In addition to the 16 bits taken from the top, we can take 3 from the</span></code></span>
 <span class="codeline" id="line-28"><code><span class="comment">	// bottom, because node must be pointer-aligned, giving a total of 19 bits</span></code></span>
 <span class="codeline" id="line-29"><code><span class="comment">	// of count.</span></code></span>
-<span class="codeline" id="line-30"><code>	<a href="../../pkg/runtime.html#name-cntBits" class="ident">cntBits</a> = <span class="lit-number">64</span> - <a href="#line-25" class="ident">addrBits</a> + <span class="lit-number">3</span></code></span>
+<span class="codeline" id="line-30"><code>	cntBits = <span class="lit-number">64</span> - <a href="#line-25" class="ident">addrBits</a> + <span class="lit-number">3</span></code></span>
 <span class="codeline" id="line-31"><code></code></span>
 <span class="codeline" id="line-32"><code>	<span class="comment">// On AIX, 64-bit addresses are split into 36-bit segment number and 28-bit</span></code></span>
 <span class="codeline" id="line-33"><code><span class="comment">	// offset in segment.  Segment numbers in the range 0x0A0000000-0x0AFFFFFFF(LSA)</span></code></span>
 <span class="codeline" id="line-34"><code><span class="comment">	// are available for mmap.</span></code></span>
 <span class="codeline" id="line-35"><code><span class="comment">	// We assume all lfnode addresses are from memory allocated with mmap.</span></code></span>
 <span class="codeline" id="line-36"><code><span class="comment">	// We use one bit to distinguish between the two ranges.</span></code></span>
-<span class="codeline" id="line-37"><code>	<a href="../../pkg/runtime.html#name-aixAddrBits" class="ident">aixAddrBits</a> = <span class="lit-number">57</span></code></span>
-<span class="codeline" id="line-38"><code>	<a href="../../pkg/runtime.html#name-aixCntBits" class="ident">aixCntBits</a>  = <span class="lit-number">64</span> - <a href="#line-37" class="ident">aixAddrBits</a> + <span class="lit-number">3</span></code></span>
+<span class="codeline" id="line-37"><code>	aixAddrBits = <span class="lit-number">57</span></code></span>
+<span class="codeline" id="line-38"><code>	aixCntBits  = <span class="lit-number">64</span> - <a href="#line-37" class="ident">aixAddrBits</a> + <span class="lit-number">3</span></code></span>
 <span class="codeline" id="line-39"><code>)</code></span>
 <span class="codeline" id="line-40"><code></code></span>
-<span class="codeline" id="line-41"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-lfstackPack" class="ident">lfstackPack</a></label>(<label for="r1" class="ident">node</label> *<a href="runtime2.go.html#line-864" class="ident">lfnode</a>, <label for="r2" class="ident">cnt</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> {</code></span>
+<span class="codeline" id="line-41"><code><span class="keyword">func</span> lfstackPack(<label for="r1" class="ident">node</label> *<a href="runtime2.go.html#line-864" class="ident">lfnode</a>, <label for="r2" class="ident">cnt</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a> {</code></span>
 <span class="codeline" id="line-42"><code>	<span class="keyword">if</span> <a href="extern.go.html#line-257" class="ident">GOARCH</a> == <span class="lit-string">"ppc64"</span> &amp;&amp; <a href="extern.go.html#line-253" class="ident">GOOS</a> == <span class="lit-string">"aix"</span> {</code></span>
 <span class="codeline" id="line-43"><code>		<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r1" class="ident">node</label>)))&lt;&lt;(<span class="lit-number">64</span>-<a href="#line-37" class="ident">aixAddrBits</a>) | <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r2" class="ident">cnt</label>&amp;(<span class="lit-number">1</span>&lt;&lt;<a href="#line-38" class="ident">aixCntBits</a>-<span class="lit-number">1</span>))</code></span>
 <span class="codeline" id="line-44"><code>	}</code></span>
 <span class="codeline" id="line-45"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<a href="../../pkg/unsafe.html" class="ident i0">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r1" class="ident">node</label>)))&lt;&lt;(<span class="lit-number">64</span>-<a href="#line-25" class="ident">addrBits</a>) | <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>(<label for="r2" class="ident">cnt</label>&amp;(<span class="lit-number">1</span>&lt;&lt;<a href="#line-30" class="ident">cntBits</a>-<span class="lit-number">1</span>))</code></span>
 <span class="codeline" id="line-46"><code>}</code></span>
 <span class="codeline" id="line-47"><code></code></span>
-<span class="codeline" id="line-48"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../pkg/runtime.html#name-lfstackUnpack" class="ident">lfstackUnpack</a></label>(<label for="r4" class="ident">val</label> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) *<a href="runtime2.go.html#line-864" class="ident">lfnode</a> {</code></span>
+<span class="codeline" id="line-48"><code><span class="keyword">func</span> lfstackUnpack(<label for="r4" class="ident">val</label> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>) *<a href="runtime2.go.html#line-864" class="ident">lfnode</a> {</code></span>
 <span class="codeline" id="line-49"><code>	<span class="keyword">if</span> <a href="extern.go.html#line-257" class="ident">GOARCH</a> == <span class="lit-string">"amd64"</span> {</code></span>
 <span class="codeline" id="line-50"><code>		<span class="comment">// amd64 systems can place the stack above the VA hole, so we need to sign extend</span></code></span>
 <span class="codeline" id="line-51"><code><span class="comment">		// val before unpacking.</span></code></span>

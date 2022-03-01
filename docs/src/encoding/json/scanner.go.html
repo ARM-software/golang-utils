@@ -319,7 +319,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-27"><code></code></span>
 <span class="codeline" id="line-28"><code><span class="comment">// checkValid verifies that data is valid JSON-encoded data.</span></code></span>
 <span class="codeline" id="line-29"><code><span class="comment">// scan is passed in for use by checkValid to avoid an allocation.</span></code></span>
-<span class="codeline" id="line-30"><code><span class="keyword">func</span> <label for="r3" class="ident"><a href="../../../pkg/encoding/json.html#name-checkValid" class="ident">checkValid</a></label>(<label for="r4" class="ident">data</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r5" class="ident">scan</label> *<a href="#line-64" class="ident">scanner</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
+<span class="codeline" id="line-30"><code><span class="keyword">func</span> checkValid(<label for="r4" class="ident">data</label> []<a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r5" class="ident">scan</label> *<a href="#line-64" class="ident">scanner</a>) <a href="../../../pkg/builtin.html#name-error" class="ident">error</a> {</code></span>
 <span class="codeline" id="line-31"><code>	<label for="r5" class="ident">scan</label>.<a href="#line-148" class="ident">reset</a>()</code></span>
 <span class="codeline" id="line-32"><code>	<span class="keyword">for</span> <label for="r6" class="ident">_</label>, <label for="r7" class="ident">c</label> := <span class="keyword">range</span> <label for="r4" class="ident">data</label> {</code></span>
 <span class="codeline" id="line-33"><code>		<label for="r5" class="ident">scan</label>.<a href="#line-82" class="ident">bytes</a>++</code></span>
@@ -339,7 +339,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-47"><code>	Offset <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a>  <span class="comment">// error occurred after reading Offset bytes</span></code></span>
 <span class="codeline" id="line-48"><code>}</code></span>
 <span class="codeline" id="line-49"><code></code></span>
-<span class="codeline" id="line-50"><code><span class="keyword">func</span> (<label for="r8" class="ident">e</label> *<a href="#line-45" class="ident">SyntaxError</a>) <label for="r9" class="ident"><a href="../../../imp/encoding/json.SyntaxError.html#name-.Error" class="ident">Error</a></label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> { <span class="keyword">return</span> <label for="r8" class="ident">e</label>.<a href="#line-46" class="ident">msg</a> }</code></span>
+<span class="codeline" id="line-50"><code><span class="keyword">func</span> (<label for="r8" class="ident">e</label> *<a href="#line-45" class="ident">SyntaxError</a>) <label for="r9" class="ident">Error</label>() <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> { <span class="keyword">return</span> <label for="r8" class="ident">e</label>.<a href="#line-46" class="ident">msg</a> }</code></span>
 <span class="codeline" id="line-51"><code></code></span>
 <span class="codeline" id="line-52"><code><span class="comment">// A scanner is a JSON scanning state machine.</span></code></span>
 <span class="codeline" id="line-53"><code><span class="comment">// Callers call scan.reset and then pass bytes in one at a time</span></code></span>
@@ -353,7 +353,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-61"><code><span class="comment">// just got passed in.  (The indication must be delayed in order</span></code></span>
 <span class="codeline" id="line-62"><code><span class="comment">// to recognize the end of numbers: is 123 a whole value or</span></code></span>
 <span class="codeline" id="line-63"><code><span class="comment">// the beginning of 12345e+6?).</span></code></span>
-<span class="codeline" id="line-64"><code><span class="keyword">type</span> <a href="../../../pkg/encoding/json.html#name-scanner" class="ident">scanner</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-64"><code><span class="keyword">type</span> scanner <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-65"><code>	<span class="comment">// The step is a func to be called to execute the next transition.</span></code></span>
 <span class="codeline" id="line-66"><code><span class="comment">	// Also tried using an integer constant and a single func</span></code></span>
 <span class="codeline" id="line-67"><code><span class="comment">	// with a switch, but using the func directly was 10% faster</span></code></span>
@@ -374,13 +374,13 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-82"><code>	bytes <a href="../../../pkg/builtin.html#name-int64" class="ident">int64</a></code></span>
 <span class="codeline" id="line-83"><code>}</code></span>
 <span class="codeline" id="line-84"><code></code></span>
-<span class="codeline" id="line-85"><code><span class="keyword">var</span> <a href="../../../pkg/encoding/json.html#name-scannerPool" class="ident">scannerPool</a> = <a href="../../../pkg/sync.html" class="ident i1">sync</a>.<a href="../../sync/pool.go.html#line-44" class="ident">Pool</a>{</code></span>
+<span class="codeline" id="line-85"><code><span class="keyword">var</span> scannerPool = <a href="../../../pkg/sync.html" class="ident i1">sync</a>.<a href="../../sync/pool.go.html#line-44" class="ident">Pool</a>{</code></span>
 <span class="codeline" id="line-86"><code>	<a href="../../sync/pool.go.html#line-56" class="ident">New</a>: <span class="keyword">func</span>() <span class="keyword">interface</span>{} {</code></span>
 <span class="codeline" id="line-87"><code>		<span class="keyword">return</span> &amp;<a href="#line-64" class="ident">scanner</a>{}</code></span>
 <span class="codeline" id="line-88"><code>	},</code></span>
 <span class="codeline" id="line-89"><code>}</code></span>
 <span class="codeline" id="line-90"><code></code></span>
-<span class="codeline" id="line-91"><code><span class="keyword">func</span> <label for="r10" class="ident"><a href="../../../pkg/encoding/json.html#name-newScanner" class="ident">newScanner</a></label>() *<a href="#line-64" class="ident">scanner</a> {</code></span>
+<span class="codeline" id="line-91"><code><span class="keyword">func</span> newScanner() *<a href="#line-64" class="ident">scanner</a> {</code></span>
 <span class="codeline" id="line-92"><code>	<label for="r11" class="ident">scan</label> := <a href="#line-85" class="ident">scannerPool</a>.<a href="../../sync/pool.go.html#line-124" class="ident">Get</a>().(*<a href="#line-64" class="ident">scanner</a>)</code></span>
 <span class="codeline" id="line-93"><code>	<span class="comment">// scan.reset by design doesn't set bytes to zero</span></code></span>
 <span class="codeline" id="line-94"><code>	<label for="r11" class="ident">scan</label>.<a href="#line-82" class="ident">bytes</a> = <span class="lit-number">0</span></code></span>
@@ -388,7 +388,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-96"><code>	<span class="keyword">return</span> <label for="r11" class="ident">scan</label></code></span>
 <span class="codeline" id="line-97"><code>}</code></span>
 <span class="codeline" id="line-98"><code></code></span>
-<span class="codeline" id="line-99"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../../pkg/encoding/json.html#name-freeScanner" class="ident">freeScanner</a></label>(<label for="r13" class="ident">scan</label> *<a href="#line-64" class="ident">scanner</a>) {</code></span>
+<span class="codeline" id="line-99"><code><span class="keyword">func</span> freeScanner(<label for="r13" class="ident">scan</label> *<a href="#line-64" class="ident">scanner</a>) {</code></span>
 <span class="codeline" id="line-100"><code>	<span class="comment">// Avoid hanging on to too much memory in extreme cases.</span></code></span>
 <span class="codeline" id="line-101"><code>	<span class="keyword">if</span> <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r13" class="ident">scan</label>.<a href="#line-75" class="ident">parseState</a>) &gt; <span class="lit-number">1024</span> {</code></span>
 <span class="codeline" id="line-102"><code>		<label for="r13" class="ident">scan</label>.<a href="#line-75" class="ident">parseState</a> = <a href="../../../pkg/builtin.html#name-nil" class="ident">nil</a></code></span>
@@ -405,20 +405,20 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-113"><code><span class="comment">// every subsequent call will return scanError too.</span></code></span>
 <span class="codeline" id="line-114"><code><span class="keyword">const</span> (</code></span>
 <span class="codeline" id="line-115"><code>	<span class="comment">// Continue.</span></code></span>
-<span class="codeline" id="line-116"><code>	<a href="../../../pkg/encoding/json.html#name-scanContinue" class="ident">scanContinue</a>     = <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a> <span class="comment">// uninteresting byte</span></code></span>
-<span class="codeline" id="line-117"><code>	<a href="../../../pkg/encoding/json.html#name-scanBeginLiteral" class="ident">scanBeginLiteral</a>        <span class="comment">// end implied by next result != scanContinue</span></code></span>
-<span class="codeline" id="line-118"><code>	<a href="../../../pkg/encoding/json.html#name-scanBeginObject" class="ident">scanBeginObject</a>         <span class="comment">// begin object</span></code></span>
-<span class="codeline" id="line-119"><code>	<a href="../../../pkg/encoding/json.html#name-scanObjectKey" class="ident">scanObjectKey</a>           <span class="comment">// just finished object key (string)</span></code></span>
-<span class="codeline" id="line-120"><code>	<a href="../../../pkg/encoding/json.html#name-scanObjectValue" class="ident">scanObjectValue</a>         <span class="comment">// just finished non-last object value</span></code></span>
-<span class="codeline" id="line-121"><code>	<a href="../../../pkg/encoding/json.html#name-scanEndObject" class="ident">scanEndObject</a>           <span class="comment">// end object (implies scanObjectValue if possible)</span></code></span>
-<span class="codeline" id="line-122"><code>	<a href="../../../pkg/encoding/json.html#name-scanBeginArray" class="ident">scanBeginArray</a>          <span class="comment">// begin array</span></code></span>
-<span class="codeline" id="line-123"><code>	<a href="../../../pkg/encoding/json.html#name-scanArrayValue" class="ident">scanArrayValue</a>          <span class="comment">// just finished array value</span></code></span>
-<span class="codeline" id="line-124"><code>	<a href="../../../pkg/encoding/json.html#name-scanEndArray" class="ident">scanEndArray</a>            <span class="comment">// end array (implies scanArrayValue if possible)</span></code></span>
-<span class="codeline" id="line-125"><code>	<a href="../../../pkg/encoding/json.html#name-scanSkipSpace" class="ident">scanSkipSpace</a>           <span class="comment">// space byte; can skip; known to be last "continue" result</span></code></span>
+<span class="codeline" id="line-116"><code>	scanContinue     = <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a> <span class="comment">// uninteresting byte</span></code></span>
+<span class="codeline" id="line-117"><code>	scanBeginLiteral        <span class="comment">// end implied by next result != scanContinue</span></code></span>
+<span class="codeline" id="line-118"><code>	scanBeginObject         <span class="comment">// begin object</span></code></span>
+<span class="codeline" id="line-119"><code>	scanObjectKey           <span class="comment">// just finished object key (string)</span></code></span>
+<span class="codeline" id="line-120"><code>	scanObjectValue         <span class="comment">// just finished non-last object value</span></code></span>
+<span class="codeline" id="line-121"><code>	scanEndObject           <span class="comment">// end object (implies scanObjectValue if possible)</span></code></span>
+<span class="codeline" id="line-122"><code>	scanBeginArray          <span class="comment">// begin array</span></code></span>
+<span class="codeline" id="line-123"><code>	scanArrayValue          <span class="comment">// just finished array value</span></code></span>
+<span class="codeline" id="line-124"><code>	scanEndArray            <span class="comment">// end array (implies scanArrayValue if possible)</span></code></span>
+<span class="codeline" id="line-125"><code>	scanSkipSpace           <span class="comment">// space byte; can skip; known to be last "continue" result</span></code></span>
 <span class="codeline" id="line-126"><code></code></span>
 <span class="codeline" id="line-127"><code>	<span class="comment">// Stop.</span></code></span>
-<span class="codeline" id="line-128"><code>	<a href="../../../pkg/encoding/json.html#name-scanEnd" class="ident">scanEnd</a>   <span class="comment">// top-level value ended *before* this byte; known to be first "stop" result</span></code></span>
-<span class="codeline" id="line-129"><code>	<a href="../../../pkg/encoding/json.html#name-scanError" class="ident">scanError</a> <span class="comment">// hit an error, scanner.err.</span></code></span>
+<span class="codeline" id="line-128"><code>	scanEnd   <span class="comment">// top-level value ended *before* this byte; known to be first "stop" result</span></code></span>
+<span class="codeline" id="line-129"><code>	scanError <span class="comment">// hit an error, scanner.err.</span></code></span>
 <span class="codeline" id="line-130"><code>)</code></span>
 <span class="codeline" id="line-131"><code></code></span>
 <span class="codeline" id="line-132"><code><span class="comment">// These values are stored in the parseState stack.</span></code></span>
@@ -426,14 +426,14 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-134"><code><span class="comment">// being scanned. If the parser is inside a nested value</span></code></span>
 <span class="codeline" id="line-135"><code><span class="comment">// the parseState describes the nested state, outermost at entry 0.</span></code></span>
 <span class="codeline" id="line-136"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-137"><code>	<a href="../../../pkg/encoding/json.html#name-parseObjectKey" class="ident">parseObjectKey</a>   = <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a> <span class="comment">// parsing object key (before colon)</span></code></span>
-<span class="codeline" id="line-138"><code>	<a href="../../../pkg/encoding/json.html#name-parseObjectValue" class="ident">parseObjectValue</a>        <span class="comment">// parsing object value (after colon)</span></code></span>
-<span class="codeline" id="line-139"><code>	<a href="../../../pkg/encoding/json.html#name-parseArrayValue" class="ident">parseArrayValue</a>         <span class="comment">// parsing array value</span></code></span>
+<span class="codeline" id="line-137"><code>	parseObjectKey   = <a href="../../../pkg/builtin.html#name-iota" class="ident">iota</a> <span class="comment">// parsing object key (before colon)</span></code></span>
+<span class="codeline" id="line-138"><code>	parseObjectValue        <span class="comment">// parsing object value (after colon)</span></code></span>
+<span class="codeline" id="line-139"><code>	parseArrayValue         <span class="comment">// parsing array value</span></code></span>
 <span class="codeline" id="line-140"><code>)</code></span>
 <span class="codeline" id="line-141"><code></code></span>
 <span class="codeline" id="line-142"><code><span class="comment">// This limits the max nesting depth to prevent stack overflow.</span></code></span>
 <span class="codeline" id="line-143"><code><span class="comment">// This is permitted by https://tools.ietf.org/html/rfc7159#section-9</span></code></span>
-<span class="codeline" id="line-144"><code><span class="keyword">const</span> <a href="../../../pkg/encoding/json.html#name-maxNestingDepth" class="ident">maxNestingDepth</a> = <span class="lit-number">10000</span></code></span>
+<span class="codeline" id="line-144"><code><span class="keyword">const</span> maxNestingDepth = <span class="lit-number">10000</span></code></span>
 <span class="codeline" id="line-145"><code></code></span>
 <span class="codeline" id="line-146"><code><span class="comment">// reset prepares the scanner for use.</span></code></span>
 <span class="codeline" id="line-147"><code><span class="comment">// It must be called before calling s.step.</span></code></span>
@@ -486,12 +486,12 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-194"><code>	}</code></span>
 <span class="codeline" id="line-195"><code>}</code></span>
 <span class="codeline" id="line-196"><code></code></span>
-<span class="codeline" id="line-197"><code><span class="keyword">func</span> <label for="r26" class="ident"><a href="../../../pkg/encoding/json.html#name-isSpace" class="ident">isSpace</a></label>(<label for="r27" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-197"><code><span class="keyword">func</span> isSpace(<label for="r27" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-198"><code>	<span class="keyword">return</span> <label for="r27" class="ident">c</label> &lt;= <span class="lit-number">' '</span> &amp;&amp; (<label for="r27" class="ident">c</label> == <span class="lit-number">' '</span> || <label for="r27" class="ident">c</label> == <span class="lit-number">'\t'</span> || <label for="r27" class="ident">c</label> == <span class="lit-number">'\r'</span> || <label for="r27" class="ident">c</label> == <span class="lit-number">'\n'</span>)</code></span>
 <span class="codeline" id="line-199"><code>}</code></span>
 <span class="codeline" id="line-200"><code></code></span>
 <span class="codeline" id="line-201"><code><span class="comment">// stateBeginValueOrEmpty is the state after reading `[`.</span></code></span>
-<span class="codeline" id="line-202"><code><span class="keyword">func</span> <label for="r28" class="ident"><a href="../../../pkg/encoding/json.html#name-stateBeginValueOrEmpty" class="ident">stateBeginValueOrEmpty</a></label>(<label for="r29" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r30" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-202"><code><span class="keyword">func</span> stateBeginValueOrEmpty(<label for="r29" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r30" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-203"><code>	<span class="keyword">if</span> <a href="#line-197" class="ident">isSpace</a>(<label for="r30" class="ident">c</label>) {</code></span>
 <span class="codeline" id="line-204"><code>		<span class="keyword">return</span> <a href="#line-125" class="ident">scanSkipSpace</a></code></span>
 <span class="codeline" id="line-205"><code>	}</code></span>
@@ -502,7 +502,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-210"><code>}</code></span>
 <span class="codeline" id="line-211"><code></code></span>
 <span class="codeline" id="line-212"><code><span class="comment">// stateBeginValue is the state at the beginning of the input.</span></code></span>
-<span class="codeline" id="line-213"><code><span class="keyword">func</span> <label for="r31" class="ident"><a href="../../../pkg/encoding/json.html#name-stateBeginValue" class="ident">stateBeginValue</a></label>(<label for="r32" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r33" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-213"><code><span class="keyword">func</span> stateBeginValue(<label for="r32" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r33" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-214"><code>	<span class="keyword">if</span> <a href="#line-197" class="ident">isSpace</a>(<label for="r33" class="ident">c</label>) {</code></span>
 <span class="codeline" id="line-215"><code>		<span class="keyword">return</span> <a href="#line-125" class="ident">scanSkipSpace</a></code></span>
 <span class="codeline" id="line-216"><code>	}</code></span>
@@ -540,7 +540,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-248"><code>}</code></span>
 <span class="codeline" id="line-249"><code></code></span>
 <span class="codeline" id="line-250"><code><span class="comment">// stateBeginStringOrEmpty is the state after reading `{`.</span></code></span>
-<span class="codeline" id="line-251"><code><span class="keyword">func</span> <label for="r34" class="ident"><a href="../../../pkg/encoding/json.html#name-stateBeginStringOrEmpty" class="ident">stateBeginStringOrEmpty</a></label>(<label for="r35" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r36" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-251"><code><span class="keyword">func</span> stateBeginStringOrEmpty(<label for="r35" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r36" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-252"><code>	<span class="keyword">if</span> <a href="#line-197" class="ident">isSpace</a>(<label for="r36" class="ident">c</label>) {</code></span>
 <span class="codeline" id="line-253"><code>		<span class="keyword">return</span> <a href="#line-125" class="ident">scanSkipSpace</a></code></span>
 <span class="codeline" id="line-254"><code>	}</code></span>
@@ -553,7 +553,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-261"><code>}</code></span>
 <span class="codeline" id="line-262"><code></code></span>
 <span class="codeline" id="line-263"><code><span class="comment">// stateBeginString is the state after reading `{"key": value,`.</span></code></span>
-<span class="codeline" id="line-264"><code><span class="keyword">func</span> <label for="r38" class="ident"><a href="../../../pkg/encoding/json.html#name-stateBeginString" class="ident">stateBeginString</a></label>(<label for="r39" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r40" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-264"><code><span class="keyword">func</span> stateBeginString(<label for="r39" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r40" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-265"><code>	<span class="keyword">if</span> <a href="#line-197" class="ident">isSpace</a>(<label for="r40" class="ident">c</label>) {</code></span>
 <span class="codeline" id="line-266"><code>		<span class="keyword">return</span> <a href="#line-125" class="ident">scanSkipSpace</a></code></span>
 <span class="codeline" id="line-267"><code>	}</code></span>
@@ -566,7 +566,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-274"><code></code></span>
 <span class="codeline" id="line-275"><code><span class="comment">// stateEndValue is the state after completing a value,</span></code></span>
 <span class="codeline" id="line-276"><code><span class="comment">// such as after reading `{}` or `true` or `["x"`.</span></code></span>
-<span class="codeline" id="line-277"><code><span class="keyword">func</span> <label for="r41" class="ident"><a href="../../../pkg/encoding/json.html#name-stateEndValue" class="ident">stateEndValue</a></label>(<label for="r42" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r43" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-277"><code><span class="keyword">func</span> stateEndValue(<label for="r42" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r43" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-278"><code>	<label for="r44" class="ident">n</label> := <a href="../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r42" class="ident">s</label>.<a href="#line-75" class="ident">parseState</a>)</code></span>
 <span class="codeline" id="line-279"><code>	<span class="keyword">if</span> <label for="r44" class="ident">n</label> == <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-280"><code>		<span class="comment">// Completed top-level before the current byte.</span></code></span>
@@ -615,7 +615,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-323"><code><span class="comment">// stateEndTop is the state after finishing the top-level value,</span></code></span>
 <span class="codeline" id="line-324"><code><span class="comment">// such as after reading `{}` or `[1,2,3]`.</span></code></span>
 <span class="codeline" id="line-325"><code><span class="comment">// Only space characters should be seen now.</span></code></span>
-<span class="codeline" id="line-326"><code><span class="keyword">func</span> <label for="r46" class="ident"><a href="../../../pkg/encoding/json.html#name-stateEndTop" class="ident">stateEndTop</a></label>(<label for="r47" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r48" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-326"><code><span class="keyword">func</span> stateEndTop(<label for="r47" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r48" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-327"><code>	<span class="keyword">if</span> !<a href="#line-197" class="ident">isSpace</a>(<label for="r48" class="ident">c</label>) {</code></span>
 <span class="codeline" id="line-328"><code>		<span class="comment">// Complain about non-space byte on next call.</span></code></span>
 <span class="codeline" id="line-329"><code>		<label for="r47" class="ident">s</label>.<a href="#line-589" class="ident">error</a>(<label for="r48" class="ident">c</label>, <span class="lit-string">"after top-level value"</span>)</code></span>
@@ -624,7 +624,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-332"><code>}</code></span>
 <span class="codeline" id="line-333"><code></code></span>
 <span class="codeline" id="line-334"><code><span class="comment">// stateInString is the state after reading `"`.</span></code></span>
-<span class="codeline" id="line-335"><code><span class="keyword">func</span> <label for="r49" class="ident"><a href="../../../pkg/encoding/json.html#name-stateInString" class="ident">stateInString</a></label>(<label for="r50" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r51" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-335"><code><span class="keyword">func</span> stateInString(<label for="r50" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r51" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-336"><code>	<span class="keyword">if</span> <label for="r51" class="ident">c</label> == <span class="lit-number">'"'</span> {</code></span>
 <span class="codeline" id="line-337"><code>		<label for="r50" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-277" class="ident">stateEndValue</a></code></span>
 <span class="codeline" id="line-338"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -640,7 +640,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-348"><code>}</code></span>
 <span class="codeline" id="line-349"><code></code></span>
 <span class="codeline" id="line-350"><code><span class="comment">// stateInStringEsc is the state after reading `"\` during a quoted string.</span></code></span>
-<span class="codeline" id="line-351"><code><span class="keyword">func</span> <label for="r52" class="ident"><a href="../../../pkg/encoding/json.html#name-stateInStringEsc" class="ident">stateInStringEsc</a></label>(<label for="r53" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r54" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-351"><code><span class="keyword">func</span> stateInStringEsc(<label for="r53" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r54" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-352"><code>	<span class="keyword">switch</span> <label for="r54" class="ident">c</label> {</code></span>
 <span class="codeline" id="line-353"><code>	<span class="keyword">case</span> <span class="lit-number">'b'</span>, <span class="lit-number">'f'</span>, <span class="lit-number">'n'</span>, <span class="lit-number">'r'</span>, <span class="lit-number">'t'</span>, <span class="lit-number">'\\'</span>, <span class="lit-number">'/'</span>, <span class="lit-number">'"'</span>:</code></span>
 <span class="codeline" id="line-354"><code>		<label for="r53" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-335" class="ident">stateInString</a></code></span>
@@ -653,7 +653,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-361"><code>}</code></span>
 <span class="codeline" id="line-362"><code></code></span>
 <span class="codeline" id="line-363"><code><span class="comment">// stateInStringEscU is the state after reading `"\u` during a quoted string.</span></code></span>
-<span class="codeline" id="line-364"><code><span class="keyword">func</span> <label for="r55" class="ident"><a href="../../../pkg/encoding/json.html#name-stateInStringEscU" class="ident">stateInStringEscU</a></label>(<label for="r56" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r57" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-364"><code><span class="keyword">func</span> stateInStringEscU(<label for="r56" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r57" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-365"><code>	<span class="keyword">if</span> <span class="lit-number">'0'</span> &lt;= <label for="r57" class="ident">c</label> &amp;&amp; <label for="r57" class="ident">c</label> &lt;= <span class="lit-number">'9'</span> || <span class="lit-number">'a'</span> &lt;= <label for="r57" class="ident">c</label> &amp;&amp; <label for="r57" class="ident">c</label> &lt;= <span class="lit-number">'f'</span> || <span class="lit-number">'A'</span> &lt;= <label for="r57" class="ident">c</label> &amp;&amp; <label for="r57" class="ident">c</label> &lt;= <span class="lit-number">'F'</span> {</code></span>
 <span class="codeline" id="line-366"><code>		<label for="r56" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-374" class="ident">stateInStringEscU1</a></code></span>
 <span class="codeline" id="line-367"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -663,7 +663,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-371"><code>}</code></span>
 <span class="codeline" id="line-372"><code></code></span>
 <span class="codeline" id="line-373"><code><span class="comment">// stateInStringEscU1 is the state after reading `"\u1` during a quoted string.</span></code></span>
-<span class="codeline" id="line-374"><code><span class="keyword">func</span> <label for="r58" class="ident"><a href="../../../pkg/encoding/json.html#name-stateInStringEscU1" class="ident">stateInStringEscU1</a></label>(<label for="r59" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r60" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-374"><code><span class="keyword">func</span> stateInStringEscU1(<label for="r59" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r60" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-375"><code>	<span class="keyword">if</span> <span class="lit-number">'0'</span> &lt;= <label for="r60" class="ident">c</label> &amp;&amp; <label for="r60" class="ident">c</label> &lt;= <span class="lit-number">'9'</span> || <span class="lit-number">'a'</span> &lt;= <label for="r60" class="ident">c</label> &amp;&amp; <label for="r60" class="ident">c</label> &lt;= <span class="lit-number">'f'</span> || <span class="lit-number">'A'</span> &lt;= <label for="r60" class="ident">c</label> &amp;&amp; <label for="r60" class="ident">c</label> &lt;= <span class="lit-number">'F'</span> {</code></span>
 <span class="codeline" id="line-376"><code>		<label for="r59" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-384" class="ident">stateInStringEscU12</a></code></span>
 <span class="codeline" id="line-377"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -673,7 +673,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-381"><code>}</code></span>
 <span class="codeline" id="line-382"><code></code></span>
 <span class="codeline" id="line-383"><code><span class="comment">// stateInStringEscU12 is the state after reading `"\u12` during a quoted string.</span></code></span>
-<span class="codeline" id="line-384"><code><span class="keyword">func</span> <label for="r61" class="ident"><a href="../../../pkg/encoding/json.html#name-stateInStringEscU12" class="ident">stateInStringEscU12</a></label>(<label for="r62" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r63" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-384"><code><span class="keyword">func</span> stateInStringEscU12(<label for="r62" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r63" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-385"><code>	<span class="keyword">if</span> <span class="lit-number">'0'</span> &lt;= <label for="r63" class="ident">c</label> &amp;&amp; <label for="r63" class="ident">c</label> &lt;= <span class="lit-number">'9'</span> || <span class="lit-number">'a'</span> &lt;= <label for="r63" class="ident">c</label> &amp;&amp; <label for="r63" class="ident">c</label> &lt;= <span class="lit-number">'f'</span> || <span class="lit-number">'A'</span> &lt;= <label for="r63" class="ident">c</label> &amp;&amp; <label for="r63" class="ident">c</label> &lt;= <span class="lit-number">'F'</span> {</code></span>
 <span class="codeline" id="line-386"><code>		<label for="r62" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-394" class="ident">stateInStringEscU123</a></code></span>
 <span class="codeline" id="line-387"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -683,7 +683,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-391"><code>}</code></span>
 <span class="codeline" id="line-392"><code></code></span>
 <span class="codeline" id="line-393"><code><span class="comment">// stateInStringEscU123 is the state after reading `"\u123` during a quoted string.</span></code></span>
-<span class="codeline" id="line-394"><code><span class="keyword">func</span> <label for="r64" class="ident"><a href="../../../pkg/encoding/json.html#name-stateInStringEscU123" class="ident">stateInStringEscU123</a></label>(<label for="r65" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r66" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-394"><code><span class="keyword">func</span> stateInStringEscU123(<label for="r65" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r66" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-395"><code>	<span class="keyword">if</span> <span class="lit-number">'0'</span> &lt;= <label for="r66" class="ident">c</label> &amp;&amp; <label for="r66" class="ident">c</label> &lt;= <span class="lit-number">'9'</span> || <span class="lit-number">'a'</span> &lt;= <label for="r66" class="ident">c</label> &amp;&amp; <label for="r66" class="ident">c</label> &lt;= <span class="lit-number">'f'</span> || <span class="lit-number">'A'</span> &lt;= <label for="r66" class="ident">c</label> &amp;&amp; <label for="r66" class="ident">c</label> &lt;= <span class="lit-number">'F'</span> {</code></span>
 <span class="codeline" id="line-396"><code>		<label for="r65" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-335" class="ident">stateInString</a></code></span>
 <span class="codeline" id="line-397"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -693,7 +693,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-401"><code>}</code></span>
 <span class="codeline" id="line-402"><code></code></span>
 <span class="codeline" id="line-403"><code><span class="comment">// stateNeg is the state after reading `-` during a number.</span></code></span>
-<span class="codeline" id="line-404"><code><span class="keyword">func</span> <label for="r67" class="ident"><a href="../../../pkg/encoding/json.html#name-stateNeg" class="ident">stateNeg</a></label>(<label for="r68" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r69" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-404"><code><span class="keyword">func</span> stateNeg(<label for="r68" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r69" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-405"><code>	<span class="keyword">if</span> <label for="r69" class="ident">c</label> == <span class="lit-number">'0'</span> {</code></span>
 <span class="codeline" id="line-406"><code>		<label for="r68" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-427" class="ident">state0</a></code></span>
 <span class="codeline" id="line-407"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -707,7 +707,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-415"><code></code></span>
 <span class="codeline" id="line-416"><code><span class="comment">// state1 is the state after reading a non-zero integer during a number,</span></code></span>
 <span class="codeline" id="line-417"><code><span class="comment">// such as after reading `1` or `100` but not `0`.</span></code></span>
-<span class="codeline" id="line-418"><code><span class="keyword">func</span> <label for="r70" class="ident"><a href="../../../pkg/encoding/json.html#name-state1" class="ident">state1</a></label>(<label for="r71" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r72" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-418"><code><span class="keyword">func</span> state1(<label for="r71" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r72" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-419"><code>	<span class="keyword">if</span> <span class="lit-number">'0'</span> &lt;= <label for="r72" class="ident">c</label> &amp;&amp; <label for="r72" class="ident">c</label> &lt;= <span class="lit-number">'9'</span> {</code></span>
 <span class="codeline" id="line-420"><code>		<label for="r71" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <label for="r70" class="ident">state1</label></code></span>
 <span class="codeline" id="line-421"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -716,7 +716,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-424"><code>}</code></span>
 <span class="codeline" id="line-425"><code></code></span>
 <span class="codeline" id="line-426"><code><span class="comment">// state0 is the state after reading `0` during a number.</span></code></span>
-<span class="codeline" id="line-427"><code><span class="keyword">func</span> <label for="r73" class="ident"><a href="../../../pkg/encoding/json.html#name-state0" class="ident">state0</a></label>(<label for="r74" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r75" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-427"><code><span class="keyword">func</span> state0(<label for="r74" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r75" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-428"><code>	<span class="keyword">if</span> <label for="r75" class="ident">c</label> == <span class="lit-number">'.'</span> {</code></span>
 <span class="codeline" id="line-429"><code>		<label for="r74" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-441" class="ident">stateDot</a></code></span>
 <span class="codeline" id="line-430"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -730,7 +730,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-438"><code></code></span>
 <span class="codeline" id="line-439"><code><span class="comment">// stateDot is the state after reading the integer and decimal point in a number,</span></code></span>
 <span class="codeline" id="line-440"><code><span class="comment">// such as after reading `1.`.</span></code></span>
-<span class="codeline" id="line-441"><code><span class="keyword">func</span> <label for="r76" class="ident"><a href="../../../pkg/encoding/json.html#name-stateDot" class="ident">stateDot</a></label>(<label for="r77" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r78" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-441"><code><span class="keyword">func</span> stateDot(<label for="r77" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r78" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-442"><code>	<span class="keyword">if</span> <span class="lit-number">'0'</span> &lt;= <label for="r78" class="ident">c</label> &amp;&amp; <label for="r78" class="ident">c</label> &lt;= <span class="lit-number">'9'</span> {</code></span>
 <span class="codeline" id="line-443"><code>		<label for="r77" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-451" class="ident">stateDot0</a></code></span>
 <span class="codeline" id="line-444"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -740,7 +740,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-448"><code></code></span>
 <span class="codeline" id="line-449"><code><span class="comment">// stateDot0 is the state after reading the integer, decimal point, and subsequent</span></code></span>
 <span class="codeline" id="line-450"><code><span class="comment">// digits of a number, such as after reading `3.14`.</span></code></span>
-<span class="codeline" id="line-451"><code><span class="keyword">func</span> <label for="r79" class="ident"><a href="../../../pkg/encoding/json.html#name-stateDot0" class="ident">stateDot0</a></label>(<label for="r80" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r81" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-451"><code><span class="keyword">func</span> stateDot0(<label for="r80" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r81" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-452"><code>	<span class="keyword">if</span> <span class="lit-number">'0'</span> &lt;= <label for="r81" class="ident">c</label> &amp;&amp; <label for="r81" class="ident">c</label> &lt;= <span class="lit-number">'9'</span> {</code></span>
 <span class="codeline" id="line-453"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
 <span class="codeline" id="line-454"><code>	}</code></span>
@@ -753,7 +753,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-461"><code></code></span>
 <span class="codeline" id="line-462"><code><span class="comment">// stateE is the state after reading the mantissa and e in a number,</span></code></span>
 <span class="codeline" id="line-463"><code><span class="comment">// such as after reading `314e` or `0.314e`.</span></code></span>
-<span class="codeline" id="line-464"><code><span class="keyword">func</span> <label for="r82" class="ident"><a href="../../../pkg/encoding/json.html#name-stateE" class="ident">stateE</a></label>(<label for="r83" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r84" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-464"><code><span class="keyword">func</span> stateE(<label for="r83" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r84" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-465"><code>	<span class="keyword">if</span> <label for="r84" class="ident">c</label> == <span class="lit-number">'+'</span> || <label for="r84" class="ident">c</label> == <span class="lit-number">'-'</span> {</code></span>
 <span class="codeline" id="line-466"><code>		<label for="r83" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-474" class="ident">stateESign</a></code></span>
 <span class="codeline" id="line-467"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -763,7 +763,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-471"><code></code></span>
 <span class="codeline" id="line-472"><code><span class="comment">// stateESign is the state after reading the mantissa, e, and sign in a number,</span></code></span>
 <span class="codeline" id="line-473"><code><span class="comment">// such as after reading `314e-` or `0.314e+`.</span></code></span>
-<span class="codeline" id="line-474"><code><span class="keyword">func</span> <label for="r85" class="ident"><a href="../../../pkg/encoding/json.html#name-stateESign" class="ident">stateESign</a></label>(<label for="r86" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r87" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-474"><code><span class="keyword">func</span> stateESign(<label for="r86" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r87" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-475"><code>	<span class="keyword">if</span> <span class="lit-number">'0'</span> &lt;= <label for="r87" class="ident">c</label> &amp;&amp; <label for="r87" class="ident">c</label> &lt;= <span class="lit-number">'9'</span> {</code></span>
 <span class="codeline" id="line-476"><code>		<label for="r86" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-485" class="ident">stateE0</a></code></span>
 <span class="codeline" id="line-477"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -774,7 +774,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-482"><code><span class="comment">// stateE0 is the state after reading the mantissa, e, optional sign,</span></code></span>
 <span class="codeline" id="line-483"><code><span class="comment">// and at least one digit of the exponent in a number,</span></code></span>
 <span class="codeline" id="line-484"><code><span class="comment">// such as after reading `314e-2` or `0.314e+1` or `3.14e0`.</span></code></span>
-<span class="codeline" id="line-485"><code><span class="keyword">func</span> <label for="r88" class="ident"><a href="../../../pkg/encoding/json.html#name-stateE0" class="ident">stateE0</a></label>(<label for="r89" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r90" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-485"><code><span class="keyword">func</span> stateE0(<label for="r89" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r90" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-486"><code>	<span class="keyword">if</span> <span class="lit-number">'0'</span> &lt;= <label for="r90" class="ident">c</label> &amp;&amp; <label for="r90" class="ident">c</label> &lt;= <span class="lit-number">'9'</span> {</code></span>
 <span class="codeline" id="line-487"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
 <span class="codeline" id="line-488"><code>	}</code></span>
@@ -782,7 +782,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-490"><code>}</code></span>
 <span class="codeline" id="line-491"><code></code></span>
 <span class="codeline" id="line-492"><code><span class="comment">// stateT is the state after reading `t`.</span></code></span>
-<span class="codeline" id="line-493"><code><span class="keyword">func</span> <label for="r91" class="ident"><a href="../../../pkg/encoding/json.html#name-stateT" class="ident">stateT</a></label>(<label for="r92" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r93" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-493"><code><span class="keyword">func</span> stateT(<label for="r92" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r93" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-494"><code>	<span class="keyword">if</span> <label for="r93" class="ident">c</label> == <span class="lit-number">'r'</span> {</code></span>
 <span class="codeline" id="line-495"><code>		<label for="r92" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-502" class="ident">stateTr</a></code></span>
 <span class="codeline" id="line-496"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -791,7 +791,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-499"><code>}</code></span>
 <span class="codeline" id="line-500"><code></code></span>
 <span class="codeline" id="line-501"><code><span class="comment">// stateTr is the state after reading `tr`.</span></code></span>
-<span class="codeline" id="line-502"><code><span class="keyword">func</span> <label for="r94" class="ident"><a href="../../../pkg/encoding/json.html#name-stateTr" class="ident">stateTr</a></label>(<label for="r95" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r96" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-502"><code><span class="keyword">func</span> stateTr(<label for="r95" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r96" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-503"><code>	<span class="keyword">if</span> <label for="r96" class="ident">c</label> == <span class="lit-number">'u'</span> {</code></span>
 <span class="codeline" id="line-504"><code>		<label for="r95" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-511" class="ident">stateTru</a></code></span>
 <span class="codeline" id="line-505"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -800,7 +800,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-508"><code>}</code></span>
 <span class="codeline" id="line-509"><code></code></span>
 <span class="codeline" id="line-510"><code><span class="comment">// stateTru is the state after reading `tru`.</span></code></span>
-<span class="codeline" id="line-511"><code><span class="keyword">func</span> <label for="r97" class="ident"><a href="../../../pkg/encoding/json.html#name-stateTru" class="ident">stateTru</a></label>(<label for="r98" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r99" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-511"><code><span class="keyword">func</span> stateTru(<label for="r98" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r99" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-512"><code>	<span class="keyword">if</span> <label for="r99" class="ident">c</label> == <span class="lit-number">'e'</span> {</code></span>
 <span class="codeline" id="line-513"><code>		<label for="r98" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-277" class="ident">stateEndValue</a></code></span>
 <span class="codeline" id="line-514"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -809,7 +809,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-517"><code>}</code></span>
 <span class="codeline" id="line-518"><code></code></span>
 <span class="codeline" id="line-519"><code><span class="comment">// stateF is the state after reading `f`.</span></code></span>
-<span class="codeline" id="line-520"><code><span class="keyword">func</span> <label for="r100" class="ident"><a href="../../../pkg/encoding/json.html#name-stateF" class="ident">stateF</a></label>(<label for="r101" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r102" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-520"><code><span class="keyword">func</span> stateF(<label for="r101" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r102" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-521"><code>	<span class="keyword">if</span> <label for="r102" class="ident">c</label> == <span class="lit-number">'a'</span> {</code></span>
 <span class="codeline" id="line-522"><code>		<label for="r101" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-529" class="ident">stateFa</a></code></span>
 <span class="codeline" id="line-523"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -818,7 +818,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-526"><code>}</code></span>
 <span class="codeline" id="line-527"><code></code></span>
 <span class="codeline" id="line-528"><code><span class="comment">// stateFa is the state after reading `fa`.</span></code></span>
-<span class="codeline" id="line-529"><code><span class="keyword">func</span> <label for="r103" class="ident"><a href="../../../pkg/encoding/json.html#name-stateFa" class="ident">stateFa</a></label>(<label for="r104" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r105" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-529"><code><span class="keyword">func</span> stateFa(<label for="r104" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r105" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-530"><code>	<span class="keyword">if</span> <label for="r105" class="ident">c</label> == <span class="lit-number">'l'</span> {</code></span>
 <span class="codeline" id="line-531"><code>		<label for="r104" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-538" class="ident">stateFal</a></code></span>
 <span class="codeline" id="line-532"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -827,7 +827,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-535"><code>}</code></span>
 <span class="codeline" id="line-536"><code></code></span>
 <span class="codeline" id="line-537"><code><span class="comment">// stateFal is the state after reading `fal`.</span></code></span>
-<span class="codeline" id="line-538"><code><span class="keyword">func</span> <label for="r106" class="ident"><a href="../../../pkg/encoding/json.html#name-stateFal" class="ident">stateFal</a></label>(<label for="r107" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r108" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-538"><code><span class="keyword">func</span> stateFal(<label for="r107" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r108" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-539"><code>	<span class="keyword">if</span> <label for="r108" class="ident">c</label> == <span class="lit-number">'s'</span> {</code></span>
 <span class="codeline" id="line-540"><code>		<label for="r107" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-547" class="ident">stateFals</a></code></span>
 <span class="codeline" id="line-541"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -836,7 +836,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-544"><code>}</code></span>
 <span class="codeline" id="line-545"><code></code></span>
 <span class="codeline" id="line-546"><code><span class="comment">// stateFals is the state after reading `fals`.</span></code></span>
-<span class="codeline" id="line-547"><code><span class="keyword">func</span> <label for="r109" class="ident"><a href="../../../pkg/encoding/json.html#name-stateFals" class="ident">stateFals</a></label>(<label for="r110" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r111" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-547"><code><span class="keyword">func</span> stateFals(<label for="r110" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r111" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-548"><code>	<span class="keyword">if</span> <label for="r111" class="ident">c</label> == <span class="lit-number">'e'</span> {</code></span>
 <span class="codeline" id="line-549"><code>		<label for="r110" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-277" class="ident">stateEndValue</a></code></span>
 <span class="codeline" id="line-550"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -845,7 +845,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-553"><code>}</code></span>
 <span class="codeline" id="line-554"><code></code></span>
 <span class="codeline" id="line-555"><code><span class="comment">// stateN is the state after reading `n`.</span></code></span>
-<span class="codeline" id="line-556"><code><span class="keyword">func</span> <label for="r112" class="ident"><a href="../../../pkg/encoding/json.html#name-stateN" class="ident">stateN</a></label>(<label for="r113" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r114" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-556"><code><span class="keyword">func</span> stateN(<label for="r113" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r114" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-557"><code>	<span class="keyword">if</span> <label for="r114" class="ident">c</label> == <span class="lit-number">'u'</span> {</code></span>
 <span class="codeline" id="line-558"><code>		<label for="r113" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-565" class="ident">stateNu</a></code></span>
 <span class="codeline" id="line-559"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -854,7 +854,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-562"><code>}</code></span>
 <span class="codeline" id="line-563"><code></code></span>
 <span class="codeline" id="line-564"><code><span class="comment">// stateNu is the state after reading `nu`.</span></code></span>
-<span class="codeline" id="line-565"><code><span class="keyword">func</span> <label for="r115" class="ident"><a href="../../../pkg/encoding/json.html#name-stateNu" class="ident">stateNu</a></label>(<label for="r116" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r117" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-565"><code><span class="keyword">func</span> stateNu(<label for="r116" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r117" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-566"><code>	<span class="keyword">if</span> <label for="r117" class="ident">c</label> == <span class="lit-number">'l'</span> {</code></span>
 <span class="codeline" id="line-567"><code>		<label for="r116" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-574" class="ident">stateNul</a></code></span>
 <span class="codeline" id="line-568"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -863,7 +863,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-571"><code>}</code></span>
 <span class="codeline" id="line-572"><code></code></span>
 <span class="codeline" id="line-573"><code><span class="comment">// stateNul is the state after reading `nul`.</span></code></span>
-<span class="codeline" id="line-574"><code><span class="keyword">func</span> <label for="r118" class="ident"><a href="../../../pkg/encoding/json.html#name-stateNul" class="ident">stateNul</a></label>(<label for="r119" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r120" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-574"><code><span class="keyword">func</span> stateNul(<label for="r119" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r120" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-575"><code>	<span class="keyword">if</span> <label for="r120" class="ident">c</label> == <span class="lit-number">'l'</span> {</code></span>
 <span class="codeline" id="line-576"><code>		<label for="r119" class="ident">s</label>.<a href="#line-69" class="ident">step</a> = <a href="#line-277" class="ident">stateEndValue</a></code></span>
 <span class="codeline" id="line-577"><code>		<span class="keyword">return</span> <a href="#line-116" class="ident">scanContinue</a></code></span>
@@ -873,7 +873,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-581"><code></code></span>
 <span class="codeline" id="line-582"><code><span class="comment">// stateError is the state after reaching a syntax error,</span></code></span>
 <span class="codeline" id="line-583"><code><span class="comment">// such as after reading `[1}` or `5.1.2`.</span></code></span>
-<span class="codeline" id="line-584"><code><span class="keyword">func</span> <label for="r121" class="ident"><a href="../../../pkg/encoding/json.html#name-stateError" class="ident">stateError</a></label>(<label for="r122" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r123" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-584"><code><span class="keyword">func</span> stateError(<label for="r122" class="ident">s</label> *<a href="#line-64" class="ident">scanner</a>, <label for="r123" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-585"><code>	<span class="keyword">return</span> <a href="#line-129" class="ident">scanError</a></code></span>
 <span class="codeline" id="line-586"><code>}</code></span>
 <span class="codeline" id="line-587"><code></code></span>
@@ -885,7 +885,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-593"><code>}</code></span>
 <span class="codeline" id="line-594"><code></code></span>
 <span class="codeline" id="line-595"><code><span class="comment">// quoteChar formats c as a quoted character literal</span></code></span>
-<span class="codeline" id="line-596"><code><span class="keyword">func</span> <label for="r128" class="ident"><a href="../../../pkg/encoding/json.html#name-quoteChar" class="ident">quoteChar</a></label>(<label for="r129" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
+<span class="codeline" id="line-596"><code><span class="keyword">func</span> quoteChar(<label for="r129" class="ident">c</label> <a href="../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../pkg/builtin.html#name-string" class="ident">string</a> {</code></span>
 <span class="codeline" id="line-597"><code>	<span class="comment">// special cases - different from quoted strings</span></code></span>
 <span class="codeline" id="line-598"><code>	<span class="keyword">if</span> <label for="r129" class="ident">c</label> == <span class="lit-number">'\''</span> {</code></span>
 <span class="codeline" id="line-599"><code>		<span class="keyword">return</span> <span class="lit-string">`'\''`</span></code></span>

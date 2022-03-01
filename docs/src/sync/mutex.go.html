@@ -87,7 +87,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-16"><code>	<label for="i2"><span class="lit-string i2">"unsafe"</span></label></code></span>
 <span class="codeline" id="line-17"><code>)</code></span>
 <span class="codeline" id="line-18"><code></code></span>
-<span class="codeline" id="line-19"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/sync.html#name-throw" class="ident">throw</a></label>(<a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <span class="comment">// provided by runtime</span></code></span>
+<span class="codeline" id="line-19"><code><span class="keyword">func</span> throw(<a href="../../pkg/builtin.html#name-string" class="ident">string</a>) <span class="comment">// provided by runtime</span></code></span>
 <span class="codeline" id="line-20"><code></code></span>
 <span class="codeline" id="line-21"><code><span class="comment">// A Mutex is a mutual exclusion lock.</span></code></span>
 <span class="codeline" id="line-22"><code><span class="comment">// The zero value for a Mutex is an unlocked mutex.</span></code></span>
@@ -105,10 +105,10 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-34"><code>}</code></span>
 <span class="codeline" id="line-35"><code></code></span>
 <span class="codeline" id="line-36"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-37"><code>	<a href="../../pkg/sync.html#name-mutexLocked" class="ident">mutexLocked</a> = <span class="lit-number">1</span> &lt;&lt; <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a> <span class="comment">// mutex is locked</span></code></span>
-<span class="codeline" id="line-38"><code>	<a href="../../pkg/sync.html#name-mutexWoken" class="ident">mutexWoken</a></code></span>
-<span class="codeline" id="line-39"><code>	<a href="../../pkg/sync.html#name-mutexStarving" class="ident">mutexStarving</a></code></span>
-<span class="codeline" id="line-40"><code>	<a href="../../pkg/sync.html#name-mutexWaiterShift" class="ident">mutexWaiterShift</a> = <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-37"><code>	mutexLocked = <span class="lit-number">1</span> &lt;&lt; <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a> <span class="comment">// mutex is locked</span></code></span>
+<span class="codeline" id="line-38"><code>	mutexWoken</code></span>
+<span class="codeline" id="line-39"><code>	mutexStarving</code></span>
+<span class="codeline" id="line-40"><code>	mutexWaiterShift = <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
 <span class="codeline" id="line-41"><code></code></span>
 <span class="codeline" id="line-42"><code>	<span class="comment">// Mutex fairness.</span></code></span>
 <span class="codeline" id="line-43"><code><span class="comment">	//</span></code></span>
@@ -134,13 +134,13 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-63"><code><span class="comment">	// Normal mode has considerably better performance as a goroutine can acquire</span></code></span>
 <span class="codeline" id="line-64"><code><span class="comment">	// a mutex several times in a row even if there are blocked waiters.</span></code></span>
 <span class="codeline" id="line-65"><code><span class="comment">	// Starvation mode is important to prevent pathological cases of tail latency.</span></code></span>
-<span class="codeline" id="line-66"><code>	<a href="../../pkg/sync.html#name-starvationThresholdNs" class="ident">starvationThresholdNs</a> = <span class="lit-number">1e6</span></code></span>
+<span class="codeline" id="line-66"><code>	starvationThresholdNs = <span class="lit-number">1e6</span></code></span>
 <span class="codeline" id="line-67"><code>)</code></span>
 <span class="codeline" id="line-68"><code></code></span>
 <span class="codeline" id="line-69"><code><span class="comment">// Lock locks m.</span></code></span>
 <span class="codeline" id="line-70"><code><span class="comment">// If the lock is already in use, the calling goroutine</span></code></span>
 <span class="codeline" id="line-71"><code><span class="comment">// blocks until the mutex is available.</span></code></span>
-<span class="codeline" id="line-72"><code><span class="keyword">func</span> (<label for="r1" class="ident">m</label> *<a href="#line-25" class="ident">Mutex</a>) <label for="r2" class="ident"><a href="../../imp/sync.Mutex.html#name-.Lock" class="ident">Lock</a></label>() {</code></span>
+<span class="codeline" id="line-72"><code><span class="keyword">func</span> (<label for="r1" class="ident">m</label> *<a href="#line-25" class="ident">Mutex</a>) <label for="r2" class="ident">Lock</label>() {</code></span>
 <span class="codeline" id="line-73"><code>	<span class="comment">// Fast path: grab unlocked mutex.</span></code></span>
 <span class="codeline" id="line-74"><code>	<span class="keyword">if</span> <a href="../../pkg/sync/atomic.html" class="ident i1">atomic</a>.<a href="atomic/doc.go.html#line-74" class="ident">CompareAndSwapInt32</a>(&amp;<label for="r1" class="ident">m</label>.<a href="#line-26" class="ident">state</a>, <span class="lit-number">0</span>, <a href="#line-37" class="ident">mutexLocked</a>) {</code></span>
 <span class="codeline" id="line-75"><code>		<span class="keyword">if</span> <a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-13" class="ident">Enabled</a> {</code></span>
@@ -247,7 +247,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-176"><code><span class="comment">// A locked Mutex is not associated with a particular goroutine.</span></code></span>
 <span class="codeline" id="line-177"><code><span class="comment">// It is allowed for one goroutine to lock a Mutex and then</span></code></span>
 <span class="codeline" id="line-178"><code><span class="comment">// arrange for another goroutine to unlock it.</span></code></span>
-<span class="codeline" id="line-179"><code><span class="keyword">func</span> (<label for="r13" class="ident">m</label> *<a href="#line-25" class="ident">Mutex</a>) <label for="r14" class="ident"><a href="../../imp/sync.Mutex.html#name-.Unlock" class="ident">Unlock</a></label>() {</code></span>
+<span class="codeline" id="line-179"><code><span class="keyword">func</span> (<label for="r13" class="ident">m</label> *<a href="#line-25" class="ident">Mutex</a>) <label for="r14" class="ident">Unlock</label>() {</code></span>
 <span class="codeline" id="line-180"><code>	<span class="keyword">if</span> <a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-13" class="ident">Enabled</a> {</code></span>
 <span class="codeline" id="line-181"><code>		_ = <label for="r13" class="ident">m</label>.<a href="#line-26" class="ident">state</a></code></span>
 <span class="codeline" id="line-182"><code>		<a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-18" class="ident">Release</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r13" class="ident">m</label>))</code></span>

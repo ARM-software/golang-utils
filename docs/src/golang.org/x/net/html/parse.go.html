@@ -611,7 +611,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-15"><code></code></span>
 <span class="codeline" id="line-16"><code><span class="comment">// A parser implements the HTML5 parsing algorithm:</span></code></span>
 <span class="codeline" id="line-17"><code><span class="comment">// https://html.spec.whatwg.org/multipage/syntax.html#tree-construction</span></code></span>
-<span class="codeline" id="line-18"><code><span class="keyword">type</span> <a href="../../../../../pkg/golang.org/x/net/html.html#name-parser" class="ident">parser</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-18"><code><span class="keyword">type</span> parser <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-19"><code>	<span class="comment">// tokenizer provides the tokens for the parser.</span></code></span>
 <span class="codeline" id="line-20"><code>	tokenizer *<a href="token.go.html#line-127" class="ident">Tokenizer</a></code></span>
 <span class="codeline" id="line-21"><code>	<span class="comment">// tok is the most recently read token.</span></code></span>
@@ -656,23 +656,23 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-60"><code></code></span>
 <span class="codeline" id="line-61"><code><span class="comment">// Stop tags for use in popUntil. These come from section 12.2.4.2.</span></code></span>
 <span class="codeline" id="line-62"><code><span class="keyword">var</span> (</code></span>
-<span class="codeline" id="line-63"><code>	<a href="../../../../../pkg/golang.org/x/net/html.html#name-defaultScopeStopTags" class="ident">defaultScopeStopTags</a> = <span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>][]<a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/atom.go.html#line-21" class="ident">Atom</a>{</code></span>
+<span class="codeline" id="line-63"><code>	defaultScopeStopTags = <span class="keyword">map</span>[<a href="../../../../../pkg/builtin.html#name-string" class="ident">string</a>][]<a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/atom.go.html#line-21" class="ident">Atom</a>{</code></span>
 <span class="codeline" id="line-64"><code>		<span class="lit-string">""</span>:     {<a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-23" class="ident">Applet</a>, <a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-46" class="ident">Caption</a>, <a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-122" class="ident">Html</a>, <a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-347" class="ident">Table</a>, <a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-350" class="ident">Td</a>, <a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-354" class="ident">Th</a>, <a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-160" class="ident">Marquee</a>, <a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-190" class="ident">Object</a>, <a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-351" class="ident">Template</a>},</code></span>
 <span class="codeline" id="line-65"><code>		<span class="lit-string">"math"</span>: {<a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-22" class="ident">AnnotationXml</a>, <a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-172" class="ident">Mi</a>, <a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-175" class="ident">Mn</a>, <a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-176" class="ident">Mo</a>, <a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-177" class="ident">Ms</a>, <a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-178" class="ident">Mtext</a>},</code></span>
 <span class="codeline" id="line-66"><code>		<span class="lit-string">"svg"</span>:  {<a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-73" class="ident">Desc</a>, <a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-96" class="ident">ForeignObject</a>, <a href="../../../../../pkg/golang.org/x/net/html/atom.html" class="ident i4">a</a>.<a href="atom/table.go.html#line-357" class="ident">Title</a>},</code></span>
 <span class="codeline" id="line-67"><code>	}</code></span>
 <span class="codeline" id="line-68"><code>)</code></span>
 <span class="codeline" id="line-69"><code></code></span>
-<span class="codeline" id="line-70"><code><span class="keyword">type</span> <a href="../../../../../pkg/golang.org/x/net/html.html#name-scope" class="ident">scope</a> <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-70"><code><span class="keyword">type</span> scope <a href="../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
 <span class="codeline" id="line-71"><code></code></span>
 <span class="codeline" id="line-72"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-73"><code>	<a href="../../../../../pkg/golang.org/x/net/html.html#name-defaultScope" class="ident">defaultScope</a> <a href="#line-70" class="ident">scope</a> = <a href="../../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
-<span class="codeline" id="line-74"><code>	<a href="../../../../../pkg/golang.org/x/net/html.html#name-listItemScope" class="ident">listItemScope</a></code></span>
-<span class="codeline" id="line-75"><code>	<a href="../../../../../pkg/golang.org/x/net/html.html#name-buttonScope" class="ident">buttonScope</a></code></span>
-<span class="codeline" id="line-76"><code>	<a href="../../../../../pkg/golang.org/x/net/html.html#name-tableScope" class="ident">tableScope</a></code></span>
-<span class="codeline" id="line-77"><code>	<a href="../../../../../pkg/golang.org/x/net/html.html#name-tableRowScope" class="ident">tableRowScope</a></code></span>
-<span class="codeline" id="line-78"><code>	<a href="../../../../../pkg/golang.org/x/net/html.html#name-tableBodyScope" class="ident">tableBodyScope</a></code></span>
-<span class="codeline" id="line-79"><code>	<a href="../../../../../pkg/golang.org/x/net/html.html#name-selectScope" class="ident">selectScope</a></code></span>
+<span class="codeline" id="line-73"><code>	defaultScope <a href="#line-70" class="ident">scope</a> = <a href="../../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-74"><code>	listItemScope</code></span>
+<span class="codeline" id="line-75"><code>	buttonScope</code></span>
+<span class="codeline" id="line-76"><code>	tableScope</code></span>
+<span class="codeline" id="line-77"><code>	tableRowScope</code></span>
+<span class="codeline" id="line-78"><code>	tableBodyScope</code></span>
+<span class="codeline" id="line-79"><code>	selectScope</code></span>
 <span class="codeline" id="line-80"><code>)</code></span>
 <span class="codeline" id="line-81"><code></code></span>
 <span class="codeline" id="line-82"><code><span class="comment">// popUntil pops the stack of open elements at the highest element whose tag</span></code></span>
@@ -1021,7 +1021,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-425"><code><span class="comment">// a particular state in the HTML5 parser's state machine. It updates the</span></code></span>
 <span class="codeline" id="line-426"><code><span class="comment">// parser's fields depending on parser.tok (where ErrorToken means EOF).</span></code></span>
 <span class="codeline" id="line-427"><code><span class="comment">// It returns whether the token was consumed.</span></code></span>
-<span class="codeline" id="line-428"><code><span class="keyword">type</span> <a href="../../../../../pkg/golang.org/x/net/html.html#name-insertionMode" class="ident">insertionMode</a> <span class="keyword">func</span>(*<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
+<span class="codeline" id="line-428"><code><span class="keyword">type</span> insertionMode <span class="keyword">func</span>(*<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
 <span class="codeline" id="line-429"><code></code></span>
 <span class="codeline" id="line-430"><code><span class="comment">// setOriginalIM sets the insertion mode to return to after completing a text or</span></code></span>
 <span class="codeline" id="line-431"><code><span class="comment">// inTableText insertion mode.</span></code></span>
@@ -1105,10 +1105,10 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-509"><code>	}</code></span>
 <span class="codeline" id="line-510"><code>}</code></span>
 <span class="codeline" id="line-511"><code></code></span>
-<span class="codeline" id="line-512"><code><span class="keyword">const</span> <a href="../../../../../pkg/golang.org/x/net/html.html#name-whitespace" class="ident">whitespace</a> = <span class="lit-string">" \t\r\n\f"</span></code></span>
+<span class="codeline" id="line-512"><code><span class="keyword">const</span> whitespace = <span class="lit-string">" \t\r\n\f"</span></code></span>
 <span class="codeline" id="line-513"><code></code></span>
 <span class="codeline" id="line-514"><code><span class="comment">// Section 12.2.6.4.1.</span></code></span>
-<span class="codeline" id="line-515"><code><span class="keyword">func</span> <label for="r90" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-initialIM" class="ident">initialIM</a></label>(<label for="r91" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-515"><code><span class="keyword">func</span> initialIM(<label for="r91" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-516"><code>	<span class="keyword">switch</span> <label for="r91" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-517"><code>	<span class="keyword">case</span> <a href="token.go.html#line-24" class="ident">TextToken</a>:</code></span>
 <span class="codeline" id="line-518"><code>		<label for="r91" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-79" class="ident">Data</a> = <a href="../../../../../pkg/strings.html" class="ident i3">strings</a>.<a href="../../../../strings/strings.go.html#line-847" class="ident">TrimLeft</a>(<label for="r91" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-79" class="ident">Data</a>, <a href="#line-512" class="ident">whitespace</a>)</code></span>
@@ -1135,7 +1135,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-539"><code>}</code></span>
 <span class="codeline" id="line-540"><code></code></span>
 <span class="codeline" id="line-541"><code><span class="comment">// Section 12.2.6.4.2.</span></code></span>
-<span class="codeline" id="line-542"><code><span class="keyword">func</span> <label for="r94" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-beforeHTMLIM" class="ident">beforeHTMLIM</a></label>(<label for="r95" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-542"><code><span class="keyword">func</span> beforeHTMLIM(<label for="r95" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-543"><code>	<span class="keyword">switch</span> <label for="r95" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-544"><code>	<span class="keyword">case</span> <a href="token.go.html#line-34" class="ident">DoctypeToken</a>:</code></span>
 <span class="codeline" id="line-545"><code>		<span class="comment">// Ignore the token.</span></code></span>
@@ -1173,7 +1173,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-577"><code>}</code></span>
 <span class="codeline" id="line-578"><code></code></span>
 <span class="codeline" id="line-579"><code><span class="comment">// Section 12.2.6.4.3.</span></code></span>
-<span class="codeline" id="line-580"><code><span class="keyword">func</span> <label for="r96" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-beforeHeadIM" class="ident">beforeHeadIM</a></label>(<label for="r97" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-580"><code><span class="keyword">func</span> beforeHeadIM(<label for="r97" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-581"><code>	<span class="keyword">switch</span> <label for="r97" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-582"><code>	<span class="keyword">case</span> <a href="token.go.html#line-24" class="ident">TextToken</a>:</code></span>
 <span class="codeline" id="line-583"><code>		<label for="r97" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-79" class="ident">Data</a> = <a href="../../../../../pkg/strings.html" class="ident i3">strings</a>.<a href="../../../../strings/strings.go.html#line-847" class="ident">TrimLeft</a>(<label for="r97" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-79" class="ident">Data</a>, <a href="#line-512" class="ident">whitespace</a>)</code></span>
@@ -1216,7 +1216,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-620"><code>}</code></span>
 <span class="codeline" id="line-621"><code></code></span>
 <span class="codeline" id="line-622"><code><span class="comment">// Section 12.2.6.4.4.</span></code></span>
-<span class="codeline" id="line-623"><code><span class="keyword">func</span> <label for="r98" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-inHeadIM" class="ident">inHeadIM</a></label>(<label for="r99" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-623"><code><span class="keyword">func</span> inHeadIM(<label for="r99" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-624"><code>	<span class="keyword">switch</span> <label for="r99" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-625"><code>	<span class="keyword">case</span> <a href="token.go.html#line-24" class="ident">TextToken</a>:</code></span>
 <span class="codeline" id="line-626"><code>		<label for="r100" class="ident">s</label> := <a href="../../../../../pkg/strings.html" class="ident i3">strings</a>.<a href="../../../../strings/strings.go.html#line-847" class="ident">TrimLeft</a>(<label for="r99" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-79" class="ident">Data</a>, <a href="#line-512" class="ident">whitespace</a>)</code></span>
@@ -1331,7 +1331,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-735"><code>}</code></span>
 <span class="codeline" id="line-736"><code></code></span>
 <span class="codeline" id="line-737"><code><span class="comment">// 12.2.6.4.5.</span></code></span>
-<span class="codeline" id="line-738"><code><span class="keyword">func</span> <label for="r105" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-inHeadNoscriptIM" class="ident">inHeadNoscriptIM</a></label>(<label for="r106" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-738"><code><span class="keyword">func</span> inHeadNoscriptIM(<label for="r106" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-739"><code>	<span class="keyword">switch</span> <label for="r106" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-740"><code>	<span class="keyword">case</span> <a href="token.go.html#line-34" class="ident">DoctypeToken</a>:</code></span>
 <span class="codeline" id="line-741"><code>		<span class="comment">// Ignore the token.</span></code></span>
@@ -1380,7 +1380,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-784"><code>}</code></span>
 <span class="codeline" id="line-785"><code></code></span>
 <span class="codeline" id="line-786"><code><span class="comment">// Section 12.2.6.4.6.</span></code></span>
-<span class="codeline" id="line-787"><code><span class="keyword">func</span> <label for="r108" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-afterHeadIM" class="ident">afterHeadIM</a></label>(<label for="r109" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-787"><code><span class="keyword">func</span> afterHeadIM(<label for="r109" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-788"><code>	<span class="keyword">switch</span> <label for="r109" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-789"><code>	<span class="keyword">case</span> <a href="token.go.html#line-24" class="ident">TextToken</a>:</code></span>
 <span class="codeline" id="line-790"><code>		<label for="r110" class="ident">s</label> := <a href="../../../../../pkg/strings.html" class="ident i3">strings</a>.<a href="../../../../strings/strings.go.html#line-847" class="ident">TrimLeft</a>(<label for="r109" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-79" class="ident">Data</a>, <a href="#line-512" class="ident">whitespace</a>)</code></span>
@@ -1440,7 +1440,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-844"><code>}</code></span>
 <span class="codeline" id="line-845"><code></code></span>
 <span class="codeline" id="line-846"><code><span class="comment">// copyAttributes copies attributes of src not found on dst to dst.</span></code></span>
-<span class="codeline" id="line-847"><code><span class="keyword">func</span> <label for="r111" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-copyAttributes" class="ident">copyAttributes</a></label>(<label for="r112" class="ident">dst</label> *<a href="node.go.html#line-44" class="ident">Node</a>, <label for="r113" class="ident">src</label> <a href="token.go.html#line-76" class="ident">Token</a>) {</code></span>
+<span class="codeline" id="line-847"><code><span class="keyword">func</span> copyAttributes(<label for="r112" class="ident">dst</label> *<a href="node.go.html#line-44" class="ident">Node</a>, <label for="r113" class="ident">src</label> <a href="token.go.html#line-76" class="ident">Token</a>) {</code></span>
 <span class="codeline" id="line-848"><code>	<span class="keyword">if</span> <a href="../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r113" class="ident">src</label>.<a href="token.go.html#line-80" class="ident">Attr</a>) == <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-849"><code>		<span class="keyword">return</span></code></span>
 <span class="codeline" id="line-850"><code>	}</code></span>
@@ -1457,7 +1457,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-861"><code>}</code></span>
 <span class="codeline" id="line-862"><code></code></span>
 <span class="codeline" id="line-863"><code><span class="comment">// Section 12.2.6.4.7.</span></code></span>
-<span class="codeline" id="line-864"><code><span class="keyword">func</span> <label for="r121" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-inBodyIM" class="ident">inBodyIM</a></label>(<label for="r122" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-864"><code><span class="keyword">func</span> inBodyIM(<label for="r122" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-865"><code>	<span class="keyword">switch</span> <label for="r122" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-866"><code>	<span class="keyword">case</span> <a href="token.go.html#line-24" class="ident">TextToken</a>:</code></span>
 <span class="codeline" id="line-867"><code>		<label for="r123" class="ident">d</label> := <label for="r122" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-79" class="ident">Data</a></code></span>
@@ -1980,7 +1980,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-1384"><code>}</code></span>
 <span class="codeline" id="line-1385"><code></code></span>
 <span class="codeline" id="line-1386"><code><span class="comment">// Section 12.2.6.4.8.</span></code></span>
-<span class="codeline" id="line-1387"><code><span class="keyword">func</span> <label for="r169" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-textIM" class="ident">textIM</a></label>(<label for="r170" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-1387"><code><span class="keyword">func</span> textIM(<label for="r170" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-1388"><code>	<span class="keyword">switch</span> <label for="r170" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-1389"><code>	<span class="keyword">case</span> <a href="token.go.html#line-22" class="ident">ErrorToken</a>:</code></span>
 <span class="codeline" id="line-1390"><code>		<label for="r170" class="ident">p</label>.<a href="#line-30" class="ident">oe</a>.<a href="node.go.html#line-156" class="ident">pop</a>()</code></span>
@@ -2009,7 +2009,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-1413"><code>}</code></span>
 <span class="codeline" id="line-1414"><code></code></span>
 <span class="codeline" id="line-1415"><code><span class="comment">// Section 12.2.6.4.9.</span></code></span>
-<span class="codeline" id="line-1416"><code><span class="keyword">func</span> <label for="r173" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-inTableIM" class="ident">inTableIM</a></label>(<label for="r174" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-1416"><code><span class="keyword">func</span> inTableIM(<label for="r174" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-1417"><code>	<span class="keyword">switch</span> <label for="r174" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-1418"><code>	<span class="keyword">case</span> <a href="token.go.html#line-24" class="ident">TextToken</a>:</code></span>
 <span class="codeline" id="line-1419"><code>		<label for="r174" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-79" class="ident">Data</a> = <a href="../../../../../pkg/strings.html" class="ident i3">strings</a>.<a href="../../../../strings/strings.go.html#line-924" class="ident">Replace</a>(<label for="r174" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-79" class="ident">Data</a>, <span class="lit-string">"\x00"</span>, <span class="lit-string">""</span>, -<span class="lit-number">1</span>)</code></span>
@@ -2116,7 +2116,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-1520"><code>}</code></span>
 <span class="codeline" id="line-1521"><code></code></span>
 <span class="codeline" id="line-1522"><code><span class="comment">// Section 12.2.6.4.11.</span></code></span>
-<span class="codeline" id="line-1523"><code><span class="keyword">func</span> <label for="r177" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-inCaptionIM" class="ident">inCaptionIM</a></label>(<label for="r178" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-1523"><code><span class="keyword">func</span> inCaptionIM(<label for="r178" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-1524"><code>	<span class="keyword">switch</span> <label for="r178" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-1525"><code>	<span class="keyword">case</span> <a href="token.go.html#line-26" class="ident">StartTagToken</a>:</code></span>
 <span class="codeline" id="line-1526"><code>		<span class="keyword">switch</span> <label for="r178" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-78" class="ident">DataAtom</a> {</code></span>
@@ -2160,7 +2160,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-1564"><code>}</code></span>
 <span class="codeline" id="line-1565"><code></code></span>
 <span class="codeline" id="line-1566"><code><span class="comment">// Section 12.2.6.4.12.</span></code></span>
-<span class="codeline" id="line-1567"><code><span class="keyword">func</span> <label for="r179" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-inColumnGroupIM" class="ident">inColumnGroupIM</a></label>(<label for="r180" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-1567"><code><span class="keyword">func</span> inColumnGroupIM(<label for="r180" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-1568"><code>	<span class="keyword">switch</span> <label for="r180" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-1569"><code>	<span class="keyword">case</span> <a href="token.go.html#line-24" class="ident">TextToken</a>:</code></span>
 <span class="codeline" id="line-1570"><code>		<label for="r181" class="ident">s</label> := <a href="../../../../../pkg/strings.html" class="ident i3">strings</a>.<a href="../../../../strings/strings.go.html#line-847" class="ident">TrimLeft</a>(<label for="r180" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-79" class="ident">Data</a>, <a href="#line-512" class="ident">whitespace</a>)</code></span>
@@ -2219,7 +2219,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-1623"><code>}</code></span>
 <span class="codeline" id="line-1624"><code></code></span>
 <span class="codeline" id="line-1625"><code><span class="comment">// Section 12.2.6.4.13.</span></code></span>
-<span class="codeline" id="line-1626"><code><span class="keyword">func</span> <label for="r182" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-inTableBodyIM" class="ident">inTableBodyIM</a></label>(<label for="r183" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-1626"><code><span class="keyword">func</span> inTableBodyIM(<label for="r183" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-1627"><code>	<span class="keyword">switch</span> <label for="r183" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-1628"><code>	<span class="keyword">case</span> <a href="token.go.html#line-26" class="ident">StartTagToken</a>:</code></span>
 <span class="codeline" id="line-1629"><code>		<span class="keyword">switch</span> <label for="r183" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-78" class="ident">DataAtom</a> {</code></span>
@@ -2271,7 +2271,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-1675"><code>}</code></span>
 <span class="codeline" id="line-1676"><code></code></span>
 <span class="codeline" id="line-1677"><code><span class="comment">// Section 12.2.6.4.14.</span></code></span>
-<span class="codeline" id="line-1678"><code><span class="keyword">func</span> <label for="r184" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-inRowIM" class="ident">inRowIM</a></label>(<label for="r185" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-1678"><code><span class="keyword">func</span> inRowIM(<label for="r185" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-1679"><code>	<span class="keyword">switch</span> <label for="r185" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-1680"><code>	<span class="keyword">case</span> <a href="token.go.html#line-26" class="ident">StartTagToken</a>:</code></span>
 <span class="codeline" id="line-1681"><code>		<span class="keyword">switch</span> <label for="r185" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-78" class="ident">DataAtom</a> {</code></span>
@@ -2322,7 +2322,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-1726"><code>}</code></span>
 <span class="codeline" id="line-1727"><code></code></span>
 <span class="codeline" id="line-1728"><code><span class="comment">// Section 12.2.6.4.15.</span></code></span>
-<span class="codeline" id="line-1729"><code><span class="keyword">func</span> <label for="r186" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-inCellIM" class="ident">inCellIM</a></label>(<label for="r187" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-1729"><code><span class="keyword">func</span> inCellIM(<label for="r187" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-1730"><code>	<span class="keyword">switch</span> <label for="r187" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-1731"><code>	<span class="keyword">case</span> <a href="token.go.html#line-26" class="ident">StartTagToken</a>:</code></span>
 <span class="codeline" id="line-1732"><code>		<span class="keyword">switch</span> <label for="r187" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-78" class="ident">DataAtom</a> {</code></span>
@@ -2372,7 +2372,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-1776"><code>}</code></span>
 <span class="codeline" id="line-1777"><code></code></span>
 <span class="codeline" id="line-1778"><code><span class="comment">// Section 12.2.6.4.16.</span></code></span>
-<span class="codeline" id="line-1779"><code><span class="keyword">func</span> <label for="r188" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-inSelectIM" class="ident">inSelectIM</a></label>(<label for="r189" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-1779"><code><span class="keyword">func</span> inSelectIM(<label for="r189" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-1780"><code>	<span class="keyword">switch</span> <label for="r189" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-1781"><code>	<span class="keyword">case</span> <a href="token.go.html#line-24" class="ident">TextToken</a>:</code></span>
 <span class="codeline" id="line-1782"><code>		<label for="r189" class="ident">p</label>.<a href="#line-300" class="ident">addText</a>(<a href="../../../../../pkg/strings.html" class="ident i3">strings</a>.<a href="../../../../strings/strings.go.html#line-924" class="ident">Replace</a>(<label for="r189" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-79" class="ident">Data</a>, <span class="lit-string">"\x00"</span>, <span class="lit-string">""</span>, -<span class="lit-number">1</span>))</code></span>
@@ -2457,7 +2457,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-1861"><code>}</code></span>
 <span class="codeline" id="line-1862"><code></code></span>
 <span class="codeline" id="line-1863"><code><span class="comment">// Section 12.2.6.4.17.</span></code></span>
-<span class="codeline" id="line-1864"><code><span class="keyword">func</span> <label for="r191" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-inSelectInTableIM" class="ident">inSelectInTableIM</a></label>(<label for="r192" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-1864"><code><span class="keyword">func</span> inSelectInTableIM(<label for="r192" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-1865"><code>	<span class="keyword">switch</span> <label for="r192" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-1866"><code>	<span class="keyword">case</span> <a href="token.go.html#line-26" class="ident">StartTagToken</a>, <a href="token.go.html#line-28" class="ident">EndTagToken</a>:</code></span>
 <span class="codeline" id="line-1867"><code>		<span class="keyword">switch</span> <label for="r192" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-78" class="ident">DataAtom</a> {</code></span>
@@ -2484,7 +2484,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-1888"><code>}</code></span>
 <span class="codeline" id="line-1889"><code></code></span>
 <span class="codeline" id="line-1890"><code><span class="comment">// Section 12.2.6.4.18.</span></code></span>
-<span class="codeline" id="line-1891"><code><span class="keyword">func</span> <label for="r195" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-inTemplateIM" class="ident">inTemplateIM</a></label>(<label for="r196" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-1891"><code><span class="keyword">func</span> inTemplateIM(<label for="r196" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-1892"><code>	<span class="keyword">switch</span> <label for="r196" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-1893"><code>	<span class="keyword">case</span> <a href="token.go.html#line-24" class="ident">TextToken</a>, <a href="token.go.html#line-32" class="ident">CommentToken</a>, <a href="token.go.html#line-34" class="ident">DoctypeToken</a>:</code></span>
 <span class="codeline" id="line-1894"><code>		<span class="keyword">return</span> <a href="#line-864" class="ident">inBodyIM</a>(<label for="r196" class="ident">p</label>)</code></span>
@@ -2550,7 +2550,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-1954"><code>}</code></span>
 <span class="codeline" id="line-1955"><code></code></span>
 <span class="codeline" id="line-1956"><code><span class="comment">// Section 12.2.6.4.19.</span></code></span>
-<span class="codeline" id="line-1957"><code><span class="keyword">func</span> <label for="r199" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-afterBodyIM" class="ident">afterBodyIM</a></label>(<label for="r200" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-1957"><code><span class="keyword">func</span> afterBodyIM(<label for="r200" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-1958"><code>	<span class="keyword">switch</span> <label for="r200" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-1959"><code>	<span class="keyword">case</span> <a href="token.go.html#line-22" class="ident">ErrorToken</a>:</code></span>
 <span class="codeline" id="line-1960"><code>		<span class="comment">// Stop parsing.</span></code></span>
@@ -2588,7 +2588,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-1992"><code>}</code></span>
 <span class="codeline" id="line-1993"><code></code></span>
 <span class="codeline" id="line-1994"><code><span class="comment">// Section 12.2.6.4.20.</span></code></span>
-<span class="codeline" id="line-1995"><code><span class="keyword">func</span> <label for="r202" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-inFramesetIM" class="ident">inFramesetIM</a></label>(<label for="r203" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-1995"><code><span class="keyword">func</span> inFramesetIM(<label for="r203" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-1996"><code>	<span class="keyword">switch</span> <label for="r203" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-1997"><code>	<span class="keyword">case</span> <a href="token.go.html#line-32" class="ident">CommentToken</a>:</code></span>
 <span class="codeline" id="line-1998"><code>		<label for="r203" class="ident">p</label>.<a href="#line-226" class="ident">addChild</a>(&amp;<a href="node.go.html#line-44" class="ident">Node</a>{</code></span>
@@ -2638,7 +2638,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-2042"><code>}</code></span>
 <span class="codeline" id="line-2043"><code></code></span>
 <span class="codeline" id="line-2044"><code><span class="comment">// Section 12.2.6.4.21.</span></code></span>
-<span class="codeline" id="line-2045"><code><span class="keyword">func</span> <label for="r206" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-afterFramesetIM" class="ident">afterFramesetIM</a></label>(<label for="r207" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-2045"><code><span class="keyword">func</span> afterFramesetIM(<label for="r207" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-2046"><code>	<span class="keyword">switch</span> <label for="r207" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-2047"><code>	<span class="keyword">case</span> <a href="token.go.html#line-32" class="ident">CommentToken</a>:</code></span>
 <span class="codeline" id="line-2048"><code>		<label for="r207" class="ident">p</label>.<a href="#line-226" class="ident">addChild</a>(&amp;<a href="node.go.html#line-44" class="ident">Node</a>{</code></span>
@@ -2677,7 +2677,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-2081"><code>}</code></span>
 <span class="codeline" id="line-2082"><code></code></span>
 <span class="codeline" id="line-2083"><code><span class="comment">// Section 12.2.6.4.22.</span></code></span>
-<span class="codeline" id="line-2084"><code><span class="keyword">func</span> <label for="r210" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-afterAfterBodyIM" class="ident">afterAfterBodyIM</a></label>(<label for="r211" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-2084"><code><span class="keyword">func</span> afterAfterBodyIM(<label for="r211" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-2085"><code>	<span class="keyword">switch</span> <label for="r211" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-2086"><code>	<span class="keyword">case</span> <a href="token.go.html#line-22" class="ident">ErrorToken</a>:</code></span>
 <span class="codeline" id="line-2087"><code>		<span class="comment">// Stop parsing.</span></code></span>
@@ -2706,7 +2706,7 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-2110"><code>}</code></span>
 <span class="codeline" id="line-2111"><code></code></span>
 <span class="codeline" id="line-2112"><code><span class="comment">// Section 12.2.6.4.23.</span></code></span>
-<span class="codeline" id="line-2113"><code><span class="keyword">func</span> <label for="r213" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-afterAfterFramesetIM" class="ident">afterAfterFramesetIM</a></label>(<label for="r214" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-2113"><code><span class="keyword">func</span> afterAfterFramesetIM(<label for="r214" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-2114"><code>	<span class="keyword">switch</span> <label for="r214" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-2115"><code>	<span class="keyword">case</span> <a href="token.go.html#line-32" class="ident">CommentToken</a>:</code></span>
 <span class="codeline" id="line-2116"><code>		<label for="r214" class="ident">p</label>.<a href="#line-27" class="ident">doc</a>.<a href="node.go.html#line-87" class="ident">AppendChild</a>(&amp;<a href="node.go.html#line-44" class="ident">Node</a>{</code></span>
@@ -2741,14 +2741,14 @@ input[id=i4]:checked ~pre .i4
 <span class="codeline" id="line-2145"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
 <span class="codeline" id="line-2146"><code>}</code></span>
 <span class="codeline" id="line-2147"><code></code></span>
-<span class="codeline" id="line-2148"><code><span class="keyword">func</span> <label for="r217" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-ignoreTheRemainingTokens" class="ident">ignoreTheRemainingTokens</a></label>(<label for="r218" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-2148"><code><span class="keyword">func</span> ignoreTheRemainingTokens(<label for="r218" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-2149"><code>	<span class="keyword">return</span> <a href="../../../../../pkg/builtin.html#name-true" class="ident">true</a></code></span>
 <span class="codeline" id="line-2150"><code>}</code></span>
 <span class="codeline" id="line-2151"><code></code></span>
-<span class="codeline" id="line-2152"><code><span class="keyword">const</span> <a href="../../../../../pkg/golang.org/x/net/html.html#name-whitespaceOrNUL" class="ident">whitespaceOrNUL</a> = <a href="#line-512" class="ident">whitespace</a> + <span class="lit-string">"\x00"</span></code></span>
+<span class="codeline" id="line-2152"><code><span class="keyword">const</span> whitespaceOrNUL = <a href="#line-512" class="ident">whitespace</a> + <span class="lit-string">"\x00"</span></code></span>
 <span class="codeline" id="line-2153"><code></code></span>
 <span class="codeline" id="line-2154"><code><span class="comment">// Section 12.2.6.5</span></code></span>
-<span class="codeline" id="line-2155"><code><span class="keyword">func</span> <label for="r219" class="ident"><a href="../../../../../pkg/golang.org/x/net/html.html#name-parseForeignContent" class="ident">parseForeignContent</a></label>(<label for="r220" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-2155"><code><span class="keyword">func</span> parseForeignContent(<label for="r220" class="ident">p</label> *<a href="#line-18" class="ident">parser</a>) <a href="../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-2156"><code>	<span class="keyword">switch</span> <label for="r220" class="ident">p</label>.<a href="#line-22" class="ident">tok</a>.<a href="token.go.html#line-77" class="ident">Type</a> {</code></span>
 <span class="codeline" id="line-2157"><code>	<span class="keyword">case</span> <a href="token.go.html#line-24" class="ident">TextToken</a>:</code></span>
 <span class="codeline" id="line-2158"><code>		<span class="keyword">if</span> <label for="r220" class="ident">p</label>.<a href="#line-34" class="ident">framesetOK</a> {</code></span>

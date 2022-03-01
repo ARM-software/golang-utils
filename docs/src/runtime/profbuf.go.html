@@ -325,7 +325,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-85"><code><span class="comment">//		emit entry for uint32(overflow), time</span></code></span>
 <span class="codeline" id="line-86"><code><span class="comment">//	}</span></code></span>
 <span class="codeline" id="line-87"><code><span class="comment">//</span></code></span>
-<span class="codeline" id="line-88"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-profBuf" class="ident">profBuf</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-88"><code><span class="keyword">type</span> profBuf <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-89"><code>	<span class="comment">// accessed atomically</span></code></span>
 <span class="codeline" id="line-90"><code>	r, w         <a href="#line-107" class="ident">profAtomic</a></code></span>
 <span class="codeline" id="line-91"><code>	overflow     <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
@@ -344,14 +344,14 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-104"><code>}</code></span>
 <span class="codeline" id="line-105"><code></code></span>
 <span class="codeline" id="line-106"><code><span class="comment">// A profAtomic is the atomically-accessed word holding a profIndex.</span></code></span>
-<span class="codeline" id="line-107"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-profAtomic" class="ident">profAtomic</a> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-107"><code><span class="keyword">type</span> profAtomic <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
 <span class="codeline" id="line-108"><code></code></span>
 <span class="codeline" id="line-109"><code><span class="comment">// A profIndex is the packet tag and data counts and flags bits, described above.</span></code></span>
-<span class="codeline" id="line-110"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-profIndex" class="ident">profIndex</a> <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
+<span class="codeline" id="line-110"><code><span class="keyword">type</span> profIndex <a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a></code></span>
 <span class="codeline" id="line-111"><code></code></span>
 <span class="codeline" id="line-112"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-113"><code>	<a href="../../pkg/runtime.html#name-profReaderSleeping" class="ident">profReaderSleeping</a> <a href="#line-110" class="ident">profIndex</a> = <span class="lit-number">1</span> &lt;&lt; <span class="lit-number">32</span> <span class="comment">// reader is sleeping and must be woken up</span></code></span>
-<span class="codeline" id="line-114"><code>	<a href="../../pkg/runtime.html#name-profWriteExtra" class="ident">profWriteExtra</a>     <a href="#line-110" class="ident">profIndex</a> = <span class="lit-number">1</span> &lt;&lt; <span class="lit-number">33</span> <span class="comment">// overflow or eof waiting</span></code></span>
+<span class="codeline" id="line-113"><code>	profReaderSleeping <a href="#line-110" class="ident">profIndex</a> = <span class="lit-number">1</span> &lt;&lt; <span class="lit-number">32</span> <span class="comment">// reader is sleeping and must be woken up</span></code></span>
+<span class="codeline" id="line-114"><code>	profWriteExtra     <a href="#line-110" class="ident">profIndex</a> = <span class="lit-number">1</span> &lt;&lt; <span class="lit-number">33</span> <span class="comment">// overflow or eof waiting</span></code></span>
 <span class="codeline" id="line-115"><code>)</code></span>
 <span class="codeline" id="line-116"><code></code></span>
 <span class="codeline" id="line-117"><code><span class="keyword">func</span> (<label for="r0" class="ident">x</label> *<a href="#line-107" class="ident">profAtomic</a>) <label for="r1" class="ident">load</label>() <a href="#line-110" class="ident">profIndex</a> {</code></span>
@@ -379,7 +379,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-139"><code><span class="comment">// len(data) or len(tags) apart, respectively).</span></code></span>
 <span class="codeline" id="line-140"><code><span class="comment">// tagCount wraps at 2^30, while dataCount wraps at 2^32.</span></code></span>
 <span class="codeline" id="line-141"><code><span class="comment">// This function works for both.</span></code></span>
-<span class="codeline" id="line-142"><code><span class="keyword">func</span> <label for="r13" class="ident"><a href="../../pkg/runtime.html#name-countSub" class="ident">countSub</a></label>(<label for="r14" class="ident">x</label>, <label for="r15" class="ident">y</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-142"><code><span class="keyword">func</span> countSub(<label for="r14" class="ident">x</label>, <label for="r15" class="ident">y</label> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>) <a href="../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-143"><code>	<span class="comment">// x-y is 32-bit signed or 30-bit signed; sign-extend to 32 bits and convert to int.</span></code></span>
 <span class="codeline" id="line-144"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>(<a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>(<label for="r14" class="ident">x</label>-<label for="r15" class="ident">y</label>) &lt;&lt; <span class="lit-number">2</span> &gt;&gt; <span class="lit-number">2</span>)</code></span>
 <span class="codeline" id="line-145"><code>}</code></span>
@@ -445,7 +445,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-205"><code></code></span>
 <span class="codeline" id="line-206"><code><span class="comment">// newProfBuf returns a new profiling buffer with room for</span></code></span>
 <span class="codeline" id="line-207"><code><span class="comment">// a header of hdrsize words and a buffer of at least bufwords words.</span></code></span>
-<span class="codeline" id="line-208"><code><span class="keyword">func</span> <label for="r31" class="ident"><a href="../../pkg/runtime.html#name-newProfBuf" class="ident">newProfBuf</a></label>(<label for="r32" class="ident">hdrsize</label>, <label for="r33" class="ident">bufwords</label>, <label for="r34" class="ident">tags</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) *<a href="#line-88" class="ident">profBuf</a> {</code></span>
+<span class="codeline" id="line-208"><code><span class="keyword">func</span> newProfBuf(<label for="r32" class="ident">hdrsize</label>, <label for="r33" class="ident">bufwords</label>, <label for="r34" class="ident">tags</label> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) *<a href="#line-88" class="ident">profBuf</a> {</code></span>
 <span class="codeline" id="line-209"><code>	<span class="keyword">if</span> <label for="r35" class="ident">min</label> := <span class="lit-number">2</span> + <label for="r32" class="ident">hdrsize</label> + <span class="lit-number">1</span>; <label for="r33" class="ident">bufwords</label> &lt; <label for="r35" class="ident">min</label> {</code></span>
 <span class="codeline" id="line-210"><code>		<label for="r33" class="ident">bufwords</label> = <label for="r35" class="ident">min</label></code></span>
 <span class="codeline" id="line-211"><code>	}</code></span>
@@ -660,14 +660,14 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-420"><code>}</code></span>
 <span class="codeline" id="line-421"><code></code></span>
 <span class="codeline" id="line-422"><code><span class="comment">// profBufReadMode specifies whether to block when no data is available to read.</span></code></span>
-<span class="codeline" id="line-423"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-profBufReadMode" class="ident">profBufReadMode</a> <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-423"><code><span class="keyword">type</span> profBufReadMode <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
 <span class="codeline" id="line-424"><code></code></span>
 <span class="codeline" id="line-425"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-426"><code>	<a href="../../pkg/runtime.html#name-profBufBlocking" class="ident">profBufBlocking</a> <a href="#line-423" class="ident">profBufReadMode</a> = <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
-<span class="codeline" id="line-427"><code>	<a href="../../pkg/runtime.html#name-profBufNonBlocking" class="ident">profBufNonBlocking</a></code></span>
+<span class="codeline" id="line-426"><code>	profBufBlocking <a href="#line-423" class="ident">profBufReadMode</a> = <a href="../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-427"><code>	profBufNonBlocking</code></span>
 <span class="codeline" id="line-428"><code>)</code></span>
 <span class="codeline" id="line-429"><code></code></span>
-<span class="codeline" id="line-430"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-overflowTag" class="ident">overflowTag</a> [<span class="lit-number">1</span>]<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a> <span class="comment">// always nil</span></code></span>
+<span class="codeline" id="line-430"><code><span class="keyword">var</span> overflowTag [<span class="lit-number">1</span>]<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a> <span class="comment">// always nil</span></code></span>
 <span class="codeline" id="line-431"><code></code></span>
 <span class="codeline" id="line-432"><code><span class="keyword">func</span> (<label for="r83" class="ident">b</label> *<a href="#line-88" class="ident">profBuf</a>) <label for="r84" class="ident">read</label>(<label for="r85" class="ident">mode</label> <a href="#line-423" class="ident">profBufReadMode</a>) (<label for="r86" class="ident">data</label> []<a href="../../pkg/builtin.html#name-uint64" class="ident">uint64</a>, <label for="r87" class="ident">tags</label> []<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r88" class="ident">eof</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
 <span class="codeline" id="line-433"><code>	<span class="keyword">if</span> <label for="r83" class="ident">b</label> == <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>

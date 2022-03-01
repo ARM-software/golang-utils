@@ -167,7 +167,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-11"><code>)</code></span>
 <span class="codeline" id="line-12"><code></code></span>
 <span class="codeline" id="line-13"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-14"><code>	<a href="../../pkg/runtime.html#name-_WorkbufSize" class="ident">_WorkbufSize</a> = <span class="lit-number">2048</span> <span class="comment">// in bytes; larger values result in less contention</span></code></span>
+<span class="codeline" id="line-14"><code>	_WorkbufSize = <span class="lit-number">2048</span> <span class="comment">// in bytes; larger values result in less contention</span></code></span>
 <span class="codeline" id="line-15"><code></code></span>
 <span class="codeline" id="line-16"><code>	<span class="comment">// workbufAlloc is the number of bytes to allocate at a time</span></code></span>
 <span class="codeline" id="line-17"><code><span class="comment">	// for new workbufs. This must be a multiple of pageSize and</span></code></span>
@@ -175,10 +175,10 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-19"><code><span class="comment">	//</span></code></span>
 <span class="codeline" id="line-20"><code><span class="comment">	// Larger values reduce workbuf allocation overhead. Smaller</span></code></span>
 <span class="codeline" id="line-21"><code><span class="comment">	// values reduce heap fragmentation.</span></code></span>
-<span class="codeline" id="line-22"><code>	<a href="../../pkg/runtime.html#name-workbufAlloc" class="ident">workbufAlloc</a> = <span class="lit-number">32</span> &lt;&lt; <span class="lit-number">10</span></code></span>
+<span class="codeline" id="line-22"><code>	workbufAlloc = <span class="lit-number">32</span> &lt;&lt; <span class="lit-number">10</span></code></span>
 <span class="codeline" id="line-23"><code>)</code></span>
 <span class="codeline" id="line-24"><code></code></span>
-<span class="codeline" id="line-25"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-init" class="ident">init</a></label>() {</code></span>
+<span class="codeline" id="line-25"><code><span class="keyword">func</span> init() {</code></span>
 <span class="codeline" id="line-26"><code>	<span class="keyword">if</span> <a href="#line-22" class="ident">workbufAlloc</a>%<a href="malloc.go.html#line-118" class="ident">pageSize</a> != <span class="lit-number">0</span> || <a href="#line-22" class="ident">workbufAlloc</a>%<a href="#line-14" class="ident">_WorkbufSize</a> != <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-27"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"bad workbufAlloc"</span>)</code></span>
 <span class="codeline" id="line-28"><code>	}</code></span>
@@ -208,7 +208,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-52"><code><span class="comment">// the garbage collector from transitioning to mark termination since</span></code></span>
 <span class="codeline" id="line-53"><code><span class="comment">// gcWork may locally hold GC work buffers. This can be done by</span></code></span>
 <span class="codeline" id="line-54"><code><span class="comment">// disabling preemption (systemstack or acquirem).</span></code></span>
-<span class="codeline" id="line-55"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-gcWork" class="ident">gcWork</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-55"><code><span class="keyword">type</span> gcWork <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-56"><code>	<span class="comment">// wbuf1 and wbuf2 are the primary and secondary work buffers.</span></code></span>
 <span class="codeline" id="line-57"><code><span class="comment">	//</span></code></span>
 <span class="codeline" id="line-58"><code><span class="comment">	// This can be thought of as a stack of both work buffers'</span></code></span>
@@ -469,13 +469,13 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-313"><code><span class="comment">// The gcWork interface caches a work buffer until full (or empty) to</span></code></span>
 <span class="codeline" id="line-314"><code><span class="comment">// avoid contending on the global work buffer lists.</span></code></span>
 <span class="codeline" id="line-315"><code></code></span>
-<span class="codeline" id="line-316"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-workbufhdr" class="ident">workbufhdr</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-316"><code><span class="keyword">type</span> workbufhdr <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-317"><code>	node <a href="runtime2.go.html#line-864" class="ident">lfnode</a> <span class="comment">// must be first</span></code></span>
 <span class="codeline" id="line-318"><code>	nobj <a href="../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
 <span class="codeline" id="line-319"><code>}</code></span>
 <span class="codeline" id="line-320"><code></code></span>
 <span class="codeline" id="line-321"><code><span class="comment">//go:notinheap</span></code></span>
-<span class="codeline" id="line-322"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-workbuf" class="ident">workbuf</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-322"><code><span class="keyword">type</span> workbuf <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-323"><code>	<a href="#line-316" class="ident">workbufhdr</a></code></span>
 <span class="codeline" id="line-324"><code>	<span class="comment">// account for the above fields</span></code></span>
 <span class="codeline" id="line-325"><code>	obj [(<a href="#line-14" class="ident">_WorkbufSize</a> - <a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Sizeof" class="ident">Sizeof</a>(<a href="#line-316" class="ident">workbufhdr</a>{})) / <a href="../../pkg/runtime/internal/sys.html" class="ident i1">sys</a>.<a href="internal/sys/stubs.go.html#line-9" class="ident">PtrSize</a>]<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a></code></span>
@@ -501,7 +501,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-345"><code><span class="comment">// getempty pops an empty work buffer off the work.empty list,</span></code></span>
 <span class="codeline" id="line-346"><code><span class="comment">// allocating new buffers if none are available.</span></code></span>
 <span class="codeline" id="line-347"><code><span class="comment">//go:nowritebarrier</span></code></span>
-<span class="codeline" id="line-348"><code><span class="keyword">func</span> <label for="r39" class="ident"><a href="../../pkg/runtime.html#name-getempty" class="ident">getempty</a></label>() *<a href="#line-322" class="ident">workbuf</a> {</code></span>
+<span class="codeline" id="line-348"><code><span class="keyword">func</span> getempty() *<a href="#line-322" class="ident">workbuf</a> {</code></span>
 <span class="codeline" id="line-349"><code>	<span class="keyword">var</span> <label for="r40" class="ident">b</label> *<a href="#line-322" class="ident">workbuf</a></code></span>
 <span class="codeline" id="line-350"><code>	<span class="keyword">if</span> <a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1011" class="ident">empty</a> != <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-351"><code>		<label for="r40" class="ident">b</label> = (*<a href="#line-322" class="ident">workbuf</a>)(<a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1011" class="ident">empty</a>.<a href="lfstack.go.html#line-41" class="ident">pop</a>())</code></span>
@@ -556,7 +556,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-400"><code><span class="comment">// putempty puts a workbuf onto the work.empty list.</span></code></span>
 <span class="codeline" id="line-401"><code><span class="comment">// Upon entry this go routine owns b. The lfstack.push relinquishes ownership.</span></code></span>
 <span class="codeline" id="line-402"><code><span class="comment">//go:nowritebarrier</span></code></span>
-<span class="codeline" id="line-403"><code><span class="keyword">func</span> <label for="r44" class="ident"><a href="../../pkg/runtime.html#name-putempty" class="ident">putempty</a></label>(<label for="r45" class="ident">b</label> *<a href="#line-322" class="ident">workbuf</a>) {</code></span>
+<span class="codeline" id="line-403"><code><span class="keyword">func</span> putempty(<label for="r45" class="ident">b</label> *<a href="#line-322" class="ident">workbuf</a>) {</code></span>
 <span class="codeline" id="line-404"><code>	<label for="r45" class="ident">b</label>.<a href="#line-339" class="ident">checkempty</a>()</code></span>
 <span class="codeline" id="line-405"><code>	<a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1011" class="ident">empty</a>.<a href="lfstack.go.html#line-25" class="ident">push</a>(&amp;<label for="r45" class="ident">b</label>.<a href="#line-317" class="ident">node</a>)</code></span>
 <span class="codeline" id="line-406"><code>}</code></span>
@@ -565,7 +565,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-409"><code><span class="comment">// putfull accepts partially full buffers so the GC can avoid competing</span></code></span>
 <span class="codeline" id="line-410"><code><span class="comment">// with the mutators for ownership of partially full buffers.</span></code></span>
 <span class="codeline" id="line-411"><code><span class="comment">//go:nowritebarrier</span></code></span>
-<span class="codeline" id="line-412"><code><span class="keyword">func</span> <label for="r46" class="ident"><a href="../../pkg/runtime.html#name-putfull" class="ident">putfull</a></label>(<label for="r47" class="ident">b</label> *<a href="#line-322" class="ident">workbuf</a>) {</code></span>
+<span class="codeline" id="line-412"><code><span class="keyword">func</span> putfull(<label for="r47" class="ident">b</label> *<a href="#line-322" class="ident">workbuf</a>) {</code></span>
 <span class="codeline" id="line-413"><code>	<label for="r47" class="ident">b</label>.<a href="#line-333" class="ident">checknonempty</a>()</code></span>
 <span class="codeline" id="line-414"><code>	<a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1010" class="ident">full</a>.<a href="lfstack.go.html#line-25" class="ident">push</a>(&amp;<label for="r47" class="ident">b</label>.<a href="#line-317" class="ident">node</a>)</code></span>
 <span class="codeline" id="line-415"><code>}</code></span>
@@ -573,7 +573,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-417"><code><span class="comment">// trygetfull tries to get a full or partially empty workbuffer.</span></code></span>
 <span class="codeline" id="line-418"><code><span class="comment">// If one is not immediately available return nil</span></code></span>
 <span class="codeline" id="line-419"><code><span class="comment">//go:nowritebarrier</span></code></span>
-<span class="codeline" id="line-420"><code><span class="keyword">func</span> <label for="r48" class="ident"><a href="../../pkg/runtime.html#name-trygetfull" class="ident">trygetfull</a></label>() *<a href="#line-322" class="ident">workbuf</a> {</code></span>
+<span class="codeline" id="line-420"><code><span class="keyword">func</span> trygetfull() *<a href="#line-322" class="ident">workbuf</a> {</code></span>
 <span class="codeline" id="line-421"><code>	<label for="r49" class="ident">b</label> := (*<a href="#line-322" class="ident">workbuf</a>)(<a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1010" class="ident">full</a>.<a href="lfstack.go.html#line-41" class="ident">pop</a>())</code></span>
 <span class="codeline" id="line-422"><code>	<span class="keyword">if</span> <label for="r49" class="ident">b</label> != <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a> {</code></span>
 <span class="codeline" id="line-423"><code>		<label for="r49" class="ident">b</label>.<a href="#line-333" class="ident">checknonempty</a>()</code></span>
@@ -583,7 +583,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-427"><code>}</code></span>
 <span class="codeline" id="line-428"><code></code></span>
 <span class="codeline" id="line-429"><code><span class="comment">//go:nowritebarrier</span></code></span>
-<span class="codeline" id="line-430"><code><span class="keyword">func</span> <label for="r50" class="ident"><a href="../../pkg/runtime.html#name-handoff" class="ident">handoff</a></label>(<label for="r51" class="ident">b</label> *<a href="#line-322" class="ident">workbuf</a>) *<a href="#line-322" class="ident">workbuf</a> {</code></span>
+<span class="codeline" id="line-430"><code><span class="keyword">func</span> handoff(<label for="r51" class="ident">b</label> *<a href="#line-322" class="ident">workbuf</a>) *<a href="#line-322" class="ident">workbuf</a> {</code></span>
 <span class="codeline" id="line-431"><code>	<span class="comment">// Make new buffer with half of b's pointers.</span></code></span>
 <span class="codeline" id="line-432"><code>	<label for="r52" class="ident">b1</label> := <a href="#line-348" class="ident">getempty</a>()</code></span>
 <span class="codeline" id="line-433"><code>	<label for="r53" class="ident">n</label> := <label for="r51" class="ident">b</label>.<a href="#line-318" class="ident">nobj</a> / <span class="lit-number">2</span></code></span>
@@ -599,7 +599,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-443"><code><span class="comment">// prepareFreeWorkbufs moves busy workbuf spans to free list so they</span></code></span>
 <span class="codeline" id="line-444"><code><span class="comment">// can be freed to the heap. This must only be called when all</span></code></span>
 <span class="codeline" id="line-445"><code><span class="comment">// workbufs are on the empty list.</span></code></span>
-<span class="codeline" id="line-446"><code><span class="keyword">func</span> <label for="r54" class="ident"><a href="../../pkg/runtime.html#name-prepareFreeWorkbufs" class="ident">prepareFreeWorkbufs</a></label>() {</code></span>
+<span class="codeline" id="line-446"><code><span class="keyword">func</span> prepareFreeWorkbufs() {</code></span>
 <span class="codeline" id="line-447"><code>	<a href="lock_futex.go.html#line-46" class="ident">lock</a>(&amp;<a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1014" class="ident">wbufSpans</a>.<a href="mgc.go.html#line-1015" class="ident">lock</a>)</code></span>
 <span class="codeline" id="line-448"><code>	<span class="keyword">if</span> <a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1010" class="ident">full</a> != <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-449"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"cannot free workbufs when work.full != 0"</span>)</code></span>
@@ -614,7 +614,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-458"><code></code></span>
 <span class="codeline" id="line-459"><code><span class="comment">// freeSomeWbufs frees some workbufs back to the heap and returns</span></code></span>
 <span class="codeline" id="line-460"><code><span class="comment">// true if it should be called again to free more.</span></code></span>
-<span class="codeline" id="line-461"><code><span class="keyword">func</span> <label for="r55" class="ident"><a href="../../pkg/runtime.html#name-freeSomeWbufs" class="ident">freeSomeWbufs</a></label>(<label for="r56" class="ident">preemptible</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-461"><code><span class="keyword">func</span> freeSomeWbufs(<label for="r56" class="ident">preemptible</label> <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-462"><code>	<span class="keyword">const</span> <label for="r57" class="ident">batchSize</label> = <span class="lit-number">64</span> <span class="comment">// ~1–2 µs per span.</span></code></span>
 <span class="codeline" id="line-463"><code>	<a href="lock_futex.go.html#line-46" class="ident">lock</a>(&amp;<a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1014" class="ident">wbufSpans</a>.<a href="mgc.go.html#line-1015" class="ident">lock</a>)</code></span>
 <span class="codeline" id="line-464"><code>	<span class="keyword">if</span> <a href="mgc.go.html#line-251" class="ident">gcphase</a> != <a href="mgc.go.html#line-271" class="ident">_GCoff</a> || <a href="mgc.go.html#line-1009" class="ident">work</a>.<a href="mgc.go.html#line-1014" class="ident">wbufSpans</a>.<a href="mgc.go.html#line-1018" class="ident">free</a>.<a href="mheap.go.html#line-1576" class="ident">isEmpty</a>() {</code></span>

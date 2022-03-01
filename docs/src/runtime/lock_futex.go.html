@@ -141,13 +141,13 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-23"><code><span class="comment">//		If any procs are sleeping on addr, wake up at most cnt.</span></code></span>
 <span class="codeline" id="line-24"><code></code></span>
 <span class="codeline" id="line-25"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-26"><code>	<a href="../../pkg/runtime.html#name-mutex_unlocked" class="ident">mutex_unlocked</a> = <span class="lit-number">0</span></code></span>
-<span class="codeline" id="line-27"><code>	<a href="../../pkg/runtime.html#name-mutex_locked" class="ident">mutex_locked</a>   = <span class="lit-number">1</span></code></span>
-<span class="codeline" id="line-28"><code>	<a href="../../pkg/runtime.html#name-mutex_sleeping" class="ident">mutex_sleeping</a> = <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-26"><code>	mutex_unlocked = <span class="lit-number">0</span></code></span>
+<span class="codeline" id="line-27"><code>	mutex_locked   = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-28"><code>	mutex_sleeping = <span class="lit-number">2</span></code></span>
 <span class="codeline" id="line-29"><code></code></span>
-<span class="codeline" id="line-30"><code>	<a href="../../pkg/runtime.html#name-active_spin" class="ident">active_spin</a>     = <span class="lit-number">4</span></code></span>
-<span class="codeline" id="line-31"><code>	<a href="../../pkg/runtime.html#name-active_spin_cnt" class="ident">active_spin_cnt</a> = <span class="lit-number">30</span></code></span>
-<span class="codeline" id="line-32"><code>	<a href="../../pkg/runtime.html#name-passive_spin" class="ident">passive_spin</a>    = <span class="lit-number">1</span></code></span>
+<span class="codeline" id="line-30"><code>	active_spin     = <span class="lit-number">4</span></code></span>
+<span class="codeline" id="line-31"><code>	active_spin_cnt = <span class="lit-number">30</span></code></span>
+<span class="codeline" id="line-32"><code>	passive_spin    = <span class="lit-number">1</span></code></span>
 <span class="codeline" id="line-33"><code>)</code></span>
 <span class="codeline" id="line-34"><code></code></span>
 <span class="codeline" id="line-35"><code><span class="comment">// Possible lock states are mutex_unlocked, mutex_locked and mutex_sleeping.</span></code></span>
@@ -157,15 +157,15 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-39"><code></code></span>
 <span class="codeline" id="line-40"><code><span class="comment">// We use the uintptr mutex.key and note.key as a uint32.</span></code></span>
 <span class="codeline" id="line-41"><code><span class="comment">//go:nosplit</span></code></span>
-<span class="codeline" id="line-42"><code><span class="keyword">func</span> <label for="r0" class="ident"><a href="../../pkg/runtime.html#name-key32" class="ident">key32</a></label>(<label for="r1" class="ident">p</label> *<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> {</code></span>
+<span class="codeline" id="line-42"><code><span class="keyword">func</span> key32(<label for="r1" class="ident">p</label> *<a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) *<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a> {</code></span>
 <span class="codeline" id="line-43"><code>	<span class="keyword">return</span> (*<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>)(<a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(<label for="r1" class="ident">p</label>))</code></span>
 <span class="codeline" id="line-44"><code>}</code></span>
 <span class="codeline" id="line-45"><code></code></span>
-<span class="codeline" id="line-46"><code><span class="keyword">func</span> <label for="r2" class="ident"><a href="../../pkg/runtime.html#name-lock" class="ident">lock</a></label>(<label for="r3" class="ident">l</label> *<a href="runtime2.go.html#line-162" class="ident">mutex</a>) {</code></span>
+<span class="codeline" id="line-46"><code><span class="keyword">func</span> lock(<label for="r3" class="ident">l</label> *<a href="runtime2.go.html#line-162" class="ident">mutex</a>) {</code></span>
 <span class="codeline" id="line-47"><code>	<a href="lockrank_off.go.html#line-21" class="ident">lockWithRank</a>(<label for="r3" class="ident">l</label>, <a href="lockrank_off.go.html#line-17" class="ident">getLockRank</a>(<label for="r3" class="ident">l</label>))</code></span>
 <span class="codeline" id="line-48"><code>}</code></span>
 <span class="codeline" id="line-49"><code></code></span>
-<span class="codeline" id="line-50"><code><span class="keyword">func</span> <label for="r4" class="ident"><a href="../../pkg/runtime.html#name-lock2" class="ident">lock2</a></label>(<label for="r5" class="ident">l</label> *<a href="runtime2.go.html#line-162" class="ident">mutex</a>) {</code></span>
+<span class="codeline" id="line-50"><code><span class="keyword">func</span> lock2(<label for="r5" class="ident">l</label> *<a href="runtime2.go.html#line-162" class="ident">mutex</a>) {</code></span>
 <span class="codeline" id="line-51"><code>	<label for="r6" class="ident">gp</label> := <a href="stubs.go.html#line-18" class="ident">getg</a>()</code></span>
 <span class="codeline" id="line-52"><code></code></span>
 <span class="codeline" id="line-53"><code>	<span class="keyword">if</span> <label for="r6" class="ident">gp</label>.<a href="runtime2.go.html#line-418" class="ident">m</a>.<a href="runtime2.go.html#line-507" class="ident">locks</a> &lt; <span class="lit-number">0</span> {</code></span>
@@ -225,11 +225,11 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-107"><code>	}</code></span>
 <span class="codeline" id="line-108"><code>}</code></span>
 <span class="codeline" id="line-109"><code></code></span>
-<span class="codeline" id="line-110"><code><span class="keyword">func</span> <label for="r12" class="ident"><a href="../../pkg/runtime.html#name-unlock" class="ident">unlock</a></label>(<label for="r13" class="ident">l</label> *<a href="runtime2.go.html#line-162" class="ident">mutex</a>) {</code></span>
+<span class="codeline" id="line-110"><code><span class="keyword">func</span> unlock(<label for="r13" class="ident">l</label> *<a href="runtime2.go.html#line-162" class="ident">mutex</a>) {</code></span>
 <span class="codeline" id="line-111"><code>	<a href="lockrank_off.go.html#line-30" class="ident">unlockWithRank</a>(<label for="r13" class="ident">l</label>)</code></span>
 <span class="codeline" id="line-112"><code>}</code></span>
 <span class="codeline" id="line-113"><code></code></span>
-<span class="codeline" id="line-114"><code><span class="keyword">func</span> <label for="r14" class="ident"><a href="../../pkg/runtime.html#name-unlock2" class="ident">unlock2</a></label>(<label for="r15" class="ident">l</label> *<a href="runtime2.go.html#line-162" class="ident">mutex</a>) {</code></span>
+<span class="codeline" id="line-114"><code><span class="keyword">func</span> unlock2(<label for="r15" class="ident">l</label> *<a href="runtime2.go.html#line-162" class="ident">mutex</a>) {</code></span>
 <span class="codeline" id="line-115"><code>	<label for="r16" class="ident">v</label> := <a href="../../pkg/runtime/internal/atomic.html" class="ident i0">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-60" class="ident">Xchg</a>(<a href="#line-42" class="ident">key32</a>(&amp;<label for="r15" class="ident">l</label>.<a href="runtime2.go.html#line-168" class="ident">key</a>), <a href="#line-26" class="ident">mutex_unlocked</a>)</code></span>
 <span class="codeline" id="line-116"><code>	<span class="keyword">if</span> <label for="r16" class="ident">v</label> == <a href="#line-26" class="ident">mutex_unlocked</a> {</code></span>
 <span class="codeline" id="line-117"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"unlock of unlocked lock"</span>)</code></span>
@@ -249,11 +249,11 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-131"><code>}</code></span>
 <span class="codeline" id="line-132"><code></code></span>
 <span class="codeline" id="line-133"><code><span class="comment">// One-time notifications.</span></code></span>
-<span class="codeline" id="line-134"><code><span class="keyword">func</span> <label for="r18" class="ident"><a href="../../pkg/runtime.html#name-noteclear" class="ident">noteclear</a></label>(<label for="r19" class="ident">n</label> *<a href="runtime2.go.html#line-191" class="ident">note</a>) {</code></span>
+<span class="codeline" id="line-134"><code><span class="keyword">func</span> noteclear(<label for="r19" class="ident">n</label> *<a href="runtime2.go.html#line-191" class="ident">note</a>) {</code></span>
 <span class="codeline" id="line-135"><code>	<label for="r19" class="ident">n</label>.<a href="runtime2.go.html#line-195" class="ident">key</a> = <span class="lit-number">0</span></code></span>
 <span class="codeline" id="line-136"><code>}</code></span>
 <span class="codeline" id="line-137"><code></code></span>
-<span class="codeline" id="line-138"><code><span class="keyword">func</span> <label for="r20" class="ident"><a href="../../pkg/runtime.html#name-notewakeup" class="ident">notewakeup</a></label>(<label for="r21" class="ident">n</label> *<a href="runtime2.go.html#line-191" class="ident">note</a>) {</code></span>
+<span class="codeline" id="line-138"><code><span class="keyword">func</span> notewakeup(<label for="r21" class="ident">n</label> *<a href="runtime2.go.html#line-191" class="ident">note</a>) {</code></span>
 <span class="codeline" id="line-139"><code>	<label for="r22" class="ident">old</label> := <a href="../../pkg/runtime/internal/atomic.html" class="ident i0">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-60" class="ident">Xchg</a>(<a href="#line-42" class="ident">key32</a>(&amp;<label for="r21" class="ident">n</label>.<a href="runtime2.go.html#line-195" class="ident">key</a>), <span class="lit-number">1</span>)</code></span>
 <span class="codeline" id="line-140"><code>	<span class="keyword">if</span> <label for="r22" class="ident">old</label> != <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-141"><code>		<a href="../../pkg/builtin.html#name-print" class="ident">print</a>(<span class="lit-string">"notewakeup - double wakeup ("</span>, <label for="r22" class="ident">old</label>, <span class="lit-string">")\n"</span>)</code></span>
@@ -262,7 +262,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-144"><code>	<a href="os_linux.go.html#line-55" class="ident">futexwakeup</a>(<a href="#line-42" class="ident">key32</a>(&amp;<label for="r21" class="ident">n</label>.<a href="runtime2.go.html#line-195" class="ident">key</a>), <span class="lit-number">1</span>)</code></span>
 <span class="codeline" id="line-145"><code>}</code></span>
 <span class="codeline" id="line-146"><code></code></span>
-<span class="codeline" id="line-147"><code><span class="keyword">func</span> <label for="r23" class="ident"><a href="../../pkg/runtime.html#name-notesleep" class="ident">notesleep</a></label>(<label for="r24" class="ident">n</label> *<a href="runtime2.go.html#line-191" class="ident">note</a>) {</code></span>
+<span class="codeline" id="line-147"><code><span class="keyword">func</span> notesleep(<label for="r24" class="ident">n</label> *<a href="runtime2.go.html#line-191" class="ident">note</a>) {</code></span>
 <span class="codeline" id="line-148"><code>	<label for="r25" class="ident">gp</label> := <a href="stubs.go.html#line-18" class="ident">getg</a>()</code></span>
 <span class="codeline" id="line-149"><code>	<span class="keyword">if</span> <label for="r25" class="ident">gp</label> != <label for="r25" class="ident">gp</label>.<a href="runtime2.go.html#line-418" class="ident">m</a>.<a href="runtime2.go.html#line-487" class="ident">g0</a> {</code></span>
 <span class="codeline" id="line-150"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"notesleep not on g0"</span>)</code></span>
@@ -287,7 +287,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-169"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-170"><code><span class="comment">//go:nosplit</span></code></span>
 <span class="codeline" id="line-171"><code><span class="comment">//go:nowritebarrier</span></code></span>
-<span class="codeline" id="line-172"><code><span class="keyword">func</span> <label for="r27" class="ident"><a href="../../pkg/runtime.html#name-notetsleep_internal" class="ident">notetsleep_internal</a></label>(<label for="r28" class="ident">n</label> *<a href="runtime2.go.html#line-191" class="ident">note</a>, <label for="r29" class="ident">ns</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-172"><code><span class="keyword">func</span> notetsleep_internal(<label for="r28" class="ident">n</label> *<a href="runtime2.go.html#line-191" class="ident">note</a>, <label for="r29" class="ident">ns</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-173"><code>	<label for="r30" class="ident">gp</label> := <a href="stubs.go.html#line-18" class="ident">getg</a>()</code></span>
 <span class="codeline" id="line-174"><code></code></span>
 <span class="codeline" id="line-175"><code>	<span class="keyword">if</span> <label for="r29" class="ident">ns</label> &lt; <span class="lit-number">0</span> {</code></span>
@@ -333,7 +333,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-215"><code>	<span class="keyword">return</span> <a href="../../pkg/runtime/internal/atomic.html" class="ident i0">atomic</a>.<a href="internal/atomic/atomic_amd64.go.html#line-16" class="ident">Load</a>(<a href="#line-42" class="ident">key32</a>(&amp;<label for="r28" class="ident">n</label>.<a href="runtime2.go.html#line-195" class="ident">key</a>)) != <span class="lit-number">0</span></code></span>
 <span class="codeline" id="line-216"><code>}</code></span>
 <span class="codeline" id="line-217"><code></code></span>
-<span class="codeline" id="line-218"><code><span class="keyword">func</span> <label for="r33" class="ident"><a href="../../pkg/runtime.html#name-notetsleep" class="ident">notetsleep</a></label>(<label for="r34" class="ident">n</label> *<a href="runtime2.go.html#line-191" class="ident">note</a>, <label for="r35" class="ident">ns</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-218"><code><span class="keyword">func</span> notetsleep(<label for="r34" class="ident">n</label> *<a href="runtime2.go.html#line-191" class="ident">note</a>, <label for="r35" class="ident">ns</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-219"><code>	<label for="r36" class="ident">gp</label> := <a href="stubs.go.html#line-18" class="ident">getg</a>()</code></span>
 <span class="codeline" id="line-220"><code>	<span class="keyword">if</span> <label for="r36" class="ident">gp</label> != <label for="r36" class="ident">gp</label>.<a href="runtime2.go.html#line-418" class="ident">m</a>.<a href="runtime2.go.html#line-487" class="ident">g0</a> &amp;&amp; <label for="r36" class="ident">gp</label>.<a href="runtime2.go.html#line-418" class="ident">m</a>.<a href="runtime2.go.html#line-506" class="ident">preemptoff</a> != <span class="lit-string">""</span> {</code></span>
 <span class="codeline" id="line-221"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"notetsleep not on g0"</span>)</code></span>
@@ -344,7 +344,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-226"><code></code></span>
 <span class="codeline" id="line-227"><code><span class="comment">// same as runtime·notetsleep, but called on user g (not g0)</span></code></span>
 <span class="codeline" id="line-228"><code><span class="comment">// calls only nosplit functions between entersyscallblock/exitsyscall</span></code></span>
-<span class="codeline" id="line-229"><code><span class="keyword">func</span> <label for="r37" class="ident"><a href="../../pkg/runtime.html#name-notetsleepg" class="ident">notetsleepg</a></label>(<label for="r38" class="ident">n</label> *<a href="runtime2.go.html#line-191" class="ident">note</a>, <label for="r39" class="ident">ns</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-229"><code><span class="keyword">func</span> notetsleepg(<label for="r38" class="ident">n</label> *<a href="runtime2.go.html#line-191" class="ident">note</a>, <label for="r39" class="ident">ns</label> <a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-230"><code>	<label for="r40" class="ident">gp</label> := <a href="stubs.go.html#line-18" class="ident">getg</a>()</code></span>
 <span class="codeline" id="line-231"><code>	<span class="keyword">if</span> <label for="r40" class="ident">gp</label> == <label for="r40" class="ident">gp</label>.<a href="runtime2.go.html#line-418" class="ident">m</a>.<a href="runtime2.go.html#line-487" class="ident">g0</a> {</code></span>
 <span class="codeline" id="line-232"><code>		<a href="panic.go.html#line-1107" class="ident">throw</a>(<span class="lit-string">"notetsleepg on g0"</span>)</code></span>
@@ -356,11 +356,11 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-238"><code>	<span class="keyword">return</span> <label for="r41" class="ident">ok</label></code></span>
 <span class="codeline" id="line-239"><code>}</code></span>
 <span class="codeline" id="line-240"><code></code></span>
-<span class="codeline" id="line-241"><code><span class="keyword">func</span> <label for="r42" class="ident"><a href="../../pkg/runtime.html#name-beforeIdle" class="ident">beforeIdle</a></label>(<a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) (*<a href="runtime2.go.html#line-404" class="ident">g</a>, <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
+<span class="codeline" id="line-241"><code><span class="keyword">func</span> beforeIdle(<a href="../../pkg/builtin.html#name-int64" class="ident">int64</a>) (*<a href="runtime2.go.html#line-404" class="ident">g</a>, <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a>) {</code></span>
 <span class="codeline" id="line-242"><code>	<span class="keyword">return</span> <a href="../../pkg/builtin.html#name-nil" class="ident">nil</a>, <a href="../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
 <span class="codeline" id="line-243"><code>}</code></span>
 <span class="codeline" id="line-244"><code></code></span>
-<span class="codeline" id="line-245"><code><span class="keyword">func</span> <label for="r43" class="ident"><a href="../../pkg/runtime.html#name-checkTimeouts" class="ident">checkTimeouts</a></label>() {}</code></span>
+<span class="codeline" id="line-245"><code><span class="keyword">func</span> checkTimeouts() {}</code></span>
 </pre><pre id="footer">
 <table><tr><td><img src="../../png/go101-twitter.png"></td>
 <td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.4.1</i>. (GOOS=linux GOARCH=amd64)

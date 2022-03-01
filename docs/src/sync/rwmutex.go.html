@@ -107,7 +107,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-33"><code>	readerWait  <a href="../../pkg/builtin.html#name-int32" class="ident">int32</a>  <span class="comment">// number of departing readers</span></code></span>
 <span class="codeline" id="line-34"><code>}</code></span>
 <span class="codeline" id="line-35"><code></code></span>
-<span class="codeline" id="line-36"><code><span class="keyword">const</span> <a href="../../pkg/sync.html#name-rwmutexMaxReaders" class="ident">rwmutexMaxReaders</a> = <span class="lit-number">1</span> &lt;&lt; <span class="lit-number">30</span></code></span>
+<span class="codeline" id="line-36"><code><span class="keyword">const</span> rwmutexMaxReaders = <span class="lit-number">1</span> &lt;&lt; <span class="lit-number">30</span></code></span>
 <span class="codeline" id="line-37"><code></code></span>
 <span class="codeline" id="line-38"><code><span class="comment">// Happens-before relationships are indicated to the race detector via:</span></code></span>
 <span class="codeline" id="line-39"><code><span class="comment">// - Unlock  -&gt; Lock:  readerSem</span></code></span>
@@ -176,7 +176,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-102"><code><span class="comment">// Lock locks rw for writing.</span></code></span>
 <span class="codeline" id="line-103"><code><span class="comment">// If the lock is already locked for reading or writing,</span></code></span>
 <span class="codeline" id="line-104"><code><span class="comment">// Lock blocks until the lock is available.</span></code></span>
-<span class="codeline" id="line-105"><code><span class="keyword">func</span> (<label for="r8" class="ident">rw</label> *<a href="#line-28" class="ident">RWMutex</a>) <label for="r9" class="ident"><a href="../../imp/sync.RWMutex.html#name-.Lock" class="ident">Lock</a></label>() {</code></span>
+<span class="codeline" id="line-105"><code><span class="keyword">func</span> (<label for="r8" class="ident">rw</label> *<a href="#line-28" class="ident">RWMutex</a>) <label for="r9" class="ident">Lock</label>() {</code></span>
 <span class="codeline" id="line-106"><code>	<span class="keyword">if</span> <a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-13" class="ident">Enabled</a> {</code></span>
 <span class="codeline" id="line-107"><code>		_ = <label for="r8" class="ident">rw</label>.<a href="#line-29" class="ident">w</a>.<a href="mutex.go.html#line-26" class="ident">state</a></code></span>
 <span class="codeline" id="line-108"><code>		<a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-24" class="ident">Disable</a>()</code></span>
@@ -202,7 +202,7 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-128"><code><span class="comment">// As with Mutexes, a locked RWMutex is not associated with a particular</span></code></span>
 <span class="codeline" id="line-129"><code><span class="comment">// goroutine. One goroutine may RLock (Lock) a RWMutex and then</span></code></span>
 <span class="codeline" id="line-130"><code><span class="comment">// arrange for another goroutine to RUnlock (Unlock) it.</span></code></span>
-<span class="codeline" id="line-131"><code><span class="keyword">func</span> (<label for="r11" class="ident">rw</label> *<a href="#line-28" class="ident">RWMutex</a>) <label for="r12" class="ident"><a href="../../imp/sync.RWMutex.html#name-.Unlock" class="ident">Unlock</a></label>() {</code></span>
+<span class="codeline" id="line-131"><code><span class="keyword">func</span> (<label for="r11" class="ident">rw</label> *<a href="#line-28" class="ident">RWMutex</a>) <label for="r12" class="ident">Unlock</label>() {</code></span>
 <span class="codeline" id="line-132"><code>	<span class="keyword">if</span> <a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-13" class="ident">Enabled</a> {</code></span>
 <span class="codeline" id="line-133"><code>		_ = <label for="r11" class="ident">rw</label>.<a href="#line-29" class="ident">w</a>.<a href="mutex.go.html#line-26" class="ident">state</a></code></span>
 <span class="codeline" id="line-134"><code>		<a href="../../pkg/internal/race.html" class="ident i0">race</a>.<a href="../internal/race/norace.go.html#line-18" class="ident">Release</a>(<a href="../../pkg/unsafe.html" class="ident i2">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>(&amp;<label for="r11" class="ident">rw</label>.<a href="#line-31" class="ident">readerSem</a>))</code></span>
@@ -232,10 +232,10 @@ input[id=i2]:checked ~pre .i2
 <span class="codeline" id="line-158"><code>	<span class="keyword">return</span> (*<a href="#line-161" class="ident">rlocker</a>)(<label for="r15" class="ident">rw</label>)</code></span>
 <span class="codeline" id="line-159"><code>}</code></span>
 <span class="codeline" id="line-160"><code></code></span>
-<span class="codeline" id="line-161"><code><span class="keyword">type</span> <a href="../../pkg/sync.html#name-rlocker" class="ident">rlocker</a> <a href="#line-28" class="ident">RWMutex</a></code></span>
+<span class="codeline" id="line-161"><code><span class="keyword">type</span> rlocker <a href="#line-28" class="ident">RWMutex</a></code></span>
 <span class="codeline" id="line-162"><code></code></span>
-<span class="codeline" id="line-163"><code><span class="keyword">func</span> (<label for="r17" class="ident">r</label> *<a href="#line-161" class="ident">rlocker</a>) <label for="r18" class="ident"><a href="../../imp/sync.rlocker^9819c.html#name-.Lock" class="ident">Lock</a></label>()   { (*<a href="#line-28" class="ident">RWMutex</a>)(<label for="r17" class="ident">r</label>).<a href="#line-56" class="ident">RLock</a>() }</code></span>
-<span class="codeline" id="line-164"><code><span class="keyword">func</span> (<label for="r19" class="ident">r</label> *<a href="#line-161" class="ident">rlocker</a>) <label for="r20" class="ident"><a href="../../imp/sync.rlocker^9819c.html#name-.Unlock" class="ident">Unlock</a></label>() { (*<a href="#line-28" class="ident">RWMutex</a>)(<label for="r19" class="ident">r</label>).<a href="#line-75" class="ident">RUnlock</a>() }</code></span>
+<span class="codeline" id="line-163"><code><span class="keyword">func</span> (<label for="r17" class="ident">r</label> *<a href="#line-161" class="ident">rlocker</a>) <label for="r18" class="ident">Lock</label>()   { (*<a href="#line-28" class="ident">RWMutex</a>)(<label for="r17" class="ident">r</label>).<a href="#line-56" class="ident">RLock</a>() }</code></span>
+<span class="codeline" id="line-164"><code><span class="keyword">func</span> (<label for="r19" class="ident">r</label> *<a href="#line-161" class="ident">rlocker</a>) <label for="r20" class="ident">Unlock</label>() { (*<a href="#line-28" class="ident">RWMutex</a>)(<label for="r19" class="ident">r</label>).<a href="#line-75" class="ident">RUnlock</a>() }</code></span>
 </pre><pre id="footer">
 <table><tr><td><img src="../../png/go101-twitter.png"></td>
 <td>The pages are generated with <a href="https://go101.org/article/tool-golds.html"><b>Golds</b></a> <i>v0.4.1</i>. (GOOS=linux GOARCH=amd64)

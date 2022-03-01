@@ -239,10 +239,10 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-29"><code>	<label for="i1"><span class="lit-string i1">"unsafe"</span></label></code></span>
 <span class="codeline" id="line-30"><code>)</code></span>
 <span class="codeline" id="line-31"><code></code></span>
-<span class="codeline" id="line-32"><code><span class="keyword">var</span> <a href="../../pkg/runtime.html#name-sweep" class="ident">sweep</a> <a href="#line-35" class="ident">sweepdata</a></code></span>
+<span class="codeline" id="line-32"><code><span class="keyword">var</span> sweep <a href="#line-35" class="ident">sweepdata</a></code></span>
 <span class="codeline" id="line-33"><code></code></span>
 <span class="codeline" id="line-34"><code><span class="comment">// State of background sweep.</span></code></span>
-<span class="codeline" id="line-35"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-sweepdata" class="ident">sweepdata</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-35"><code><span class="keyword">type</span> sweepdata <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-36"><code>	lock    <a href="runtime2.go.html#line-162" class="ident">mutex</a></code></span>
 <span class="codeline" id="line-37"><code>	g       *<a href="runtime2.go.html#line-404" class="ident">g</a></code></span>
 <span class="codeline" id="line-38"><code>	parked  <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a></code></span>
@@ -263,11 +263,11 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-53"><code></code></span>
 <span class="codeline" id="line-54"><code><span class="comment">// sweepClass is a spanClass and one bit to represent whether we're currently</span></code></span>
 <span class="codeline" id="line-55"><code><span class="comment">// sweeping partial or full spans.</span></code></span>
-<span class="codeline" id="line-56"><code><span class="keyword">type</span> <a href="../../pkg/runtime.html#name-sweepClass" class="ident">sweepClass</a> <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
+<span class="codeline" id="line-56"><code><span class="keyword">type</span> sweepClass <a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a></code></span>
 <span class="codeline" id="line-57"><code></code></span>
 <span class="codeline" id="line-58"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-59"><code>	<a href="../../pkg/runtime.html#name-numSweepClasses" class="ident">numSweepClasses</a>            = <a href="mheap.go.html#line-535" class="ident">numSpanClasses</a> * <span class="lit-number">2</span></code></span>
-<span class="codeline" id="line-60"><code>	<a href="../../pkg/runtime.html#name-sweepClassDone" class="ident">sweepClassDone</a>  <a href="#line-56" class="ident">sweepClass</a> = <a href="#line-56" class="ident">sweepClass</a>(^<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<span class="lit-number">0</span>))</code></span>
+<span class="codeline" id="line-59"><code>	numSweepClasses            = <a href="mheap.go.html#line-535" class="ident">numSpanClasses</a> * <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-60"><code>	sweepClassDone  <a href="#line-56" class="ident">sweepClass</a> = <a href="#line-56" class="ident">sweepClass</a>(^<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>(<span class="lit-number">0</span>))</code></span>
 <span class="codeline" id="line-61"><code>)</code></span>
 <span class="codeline" id="line-62"><code></code></span>
 <span class="codeline" id="line-63"><code><span class="keyword">func</span> (<label for="r0" class="ident">s</label> *<a href="#line-56" class="ident">sweepClass</a>) <label for="r1" class="ident">load</label>() <a href="#line-56" class="ident">sweepClass</a> {</code></span>
@@ -332,7 +332,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-122"><code><span class="comment">// progress.</span></code></span>
 <span class="codeline" id="line-123"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-124"><code><span class="comment">//go:nowritebarrier</span></code></span>
-<span class="codeline" id="line-125"><code><span class="keyword">func</span> <label for="r20" class="ident"><a href="../../pkg/runtime.html#name-finishsweep_m" class="ident">finishsweep_m</a></label>() {</code></span>
+<span class="codeline" id="line-125"><code><span class="keyword">func</span> finishsweep_m() {</code></span>
 <span class="codeline" id="line-126"><code>	<a href="lockrank_off.go.html#line-59" class="ident">assertWorldStopped</a>()</code></span>
 <span class="codeline" id="line-127"><code></code></span>
 <span class="codeline" id="line-128"><code>	<span class="comment">// Sweeping must be complete before marking commences, so</span></code></span>
@@ -363,7 +363,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-153"><code>	<a href="mheap.go.html#line-2002" class="ident">nextMarkBitArenaEpoch</a>()</code></span>
 <span class="codeline" id="line-154"><code>}</code></span>
 <span class="codeline" id="line-155"><code></code></span>
-<span class="codeline" id="line-156"><code><span class="keyword">func</span> <label for="r24" class="ident"><a href="../../pkg/runtime.html#name-bgsweep" class="ident">bgsweep</a></label>(<label for="r25" class="ident">c</label> <span class="keyword">chan</span> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
+<span class="codeline" id="line-156"><code><span class="keyword">func</span> bgsweep(<label for="r25" class="ident">c</label> <span class="keyword">chan</span> <a href="../../pkg/builtin.html#name-int" class="ident">int</a>) {</code></span>
 <span class="codeline" id="line-157"><code>	<a href="#line-32" class="ident">sweep</a>.<a href="#line-37" class="ident">g</a> = <a href="stubs.go.html#line-18" class="ident">getg</a>()</code></span>
 <span class="codeline" id="line-158"><code></code></span>
 <span class="codeline" id="line-159"><code>	<a href="lockrank_off.go.html#line-14" class="ident">lockInit</a>(&amp;<a href="#line-32" class="ident">sweep</a>.<a href="#line-36" class="ident">lock</a>, <a href="lockrank.go.html#line-42" class="ident">lockRankSweep</a>)</code></span>
@@ -395,7 +395,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-185"><code></code></span>
 <span class="codeline" id="line-186"><code><span class="comment">// sweepone sweeps some unswept heap span and returns the number of pages returned</span></code></span>
 <span class="codeline" id="line-187"><code><span class="comment">// to the heap, or ^uintptr(0) if there was nothing to sweep.</span></code></span>
-<span class="codeline" id="line-188"><code><span class="keyword">func</span> <label for="r26" class="ident"><a href="../../pkg/runtime.html#name-sweepone" class="ident">sweepone</a></label>() <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a> {</code></span>
+<span class="codeline" id="line-188"><code><span class="keyword">func</span> sweepone() <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a> {</code></span>
 <span class="codeline" id="line-189"><code>	<label for="r27" class="ident">_g_</label> := <a href="stubs.go.html#line-18" class="ident">getg</a>()</code></span>
 <span class="codeline" id="line-190"><code>	<label for="r28" class="ident">sweepRatio</label> := <a href="mheap.go.html#line-221" class="ident">mheap_</a>.<a href="mheap.go.html#line-108" class="ident">sweepPagesPerByte</a> <span class="comment">// For debugging</span></code></span>
 <span class="codeline" id="line-191"><code></code></span>
@@ -487,7 +487,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-277"><code><span class="comment">// time as the sweeper runs. It may transition from true to false if a</span></code></span>
 <span class="codeline" id="line-278"><code><span class="comment">// GC runs; to prevent that the caller must be non-preemptible or must</span></code></span>
 <span class="codeline" id="line-279"><code><span class="comment">// somehow block GC progress.</span></code></span>
-<span class="codeline" id="line-280"><code><span class="keyword">func</span> <label for="r33" class="ident"><a href="../../pkg/runtime.html#name-isSweepDone" class="ident">isSweepDone</a></label>() <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-280"><code><span class="keyword">func</span> isSweepDone() <a href="../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-281"><code>	<span class="keyword">return</span> <a href="mheap.go.html#line-221" class="ident">mheap_</a>.<a href="mheap.go.html#line-68" class="ident">sweepdone</a> != <span class="lit-number">0</span></code></span>
 <span class="codeline" id="line-282"><code>}</code></span>
 <span class="codeline" id="line-283"><code></code></span>
@@ -841,7 +841,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-631"><code><span class="comment">// sweep phase between GC cycles.</span></code></span>
 <span class="codeline" id="line-632"><code><span class="comment">//</span></code></span>
 <span class="codeline" id="line-633"><code><span class="comment">// mheap_ must NOT be locked.</span></code></span>
-<span class="codeline" id="line-634"><code><span class="keyword">func</span> <label for="r79" class="ident"><a href="../../pkg/runtime.html#name-deductSweepCredit" class="ident">deductSweepCredit</a></label>(<label for="r80" class="ident">spanBytes</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r81" class="ident">callerSweepPages</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-634"><code><span class="keyword">func</span> deductSweepCredit(<label for="r80" class="ident">spanBytes</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>, <label for="r81" class="ident">callerSweepPages</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
 <span class="codeline" id="line-635"><code>	<span class="keyword">if</span> <a href="mheap.go.html#line-221" class="ident">mheap_</a>.<a href="mheap.go.html#line-108" class="ident">sweepPagesPerByte</a> == <span class="lit-number">0</span> {</code></span>
 <span class="codeline" id="line-636"><code>		<span class="comment">// Proportional sweep is done or disabled.</span></code></span>
 <span class="codeline" id="line-637"><code>		<span class="keyword">return</span></code></span>
@@ -875,7 +875,7 @@ input[id=i1]:checked ~pre .i1
 <span class="codeline" id="line-665"><code></code></span>
 <span class="codeline" id="line-666"><code><span class="comment">// clobberfree sets the memory content at x to bad content, for debugging</span></code></span>
 <span class="codeline" id="line-667"><code><span class="comment">// purposes.</span></code></span>
-<span class="codeline" id="line-668"><code><span class="keyword">func</span> <label for="r86" class="ident"><a href="../../pkg/runtime.html#name-clobberfree" class="ident">clobberfree</a></label>(<label for="r87" class="ident">x</label> <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r88" class="ident">size</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
+<span class="codeline" id="line-668"><code><span class="keyword">func</span> clobberfree(<label for="r87" class="ident">x</label> <a href="../../pkg/unsafe.html" class="ident i1">unsafe</a>.<a href="../../pkg/unsafe.html#name-Pointer" class="ident">Pointer</a>, <label for="r88" class="ident">size</label> <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>) {</code></span>
 <span class="codeline" id="line-669"><code>	<span class="comment">// size (span.elemsize) is always a multiple of 4.</span></code></span>
 <span class="codeline" id="line-670"><code>	<span class="keyword">for</span> <label for="r89" class="ident">i</label> := <a href="../../pkg/builtin.html#name-uintptr" class="ident">uintptr</a>(<span class="lit-number">0</span>); <label for="r89" class="ident">i</label> &lt; <label for="r88" class="ident">size</label>; <label for="r89" class="ident">i</label> += <span class="lit-number">4</span> {</code></span>
 <span class="codeline" id="line-671"><code>		*(*<a href="../../pkg/builtin.html#name-uint32" class="ident">uint32</a>)(<a href="stubs.go.html#line-11" class="ident">add</a>(<label for="r87" class="ident">x</label>, <label for="r89" class="ident">i</label>)) = <span class="lit-number">0xdeadbeef</span></code></span>

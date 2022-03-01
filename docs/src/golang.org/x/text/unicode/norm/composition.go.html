@@ -325,31 +325,31 @@ input[id=i0]:checked ~pre .i0
 <span class="codeline" id="line-7"><code><span class="keyword">import</span> <label for="i0"><span class="lit-string i0">"unicode/utf8"</span></label></code></span>
 <span class="codeline" id="line-8"><code></code></span>
 <span class="codeline" id="line-9"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-10"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-maxNonStarters" class="ident">maxNonStarters</a> = <span class="lit-number">30</span></code></span>
+<span class="codeline" id="line-10"><code>	maxNonStarters = <span class="lit-number">30</span></code></span>
 <span class="codeline" id="line-11"><code>	<span class="comment">// The maximum number of characters needed for a buffer is</span></code></span>
 <span class="codeline" id="line-12"><code><span class="comment">	// maxNonStarters + 1 for the starter + 1 for the GCJ</span></code></span>
-<span class="codeline" id="line-13"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-maxBufferSize" class="ident">maxBufferSize</a>    = <a href="#line-10" class="ident">maxNonStarters</a> + <span class="lit-number">2</span></code></span>
-<span class="codeline" id="line-14"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-maxNFCExpansion" class="ident">maxNFCExpansion</a>  = <span class="lit-number">3</span>  <span class="comment">// NFC(0x1D160)</span></code></span>
-<span class="codeline" id="line-15"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-maxNFKCExpansion" class="ident">maxNFKCExpansion</a> = <span class="lit-number">18</span> <span class="comment">// NFKC(0xFDFA)</span></code></span>
+<span class="codeline" id="line-13"><code>	maxBufferSize    = <a href="#line-10" class="ident">maxNonStarters</a> + <span class="lit-number">2</span></code></span>
+<span class="codeline" id="line-14"><code>	maxNFCExpansion  = <span class="lit-number">3</span>  <span class="comment">// NFC(0x1D160)</span></code></span>
+<span class="codeline" id="line-15"><code>	maxNFKCExpansion = <span class="lit-number">18</span> <span class="comment">// NFKC(0xFDFA)</span></code></span>
 <span class="codeline" id="line-16"><code></code></span>
-<span class="codeline" id="line-17"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-maxByteBufferSize" class="ident">maxByteBufferSize</a> = <a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-19" class="ident">UTFMax</a> * <a href="#line-13" class="ident">maxBufferSize</a> <span class="comment">// 128</span></code></span>
+<span class="codeline" id="line-17"><code>	maxByteBufferSize = <a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-19" class="ident">UTFMax</a> * <a href="#line-13" class="ident">maxBufferSize</a> <span class="comment">// 128</span></code></span>
 <span class="codeline" id="line-18"><code>)</code></span>
 <span class="codeline" id="line-19"><code></code></span>
 <span class="codeline" id="line-20"><code><span class="comment">// ssState is used for reporting the segment state after inserting a rune.</span></code></span>
 <span class="codeline" id="line-21"><code><span class="comment">// It is returned by streamSafe.next.</span></code></span>
-<span class="codeline" id="line-22"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-ssState" class="ident">ssState</a> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-22"><code><span class="keyword">type</span> ssState <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
 <span class="codeline" id="line-23"><code></code></span>
 <span class="codeline" id="line-24"><code><span class="keyword">const</span> (</code></span>
 <span class="codeline" id="line-25"><code>	<span class="comment">// Indicates a rune was successfully added to the segment.</span></code></span>
-<span class="codeline" id="line-26"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-ssSuccess" class="ident">ssSuccess</a> <a href="#line-22" class="ident">ssState</a> = <a href="../../../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-26"><code>	ssSuccess <a href="#line-22" class="ident">ssState</a> = <a href="../../../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
 <span class="codeline" id="line-27"><code>	<span class="comment">// Indicates a rune starts a new segment and should not be added.</span></code></span>
-<span class="codeline" id="line-28"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-ssStarter" class="ident">ssStarter</a></code></span>
+<span class="codeline" id="line-28"><code>	ssStarter</code></span>
 <span class="codeline" id="line-29"><code>	<span class="comment">// Indicates a rune caused a segment overflow and a CGJ should be inserted.</span></code></span>
-<span class="codeline" id="line-30"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-ssOverflow" class="ident">ssOverflow</a></code></span>
+<span class="codeline" id="line-30"><code>	ssOverflow</code></span>
 <span class="codeline" id="line-31"><code>)</code></span>
 <span class="codeline" id="line-32"><code></code></span>
 <span class="codeline" id="line-33"><code><span class="comment">// streamSafe implements the policy of when a CGJ should be inserted.</span></code></span>
-<span class="codeline" id="line-34"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-streamSafe" class="ident">streamSafe</a> <a href="../../../../../../pkg/builtin.html#name-uint8" class="ident">uint8</a></code></span>
+<span class="codeline" id="line-34"><code><span class="keyword">type</span> streamSafe <a href="../../../../../../pkg/builtin.html#name-uint8" class="ident">uint8</a></code></span>
 <span class="codeline" id="line-35"><code></code></span>
 <span class="codeline" id="line-36"><code><span class="comment">// first inserts the first rune of a segment. It is a faster version of next if</span></code></span>
 <span class="codeline" id="line-37"><code><span class="comment">// it is known p represents the first rune in a segment.</span></code></span>
@@ -413,7 +413,7 @@ input[id=i0]:checked ~pre .i0
 <span class="codeline" id="line-95"><code><span class="comment">// be used to recombine characters.  Note that the byte buffer does not hold</span></code></span>
 <span class="codeline" id="line-96"><code><span class="comment">// the UTF-8 characters in order.  Only the rune array is maintained in sorted</span></code></span>
 <span class="codeline" id="line-97"><code><span class="comment">// order. flush writes the resulting segment to a byte array.</span></code></span>
-<span class="codeline" id="line-98"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-reorderBuffer" class="ident">reorderBuffer</a> <span class="keyword">struct</span> {</code></span>
+<span class="codeline" id="line-98"><code><span class="keyword">type</span> reorderBuffer <span class="keyword">struct</span> {</code></span>
 <span class="codeline" id="line-99"><code>	rune  [<a href="#line-13" class="ident">maxBufferSize</a>]<a href="forminfo.go.html#line-40" class="ident">Properties</a> <span class="comment">// Per character info.</span></code></span>
 <span class="codeline" id="line-100"><code>	byte  [<a href="#line-17" class="ident">maxByteBufferSize</a>]<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>   <span class="comment">// UTF-8 buffer. Referenced by runeInfo.pos.</span></code></span>
 <span class="codeline" id="line-101"><code>	nbyte <a href="../../../../../../pkg/builtin.html#name-uint8" class="ident">uint8</a>                     <span class="comment">// Number or bytes.</span></code></span>
@@ -464,7 +464,7 @@ input[id=i0]:checked ~pre .i0
 <span class="codeline" id="line-146"><code>}</code></span>
 <span class="codeline" id="line-147"><code></code></span>
 <span class="codeline" id="line-148"><code><span class="comment">// appendFlush appends the normalized segment to rb.out.</span></code></span>
-<span class="codeline" id="line-149"><code><span class="keyword">func</span> <label for="r30" class="ident"><a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-appendFlush" class="ident">appendFlush</a></label>(<label for="r31" class="ident">rb</label> *<a href="#line-98" class="ident">reorderBuffer</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-149"><code><span class="keyword">func</span> appendFlush(<label for="r31" class="ident">rb</label> *<a href="#line-98" class="ident">reorderBuffer</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-150"><code>	<span class="keyword">for</span> <label for="r32" class="ident">i</label> := <span class="lit-number">0</span>; <label for="r32" class="ident">i</label> &lt; <label for="r31" class="ident">rb</label>.<a href="#line-103" class="ident">nrune</a>; <label for="r32" class="ident">i</label>++ {</code></span>
 <span class="codeline" id="line-151"><code>		<label for="r33" class="ident">start</label> := <label for="r31" class="ident">rb</label>.<a href="#line-99" class="ident">rune</a>[<label for="r32" class="ident">i</label>].<a href="forminfo.go.html#line-41" class="ident">pos</a></code></span>
 <span class="codeline" id="line-152"><code>		<label for="r34" class="ident">end</label> := <label for="r33" class="ident">start</label> + <label for="r31" class="ident">rb</label>.<a href="#line-99" class="ident">rune</a>[<label for="r32" class="ident">i</label>].<a href="forminfo.go.html#line-42" class="ident">size</a></code></span>
@@ -521,12 +521,12 @@ input[id=i0]:checked ~pre .i0
 <span class="codeline" id="line-203"><code></code></span>
 <span class="codeline" id="line-204"><code><span class="comment">// insertErr is an error code returned by insert. Using this type instead</span></code></span>
 <span class="codeline" id="line-205"><code><span class="comment">// of error improves performance up to 20% for many of the benchmarks.</span></code></span>
-<span class="codeline" id="line-206"><code><span class="keyword">type</span> <a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-insertErr" class="ident">insertErr</a> <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
+<span class="codeline" id="line-206"><code><span class="keyword">type</span> insertErr <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a></code></span>
 <span class="codeline" id="line-207"><code></code></span>
 <span class="codeline" id="line-208"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-209"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-iSuccess" class="ident">iSuccess</a> <a href="#line-206" class="ident">insertErr</a> = -<a href="../../../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
-<span class="codeline" id="line-210"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-iShortDst" class="ident">iShortDst</a></code></span>
-<span class="codeline" id="line-211"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-iShortSrc" class="ident">iShortSrc</a></code></span>
+<span class="codeline" id="line-209"><code>	iSuccess <a href="#line-206" class="ident">insertErr</a> = -<a href="../../../../../../pkg/builtin.html#name-iota" class="ident">iota</a></code></span>
+<span class="codeline" id="line-210"><code>	iShortDst</code></span>
+<span class="codeline" id="line-211"><code>	iShortSrc</code></span>
 <span class="codeline" id="line-212"><code>)</code></span>
 <span class="codeline" id="line-213"><code></code></span>
 <span class="codeline" id="line-214"><code><span class="comment">// insertFlush inserts the given rune in the buffer ordered by CCC.</span></code></span>
@@ -624,34 +624,34 @@ input[id=i0]:checked ~pre .i0
 <span class="codeline" id="line-306"><code></code></span>
 <span class="codeline" id="line-307"><code><span class="comment">// For Hangul we combine algorithmically, instead of using tables.</span></code></span>
 <span class="codeline" id="line-308"><code><span class="keyword">const</span> (</code></span>
-<span class="codeline" id="line-309"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-hangulBase" class="ident">hangulBase</a>  = <span class="lit-number">0xAC00</span> <span class="comment">// UTF-8(hangulBase) -&gt; EA B0 80</span></code></span>
-<span class="codeline" id="line-310"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-hangulBase0" class="ident">hangulBase0</a> = <span class="lit-number">0xEA</span></code></span>
-<span class="codeline" id="line-311"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-hangulBase1" class="ident">hangulBase1</a> = <span class="lit-number">0xB0</span></code></span>
-<span class="codeline" id="line-312"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-hangulBase2" class="ident">hangulBase2</a> = <span class="lit-number">0x80</span></code></span>
+<span class="codeline" id="line-309"><code>	hangulBase  = <span class="lit-number">0xAC00</span> <span class="comment">// UTF-8(hangulBase) -&gt; EA B0 80</span></code></span>
+<span class="codeline" id="line-310"><code>	hangulBase0 = <span class="lit-number">0xEA</span></code></span>
+<span class="codeline" id="line-311"><code>	hangulBase1 = <span class="lit-number">0xB0</span></code></span>
+<span class="codeline" id="line-312"><code>	hangulBase2 = <span class="lit-number">0x80</span></code></span>
 <span class="codeline" id="line-313"><code></code></span>
-<span class="codeline" id="line-314"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-hangulEnd" class="ident">hangulEnd</a>  = <a href="#line-309" class="ident">hangulBase</a> + <a href="#line-331" class="ident">jamoLVTCount</a> <span class="comment">// UTF-8(0xD7A4) -&gt; ED 9E A4</span></code></span>
-<span class="codeline" id="line-315"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-hangulEnd0" class="ident">hangulEnd0</a> = <span class="lit-number">0xED</span></code></span>
-<span class="codeline" id="line-316"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-hangulEnd1" class="ident">hangulEnd1</a> = <span class="lit-number">0x9E</span></code></span>
-<span class="codeline" id="line-317"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-hangulEnd2" class="ident">hangulEnd2</a> = <span class="lit-number">0xA4</span></code></span>
+<span class="codeline" id="line-314"><code>	hangulEnd  = <a href="#line-309" class="ident">hangulBase</a> + <a href="#line-331" class="ident">jamoLVTCount</a> <span class="comment">// UTF-8(0xD7A4) -&gt; ED 9E A4</span></code></span>
+<span class="codeline" id="line-315"><code>	hangulEnd0 = <span class="lit-number">0xED</span></code></span>
+<span class="codeline" id="line-316"><code>	hangulEnd1 = <span class="lit-number">0x9E</span></code></span>
+<span class="codeline" id="line-317"><code>	hangulEnd2 = <span class="lit-number">0xA4</span></code></span>
 <span class="codeline" id="line-318"><code></code></span>
-<span class="codeline" id="line-319"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-jamoLBase" class="ident">jamoLBase</a>  = <span class="lit-number">0x1100</span> <span class="comment">// UTF-8(jamoLBase) -&gt; E1 84 00</span></code></span>
-<span class="codeline" id="line-320"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-jamoLBase0" class="ident">jamoLBase0</a> = <span class="lit-number">0xE1</span></code></span>
-<span class="codeline" id="line-321"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-jamoLBase1" class="ident">jamoLBase1</a> = <span class="lit-number">0x84</span></code></span>
-<span class="codeline" id="line-322"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-jamoLEnd" class="ident">jamoLEnd</a>   = <span class="lit-number">0x1113</span></code></span>
-<span class="codeline" id="line-323"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-jamoVBase" class="ident">jamoVBase</a>  = <span class="lit-number">0x1161</span></code></span>
-<span class="codeline" id="line-324"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-jamoVEnd" class="ident">jamoVEnd</a>   = <span class="lit-number">0x1176</span></code></span>
-<span class="codeline" id="line-325"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-jamoTBase" class="ident">jamoTBase</a>  = <span class="lit-number">0x11A7</span></code></span>
-<span class="codeline" id="line-326"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-jamoTEnd" class="ident">jamoTEnd</a>   = <span class="lit-number">0x11C3</span></code></span>
+<span class="codeline" id="line-319"><code>	jamoLBase  = <span class="lit-number">0x1100</span> <span class="comment">// UTF-8(jamoLBase) -&gt; E1 84 00</span></code></span>
+<span class="codeline" id="line-320"><code>	jamoLBase0 = <span class="lit-number">0xE1</span></code></span>
+<span class="codeline" id="line-321"><code>	jamoLBase1 = <span class="lit-number">0x84</span></code></span>
+<span class="codeline" id="line-322"><code>	jamoLEnd   = <span class="lit-number">0x1113</span></code></span>
+<span class="codeline" id="line-323"><code>	jamoVBase  = <span class="lit-number">0x1161</span></code></span>
+<span class="codeline" id="line-324"><code>	jamoVEnd   = <span class="lit-number">0x1176</span></code></span>
+<span class="codeline" id="line-325"><code>	jamoTBase  = <span class="lit-number">0x11A7</span></code></span>
+<span class="codeline" id="line-326"><code>	jamoTEnd   = <span class="lit-number">0x11C3</span></code></span>
 <span class="codeline" id="line-327"><code></code></span>
-<span class="codeline" id="line-328"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-jamoTCount" class="ident">jamoTCount</a>   = <span class="lit-number">28</span></code></span>
-<span class="codeline" id="line-329"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-jamoVCount" class="ident">jamoVCount</a>   = <span class="lit-number">21</span></code></span>
-<span class="codeline" id="line-330"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-jamoVTCount" class="ident">jamoVTCount</a>  = <span class="lit-number">21</span> * <span class="lit-number">28</span></code></span>
-<span class="codeline" id="line-331"><code>	<a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-jamoLVTCount" class="ident">jamoLVTCount</a> = <span class="lit-number">19</span> * <span class="lit-number">21</span> * <span class="lit-number">28</span></code></span>
+<span class="codeline" id="line-328"><code>	jamoTCount   = <span class="lit-number">28</span></code></span>
+<span class="codeline" id="line-329"><code>	jamoVCount   = <span class="lit-number">21</span></code></span>
+<span class="codeline" id="line-330"><code>	jamoVTCount  = <span class="lit-number">21</span> * <span class="lit-number">28</span></code></span>
+<span class="codeline" id="line-331"><code>	jamoLVTCount = <span class="lit-number">19</span> * <span class="lit-number">21</span> * <span class="lit-number">28</span></code></span>
 <span class="codeline" id="line-332"><code>)</code></span>
 <span class="codeline" id="line-333"><code></code></span>
-<span class="codeline" id="line-334"><code><span class="keyword">const</span> <a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-hangulUTF8Size" class="ident">hangulUTF8Size</a> = <span class="lit-number">3</span></code></span>
+<span class="codeline" id="line-334"><code><span class="keyword">const</span> hangulUTF8Size = <span class="lit-number">3</span></code></span>
 <span class="codeline" id="line-335"><code></code></span>
-<span class="codeline" id="line-336"><code><span class="keyword">func</span> <label for="r99" class="ident"><a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-isHangul" class="ident">isHangul</a></label>(<label for="r100" class="ident">b</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-336"><code><span class="keyword">func</span> isHangul(<label for="r100" class="ident">b</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-337"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r100" class="ident">b</label>) &lt; <a href="#line-334" class="ident">hangulUTF8Size</a> {</code></span>
 <span class="codeline" id="line-338"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
 <span class="codeline" id="line-339"><code>	}</code></span>
@@ -673,7 +673,7 @@ input[id=i0]:checked ~pre .i0
 <span class="codeline" id="line-355"><code>	<span class="keyword">return</span> <label for="r102" class="ident">b1</label> == <a href="#line-316" class="ident">hangulEnd1</a> &amp;&amp; <label for="r100" class="ident">b</label>[<span class="lit-number">2</span>] &lt; <a href="#line-317" class="ident">hangulEnd2</a></code></span>
 <span class="codeline" id="line-356"><code>}</code></span>
 <span class="codeline" id="line-357"><code></code></span>
-<span class="codeline" id="line-358"><code><span class="keyword">func</span> <label for="r103" class="ident"><a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-isHangulString" class="ident">isHangulString</a></label>(<label for="r104" class="ident">b</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-358"><code><span class="keyword">func</span> isHangulString(<label for="r104" class="ident">b</label> <a href="../../../../../../pkg/builtin.html#name-string" class="ident">string</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-359"><code>	<span class="keyword">if</span> <a href="../../../../../../pkg/builtin.html#name-len" class="ident">len</a>(<label for="r104" class="ident">b</label>) &lt; <a href="#line-334" class="ident">hangulUTF8Size</a> {</code></span>
 <span class="codeline" id="line-360"><code>		<span class="keyword">return</span> <a href="../../../../../../pkg/builtin.html#name-false" class="ident">false</a></code></span>
 <span class="codeline" id="line-361"><code>	}</code></span>
@@ -696,12 +696,12 @@ input[id=i0]:checked ~pre .i0
 <span class="codeline" id="line-378"><code>}</code></span>
 <span class="codeline" id="line-379"><code></code></span>
 <span class="codeline" id="line-380"><code><span class="comment">// Caller must ensure len(b) &gt;= 2.</span></code></span>
-<span class="codeline" id="line-381"><code><span class="keyword">func</span> <label for="r107" class="ident"><a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-isJamoVT" class="ident">isJamoVT</a></label>(<label for="r108" class="ident">b</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-381"><code><span class="keyword">func</span> isJamoVT(<label for="r108" class="ident">b</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-382"><code>	<span class="comment">// True if (rune &amp; 0xff00) == jamoLBase</span></code></span>
 <span class="codeline" id="line-383"><code>	<span class="keyword">return</span> <label for="r108" class="ident">b</label>[<span class="lit-number">0</span>] == <a href="#line-320" class="ident">jamoLBase0</a> &amp;&amp; (<label for="r108" class="ident">b</label>[<span class="lit-number">1</span>]&amp;<span class="lit-number">0xFC</span>) == <a href="#line-321" class="ident">jamoLBase1</a></code></span>
 <span class="codeline" id="line-384"><code>}</code></span>
 <span class="codeline" id="line-385"><code></code></span>
-<span class="codeline" id="line-386"><code><span class="keyword">func</span> <label for="r109" class="ident"><a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-isHangulWithoutJamoT" class="ident">isHangulWithoutJamoT</a></label>(<label for="r110" class="ident">b</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
+<span class="codeline" id="line-386"><code><span class="keyword">func</span> isHangulWithoutJamoT(<label for="r110" class="ident">b</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>) <a href="../../../../../../pkg/builtin.html#name-bool" class="ident">bool</a> {</code></span>
 <span class="codeline" id="line-387"><code>	<label for="r111" class="ident">c</label>, <label for="r112" class="ident">_</label> := <a href="../../../../../../pkg/unicode/utf8.html" class="ident i0">utf8</a>.<a href="../../../../../unicode/utf8/utf8.go.html#line-151" class="ident">DecodeRune</a>(<label for="r110" class="ident">b</label>)</code></span>
 <span class="codeline" id="line-388"><code>	<label for="r111" class="ident">c</label> -= <a href="#line-309" class="ident">hangulBase</a></code></span>
 <span class="codeline" id="line-389"><code>	<span class="keyword">return</span> <label for="r111" class="ident">c</label> &lt; <a href="#line-331" class="ident">jamoLVTCount</a> &amp;&amp; <label for="r111" class="ident">c</label>%<a href="#line-328" class="ident">jamoTCount</a> == <span class="lit-number">0</span></code></span>
@@ -709,7 +709,7 @@ input[id=i0]:checked ~pre .i0
 <span class="codeline" id="line-391"><code></code></span>
 <span class="codeline" id="line-392"><code><span class="comment">// decomposeHangul writes the decomposed Hangul to buf and returns the number</span></code></span>
 <span class="codeline" id="line-393"><code><span class="comment">// of bytes written.  len(buf) should be at least 9.</span></code></span>
-<span class="codeline" id="line-394"><code><span class="keyword">func</span> <label for="r113" class="ident"><a href="../../../../../../pkg/golang.org/x/text/unicode/norm.html#name-decomposeHangul" class="ident">decomposeHangul</a></label>(<label for="r114" class="ident">buf</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r115" class="ident">r</label> <a href="../../../../../../pkg/builtin.html#name-rune" class="ident">rune</a>) <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
+<span class="codeline" id="line-394"><code><span class="keyword">func</span> decomposeHangul(<label for="r114" class="ident">buf</label> []<a href="../../../../../../pkg/builtin.html#name-byte" class="ident">byte</a>, <label for="r115" class="ident">r</label> <a href="../../../../../../pkg/builtin.html#name-rune" class="ident">rune</a>) <a href="../../../../../../pkg/builtin.html#name-int" class="ident">int</a> {</code></span>
 <span class="codeline" id="line-395"><code>	<span class="keyword">const</span> <label for="r116" class="ident">JamoUTF8Len</label> = <span class="lit-number">3</span></code></span>
 <span class="codeline" id="line-396"><code>	<label for="r115" class="ident">r</label> -= <a href="#line-309" class="ident">hangulBase</a></code></span>
 <span class="codeline" id="line-397"><code>	<label for="r117" class="ident">x</label> := <label for="r115" class="ident">r</label> % <a href="#line-328" class="ident">jamoTCount</a></code></span>
