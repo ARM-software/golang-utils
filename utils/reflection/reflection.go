@@ -211,3 +211,20 @@ func IsEmpty(value interface{}) bool {
 		return reflect.DeepEqual(value, zero.Interface())
 	}
 }
+
+// ToStructPtr returns an instance of the pointer (interface) to the object obj.
+func ToStructPtr(obj reflect.Value) (val interface{}, err error) {
+	if !obj.IsValid() {
+		err = fmt.Errorf("%w: obj value [%v] is not valid", commonerrors.ErrUnsupported, obj)
+		return
+	}
+
+	vp := reflect.New(obj.Type())
+	if !vp.CanInterface() || !obj.CanInterface() {
+		err = fmt.Errorf("%w: cannot get the value of the object pointer of type %T", commonerrors.ErrUnsupported, obj.Type())
+		return
+	}
+	vp.Elem().Set(obj)
+	val = vp.Interface()
+	return
+}
