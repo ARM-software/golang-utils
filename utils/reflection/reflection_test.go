@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -483,6 +484,95 @@ func TestIsEmpty(t *testing.T) {
 				assert.Empty(t, test.value)
 			} else {
 				assert.NotEmpty(t, test.value)
+			}
+		})
+	}
+}
+
+func TestToStructPtr(t *testing.T) {
+	vInt := 15
+	vStr := faker.Sentence()
+	var vPrt *string
+	vBytes := []byte(faker.Sentence())
+	vBool := false
+	vfloat := 150.454
+	vMap := map[string]string{faker.Word(): faker.Sentence()}
+	vArray := []string{faker.Word(), faker.Sentence(), faker.Name()}
+	vStruct := struct {
+		Test  string
+		Test2 int
+		test3 *string
+	}{
+		Test:  vStr,
+		Test2: vInt,
+		test3: vPrt,
+	}
+	tests := []struct {
+		input          interface{}
+		expectedOutput interface{}
+		expectedError  error
+	}{
+		{
+			input:          nil,
+			expectedOutput: nil,
+			expectedError:  commonerrors.ErrUnsupported,
+		},
+		{
+			input:          vInt,
+			expectedOutput: &vInt,
+			expectedError:  nil,
+		},
+		{
+			input:          vStr,
+			expectedOutput: &vStr,
+			expectedError:  nil,
+		},
+		{
+			input:          vPrt,
+			expectedOutput: &vPrt,
+			expectedError:  nil,
+		},
+		{
+			input:          vBytes,
+			expectedOutput: &vBytes,
+			expectedError:  nil,
+		},
+		{
+			input:          vBool,
+			expectedOutput: &vBool,
+			expectedError:  nil,
+		},
+		{
+			input:          vfloat,
+			expectedOutput: &vfloat,
+			expectedError:  nil,
+		},
+		{
+			input:          vMap,
+			expectedOutput: &vMap,
+			expectedError:  nil,
+		},
+		{
+			input:          vArray,
+			expectedOutput: &vArray,
+			expectedError:  nil,
+		},
+		{
+			input:          vStruct,
+			expectedOutput: &vStruct,
+			expectedError:  nil,
+		},
+	}
+	for i := range tests {
+		test := tests[i]
+		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
+			actualVal, err := ToStructPtr(reflect.ValueOf(test.input))
+			if test.expectedError != nil {
+				assert.Error(t, err)
+				assert.True(t, commonerrors.Any(err, test.expectedError))
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, test.expectedOutput, actualVal)
 			}
 		})
 	}
