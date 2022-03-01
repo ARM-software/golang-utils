@@ -392,6 +392,9 @@ func TestInheritsFrom(t *testing.T) {
 }
 
 func TestIsEmpty(t *testing.T) {
+	type testInterface interface {
+	}
+	var testEmptyPtr testInterface
 	aFilledChannel := make(chan struct{}, 1)
 	aFilledChannel <- struct{}{}
 	tests := []struct {
@@ -447,6 +450,10 @@ func TestIsEmpty(t *testing.T) {
 			isEmpty: false,
 		},
 		{
+			value:   testEmptyPtr,
+			isEmpty: true,
+		},
+		{
 			value:   map[string]string{},
 			isEmpty: true,
 		},
@@ -495,7 +502,7 @@ func TestToStructPtr(t *testing.T) {
 	var vPrt *string
 	vBytes := []byte(faker.Sentence())
 	vBool := false
-	vfloat := 150.454
+	vFloat := 150.454
 	vMap := map[string]string{faker.Word(): faker.Sentence()}
 	vArray := []string{faker.Word(), faker.Sentence(), faker.Name()}
 	vStruct := struct {
@@ -507,6 +514,11 @@ func TestToStructPtr(t *testing.T) {
 		Test2: vInt,
 		test3: vPrt,
 	}
+	var vEmpty interface{}
+	type testInterface interface {
+	}
+	var vInterface testInterface
+
 	tests := []struct {
 		input          interface{}
 		expectedOutput interface{}
@@ -543,8 +555,8 @@ func TestToStructPtr(t *testing.T) {
 			expectedError:  nil,
 		},
 		{
-			input:          vfloat,
-			expectedOutput: &vfloat,
+			input:          vFloat,
+			expectedOutput: &vFloat,
 			expectedError:  nil,
 		},
 		{
@@ -562,11 +574,38 @@ func TestToStructPtr(t *testing.T) {
 			expectedOutput: &vStruct,
 			expectedError:  nil,
 		},
+		{
+			input:          vEmpty,
+			expectedOutput: nil,
+			expectedError:  commonerrors.ErrUnsupported,
+		},
+		{
+			input:          vInterface,
+			expectedOutput: nil,
+			expectedError:  commonerrors.ErrUnsupported,
+		},
+		{
+			input:          reflect.ValueOf(vStruct).FieldByName("Test"),
+			expectedOutput: &vStruct.Test,
+			expectedError:  nil,
+		},
+		{
+			input:          reflect.ValueOf(vStruct).FieldByName("test3"),
+			expectedOutput: nil,
+			expectedError:  commonerrors.ErrUnsupported,
+		},
 	}
 	for i := range tests {
 		test := tests[i]
 		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
-			actualVal, err := ToStructPtr(reflect.ValueOf(test.input))
+			var err error
+			var input reflect.Value
+			if v, ok := test.input.(reflect.Value); ok {
+				input = v
+			} else {
+				input = reflect.ValueOf(test.input)
+			}
+			actualVal, err := ToStructPtr(input)
 			if test.expectedError != nil {
 				assert.Error(t, err)
 				assert.True(t, commonerrors.Any(err, test.expectedError))

@@ -220,7 +220,7 @@ func ToStructPtr(obj reflect.Value) (val interface{}, err error) {
 	}
 
 	vp := reflect.New(obj.Type())
-	if !vp.CanInterface() {
+	if !vp.CanInterface() || !obj.CanInterface() {
 		err = fmt.Errorf("%w: cannot get the value of the object pointer of type %T", commonerrors.ErrUnsupported, obj.Type())
 		return
 	}
