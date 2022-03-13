@@ -7,7 +7,7 @@ require (
 	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/bmatcuk/doublestar/v3 v3.0.0
 	github.com/bombsimon/logrusr v1.1.0
-	github.com/bxcodec/faker/v3 v3.7.0
+	github.com/bxcodec/faker/v3 v3.8.0
 	github.com/djherbis/times v1.5.0
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
 	github.com/go-logr/logr v0.4.0 // Staying on this version until kubernetes uses a more recent one
