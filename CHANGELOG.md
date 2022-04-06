@@ -14,6 +14,24 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.9.0" (2022-04-06)
+=======================
+
+Features
+--------
+
+- [collection] `ParseListWithCleanup` is now available for parsing strings containing lists (#202204061624)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v3-3.8.0 (#202203101118)
+- Dependency upgrade: afero-1.8.2 (#202203111118)
+- Dependency upgrade: testify-1.7.1 (#202203161120)
+- Dependency upgrade: v3-3.22.3 (#202204011026, #202204011027, #202204011028, #20220401102601, #20220401102701)
+
+
 "" "1.8.0" (2022-03-01)
 =======================
 
