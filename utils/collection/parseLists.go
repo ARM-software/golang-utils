@@ -6,8 +6,10 @@ package collection
 
 import "strings"
 
-// Removes spaces leaving only the strings
-func parseListWithCleanup(input string, sep string) (newS []string) {
+// ParseListWithCleanup splits a string into a list like strings.Split but also removes any whitespace surrounding  the different items
+// for example,
+// ParseListWithCleanup("a, b ,  c", ",") returns []{"a","b","c"}
+func ParseListWithCleanup(input string, sep string) (newS []string) {
 	if len(input) == 0 {
 		newS = []string{} // initialisation of empty arrays in function returns []string(nil) instead of []string{}
 		return
@@ -22,6 +24,7 @@ func parseListWithCleanup(input string, sep string) (newS []string) {
 	return
 }
 
+// ParseCommaSeparatedList returns the list of string separated by a comma
 func ParseCommaSeparatedList(input string) []string {
-	return parseListWithCleanup(input, ",")
+	return ParseListWithCleanup(input, ",")
 }

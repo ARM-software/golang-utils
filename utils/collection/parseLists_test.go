@@ -31,7 +31,7 @@ func TestParseCommaSeparatedListWordsOnly(t *testing.T) {
 	require.Equal(t, stringArray, finalList)
 }
 
-// Test to makje sure that spaces that show up within the words aren't removed
+// Test to make sure that spaces that show up within the words aren't removed
 func TestParseCommaSeparatedListWithSpacesBetweenWords(t *testing.T) {
 	stringList := ""
 	stringArray := []string{}
