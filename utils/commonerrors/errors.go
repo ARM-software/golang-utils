@@ -25,6 +25,7 @@ var (
 	ErrUnsupported        = errors.New("unsupported")
 	ErrUnavailable        = errors.New("unavailable")
 	ErrWrongUser          = errors.New("wrong user")
+	ErrUnauthorised       = errors.New("unauthorised")
 	ErrUnknown            = errors.New("unknown")
 	ErrInvalid            = errors.New("invalid")
 	ErrConflict           = errors.New("conflict")
@@ -32,6 +33,8 @@ var (
 	ErrCancelled          = errors.New("cancelled")
 	ErrEmpty              = errors.New("empty")
 	ErrUnexpected         = errors.New("unexpected")
+	ErrTooLarge           = errors.New("too large")
+	ErrForbidden          = errors.New("forbidden")
 )
 
 func Any(target error, err ...error) bool {
