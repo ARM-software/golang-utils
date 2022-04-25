@@ -1,1 +1,0 @@
-[errors] Added common errors

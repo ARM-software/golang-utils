@@ -14,6 +14,23 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.10.0" (2022-04-25)
+========================
+
+Features
+--------
+
+- [errors] Added common errors (#202204251958)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: viper-1.11.0 (#202204151015)
+- Dependency upgrade: mapstructure-1.5.0 (#202204211024)
+- Dependency upgrade: go-retryablehttp-0.7.1 (#202204251901)
+
+
 "" "1.9.0" (2022-04-06)
 =======================
 
