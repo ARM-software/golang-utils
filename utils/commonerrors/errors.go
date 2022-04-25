@@ -35,6 +35,7 @@ var (
 	ErrUnexpected         = errors.New("unexpected")
 	ErrTooLarge           = errors.New("too large")
 	ErrForbidden          = errors.New("forbidden")
+	ErrCondition          = errors.New("failed condition")
 )
 
 func Any(target error, err ...error) bool {
