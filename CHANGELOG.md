@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.11.0" (2022-04-25)
+========================
+
+Features
+--------
+
+- [errors] Added a common error (#202204252100)
+
+
 "" "1.10.0" (2022-04-25)
 ========================
 
