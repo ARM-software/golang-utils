@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.11.1" (2022-05-09)
+========================
+
+Bugfixes
+--------
+
+- Dependency upgrade: v3-3.22.4 (#202205021019, #202205021020, #20220502101901)
+
+
 "" "1.11.0" (2022-04-25)
 ========================
 
