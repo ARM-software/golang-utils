@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.12.0" (2022-05-12)
+========================
+
+Features
+--------
+
+- Add option to run parseListWithCleanup to keep empty lines (#202205121612)
+
+
 "" "1.11.1" (2022-05-09)
 ========================
 
