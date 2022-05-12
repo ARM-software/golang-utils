@@ -18,9 +18,6 @@ func lineIsOnlyWhitespace(line string) bool {
 	return true
 }
 
-// ParseListWithCleanup splits a string into a list like strings.Split but also removes any whitespace surrounding  the different items
-// for example,
-// ParseListWithCleanup("a, b ,  c", ",") returns []{"a","b","c"}
 func parseListWithCleanup(input string, sep string, keepBlankLines bool) (newS []string) {
 	if len(input) == 0 {
 		newS = []string{} // initialisation of empty arrays in function returns []string(nil) instead of []string{}
@@ -43,10 +40,10 @@ func ParseListWithCleanup(input string, sep string) (newS []string) {
 	return parseListWithCleanup(input, sep, false)
 }
 
-// ParseListWithCleanup splits a string into a list like strings.Split but also removes any whitespace surrounding  the different items
+// ParseListWithCleanupKeepBlankLines splits a string into a list like strings.Split but also removes any whitespace surrounding  the different items
 // unless the entire item is whitespace in which case it is converted to an empty string. For example,
-// ParseListWithCleanup("a, b ,  c", ",") returns []{"a","b","c"}
-// ParseListWithCleanup("a, b ,    , c", ",") returns []{"a","b", "", "c"}
+// ParseListWithCleanupKeepBlankLines("a, b ,  c", ",") returns []{"a","b","c"}
+// ParseListWithCleanupKeepBlankLines("a, b ,    , c", ",") returns []{"a","b", "", "c"}
 func ParseListWithCleanupKeepBlankLines(input string, sep string) (newS []string) {
 	return parseListWithCleanup(input, sep, true)
 }
