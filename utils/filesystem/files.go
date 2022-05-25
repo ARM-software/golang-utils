@@ -1343,3 +1343,7 @@ func convertToExtendedFile(file afero.File, onCloseCallBack func() error) (File,
 		onCloseCallBack: onCloseCallBack,
 	}, nil
 }
+
+func FilepathStem(fp string) string {
+	return strings.TrimSuffix(filepath.Base(fp), filepath.Ext(fp))
+}
