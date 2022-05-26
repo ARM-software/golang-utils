@@ -1343,3 +1343,8 @@ func convertToExtendedFile(file afero.File, onCloseCallBack func() error) (File,
 		onCloseCallBack: onCloseCallBack,
 	}, nil
 }
+
+// FilepathStem returns  the final path component, without its suffix.
+func FilepathStem(fp string) string {
+	return strings.TrimSuffix(filepath.Base(fp), filepath.Ext(fp))
+}

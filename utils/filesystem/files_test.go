@@ -1176,6 +1176,21 @@ func TestListDirTree(t *testing.T) {
 	}
 }
 
+func TestFilepathStem(t *testing.T) {
+	t.Run("given a filename with extension, it strips extension", func(t *testing.T) {
+		assert.Equal(t, "foo", FilepathStem("foo.bar"))
+		assert.Equal(t, "library.tar", FilepathStem("library.tar.gz"))
+		assert.Equal(t, "cool", FilepathStem("cool"))
+	})
+
+	t.Run("given a filepath, it returns only file name", func(t *testing.T) {
+		fp := filepath.Join("super", "foo", "bar.baz")
+		assert.Equal(t, "bar", FilepathStem(fp))
+		fp = filepath.Join("nice", "file", "path")
+		assert.Equal(t, "path", FilepathStem(fp))
+	})
+}
+
 func checkCopyDir(t *testing.T, fs FS, src string, dest string) {
 	assert.True(t, fs.Exists(src))
 	assert.False(t, fs.Exists(dest))
