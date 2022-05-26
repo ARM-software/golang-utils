@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.13.0" (2022-05-26)
+========================
+
+Features
+--------
+
+- [filesystem] Add `FilepathStem` function to package, emulating Python's [Pathlib.Stem behaviour](https://docs.python.org/3.10/library/pathlib.html#pathlib.PurePath.stem) (#20220525)
+
+
 "" "1.12.0" (2022-05-12)
 ========================
 
