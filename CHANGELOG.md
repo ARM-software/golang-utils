@@ -14,6 +14,18 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.13.1" (2022-06-09)
+========================
+
+Bugfixes
+--------
+
+- Dependency upgrade: viper-1.12.0 (#202205271019)
+- Dependency upgrade: v3-3.22.5 (#202206071413, #202206071415, #20220607141301)
+- Dependency upgrade: zerolog-1.27.0 (#202206081224)
+- Dependency upgrade: testify-1.7.2 (#202206081225)
+
+
 "" "1.13.0" (2022-05-26)
 ========================
 
