@@ -197,7 +197,7 @@ func (l *RemoteLockFile) LockWithTimeout(ctx context.Context, timeout time.Durat
 }
 
 // Unlock unlocks the lock
-func (l *RemoteLockFile) Unlock(context.Context) error {
+func (l *RemoteLockFile) Unlock(ctx context.Context) error {
 	l.cancelStore.Cancel()
 	return retry.Do(
 		func() error {
@@ -213,6 +213,7 @@ func (l *RemoteLockFile) Unlock(context.Context) error {
 		retry.MaxJitter(25*time.Millisecond),
 		retry.DelayType(retry.RandomDelay),
 		retry.Attempts(10),
+		retry.Context(ctx),
 	)
 }
 
@@ -241,5 +242,6 @@ func (l *RemoteLockFile) MakeStale(ctx context.Context) error {
 		retry.MaxJitter(l.lockHeartBeatPeriod),
 		retry.DelayType(retry.RandomDelay),
 		retry.Attempts(10),
+		retry.Context(ctx),
 	)
 }
