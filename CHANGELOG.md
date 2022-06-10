@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.13.2" (2022-06-10)
+========================
+
+Bugfixes
+--------
+
+- [file lock] Ensure retries stop when context is asked to terminate (#202206101540)
+
+
 "" "1.13.1" (2022-06-09)
 ========================
 
