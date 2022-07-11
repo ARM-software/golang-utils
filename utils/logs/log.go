@@ -14,13 +14,11 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
-// Definition of command loggers
 type GenericLoggers struct {
 	Output *log.Logger
 	Error  *log.Logger
 }
 
-// Checks whether the loggers are correctly defined or not.
 func (l *GenericLoggers) Check() error {
 	if l.Error == nil || l.Output == nil {
 		return commonerrors.ErrNoLogger
@@ -28,25 +26,23 @@ func (l *GenericLoggers) Check() error {
 	return nil
 }
 
-func (l *GenericLoggers) SetLogSource(source string) error {
+func (l *GenericLoggers) SetLogSource(string) error {
 	return nil
 }
 
-func (l *GenericLoggers) SetLoggerSource(source string) error {
+func (l *GenericLoggers) SetLoggerSource(string) error {
 	return nil
 }
 
-// Logs to the output logger.
 func (l *GenericLoggers) Log(output ...interface{}) {
 	l.Output.Println(output...)
 }
 
-// Logs to the Error logger.
 func (l *GenericLoggers) LogError(err ...interface{}) {
 	l.Error.Println(err...)
 }
 
-// Closes the logger
+// Close closes the logger
 func (l *GenericLoggers) Close() error {
 	return nil
 }

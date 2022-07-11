@@ -50,7 +50,7 @@ func TestCmdRun(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			defer goleak.VerifyNone(t)
 			var cmd *command
-			loggers, err := logs.CreateStdLogger("Test")
+			loggers, err := logs.NewStdLogger("Test")
 			require.Nil(t, err)
 			if platform.IsWindows() {
 				cmd = newCommand(loggers, test.cmdWindows, test.argWindows...)
@@ -104,7 +104,7 @@ func TestCmdStartStop(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			defer goleak.VerifyNone(t)
 			var cmd *command
-			loggers, err := logs.CreateStdLogger("Test")
+			loggers, err := logs.NewStdLogger("Test")
 			require.Nil(t, err)
 
 			if platform.IsWindows() {

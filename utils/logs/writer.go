@@ -65,7 +65,7 @@ func (w *MultipleWritersWithSource) Close() (err error) {
 	return
 }
 
-func CreateMultipleWritersWithSource(writers ...WriterWithSource) (writer *MultipleWritersWithSource, err error) {
+func NewMultipleWritersWithSource(writers ...WriterWithSource) (writer *MultipleWritersWithSource, err error) {
 	writer = &MultipleWritersWithSource{}
 	err = writer.AddWriters(writers...)
 	return

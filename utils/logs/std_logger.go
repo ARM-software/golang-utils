@@ -46,8 +46,8 @@ func (w *StdErrWriter) SetSource(source string) error {
 	return nil
 }
 
-// Creates a logger to standard output/error
-func CreateStdLogger(loggerSource string) (loggers Loggers, err error) {
+// NewStdLogger creates a logger to standard output/error
+func NewStdLogger(loggerSource string) (loggers Loggers, err error) {
 	loggers = &GenericLoggers{
 		Output: log.New(os.Stdout, fmt.Sprintf("[%v] Output: ", loggerSource), log.LstdFlags),
 		Error:  log.New(os.Stderr, fmt.Sprintf("[%v] Error: ", loggerSource), log.LstdFlags),
@@ -57,4 +57,19 @@ func CreateStdLogger(loggerSource string) (loggers Loggers, err error) {
 
 func NewAsynchronousStdLogger(loggerSource string, ringBufferSize int, pollInterval time.Duration, source string) (loggers Loggers, err error) {
 	return NewAsynchronousLoggers(&StdWriter{}, &StdErrWriter{}, ringBufferSize, pollInterval, loggerSource, source, nil)
+}
+
+func newGolangStdLoggerFromLoggers(loggers Loggers) StdLogger {
+	return &stdAdaptor{
+		loggers: loggers,
+	}
+}
+
+type stdAdaptor struct {
+	loggers Loggers
+}
+
+func (s *stdAdaptor) Output(calldepth int, logline string) error {
+	s.loggers.Log(logline)
+	return nil
 }

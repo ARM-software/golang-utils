@@ -4,15 +4,8 @@
  */
 package logs
 
-import (
-	"io/ioutil"
-	"log"
-)
+import "github.com/go-logr/logr"
 
 func NewNoopLogger(loggerSource string) (loggers Loggers, err error) {
-	loggers = &GenericLoggers{
-		Output: log.New(ioutil.Discard, "", 0),
-		Error:  log.New(ioutil.Discard, "", 0),
-	}
-	return
+	return NewLogrLogger(logr.Discard(), loggerSource)
 }

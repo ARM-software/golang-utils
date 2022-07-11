@@ -12,9 +12,9 @@ import (
 )
 
 func TestStringLogger(t *testing.T) {
-	loggers, err := CreateStringLogger("Test")
+	loggers, err := NewStringLogger("Test")
 	require.Nil(t, err)
-	_testLog(t, loggers)
+	testLog(t, loggers)
 	loggers.LogError("Test err")
 	loggers.Log("Test1")
 	contents := loggers.GetLogContent()
