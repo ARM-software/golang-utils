@@ -15,6 +15,7 @@ import (
 	"go.uber.org/goleak"
 
 	"github.com/ARM-software/golang-utils/utils/logs"
+	"github.com/ARM-software/golang-utils/utils/logs/logstest"
 	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
@@ -50,7 +51,7 @@ func TestCmdRun(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			defer goleak.VerifyNone(t)
 			var cmd *command
-			loggers, err := logs.NewStdLogger("Test")
+			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
 			require.Nil(t, err)
 			if platform.IsWindows() {
 				cmd = newCommand(loggers, test.cmdWindows, test.argWindows...)
@@ -104,7 +105,7 @@ func TestCmdStartStop(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			defer goleak.VerifyNone(t)
 			var cmd *command
-			loggers, err := logs.NewStdLogger("Test")
+			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
 			require.Nil(t, err)
 
 			if platform.IsWindows() {

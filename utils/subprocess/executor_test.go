@@ -19,6 +19,7 @@ import (
 	"go.uber.org/goleak"
 
 	"github.com/ARM-software/golang-utils/utils/logs"
+	"github.com/ARM-software/golang-utils/utils/logs/logstest"
 	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
@@ -133,7 +134,7 @@ func TestStartStop(t *testing.T) {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
 			defer goleak.VerifyNone(t)
-			var loggers, err = logs.NewStdLogger("Test")
+			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
 			require.Nil(t, err)
 
 			var p *Subprocess
@@ -209,7 +210,7 @@ func TestExecute(t *testing.T) {
 			err = Execute(context.Background(), loggers, "", "", "", "ls")
 			assert.NotNil(t, err)
 
-			loggers, err = logs.NewStdLogger("Test")
+			loggers, err = logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
 			require.Nil(t, err)
 			if platform.IsWindows() {
 				err = Execute(context.Background(), loggers, "", "", "", test.cmdWindows, test.argWindows...)
@@ -242,7 +243,7 @@ func TestCancelledSubprocess(t *testing.T) {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
 			defer goleak.VerifyNone(t)
-			var loggers, err = logs.NewStdLogger("Test")
+			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
 			require.Nil(t, err)
 			cancellableCtx, cancelFunc := context.WithCancel(context.Background())
 
@@ -288,7 +289,7 @@ func TestCancelledSubprocess2(t *testing.T) {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
 			defer goleak.VerifyNone(t)
-			var loggers, err = logs.NewStdLogger("Test")
+			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
 			require.Nil(t, err)
 			ctx, cancelFunc := context.WithCancel(context.Background())
 			var p *Subprocess
@@ -337,7 +338,7 @@ func TestCancelledSubprocess3(t *testing.T) {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
 			defer goleak.VerifyNone(t)
-			var loggers, err = logs.NewStdLogger("Test")
+			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
 			require.Nil(t, err)
 			ctx := context.Background()
 			var p *Subprocess

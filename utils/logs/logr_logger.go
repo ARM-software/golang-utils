@@ -31,10 +31,7 @@ func (l *logrLogger) Check() error {
 	if l.logger == nil {
 		return commonerrors.ErrNoLogger
 	}
-	if l.logger.Enabled() {
-		return nil
-	}
-	return fmt.Errorf("%w: disabled logger", commonerrors.ErrCondition)
+	return nil
 }
 
 func (l *logrLogger) SetLogSource(source string) error {
