@@ -23,6 +23,7 @@ func TestFileLogger(t *testing.T) {
 	defer func() { _ = filesystem.Rm(file.Name()) }()
 
 	empty, err := filesystem.IsEmpty(file.Name())
+	require.NoError(t, err)
 	assert.True(t, empty)
 
 	loggers, err := NewFileLogger(file.Name(), "Test")
@@ -31,6 +32,7 @@ func TestFileLogger(t *testing.T) {
 	testLog(t, loggers)
 
 	empty, err = filesystem.IsEmpty(file.Name())
+	require.NoError(t, err)
 	assert.False(t, empty)
 
 	err = filesystem.Rm(file.Name())
