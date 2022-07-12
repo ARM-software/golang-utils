@@ -14,6 +14,25 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.14.0" (2022-07-12)
+========================
+
+Features
+--------
+
+- [logs] New utility to create a `Logger` from a [logr.Logger](https://github.com/go-logr/logr) (#202207111655)
+- [logs] Changed constructors to follow naming convention (:warning; May mean breaking changes) (#202207111821)
+- [logs] constructors using old naming convention i.e. `create...` are marked as deprecated (#202207120946)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: testify-1.7.3 (#202206201048, #202206201049, #202206201050, #202206201051, #202206201052, #202206201053, #202206201054, #20220620104801, #20220620104901, #20220620104902, #20220620105001, #20220620105101, #20220620105201, #20220620105301, #20220620105302)
+- Dependency upgrade: testify-1.8.0 (#202207011611)
+- Dependency upgrade: v3-3.22.6 (#202207011616, #202207011617, #20220701161601, #20220701161701)
+
+
 "" "1.13.2" (2022-06-10)
 ========================
 
