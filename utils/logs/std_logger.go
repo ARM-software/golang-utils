@@ -55,6 +55,13 @@ func NewStdLogger(loggerSource string) (loggers Loggers, err error) {
 	return
 }
 
+// CreateStdLogger creates a logger to standard output/error
+//
+// Deprecated: use NewStdLogger instead
+func CreateStdLogger(loggerSource string) (loggers Loggers, err error) {
+	return NewStdLogger(loggerSource)
+}
+
 func NewAsynchronousStdLogger(loggerSource string, ringBufferSize int, pollInterval time.Duration, source string) (loggers Loggers, err error) {
 	return NewAsynchronousLoggers(&StdWriter{}, &StdErrWriter{}, ringBufferSize, pollInterval, loggerSource, source, nil)
 }

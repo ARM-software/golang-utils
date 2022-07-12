@@ -11,3 +11,10 @@ func NewFileLogger(logFile string, loggerSource string) (loggers Loggers, err er
 	return NewLogrusLoggerWithFileHook(logrus.New(), loggerSource, logFile)
 
 }
+
+// CreateFileLogger creates a logger to a file
+//
+// Deprecated: Use NewFileLogger instead
+func CreateFileLogger(logFile string, loggerSource string) (loggers Loggers, err error) {
+	return NewFileLogger(logFile, loggerSource)
+}

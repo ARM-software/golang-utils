@@ -72,3 +72,10 @@ func NewStringLogger(loggerSource string) (loggers *StringLoggers, err error) {
 	}
 	return
 }
+
+// CreateStringLogger creates a logger to standard output/error
+//
+// Deprecated: Use NewStringLogger instead
+func CreateStringLogger(loggerSource string) (loggers *StringLoggers, err error) {
+	return NewStringLogger(loggerSource)
+}

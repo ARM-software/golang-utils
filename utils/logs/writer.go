@@ -71,6 +71,13 @@ func NewMultipleWritersWithSource(writers ...WriterWithSource) (writer *Multiple
 	return
 }
 
+// CreateMultipleWritersWithSource creates a compound writer with source.
+//
+// Deprecated: Use NewMultipleWritersWithSource instead
+func CreateMultipleWritersWithSource(writers ...WriterWithSource) (writer *MultipleWritersWithSource, err error) {
+	return NewMultipleWritersWithSource(writers...)
+}
+
 type DiodeWriter struct {
 	WriterWithSource
 	diodeWriter io.Writer
