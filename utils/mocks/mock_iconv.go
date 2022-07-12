@@ -11,30 +11,30 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockICharsetConverter is a mock of ICharsetConverter interface
+// MockICharsetConverter is a mock of ICharsetConverter interface.
 type MockICharsetConverter struct {
 	ctrl     *gomock.Controller
 	recorder *MockICharsetConverterMockRecorder
 }
 
-// MockICharsetConverterMockRecorder is the mock recorder for MockICharsetConverter
+// MockICharsetConverterMockRecorder is the mock recorder for MockICharsetConverter.
 type MockICharsetConverterMockRecorder struct {
 	mock *MockICharsetConverter
 }
 
-// NewMockICharsetConverter creates a new mock instance
+// NewMockICharsetConverter creates a new mock instance.
 func NewMockICharsetConverter(ctrl *gomock.Controller) *MockICharsetConverter {
 	mock := &MockICharsetConverter{ctrl: ctrl}
 	mock.recorder = &MockICharsetConverterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockICharsetConverter) EXPECT() *MockICharsetConverterMockRecorder {
 	return m.recorder
 }
 
-// Convert mocks base method
+// Convert mocks base method.
 func (m *MockICharsetConverter) Convert(arg0 io.Reader) io.Reader {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Convert", arg0)
@@ -42,13 +42,13 @@ func (m *MockICharsetConverter) Convert(arg0 io.Reader) io.Reader {
 	return ret0
 }
 
-// Convert indicates an expected call of Convert
+// Convert indicates an expected call of Convert.
 func (mr *MockICharsetConverterMockRecorder) Convert(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Convert", reflect.TypeOf((*MockICharsetConverter)(nil).Convert), arg0)
 }
 
-// ConvertBytes mocks base method
+// ConvertBytes mocks base method.
 func (m *MockICharsetConverter) ConvertBytes(arg0 []byte) ([]byte, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConvertBytes", arg0)
@@ -57,13 +57,13 @@ func (m *MockICharsetConverter) ConvertBytes(arg0 []byte) ([]byte, error) {
 	return ret0, ret1
 }
 
-// ConvertBytes indicates an expected call of ConvertBytes
+// ConvertBytes indicates an expected call of ConvertBytes.
 func (mr *MockICharsetConverterMockRecorder) ConvertBytes(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConvertBytes", reflect.TypeOf((*MockICharsetConverter)(nil).ConvertBytes), arg0)
 }
 
-// ConvertString mocks base method
+// ConvertString mocks base method.
 func (m *MockICharsetConverter) ConvertString(arg0 string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ConvertString", arg0)
@@ -72,13 +72,13 @@ func (m *MockICharsetConverter) ConvertString(arg0 string) (string, error) {
 	return ret0, ret1
 }
 
-// ConvertString indicates an expected call of ConvertString
+// ConvertString indicates an expected call of ConvertString.
 func (mr *MockICharsetConverterMockRecorder) ConvertString(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConvertString", reflect.TypeOf((*MockICharsetConverter)(nil).ConvertString), arg0)
 }
 
-// String mocks base method
+// String mocks base method.
 func (m *MockICharsetConverter) String() string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "String")
@@ -86,7 +86,7 @@ func (m *MockICharsetConverter) String() string {
 	return ret0
 }
 
-// String indicates an expected call of String
+// String indicates an expected call of String.
 func (mr *MockICharsetConverterMockRecorder) String() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "String", reflect.TypeOf((*MockICharsetConverter)(nil).String))

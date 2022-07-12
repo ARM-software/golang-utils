@@ -6,23 +6,30 @@ package logs
 
 import "io"
 
-//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE Loggers,WriterWithSource
+//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE Loggers,WriterWithSource,StdLogger
 
+// Loggers define generic loggers.
 type Loggers interface {
 	io.Closer
-	// Checks whether the loggers are correctly defined or not.
+	// Check returns whether the loggers are correctly defined or not.
 	Check() error
-	// Sets the source of the log message e.g. related build job, related command, etc.
+	// SetLogSource sets the source of the log message e.g. related build job, related command, etc.
 	SetLogSource(source string) error
-	// Sets the source of the logger e.g. APIs, Build worker, CMSIS tools.
+	// SetLoggerSource sets the source of the logger e.g. APIs, Build worker, CMSIS tools.
 	SetLoggerSource(source string) error
-	// Logs to the output logger.
+	// Log logs to the output logger.
 	Log(output ...interface{})
-	// Logs to the Error logger.
+	// LogError logs to the Error logger.
 	LogError(err ...interface{})
 }
 
 type WriterWithSource interface {
 	io.WriteCloser
 	SetSource(source string) error
+}
+
+// StdLogger is the subset of the Go stdlib log.Logger API.
+type StdLogger interface {
+	// Output is the same as log.Output and log.Logger.Output.
+	Output(calldepth int, logline string) error
 }

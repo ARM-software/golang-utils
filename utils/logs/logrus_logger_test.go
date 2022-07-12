@@ -14,5 +14,5 @@ import (
 func TestLogrusLogger(t *testing.T) {
 	loggers, err := NewLogrusLogger(logrus.StandardLogger(), "Test")
 	require.Nil(t, err)
-	_testLog(t, loggers)
+	testLog(t, loggers)
 }

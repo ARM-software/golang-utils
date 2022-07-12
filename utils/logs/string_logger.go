@@ -51,7 +51,7 @@ func (l *StringLoggers) GetLogContent() string {
 	return l.LogWriter.GetFullContent()
 }
 
-// Closes the logger
+// Close closes the logger
 func (l *StringLoggers) Close() (err error) {
 	err = l.LogWriter.Close()
 	if err != nil {
@@ -61,8 +61,8 @@ func (l *StringLoggers) Close() (err error) {
 	return
 }
 
-// Creates a logger to standard output/error
-func CreateStringLogger(loggerSource string) (loggers *StringLoggers, err error) {
+// NewStringLogger creates a logger to standard output/error
+func NewStringLogger(loggerSource string) (loggers *StringLoggers, err error) {
 	loggers = &StringLoggers{
 		LogWriter: StringWriter{},
 	}
@@ -71,4 +71,11 @@ func CreateStringLogger(loggerSource string) (loggers *StringLoggers, err error)
 		Error:  log.New(&(*loggers).LogWriter, fmt.Sprintf("[%v] Error: ", loggerSource), log.LstdFlags),
 	}
 	return
+}
+
+// CreateStringLogger creates a logger to standard output/error
+//
+// Deprecated: Use NewStringLogger instead
+func CreateStringLogger(loggerSource string) (loggers *StringLoggers, err error) {
+	return NewStringLogger(loggerSource)
 }

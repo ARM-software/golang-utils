@@ -6,16 +6,41 @@ package logs
 
 import (
 	"fmt"
-	"log"
 
+	"github.com/bombsimon/logrusr"
+	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
-// Creates a logger to logrus logger (https://github.com/Sirupsen/logrus)
+// NewLogrusLogger returns a logger which uses logrus logger (https://github.com/Sirupsen/logrus)
 func NewLogrusLogger(logrusL *logrus.Logger, loggerSource string) (loggers Loggers, err error) {
-	loggers = &GenericLoggers{
-		Output: log.New(logrusL.WriterLevel(logrus.InfoLevel), fmt.Sprintf("[%v] ", loggerSource), log.LstdFlags),
-		Error:  log.New(logrusL.WriterLevel(logrus.ErrorLevel), fmt.Sprintf("[%v] ", loggerSource), log.LstdFlags),
+	if logrusL == nil {
+		err = commonerrors.ErrNoLogger
+		return
 	}
-	return
+	return NewLogrLogger(logrusr.NewLogger(logrusL), loggerSource)
+}
+
+// NewLogrusLoggerWithFileHook returns a logger which uses a logrus logger (https://github.com/Sirupsen/logrus) and writes the logs to `logFilePath`
+func NewLogrusLoggerWithFileHook(logrusL *logrus.Logger, loggerSource string, logFilePath string) (loggers Loggers, err error) {
+	if logrusL == nil {
+		err = commonerrors.ErrNoLogger
+		return
+	}
+	if reflection.IsEmpty(logFilePath) {
+		err = fmt.Errorf("%w: missing file destination", commonerrors.ErrInvalidDestination)
+		return
+	}
+	pathMap := lfshook.PathMap{
+		logrus.InfoLevel:  logFilePath,
+		logrus.ErrorLevel: logFilePath,
+	}
+	logrusL.Hooks.Add(lfshook.NewHook(
+		pathMap,
+		&logrus.JSONFormatter{},
+	))
+	return NewLogrusLogger(logrusL, loggerSource)
 }

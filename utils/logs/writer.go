@@ -65,10 +65,17 @@ func (w *MultipleWritersWithSource) Close() (err error) {
 	return
 }
 
-func CreateMultipleWritersWithSource(writers ...WriterWithSource) (writer *MultipleWritersWithSource, err error) {
+func NewMultipleWritersWithSource(writers ...WriterWithSource) (writer *MultipleWritersWithSource, err error) {
 	writer = &MultipleWritersWithSource{}
 	err = writer.AddWriters(writers...)
 	return
+}
+
+// CreateMultipleWritersWithSource creates a compound writer with source.
+//
+// Deprecated: Use NewMultipleWritersWithSource instead
+func CreateMultipleWritersWithSource(writers ...WriterWithSource) (writer *MultipleWritersWithSource, err error) {
+	return NewMultipleWritersWithSource(writers...)
 }
 
 type DiodeWriter struct {

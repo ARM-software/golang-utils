@@ -15,30 +15,30 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockIServiceConfiguration is a mock of IServiceConfiguration interface
+// MockIServiceConfiguration is a mock of IServiceConfiguration interface.
 type MockIServiceConfiguration struct {
 	ctrl     *gomock.Controller
 	recorder *MockIServiceConfigurationMockRecorder
 }
 
-// MockIServiceConfigurationMockRecorder is the mock recorder for MockIServiceConfiguration
+// MockIServiceConfigurationMockRecorder is the mock recorder for MockIServiceConfiguration.
 type MockIServiceConfigurationMockRecorder struct {
 	mock *MockIServiceConfiguration
 }
 
-// NewMockIServiceConfiguration creates a new mock instance
+// NewMockIServiceConfiguration creates a new mock instance.
 func NewMockIServiceConfiguration(ctrl *gomock.Controller) *MockIServiceConfiguration {
 	mock := &MockIServiceConfiguration{ctrl: ctrl}
 	mock.recorder = &MockIServiceConfigurationMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockIServiceConfiguration) EXPECT() *MockIServiceConfigurationMockRecorder {
 	return m.recorder
 }
 
-// Validate mocks base method
+// Validate mocks base method.
 func (m *MockIServiceConfiguration) Validate() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Validate")
@@ -46,7 +46,7 @@ func (m *MockIServiceConfiguration) Validate() error {
 	return ret0
 }
 
-// Validate indicates an expected call of Validate
+// Validate indicates an expected call of Validate.
 func (mr *MockIServiceConfigurationMockRecorder) Validate() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Validate", reflect.TypeOf((*MockIServiceConfiguration)(nil).Validate))

@@ -19,7 +19,7 @@ func TestLog(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func _testLog(t *testing.T, loggers Loggers) {
+func testLog(t *testing.T, loggers Loggers) {
 	err := loggers.Check()
 	require.Nil(t, err)
 	defer func() { _ = loggers.Close() }()
