@@ -36,6 +36,7 @@ var (
 	ErrTooLarge           = errors.New("too large")
 	ErrForbidden          = errors.New("forbidden")
 	ErrCondition          = errors.New("failed condition")
+	ErrEOF                = errors.New("end of file")
 )
 
 func Any(target error, err ...error) bool {
