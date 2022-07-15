@@ -272,9 +272,9 @@ func TestConvertPaths(t *testing.T) {
 
 			// create a directory for the test
 			tree := createTestFileTree(t, fs, tmpDir, "", false, time.Now(), time.Now())
-			relTree, err := fs.ConvertToRelativePath(tmpDir, tree)
+			relTree, err := fs.ConvertToRelativePath(tmpDir, tree...)
 			require.Nil(t, err)
-			absTree, err := fs.ConvertToAbsolutePath(tmpDir, relTree)
+			absTree, err := fs.ConvertToAbsolutePath(tmpDir, relTree...)
 			require.Nil(t, err)
 
 			// sort so the list of directories can be evaluated more easily
@@ -323,9 +323,9 @@ func TestZip(t *testing.T) {
 					require.Nil(t, err)
 
 					// Check no files were lost in the zip/unzip process.
-					relativeSrcTree, err := fs.ConvertToRelativePath(testDir, tree)
+					relativeSrcTree, err := fs.ConvertToRelativePath(testDir, tree...)
 					require.Nil(t, err)
-					relativeResultTree, err := fs.ConvertToRelativePath(outDir, tree2)
+					relativeResultTree, err := fs.ConvertToRelativePath(outDir, tree2...)
 					require.Nil(t, err)
 					sort.Strings(relativeSrcTree)
 					sort.Strings(relativeResultTree)

@@ -21,6 +21,7 @@ import (
 	"github.com/bmatcuk/doublestar/v3"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/spf13/afero"
+	"go.uber.org/atomic"
 	"golang.org/x/text/encoding/unicode"
 
 	"github.com/ARM-software/golang-utils/utils/charset"
@@ -71,46 +72,6 @@ type VFS struct {
 	pathConverter func(path string) string
 }
 
-func (fs *VFS) MoveWithContext(ctx context.Context, src string, dest string) (err error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (fs *VFS) ReadFileWithLimits(filename string, n int64) ([]byte, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (fs *VFS) GarbageCollectWithContext(ctx context.Context, root string, durationSinceLastAccess time.Duration) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (fs *VFS) SubDirectoriesWithContext(ctx context.Context, directory string) ([]string, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (fs *VFS) ListDirTreeWithContext(ctx context.Context, dirPath string, list *[]string) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (fs *VFS) ConvertToRelativePath(rootPath string, paths ...string) ([]string, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (fs *VFS) ConvertToAbsolutePath(rootPath string, paths ...string) ([]string, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (fs *VFS) UnzipWithContext(source string, destination string) ([]string, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func NewVirtualFileSystem(vfs afero.Fs, fsType int, pathConverter func(path string) string) FS {
 	return &VFS{
 		vfs:           vfs,
@@ -127,7 +88,7 @@ func GetType() int {
 	return globalFileSystem.GetType()
 }
 
-// Walks  https://golang.org/pkg/path/filepath/#WalkDir
+// Walk walks  https://golang.org/pkg/path/filepath/#WalkDir
 func (fs *VFS) Walk(root string, fn filepath.WalkFunc) error {
 	return fs.WalkWithContext(context.Background(), root, fn)
 }
@@ -256,23 +217,31 @@ func (fs *VFS) CreateFile(name string) (File, error) {
 	return convertFile(func() (afero.File, error) { return fs.vfs.Create(name) }, func() error { return nil })
 }
 
-func ReadFile(name string) ([]byte, error) {
-	return globalFileSystem.ReadFile(name)
-}
-
 func (fs *VFS) NewRemoteLockFile(id string, dirToLock string) ILock {
 	return NewRemoteLockFile(fs, id, dirToLock)
 }
 
+func ReadFile(name string) ([]byte, error) {
+	return globalFileSystem.ReadFile(name)
+}
+
 func (fs *VFS) ReadFile(filename string) (content []byte, err error) {
-	return fs.readFileWithLimits(filename, 0, false)
+	return fs.readFileWithLimits(filename, NoLimits())
 }
 
-func (fs *VFS) ReadFileWithLimits(filename string, n int64) ([]byte, error) {
-	return fs.readFileWithLimits(filename, n, true)
+func ReadFileWithLimits(filename string, limits ILimits) ([]byte, error) {
+	return globalFileSystem.ReadFileWithLimits(filename, limits)
 }
 
-func (fs *VFS) readFileWithLimits(filename string, n int64, applyLimits bool) (content []byte, err error) {
+func (fs *VFS) ReadFileWithLimits(filename string, limits ILimits) ([]byte, error) {
+	return fs.readFileWithLimits(filename, limits)
+}
+
+func (fs *VFS) readFileWithLimits(filename string, limits ILimits) (content []byte, err error) {
+	if limits == nil {
+		err = fmt.Errorf("%w: missing limits definition", commonerrors.ErrUndefined)
+		return
+	}
 	// Really similar to afero iotutils Read file but using our utilities instead.
 	f, err := fs.GenericOpen(filename)
 	if err != nil {
@@ -288,7 +257,7 @@ func (fs *VFS) readFileWithLimits(filename string, n int64, applyLimits bool) (c
 		if size < 1e9 {
 			bufferCapacity += size
 		}
-		if applyLimits && size > n {
+		if limits.Apply() && size > limits.GetMaxFileSize() {
 			err = commonerrors.ErrEOF
 			return
 		}
@@ -307,8 +276,8 @@ func (fs *VFS) readFileWithLimits(filename string, n int64, applyLimits bool) (c
 			panic(e)
 		}
 	}()
-	if applyLimits {
-		_, err = buf.ReadFrom(io.LimitReader(f, n))
+	if limits.Apply() {
+		_, err = buf.ReadFrom(io.LimitReader(f, limits.GetMaxFileSize()))
 	} else {
 		_, err = buf.ReadFrom(f)
 	}
@@ -364,6 +333,7 @@ func (fs *VFS) StatTimes(name string) (info FileTimeInfo, err error) {
 func TempDir(dir string, prefix string) (name string, err error) {
 	return globalFileSystem.TempDir(dir, prefix)
 }
+
 func (fs *VFS) TempDir(dir string, prefix string) (name string, err error) {
 	return afero.TempDir(fs.vfs, dir, prefix)
 }
@@ -371,6 +341,7 @@ func (fs *VFS) TempDir(dir string, prefix string) (name string, err error) {
 func TempDirInTempDir(prefix string) (name string, err error) {
 	return globalFileSystem.TempDirInTempDir(prefix)
 }
+
 func (fs *VFS) TempDirInTempDir(prefix string) (name string, err error) {
 	return fs.TempDir("", prefix)
 }
@@ -395,6 +366,10 @@ func (fs *VFS) TempFileInTempDir(prefix string) (f File, err error) {
 
 func CleanDir(dir string) (err error) {
 	return globalFileSystem.CleanDir(dir)
+}
+
+func (fs *VFS) CleanDir(dir string) error {
+	return fs.CleanDirWithContext(context.Background(), dir)
 }
 
 func (fs *VFS) CleanDirWithContext(ctx context.Context, dir string) (err error) {
@@ -430,10 +405,6 @@ func (fs *VFS) removeFileWithContext(ctx context.Context, dir, f string) (err er
 	}
 	err = fs.RemoveWithContext(ctx, filepath.Join(dir, f))
 	return
-}
-
-func (fs *VFS) CleanDir(dir string) error {
-	return fs.CleanDirWithContext(context.Background(), dir)
 }
 
 // Checks if a file or folder exists
@@ -551,7 +522,7 @@ func IsSymLink(fi os.FileInfo) bool {
 	return fi.Mode()&os.ModeType == os.ModeSymlink
 }
 
-// States whether it is a directory or not
+// IsDir states whether it is a directory or not
 func IsDir(path string) (result bool, err error) {
 	return globalFileSystem.IsDir(path)
 }
@@ -574,7 +545,7 @@ func IsDirectory(fi os.FileInfo) bool {
 	return fi.IsDir()
 }
 
-// Checks whether a path is empty or not
+// IsEmpty checks whether a path is empty or not
 func IsEmpty(name string) (empty bool, err error) {
 	return globalFileSystem.IsEmpty(name)
 }
@@ -613,7 +584,7 @@ func (fs *VFS) isDirEmpty(name string) (empty bool, err error) {
 		}
 	}()
 	_, err = f.Readdirnames(1)
-	if err == io.EOF || IsPathNotExist(err) {
+	if commonerrors.Any(err, io.EOF, commonerrors.ErrEOF) || IsPathNotExist(err) {
 		err = nil
 		empty = true
 		return
@@ -622,7 +593,7 @@ func (fs *VFS) isDirEmpty(name string) (empty bool, err error) {
 	return
 }
 
-// Makes directory (equivalent to mkdir -p)
+// MkDir makes directory (equivalent to mkdir -p)
 func MkDir(dir string) (err error) {
 	return globalFileSystem.MkDir(dir)
 }
@@ -645,7 +616,7 @@ func (fs *VFS) MkDirAll(dir string, perm os.FileMode) (err error) {
 	return
 }
 
-// Excludes files
+// ExcludeAll excludes files
 func ExcludeAll(files []string, exclusionPatterns ...string) ([]string, error) {
 	return globalFileSystem.ExcludeAll(files, exclusionPatterns...)
 }
@@ -683,7 +654,7 @@ func isExcluded(path string, exclusionPatterns ...*regexp.Regexp) bool {
 	return false
 }
 
-// Finds all the files with extensions
+// FindAll finds all the files with extensions
 func FindAll(dir string, extensions ...string) (files []string, err error) {
 	return globalFileSystem.FindAll(dir, extensions...)
 }
@@ -805,10 +776,11 @@ func (fs *VFS) LlsFromOpenedDirectory(dir File) ([]os.FileInfo, error) {
 	return dir.Readdir(-1)
 }
 
-func (fs *VFS) ConvertToAbsolutePath(rootPath string, paths []string) ([]string, error) {
+func (fs *VFS) ConvertToAbsolutePath(rootPath string, paths ...string) ([]string, error) {
 	basepath := fs.ConvertFilePath(rootPath)
 	converted := make([]string, 0, len(paths))
-	for _, path := range paths {
+	for i := range paths {
+		path := paths[i]
 		var abs string
 		if filepath.IsAbs(path) {
 			abs = fs.ConvertFilePath(path)
@@ -820,10 +792,11 @@ func (fs *VFS) ConvertToAbsolutePath(rootPath string, paths []string) ([]string,
 	return converted, nil
 }
 
-func (fs *VFS) ConvertToRelativePath(rootPath string, paths []string) ([]string, error) {
+func (fs *VFS) ConvertToRelativePath(rootPath string, paths ...string) ([]string, error) {
 	basepath := fs.ConvertFilePath(rootPath)
 	converted := make([]string, 0, len(paths))
-	for _, path := range paths {
+	for i := range paths {
+		path := paths[i]
 		relPath, err := filepath.Rel(basepath, fs.ConvertFilePath(path))
 		if err != nil {
 			return nil, err
@@ -833,11 +806,19 @@ func (fs *VFS) ConvertToRelativePath(rootPath string, paths []string) ([]string,
 	return converted, nil
 }
 
-// Moves a file (equivalent to mv)
-func Move(src string, dest string) (err error) {
+// Move moves a file (equivalent to mv)
+func Move(src string, dest string) error {
 	return globalFileSystem.Move(src, dest)
 }
-func (fs *VFS) Move(src string, dest string) (err error) {
+func (fs *VFS) Move(src string, dest string) error {
+	return fs.MoveWithContext(context.Background(), src, dest)
+}
+
+func (fs *VFS) MoveWithContext(ctx context.Context, src string, dest string) (err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
 	if src == dest {
 		return
 	}
@@ -859,14 +840,18 @@ func (fs *VFS) Move(src string, dest string) (err error) {
 		return
 	}
 	if isDir {
-		err = fs.moveFolder(src, dest)
+		err = fs.moveFolder(ctx, src, dest)
 	} else {
-		err = fs.moveFile(src, dest)
+		err = fs.moveFile(ctx, src, dest)
 	}
 	return
 }
 
-func (fs *VFS) moveFolder(src string, dest string) (err error) {
+func (fs *VFS) moveFolder(ctx context.Context, src string, dest string) (err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
 	err = fs.MkDir(dest)
 	if err != nil {
 		return
@@ -883,14 +868,15 @@ func (fs *VFS) moveFolder(src string, dest string) (err error) {
 			}
 			return err
 		}
-		for _, f := range files {
-			err = fs.Move(filepath.Join(src, f), filepath.Join(dest, f))
+		for i := range files {
+			f := files[i]
+			err = fs.MoveWithContext(ctx, filepath.Join(src, f), filepath.Join(dest, f))
 			if err != nil {
 				return err
 			}
 		}
 	}
-	err = fs.Rm(src)
+	err = fs.RemoveWithContext(ctx, src)
 	return
 }
 
@@ -901,11 +887,15 @@ func IsPathNotExist(err error) bool {
 	return os.IsNotExist(err) || commonerrors.Any(err, ErrPathNotExist)
 }
 
-func (fs *VFS) moveFile(src string, dest string) (err error) {
+func (fs *VFS) moveFile(ctx context.Context, src string, dest string) (err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
 	if src == dest {
 		return
 	}
-	err = copyFileBetweenFS(fs, src, fs, dest)
+	err = copyFileBetweenFS(ctx, fs, src, fs, dest)
 	if err != nil {
 		return
 	}
@@ -937,6 +927,10 @@ func (fs *VFS) CopyWithContext(ctx context.Context, src string, dest string) (er
 }
 
 func MoveBetweenFS(ctx context.Context, srcFs FS, src string, destFs FS, dest string) (err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
 	if srcFs == destFs && src == dest {
 		return
 	}
@@ -944,7 +938,7 @@ func MoveBetweenFS(ctx context.Context, srcFs FS, src string, destFs FS, dest st
 	if err != nil {
 		return
 	}
-	return srcFs.Rm(src)
+	return srcFs.RemoveWithContext(ctx, src)
 }
 
 func CopyBetweenFS(ctx context.Context, srcFs FS, src string, destFs FS, dest string) (err error) {
@@ -978,6 +972,10 @@ func CopyBetweenFS(ctx context.Context, srcFs FS, src string, destFs FS, dest st
 }
 
 func copyFolderBetweenFS(ctx context.Context, srcFs FS, src string, destFs FS, dest string) (err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
 	err = destFs.MkDir(dest)
 	if err != nil {
 		return
@@ -1002,7 +1000,11 @@ func copyFolderBetweenFS(ctx context.Context, srcFs FS, src string, destFs FS, d
 	return
 }
 
-func copyFileBetweenFS(srcFs FS, src string, destFs FS, dest string) (err error) {
+func copyFileBetweenFS(ctx context.Context, srcFs FS, src string, destFs FS, dest string) (err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
 	inputFile, err := srcFs.GenericOpen(src)
 	if err != nil {
 		return
@@ -1066,10 +1068,26 @@ func Zip(source string, destination string) error {
 }
 
 func (fs *VFS) Zip(source, destination string) error {
+	return fs.ZipWithContext(context.Background(), source, destination)
+}
+
+func (fs *VFS) ZipWithContext(ctx context.Context, source, destination string) (err error) {
+	return fs.ZipWithContextAndLimits(ctx, source, destination, NoLimits())
+}
+
+func (fs *VFS) ZipWithContextAndLimits(ctx context.Context, source, destination string, limits ILimits) (err error) {
+	if limits == nil {
+		err = fmt.Errorf("%w: missing file system limits", commonerrors.ErrUndefined)
+		return
+	}
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
 
 	file, err := fs.CreateFile(destination)
 	if err != nil {
-		return err
+		return
 	}
 	defer func() { _ = file.Close() }()
 
@@ -1079,6 +1097,10 @@ func (fs *VFS) Zip(source, destination string) error {
 
 	walker := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
+			return err
+		}
+		if limits.Apply() && info.Size() > limits.GetMaxFileSize() {
+			err = fmt.Errorf("%w: file [%v] is too big (%v B) and beyond limits (max: %v B)", commonerrors.ErrTooLarge, path, info.Size(), limits.GetMaxFileSize())
 			return err
 		}
 
@@ -1133,84 +1155,19 @@ func (fs *VFS) Zip(source, destination string) error {
 		}
 		return nil
 	}
-	err = fs.Walk(source, walker)
-	return err
-}
+	err = fs.WalkWithContext(ctx, source, walker)
 
-func (fs *VFS) ZipWithContext(ctx context.Context, source, destination string) error {
-
-	file, err := fs.CreateFile(destination)
-	if err != nil {
-		return err
+	if limits.Apply() {
+		stat, subErr := file.Stat()
+		if subErr != nil {
+			return subErr
+		}
+		if stat.Size() > limits.GetMaxFileSize() {
+			subErr = fmt.Errorf("%w: file [%v] is too big (%v B) and beyond limits (max: %v B)", commonerrors.ErrTooLarge, destination, stat.Size(), limits.GetMaxFileSize())
+			return subErr
+		}
 	}
-	defer func() { _ = file.Close() }()
-
-	// create a new zip archive
-	w := zip.NewWriter(file)
-	defer func() { _ = w.Close() }()
-
-	walker := func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		// Get the relative path
-		relPath, err := filepath.Rel(source, path)
-		if err != nil {
-			return err
-		}
-
-		// If directory
-		if info.IsDir() {
-			if path == source {
-				return nil
-			}
-			header := &zip.FileHeader{
-				Name:     relPath + "/",
-				Method:   zip.Deflate,
-				Modified: info.ModTime(),
-			}
-			_, err = w.CreateHeader(header)
-			return err
-		}
-
-		// if file
-		src, err := fs.GenericOpen(path)
-		if err != nil {
-			return err
-		}
-		defer func() { _ = src.Close() }()
-
-		// create file in archive
-		relPath, err = filepath.Rel(source, path)
-		if err != nil {
-			return err
-		}
-		header := &zip.FileHeader{
-			Name:     relPath,
-			Method:   zip.Deflate,
-			Modified: info.ModTime(),
-		}
-		dest, err := w.CreateHeader(header)
-		if err != nil {
-			return err
-		}
-		n, err := io.Copy(dest, src)
-		if err != nil {
-			return err
-		}
-
-		if info.Size() != n && !IsSymLink(info) {
-			return fmt.Errorf("could not write the full file [%v] content (wrote %v/%v bytes)", relPath, n, info.Size())
-		}
-		return nil
-	}
-	err = fs.Walk(source, walker)
-	return err
-}
-
-func Unzip(source string, destination string) ([]string, error) {
-	return globalFileSystem.Unzip(source, destination)
+	return
 }
 
 // Prevents any ZipSlip (files outside extraction dirPath) https://snyk.io/research/zip-slip-vulnerability#go
@@ -1229,8 +1186,32 @@ func sanitiseZipExtractPath(fs FS, filePath string, destination string) (destPat
 	return
 }
 
-func (fs *VFS) Unzip(source string, destination string) (fileList []string, err error) {
+func Unzip(source, destination string) ([]string, error) {
+	return globalFileSystem.Unzip(source, destination)
+}
+
+func (fs *VFS) Unzip(source, destination string) ([]string, error) {
+	return fs.UnzipWithContext(context.Background(), source, destination)
+}
+
+func (fs *VFS) UnzipWithContext(ctx context.Context, source string, destination string) (fileList []string, err error) {
+	return fs.unzip(ctx, source, destination, NoLimits())
+}
+func (fs *VFS) UnzipWithContextAndLimits(ctx context.Context, source string, destination string, limits ILimits) (fileList []string, err error) {
+	return fs.unzip(ctx, source, destination, limits)
+}
+func (fs *VFS) unzip(ctx context.Context, source string, destination string, limits ILimits) (fileList []string, err error) {
+	if limits == nil {
+		err = fmt.Errorf("%w: missing file system limits", commonerrors.ErrUndefined)
+		return
+	}
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
 	// List of file paths to return
+
+	totalSizeOnDisk := atomic.NewUint64(0)
 
 	info, err := fs.Lstat(source)
 	if err != nil {
@@ -1241,7 +1222,15 @@ func (fs *VFS) Unzip(source string, destination string) (fileList []string, err 
 		return
 	}
 	defer func() { _ = f.Close() }()
-	zipReader, err := zip.NewReader(f, info.Size())
+
+	zipFileSize := info.Size()
+
+	if limits.Apply() && zipFileSize > limits.GetMaxFileSize() {
+		err = fmt.Errorf("%w: zip file [%v] is too big (%v B) and beyond limits (max: %v B)", commonerrors.ErrTooLarge, source, zipFileSize, limits.GetMaxFileSize())
+		return
+	}
+
+	zipReader, err := zip.NewReader(f, zipFileSize)
 	if err != nil {
 		return
 	}
@@ -1255,7 +1244,13 @@ func (fs *VFS) Unzip(source string, destination string) (fileList []string, err 
 	directoryInfo := map[string]os.FileInfo{}
 
 	// For each file in the zip file
-	for _, zippedFile := range zipReader.File {
+	for i := range zipReader.File {
+		zippedFile := zipReader.File[i]
+		subErr := parallelisation.DetermineContextError(ctx)
+		if subErr != nil {
+			return fileList, subErr
+		}
+
 		// Calculate file dirPath
 		filePath, subErr := sanitiseZipExtractPath(fs, zippedFile.Name, destination)
 		if subErr != nil {
@@ -1267,10 +1262,10 @@ func (fs *VFS) Unzip(source string, destination string) (fileList []string, err 
 
 		if zippedFile.FileInfo().IsDir() {
 			// Create directory
-			err := fs.MkDir(filePath)
+			subErr = fs.MkDir(filePath)
 
-			if err != nil {
-				return fileList, fmt.Errorf("unable to create directory [%s]: %w", filePath, err)
+			if subErr != nil {
+				return fileList, fmt.Errorf("unable to create directory [%s]: %w", filePath, subErr)
 			}
 			// recording directory dirInfo to preserve timestamps
 			directoryInfo[filePath] = zippedFile.FileInfo()
@@ -1280,23 +1275,31 @@ func (fs *VFS) Unzip(source string, destination string) (fileList []string, err 
 
 		// If a file create the dirPath into which to write the file
 		directoryPath := filepath.Dir(filePath)
-		err = fs.MkDir(directoryPath)
-		if err != nil {
-			return fileList, fmt.Errorf("unable to create directory '%s': %w", directoryPath, err)
+		subErr = fs.MkDir(directoryPath)
+		if subErr != nil {
+			return fileList, fmt.Errorf("unable to create directory '%s': %w", directoryPath, subErr)
 		}
 
-		err = fs.unzipZipFile(filePath, zippedFile)
-		if err != nil {
-			return fileList, err
+		fileSizeOnDisk, subErr := fs.unzipZipFile(ctx, filePath, zippedFile, limits)
+		if subErr != nil {
+			return fileList, subErr
+		}
+		totalSizeOnDisk.Add(uint64(fileSizeOnDisk))
+		if limits.Apply() && totalSizeOnDisk.Load() > limits.GetMaxTotalSize() {
+			return fileList, fmt.Errorf("%w: more than %v B of disk space was used while unzipping %v (%v B used already)", commonerrors.ErrTooLarge, limits.GetMaxTotalSize(), source, totalSizeOnDisk.Load())
 		}
 	}
 
 	// Ensuring directory timestamps are preserved (this needs to be done after all the files have been created).
 	for dirPath, dirInfo := range directoryInfo {
+		subErr := parallelisation.DetermineContextError(ctx)
+		if subErr != nil {
+			return fileList, subErr
+		}
 		times := newDefaultTimeInfo(dirInfo)
-		err = fs.Chtimes(dirPath, times.AccessTime(), times.ModTime())
-		if err != nil {
-			return fileList, fmt.Errorf("unable to set directory timestamp [%s]: %w", dirPath, err)
+		subErr = fs.Chtimes(dirPath, times.AccessTime(), times.ModTime())
+		if subErr != nil {
+			return fileList, fmt.Errorf("unable to set directory timestamp [%s]: %w", dirPath, subErr)
 		}
 	}
 
@@ -1304,7 +1307,12 @@ func (fs *VFS) Unzip(source string, destination string) (fileList []string, err 
 }
 
 // unzipZipFile unzips file to destination directory
-func (fs *VFS) unzipZipFile(dest string, zippedFile *zip.File) (err error) {
+func (fs *VFS) unzipZipFile(ctx context.Context, dest string, zippedFile *zip.File, limits ILimits) (fileSizeOnDisk int64, err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+
 	destinationPath, err := determineUnzippedFilepath(dest)
 	if err != nil {
 		return
@@ -1312,26 +1320,38 @@ func (fs *VFS) unzipZipFile(dest string, zippedFile *zip.File) (err error) {
 
 	destinationFile, err := fs.OpenFile(destinationPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, zippedFile.Mode())
 	if err != nil {
-		return fmt.Errorf("unable to open file '%s': %w", destinationPath, err)
+		err = fmt.Errorf("unable to open file '%s': %w", destinationPath, err)
+		return
 	}
 	defer func() { _ = destinationFile.Close() }()
 
 	sourceFile, err := zippedFile.Open()
 	if err != nil {
-		return fmt.Errorf("unable to open zipped file '%s': %w", zippedFile.Name, err)
+		err = fmt.Errorf("unable to open zipped file '%s': %w", zippedFile.Name, err)
+		return
 	}
 	defer func() { _ = sourceFile.Close() }()
 
-	_, err = io.CopyN(destinationFile, sourceFile, int64(zippedFile.UncompressedSize64))
+	info := zippedFile.FileInfo()
+	fileSizeOnDisk = info.Size()
+	if limits.Apply() {
+		if fileSizeOnDisk > limits.GetMaxFileSize() {
+			err = fmt.Errorf("%w: zipped file [%v] is too big (%v B) and above max size (%v B)", commonerrors.ErrTooLarge, info.Name(), info.Size(), limits.GetMaxFileSize())
+			return
+		}
+	}
+
+	_, err = io.CopyN(destinationFile, sourceFile, fileSizeOnDisk)
 	if err != nil {
-		return fmt.Errorf("copy of zipped file to '%s' failed: %w", destinationPath, err)
+		err = fmt.Errorf("copy of zipped file to '%s' failed: %w", destinationPath, err)
+		return
 	}
 	err = destinationFile.Close()
 	if err != nil {
-		return err
+		return
 	}
 	// Ensuring the timestamp is preserved.
-	times := newDefaultTimeInfo(zippedFile.FileInfo())
+	times := newDefaultTimeInfo(info)
 	err = fs.Chtimes(destinationPath, times.AccessTime(), times.ModTime())
 	// Nothing more to do for a directory, move to next zip file
 	return
@@ -1369,30 +1389,51 @@ func SubDirectories(directory string) ([]string, error) {
 	return globalFileSystem.SubDirectories(directory)
 }
 
-// Return a list of all subdirectories (which are not hidden)
 func (fs *VFS) SubDirectories(directory string) ([]string, error) {
-	var directories []string
+	return fs.SubDirectoriesWithContext(context.Background(), directory)
+}
+
+func (fs *VFS) SubDirectoriesWithContext(ctx context.Context, directory string) (directories []string, err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
 	files, err := afero.ReadDir(fs.vfs, directory)
 	if err != nil {
-		return directories, err
+		return
 	}
 
-	for _, file := range files {
+	for i := range files {
+		subErr := parallelisation.DetermineContextError(ctx)
+		if subErr != nil {
+			err = subErr
+			return
+		}
+		file := files[i]
 		if file.IsDir() && !strings.HasPrefix(file.Name(), ".") {
 			directories = append(directories, file.Name())
 		}
 	}
-	return directories, err
+	return
 }
 
+// ListDirTree returns a list of files and directories recursively available under specified path
 func ListDirTree(dirPath string, list *[]string) error {
 	return globalFileSystem.ListDirTree(dirPath, list)
 }
 
-// Return a list of files and directories recursively available under specified path
 func (fs *VFS) ListDirTree(dirPath string, list *[]string) error {
+	return fs.ListDirTreeWithContext(context.Background(), dirPath, list)
+}
+
+func (fs *VFS) ListDirTreeWithContext(ctx context.Context, dirPath string, list *[]string) (err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
 	if list == nil {
-		return fmt.Errorf("uninitialised input variable: %w", commonerrors.ErrInvalid)
+		err = fmt.Errorf("uninitialised input variable: %w", commonerrors.ErrInvalid)
+		return
 	}
 
 	elements, err := fs.Ls(dirPath)
@@ -1400,13 +1441,19 @@ func (fs *VFS) ListDirTree(dirPath string, list *[]string) error {
 		return err
 	}
 
-	for _, elem := range elements {
-		path := filepath.Join(dirPath, elem)
+	for i := range elements {
+		subErr := parallelisation.DetermineContextError(ctx)
+		if subErr != nil {
+			err = subErr
+			return
+		}
+		path := filepath.Join(dirPath, elements[i])
 		*list = append(*list, path)
 		if isDir, _ := fs.IsDir(path); isDir {
-			err = fs.ListDirTree(path, list)
-			if err != nil {
-				return err
+			subErr = fs.ListDirTreeWithContext(ctx, path, list)
+			if subErr != nil {
+				err = subErr
+				return
 			}
 		}
 	}
@@ -1414,37 +1461,53 @@ func (fs *VFS) ListDirTree(dirPath string, list *[]string) error {
 }
 
 func (fs *VFS) GarbageCollect(root string, durationSinceLastAccess time.Duration) error {
-	return fs.garbageCollect(durationSinceLastAccess, root, false)
+	return fs.GarbageCollectWithContext(context.Background(), root, durationSinceLastAccess)
 }
 
-func (fs *VFS) garbageCollectFile(durationSinceLastAccess time.Duration, path string) (err error) {
+func (fs *VFS) GarbageCollectWithContext(ctx context.Context, root string, durationSinceLastAccess time.Duration) error {
+	return fs.garbageCollect(ctx, durationSinceLastAccess, root, false)
+}
+
+func (fs *VFS) garbageCollectFile(ctx context.Context, durationSinceLastAccess time.Duration, path string) (err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
 	info, err := fs.StatTimes(path)
 	if err != nil {
 		return
 	}
 	elapsedTime := time.Since(info.AccessTime())
 	if elapsedTime > durationSinceLastAccess {
-		err = fs.Rm(path)
+		err = fs.RemoveWithContext(ctx, path)
 	}
 	return
 }
 
-func (fs *VFS) garbageCollect(durationSinceLastAccess time.Duration, path string, deletePath bool) (err error) {
+func (fs *VFS) garbageCollect(ctx context.Context, durationSinceLastAccess time.Duration, path string, deletePath bool) (err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
 	if !fs.Exists(path) {
 		return
 	}
 	if isDir, _ := fs.IsDir(path); isDir {
-		return fs.garbageCollectDir(durationSinceLastAccess, path, deletePath)
+		return fs.garbageCollectDir(ctx, durationSinceLastAccess, path, deletePath)
 	}
-	return fs.garbageCollectFile(durationSinceLastAccess, path)
+	return fs.garbageCollectFile(ctx, durationSinceLastAccess, path)
 }
 
-func (fs *VFS) garbageCollectDir(durationSinceLastAccess time.Duration, path string, deletePath bool) error {
+func (fs *VFS) garbageCollectDir(ctx context.Context, durationSinceLastAccess time.Duration, path string, deletePath bool) (err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
 	if deletePath && platform.IsWindows() {
 		// On linux and potentially MacOs, the access/modification of files in a directory do not affect those times for the parent folder.
 		// Therefore, we cannot rely on the times of a directory to make a decision.
 		// See https://superuser.com/questions/1039003/linux-how-does-file-modification-time-affect-directory-modification-time-and-di
-		err := fs.garbageCollectFile(durationSinceLastAccess, path)
+		err = fs.garbageCollectFile(ctx, durationSinceLastAccess, path)
 		if err != nil {
 			return err
 		}
@@ -1454,16 +1517,20 @@ func (fs *VFS) garbageCollectDir(durationSinceLastAccess time.Duration, path str
 	}
 	files, err := fs.Ls(path)
 	if err != nil {
-		return err
+		return
 	}
 	_, _ = parallelisation.Parallelise(files, func(arg interface{}) (interface{}, error) {
 		file := filepath.Join(path, arg.(string))
-		return nil, fs.garbageCollect(durationSinceLastAccess, file, true)
+		return nil, fs.garbageCollect(ctx, durationSinceLastAccess, file, true)
 	}, nil)
-	if empty, err := fs.IsEmpty(path); err == nil && empty && deletePath {
-		return fs.Rm(path)
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
 	}
-	return nil
+	if empty, subErr := fs.IsEmpty(path); subErr == nil && empty && deletePath {
+		err = fs.RemoveWithContext(ctx, path)
+	}
+	return
 }
 
 type extendedFile struct {

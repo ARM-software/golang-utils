@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IFileHash,Chowner,Linker,File,DiskUsage,FileTimeInfo,ILock,FS
+//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IFileHash,Chowner,Linker,File,DiskUsage,FileTimeInfo,ILock,ILimits,FS
 
 // For reference.
 //https://stackoverflow.com/questions/1761607/what-is-the-fastest-hash-algorithm-to-check-if-two-files-are-equal
@@ -62,18 +62,37 @@ type FileTimeInfo interface {
 	HasAccessTime() bool
 }
 
+// ILimits defines general limits for actions performed on the filesystem
+type ILimits interface {
+	// Apply states whether the limit should be applied
+	Apply() bool
+	// GetMaxFileSize returns the maximum size in byte a file can have on a file system
+	GetMaxFileSize() int64
+	// GetMaxTotalSize returns the maximum size in byte a location can have on a file system (whether it is a file or a folder)
+	GetMaxTotalSize() uint64
+}
+
+// ILock defines a generic lock using the file system.
 // FIXME it should be noted that despite being possible to use the lock with an in-memory filesystem, it should be avoided at all cost.
 // The implementation of the in-memory FS used (afero) has shown several thread safety issues (e.g. https://github.com/spf13/afero/issues/298) and therefore, should not be used for scenarios involving concurrency until it is fixed.
 type ILock interface {
-	Lock(ctx context.Context) error                                   // Locks the lock. This call will wait (i.e. block) until the lock is available.
-	LockWithTimeout(ctx context.Context, timeout time.Duration) error // Tries to lock the lock until the timeout expires. If the timeout expires, this method will return commonerror.ErrTimeout.
-	TryLock(ctx context.Context) error                                // Attempts to lock the lock instantly. This method will return commonerrors.ErrLocked immediately if the lock cannot be acquired straight away.
-	IsStale() bool                                                    // Determines whether a lock is stale (the owner forgot to release it or is dead) or not.
-	Unlock(ctx context.Context) error                                 // Releases the lock. This takes precedence over any current lock.
-	ReleaseIfStale(ctx context.Context) error                         // Forces the lock to be released if it is considered as stale.
-	MakeStale(ctx context.Context) error                              // Makes the lock stale. This is mostly for testing purposes.
+	// Lock locks the lock. This call will wait (i.e. block) until the lock is available.
+	Lock(ctx context.Context) error
+	// LockWithTimeout tries to lock the lock until the timeout expires. If the timeout expires, this method will return commonerror.ErrTimeout.
+	LockWithTimeout(ctx context.Context, timeout time.Duration) error
+	// TryLock attempts to lock the lock instantly. This method will return commonerrors.ErrLocked immediately if the lock cannot be acquired straight away.
+	TryLock(ctx context.Context) error
+	// IsStale determines whether a lock is stale (the owner forgot to release it or is dead) or not.
+	IsStale() bool
+	// Unlock releases the lock. This takes precedence over any current lock.
+	Unlock(ctx context.Context) error
+	// ReleaseIfStale forces the lock to be released if it is considered as stale.
+	ReleaseIfStale(ctx context.Context) error
+	// MakeStale makes the lock stale. This is mostly for testing purposes.
+	MakeStale(ctx context.Context) error
 }
 
+// FS defines all the methods a file system should provide.
 type FS interface {
 	// Open opens a file. The following is for being able to use doublestar
 	Open(name string) (doublestar.File, error)
@@ -126,7 +145,7 @@ type FS interface {
 	Walk(root string, fn filepath.WalkFunc) error
 	// WalkWithContext walks  the file tree rooted at root, calling fn for each file or
 	// directory in the tree, including root. See https://golang.org/pkg/path/filepath/#WalkDir
-	WalkWithContext(root string, fn filepath.WalkFunc) error
+	WalkWithContext(ctx context.Context, root string, fn filepath.WalkFunc) error
 	// Ls lists all files and directory (equivalent to ls)
 	Ls(dir string) (files []string, err error)
 	// LsFromOpenedDirectory lists all files and directory (equivalent to ls)
@@ -157,8 +176,8 @@ type FS interface {
 	CurrentDirectory() (string, error)
 	// ReadFile reads a file and return its content.
 	ReadFile(filename string) ([]byte, error)
-	// ReadFileWithLimits reads a file and return its content. Nonetheless, it stops with EOF after n bytes.
-	ReadFileWithLimits(filename string, n int64) ([]byte, error)
+	// ReadFileWithLimits reads a file and return its content. Nonetheless, it stops with EOF after limits are exceeded.
+	ReadFileWithLimits(filename string, limits ILimits) ([]byte, error)
 	// WriteFile writes data to a file named by filename.
 	// If the file does not exist, WriteFile creates it with permissions perm;
 	// otherwise WriteFile truncates it before writing.
@@ -183,7 +202,7 @@ type FS interface {
 	DiskUsage(name string) (DiskUsage, error)
 	// GetFileSize gets file size
 	GetFileSize(filename string) (int64, error)
-	// SubDirectories returns a list of all subdirectories (which are not hidden)
+	// SubDirectories returns a list of all subdirectories (which are not hidden) names
 	SubDirectories(directory string) ([]string, error)
 	// SubDirectoriesWithContext returns a list of all subdirectories (which are not hidden)
 	SubDirectoriesWithContext(ctx context.Context, directory string) ([]string, error)
@@ -205,10 +224,16 @@ type FS interface {
 	Zip(source string, destination string) error
 	// ZipWithContext compresses a file tree (source) into a zip file (destination)
 	ZipWithContext(ctx context.Context, source string, destination string) error
+	// 	ZipWithContextAndLimits(ctx context.Context, source string, destination string) error compresses a file tree (source) into a zip file (destination) .Nonetheless, if limits are exceeded, an error will be returned and the process will be stopped.
+	// It is however the responsibility of the caller to clean any partially created zipped archive if error occurs.
+	ZipWithContextAndLimits(ctx context.Context, source string, destination string, limits ILimits) error
 	// Unzip decompresses a source zip archive into the destination
 	Unzip(source string, destination string) ([]string, error)
 	// UnzipWithContext decompresses a source zip archive into the destination
-	UnzipWithContext(source string, destination string) ([]string, error)
-	// Calculates file hash
+	UnzipWithContext(ctx context.Context, source string, destination string) ([]string, error)
+	// UnzipWithContextAndLimits decompresses a source zip archive into the destination. Nonetheless, if limits are exceeded, an error will be returned and the process will be stopped.
+	// It is however the responsibility of the caller to clean any partially unzipped archive if error occurs.
+	UnzipWithContextAndLimits(ctx context.Context, source string, destination string, limits ILimits) (fileList []string, err error)
+	// FileHash calculates file hash
 	FileHash(hashAlgo string, path string) (string, error)
 }
