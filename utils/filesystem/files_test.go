@@ -1011,6 +1011,7 @@ func TestUnzip_Limits(t *testing.T) {
 	assert.False(t, empty)
 
 	err = fs.CleanDirWithContext(context.Background(), destPath)
+	require.NoError(t, err)
 	empty, err = fs.IsEmpty(destPath)
 	assert.NoError(t, err)
 	assert.True(t, empty)
@@ -1022,6 +1023,7 @@ func TestUnzip_Limits(t *testing.T) {
 	assert.True(t, commonerrors.Any(err, commonerrors.ErrTimeout))
 
 	err = fs.CleanDirWithContext(context.Background(), destPath)
+	require.NoError(t, err)
 	empty, err = fs.IsEmpty(destPath)
 	assert.NoError(t, err)
 	assert.True(t, empty)
