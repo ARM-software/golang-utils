@@ -27,8 +27,8 @@ func (n *noLimits) Validate() error {
 
 // Limits defines file system limits
 type Limits struct {
-	MaxFileSize  int64
-	MaxTotalSize uint64
+	MaxFileSize  int64  `mapstructure:"max_file_size"`
+	MaxTotalSize uint64 `mapstructure:"max_total_size"`
 }
 
 func (l *Limits) Apply() bool {
