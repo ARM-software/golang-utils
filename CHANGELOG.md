@@ -14,6 +14,16 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.15.1" (2022-07-18)
+========================
+
+Bugfixes
+--------
+
+- `[filesystem]` Updated limit structure to have tags specified (#202207181519)
+- `[httptest]` Fixed security issue `(G112: Potential Slowloris Attack because ReadHeaderTimeout is not configured in the http.Server (gosec))` (#202207181802)
+
+
 "" "1.15.0" (2022-07-18)
 ========================
 
