@@ -12,6 +12,8 @@ import (
 
 	"github.com/bmatcuk/doublestar/v3"
 	"github.com/spf13/afero"
+
+	"github.com/ARM-software/golang-utils/utils/config"
 )
 
 //go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IFileHash,Chowner,Linker,File,DiskUsage,FileTimeInfo,ILock,ILimits,FS
@@ -62,8 +64,9 @@ type FileTimeInfo interface {
 	HasAccessTime() bool
 }
 
-// ILimits defines general limits for actions performed on the filesystem
+// ILimits defines general FileSystemLimits for actions performed on the filesystem
 type ILimits interface {
+	config.IServiceConfiguration
 	// Apply states whether the limit should be applied
 	Apply() bool
 	// GetMaxFileSize returns the maximum size in byte a file can have on a file system
@@ -176,7 +179,7 @@ type FS interface {
 	CurrentDirectory() (string, error)
 	// ReadFile reads a file and return its content.
 	ReadFile(filename string) ([]byte, error)
-	// ReadFileWithLimits reads a file and return its content. Nonetheless, it stops with EOF after limits are exceeded.
+	// ReadFileWithLimits reads a file and return its content. Nonetheless, it stops with EOF after FileSystemLimits are exceeded.
 	ReadFileWithLimits(filename string, limits ILimits) ([]byte, error)
 	// WriteFile writes data to a file named by filename.
 	// If the file does not exist, WriteFile creates it with permissions perm;
@@ -224,14 +227,14 @@ type FS interface {
 	Zip(source string, destination string) error
 	// ZipWithContext compresses a file tree (source) into a zip file (destination)
 	ZipWithContext(ctx context.Context, source string, destination string) error
-	// 	ZipWithContextAndLimits(ctx context.Context, source string, destination string) error compresses a file tree (source) into a zip file (destination) .Nonetheless, if limits are exceeded, an error will be returned and the process will be stopped.
+	// 	ZipWithContextAndLimits(ctx context.Context, source string, destination string) error compresses a file tree (source) into a zip file (destination) .Nonetheless, if FileSystemLimits are exceeded, an error will be returned and the process will be stopped.
 	// It is however the responsibility of the caller to clean any partially created zipped archive if error occurs.
 	ZipWithContextAndLimits(ctx context.Context, source string, destination string, limits ILimits) error
 	// Unzip decompresses a source zip archive into the destination
 	Unzip(source string, destination string) ([]string, error)
 	// UnzipWithContext decompresses a source zip archive into the destination
 	UnzipWithContext(ctx context.Context, source string, destination string) ([]string, error)
-	// UnzipWithContextAndLimits decompresses a source zip archive into the destination. Nonetheless, if limits are exceeded, an error will be returned and the process will be stopped.
+	// UnzipWithContextAndLimits decompresses a source zip archive into the destination. Nonetheless, if FileSystemLimits are exceeded, an error will be returned and the process will be stopped.
 	// It is however the responsibility of the caller to clean any partially unzipped archive if error occurs.
 	UnzipWithContextAndLimits(ctx context.Context, source string, destination string, limits ILimits) (fileList []string, err error)
 	// FileHash calculates file hash

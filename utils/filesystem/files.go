@@ -239,7 +239,7 @@ func (fs *VFS) ReadFileWithLimits(filename string, limits ILimits) ([]byte, erro
 
 func (fs *VFS) readFileWithLimits(filename string, limits ILimits) (content []byte, err error) {
 	if limits == nil {
-		err = fmt.Errorf("%w: missing limits definition", commonerrors.ErrUndefined)
+		err = fmt.Errorf("%w: missing file system limits definition", commonerrors.ErrUndefined)
 		return
 	}
 	// Really similar to afero iotutils Read file but using our utilities instead.
@@ -1320,14 +1320,14 @@ func (fs *VFS) unzipZipFile(ctx context.Context, dest string, zippedFile *zip.Fi
 
 	destinationFile, err := fs.OpenFile(destinationPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, zippedFile.Mode())
 	if err != nil {
-		err = fmt.Errorf("unable to open file '%s': %w", destinationPath, err)
+		err = fmt.Errorf("%w: unable to open file '%s': %v", commonerrors.ErrUnexpected, destinationPath, err.Error())
 		return
 	}
 	defer func() { _ = destinationFile.Close() }()
 
 	sourceFile, err := zippedFile.Open()
 	if err != nil {
-		err = fmt.Errorf("unable to open zipped file '%s': %w", zippedFile.Name, err)
+		err = fmt.Errorf("%w: unable to open zipped file '%s': %v", commonerrors.ErrUnsupported, zippedFile.Name, err.Error())
 		return
 	}
 	defer func() { _ = sourceFile.Close() }()
