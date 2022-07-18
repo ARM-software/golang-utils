@@ -1016,7 +1016,7 @@ func TestUnzip_Limits(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, empty)
 
-	contextWithTimeOut, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+	contextWithTimeOut, cancel := context.WithTimeout(context.Background(), 10*time.Nanosecond)
 	defer cancel()
 	_, err = fs.UnzipWithContext(contextWithTimeOut, srcPath, destPath)
 	assert.Error(t, err)
