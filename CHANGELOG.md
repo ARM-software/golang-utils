@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.15.0" (2022-07-18)
+========================
+
+Features
+--------
+
+- `[filesystem]` Added ability to better control long running file system actions such as zipping, walking, etc. with context (#202207151751)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: afero-1.9.0 (#202207151021, #202207151022, #202207151023, #20220715102101, #20220715102201)
+
+
 "" "1.14.0" (2022-07-12)
 ========================
 
