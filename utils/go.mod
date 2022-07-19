@@ -27,7 +27,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.22.6
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spaolacci/murmur3 v1.1.0
-	github.com/spf13/afero v1.9.0
+	github.com/spf13/afero v1.9.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.12.0
 	github.com/stretchr/testify v1.8.0
