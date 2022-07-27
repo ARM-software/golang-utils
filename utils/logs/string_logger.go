@@ -66,9 +66,9 @@ func NewStringLogger(loggerSource string) (loggers *StringLoggers, err error) {
 	loggers = &StringLoggers{
 		LogWriter: StringWriter{},
 	}
-	(*loggers).GenericLoggers = GenericLoggers{
-		Output: log.New(&(*loggers).LogWriter, fmt.Sprintf("[%v] Output: ", loggerSource), log.LstdFlags),
-		Error:  log.New(&(*loggers).LogWriter, fmt.Sprintf("[%v] Error: ", loggerSource), log.LstdFlags),
+	loggers.GenericLoggers = GenericLoggers{
+		Output: log.New(&loggers.LogWriter, fmt.Sprintf("[%v] Output: ", loggerSource), log.LstdFlags),
+		Error:  log.New(&loggers.LogWriter, fmt.Sprintf("[%v] Error: ", loggerSource), log.LstdFlags),
 	}
 	return
 }

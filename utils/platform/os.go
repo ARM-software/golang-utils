@@ -111,7 +111,7 @@ func Uname() (string, error) {
 type RAM interface {
 	// Gets total amount of RAM on this system
 	GetTotal() uint64
-	//Gets RAM available for programs to allocate
+	// Gets RAM available for programs to allocate
 	GetAvailable() uint64
 	// Gets RAM used by programs
 	GetUsed() uint64

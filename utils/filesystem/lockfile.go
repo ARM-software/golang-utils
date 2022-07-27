@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-//Distributed lock using lock files https://fileinfo.com/extension/lock
+// Distributed lock using lock files https://fileinfo.com/extension/lock
 package filesystem
 
 import (

@@ -252,7 +252,7 @@ func createTestFileTree(t *testing.T, fs FS, testDir, basePath string, withLinks
 	err = fs.ListDirTree(testDir, &tree)
 	require.NoError(t, err)
 
-	//unifying timestamps
+	// unifying timestamps
 	for _, path := range tree {
 		err = fs.Chtimes(path, fileAccessTime, fileModTime)
 		require.NoError(t, err)
@@ -343,7 +343,7 @@ func TestZip(t *testing.T) {
 						resultFilePath := filepath.Join(outDir, path)
 						fileinfoResult, err := fs.Lstat(resultFilePath)
 						require.NoError(t, err)
-						//TODO handle links separately
+						// TODO handle links separately
 						if IsSymLink(fileinfoSrc) {
 							continue
 						}
@@ -999,7 +999,7 @@ func TestUnzip_Limits(t *testing.T) {
 	destPath, err := fs.TempDirInTempDir("unzip-limits-")
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
-	limits := NewLimits(1<<30, 1<<10) //Total size limited to 10 Kb
+	limits := NewLimits(1<<30, 1<<10) // Total size limited to 10 Kb
 
 	empty, err := fs.IsEmpty(destPath)
 	assert.NoError(t, err)
@@ -1052,7 +1052,7 @@ func TestUnzip_ZipBomb(t *testing.T) {
 	destPath, err := fs.TempDirInTempDir("unzip-limits-")
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
-	limits := NewLimits(1<<30, 1<<20) //Total size limited to 1 Mb
+	limits := NewLimits(1<<30, 1<<20) // Total size limited to 1 Mb
 
 	empty, err := fs.IsEmpty(destPath)
 	assert.NoError(t, err)
@@ -1138,12 +1138,12 @@ func TestUnzipWithNonUTF8Filenames(t *testing.T) {
 			},
 			expectedError: nil,
 		},
-		//TODO create a zip file with non supported encoding
-		//{
+		// TODO create a zip file with non supported encoding
+		// {
 		//	zipFile:       ,
 		//	expectedFiles: nil,
 		//	expectedError: commonerrors.ErrInvalid,
-		//},
+		// },
 	}
 	for i := range tests {
 		test := tests[i]
@@ -1248,7 +1248,7 @@ func TestListDirTree(t *testing.T) {
 				filepath.Join(string(fs.PathSeparator()), testFileName)}
 
 			for _, item := range list {
-				fileList = append(fileList, strings.Replace(item, filepath.Dir(parentDirPath), "", -1))
+				fileList = append(fileList, strings.ReplaceAll(item, filepath.Dir(parentDirPath), ""))
 			}
 
 			sort.Strings(fileList)
@@ -1298,10 +1298,10 @@ func checkCopyDir(t *testing.T, fs FS, src string, dest string) {
 	var destContent []string
 
 	for _, item := range srcFiles {
-		srcContent = append(srcContent, strings.Replace(item, filepath.Dir(src), "", -1))
+		srcContent = append(srcContent, strings.ReplaceAll(item, filepath.Dir(src), ""))
 	}
 	for _, item := range destFiles {
-		destContent = append(destContent, strings.Replace(item, filepath.Dir(destPath), "", -1))
+		destContent = append(destContent, strings.ReplaceAll(item, filepath.Dir(destPath), ""))
 	}
 
 	sort.Strings(srcContent)

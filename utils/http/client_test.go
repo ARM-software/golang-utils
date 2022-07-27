@@ -27,27 +27,19 @@ func TestClientHappy(t *testing.T) {
 	}{
 		{
 			clientName: "default plain client",
-			client: func() IClient {
-				return NewPlainHTTPClient()
-			},
+			client:     NewPlainHTTPClient,
 		},
 		{
 			clientName: "fast client",
-			client: func() IClient {
-				return NewFastPooledClient()
-			},
+			client:     NewFastPooledClient,
 		},
 		{
 			clientName: "default pooled client",
-			client: func() IClient {
-				return NewDefaultPooledClient()
-			},
+			client:     NewDefaultPooledClient,
 		},
 		{
 			clientName: "default retryable client",
-			client: func() IClient {
-				return NewRetryableClient()
-			},
+			client:     NewRetryableClient,
 		},
 		{
 			clientName: "client with no retry",
@@ -178,27 +170,19 @@ func TestClientWithDifferentBodies(t *testing.T) {
 	}{
 		{
 			clientName: "default plain client",
-			client: func() IClient {
-				return NewPlainHTTPClient()
-			},
+			client:     NewPlainHTTPClient,
 		},
 		{
 			clientName: "fast client",
-			client: func() IClient {
-				return NewFastPooledClient()
-			},
+			client:     NewFastPooledClient,
 		},
 		{
 			clientName: "default pooled client",
-			client: func() IClient {
-				return NewDefaultPooledClient()
-			},
+			client:     NewDefaultPooledClient,
 		},
 		{
 			clientName: "default retryable client",
-			client: func() IClient {
-				return NewRetryableClient()
-			},
+			client:     NewRetryableClient,
 		},
 		{
 			clientName: "client with no retry",

@@ -132,7 +132,7 @@ func linkFlagKeysToStructureKeys(viperSession *viper.Viper, envVarPrefix string)
 	keys := viperSession.AllKeys()
 	for i := range keys {
 		key := keys[i]
-		//This is modifying the value of the structured configuration if flags have been set.
+		// This is modifying the value of the structured configuration if flags have been set.
 		if !isFlagKey(key) {
 			flagKey, _ := generateEnvVarConfigKeys(key, envVarPrefix)
 			// if the flag is set, it takes precedence over the structured configuration value.

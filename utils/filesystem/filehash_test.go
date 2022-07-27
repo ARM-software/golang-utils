@@ -24,7 +24,7 @@ func TestFileHash(t *testing.T) {
 		Type string
 		Hash string
 	}{
-		//values given by https://www.pelock.com/products/hash-calculator
+		// values given by https://www.pelock.com/products/hash-calculator
 		{
 			Type: hashing.HashMd5,
 			Hash: "CBF17A648BBBCDD7AB591784E96F85C7",
@@ -59,7 +59,7 @@ func TestFileHash2(t *testing.T) {
 		Path string
 		Hash string
 	}{
-		//values given by https://www.pelock.com/products/hash-calculator
+		// values given by https://www.pelock.com/products/hash-calculator
 		{
 			Path: "1KB.bin",
 			Hash: "1920FE73F1DA83A6551B0D2404ED0BD6EC7BB24D941B99A84ADA7D37C67A0527",
