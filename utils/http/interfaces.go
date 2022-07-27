@@ -45,7 +45,7 @@ type IClient interface {
 	Put(url string, body interface{}) (*http.Response, error)
 	// Delete performs a DELETE request.
 	Delete(url string) (*http.Response, error)
-	//Options performs an OPTIONS request.
+	// Options performs an OPTIONS request.
 	Options(url string) (*http.Response, error)
 	// Do performs a generic request.
 	Do(req *http.Request) (*http.Response, error)

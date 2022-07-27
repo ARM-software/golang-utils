@@ -86,7 +86,7 @@ func TestClient_Delete_Backoff(t *testing.T) {
 				require.Equal(t, r.Method, http.MethodDelete)
 				require.Equal(t, r.RequestURI, "/foo/bar")
 				if counter.Inc() == int32(1) {
-					w.Header().Add(headers.RetryAfter, "1") //Retry after 1 second
+					w.Header().Add(headers.RetryAfter, "1") // Retry after 1 second
 					w.WriteHeader(http.StatusServiceUnavailable)
 				} else {
 					// The request succeeds

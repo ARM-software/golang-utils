@@ -234,7 +234,7 @@ func TestFlagBinding(t *testing.T) {
 	require.NoError(t, err)
 	err = flagSet.Set("user", "another test user")
 	require.NoError(t, err)
-	err = flagSet.Set("db", expectedDB) //Should take precedence over environment
+	err = flagSet.Set("db", expectedDB) // Should take precedence over environment
 	require.NoError(t, err)
 	aDifferentDB := "another test db"
 	assert.NotEqual(t, expectedDB, aDifferentDB)
@@ -311,7 +311,7 @@ func TestFlagBindingDefaults(t *testing.T) {
 	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "DUMMY_Time", flagSet.Lookup("time"))
 	require.NoError(t, err)
-	err = os.Setenv("TEST_DUMMY_CONFIG_DB", expectedDB) //Should take precedence over flag default
+	err = os.Setenv("TEST_DUMMY_CONFIG_DB", expectedDB) // Should take precedence over flag default
 	require.NoError(t, err)
 	err = LoadFromViper(session, prefix, configTest, defaults)
 	require.NoError(t, err)

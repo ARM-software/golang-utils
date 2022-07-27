@@ -13,7 +13,7 @@ import (
 )
 
 func TestHasher(t *testing.T) {
-	//values given by https://md5calc.com/hash/md5/test
+	// values given by https://md5calc.com/hash/md5/test
 	hasher, err := NewHashingAlgorithm(HashMd5)
 	require.Nil(t, err)
 	testCases := []struct {
@@ -34,7 +34,7 @@ func TestHasher(t *testing.T) {
 }
 
 func TestMd5(t *testing.T) {
-	//values given by https://md5calc.com/hash/md5/test
+	// values given by https://md5calc.com/hash/md5/test
 	testCases := []struct {
 		Input string
 		Hash  string

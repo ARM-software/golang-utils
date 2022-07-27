@@ -673,10 +673,7 @@ func (fs *VFS) FindAll(dir string, extensions ...string) (files []string, err er
 	return
 }
 func (fs *VFS) findAllOfExtension(dir string, ext string) (files []string, err error) {
-	if strings.HasPrefix(ext, ".") {
-		ext = string(ext[1:])
-	}
-	return doublestar.GlobOS(fs, filepath.Join(dir, "**", "*."+ext))
+	return doublestar.GlobOS(fs, filepath.Join(dir, "**", fmt.Sprintf("*.%v", strings.TrimPrefix(ext, "."))))
 }
 
 func (fs *VFS) Chmod(name string, mode os.FileMode) error {
@@ -834,7 +831,7 @@ func (fs *VFS) MoveWithContext(ctx context.Context, src string, dest string) (er
 	if err == nil {
 		return
 	}
-	//os.Rename() give error "invalid cross-device link" for Docker container with Volumes.
+	// os.Rename() give error "invalid cross-device link" for Docker container with Volumes.
 	isDir, err := fs.IsDir(src)
 	if err != nil {
 		return
@@ -1361,12 +1358,12 @@ func determineUnzippedFilepath(destinationPath string) (string, error) {
 
 	// See https://go-review.googlesource.com/c/go/+/75592/
 	// Character encodings other than CP-437 and UTF-8
-	//are not officially supported by the ZIP specification, pragmatically
-	//the world has permitted use of them.
+	// are not officially supported by the ZIP specification, pragmatically
+	// the world has permitted use of them.
 	//
-	//When a non-standard encoding is used, it is the user's responsibility
-	//to ensure that the target system is expecting the encoding used
-	//(e.g., producing a ZIP file you know is used on a Chinese version of Windows).
+	// When a non-standard encoding is used, it is the user's responsibility
+	// to ensure that the target system is expecting the encoding used
+	// (e.g., producing a ZIP file you know is used on a Chinese version of Windows).
 	if utf8.ValidString(destinationPath) {
 		return destinationPath, nil
 	}
@@ -1379,8 +1376,8 @@ func determineUnzippedFilepath(destinationPath string) (string, error) {
 	convertedDestinationPath, err := charset.IconvString(destinationPath, encoding, unicode.UTF8)
 	if err != nil {
 		return "", fmt.Errorf("%w: file path [%s] is encoded using charset [%v] but could not be converted to valid utf-8: %v", commonerrors.ErrUnexpected, destinationPath, charsetName, err.Error())
-		//If zip file paths must be accepted even when their encoding is unknown, or conversion to utf-8 failed, then the following can be done.
-		//destinationPath = strings.ToValidUTF8(dest, charset.InvalidUTF8CharacterReplacement)
+		// If zip file paths must be accepted even when their encoding is unknown, or conversion to utf-8 failed, then the following can be done.
+		// destinationPath = strings.ToValidUTF8(dest, charset.InvalidUTF8CharacterReplacement)
 	}
 	return convertedDestinationPath, err
 }

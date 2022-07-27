@@ -43,8 +43,8 @@ func fetchStructureField(structure interface{}, fieldName string) reflect.Value 
 // If the boolean is false then there is no such field on the structure.
 // If the boolean is true but the interface stores "" then the field exists but is not set.
 // If the boolean is true and the interface is not emtpy, the field exists and is set.
-func GetStructField(structure interface{}, FieldName string) (interface{}, bool) {
-	Field := fetchStructureField(structure, FieldName)
+func GetStructField(structure interface{}, fieldName string) (interface{}, bool) {
+	Field := fetchStructureField(structure, fieldName)
 	if !Field.IsValid() {
 		return "", false
 	}
@@ -62,17 +62,17 @@ func GetStructField(structure interface{}, FieldName string) (interface{}, bool)
 // SetStructField attempts to set a field of a structure to the given vaule
 // It returns nil or an error, in case the field doesn't exist on the structure
 // or the value and the field have different types
-func SetStructField(structure interface{}, FieldName string, value interface{}) error {
+func SetStructField(structure interface{}, fieldName string, value interface{}) error {
 	ValueStructure := reflect.ValueOf(structure)
-	Field := ValueStructure.Elem().FieldByName(FieldName)
+	Field := ValueStructure.Elem().FieldByName(fieldName)
 	// Test field exists on structure
 	if !Field.IsValid() {
-		return fmt.Errorf("error with field [%v]: %w", FieldName, commonerrors.ErrInvalid)
+		return fmt.Errorf("error with field [%v]: %w", fieldName, commonerrors.ErrInvalid)
 	}
 
-	//test field is settable
+	// test field is settable
 	if !Field.CanSet() {
-		return fmt.Errorf("error with unsettable field [%v]: %w", FieldName, commonerrors.ErrUnsupported)
+		return fmt.Errorf("error with unsettable field [%v]: %w", fieldName, commonerrors.ErrUnsupported)
 	}
 
 	// Helper variables
@@ -102,7 +102,7 @@ func SetStructField(structure interface{}, FieldName string, value interface{}) 
 	}
 
 	if fieldKind == reflect.Ptr {
-		if valueKind != reflect.Ptr { //value not ptr, field ptr
+		if valueKind != reflect.Ptr { // value not ptr, field ptr
 			if Field.IsNil() {
 				pointerToValue := reflect.New(valueReflectValueWrapper.Type())
 				pointerToValue.Elem().Set(valueReflectValueWrapper)
@@ -155,12 +155,13 @@ func InheritsFrom(object interface{}, parentType reflect.Type) bool {
 		pointerType reflect.Type
 	)
 	kind := parentType.Kind()
-	if kind == reflect.Ptr {
+	switch {
+	case kind == reflect.Ptr:
 		pointerType = parentType
 		structType = parentType.Elem()
-	} else if kind == reflect.Interface {
+	case kind == reflect.Interface:
 		pointerType = parentType
-	} else if kind == reflect.Struct {
+	case kind == reflect.Struct:
 		structType = parentType
 	}
 
@@ -191,7 +192,7 @@ func InheritsFrom(object interface{}, parentType reflect.Type) bool {
 	return false
 }
 
-//IsEmpty checks whether a value is empty i.e. "", nil, 0, [], {}, false, etc.
+// IsEmpty checks whether a value is empty i.e. "", nil, 0, [], {}, false, etc.
 func IsEmpty(value interface{}) bool {
 	if value == nil {
 		return true
