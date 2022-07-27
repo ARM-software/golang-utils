@@ -14,6 +14,23 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.15.2" (2022-07-27)
+========================
+
+Bugfixes
+--------
+
+- Dependency upgrade: afero-1.9.1 (#202207191022, #20220719102201)
+- Dependency upgrade: logrus-1.9.0 (#202207191615, #202207191616, #20220719161501)
+- Dependency upgrade: afero-1.9.2 (#202207201737)
+
+
+Misc
+----
+
+- #202207201838
+
+
 "" "1.15.1" (2022-07-18)
 ========================
 
