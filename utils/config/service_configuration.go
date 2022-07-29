@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
@@ -169,7 +170,12 @@ func flattenDefaultsMap(appName string, m map[string]interface{}) map[string]int
 	return output
 }
 
-func GenerateEnvVars(appName string, configurationToDecode IServiceConfiguration) (defaults map[string]interface{}, err error) {
+// DetermineConfigurationEnvironmentVariables returns all the environment variables corresponding to a configuration structure as well as all the default values currently set.
+func DetermineConfigurationEnvironmentVariables(appName string, configurationToDecode IServiceConfiguration) (defaults map[string]interface{}, err error) {
+	if reflection.IsEmpty(configurationToDecode) {
+		err = fmt.Errorf("%w: configurationToDecode isn't defined", commonerrors.ErrUndefined)
+		return
+	}
 
 	err = mapstructure.Decode(configurationToDecode, &defaults)
 	if err != nil {
