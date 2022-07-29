@@ -170,7 +170,7 @@ func flattenDefaultsMap(appName string, m map[string]interface{}) map[string]int
 	return output
 }
 
-func GenerateEnvFile(appName string, configurationToDecode IServiceConfiguration) (envVars []string, err error) {
+func GenerateEnvVars(appName string, configurationToDecode IServiceConfiguration) (envVars []string, err error) {
 	defaults := make(map[string]interface{})
 	err = mapstructure.Decode(configurationToDecode, &defaults)
 	if err != nil {

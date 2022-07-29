@@ -361,7 +361,7 @@ func TestGenerateEnvFile_Defaults(t *testing.T) {
 	prefix := "test"
 
 	// Generate the env vars
-	vars, err := GenerateEnvFile(prefix, configTest)
+	vars, err := GenerateEnvVars(prefix, configTest)
 	require.NoError(t, err)
 
 	// Go through generated vars and check they match the defaults
@@ -425,7 +425,7 @@ func TestGenerateEnvFile_Populated(t *testing.T) {
 	}
 
 	// Generate env file
-	vars, err := GenerateEnvFile(prefix, configTest)
+	vars, err := GenerateEnvVars(prefix, configTest)
 	require.NoError(t, err)
 
 	// Go through generated vars and check they match the defaults
