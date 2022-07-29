@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.16.0" (2022-07-29)
+========================
+
+Features
+--------
+
+- Add utility for generating a list of the environment variables based on a struct that uses mapstructure (#202207290929)
+
+
 "" "1.15.2" (2022-07-27)
 ========================
 
