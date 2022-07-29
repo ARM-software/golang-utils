@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"strconv"
-	"strings"
 	"testing"
 	"time"
 
@@ -339,30 +337,25 @@ func TestFlagBindingDefaults(t *testing.T) {
 // Test you can use a struct to load the default env vars
 func TestGenerateEnvFile_Defaults(t *testing.T) {
 	configTest := DefaultDummyConfiguration()
+	prefix := "test"
 
-	// Get the expected test values
-	testValues := map[string]string{
+	// Create test data
+	testValues := map[string]interface{}{
 		"TEST_DB":                 configTest.DB,
 		"TEST_DUMMY_HOST":         configTest.Host,
-		"TEST_FLAG":               strconv.FormatBool(configTest.Flag),
-		"TEST_HEALTHCHECK_PERIOD": configTest.HealthCheckPeriod.String(),
+		"TEST_FLAG":               configTest.Flag,
+		"TEST_HEALTHCHECK_PERIOD": configTest.HealthCheckPeriod,
 		"TEST_PASSWORD":           configTest.Password,
-		"TEST_PORT":               strconv.Itoa(configTest.Port),
+		"TEST_PORT":               configTest.Port,
 		"TEST_USER":               configTest.User,
 	}
 
-	// Set prefix
-	prefix := "test"
-
-	// Generate the env vars
+	// Generate env file
 	vars, err := GenerateEnvVars(prefix, configTest)
 	require.NoError(t, err)
 
 	// Go through generated vars and check they match the defaults
-	for i := range vars {
-		envVar := vars[i]
-		split := strings.Split(envVar, "=")
-		key, value := split[0], split[1]
+	for key, value := range vars {
 		require.Equal(t, value, testValues[key])
 	}
 }
@@ -402,13 +395,13 @@ func TestGenerateEnvFile_Populated(t *testing.T) {
 	require.NoError(t, configTest.Validate())
 
 	// Create test data
-	testValues := map[string]string{
+	testValues := map[string]interface{}{
 		"TEST_DB":                 configTest.DB,
 		"TEST_DUMMY_HOST":         configTest.Host,
-		"TEST_FLAG":               strconv.FormatBool(configTest.Flag),
-		"TEST_HEALTHCHECK_PERIOD": configTest.HealthCheckPeriod.String(),
+		"TEST_FLAG":               configTest.Flag,
+		"TEST_HEALTHCHECK_PERIOD": configTest.HealthCheckPeriod,
 		"TEST_PASSWORD":           configTest.Password,
-		"TEST_PORT":               strconv.Itoa(configTest.Port),
+		"TEST_PORT":               configTest.Port,
 		"TEST_USER":               configTest.User,
 	}
 
@@ -417,10 +410,7 @@ func TestGenerateEnvFile_Populated(t *testing.T) {
 	require.NoError(t, err)
 
 	// Go through generated vars and check they match the defaults
-	for i := range vars {
-		envVar := vars[i]
-		split := strings.Split(envVar, "=")
-		key, value := split[0], split[1]
+	for key, value := range vars {
 		require.Equal(t, value, testValues[key])
 	}
 }

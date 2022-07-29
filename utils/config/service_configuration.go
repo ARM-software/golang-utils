@@ -6,7 +6,6 @@ package config
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -170,8 +169,8 @@ func flattenDefaultsMap(appName string, m map[string]interface{}) map[string]int
 	return output
 }
 
-func GenerateEnvVars(appName string, configurationToDecode IServiceConfiguration) (envVars []string, err error) {
-	defaults := make(map[string]interface{})
+func GenerateEnvVars(appName string, configurationToDecode IServiceConfiguration) (defaults map[string]interface{}, err error) {
+
 	err = mapstructure.Decode(configurationToDecode, &defaults)
 	if err != nil {
 		return
@@ -180,9 +179,5 @@ func GenerateEnvVars(appName string, configurationToDecode IServiceConfiguration
 	if err != nil {
 		return
 	}
-	for key, value := range defaults {
-		envVars = append(envVars, fmt.Sprintf("%s=%v", key, value))
-	}
-	sort.Strings(envVars)
 	return
 }
