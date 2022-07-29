@@ -154,12 +154,12 @@ func linkFlagKeysToStructureKeys(viperSession *viper.Viper, envVarPrefix string)
 	}
 }
 
-func flattenDefaultsMap(appName string, m map[string]interface{}) map[string]interface{} {
+func flattenDefaultsMap(m map[string]interface{}) map[string]interface{} {
 	output := make(map[string]interface{})
 	for key, value := range m {
 		switch child := value.(type) {
 		case map[string]interface{}:
-			next := flattenDefaultsMap(appName, child)
+			next := flattenDefaultsMap(child)
 			for nextKey, nextValue := range next {
 				output[strings.ToUpper(fmt.Sprintf("%s_%s", key, nextKey))] = nextValue
 			}
@@ -182,7 +182,7 @@ func DetermineConfigurationEnvironmentVariables(appName string, configurationToD
 	if err != nil {
 		return
 	}
-	withoutPrefix = flattenDefaultsMap(appName, withoutPrefix)
+	withoutPrefix = flattenDefaultsMap(withoutPrefix)
 	if err != nil {
 		return
 	}
