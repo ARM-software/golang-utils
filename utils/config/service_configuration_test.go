@@ -66,6 +66,22 @@ type ConfigurationTest struct {
 	TestConfig2 DummyConfiguration `mapstructure:"dummy_config"`
 }
 
+type DeepConfig struct {
+	TestString     string            `mapstructure:"dummy_string"`
+	TestConfigDeep ConfigurationTest `mapstructure:"deep_config"`
+}
+
+func DefaultDeepConfiguration() *DeepConfig {
+	return &DeepConfig{
+		TestString:     expectedString,
+		TestConfigDeep: *DefaultConfiguration(),
+	}
+}
+
+func (cfg *DeepConfig) Validate() error {
+	return nil
+}
+
 func (cfg *ConfigurationTest) Validate() error {
 	validation.ErrorTag = "mapstructure"
 
@@ -418,10 +434,10 @@ func TestGenerateEnvFile_Populated(t *testing.T) {
 }
 
 func TestGenerateEnvFile_Nested(t *testing.T) {
-	configTest := DefaultConfiguration()
+	configTest := DefaultDeepConfiguration()
 	prefix := "test"
 
-	// Nested test values
+	// Deep nested test values
 	/*
 		type ConfigurationTest struct {
 			TestString  string             `mapstructure:"dummy_string"`
@@ -431,25 +447,31 @@ func TestGenerateEnvFile_Nested(t *testing.T) {
 			TestConfig2 DummyConfiguration `mapstructure:"dummy_config"` <- nested
 		}
 
+		type DeepConfig struct {
+			TestString     string            `mapstructure:"dummy_string"`
+			TestConfigDeep ConfigurationTest `mapstructure:"deep_config"` <- nested
+		}
+
 	*/
 	testValues := map[string]interface{}{
-		"TEST_DUMMYCONFIG_TEST_DB":                  configTest.TestConfig.DB,
-		"TEST_DUMMYCONFIG_TEST_DUMMY_HOST":          configTest.TestConfig.Host,
-		"TEST_DUMMYCONFIG_TEST_FLAG":                configTest.TestConfig.Flag,
-		"TEST_DUMMYCONFIG_TEST_HEALTHCHECK_PERIOD":  configTest.TestConfig.HealthCheckPeriod,
-		"TEST_DUMMYCONFIG_TEST_PASSWORD":            configTest.TestConfig.Password,
-		"TEST_DUMMYCONFIG_TEST_PORT":                configTest.TestConfig.Port,
-		"TEST_DUMMYCONFIG_TEST_USER":                configTest.TestConfig.User,
-		"TEST_DUMMY_CONFIG_TEST_DB":                 configTest.TestConfig2.DB,
-		"TEST_DUMMY_CONFIG_TEST_DUMMY_HOST":         configTest.TestConfig2.Host,
-		"TEST_DUMMY_CONFIG_TEST_FLAG":               configTest.TestConfig2.Flag,
-		"TEST_DUMMY_CONFIG_TEST_HEALTHCHECK_PERIOD": configTest.TestConfig2.HealthCheckPeriod,
-		"TEST_DUMMY_CONFIG_TEST_PASSWORD":           configTest.TestConfig2.Password,
-		"TEST_DUMMY_CONFIG_TEST_PORT":               configTest.TestConfig2.Port,
-		"TEST_DUMMY_CONFIG_TEST_USER":               configTest.TestConfig2.User,
-		"TEST_DUMMY_INT":                            configTest.TestInt,
-		"TEST_DUMMY_STRING":                         configTest.TestString,
-		"TEST_DUMMY_TIME":                           configTest.TestTime,
+		"TEST_DEEP_CONFIG_DUMMYCONFIG_DB":                  configTest.TestConfigDeep.TestConfig.DB,
+		"TEST_DEEP_CONFIG_DUMMYCONFIG_DUMMY_HOST":          configTest.TestConfigDeep.TestConfig.Host,
+		"TEST_DEEP_CONFIG_DUMMYCONFIG_FLAG":                configTest.TestConfigDeep.TestConfig.Flag,
+		"TEST_DEEP_CONFIG_DUMMYCONFIG_HEALTHCHECK_PERIOD":  configTest.TestConfigDeep.TestConfig.HealthCheckPeriod,
+		"TEST_DEEP_CONFIG_DUMMYCONFIG_PASSWORD":            configTest.TestConfigDeep.TestConfig.Password,
+		"TEST_DEEP_CONFIG_DUMMYCONFIG_PORT":                configTest.TestConfigDeep.TestConfig.Port,
+		"TEST_DEEP_CONFIG_DUMMYCONFIG_USER":                configTest.TestConfigDeep.TestConfig.User,
+		"TEST_DEEP_CONFIG_DUMMY_CONFIG_DB":                 configTest.TestConfigDeep.TestConfig2.DB,
+		"TEST_DEEP_CONFIG_DUMMY_CONFIG_DUMMY_HOST":         configTest.TestConfigDeep.TestConfig2.Host,
+		"TEST_DEEP_CONFIG_DUMMY_CONFIG_FLAG":               configTest.TestConfigDeep.TestConfig2.Flag,
+		"TEST_DEEP_CONFIG_DUMMY_CONFIG_HEALTHCHECK_PERIOD": configTest.TestConfigDeep.TestConfig2.HealthCheckPeriod,
+		"TEST_DEEP_CONFIG_DUMMY_CONFIG_PASSWORD":           configTest.TestConfigDeep.TestConfig2.Password,
+		"TEST_DEEP_CONFIG_DUMMY_CONFIG_PORT":               configTest.TestConfigDeep.TestConfig2.Port,
+		"TEST_DEEP_CONFIG_DUMMY_CONFIG_USER":               configTest.TestConfigDeep.TestConfig2.User,
+		"TEST_DEEP_CONFIG_DUMMY_INT":                       configTest.TestConfigDeep.TestInt,
+		"TEST_DUMMY_STRING":                                configTest.TestString,
+		"TEST_DEEP_CONFIG_DUMMY_TIME":                      configTest.TestConfigDeep.TestTime,
+		"TEST_DEEP_CONFIG_DUMMY_STRING":                    configTest.TestConfigDeep.TestString,
 	}
 
 	// Generate env file

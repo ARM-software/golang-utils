@@ -161,10 +161,10 @@ func flattenDefaultsMap(appName string, m map[string]interface{}) map[string]int
 		case map[string]interface{}:
 			next := flattenDefaultsMap(appName, child)
 			for nextKey, nextValue := range next {
-				output[strings.ToUpper(fmt.Sprintf("%s_%s_%s", appName, key, nextKey))] = nextValue
+				output[strings.ToUpper(fmt.Sprintf("%s_%s", key, nextKey))] = nextValue
 			}
 		default:
-			output[strings.ToUpper(fmt.Sprintf("%s_%s", appName, key))] = value
+			output[strings.ToUpper(key)] = value
 		}
 	}
 	return output
@@ -172,18 +172,25 @@ func flattenDefaultsMap(appName string, m map[string]interface{}) map[string]int
 
 // DetermineConfigurationEnvironmentVariables returns all the environment variables corresponding to a configuration structure as well as all the default values currently set.
 func DetermineConfigurationEnvironmentVariables(appName string, configurationToDecode IServiceConfiguration) (defaults map[string]interface{}, err error) {
+	withoutPrefix := make(map[string]interface{})
 	if reflection.IsEmpty(configurationToDecode) {
 		err = fmt.Errorf("%w: configurationToDecode isn't defined", commonerrors.ErrUndefined)
 		return
 	}
 
-	err = mapstructure.Decode(configurationToDecode, &defaults)
+	err = mapstructure.Decode(configurationToDecode, &withoutPrefix)
 	if err != nil {
 		return
 	}
-	defaults = flattenDefaultsMap(appName, defaults)
+	withoutPrefix = flattenDefaultsMap(appName, withoutPrefix)
 	if err != nil {
 		return
+	}
+
+	defaults = make(map[string]interface{})
+	for key, value := range withoutPrefix {
+		newKey := fmt.Sprintf("%s_%s", strings.ToUpper(appName), key)
+		defaults[newKey] = value
 	}
 	return
 }
