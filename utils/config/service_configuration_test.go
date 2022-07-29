@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -332,4 +334,105 @@ func TestFlagBindingDefaults(t *testing.T) {
 	// Defaults from the default structure provided take precedence over defaults from flags when empty.
 	assert.Equal(t, DefaultConfiguration().TestConfig.Flag, configTest.TestConfig.Flag)
 	assert.Equal(t, DefaultConfiguration().TestConfig.Flag, configTest.TestConfig2.Flag)
+}
+
+// Test you can use a struct to load the default env vars
+func TestGenerateEnvFile_Defaults(t *testing.T) {
+	configTest := DefaultDummyConfiguration()
+
+	// Get the expected test values
+	var flag string // convert bool to string for test
+	if configTest.Flag {
+		flag = "true"
+	} else {
+		flag = "false"
+	}
+	testValues := map[string]string{
+		"TEST_DB":                 configTest.DB,
+		"TEST_DUMMY_HOST":         configTest.Host,
+		"TEST_FLAG":               flag,
+		"TEST_HEALTHCHECK_PERIOD": configTest.HealthCheckPeriod.String(),
+		"TEST_PASSWORD":           configTest.Password,
+		"TEST_PORT":               strconv.Itoa(configTest.Port),
+		"TEST_USER":               configTest.User,
+	}
+
+	// Set prefix
+	prefix := "test"
+
+	// Generate the env vars
+	vars, err := GenerateEnvFile(prefix, configTest)
+	require.NoError(t, err)
+
+	// Go through generated vars and check they match the defaults
+	for i := range vars {
+		envVar := vars[i]
+		split := strings.Split(envVar, "=")
+		key, value := split[0], split[1]
+		require.Equal(t, value, testValues[key])
+	}
+}
+
+// Test that you can load the struct with viper then generate the env file
+func TestGenerateEnvFile_Populated(t *testing.T) {
+	// Load configuartion using viper
+	os.Clearenv()
+	configTest := &DummyConfiguration{}
+	defaults := DefaultDummyConfiguration()
+	session := viper.New()
+	var err error
+	flagSet := pflag.FlagSet{}
+	prefix := "test"
+	flagSet.String("host", "a host", "dummy host")
+	flagSet.String("password", "a password", "dummy password")
+	flagSet.String("user", "a user", "dummy user")
+	flagSet.String("db", "a db", "dummy db")
+	err = BindFlagToEnv(session, prefix, "TEST_DUMMY_HOST", flagSet.Lookup("host"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "PASSWORD", flagSet.Lookup("password"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "TEST_DB", flagSet.Lookup("db"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "DB", flagSet.Lookup("db"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "USER", flagSet.Lookup("user"))
+	require.NoError(t, err)
+	err = flagSet.Set("host", expectedHost)
+	require.NoError(t, err)
+	err = flagSet.Set("password", expectedPassword)
+	require.NoError(t, err)
+	err = flagSet.Set("db", expectedDB)
+	require.NoError(t, err)
+	err = LoadFromViper(session, prefix, configTest, defaults)
+	require.NoError(t, err)
+	require.NoError(t, configTest.Validate())
+
+	// Create test data
+	var flag string
+	if configTest.Flag {
+		flag = "true"
+	} else {
+		flag = "false"
+	}
+	testValues := map[string]string{
+		"TEST_DB":                 configTest.DB,
+		"TEST_DUMMY_HOST":         configTest.Host,
+		"TEST_FLAG":               flag,
+		"TEST_HEALTHCHECK_PERIOD": configTest.HealthCheckPeriod.String(),
+		"TEST_PASSWORD":           configTest.Password,
+		"TEST_PORT":               strconv.Itoa(configTest.Port),
+		"TEST_USER":               configTest.User,
+	}
+
+	// Generate env file
+	vars, err := GenerateEnvFile(prefix, configTest)
+	require.NoError(t, err)
+
+	// Go through generated vars and check they match the defaults
+	for i := range vars {
+		envVar := vars[i]
+		split := strings.Split(envVar, "=")
+		key, value := split[0], split[1]
+		require.Equal(t, value, testValues[key])
+	}
 }

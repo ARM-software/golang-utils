@@ -6,6 +6,7 @@ package config
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -151,4 +152,37 @@ func linkFlagKeysToStructureKeys(viperSession *viper.Viper, envVarPrefix string)
 			viperSession.RegisterAlias(flagKey, key)
 		}
 	}
+}
+
+func flattenDefaultsMap(appName string, m map[string]interface{}) map[string]interface{} {
+	output := make(map[string]interface{})
+	for key, value := range m {
+		switch child := value.(type) {
+		case map[string]interface{}:
+			next := flattenDefaultsMap(appName, child)
+			for nextKey, nextValue := range next {
+				output[strings.ToUpper(fmt.Sprintf("%s_%s_%s", appName, key, nextKey))] = nextValue
+			}
+		default:
+			output[strings.ToUpper(fmt.Sprintf("%s_%s", appName, key))] = value
+		}
+	}
+	return output
+}
+
+func GenerateEnvFile(appName string, configurationToDecode IServiceConfiguration) (envVars []string, err error) {
+	defaults := make(map[string]interface{})
+	err = mapstructure.Decode(configurationToDecode, &defaults)
+	if err != nil {
+		return
+	}
+	defaults = flattenDefaultsMap(appName, defaults)
+	if err != nil {
+		return
+	}
+	for key, value := range defaults {
+		envVars = append(envVars, fmt.Sprintf("%s=%v", key, value))
+	}
+	sort.Strings(envVars)
+	return
 }
