@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
@@ -151,4 +152,45 @@ func linkFlagKeysToStructureKeys(viperSession *viper.Viper, envVarPrefix string)
 			viperSession.RegisterAlias(flagKey, key)
 		}
 	}
+}
+
+func flattenDefaultsMap(m map[string]interface{}) map[string]interface{} {
+	output := make(map[string]interface{})
+	for key, value := range m {
+		switch child := value.(type) {
+		case map[string]interface{}:
+			next := flattenDefaultsMap(child)
+			for nextKey, nextValue := range next {
+				output[strings.ToUpper(fmt.Sprintf("%s_%s", key, nextKey))] = nextValue
+			}
+		default:
+			output[strings.ToUpper(key)] = value
+		}
+	}
+	return output
+}
+
+// DetermineConfigurationEnvironmentVariables returns all the environment variables corresponding to a configuration structure as well as all the default values currently set.
+func DetermineConfigurationEnvironmentVariables(appName string, configurationToDecode IServiceConfiguration) (defaults map[string]interface{}, err error) {
+	withoutPrefix := make(map[string]interface{})
+	if reflection.IsEmpty(configurationToDecode) {
+		err = fmt.Errorf("%w: configurationToDecode isn't defined", commonerrors.ErrUndefined)
+		return
+	}
+
+	err = mapstructure.Decode(configurationToDecode, &withoutPrefix)
+	if err != nil {
+		return
+	}
+	withoutPrefix = flattenDefaultsMap(withoutPrefix)
+	if err != nil {
+		return
+	}
+
+	defaults = make(map[string]interface{})
+	for key, value := range withoutPrefix {
+		newKey := fmt.Sprintf("%s_%s", strings.ToUpper(appName), key)
+		defaults[newKey] = value
+	}
+	return
 }

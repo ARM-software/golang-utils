@@ -17,6 +17,8 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 var (
@@ -62,6 +64,22 @@ type ConfigurationTest struct {
 	TestTime    time.Duration      `mapstructure:"dummy_time"`
 	TestConfig  DummyConfiguration `mapstructure:"dummyconfig"`
 	TestConfig2 DummyConfiguration `mapstructure:"dummy_config"`
+}
+
+type DeepConfig struct {
+	TestString     string            `mapstructure:"dummy_string"`
+	TestConfigDeep ConfigurationTest `mapstructure:"deep_config"`
+}
+
+func DefaultDeepConfiguration() *DeepConfig {
+	return &DeepConfig{
+		TestString:     expectedString,
+		TestConfigDeep: *DefaultConfiguration(),
+	}
+}
+
+func (cfg *DeepConfig) Validate() error {
+	return nil
 }
 
 func (cfg *ConfigurationTest) Validate() error {
@@ -332,4 +350,148 @@ func TestFlagBindingDefaults(t *testing.T) {
 	// Defaults from the default structure provided take precedence over defaults from flags when empty.
 	assert.Equal(t, DefaultConfiguration().TestConfig.Flag, configTest.TestConfig.Flag)
 	assert.Equal(t, DefaultConfiguration().TestConfig.Flag, configTest.TestConfig2.Flag)
+}
+
+// Test you can use a struct to load the default env vars
+func TestGenerateEnvFile_Defaults(t *testing.T) {
+	configTest := DefaultDummyConfiguration()
+	prefix := "test"
+
+	// Create test data
+	testValues := map[string]interface{}{
+		"TEST_DB":                 configTest.DB,
+		"TEST_DUMMY_HOST":         configTest.Host,
+		"TEST_FLAG":               configTest.Flag,
+		"TEST_HEALTHCHECK_PERIOD": configTest.HealthCheckPeriod,
+		"TEST_PASSWORD":           configTest.Password,
+		"TEST_PORT":               configTest.Port,
+		"TEST_USER":               configTest.User,
+	}
+
+	// Generate env file
+	vars, err := DetermineConfigurationEnvironmentVariables(prefix, configTest)
+	require.NoError(t, err)
+
+	// Go through generated vars and check they match the defaults
+	for key, value := range vars {
+		require.Equal(t, value, testValues[key])
+	}
+}
+
+// Test that you can load the struct with viper then generate the env file
+func TestGenerateEnvFile_Populated(t *testing.T) {
+	// Load configuartion using viper
+	os.Clearenv()
+	configTest := &DummyConfiguration{}
+	defaults := DefaultDummyConfiguration()
+	session := viper.New()
+	var err error
+	flagSet := pflag.FlagSet{}
+	prefix := "test"
+	flagSet.String("host", "a host", "dummy host")
+	flagSet.String("password", "a password", "dummy password")
+	flagSet.String("user", "a user", "dummy user")
+	flagSet.String("db", "a db", "dummy db")
+	err = BindFlagToEnv(session, prefix, "TEST_DUMMY_HOST", flagSet.Lookup("host"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "PASSWORD", flagSet.Lookup("password"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "TEST_DB", flagSet.Lookup("db"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "DB", flagSet.Lookup("db"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "USER", flagSet.Lookup("user"))
+	require.NoError(t, err)
+	err = flagSet.Set("host", expectedHost)
+	require.NoError(t, err)
+	err = flagSet.Set("password", expectedPassword)
+	require.NoError(t, err)
+	err = flagSet.Set("db", expectedDB)
+	require.NoError(t, err)
+	err = LoadFromViper(session, prefix, configTest, defaults)
+	require.NoError(t, err)
+	require.NoError(t, configTest.Validate())
+
+	// Create test data
+	testValues := map[string]interface{}{
+		"TEST_DB":                 configTest.DB,
+		"TEST_DUMMY_HOST":         configTest.Host,
+		"TEST_FLAG":               configTest.Flag,
+		"TEST_HEALTHCHECK_PERIOD": configTest.HealthCheckPeriod,
+		"TEST_PASSWORD":           configTest.Password,
+		"TEST_PORT":               configTest.Port,
+		"TEST_USER":               configTest.User,
+	}
+
+	// Generate env file
+	vars, err := DetermineConfigurationEnvironmentVariables(prefix, configTest)
+	require.NoError(t, err)
+
+	// Go through generated vars and check they match the defaults
+	for key, value := range vars {
+		require.Equal(t, value, testValues[key])
+	}
+}
+
+func TestGenerateEnvFile_Nested(t *testing.T) {
+	configTest := DefaultDeepConfiguration()
+	prefix := "test"
+
+	// Deep nested test values
+	/*
+		type ConfigurationTest struct {
+			TestString  string             `mapstructure:"dummy_string"`
+			TestInt     int                `mapstructure:"dummy_int"`
+			TestTime    time.Duration      `mapstructure:"dummy_time"`
+			TestConfig  DummyConfiguration `mapstructure:"dummyconfig"`  <- nested
+			TestConfig2 DummyConfiguration `mapstructure:"dummy_config"` <- nested
+		}
+
+		type DeepConfig struct {
+			TestString     string            `mapstructure:"dummy_string"`
+			TestConfigDeep ConfigurationTest `mapstructure:"deep_config"` <- nested
+		}
+
+	*/
+	testValues := map[string]interface{}{
+		"TEST_DEEP_CONFIG_DUMMYCONFIG_DB":                  configTest.TestConfigDeep.TestConfig.DB,
+		"TEST_DEEP_CONFIG_DUMMYCONFIG_DUMMY_HOST":          configTest.TestConfigDeep.TestConfig.Host,
+		"TEST_DEEP_CONFIG_DUMMYCONFIG_FLAG":                configTest.TestConfigDeep.TestConfig.Flag,
+		"TEST_DEEP_CONFIG_DUMMYCONFIG_HEALTHCHECK_PERIOD":  configTest.TestConfigDeep.TestConfig.HealthCheckPeriod,
+		"TEST_DEEP_CONFIG_DUMMYCONFIG_PASSWORD":            configTest.TestConfigDeep.TestConfig.Password,
+		"TEST_DEEP_CONFIG_DUMMYCONFIG_PORT":                configTest.TestConfigDeep.TestConfig.Port,
+		"TEST_DEEP_CONFIG_DUMMYCONFIG_USER":                configTest.TestConfigDeep.TestConfig.User,
+		"TEST_DEEP_CONFIG_DUMMY_CONFIG_DB":                 configTest.TestConfigDeep.TestConfig2.DB,
+		"TEST_DEEP_CONFIG_DUMMY_CONFIG_DUMMY_HOST":         configTest.TestConfigDeep.TestConfig2.Host,
+		"TEST_DEEP_CONFIG_DUMMY_CONFIG_FLAG":               configTest.TestConfigDeep.TestConfig2.Flag,
+		"TEST_DEEP_CONFIG_DUMMY_CONFIG_HEALTHCHECK_PERIOD": configTest.TestConfigDeep.TestConfig2.HealthCheckPeriod,
+		"TEST_DEEP_CONFIG_DUMMY_CONFIG_PASSWORD":           configTest.TestConfigDeep.TestConfig2.Password,
+		"TEST_DEEP_CONFIG_DUMMY_CONFIG_PORT":               configTest.TestConfigDeep.TestConfig2.Port,
+		"TEST_DEEP_CONFIG_DUMMY_CONFIG_USER":               configTest.TestConfigDeep.TestConfig2.User,
+		"TEST_DEEP_CONFIG_DUMMY_INT":                       configTest.TestConfigDeep.TestInt,
+		"TEST_DUMMY_STRING":                                configTest.TestString,
+		"TEST_DEEP_CONFIG_DUMMY_TIME":                      configTest.TestConfigDeep.TestTime,
+		"TEST_DEEP_CONFIG_DUMMY_STRING":                    configTest.TestConfigDeep.TestString,
+	}
+
+	// Generate env file
+	vars, err := DetermineConfigurationEnvironmentVariables(prefix, configTest)
+	require.NoError(t, err)
+
+	// Go through generated vars and check they match the defaults
+	for key, value := range vars {
+		require.Equal(t, value, testValues[key])
+	}
+}
+
+func TestGenerateEnvFile_Undefined(t *testing.T) {
+	prefix := "test"
+	_, err := DetermineConfigurationEnvironmentVariables(prefix, nil)
+	require.ErrorIs(t, err, commonerrors.ErrUndefined)
+}
+
+func TestGenerateEnvFile_Empty(t *testing.T) {
+	prefix := "test"
+	_, err := DetermineConfigurationEnvironmentVariables(prefix, struct{ IServiceConfiguration }{})
+	require.ErrorIs(t, err, commonerrors.ErrUndefined)
 }
