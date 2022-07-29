@@ -341,16 +341,10 @@ func TestGenerateEnvFile_Defaults(t *testing.T) {
 	configTest := DefaultDummyConfiguration()
 
 	// Get the expected test values
-	var flag string // convert bool to string for test
-	if configTest.Flag {
-		flag = "true"
-	} else {
-		flag = "false"
-	}
 	testValues := map[string]string{
 		"TEST_DB":                 configTest.DB,
 		"TEST_DUMMY_HOST":         configTest.Host,
-		"TEST_FLAG":               flag,
+		"TEST_FLAG":               strconv.FormatBool(configTest.Flag),
 		"TEST_HEALTHCHECK_PERIOD": configTest.HealthCheckPeriod.String(),
 		"TEST_PASSWORD":           configTest.Password,
 		"TEST_PORT":               strconv.Itoa(configTest.Port),
@@ -408,16 +402,10 @@ func TestGenerateEnvFile_Populated(t *testing.T) {
 	require.NoError(t, configTest.Validate())
 
 	// Create test data
-	var flag string
-	if configTest.Flag {
-		flag = "true"
-	} else {
-		flag = "false"
-	}
 	testValues := map[string]string{
 		"TEST_DB":                 configTest.DB,
 		"TEST_DUMMY_HOST":         configTest.Host,
-		"TEST_FLAG":               flag,
+		"TEST_FLAG":               strconv.FormatBool(configTest.Flag),
 		"TEST_HEALTHCHECK_PERIOD": configTest.HealthCheckPeriod.String(),
 		"TEST_PASSWORD":           configTest.Password,
 		"TEST_PORT":               strconv.Itoa(configTest.Port),
