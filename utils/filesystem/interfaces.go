@@ -6,11 +6,11 @@ package filesystem
 
 import (
 	"context"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/bmatcuk/doublestar/v3"
 	"github.com/spf13/afero"
 
 	"github.com/ARM-software/golang-utils/utils/config"
@@ -97,8 +97,8 @@ type ILock interface {
 
 // FS defines all the methods a file system should provide.
 type FS interface {
-	// Open opens a file. The following is for being able to use doublestar
-	Open(name string) (doublestar.File, error)
+	// Open opens a file. The following is for being able to use `doublestar`. Use GenericOpen instead.
+	Open(name string) (fs.File, error)
 	// GenericOpen opens a file for reading. It opens the named file with specified flag (O_RDONLY etc.).
 	// See os.Open()
 	GenericOpen(name string) (File, error)
@@ -151,6 +151,8 @@ type FS interface {
 	WalkWithContext(ctx context.Context, root string, fn filepath.WalkFunc) error
 	// Ls lists all files and directory (equivalent to ls)
 	Ls(dir string) (files []string, err error)
+	// LsWithNegation lists all files and directory (equivalent to ls) but ignoring any item matching the negationPattern (see https://www.linuxjournal.com/content/bash-extended-globbing)
+	LsWithNegation(dir string, negationPattern string) (names []string, err error)
 	// LsFromOpenedDirectory lists all files and directory (equivalent to ls)
 	LsFromOpenedDirectory(dir File) (files []string, err error)
 	// Lls lists all files and directory (equivalent to ls -l)

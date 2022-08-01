@@ -6,6 +6,7 @@ require (
 	github.com/OneOfOne/xxhash v1.2.8
 	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/bmatcuk/doublestar/v3 v3.0.0
+	github.com/bmatcuk/doublestar/v4 v4.2.0
 	github.com/bombsimon/logrusr v1.1.0
 	github.com/bxcodec/faker/v3 v3.8.0
 	github.com/djherbis/times v1.5.0

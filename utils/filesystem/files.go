@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -18,7 +19,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/bmatcuk/doublestar/v3"
+	"github.com/bmatcuk/doublestar/v4"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/spf13/afero"
 	"go.uber.org/atomic"
@@ -80,25 +81,27 @@ func NewVirtualFileSystem(vfs afero.Fs, fsType int, pathConverter func(path stri
 	}
 }
 
+// GetGlobalFileSystem returns default filesystem in use.
 func GetGlobalFileSystem() FS {
 	return globalFileSystem
 }
 
+// GetType returns the type of the default filesystem in use.
 func GetType() int {
 	return globalFileSystem.GetType()
 }
 
 // Walk walks  https://golang.org/pkg/path/filepath/#WalkDir
-func (fs *VFS) Walk(root string, fn filepath.WalkFunc) error {
-	return fs.WalkWithContext(context.Background(), root, fn)
+func (vfs *VFS) Walk(root string, fn filepath.WalkFunc) error {
+	return vfs.WalkWithContext(context.Background(), root, fn)
 }
 
-func (fs *VFS) WalkWithContext(ctx context.Context, root string, fn filepath.WalkFunc) error {
-	info, err := fs.Lstat(root)
+func (vfs *VFS) WalkWithContext(ctx context.Context, root string, fn filepath.WalkFunc) error {
+	info, err := vfs.Lstat(root)
 	if err != nil {
 		err = fn(root, nil, err)
 	} else {
-		err = fs.walk(ctx, root, info, fn)
+		err = vfs.walk(ctx, root, info, fn)
 	}
 	if commonerrors.Any(err, filepath.SkipDir) {
 		return nil
@@ -108,7 +111,7 @@ func (fs *VFS) WalkWithContext(ctx context.Context, root string, fn filepath.Wal
 }
 
 // walks recursively descends path, calling fn.
-func (fs *VFS) walk(ctx context.Context, path string, info os.FileInfo, fn filepath.WalkFunc) (err error) {
+func (vfs *VFS) walk(ctx context.Context, path string, info os.FileInfo, fn filepath.WalkFunc) (err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -120,7 +123,7 @@ func (fs *VFS) walk(ctx context.Context, path string, info os.FileInfo, fn filep
 		}
 		return
 	}
-	items, err := fs.Ls(path)
+	items, err := vfs.Ls(path)
 	if err != nil {
 		err = fn(path, info, err)
 		if err != nil {
@@ -133,13 +136,13 @@ func (fs *VFS) walk(ctx context.Context, path string, info os.FileInfo, fn filep
 			return subErr
 		}
 		filename := filepath.Join(path, name)
-		fileInfo, subErr := fs.Lstat(filename)
+		fileInfo, subErr := vfs.Lstat(filename)
 		if subErr != nil {
 			if err := fn(filename, fileInfo, subErr); err != nil && err != filepath.SkipDir {
 				return err
 			}
 		} else {
-			subErr = fs.walk(ctx, filename, fileInfo, fn)
+			subErr = vfs.walk(ctx, filename, fileInfo, fn)
 			if subErr != nil {
 				if !fileInfo.IsDir() || subErr != filepath.SkipDir {
 					return subErr
@@ -151,25 +154,25 @@ func (fs *VFS) walk(ctx context.Context, path string, info os.FileInfo, fn filep
 
 }
 
-func (fs *VFS) GetType() int {
-	return fs.fsType
+func (vfs *VFS) GetType() int {
+	return vfs.fsType
 }
 
-func (fs *VFS) ConvertFilePath(name string) string {
-	return fs.pathConverter(name)
+func (vfs *VFS) ConvertFilePath(name string) string {
+	return vfs.pathConverter(name)
 }
 
 func TempDirectory() string {
 	return globalFileSystem.TempDirectory()
 }
-func (fs *VFS) TempDirectory() string {
-	return afero.GetTempDir(fs.vfs, "")
+func (vfs *VFS) TempDirectory() string {
+	return afero.GetTempDir(vfs.vfs, "")
 }
 
 func CurrentDirectory() (string, error) {
 	return globalFileSystem.CurrentDirectory()
 }
-func (fs *VFS) CurrentDirectory() (string, error) {
+func (vfs *VFS) CurrentDirectory() (string, error) {
 	return os.Getwd()
 }
 
@@ -177,73 +180,73 @@ func Lstat(name string) (fileInfo os.FileInfo, err error) {
 	return globalFileSystem.Lstat(name)
 }
 
-func (fs *VFS) Lstat(name string) (fileInfo os.FileInfo, err error) {
-	if correctobj, ok := fs.vfs.(interface {
+func (vfs *VFS) Lstat(name string) (fileInfo os.FileInfo, err error) {
+	if correctobj, ok := vfs.vfs.(interface {
 		LstatIfPossible(string) (os.FileInfo, bool, error)
 	}); ok {
 		fileInfo, _, err = correctobj.LstatIfPossible(name)
 		return
 	}
-	fileInfo, err = fs.Stat(name)
+	fileInfo, err = vfs.Stat(name)
 	if err != nil {
 		err = commonerrors.ErrNotImplemented
 	}
 	return
 }
 
-func (fs *VFS) Open(name string) (doublestar.File, error) {
-	return fs.GenericOpen(name)
+func (vfs *VFS) Open(name string) (fs.File, error) {
+	return vfs.GenericOpen(name)
 }
 
 func GenericOpen(name string) (File, error) {
 	return globalFileSystem.GenericOpen(name)
 }
-func (fs *VFS) GenericOpen(name string) (File, error) {
-	return convertFile(func() (afero.File, error) { return fs.vfs.Open(name) }, func() error { return nil })
+func (vfs *VFS) GenericOpen(name string) (File, error) {
+	return convertFile(func() (afero.File, error) { return vfs.vfs.Open(name) }, func() error { return nil })
 }
 
 func OpenFile(name string, flag int, perm os.FileMode) (File, error) {
 	return globalFileSystem.OpenFile(name, flag, perm)
 }
 
-func (fs *VFS) OpenFile(name string, flag int, perm os.FileMode) (File, error) {
-	return convertFile(func() (afero.File, error) { return fs.vfs.OpenFile(name, flag, perm) }, func() error { return nil })
+func (vfs *VFS) OpenFile(name string, flag int, perm os.FileMode) (File, error) {
+	return convertFile(func() (afero.File, error) { return vfs.vfs.OpenFile(name, flag, perm) }, func() error { return nil })
 }
 
 func CreateFile(name string) (File, error) {
 	return globalFileSystem.CreateFile(name)
 }
-func (fs *VFS) CreateFile(name string) (File, error) {
-	return convertFile(func() (afero.File, error) { return fs.vfs.Create(name) }, func() error { return nil })
+func (vfs *VFS) CreateFile(name string) (File, error) {
+	return convertFile(func() (afero.File, error) { return vfs.vfs.Create(name) }, func() error { return nil })
 }
 
-func (fs *VFS) NewRemoteLockFile(id string, dirToLock string) ILock {
-	return NewRemoteLockFile(fs, id, dirToLock)
+func (vfs *VFS) NewRemoteLockFile(id string, dirToLock string) ILock {
+	return NewRemoteLockFile(vfs, id, dirToLock)
 }
 
 func ReadFile(name string) ([]byte, error) {
 	return globalFileSystem.ReadFile(name)
 }
 
-func (fs *VFS) ReadFile(filename string) (content []byte, err error) {
-	return fs.readFileWithLimits(filename, NoLimits())
+func (vfs *VFS) ReadFile(filename string) (content []byte, err error) {
+	return vfs.readFileWithLimits(filename, NoLimits())
 }
 
 func ReadFileWithLimits(filename string, limits ILimits) ([]byte, error) {
 	return globalFileSystem.ReadFileWithLimits(filename, limits)
 }
 
-func (fs *VFS) ReadFileWithLimits(filename string, limits ILimits) ([]byte, error) {
-	return fs.readFileWithLimits(filename, limits)
+func (vfs *VFS) ReadFileWithLimits(filename string, limits ILimits) ([]byte, error) {
+	return vfs.readFileWithLimits(filename, limits)
 }
 
-func (fs *VFS) readFileWithLimits(filename string, limits ILimits) (content []byte, err error) {
+func (vfs *VFS) readFileWithLimits(filename string, limits ILimits) (content []byte, err error) {
 	if limits == nil {
 		err = fmt.Errorf("%w: missing file system limits definition", commonerrors.ErrUndefined)
 		return
 	}
 	// Really similar to afero iotutils Read file but using our utilities instead.
-	f, err := fs.GenericOpen(filename)
+	f, err := vfs.GenericOpen(filename)
 	if err != nil {
 		return
 	}
@@ -288,8 +291,8 @@ func (fs *VFS) readFileWithLimits(filename string, limits ILimits) (content []by
 	return
 }
 
-func (fs *VFS) WriteFile(filename string, data []byte, perm os.FileMode) (err error) {
-	f, err := fs.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
+func (vfs *VFS) WriteFile(filename string, data []byte, perm os.FileMode) (err error) {
+	f, err := vfs.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
 	if err != nil {
 		return
 	}
@@ -310,7 +313,7 @@ func PathSeparator() rune {
 	return globalFileSystem.PathSeparator()
 }
 
-func (fs *VFS) PathSeparator() rune {
+func (vfs *VFS) PathSeparator() rune {
 	return os.PathSeparator
 }
 
@@ -318,12 +321,12 @@ func Stat(name string) (os.FileInfo, error) {
 	return globalFileSystem.Stat(name)
 }
 
-func (fs *VFS) Stat(name string) (os.FileInfo, error) {
-	return fs.vfs.Stat(name)
+func (vfs *VFS) Stat(name string) (os.FileInfo, error) {
+	return vfs.vfs.Stat(name)
 }
 
-func (fs *VFS) StatTimes(name string) (info FileTimeInfo, err error) {
-	stat, err := fs.Stat(name)
+func (vfs *VFS) StatTimes(name string) (info FileTimeInfo, err error) {
+	stat, err := vfs.Stat(name)
 	if err == nil || stat == nil {
 		return DetermineFileTimes(stat)
 	}
@@ -334,22 +337,22 @@ func TempDir(dir string, prefix string) (name string, err error) {
 	return globalFileSystem.TempDir(dir, prefix)
 }
 
-func (fs *VFS) TempDir(dir string, prefix string) (name string, err error) {
-	return afero.TempDir(fs.vfs, dir, prefix)
+func (vfs *VFS) TempDir(dir string, prefix string) (name string, err error) {
+	return afero.TempDir(vfs.vfs, dir, prefix)
 }
 
 func TempDirInTempDir(prefix string) (name string, err error) {
 	return globalFileSystem.TempDirInTempDir(prefix)
 }
 
-func (fs *VFS) TempDirInTempDir(prefix string) (name string, err error) {
-	return fs.TempDir("", prefix)
+func (vfs *VFS) TempDirInTempDir(prefix string) (name string, err error) {
+	return vfs.TempDir("", prefix)
 }
 func TempFile(dir string, pattern string) (f File, err error) {
 	return globalFileSystem.TempFile(dir, pattern)
 }
-func (fs *VFS) TempFile(dir string, prefix string) (f File, err error) {
-	file, err := afero.TempFile(fs.vfs, dir, prefix)
+func (vfs *VFS) TempFile(dir string, prefix string) (f File, err error) {
+	file, err := afero.TempFile(vfs.vfs, dir, prefix)
 	if err != nil {
 		return
 	}
@@ -360,36 +363,36 @@ func TempFileInTempDir(pattern string) (f File, err error) {
 	return globalFileSystem.TempFileInTempDir(pattern)
 }
 
-func (fs *VFS) TempFileInTempDir(prefix string) (f File, err error) {
-	return fs.TempFile("", prefix)
+func (vfs *VFS) TempFileInTempDir(prefix string) (f File, err error) {
+	return vfs.TempFile("", prefix)
 }
 
 func CleanDir(dir string) (err error) {
 	return globalFileSystem.CleanDir(dir)
 }
 
-func (fs *VFS) CleanDir(dir string) error {
-	return fs.CleanDirWithContext(context.Background(), dir)
+func (vfs *VFS) CleanDir(dir string) error {
+	return vfs.CleanDirWithContext(context.Background(), dir)
 }
 
-func (fs *VFS) CleanDirWithContext(ctx context.Context, dir string) (err error) {
+func (vfs *VFS) CleanDirWithContext(ctx context.Context, dir string) (err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
 	}
-	if dir == "" || !fs.Exists(dir) {
+	if dir == "" || !vfs.Exists(dir) {
 		return
 	}
-	empty, err := fs.IsEmpty(dir)
+	empty, err := vfs.IsEmpty(dir)
 	if empty || err != nil {
 		return
 	}
-	files, err := fs.Ls(dir)
+	files, err := vfs.Ls(dir)
 	if err != nil {
 		return
 	}
 	for i := range files {
-		subErr := fs.removeFileWithContext(ctx, dir, files[i])
+		subErr := vfs.removeFileWithContext(ctx, dir, files[i])
 		if subErr != nil {
 			err = subErr
 			return
@@ -398,12 +401,12 @@ func (fs *VFS) CleanDirWithContext(ctx context.Context, dir string) (err error) 
 	return
 }
 
-func (fs *VFS) removeFileWithContext(ctx context.Context, dir, f string) (err error) {
+func (vfs *VFS) removeFileWithContext(ctx context.Context, dir, f string) (err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
 	}
-	err = fs.RemoveWithContext(ctx, filepath.Join(dir, f))
+	err = vfs.RemoveWithContext(ctx, filepath.Join(dir, f))
 	return
 }
 
@@ -411,8 +414,8 @@ func (fs *VFS) removeFileWithContext(ctx context.Context, dir, f string) (err er
 func Exists(path string) bool {
 	return globalFileSystem.Exists(path)
 }
-func (fs *VFS) Exists(path string) bool {
-	fi, err := fs.Stat(path)
+func (vfs *VFS) Exists(path string) bool {
+	fi, err := vfs.Stat(path)
 	if err != nil {
 		if IsPathNotExist(err) {
 			return false
@@ -423,14 +426,14 @@ func (fs *VFS) Exists(path string) bool {
 	}
 	// Double check for directories as it was seen on Docker that Stat would work on Docker even if path does not exist
 	if fi.IsDir() {
-		return fs.checkDirExists(path)
+		return vfs.checkDirExists(path)
 	}
 	return true
 }
 
-func (fs *VFS) checkDirExists(path string) (exist bool) {
+func (vfs *VFS) checkDirExists(path string) (exist bool) {
 	exist = false
-	f, err := fs.vfs.Open(path)
+	f, err := vfs.vfs.Open(path)
 	if err != nil {
 		return
 	}
@@ -448,27 +451,27 @@ func (fs *VFS) checkDirExists(path string) (exist bool) {
 func Rm(dir string) (err error) {
 	return globalFileSystem.Rm(dir)
 }
-func (fs *VFS) Rm(dir string) error {
-	return fs.RemoveWithContext(context.Background(), dir)
+func (vfs *VFS) Rm(dir string) error {
+	return vfs.RemoveWithContext(context.Background(), dir)
 }
 
-func (fs *VFS) RemoveWithContext(ctx context.Context, dir string) (err error) {
+func (vfs *VFS) RemoveWithContext(ctx context.Context, dir string) (err error) {
 	if dir == "" {
 		return
 	}
-	if !fs.Exists(dir) {
+	if !vfs.Exists(dir) {
 		return
 	}
-	isDir, err := fs.IsDir(dir)
+	isDir, err := vfs.IsDir(dir)
 	if err != nil {
 		return
 	}
-	isEmpty, err := fs.IsEmpty(dir)
+	isEmpty, err := vfs.IsEmpty(dir)
 	if err != nil {
 		return
 	}
 	if isDir && !isEmpty {
-		err = fs.CleanDirWithContext(ctx, dir)
+		err = vfs.CleanDirWithContext(ctx, dir)
 	}
 	if err != nil {
 		return
@@ -477,18 +480,18 @@ func (fs *VFS) RemoveWithContext(ctx context.Context, dir string) (err error) {
 	if err != nil {
 		return
 	}
-	return fs.vfs.Remove(dir)
+	return vfs.vfs.Remove(dir)
 }
 
 // States whether it is a file or not
 func IsFile(path string) (result bool, err error) {
 	return globalFileSystem.IsFile(path)
 }
-func (fs *VFS) IsFile(path string) (result bool, err error) {
-	if !fs.Exists(path) {
+func (vfs *VFS) IsFile(path string) (result bool, err error) {
+	if !vfs.Exists(path) {
 		return
 	}
-	fi, err := fs.Stat(path)
+	fi, err := vfs.Stat(path)
 	if err != nil {
 		return
 	}
@@ -503,11 +506,11 @@ func IsRegularFile(fi os.FileInfo) bool {
 	return fi.Mode().IsRegular()
 }
 
-func (fs *VFS) IsLink(path string) (result bool, err error) {
-	if !fs.Exists(path) {
+func (vfs *VFS) IsLink(path string) (result bool, err error) {
+	if !vfs.Exists(path) {
 		return
 	}
-	fi, err := fs.Lstat(path)
+	fi, err := vfs.Lstat(path)
 	if err != nil {
 		return
 	}
@@ -526,11 +529,11 @@ func IsSymLink(fi os.FileInfo) bool {
 func IsDir(path string) (result bool, err error) {
 	return globalFileSystem.IsDir(path)
 }
-func (fs *VFS) IsDir(path string) (result bool, err error) {
-	if !fs.Exists(path) {
+func (vfs *VFS) IsDir(path string) (result bool, err error) {
+	if !vfs.Exists(path) {
 		return
 	}
-	fi, err := fs.Stat(path)
+	fi, err := vfs.Stat(path)
 	if err != nil {
 		return
 	}
@@ -549,23 +552,23 @@ func IsDirectory(fi os.FileInfo) bool {
 func IsEmpty(name string) (empty bool, err error) {
 	return globalFileSystem.IsEmpty(name)
 }
-func (fs *VFS) IsEmpty(name string) (empty bool, err error) {
-	if !fs.Exists(name) {
+func (vfs *VFS) IsEmpty(name string) (empty bool, err error) {
+	if !vfs.Exists(name) {
 		empty = true
 		return
 	}
-	isFile, err := fs.IsFile(name)
+	isFile, err := vfs.IsFile(name)
 	if err != nil {
 		return
 	}
 	if isFile {
-		return fs.isFileEmpty(name)
+		return vfs.isFileEmpty(name)
 	}
-	return fs.isDirEmpty(name)
+	return vfs.isDirEmpty(name)
 }
 
-func (fs *VFS) isFileEmpty(name string) (empty bool, err error) {
-	fi, err := fs.Stat(name)
+func (vfs *VFS) isFileEmpty(name string) (empty bool, err error) {
+	fi, err := vfs.Stat(name)
 	if err != nil {
 		return
 	}
@@ -573,8 +576,8 @@ func (fs *VFS) isFileEmpty(name string) (empty bool, err error) {
 	return
 }
 
-func (fs *VFS) isDirEmpty(name string) (empty bool, err error) {
-	f, err := fs.vfs.Open(name)
+func (vfs *VFS) isDirEmpty(name string) (empty bool, err error) {
+	f, err := vfs.vfs.Open(name)
 	if err != nil {
 		return
 	}
@@ -597,20 +600,20 @@ func (fs *VFS) isDirEmpty(name string) (empty bool, err error) {
 func MkDir(dir string) (err error) {
 	return globalFileSystem.MkDir(dir)
 }
-func (fs *VFS) MkDir(dir string) (err error) {
-	return fs.MkDirAll(dir, 0755)
+func (vfs *VFS) MkDir(dir string) (err error) {
+	return vfs.MkDirAll(dir, 0755)
 }
 
-func (fs *VFS) MkDirAll(dir string, perm os.FileMode) (err error) {
+func (vfs *VFS) MkDirAll(dir string, perm os.FileMode) (err error) {
 	if dir == "" {
 		return fmt.Errorf("missing path: %w", commonerrors.ErrUndefined)
 	}
-	if fs.Exists(dir) {
+	if vfs.Exists(dir) {
 		return
 	}
-	err = fs.vfs.MkdirAll(dir, perm)
+	err = vfs.vfs.MkdirAll(dir, perm)
 	// Directory was maybe created by a different process/thread
-	if err != nil && fs.Exists(dir) {
+	if err != nil && vfs.Exists(dir) {
 		err = nil
 	}
 	return
@@ -621,12 +624,12 @@ func ExcludeAll(files []string, exclusionPatterns ...string) ([]string, error) {
 	return globalFileSystem.ExcludeAll(files, exclusionPatterns...)
 }
 
-func (fs *VFS) ExcludeAll(files []string, exclusionPatterns ...string) ([]string, error) {
+func (vfs *VFS) ExcludeAll(files []string, exclusionPatterns ...string) ([]string, error) {
 	regexes := []*regexp.Regexp{}
 	patternsExtendedList := []string{}
 	for _, p := range exclusionPatterns {
 		if p != "" {
-			patternsExtendedList = append(patternsExtendedList, p, fmt.Sprintf(".*/%v/.*", p), fmt.Sprintf(".*%v%v%v.*", fs.PathSeparator(), p, fs.PathSeparator()))
+			patternsExtendedList = append(patternsExtendedList, p, fmt.Sprintf(".*/%v/.*", p), fmt.Sprintf(".*%v%v%v.*", vfs.PathSeparator(), p, vfs.PathSeparator()))
 		}
 	}
 	for _, p := range patternsExtendedList {
@@ -658,13 +661,13 @@ func isExcluded(path string, exclusionPatterns ...*regexp.Regexp) bool {
 func FindAll(dir string, extensions ...string) (files []string, err error) {
 	return globalFileSystem.FindAll(dir, extensions...)
 }
-func (fs *VFS) FindAll(dir string, extensions ...string) (files []string, err error) {
+func (vfs *VFS) FindAll(dir string, extensions ...string) (files []string, err error) {
 	files = []string{}
-	if !fs.Exists(dir) {
+	if !vfs.Exists(dir) {
 		return
 	}
 	for _, ext := range extensions {
-		foundFiles, err := fs.findAllOfExtension(dir, ext)
+		foundFiles, err := vfs.findAllOfExtension(dir, ext)
 		if err != nil {
 			return files, err
 		}
@@ -672,42 +675,42 @@ func (fs *VFS) FindAll(dir string, extensions ...string) (files []string, err er
 	}
 	return
 }
-func (fs *VFS) findAllOfExtension(dir string, ext string) (files []string, err error) {
-	return doublestar.GlobOS(fs, filepath.Join(dir, "**", fmt.Sprintf("*.%v", strings.TrimPrefix(ext, "."))))
+func (vfs *VFS) findAllOfExtension(dir string, ext string) (files []string, err error) {
+	return doublestar.Glob(vfs, filepath.Join(dir, "**", fmt.Sprintf("*.%v", strings.TrimPrefix(ext, "."))))
 }
 
-func (fs *VFS) Chmod(name string, mode os.FileMode) error {
-	return fs.vfs.Chmod(name, mode)
+func (vfs *VFS) Chmod(name string, mode os.FileMode) error {
+	return vfs.vfs.Chmod(name, mode)
 }
 
-func (fs *VFS) Chtimes(name string, atime time.Time, mtime time.Time) error {
-	return fs.vfs.Chtimes(name, atime, mtime)
+func (vfs *VFS) Chtimes(name string, atime time.Time, mtime time.Time) error {
+	return vfs.vfs.Chtimes(name, atime, mtime)
 }
 
-func (fs *VFS) Chown(name string, uid, gid int) (err error) {
-	if correctobj, ok := fs.vfs.(interface {
+func (vfs *VFS) Chown(name string, uid, gid int) (err error) {
+	if correctobj, ok := vfs.vfs.(interface {
 		ChownIfPossible(string, int, int) error
 	}); ok {
 		err = correctobj.ChownIfPossible(name, uid, gid)
 		return
 	}
-	err = commonerrors.ErrNotImplemented
+	err = ErrChownNotImplemented
 	return
 }
 
-func (fs *VFS) Link(oldname, newname string) (err error) {
-	if correctobj, ok := fs.vfs.(interface {
+func (vfs *VFS) Link(oldname, newname string) (err error) {
+	if correctobj, ok := vfs.vfs.(interface {
 		LinkIfPossible(string, string) error
 	}); ok {
 		err = correctobj.LinkIfPossible(oldname, newname)
 		return
 	}
-	err = commonerrors.ErrNotImplemented
+	err = ErrLinkNotImplemented
 	return
 }
 
-func (fs *VFS) Readlink(name string) (value string, err error) {
-	if correctobj, ok := fs.vfs.(interface {
+func (vfs *VFS) Readlink(name string) (value string, err error) {
+	if correctobj, ok := vfs.vfs.(interface {
 		ReadlinkIfPossible(string) (string, error)
 	}); ok {
 		value, err = correctobj.ReadlinkIfPossible(name)
@@ -717,8 +720,8 @@ func (fs *VFS) Readlink(name string) (value string, err error) {
 	return
 }
 
-func (fs *VFS) Symlink(oldname string, newname string) (err error) {
-	if correctobj, ok := fs.vfs.(interface {
+func (vfs *VFS) Symlink(oldname string, newname string) (err error) {
+	if correctobj, ok := vfs.vfs.(interface {
 		SymlinkIfPossible(string, string) error
 	}); ok {
 		err = correctobj.SymlinkIfPossible(oldname, newname)
@@ -731,70 +734,98 @@ func (fs *VFS) Symlink(oldname string, newname string) (err error) {
 func Ls(dir string) (files []string, err error) {
 	return globalFileSystem.Ls(dir)
 }
-func (fs *VFS) Ls(dir string) (names []string, err error) {
-	if isDir, err := fs.IsDir(dir); !isDir || err != nil {
+
+func (vfs *VFS) LsWithNegation(dir string, negationPattern string) (names []string, err error) {
+	if !doublestar.ValidatePattern(negationPattern) {
+		err = fmt.Errorf("%w: invalid pattern according to `doublestar`", commonerrors.ErrInvalid)
+		return
+	}
+	elements, err := vfs.Ls(dir)
+	if err != nil {
+		return
+	}
+	for i := range elements {
+		element := elements[i]
+		match, subErr := doublestar.Match(negationPattern, element)
+		if subErr != nil {
+			if commonerrors.Any(subErr, doublestar.ErrBadPattern) {
+				err = fmt.Errorf("%w: %v", commonerrors.ErrInvalid, subErr.Error())
+			} else {
+				err = fmt.Errorf("%w: %v", commonerrors.ErrUnexpected, subErr.Error())
+			}
+			return nil, err
+		}
+		if !match {
+			names = append(names, element)
+		}
+	}
+	return
+}
+
+func (vfs *VFS) Ls(dir string) (names []string, err error) {
+	if isDir, err := vfs.IsDir(dir); !isDir || err != nil {
 		err = fmt.Errorf("path [%v] is not a directory: %w", dir, commonerrors.ErrInvalid)
 		return nil, err
 	}
-	f, err := fs.GenericOpen(dir)
+	f, err := vfs.GenericOpen(dir)
 	if err != nil {
 		return nil, err
 	}
-	names, err = fs.LsFromOpenedDirectory(f)
+	names, err = vfs.LsFromOpenedDirectory(f)
 	_ = f.Close()
 	return names, err
 }
 
-func (fs *VFS) LsFromOpenedDirectory(dir File) ([]string, error) {
+func (vfs *VFS) LsFromOpenedDirectory(dir File) ([]string, error) {
 	if dir == nil {
 		return nil, fmt.Errorf("%w: nil directory", commonerrors.ErrUndefined)
 	}
 	return dir.Readdirnames(-1)
 }
 
-func (fs *VFS) Lls(dir string) (files []os.FileInfo, err error) {
-	if isDir, err := fs.IsDir(dir); !isDir || err != nil {
+func (vfs *VFS) Lls(dir string) (files []os.FileInfo, err error) {
+	if isDir, err := vfs.IsDir(dir); !isDir || err != nil {
 		err = fmt.Errorf("path [%v] is not a directory: %w", dir, commonerrors.ErrInvalid)
 		return nil, err
 	}
-	f, err := fs.GenericOpen(dir)
+	f, err := vfs.GenericOpen(dir)
 	if err != nil {
 		return nil, err
 	}
-	files, err = fs.LlsFromOpenedDirectory(f)
+	files, err = vfs.LlsFromOpenedDirectory(f)
 	_ = f.Close()
 	return
 }
 
-func (fs *VFS) LlsFromOpenedDirectory(dir File) ([]os.FileInfo, error) {
+func (vfs *VFS) LlsFromOpenedDirectory(dir File) ([]os.FileInfo, error) {
 	if dir == nil {
 		return nil, fmt.Errorf("%w: nil directory", commonerrors.ErrUndefined)
 	}
 	return dir.Readdir(-1)
 }
 
-func (fs *VFS) ConvertToAbsolutePath(rootPath string, paths ...string) ([]string, error) {
-	basepath := fs.ConvertFilePath(rootPath)
+func (vfs *VFS) ConvertToAbsolutePath(rootPath string, paths ...string) ([]string, error) {
+	basepath := vfs.ConvertFilePath(rootPath)
 	converted := make([]string, 0, len(paths))
 	for i := range paths {
 		path := paths[i]
 		var abs string
 		if filepath.IsAbs(path) {
-			abs = fs.ConvertFilePath(path)
+			abs = vfs.ConvertFilePath(path)
 		} else {
-			abs = fs.ConvertFilePath(filepath.Join(basepath, path))
+			abs = vfs.ConvertFilePath(filepath.Join(basepath, path))
 		}
 		converted = append(converted, abs)
 	}
 	return converted, nil
 }
 
-func (fs *VFS) ConvertToRelativePath(rootPath string, paths ...string) ([]string, error) {
-	basepath := fs.ConvertFilePath(rootPath)
+func (vfs *VFS) ConvertToRelativePath(rootPath string, paths ...string) ([]string, error) {
+	basepath := vfs.ConvertFilePath(rootPath)
 	converted := make([]string, 0, len(paths))
 	for i := range paths {
 		path := paths[i]
-		relPath, err := filepath.Rel(basepath, fs.ConvertFilePath(path))
+		relPath, err := filepath.Rel(basepath, vfs.ConvertFilePath(path))
 		if err != nil {
 			return nil, err
 		}
@@ -807,11 +838,11 @@ func (fs *VFS) ConvertToRelativePath(rootPath string, paths ...string) ([]string
 func Move(src string, dest string) error {
 	return globalFileSystem.Move(src, dest)
 }
-func (fs *VFS) Move(src string, dest string) error {
-	return fs.MoveWithContext(context.Background(), src, dest)
+func (vfs *VFS) Move(src string, dest string) error {
+	return vfs.MoveWithContext(context.Background(), src, dest)
 }
 
-func (fs *VFS) MoveWithContext(ctx context.Context, src string, dest string) (err error) {
+func (vfs *VFS) MoveWithContext(ctx context.Context, src string, dest string) (err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -819,46 +850,46 @@ func (fs *VFS) MoveWithContext(ctx context.Context, src string, dest string) (er
 	if src == dest {
 		return
 	}
-	if !fs.Exists(src) {
+	if !vfs.Exists(src) {
 		err = fmt.Errorf("path [%v] does not exist: %w", src, commonerrors.ErrNotFound)
 		return
 	}
-	err = fs.MkDir(filepath.Dir(dest))
+	err = vfs.MkDir(filepath.Dir(dest))
 	if err != nil {
 		return
 	}
-	err = fs.vfs.Rename(src, dest)
+	err = vfs.vfs.Rename(src, dest)
 	if err == nil {
 		return
 	}
 	// os.Rename() give error "invalid cross-device link" for Docker container with Volumes.
-	isDir, err := fs.IsDir(src)
+	isDir, err := vfs.IsDir(src)
 	if err != nil {
 		return
 	}
 	if isDir {
-		err = fs.moveFolder(ctx, src, dest)
+		err = vfs.moveFolder(ctx, src, dest)
 	} else {
-		err = fs.moveFile(ctx, src, dest)
+		err = vfs.moveFile(ctx, src, dest)
 	}
 	return
 }
 
-func (fs *VFS) moveFolder(ctx context.Context, src string, dest string) (err error) {
+func (vfs *VFS) moveFolder(ctx context.Context, src string, dest string) (err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
 	}
-	err = fs.MkDir(dest)
+	err = vfs.MkDir(dest)
 	if err != nil {
 		return
 	}
-	empty, err := fs.IsEmpty(src)
+	empty, err := vfs.IsEmpty(src)
 	if err != nil {
 		return
 	}
 	if !empty {
-		files, err := fs.Ls(src)
+		files, err := vfs.Ls(src)
 		if err != nil {
 			if IsPathNotExist(err) {
 				return nil
@@ -867,13 +898,13 @@ func (fs *VFS) moveFolder(ctx context.Context, src string, dest string) (err err
 		}
 		for i := range files {
 			f := files[i]
-			err = fs.MoveWithContext(ctx, filepath.Join(src, f), filepath.Join(dest, f))
+			err = vfs.MoveWithContext(ctx, filepath.Join(src, f), filepath.Join(dest, f))
 			if err != nil {
 				return err
 			}
 		}
 	}
-	err = fs.RemoveWithContext(ctx, src)
+	err = vfs.RemoveWithContext(ctx, src)
 	return
 }
 
@@ -884,7 +915,7 @@ func IsPathNotExist(err error) bool {
 	return os.IsNotExist(err) || commonerrors.Any(err, ErrPathNotExist)
 }
 
-func (fs *VFS) moveFile(ctx context.Context, src string, dest string) (err error) {
+func (vfs *VFS) moveFile(ctx context.Context, src string, dest string) (err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -892,35 +923,35 @@ func (fs *VFS) moveFile(ctx context.Context, src string, dest string) (err error
 	if src == dest {
 		return
 	}
-	err = copyFileBetweenFS(ctx, fs, src, fs, dest)
+	err = copyFileBetweenFS(ctx, vfs, src, vfs, dest)
 	if err != nil {
 		return
 	}
-	err = fs.vfs.Remove(src)
+	err = vfs.vfs.Remove(src)
 	if err != nil {
 		return
 	}
 	return
 }
 
-func (fs *VFS) FileHash(hashAlgo string, path string) (hash string, err error) {
+func (vfs *VFS) FileHash(hashAlgo string, path string) (hash string, err error) {
 	hasher, err := NewFileHash(hashAlgo)
 	if err != nil {
 		return
 	}
-	hash, err = hasher.CalculateFile(fs, path)
+	hash, err = hasher.CalculateFile(vfs, path)
 	return
 }
 
 func Copy(src string, dest string) (err error) {
 	return globalFileSystem.Copy(src, dest)
 }
-func (fs *VFS) Copy(src string, dest string) (err error) {
-	return fs.CopyWithContext(context.Background(), src, dest)
+func (vfs *VFS) Copy(src string, dest string) (err error) {
+	return vfs.CopyWithContext(context.Background(), src, dest)
 }
 
-func (fs *VFS) CopyWithContext(ctx context.Context, src string, dest string) (err error) {
-	return CopyBetweenFS(ctx, fs, src, fs, dest)
+func (vfs *VFS) CopyWithContext(ctx context.Context, src string, dest string) (err error) {
+	return CopyBetweenFS(ctx, vfs, src, vfs, dest)
 }
 
 func MoveBetweenFS(ctx context.Context, srcFs FS, src string, destFs FS, dest string) (err error) {
@@ -1028,8 +1059,8 @@ func copyFileBetweenFS(ctx context.Context, srcFs FS, src string, destFs FS, des
 	return
 }
 
-func (fs *VFS) DiskUsage(name string) (usage DiskUsage, err error) {
-	realPath := fs.pathConverter(name)
+func (vfs *VFS) DiskUsage(name string) (usage DiskUsage, err error) {
+	realPath := vfs.pathConverter(name)
 	du, err := disk.Usage(realPath)
 	if err != nil {
 		return
@@ -1051,8 +1082,8 @@ func GetFileSize(name string) (size int64, err error) {
 	return globalFileSystem.GetFileSize(name)
 }
 
-func (fs *VFS) GetFileSize(name string) (size int64, err error) {
-	info, err := fs.Stat(name)
+func (vfs *VFS) GetFileSize(name string) (size int64, err error) {
+	info, err := vfs.Stat(name)
 	if err != nil {
 		return
 	}
@@ -1064,15 +1095,15 @@ func Zip(source string, destination string) error {
 	return globalFileSystem.Zip(source, destination)
 }
 
-func (fs *VFS) Zip(source, destination string) error {
-	return fs.ZipWithContext(context.Background(), source, destination)
+func (vfs *VFS) Zip(source, destination string) error {
+	return vfs.ZipWithContext(context.Background(), source, destination)
 }
 
-func (fs *VFS) ZipWithContext(ctx context.Context, source, destination string) (err error) {
-	return fs.ZipWithContextAndLimits(ctx, source, destination, NoLimits())
+func (vfs *VFS) ZipWithContext(ctx context.Context, source, destination string) (err error) {
+	return vfs.ZipWithContextAndLimits(ctx, source, destination, NoLimits())
 }
 
-func (fs *VFS) ZipWithContextAndLimits(ctx context.Context, source, destination string, limits ILimits) (err error) {
+func (vfs *VFS) ZipWithContextAndLimits(ctx context.Context, source, destination string, limits ILimits) (err error) {
 	if limits == nil {
 		err = fmt.Errorf("%w: missing file system limits", commonerrors.ErrUndefined)
 		return
@@ -1082,7 +1113,7 @@ func (fs *VFS) ZipWithContextAndLimits(ctx context.Context, source, destination 
 		return
 	}
 
-	file, err := fs.CreateFile(destination)
+	file, err := vfs.CreateFile(destination)
 	if err != nil {
 		return
 	}
@@ -1122,7 +1153,7 @@ func (fs *VFS) ZipWithContextAndLimits(ctx context.Context, source, destination 
 		}
 
 		// if file
-		src, err := fs.GenericOpen(path)
+		src, err := vfs.GenericOpen(path)
 		if err != nil {
 			return err
 		}
@@ -1152,7 +1183,7 @@ func (fs *VFS) ZipWithContextAndLimits(ctx context.Context, source, destination 
 		}
 		return nil
 	}
-	err = fs.WalkWithContext(ctx, source, walker)
+	err = vfs.WalkWithContext(ctx, source, walker)
 
 	if limits.Apply() {
 		stat, subErr := file.Stat()
@@ -1187,17 +1218,17 @@ func Unzip(source, destination string) ([]string, error) {
 	return globalFileSystem.Unzip(source, destination)
 }
 
-func (fs *VFS) Unzip(source, destination string) ([]string, error) {
-	return fs.UnzipWithContext(context.Background(), source, destination)
+func (vfs *VFS) Unzip(source, destination string) ([]string, error) {
+	return vfs.UnzipWithContext(context.Background(), source, destination)
 }
 
-func (fs *VFS) UnzipWithContext(ctx context.Context, source string, destination string) (fileList []string, err error) {
-	return fs.unzip(ctx, source, destination, NoLimits())
+func (vfs *VFS) UnzipWithContext(ctx context.Context, source string, destination string) (fileList []string, err error) {
+	return vfs.unzip(ctx, source, destination, NoLimits())
 }
-func (fs *VFS) UnzipWithContextAndLimits(ctx context.Context, source string, destination string, limits ILimits) (fileList []string, err error) {
-	return fs.unzip(ctx, source, destination, limits)
+func (vfs *VFS) UnzipWithContextAndLimits(ctx context.Context, source string, destination string, limits ILimits) (fileList []string, err error) {
+	return vfs.unzip(ctx, source, destination, limits)
 }
-func (fs *VFS) unzip(ctx context.Context, source string, destination string, limits ILimits) (fileList []string, err error) {
+func (vfs *VFS) unzip(ctx context.Context, source string, destination string, limits ILimits) (fileList []string, err error) {
 	if limits == nil {
 		err = fmt.Errorf("%w: missing file system limits", commonerrors.ErrUndefined)
 		return
@@ -1210,11 +1241,11 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 
 	totalSizeOnDisk := atomic.NewUint64(0)
 
-	info, err := fs.Lstat(source)
+	info, err := vfs.Lstat(source)
 	if err != nil {
 		return
 	}
-	f, err := fs.GenericOpen(source)
+	f, err := vfs.GenericOpen(source)
 	if err != nil {
 		return
 	}
@@ -1234,7 +1265,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 
 	// Clean the destination to find shortest dirPath
 	destination = filepath.Clean(destination)
-	err = fs.MkDir(destination)
+	err = vfs.MkDir(destination)
 	if err != nil {
 		return
 	}
@@ -1249,7 +1280,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		}
 
 		// Calculate file dirPath
-		filePath, subErr := sanitiseZipExtractPath(fs, zippedFile.Name, destination)
+		filePath, subErr := sanitiseZipExtractPath(vfs, zippedFile.Name, destination)
 		if subErr != nil {
 			return fileList, subErr
 		}
@@ -1259,7 +1290,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 
 		if zippedFile.FileInfo().IsDir() {
 			// Create directory
-			subErr = fs.MkDir(filePath)
+			subErr = vfs.MkDir(filePath)
 
 			if subErr != nil {
 				return fileList, fmt.Errorf("unable to create directory [%s]: %w", filePath, subErr)
@@ -1272,12 +1303,12 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 
 		// If a file create the dirPath into which to write the file
 		directoryPath := filepath.Dir(filePath)
-		subErr = fs.MkDir(directoryPath)
+		subErr = vfs.MkDir(directoryPath)
 		if subErr != nil {
 			return fileList, fmt.Errorf("unable to create directory '%s': %w", directoryPath, subErr)
 		}
 
-		fileSizeOnDisk, subErr := fs.unzipZipFile(ctx, filePath, zippedFile, limits)
+		fileSizeOnDisk, subErr := vfs.unzipZipFile(ctx, filePath, zippedFile, limits)
 		if subErr != nil {
 			return fileList, subErr
 		}
@@ -1294,7 +1325,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 			return fileList, subErr
 		}
 		times := newDefaultTimeInfo(dirInfo)
-		subErr = fs.Chtimes(dirPath, times.AccessTime(), times.ModTime())
+		subErr = vfs.Chtimes(dirPath, times.AccessTime(), times.ModTime())
 		if subErr != nil {
 			return fileList, fmt.Errorf("unable to set directory timestamp [%s]: %w", dirPath, subErr)
 		}
@@ -1304,7 +1335,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 }
 
 // unzipZipFile unzips file to destination directory
-func (fs *VFS) unzipZipFile(ctx context.Context, dest string, zippedFile *zip.File, limits ILimits) (fileSizeOnDisk int64, err error) {
+func (vfs *VFS) unzipZipFile(ctx context.Context, dest string, zippedFile *zip.File, limits ILimits) (fileSizeOnDisk int64, err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -1315,7 +1346,7 @@ func (fs *VFS) unzipZipFile(ctx context.Context, dest string, zippedFile *zip.Fi
 		return
 	}
 
-	destinationFile, err := fs.OpenFile(destinationPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, zippedFile.Mode())
+	destinationFile, err := vfs.OpenFile(destinationPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, zippedFile.Mode())
 	if err != nil {
 		err = fmt.Errorf("%w: unable to open file '%s': %v", commonerrors.ErrUnexpected, destinationPath, err.Error())
 		return
@@ -1349,7 +1380,7 @@ func (fs *VFS) unzipZipFile(ctx context.Context, dest string, zippedFile *zip.Fi
 	}
 	// Ensuring the timestamp is preserved.
 	times := newDefaultTimeInfo(info)
-	err = fs.Chtimes(destinationPath, times.AccessTime(), times.ModTime())
+	err = vfs.Chtimes(destinationPath, times.AccessTime(), times.ModTime())
 	// Nothing more to do for a directory, move to next zip file
 	return
 }
@@ -1386,16 +1417,16 @@ func SubDirectories(directory string) ([]string, error) {
 	return globalFileSystem.SubDirectories(directory)
 }
 
-func (fs *VFS) SubDirectories(directory string) ([]string, error) {
-	return fs.SubDirectoriesWithContext(context.Background(), directory)
+func (vfs *VFS) SubDirectories(directory string) ([]string, error) {
+	return vfs.SubDirectoriesWithContext(context.Background(), directory)
 }
 
-func (fs *VFS) SubDirectoriesWithContext(ctx context.Context, directory string) (directories []string, err error) {
+func (vfs *VFS) SubDirectoriesWithContext(ctx context.Context, directory string) (directories []string, err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
 	}
-	files, err := afero.ReadDir(fs.vfs, directory)
+	files, err := afero.ReadDir(vfs.vfs, directory)
 	if err != nil {
 		return
 	}
@@ -1419,11 +1450,11 @@ func ListDirTree(dirPath string, list *[]string) error {
 	return globalFileSystem.ListDirTree(dirPath, list)
 }
 
-func (fs *VFS) ListDirTree(dirPath string, list *[]string) error {
-	return fs.ListDirTreeWithContext(context.Background(), dirPath, list)
+func (vfs *VFS) ListDirTree(dirPath string, list *[]string) error {
+	return vfs.ListDirTreeWithContext(context.Background(), dirPath, list)
 }
 
-func (fs *VFS) ListDirTreeWithContext(ctx context.Context, dirPath string, list *[]string) (err error) {
+func (vfs *VFS) ListDirTreeWithContext(ctx context.Context, dirPath string, list *[]string) (err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -1433,7 +1464,7 @@ func (fs *VFS) ListDirTreeWithContext(ctx context.Context, dirPath string, list 
 		return
 	}
 
-	elements, err := fs.Ls(dirPath)
+	elements, err := vfs.Ls(dirPath)
 	if err != nil {
 		return err
 	}
@@ -1446,8 +1477,8 @@ func (fs *VFS) ListDirTreeWithContext(ctx context.Context, dirPath string, list 
 		}
 		path := filepath.Join(dirPath, elements[i])
 		*list = append(*list, path)
-		if isDir, _ := fs.IsDir(path); isDir {
-			subErr = fs.ListDirTreeWithContext(ctx, path, list)
+		if isDir, _ := vfs.IsDir(path); isDir {
+			subErr = vfs.ListDirTreeWithContext(ctx, path, list)
 			if subErr != nil {
 				err = subErr
 				return
@@ -1457,45 +1488,45 @@ func (fs *VFS) ListDirTreeWithContext(ctx context.Context, dirPath string, list 
 	return nil
 }
 
-func (fs *VFS) GarbageCollect(root string, durationSinceLastAccess time.Duration) error {
-	return fs.GarbageCollectWithContext(context.Background(), root, durationSinceLastAccess)
+func (vfs *VFS) GarbageCollect(root string, durationSinceLastAccess time.Duration) error {
+	return vfs.GarbageCollectWithContext(context.Background(), root, durationSinceLastAccess)
 }
 
-func (fs *VFS) GarbageCollectWithContext(ctx context.Context, root string, durationSinceLastAccess time.Duration) error {
-	return fs.garbageCollect(ctx, durationSinceLastAccess, root, false)
+func (vfs *VFS) GarbageCollectWithContext(ctx context.Context, root string, durationSinceLastAccess time.Duration) error {
+	return vfs.garbageCollect(ctx, durationSinceLastAccess, root, false)
 }
 
-func (fs *VFS) garbageCollectFile(ctx context.Context, durationSinceLastAccess time.Duration, path string) (err error) {
+func (vfs *VFS) garbageCollectFile(ctx context.Context, durationSinceLastAccess time.Duration, path string) (err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
 	}
-	info, err := fs.StatTimes(path)
+	info, err := vfs.StatTimes(path)
 	if err != nil {
 		return
 	}
 	elapsedTime := time.Since(info.AccessTime())
 	if elapsedTime > durationSinceLastAccess {
-		err = fs.RemoveWithContext(ctx, path)
+		err = vfs.RemoveWithContext(ctx, path)
 	}
 	return
 }
 
-func (fs *VFS) garbageCollect(ctx context.Context, durationSinceLastAccess time.Duration, path string, deletePath bool) (err error) {
+func (vfs *VFS) garbageCollect(ctx context.Context, durationSinceLastAccess time.Duration, path string, deletePath bool) (err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
 	}
-	if !fs.Exists(path) {
+	if !vfs.Exists(path) {
 		return
 	}
-	if isDir, _ := fs.IsDir(path); isDir {
-		return fs.garbageCollectDir(ctx, durationSinceLastAccess, path, deletePath)
+	if isDir, _ := vfs.IsDir(path); isDir {
+		return vfs.garbageCollectDir(ctx, durationSinceLastAccess, path, deletePath)
 	}
-	return fs.garbageCollectFile(ctx, durationSinceLastAccess, path)
+	return vfs.garbageCollectFile(ctx, durationSinceLastAccess, path)
 }
 
-func (fs *VFS) garbageCollectDir(ctx context.Context, durationSinceLastAccess time.Duration, path string, deletePath bool) (err error) {
+func (vfs *VFS) garbageCollectDir(ctx context.Context, durationSinceLastAccess time.Duration, path string, deletePath bool) (err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -1504,28 +1535,28 @@ func (fs *VFS) garbageCollectDir(ctx context.Context, durationSinceLastAccess ti
 		// On linux and potentially MacOs, the access/modification of files in a directory do not affect those times for the parent folder.
 		// Therefore, we cannot rely on the times of a directory to make a decision.
 		// See https://superuser.com/questions/1039003/linux-how-does-file-modification-time-affect-directory-modification-time-and-di
-		err = fs.garbageCollectFile(ctx, durationSinceLastAccess, path)
+		err = vfs.garbageCollectFile(ctx, durationSinceLastAccess, path)
 		if err != nil {
 			return err
 		}
-		if !fs.Exists(path) {
+		if !vfs.Exists(path) {
 			return nil
 		}
 	}
-	files, err := fs.Ls(path)
+	files, err := vfs.Ls(path)
 	if err != nil {
 		return
 	}
 	_, _ = parallelisation.Parallelise(files, func(arg interface{}) (interface{}, error) {
 		file := filepath.Join(path, arg.(string))
-		return nil, fs.garbageCollect(ctx, durationSinceLastAccess, file, true)
+		return nil, vfs.garbageCollect(ctx, durationSinceLastAccess, file, true)
 	}, nil)
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
 	}
-	if empty, subErr := fs.IsEmpty(path); subErr == nil && empty && deletePath {
-		err = fs.RemoveWithContext(ctx, path)
+	if empty, subErr := vfs.IsEmpty(path); subErr == nil && empty && deletePath {
+		err = vfs.RemoveWithContext(ctx, path)
 	}
 	return
 }

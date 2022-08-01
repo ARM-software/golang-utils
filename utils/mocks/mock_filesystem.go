@@ -16,7 +16,6 @@ import (
 	reflect "reflect"
 	time "time"
 
-	doublestar "github.com/bmatcuk/doublestar/v3"
 	gomock "github.com/golang/mock/gomock"
 
 	filesystem "github.com/ARM-software/golang-utils/utils/filesystem"
@@ -1370,6 +1369,21 @@ func (mr *MockFSMockRecorder) LsFromOpenedDirectory(arg0 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LsFromOpenedDirectory", reflect.TypeOf((*MockFS)(nil).LsFromOpenedDirectory), arg0)
 }
 
+// LsWithNegation mocks base method.
+func (m *MockFS) LsWithNegation(arg0, arg1 string) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LsWithNegation", arg0, arg1)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LsWithNegation indicates an expected call of LsWithNegation.
+func (mr *MockFSMockRecorder) LsWithNegation(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LsWithNegation", reflect.TypeOf((*MockFS)(nil).LsWithNegation), arg0, arg1)
+}
+
 // Lstat mocks base method.
 func (m *MockFS) Lstat(arg0 string) (fs.FileInfo, error) {
 	m.ctrl.T.Helper()
@@ -1456,10 +1470,10 @@ func (mr *MockFSMockRecorder) NewRemoteLockFile(arg0, arg1 interface{}) *gomock.
 }
 
 // Open mocks base method.
-func (m *MockFS) Open(arg0 string) (doublestar.File, error) {
+func (m *MockFS) Open(arg0 string) (fs.File, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Open", arg0)
-	ret0, _ := ret[0].(doublestar.File)
+	ret0, _ := ret[0].(fs.File)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

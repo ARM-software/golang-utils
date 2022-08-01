@@ -630,6 +630,49 @@ func TestLs(t *testing.T) {
 	}
 }
 
+func TestLsWithNegation(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-lsnegation-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+
+			tmpDir1, err := fs.TempDir(tmpDir, "test-lsnegation-")
+			require.NoError(t, err)
+			tmpFile, err := fs.TempFile(tmpDir, "test-lsnegation-*.test")
+			require.NoError(t, err)
+			tmpDir2, err := fs.TempDir(tmpDir, "test-lsnegation-.ignore-")
+			require.NoError(t, err)
+			tmpFile2, err := fs.TempFile(tmpDir, "test-lsnegation-*.ignore.test")
+			require.NoError(t, err)
+
+			err = tmpFile.Close()
+			require.NoError(t, err)
+
+			fileName := tmpFile.Name()
+			fileName2 := tmpFile2.Name()
+
+			files, err := fs.LsWithNegation(tmpDir, "*.ignore*")
+			require.NoError(t, err)
+			assert.Len(t, files, 2)
+			_, found := collection.Find(&files, filepath.Base(fileName))
+			assert.True(t, found)
+			_, found = collection.Find(&files, filepath.Base(tmpDir1))
+			assert.True(t, found)
+			_, found = collection.Find(&files, filepath.Base(fileName2))
+			assert.False(t, found)
+			_, found = collection.Find(&files, filepath.Base(tmpDir2))
+			assert.False(t, found)
+			_ = fs.Rm(tmpDir)
+
+			_, err = fs.LsWithNegation(tmpDir, "?{.ignore*")
+			require.Error(t, err)
+			assert.True(t, commonerrors.Any(err, commonerrors.ErrInvalid))
+		})
+	}
+}
+
 func TestWalk(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
