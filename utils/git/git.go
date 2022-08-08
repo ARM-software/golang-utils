@@ -38,7 +38,6 @@ type RepositoryConfig struct {
 	MaxFileCount      int64
 	MaxFileSize       int64
 	MaxEntries        int64
-	Parallelisation   int
 }
 
 type CloneObject struct {
