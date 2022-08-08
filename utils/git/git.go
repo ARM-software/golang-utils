@@ -6,8 +6,6 @@ import (
 	"log"
 	"sync"
 
-	"github.com/ARM-software/golang-utils/utils/commonerrors"
-	"github.com/ARM-software/golang-utils/utils/parallelisation"
 	"github.com/go-git/go-billy/v5/osfs"
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -15,6 +13,9 @@ import (
 	"github.com/go-git/go-git/v5/storage/memory"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
 const (
