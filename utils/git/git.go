@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	MaxEntriedChannelSize = 100000000
+	MaxEntriesChannelSize = 100000000
 )
 
 var (
@@ -61,7 +61,7 @@ func (c *CloneObject) ValidateRepository(ctx context.Context) (err error) {
 		log.Fatal(err)
 	}
 
-	allEntries := make(chan Entry, MaxEntriedChannelSize)
+	allEntries := make(chan Entry, MaxEntriesChannelSize)
 
 	for {
 		tree, err := trees.Next()
