@@ -6,6 +6,8 @@ import (
 	"github.com/ARM-software/golang-utils/utils/config"
 )
 
+const MaxInt64 = int64(^uint64(0) >> 1)
+
 type noLimits struct {
 }
 
@@ -14,23 +16,23 @@ func (n *noLimits) Apply() bool {
 }
 
 func (n *noLimits) GetMaxFileSize() int64 {
-	return 0
+	return MaxInt64
 }
 
 func (n *noLimits) GetMaxTotalSize() int64 {
-	return 0
+	return MaxInt64
 }
 
 func (n *noLimits) GetMaxFileCount() int64 {
-	return 0
+	return MaxInt64
 }
 
 func (n *noLimits) GetMaxTreeDepth() int64 {
-	return 0
+	return MaxInt64
 }
 
 func (n *noLimits) GetMaxEntries() int64 {
-	return 0
+	return MaxInt64
 }
 
 func (n *noLimits) Validate() error {

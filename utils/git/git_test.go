@@ -51,17 +51,25 @@ func TestCloneGitBomb(t *testing.T) {
 func TestCloneNormalRepo(t *testing.T) {
 	Parallelisation = 1 // so go test doesn't break
 	tests := []struct {
-		url string
+		name   string
+		url    string
+		limits ILimits
 	}{
 		{
-			url: "https://github.com/Arm-Examples/Blinky_MIMXRT1064-EVK_RTX",
+			name:   "with limits",
+			url:    "https://github.com/Arm-Examples/Blinky_MIMXRT1064-EVK_RTX",
+			limits: NewLimits(1e8, 1e10, 1e6, 20, 1e6), // max file size: 100MB, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 1 million
+		},
+		{
+			name:   "no limits",
+			url:    "https://github.com/Arm-Examples/Blinky_MIMXRT1064-EVK_RTX",
+			limits: NoLimits(),
 		},
 	}
 	fs := filesystem.NewFs(filesystem.StandardFS)
 	destPath, err := fs.TempDirInTempDir("git-test")
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
-	limits := NewLimits(1e8, 1e10, 1e6, 20, 1e6) // max file size: 100MB, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 1 million
 
 	empty, err := fs.IsEmpty(destPath)
 	require.NoError(t, err)
@@ -69,8 +77,8 @@ func TestCloneNormalRepo(t *testing.T) {
 
 	for i := range tests {
 		test := tests[i]
-		t.Run(test.url, func(t *testing.T) {
-			err := CloneWithLimits(context.Background(), test.url, destPath, limits)
+		t.Run(test.name, func(t *testing.T) {
+			err := CloneWithLimits(context.Background(), test.url, destPath, test.limits)
 			require.NoError(t, err)
 			isEmpty, err := filesystem.IsEmpty(destPath)
 			require.NoError(t, err)
