@@ -136,6 +136,19 @@ func (c *CloneObject) SetupLimits(cfg RepositoryLimitsConfig) {
 	c.allEntries = make(chan Entry, MaxEntriesChannelSize)
 }
 
+func NewCloneObject() *CloneObject {
+	limits := NoLimits()
+	return &CloneObject{
+		cfg: RepositoryLimitsConfig{
+			maxTreeDepth:      limits.GetMaxTreeDepth(),
+			maxRepositorySize: limits.GetMaxTotalSize(),
+			maxFileCount:      limits.GetMaxFileCount(),
+			maxFileSize:       limits.GetMaxFileSize(),
+			maxEntries:        limits.GetMaxEntries(),
+		},
+	}
+}
+
 // Clone without checkout or validation
 func (c *CloneObject) Clone(ctx context.Context, path string, cfg *GitActionConfig) (err error) {
 	c.repo, err = git.PlainCloneContext(ctx, path, false, &git.CloneOptions{
@@ -238,7 +251,7 @@ func (c *CloneObject) Checkout(gitOptions *GitActionConfig) (err error) {
 
 // Clone a repository with limits on the max tree depth, the max repository size, the max file count, the max individual file size, and the max entries
 func CloneWithLimits(ctx context.Context, dir string, limits ILimits, gitOptions *GitActionConfig) (err error) {
-	var c CloneObject
+	c := NewCloneObject()
 	c.SetupLimits(RepositoryLimitsConfig{
 		maxTreeDepth:      limits.GetMaxTreeDepth(),
 		maxRepositorySize: limits.GetMaxTotalSize(),
