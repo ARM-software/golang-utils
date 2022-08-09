@@ -3,14 +3,12 @@ package git
 import (
 	"context"
 	"fmt"
-	"log"
+	"io"
 	"sync"
 
-	"github.com/go-git/go-billy/v5/osfs"
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/go-git/go-git/v5/storage/memory"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/errgroup"
 
@@ -23,7 +21,7 @@ const (
 )
 
 var (
-	Parallelisation = 32 // go test cannot handle more than 1 so we use var so we can manually set it to 1 in the tests
+	ValidationParallelisation = 32 // go test cannot handle more than 1 so we use var so we can manually set it to 1 in the tests
 )
 
 type Entry struct {
@@ -31,50 +29,136 @@ type Entry struct {
 	TreeDepth int64
 }
 
-type RepositoryConfig struct {
-	*git.CloneOptions
-	MaxTreeDepth      int64
-	MaxRepositorySize int64
-	MaxFileCount      int64
-	MaxFileSize       int64
-	MaxEntries        int64
+type RepositoryLimitsConfig struct {
+	maxTreeDepth      int64
+	maxRepositorySize int64
+	maxFileCount      int64
+	maxFileSize       int64
+	maxEntries        int64
 }
 
 type CloneObject struct {
-	cfg  RepositoryConfig
-	repo *git.Repository
+	cfg        RepositoryLimitsConfig
+	repo       *git.Repository
+	allEntries chan Entry
 }
 
-func (c *CloneObject) Initialise(path string, cfg RepositoryConfig) (err error) {
-	fs := osfs.New(path)
-	storer := memory.NewStorage()
-	// Make sure we don't check out
-	cfg.NoCheckout = true
-	c.cfg = cfg
-	c.repo, err = git.Clone(storer, fs, cfg.CloneOptions)
+func (c *CloneObject) handleTreeEntry(entry Entry) (err error) {
+	tree, subErr := c.repo.TreeObject(entry.TreeEntry.Hash)
+	if subErr != nil {
+		err = subErr
+		return
+	}
+	for i := range tree.Entries {
+		c.allEntries <- Entry{
+			TreeEntry: tree.Entries[i],
+			TreeDepth: entry.TreeDepth + 1,
+		}
+	}
 	return
 }
 
-func (c *CloneObject) ValidateRepository(ctx context.Context) (err error) {
-	trees, err := c.repo.TreeObjects()
-	if err != nil {
-		log.Fatal(err)
+func (c *CloneObject) handleBlobEntry(entry Entry, totalSize *atomic.Int64, totalFileCount *atomic.Int64) (err error) {
+	blob, subErr := c.repo.BlobObject(entry.TreeEntry.Hash)
+	if subErr != nil {
+		fmt.Println("aaaa")
+		err = subErr
+		return
 	}
 
-	allEntries := make(chan Entry, MaxEntriesChannelSize)
+	totalSize.Add(blob.Size)
+	if totalSize.Load() > c.cfg.maxRepositorySize {
+		err = fmt.Errorf("%w: maximum repository size exceeded [%d > %d]", commonerrors.ErrTooLarge, totalSize.Load(), c.cfg.maxRepositorySize)
+		return
+	}
+
+	if blob.Size > c.cfg.maxFileSize {
+		err = fmt.Errorf("%w: maximum individual file size exceeded [%d > %d]", commonerrors.ErrTooLarge, blob.Size, c.cfg.maxFileSize)
+		return
+	}
+
+	totalFileCount.Inc()
+	if totalFileCount.Load() > c.cfg.maxFileCount {
+		err = fmt.Errorf("%w: maximum file count exceeded [%d > %d]", commonerrors.ErrTooLarge, totalFileCount.Load(), c.cfg.maxFileCount)
+		return
+	}
+	return
+}
+
+func (c *CloneObject) checkDepthAndTotalEntries(entry Entry, totalEntries *atomic.Int64) (err error) {
+	totalEntries.Inc()
+	if totalEntries.Load() > c.cfg.maxEntries {
+		err = fmt.Errorf("%w: maximum entries count exceeded [%d > %d]", commonerrors.ErrTooLarge, totalEntries.Load(), c.cfg.maxEntries)
+		return
+	}
+
+	if entry.TreeDepth > c.cfg.maxTreeDepth {
+		err = fmt.Errorf("%w: maximum tree depth exceeded [%d > %d]", commonerrors.ErrTooLarge, entry.TreeDepth, c.cfg.maxTreeDepth)
+		return
+	}
+	return
+}
+
+func (c *CloneObject) populateInitialEntries(ctx context.Context) (err error) {
+	trees, err := c.repo.TreeObjects()
+	if err != nil {
+		return
+	}
 
 	for {
-		tree, err := trees.Next()
+		err = parallelisation.DetermineContextError(ctx)
 		if err != nil {
-			break
+			return
+		}
+
+		tree, subErr := trees.Next()
+		if subErr != nil {
+			if commonerrors.Any(subErr, io.EOF) {
+				break
+			} else {
+				err = subErr
+				return
+			}
 		}
 
 		for i := range tree.Entries {
-			allEntries <- Entry{
+			c.allEntries <- Entry{
 				TreeEntry: tree.Entries[i],
 				TreeDepth: 0,
 			}
 		}
+	}
+	return
+}
+
+func (c *CloneObject) SetupLimits(cfg RepositoryLimitsConfig) {
+	c.cfg = cfg
+	c.allEntries = make(chan Entry, MaxEntriesChannelSize)
+}
+
+// Clone without checkout or validation
+func (c *CloneObject) Clone(ctx context.Context, path string, cfg *GitActionConfig) (err error) {
+	c.repo, err = git.PlainCloneContext(ctx, path, false, &git.CloneOptions{
+		NoCheckout:        cfg.GetNoCheckout(), // don't checkout so we can validate it
+		URL:               cfg.GetUrl(),
+		Auth:              cfg.GetAuth(),
+		RemoteName:        "",
+		ReferenceName:     "",
+		SingleBranch:      false,
+		Depth:             cfg.GetDepth(),
+		RecurseSubmodules: cfg.GetRecursiveSubModules(),
+		Progress:          nil,
+		Tags:              cfg.GetTags(),
+		InsecureSkipTLS:   false,
+		CABundle:          nil,
+	})
+	return
+}
+
+// After cloning without checkout, valdiate the repository to check for git bombs
+func (c *CloneObject) ValidateRepository(ctx context.Context) (err error) {
+	if err = c.populateInitialEntries(ctx); err != nil {
+		return
 	}
 
 	errs, ctx := errgroup.WithContext(ctx)
@@ -84,45 +168,29 @@ func (c *CloneObject) ValidateRepository(ctx context.Context) (err error) {
 	totalEntries := atomic.NewInt64(0)
 
 	var wg sync.WaitGroup
-	for p := 0; p < Parallelisation; p++ {
+	for p := 0; p < ValidationParallelisation; p++ {
 		wg.Add(1)
 		errs.Go(func() (err error) {
-			for len(allEntries) > 0 {
+			for len(c.allEntries) > 0 {
 				err = parallelisation.DetermineContextError(ctx)
 				if err != nil {
 					return
 				}
 
-				entry, ok := <-allEntries
+				entry, ok := <-c.allEntries
 				if !ok {
 					return
 				}
 
-				totalEntries.Inc()
-				if totalEntries.Load() > c.cfg.MaxEntries {
-					err = fmt.Errorf("%w: maximum entries count exceeded [%d > %d]", commonerrors.ErrTooLarge, totalEntries.Load(), c.cfg.MaxEntries)
-					return
-				}
-
-				if entry.TreeDepth > c.cfg.MaxTreeDepth {
-					err = fmt.Errorf("%w: maximum tree depth exceeded [%d > %d]", commonerrors.ErrTooLarge, entry.TreeDepth, c.cfg.MaxTreeDepth)
+				if err = c.checkDepthAndTotalEntries(entry, totalEntries); err != nil {
 					return
 				}
 
 				mode := entry.TreeEntry.Mode
 				switch {
 				case mode&0o170000 == 0o40000:
-					// Tree
-					tree, subErr := c.repo.TreeObject(entry.TreeEntry.Hash)
-					if subErr != nil {
-						err = subErr
+					if err = c.handleTreeEntry(entry); err != nil {
 						return
-					}
-					for i := range tree.Entries {
-						allEntries <- Entry{
-							TreeEntry: tree.Entries[i],
-							TreeDepth: entry.TreeDepth + 1,
-						}
 					}
 				case mode&0o170000 == 0o160000:
 					// Commit (i.e., submodule)
@@ -130,26 +198,7 @@ func (c *CloneObject) ValidateRepository(ctx context.Context) (err error) {
 					// Symlink
 				default:
 					// Blob
-					blob, subErr := c.repo.BlobObject(entry.TreeEntry.Hash)
-					if subErr != nil {
-						err = subErr
-						return
-					}
-
-					totalSize.Add(blob.Size)
-					if totalSize.Load() > c.cfg.MaxRepositorySize {
-						err = fmt.Errorf("%w: maximum repository size exceeded [%d > %d]", commonerrors.ErrTooLarge, totalSize.Load(), c.cfg.MaxRepositorySize)
-						return
-					}
-
-					if blob.Size > c.cfg.MaxFileSize {
-						err = fmt.Errorf("%w: maximum individual file size exceeded [%d > %d]", commonerrors.ErrTooLarge, blob.Size, c.cfg.MaxFileSize)
-						return
-					}
-
-					totalFileCount.Inc()
-					if totalFileCount.Load() > c.cfg.MaxFileCount {
-						err = fmt.Errorf("%w: maximum file count exceeded [%d > %d]", commonerrors.ErrTooLarge, totalFileCount.Load(), c.cfg.MaxFileCount)
+					if err = c.handleBlobEntry(entry, totalSize, totalFileCount); err != nil {
 						return
 					}
 				}
@@ -166,30 +215,40 @@ func (c *CloneObject) ValidateRepository(ctx context.Context) (err error) {
 	return
 }
 
-func (c *CloneObject) Checkout(opts *git.CheckoutOptions) (err error) {
+func (c *CloneObject) Checkout(gitOptions *GitActionConfig) (err error) {
 	worktree, err := c.repo.Worktree()
 	if err != nil {
 		return
 	}
-	return worktree.Checkout(opts)
+	var branch plumbing.ReferenceName
+	if gitOptions.GetBranch() != "" {
+		branch = plumbing.NewBranchReferenceName(gitOptions.Branch)
+	}
+	var hash plumbing.Hash
+	if gitOptions.GetHash() != "" {
+		hash = plumbing.NewHash(gitOptions.Hash)
+	}
+	checkoutOptions := git.CheckoutOptions{
+		Hash:   hash,
+		Branch: branch,
+		Create: gitOptions.GetCreate(),
+	}
+	return worktree.Checkout(&checkoutOptions)
 }
 
-func NewCloneObject(cfg RepositoryConfig, path string) (c CloneObject, err error) {
-	err = c.Initialise(path, cfg)
-	return
-}
+// Clone a repository with limits on the max tree depth, the max repository size, the max file count, the max individual file size, and the max entries
+func CloneWithLimits(ctx context.Context, dir string, limits ILimits, gitOptions *GitActionConfig) (err error) {
+	var c CloneObject
+	c.SetupLimits(RepositoryLimitsConfig{
+		maxTreeDepth:      limits.GetMaxTreeDepth(),
+		maxRepositorySize: limits.GetMaxTotalSize(),
+		maxFileCount:      limits.GetMaxFileCount(),
+		maxFileSize:       limits.GetMaxFileSize(),
+		maxEntries:        limits.GetMaxEntries(),
+	})
 
-func CloneWithLimits(ctx context.Context, url, dir string, limits ILimits) (err error) {
-	c, err := NewCloneObject(RepositoryConfig{
-		MaxTreeDepth:      limits.GetMaxTreeDepth(),
-		MaxRepositorySize: limits.GetMaxTotalSize(),
-		MaxFileCount:      limits.GetMaxFileCount(),
-		MaxFileSize:       limits.GetMaxFileSize(),
-		MaxEntries:        limits.GetMaxEntries(),
-		CloneOptions: &git.CloneOptions{
-			URL: url,
-		},
-	}, dir)
+	gitOptions.NoCheckout = true // don't checkout so we can validate it
+	err = c.Clone(ctx, dir, gitOptions)
 	if err != nil {
 		return
 	}
@@ -199,5 +258,5 @@ func CloneWithLimits(ctx context.Context, url, dir string, limits ILimits) (err 
 		return
 	}
 
-	return c.Checkout(&git.CheckoutOptions{Branch: plumbing.ReferenceName("HEAD")})
+	return c.Checkout(gitOptions)
 }

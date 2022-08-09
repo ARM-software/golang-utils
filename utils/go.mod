@@ -9,7 +9,6 @@ require (
 	github.com/bombsimon/logrusr v1.1.0
 	github.com/bxcodec/faker/v3 v3.8.0
 	github.com/djherbis/times v1.5.0
-	github.com/go-git/go-billy/v5 v5.3.1
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
 	github.com/go-logr/logr v0.4.0 // Staying on this version until kubernetes uses a more recent one
@@ -37,5 +36,6 @@ require (
 	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2
 	golang.org/x/sync v0.0.0-20220513210516-0976fa681c29
 	golang.org/x/text v0.3.7
-	golang.org/x/tools v0.1.7 // indirect
 )
+
+require golang.org/x/tools v0.1.7 // indirect

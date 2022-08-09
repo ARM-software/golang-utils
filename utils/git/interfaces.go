@@ -1,6 +1,10 @@
 package git
 
-import "github.com/ARM-software/golang-utils/utils/config"
+import (
+	"github.com/ARM-software/golang-utils/utils/config"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+)
 
 // ILimits defines general GitLimits for actions performed during a git clone
 type ILimits interface {
@@ -17,4 +21,17 @@ type ILimits interface {
 	GetMaxTreeDepth() int64
 	// GetMaxEntries returns the maximum total entries allowed in the it repo
 	GetMaxEntries() int64
+}
+
+type IGitActionConfig interface {
+	config.IServiceConfiguration
+	GetUrl() string
+	GetAuth() transport.AuthMethod
+	GetDepth() int
+	GetHash() string
+	GetBranch() string
+	GetRecursiveSubModules() git.SubmoduleRescursivity
+	GetTags() git.TagMode
+	GetCreate() bool
+	GetNoCheckout() bool
 }
