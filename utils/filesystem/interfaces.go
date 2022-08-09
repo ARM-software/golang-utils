@@ -19,7 +19,7 @@ import (
 //go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IFileHash,Chowner,Linker,File,DiskUsage,FileTimeInfo,ILock,ILimits,FS
 
 // For reference.
-//https://stackoverflow.com/questions/1761607/what-is-the-fastest-hash-algorithm-to-check-if-two-files-are-equal
+// https://stackoverflow.com/questions/1761607/what-is-the-fastest-hash-algorithm-to-check-if-two-files-are-equal
 type IFileHash interface {
 	Calculate(f File) (string, error)
 	CalculateFile(fs FS, path string) (string, error)
@@ -227,7 +227,7 @@ type FS interface {
 	Zip(source string, destination string) error
 	// ZipWithContext compresses a file tree (source) into a zip file (destination)
 	ZipWithContext(ctx context.Context, source string, destination string) error
-	// 	ZipWithContextAndLimits(ctx context.Context, source string, destination string) error compresses a file tree (source) into a zip file (destination) .Nonetheless, if FileSystemLimits are exceeded, an error will be returned and the process will be stopped.
+	// ZipWithContextAndLimits(ctx context.Context, source string, destination string) error compresses a file tree (source) into a zip file (destination) .Nonetheless, if FileSystemLimits are exceeded, an error will be returned and the process will be stopped.
 	// It is however the responsibility of the caller to clean any partially created zipped archive if error occurs.
 	ZipWithContextAndLimits(ctx context.Context, source string, destination string, limits ILimits) error
 	// Unzip decompresses a source zip archive into the destination

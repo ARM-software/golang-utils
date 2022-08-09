@@ -1,9 +1,10 @@
 package git
 
 import (
-	"github.com/ARM-software/golang-utils/utils/config"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport"
+
+	"github.com/ARM-software/golang-utils/utils/config"
 )
 
 // ILimits defines general GitLimits for actions performed during a git clone

@@ -9,7 +9,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/unicode"
@@ -41,7 +40,7 @@ func (t *Converter) ConvertString(input string) (transformedStr string, err erro
 
 func (t *Converter) ConvertBytes(input []byte) ([]byte, error) {
 	reader := t.Convert(bytes.NewReader(input))
-	return ioutil.ReadAll(reader)
+	return io.ReadAll(reader)
 }
 
 func (t *Converter) Convert(reader io.Reader) io.Reader {

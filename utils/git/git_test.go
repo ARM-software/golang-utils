@@ -64,7 +64,6 @@ func getValidBlobHash(tree *object.Tree) (blobHash plumbing.Hash, err error) {
 	for i := range tree.Entries {
 		entry := tree.Entries[i]
 		if entry.Mode.IsFile() {
-			fmt.Println(entry)
 			blobHash = entry.Hash
 			return
 		}
@@ -106,7 +105,6 @@ func TestHandleBlobEntry(t *testing.T) {
 	// Get a valid blob hash
 	blobHash, err := getValidBlobHash(tree)
 	require.NoError(t, err)
-	fmt.Println(blobHash)
 
 	// Test normal
 	totalSize := atomic.NewInt64(0)
@@ -331,7 +329,7 @@ func TestClone(t *testing.T) {
 		maxEntries:        limits.GetMaxEntries(),
 	})
 	err = c.Clone(context.Background(), destPath, &GitActionConfig{
-		URL:    "https://github.com/Katee/git-bomb.git",
+		URL:    "https://github.com/Arm-Examples/Blinky_MIMXRT1064-EVK_RTX",
 		Branch: "main",
 	})
 	require.NoError(t, err)

@@ -140,7 +140,7 @@ func (c *CloneObject) SetupLimits(cfg RepositoryLimitsConfig) {
 func (c *CloneObject) Clone(ctx context.Context, path string, cfg *GitActionConfig) (err error) {
 	c.repo, err = git.PlainCloneContext(ctx, path, false, &git.CloneOptions{
 		NoCheckout:        cfg.GetNoCheckout(), // don't checkout so we can validate it
-		URL:               cfg.GetUrl(),
+		URL:               cfg.GetURL(),
 		Auth:              cfg.GetAuth(),
 		RemoteName:        "",
 		ReferenceName:     "",

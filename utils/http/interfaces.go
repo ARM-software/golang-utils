@@ -8,11 +8,11 @@
 // for a fast client which leverages connection pools.
 // For the robust client, it is possible to set its configuration fully but this package also come with a set of preset configuration to answer most usecases
 // e.g. to create a client which performs exponential backoff and listens to `Retry-After` headers, the following can be done:
-//  robustClient := NewConfigurableRetryableClient(DefaultRobustHTTPClientConfigurationWithExponentialBackOff())
-//  resp, err := robustClient.Get("https://somehost.com")
+// robustClient := NewConfigurableRetryableClient(DefaultRobustHTTPClientConfigurationWithExponentialBackOff())
+// resp, err := robustClient.Get("https://somehost.com")
 // Whereas to create a client which will only perform 4 retries without backoff, the following can be done:
-//  retriableClient := NewConfigurableRetryableClient(DefaultRobustHTTPClientConfiguration())
-//  resp, err := retriableClient.Get("https://somehost.com")
+// retriableClient := NewConfigurableRetryableClient(DefaultRobustHTTPClientConfiguration())
+// resp, err := retriableClient.Get("https://somehost.com")
 // It is a thin wrapper over some hashicorp implementations and hence over the standard net/http client library.
 // This makes the client implementations very easy to drop into existing programs in lieu of standard library default client.
 package http

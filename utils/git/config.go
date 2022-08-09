@@ -1,10 +1,11 @@
 package git
 
 import (
-	"github.com/ARM-software/golang-utils/utils/config"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+
+	"github.com/ARM-software/golang-utils/utils/config"
 )
 
 // GitActionConfig describes how a clone or checkout should be performed.
@@ -34,7 +35,7 @@ type GitActionConfig struct {
 	NoCheckout bool
 }
 
-func (c *GitActionConfig) GetUrl() string {
+func (c *GitActionConfig) GetURL() string {
 	return c.URL
 }
 
