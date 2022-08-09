@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"sync"
 
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -38,7 +37,7 @@ type RepositoryLimitsConfig struct {
 }
 
 type CloneObject struct {
-	cfg        RepositoryLimitsConfig
+	cfg        *RepositoryLimitsConfig
 	repo       *git.Repository
 	allEntries chan Entry
 }
@@ -58,10 +57,19 @@ func (c *CloneObject) handleTreeEntry(entry Entry) (err error) {
 	return
 }
 
+func (c *CloneObject) handleCommitEntry(entry Entry) (err error) {
+	// Unknown if necessary. Add code here if necessary in future
+	return
+}
+
+func (c *CloneObject) handleSymlinkEntry(entry Entry) (err error) {
+	// Unknown if necessary. Add code here if necessary in future
+	return
+}
+
 func (c *CloneObject) handleBlobEntry(entry Entry, totalSize *atomic.Int64, totalFileCount *atomic.Int64) (err error) {
 	blob, subErr := c.repo.BlobObject(entry.TreeEntry.Hash)
 	if subErr != nil {
-		fmt.Println("aaaa")
 		err = subErr
 		return
 	}
@@ -131,15 +139,19 @@ func (c *CloneObject) populateInitialEntries(ctx context.Context) (err error) {
 	return
 }
 
-func (c *CloneObject) SetupLimits(cfg RepositoryLimitsConfig) {
+func (c *CloneObject) SetupLimits(cfg *RepositoryLimitsConfig) (err error) {
+	if cfg == nil {
+		return fmt.Errorf("%w: limits config undefined", commonerrors.ErrUndefined)
+	}
 	c.cfg = cfg
 	c.allEntries = make(chan Entry, MaxEntriesChannelSize)
+	return
 }
 
 func NewCloneObject() *CloneObject {
 	limits := NoLimits()
 	return &CloneObject{
-		cfg: RepositoryLimitsConfig{
+		cfg: &RepositoryLimitsConfig{
 			maxTreeDepth:      limits.GetMaxTreeDepth(),
 			maxRepositorySize: limits.GetMaxTotalSize(),
 			maxFileCount:      limits.GetMaxFileCount(),
@@ -151,15 +163,20 @@ func NewCloneObject() *CloneObject {
 
 // Clone without checkout or validation
 func (c *CloneObject) Clone(ctx context.Context, path string, cfg *GitActionConfig) (err error) {
+	recursiveSubModules := git.NoRecurseSubmodules
+	if cfg.GetRecursiveSubModules() {
+		recursiveSubModules = git.DefaultSubmoduleRecursionDepth
+	}
+
 	c.repo, err = git.PlainCloneContext(ctx, path, false, &git.CloneOptions{
-		NoCheckout:        cfg.GetNoCheckout(), // don't checkout so we can validate it
+		NoCheckout:        cfg.GetNoCheckout(),
 		URL:               cfg.GetURL(),
 		Auth:              cfg.GetAuth(),
 		RemoteName:        "",
 		ReferenceName:     "",
 		SingleBranch:      false,
 		Depth:             cfg.GetDepth(),
-		RecurseSubmodules: cfg.GetRecursiveSubModules(),
+		RecurseSubmodules: recursiveSubModules,
 		Progress:          nil,
 		Tags:              cfg.GetTags(),
 		InsecureSkipTLS:   false,
@@ -180,9 +197,7 @@ func (c *CloneObject) ValidateRepository(ctx context.Context) (err error) {
 	totalFileCount := atomic.NewInt64(0)
 	totalEntries := atomic.NewInt64(0)
 
-	var wg sync.WaitGroup
 	for p := 0; p < ValidationParallelisation; p++ {
-		wg.Add(1)
 		errs.Go(func() (err error) {
 			for len(c.allEntries) > 0 {
 				err = parallelisation.DetermineContextError(ctx)
@@ -207,8 +222,14 @@ func (c *CloneObject) ValidateRepository(ctx context.Context) (err error) {
 					}
 				case mode&0o170000 == 0o160000:
 					// Commit (i.e., submodule)
+					if err = c.handleCommitEntry(entry); err != nil {
+						return
+					}
 				case mode&0o170000 == 0o120000:
 					// Symlink
+					if err = c.handleSymlinkEntry(entry); err != nil {
+						return
+					}
 				default:
 					// Blob
 					if err = c.handleBlobEntry(entry, totalSize, totalFileCount); err != nil {
@@ -216,15 +237,10 @@ func (c *CloneObject) ValidateRepository(ctx context.Context) (err error) {
 					}
 				}
 			}
-			wg.Done()
 			return nil
 		})
 	}
 	err = errs.Wait()
-	if err != nil {
-		return
-	}
-	wg.Wait()
 	return
 }
 
@@ -252,13 +268,16 @@ func (c *CloneObject) Checkout(gitOptions *GitActionConfig) (err error) {
 // Clone a repository with limits on the max tree depth, the max repository size, the max file count, the max individual file size, and the max entries
 func CloneWithLimits(ctx context.Context, dir string, limits ILimits, gitOptions *GitActionConfig) (err error) {
 	c := NewCloneObject()
-	c.SetupLimits(RepositoryLimitsConfig{
+	err = c.SetupLimits(&RepositoryLimitsConfig{
 		maxTreeDepth:      limits.GetMaxTreeDepth(),
 		maxRepositorySize: limits.GetMaxTotalSize(),
 		maxFileCount:      limits.GetMaxFileCount(),
 		maxFileSize:       limits.GetMaxFileSize(),
 		maxEntries:        limits.GetMaxEntries(),
 	})
+	if err != nil {
+		return
+	}
 
 	gitOptions.NoCheckout = true // don't checkout so we can validate it
 	err = c.Clone(ctx, dir, gitOptions)

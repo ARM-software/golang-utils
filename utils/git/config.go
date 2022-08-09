@@ -13,7 +13,7 @@ type GitActionConfig struct {
 	// The (possibly remote) repository URL to clone from.
 	URL string `mapstructure:"url"`
 	// Auth credentials, if required, to use with the remote repository.
-	Auth transport.AuthMethod `mapstructure:"auth"`
+	Auth transport.AuthMethod
 	// Limit fetching to the specified number of commits.
 	Depth int `mapstructure:"depth"`
 	// Hash is the hash of the commit to be checked out. If used, HEAD will be
@@ -25,12 +25,12 @@ type GitActionConfig struct {
 	// RecurseSubmodules after the clone is created, initialize all submodules
 	// within, using their default settings. This option is ignored if the
 	// cloned repository does not have a worktree.
-	RecurseSubmodules git.SubmoduleRescursivity `mapstructure:"recursive_submodules"`
+	RecurseSubmodules bool `mapstructure:"recursive_submodules"`
 	// Tags describe how the tags will be fetched from the remote repository,
 	// by default is AllTags.
 	Tags git.TagMode `mapstructure:"tags"`
-	// Create a new branch named Branch and start it at Hash.
-	Create bool `mapstructure:"create"`
+	// CreateBranch a new branch named Branch and start it at Hash.
+	CreateBranch bool `mapstructure:"create_branch"`
 	// No checkout of HEAD after clone if true.
 	NoCheckout bool
 }
@@ -55,7 +55,7 @@ func (c *GitActionConfig) GetBranch() string {
 	return c.Branch
 }
 
-func (c *GitActionConfig) GetRecursiveSubModules() git.SubmoduleRescursivity {
+func (c *GitActionConfig) GetRecursiveSubModules() bool {
 	return c.RecurseSubmodules
 }
 
@@ -64,7 +64,7 @@ func (c *GitActionConfig) GetTags() git.TagMode {
 }
 
 func (c *GitActionConfig) GetCreate() bool {
-	return c.Create
+	return c.CreateBranch
 }
 
 func (c *GitActionConfig) GetNoCheckout() bool {
