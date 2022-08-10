@@ -33,15 +33,15 @@ func TestCloneGitBomb(t *testing.T) {
 			name:                  "git bomb large channel",
 			url:                   "https://github.com/Katee/git-bomb.git",
 			err:                   fmt.Errorf("%w: maximum file count exceeded", commonerrors.ErrTooLarge),
-			limits:                NewLimits(1e5, 1e6, 1e5, 10, 1e6), // max file size: 100KB, max repo size: 1MB, max file count: 100 thousand, max tree depth 10, max entries 1 million
-			maxEntriesChannelSize: 1000000,
+			limits:                NewLimits(1e5, 1e6, 1e4, 10, 1e6), // max file size: 100KB, max repo size: 1MB, max file count: 100 thousand, max tree depth 10, max entries 1 million
+			maxEntriesChannelSize: 100000,
 		},
 		{
 			name:                  "git bomb seg fault",
 			url:                   "https://github.com/Katee/git-bomb-segfault.git",
 			err:                   fmt.Errorf("%w: maximum tree depth exceeded", commonerrors.ErrTooLarge),
-			limits:                NewLimits(1e5, 1e6, 1e5, 10, 1e6), // max file size: 100KB, max repo size: 1MB, max file count: 100 thousand, max tree depth 10, max entries 1 million
-			maxEntriesChannelSize: 1000000,
+			limits:                NewLimits(1e5, 1e6, 1e4, 10, 1e6), // max file size: 100KB, max repo size: 1MB, max file count: 100 thousand, max tree depth 10, max entries 1 million
+			maxEntriesChannelSize: 100000,
 		},
 	}
 	fs := filesystem.NewFs(filesystem.StandardFS)

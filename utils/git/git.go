@@ -42,6 +42,7 @@ type CloneObject struct {
 	totalFileCount *atomic.Int64
 	totalEntries   *atomic.Int64
 
+	nonTreeOnlyMutex   sync.Mutex
 	processNonTreeOnly *atomic.Bool
 	treeSeenIdentifier *atomic.String
 }
@@ -110,7 +111,7 @@ func (c *CloneObject) handleTreeEntry(entry Entry) (err error) {
 		// If full when trying to append trees, then process non-tree entries
 		if len(c.allEntries) == cap(c.allEntries) {
 			// Make sure all go routines start processing non-tree entries
-			if err = c.setTreeOnlyMode(); err != nil {
+			if err = c.setNonTreeOnlyMode(); err != nil {
 				return
 			}
 			// While channel is full handle the (non-tree) entries
@@ -147,19 +148,19 @@ func (c *CloneObject) handleBlobEntry(entry Entry, totalSize *atomic.Int64, tota
 		err = fmt.Errorf("%w: maximum file count exceeded [%d > %d]", commonerrors.ErrTooLarge, totalFileCount.Load(), c.cfg.GetMaxFileCount())
 		return
 	}
-	c.resetTreeOnlyMode()
+	c.resetNonTreeOnlyMode()
 	return
 }
 
 func (c *CloneObject) handleCommitEntry(entry Entry) (err error) {
 	// Unknown if necessary. Add code here if necessary in future
-	c.resetTreeOnlyMode()
+	c.resetNonTreeOnlyMode()
 	return
 }
 
 func (c *CloneObject) handleSymlinkEntry(entry Entry) (err error) {
 	// Unknown if necessary. Add code here if necessary in future
-	c.resetTreeOnlyMode()
+	c.resetNonTreeOnlyMode()
 	return
 }
 
@@ -261,19 +262,34 @@ func (c *CloneObject) Clone(ctx context.Context, path string, cfg *GitActionConf
 	return
 }
 
-func (c *CloneObject) setTreeOnlyMode() (err error) {
+func (c *CloneObject) setNonTreeOnlyMode() (err error) {
+	// If already set then do nothing and process existing round
+	if c.processNonTreeOnly.Load() {
+		return
+	}
 	// Generate a unique identifier so we can keep track of whether the trees have been seen before
 	var seenIdentifier, subErr = idgen.GenerateUUID4()
 	if subErr != nil {
 		err = subErr
 		return
 	}
-	c.treeSeenIdentifier.Store(seenIdentifier)
-	c.processNonTreeOnly.Store(true)
+	// Launch as go func so this is none blocking
+	// Also means that only the go routine that locked the resource can unlock it (so safer)
+	go func() {
+		// If already locked then do nothing and process existing round
+		if c.nonTreeOnlyMutex.TryLock() {
+			c.treeSeenIdentifier.Store(seenIdentifier)
+			c.processNonTreeOnly.Store(true)
+			// Wait for processNonTreeOnly==false. This will happen when a non-tree entry is handled
+			for c.processNonTreeOnly.Load() {
+			}
+			c.nonTreeOnlyMutex.Unlock()
+		}
+	}()
 	return
 }
 
-func (c *CloneObject) resetTreeOnlyMode() {
+func (c *CloneObject) resetNonTreeOnlyMode() {
 	c.processNonTreeOnly.Store(false)
 }
 
