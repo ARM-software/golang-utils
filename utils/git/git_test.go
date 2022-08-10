@@ -74,8 +74,8 @@ func TestMain(m *testing.M) {
 
 func TestHandleTreeEntry(t *testing.T) {
 	// Setup
-	ValidationParallelisation = 1 // so go test doesn't break
-	var c CloneObject
+	MaxEntriesChannelSize = 100000
+	c := NewCloneObject()
 	limits := NewLimits(1e8, 1e10, 1e6, 20, 1e6) // max file size: 100MB, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 1 million
 	err := c.SetupLimits(limits)
 	require.NoError(t, err)
@@ -110,8 +110,8 @@ func getValidBlobHash(tree *object.Tree) (blobHash plumbing.Hash, err error) {
 
 func TestHandleBlobEntry(t *testing.T) {
 	// Setup
-	ValidationParallelisation = 1 // so go test doesn't break
-	var c CloneObject
+	MaxEntriesChannelSize = 100000
+	c := NewCloneObject()
 	limits := NewLimits(1e8, 1e10, 1e6, 20, 1e6) // max file size: 100MB, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 1 million
 	err := c.SetupLimits(limits)
 	require.NoError(t, err)
@@ -189,8 +189,8 @@ func TestHandleBlobEntry(t *testing.T) {
 
 func TestCheckDepthAndTotalEntries(t *testing.T) {
 	// Setup
-	ValidationParallelisation = 1 // so go test doesn't break
-	var c CloneObject
+	MaxEntriesChannelSize = 100000
+	c := NewCloneObject()
 	limits := NewLimits(1e8, 1e10, 1e6, 10, 1e6) // max file size: 100MB, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 1 million
 	err := c.SetupLimits(limits)
 	require.NoError(t, err)
@@ -241,8 +241,7 @@ func TestCheckDepthAndTotalEntries(t *testing.T) {
 
 func TestPopulateInitialEntries(t *testing.T) {
 	// Setup
-	ValidationParallelisation = 1 // so go test doesn't break
-	var c CloneObject
+	c := NewCloneObject()
 	limits := NewLimits(1e8, 1e10, 1e6, 20, 1e6) // max file size: 100MB, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 1 million
 	err := c.SetupLimits(limits)
 	require.NoError(t, err)
@@ -258,8 +257,20 @@ func TestPopulateInitialEntries(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check successful population
+	MaxEntriesChannelSize = 100000
 	require.Empty(t, c.allEntries)
 	err = c.populateInitialEntries(context.Background())
 	require.NoError(t, err)
 	require.True(t, len(c.allEntries) > 0)
+
+	// Check unsuccessful population sue to channel size
+	MaxEntriesChannelSize = 100
+	c = NewCloneObject()
+	err = c.SetupLimits(NewLimits(1e8, 1e10, 1e6, 20, 1e6)) // max file size: 100MB, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 1 million
+	c.repo = repoTest
+	require.NoError(t, err)
+	require.Empty(t, c.allEntries)
+	err = c.populateInitialEntries(context.Background())
+	require.Error(t, err)
+	require.ErrorContains(t, err, fmt.Errorf("%w: entry channel saturated before initialisation complete", commonerrors.ErrTooLarge).Error())
 }

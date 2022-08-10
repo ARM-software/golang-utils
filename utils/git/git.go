@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"sync"
 
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -12,30 +13,55 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/idgen"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
 const (
-	MaxEntriesChannelSize = 1000000
+	ValidationParallelisation = 32
 )
 
 var (
-	ValidationParallelisation = 32 // go test cannot handle more than 1 so we use var so we can manually set it to 1 in the tests
+	// Var so it can be modified in testing
+	MaxEntriesChannelSize = 100000
 )
 
 type Entry struct {
 	TreeEntry object.TreeEntry
 	TreeDepth int64
+	Seen      string
 }
 
 type CloneObject struct {
 	cfg        ILimits
+	mu         sync.Mutex // (*git.Repository).XXXObject(h plumbing.Hash) are not thread safe
 	repo       *git.Repository
 	allEntries chan Entry
+
+	totalSize      *atomic.Int64
+	totalFileCount *atomic.Int64
+	totalEntries   *atomic.Int64
+
+	processNonTreeOnly *atomic.Bool
+	treeSeenIdentifier *atomic.String
+}
+
+func (c *CloneObject) getTreeObject(hash plumbing.Hash) (tree *object.Tree, err error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	tree, err = c.repo.TreeObject(hash)
+	return
+}
+
+func (c *CloneObject) getBlobObject(hash plumbing.Hash) (blob *object.Blob, err error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	blob, err = c.repo.BlobObject(hash)
+	return
 }
 
 func (c *CloneObject) handleTreeEntry(entry Entry) (err error) {
-	tree, subErr := c.repo.TreeObject(entry.TreeEntry.Hash)
+	tree, subErr := c.getTreeObject(entry.TreeEntry.Hash)
 	if subErr != nil {
 		err = subErr
 		return
@@ -45,22 +71,37 @@ func (c *CloneObject) handleTreeEntry(entry Entry) (err error) {
 			TreeEntry: tree.Entries[i],
 			TreeDepth: entry.TreeDepth + 1,
 		}
+		// If full when trying to append trees, then process blob entries
+		if len(c.allEntries) == cap(c.allEntries) {
+			// Make sure all go routines start processing non-tree entries
+			if err = c.setTreeOnlyMode(); err != nil {
+				return
+			}
+			// while channel is full handle the (non-tree) entries
+			for len(c.allEntries) == cap(c.allEntries) {
+				if err = c.handleEntry(<-c.allEntries); err != nil {
+					return
+				}
+			}
+		}
 	}
 	return
 }
 
 func (c *CloneObject) handleCommitEntry(entry Entry) (err error) {
 	// Unknown if necessary. Add code here if necessary in future
+	c.resetTreeOnlyMode()
 	return
 }
 
 func (c *CloneObject) handleSymlinkEntry(entry Entry) (err error) {
 	// Unknown if necessary. Add code here if necessary in future
+	c.resetTreeOnlyMode()
 	return
 }
 
 func (c *CloneObject) handleBlobEntry(entry Entry, totalSize *atomic.Int64, totalFileCount *atomic.Int64) (err error) {
-	blob, subErr := c.repo.BlobObject(entry.TreeEntry.Hash)
+	blob, subErr := c.getBlobObject(entry.TreeEntry.Hash)
 	if subErr != nil {
 		err = subErr
 		return
@@ -82,6 +123,7 @@ func (c *CloneObject) handleBlobEntry(entry Entry, totalSize *atomic.Int64, tota
 		err = fmt.Errorf("%w: maximum file count exceeded [%d > %d]", commonerrors.ErrTooLarge, totalFileCount.Load(), c.cfg.GetMaxFileCount())
 		return
 	}
+	c.resetTreeOnlyMode()
 	return
 }
 
@@ -104,13 +146,12 @@ func (c *CloneObject) populateInitialEntries(ctx context.Context) (err error) {
 	if err != nil {
 		return
 	}
-
 	for {
-		err = parallelisation.DetermineContextError(ctx)
-		if err != nil {
+		subErr := parallelisation.DetermineContextError(ctx)
+		if subErr != nil {
+			err = subErr
 			return
 		}
-
 		tree, subErr := trees.Next()
 		if subErr != nil {
 			if commonerrors.Any(subErr, io.EOF) {
@@ -125,6 +166,15 @@ func (c *CloneObject) populateInitialEntries(ctx context.Context) (err error) {
 			c.allEntries <- Entry{
 				TreeEntry: tree.Entries[i],
 				TreeDepth: 0,
+			}
+			entriesCount := len(c.allEntries)
+			if entriesCount > int(c.cfg.GetMaxEntries()) {
+				err = fmt.Errorf("%w: maximum entries count exceeded [%d >= %d]", commonerrors.ErrTooLarge, entriesCount, c.cfg.GetMaxEntries())
+				return
+			}
+			if entriesCount == cap(c.allEntries) {
+				err = fmt.Errorf("%w: entry channel saturated before initialisation complete [%d >= %d]", commonerrors.ErrTooLarge, entriesCount, MaxEntriesChannelSize)
+				return
 			}
 		}
 	}
@@ -142,7 +192,12 @@ func (c *CloneObject) SetupLimits(cfg ILimits) (err error) {
 
 func NewCloneObject() *CloneObject {
 	return &CloneObject{
-		cfg: NoLimits(),
+		cfg:                NoLimits(),
+		totalSize:          atomic.NewInt64(0),
+		totalFileCount:     atomic.NewInt64(0),
+		totalEntries:       atomic.NewInt64(0),
+		processNonTreeOnly: atomic.NewBool(false),
+		treeSeenIdentifier: atomic.NewString(""),
 	}
 }
 
@@ -170,6 +225,58 @@ func (c *CloneObject) Clone(ctx context.Context, path string, cfg *GitActionConf
 	return
 }
 
+func (c *CloneObject) setTreeOnlyMode() (err error) {
+	// First generate a unique identifier so we can keep track of whether the trees have been seend before
+	var seenIdentifier, subErr = idgen.GenerateUUID4()
+	if subErr != nil {
+		err = subErr
+		return
+	}
+	c.treeSeenIdentifier.Store(seenIdentifier)
+	c.processNonTreeOnly.Store(true)
+	return
+}
+
+func (c *CloneObject) resetTreeOnlyMode() {
+	c.processNonTreeOnly.Store(false)
+}
+
+func (c *CloneObject) handleEntry(entry Entry) (err error) {
+	mode := entry.TreeEntry.Mode
+	switch {
+	case mode&0o170000 == 0o40000:
+		if c.processNonTreeOnly.Load() {
+			seenIdentifier := c.treeSeenIdentifier.Load()
+			if entry.Seen == seenIdentifier {
+				err = fmt.Errorf("%w: entry channel saturated with tree entries", commonerrors.ErrTooLarge)
+				return
+			}
+			entry.Seen = seenIdentifier
+			c.allEntries <- entry
+			return
+		}
+		if err = c.handleTreeEntry(entry); err != nil {
+			return
+		}
+	case mode&0o170000 == 0o160000:
+		// Commit (i.e., submodule)
+		if err = c.handleCommitEntry(entry); err != nil {
+			return
+		}
+	case mode&0o170000 == 0o120000:
+		// Symlink
+		if err = c.handleSymlinkEntry(entry); err != nil {
+			return
+		}
+	default:
+		// Blob
+		if err = c.handleBlobEntry(entry, c.totalSize, c.totalFileCount); err != nil {
+			return
+		}
+	}
+	return
+}
+
 // After cloning without checkout, valdiate the repository to check for git bombs
 func (c *CloneObject) ValidateRepository(ctx context.Context) (err error) {
 	if !c.cfg.Apply() {
@@ -181,10 +288,6 @@ func (c *CloneObject) ValidateRepository(ctx context.Context) (err error) {
 	}
 
 	errs, ctx := errgroup.WithContext(ctx)
-
-	totalSize := atomic.NewInt64(0)
-	totalFileCount := atomic.NewInt64(0)
-	totalEntries := atomic.NewInt64(0)
 
 	for p := 0; p < ValidationParallelisation; p++ {
 		errs.Go(func() (err error) {
@@ -199,31 +302,12 @@ func (c *CloneObject) ValidateRepository(ctx context.Context) (err error) {
 					return
 				}
 
-				if err = c.checkDepthAndTotalEntries(entry, totalEntries); err != nil {
+				if err = c.checkDepthAndTotalEntries(entry, c.totalEntries); err != nil {
 					return
 				}
 
-				mode := entry.TreeEntry.Mode
-				switch {
-				case mode&0o170000 == 0o40000:
-					if err = c.handleTreeEntry(entry); err != nil {
-						return
-					}
-				case mode&0o170000 == 0o160000:
-					// Commit (i.e., submodule)
-					if err = c.handleCommitEntry(entry); err != nil {
-						return
-					}
-				case mode&0o170000 == 0o120000:
-					// Symlink
-					if err = c.handleSymlinkEntry(entry); err != nil {
-						return
-					}
-				default:
-					// Blob
-					if err = c.handleBlobEntry(entry, totalSize, totalFileCount); err != nil {
-						return
-					}
+				if err = c.handleEntry(entry); err != nil {
+					return
 				}
 			}
 			return nil
