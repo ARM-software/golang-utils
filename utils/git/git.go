@@ -60,6 +60,42 @@ func (c *CloneObject) getBlobObject(hash plumbing.Hash) (blob *object.Blob, err 
 	return
 }
 
+func (c *CloneObject) handleEntry(entry Entry) (err error) {
+	mode := entry.TreeEntry.Mode
+	switch {
+	case mode&0o170000 == 0o40000:
+		if c.processNonTreeOnly.Load() {
+			seenIdentifier := c.treeSeenIdentifier.Load()
+			if entry.Seen == seenIdentifier {
+				err = fmt.Errorf("%w: entry channel saturated with tree entries", commonerrors.ErrTooLarge)
+				return
+			}
+			entry.Seen = seenIdentifier
+			c.allEntries <- entry
+			return
+		}
+		if err = c.handleTreeEntry(entry); err != nil {
+			return
+		}
+	case mode&0o170000 == 0o160000:
+		// Commit (i.e., submodule)
+		if err = c.handleCommitEntry(entry); err != nil {
+			return
+		}
+	case mode&0o170000 == 0o120000:
+		// Symlink
+		if err = c.handleSymlinkEntry(entry); err != nil {
+			return
+		}
+	default:
+		// Blob
+		if err = c.handleBlobEntry(entry, c.totalSize, c.totalFileCount); err != nil {
+			return
+		}
+	}
+	return
+}
+
 func (c *CloneObject) handleTreeEntry(entry Entry) (err error) {
 	tree, subErr := c.getTreeObject(entry.TreeEntry.Hash)
 	if subErr != nil {
@@ -71,13 +107,13 @@ func (c *CloneObject) handleTreeEntry(entry Entry) (err error) {
 			TreeEntry: tree.Entries[i],
 			TreeDepth: entry.TreeDepth + 1,
 		}
-		// If full when trying to append trees, then process blob entries
+		// If full when trying to append trees, then process non-tree entries
 		if len(c.allEntries) == cap(c.allEntries) {
 			// Make sure all go routines start processing non-tree entries
 			if err = c.setTreeOnlyMode(); err != nil {
 				return
 			}
-			// while channel is full handle the (non-tree) entries
+			// While channel is full handle the (non-tree) entries
 			for len(c.allEntries) == cap(c.allEntries) {
 				if err = c.handleEntry(<-c.allEntries); err != nil {
 					return
@@ -85,18 +121,6 @@ func (c *CloneObject) handleTreeEntry(entry Entry) (err error) {
 			}
 		}
 	}
-	return
-}
-
-func (c *CloneObject) handleCommitEntry(entry Entry) (err error) {
-	// Unknown if necessary. Add code here if necessary in future
-	c.resetTreeOnlyMode()
-	return
-}
-
-func (c *CloneObject) handleSymlinkEntry(entry Entry) (err error) {
-	// Unknown if necessary. Add code here if necessary in future
-	c.resetTreeOnlyMode()
 	return
 }
 
@@ -123,6 +147,18 @@ func (c *CloneObject) handleBlobEntry(entry Entry, totalSize *atomic.Int64, tota
 		err = fmt.Errorf("%w: maximum file count exceeded [%d > %d]", commonerrors.ErrTooLarge, totalFileCount.Load(), c.cfg.GetMaxFileCount())
 		return
 	}
+	c.resetTreeOnlyMode()
+	return
+}
+
+func (c *CloneObject) handleCommitEntry(entry Entry) (err error) {
+	// Unknown if necessary. Add code here if necessary in future
+	c.resetTreeOnlyMode()
+	return
+}
+
+func (c *CloneObject) handleSymlinkEntry(entry Entry) (err error) {
+	// Unknown if necessary. Add code here if necessary in future
 	c.resetTreeOnlyMode()
 	return
 }
@@ -226,7 +262,7 @@ func (c *CloneObject) Clone(ctx context.Context, path string, cfg *GitActionConf
 }
 
 func (c *CloneObject) setTreeOnlyMode() (err error) {
-	// First generate a unique identifier so we can keep track of whether the trees have been seend before
+	// Generate a unique identifier so we can keep track of whether the trees have been seen before
 	var seenIdentifier, subErr = idgen.GenerateUUID4()
 	if subErr != nil {
 		err = subErr
@@ -239,42 +275,6 @@ func (c *CloneObject) setTreeOnlyMode() (err error) {
 
 func (c *CloneObject) resetTreeOnlyMode() {
 	c.processNonTreeOnly.Store(false)
-}
-
-func (c *CloneObject) handleEntry(entry Entry) (err error) {
-	mode := entry.TreeEntry.Mode
-	switch {
-	case mode&0o170000 == 0o40000:
-		if c.processNonTreeOnly.Load() {
-			seenIdentifier := c.treeSeenIdentifier.Load()
-			if entry.Seen == seenIdentifier {
-				err = fmt.Errorf("%w: entry channel saturated with tree entries", commonerrors.ErrTooLarge)
-				return
-			}
-			entry.Seen = seenIdentifier
-			c.allEntries <- entry
-			return
-		}
-		if err = c.handleTreeEntry(entry); err != nil {
-			return
-		}
-	case mode&0o170000 == 0o160000:
-		// Commit (i.e., submodule)
-		if err = c.handleCommitEntry(entry); err != nil {
-			return
-		}
-	case mode&0o170000 == 0o120000:
-		// Symlink
-		if err = c.handleSymlinkEntry(entry); err != nil {
-			return
-		}
-	default:
-		// Blob
-		if err = c.handleBlobEntry(entry, c.totalSize, c.totalFileCount); err != nil {
-			return
-		}
-	}
-	return
 }
 
 // After cloning without checkout, valdiate the repository to check for git bombs
