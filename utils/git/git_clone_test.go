@@ -27,21 +27,21 @@ func TestCloneGitBomb(t *testing.T) {
 			url:                   "https://github.com/Katee/git-bomb.git",
 			err:                   fmt.Errorf("%w: entry channel saturated with tree entries", commonerrors.ErrTooLarge),
 			limits:                NewLimits(1e10, 1e10, 1e10, 10, 1e10),
-			maxEntriesChannelSize: 10000,
+			maxEntriesChannelSize: 1000,
 		},
 		{
 			name:                  "git bomb large channel",
 			url:                   "https://github.com/Katee/git-bomb.git",
 			err:                   fmt.Errorf("%w: maximum file count exceeded", commonerrors.ErrTooLarge),
-			limits:                NewLimits(1e5, 1e6, 1e4, 10, 1e6), // max file size: 100KB, max repo size: 1MB, max file count: 100 thousand, max tree depth 10, max entries 1 million
-			maxEntriesChannelSize: 100000,
+			limits:                NewLimits(1e5, 1e6, 1e3, 10, 1e6), // max file size: 100KB, max repo size: 1MB, max file count: 1 thousand, max tree depth 10, max entries 1 million
+			maxEntriesChannelSize: 10000,
 		},
 		{
 			name:                  "git bomb seg fault",
 			url:                   "https://github.com/Katee/git-bomb-segfault.git",
 			err:                   fmt.Errorf("%w: maximum tree depth exceeded", commonerrors.ErrTooLarge),
-			limits:                NewLimits(1e5, 1e6, 1e4, 10, 1e6), // max file size: 100KB, max repo size: 1MB, max file count: 100 thousand, max tree depth 10, max entries 1 million
-			maxEntriesChannelSize: 100000,
+			limits:                NewLimits(1e5, 1e6, 1e4, 4, 1e6), // max file size: 100KB, max repo size: 1MB, max file count: 100 thousand, max tree depth 10, max entries 1 million
+			maxEntriesChannelSize: 25000,
 		},
 	}
 	fs := filesystem.NewFs(filesystem.StandardFS)
@@ -198,7 +198,7 @@ func TestValidationNormalReposErrors(t *testing.T) {
 
 	// Check channel saturation during run
 	t.Run("channel saturation during run", func(t *testing.T) {
-		MaxEntriesChannelSize = 10000
+		MaxEntriesChannelSize = 1000
 		err = fs.Rm(destPath)
 		require.NoError(t, err)
 		r, err = git.PlainClone(destPath, false, &git.CloneOptions{
@@ -262,6 +262,7 @@ func TestCloneNonExistentRepo(t *testing.T) {
 
 func TestClone(t *testing.T) {
 	// Setup
+	MaxEntriesChannelSize = 1000
 	fs := filesystem.NewFs(filesystem.StandardFS)
 	destPath, err := fs.TempDirInTempDir("git-test")
 	require.NoError(t, err)

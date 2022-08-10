@@ -273,7 +273,7 @@ func TestPopulateInitialEntries(t *testing.T) {
 
 	// Check successful population
 	t.Run("successful population", func(t *testing.T) {
-		MaxEntriesChannelSize = 100000
+		MaxEntriesChannelSize = 10000
 		require.Empty(t, c.allEntries)
 		err = c.populateInitialEntries(context.Background())
 		require.NoError(t, err)
