@@ -23,13 +23,7 @@ func TestHandleTreeEntry(t *testing.T) {
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
 	limits := NewLimits(1e8, 1e10, 1e6, 20, 1e6) // max file size: 100MB, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 1 million
-	err = c.SetupLimits(&RepositoryLimitsConfig{
-		maxTreeDepth:      limits.GetMaxTreeDepth(),
-		maxRepositorySize: limits.GetMaxTotalSize(),
-		maxFileCount:      limits.GetMaxFileCount(),
-		maxFileSize:       limits.GetMaxFileSize(),
-		maxEntries:        limits.GetMaxEntries(),
-	})
+	err = c.SetupLimits(limits)
 	require.NoError(t, err)
 	repo, err := git.PlainClone(destPath, false, &git.CloneOptions{
 		URL: "https://github.com/Arm-Examples/Blinky_MIMXRT1064-EVK_RTX",
@@ -81,13 +75,7 @@ func TestHandleBlobEntry(t *testing.T) {
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
 	limits := NewLimits(1e8, 1e10, 1e6, 20, 1e6) // max file size: 100MB, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 1 million
-	err = c.SetupLimits(&RepositoryLimitsConfig{
-		maxTreeDepth:      limits.GetMaxTreeDepth(),
-		maxRepositorySize: limits.GetMaxTotalSize(),
-		maxFileCount:      limits.GetMaxFileCount(),
-		maxFileSize:       limits.GetMaxFileSize(),
-		maxEntries:        limits.GetMaxEntries(),
-	})
+	err = c.SetupLimits(limits)
 	require.NoError(t, err)
 	repo, err := git.PlainClone(destPath, false, &git.CloneOptions{
 		URL: "https://github.com/Arm-Examples/Blinky_MIMXRT1064-EVK_RTX",
@@ -125,13 +113,7 @@ func TestHandleBlobEntry(t *testing.T) {
 
 	// Test whether too large blob returns error
 	limits = NewLimits(0, 1e10, 1e6, 20, 1e6) // max file size: 0, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 1 million
-	err = c.SetupLimits(&RepositoryLimitsConfig{
-		maxTreeDepth:      limits.GetMaxTreeDepth(),
-		maxRepositorySize: limits.GetMaxTotalSize(),
-		maxFileCount:      limits.GetMaxFileCount(),
-		maxFileSize:       limits.GetMaxFileSize(),
-		maxEntries:        limits.GetMaxEntries(),
-	})
+	err = c.SetupLimits(limits)
 	require.NoError(t, err)
 
 	totalSize = atomic.NewInt64(0)
@@ -149,13 +131,7 @@ func TestHandleBlobEntry(t *testing.T) {
 
 	// Test whether too many files returns error
 	limits = NewLimits(1e5, 1e10, 0, 20, 1e6) // max file size: 100MB, max repo size: 1GB, max file count: 0, max tree depth 1, max entries 1 million
-	err = c.SetupLimits(&RepositoryLimitsConfig{
-		maxTreeDepth:      limits.GetMaxTreeDepth(),
-		maxRepositorySize: limits.GetMaxTotalSize(),
-		maxFileCount:      limits.GetMaxFileCount(),
-		maxFileSize:       limits.GetMaxFileSize(),
-		maxEntries:        limits.GetMaxEntries(),
-	})
+	err = c.SetupLimits(limits)
 	require.NoError(t, err)
 
 	totalSize = atomic.NewInt64(0)
@@ -173,13 +149,7 @@ func TestHandleBlobEntry(t *testing.T) {
 
 	// Test whether too large repo fails
 	limits = NewLimits(1e5, 0, 1e6, 20, 1e6) // max file size: 100MB, max repo size: 0, max file count: 1 million, max tree depth 1, max entries 1 million
-	err = c.SetupLimits(&RepositoryLimitsConfig{
-		maxTreeDepth:      limits.GetMaxTreeDepth(),
-		maxRepositorySize: limits.GetMaxTotalSize(),
-		maxFileCount:      limits.GetMaxFileCount(),
-		maxFileSize:       limits.GetMaxFileSize(),
-		maxEntries:        limits.GetMaxEntries(),
-	})
+	err = c.SetupLimits(limits)
 	require.NoError(t, err)
 
 	totalSize = atomic.NewInt64(0)
@@ -204,13 +174,7 @@ func TestCheckDepthAndTotalEntries(t *testing.T) {
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
 	limits := NewLimits(1e8, 1e10, 1e6, 20, 1e6) // max file size: 100MB, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 1 million
-	err = c.SetupLimits(&RepositoryLimitsConfig{
-		maxTreeDepth:      limits.GetMaxTreeDepth(),
-		maxRepositorySize: limits.GetMaxTotalSize(),
-		maxFileCount:      limits.GetMaxFileCount(),
-		maxFileSize:       limits.GetMaxFileSize(),
-		maxEntries:        limits.GetMaxEntries(),
-	})
+	err = c.SetupLimits(limits)
 	require.NoError(t, err)
 	repo, err := git.PlainClone(destPath, false, &git.CloneOptions{
 		URL: "https://github.com/Arm-Examples/Blinky_MIMXRT1064-EVK_RTX",
@@ -260,13 +224,7 @@ func TestCheckDepthAndTotalEntries(t *testing.T) {
 
 	// Check too many entries
 	limits = NewLimits(1e8, 1e10, 1e6, 20, 0) // max file size: 100MB, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 0
-	err = c.SetupLimits(&RepositoryLimitsConfig{
-		maxTreeDepth:      limits.GetMaxTreeDepth(),
-		maxRepositorySize: limits.GetMaxTotalSize(),
-		maxFileCount:      limits.GetMaxFileCount(),
-		maxFileSize:       limits.GetMaxFileSize(),
-		maxEntries:        limits.GetMaxEntries(),
-	})
+	err = c.SetupLimits(limits)
 	require.NoError(t, err)
 	totalEntries = atomic.NewInt64(0)
 	err = c.checkDepthAndTotalEntries(Entry{
@@ -289,13 +247,7 @@ func TestPopulateInitialEntries(t *testing.T) {
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
 	limits := NewLimits(1e8, 1e10, 1e6, 20, 1e6) // max file size: 100MB, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 1 million
-	err = c.SetupLimits(&RepositoryLimitsConfig{
-		maxTreeDepth:      limits.GetMaxTreeDepth(),
-		maxRepositorySize: limits.GetMaxTotalSize(),
-		maxFileCount:      limits.GetMaxFileCount(),
-		maxFileSize:       limits.GetMaxFileSize(),
-		maxEntries:        limits.GetMaxEntries(),
-	})
+	err = c.SetupLimits(limits)
 	require.NoError(t, err)
 	repo, err := git.PlainClone(destPath, false, &git.CloneOptions{
 		URL: "https://github.com/Arm-Examples/Blinky_MIMXRT1064-EVK_RTX",
@@ -329,13 +281,7 @@ func TestClone(t *testing.T) {
 	limits := NewLimits(1e8, 1e10, 1e6, 20, 1e6) // max file size: 100MB, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 1 million
 	branch := "main"
 	var c CloneObject
-	err = c.SetupLimits(&RepositoryLimitsConfig{
-		maxTreeDepth:      limits.GetMaxTreeDepth(),
-		maxRepositorySize: limits.GetMaxTotalSize(),
-		maxFileCount:      limits.GetMaxFileCount(),
-		maxFileSize:       limits.GetMaxFileSize(),
-		maxEntries:        limits.GetMaxEntries(),
-	})
+	err = c.SetupLimits(limits)
 	require.NoError(t, err)
 	err = c.Clone(context.Background(), destPath, &GitActionConfig{
 		URL:    "https://github.com/Arm-Examples/Blinky_MIMXRT1064-EVK_RTX",
@@ -355,13 +301,7 @@ func TestClone(t *testing.T) {
 	empty, err := fs.IsEmpty(destPath)
 	require.NoError(t, err)
 	require.True(t, empty)
-	err = c.SetupLimits(&RepositoryLimitsConfig{
-		maxTreeDepth:      limits.GetMaxTreeDepth(),
-		maxRepositorySize: limits.GetMaxTotalSize(),
-		maxFileCount:      limits.GetMaxFileCount(),
-		maxFileSize:       limits.GetMaxFileSize(),
-		maxEntries:        limits.GetMaxEntries(),
-	})
+	err = c.SetupLimits(limits)
 	require.NoError(t, err)
 	err = c.Clone(context.Background(), destPath, &GitActionConfig{
 		URL:        "https://github.com/Katee/git-bomb.git",

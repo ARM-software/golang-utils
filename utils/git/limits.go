@@ -1,14 +1,10 @@
 package git
 
 import (
-	"math"
-
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	"github.com/ARM-software/golang-utils/utils/config"
 )
-
-// TODO: Make these use apply
 
 type noLimits struct {
 }
@@ -18,23 +14,23 @@ func (n *noLimits) Apply() bool {
 }
 
 func (n *noLimits) GetMaxFileSize() int64 {
-	return math.MaxInt64
+	return 0
 }
 
 func (n *noLimits) GetMaxTotalSize() int64 {
-	return math.MaxInt64
+	return 0
 }
 
 func (n *noLimits) GetMaxFileCount() int64 {
-	return math.MaxInt64
+	return 0
 }
 
 func (n *noLimits) GetMaxTreeDepth() int64 {
-	return math.MaxInt64
+	return 0
 }
 
 func (n *noLimits) GetMaxEntries() int64 {
-	return math.MaxInt64
+	return 0
 }
 
 func (n *noLimits) Validate() error {

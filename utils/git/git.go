@@ -28,16 +28,8 @@ type Entry struct {
 	TreeDepth int64
 }
 
-type RepositoryLimitsConfig struct {
-	maxTreeDepth      int64
-	maxRepositorySize int64
-	maxFileCount      int64
-	maxFileSize       int64
-	maxEntries        int64
-}
-
 type CloneObject struct {
-	cfg        *RepositoryLimitsConfig
+	cfg        ILimits
 	repo       *git.Repository
 	allEntries chan Entry
 }
@@ -75,19 +67,19 @@ func (c *CloneObject) handleBlobEntry(entry Entry, totalSize *atomic.Int64, tota
 	}
 
 	totalSize.Add(blob.Size)
-	if totalSize.Load() > c.cfg.maxRepositorySize {
-		err = fmt.Errorf("%w: maximum repository size exceeded [%d > %d]", commonerrors.ErrTooLarge, totalSize.Load(), c.cfg.maxRepositorySize)
+	if totalSize.Load() > c.cfg.GetMaxTotalSize() {
+		err = fmt.Errorf("%w: maximum repository size exceeded [%d > %d]", commonerrors.ErrTooLarge, totalSize.Load(), c.cfg.GetMaxTotalSize())
 		return
 	}
 
-	if blob.Size > c.cfg.maxFileSize {
-		err = fmt.Errorf("%w: maximum individual file size exceeded [%d > %d]", commonerrors.ErrTooLarge, blob.Size, c.cfg.maxFileSize)
+	if blob.Size > c.cfg.GetMaxFileSize() {
+		err = fmt.Errorf("%w: maximum individual file size exceeded [%d > %d]", commonerrors.ErrTooLarge, blob.Size, c.cfg.GetMaxFileSize())
 		return
 	}
 
 	totalFileCount.Inc()
-	if totalFileCount.Load() > c.cfg.maxFileCount {
-		err = fmt.Errorf("%w: maximum file count exceeded [%d > %d]", commonerrors.ErrTooLarge, totalFileCount.Load(), c.cfg.maxFileCount)
+	if totalFileCount.Load() > c.cfg.GetMaxFileCount() {
+		err = fmt.Errorf("%w: maximum file count exceeded [%d > %d]", commonerrors.ErrTooLarge, totalFileCount.Load(), c.cfg.GetMaxFileCount())
 		return
 	}
 	return
@@ -95,13 +87,13 @@ func (c *CloneObject) handleBlobEntry(entry Entry, totalSize *atomic.Int64, tota
 
 func (c *CloneObject) checkDepthAndTotalEntries(entry Entry, totalEntries *atomic.Int64) (err error) {
 	totalEntries.Inc()
-	if totalEntries.Load() > c.cfg.maxEntries {
-		err = fmt.Errorf("%w: maximum entries count exceeded [%d > %d]", commonerrors.ErrTooLarge, totalEntries.Load(), c.cfg.maxEntries)
+	if totalEntries.Load() > c.cfg.GetMaxEntries() {
+		err = fmt.Errorf("%w: maximum entries count exceeded [%d > %d]", commonerrors.ErrTooLarge, totalEntries.Load(), c.cfg.GetMaxEntries())
 		return
 	}
 
-	if entry.TreeDepth > c.cfg.maxTreeDepth {
-		err = fmt.Errorf("%w: maximum tree depth exceeded [%d > %d]", commonerrors.ErrTooLarge, entry.TreeDepth, c.cfg.maxTreeDepth)
+	if entry.TreeDepth > c.cfg.GetMaxTreeDepth() {
+		err = fmt.Errorf("%w: maximum tree depth exceeded [%d > %d]", commonerrors.ErrTooLarge, entry.TreeDepth, c.cfg.GetMaxTreeDepth())
 		return
 	}
 	return
@@ -139,7 +131,7 @@ func (c *CloneObject) populateInitialEntries(ctx context.Context) (err error) {
 	return
 }
 
-func (c *CloneObject) SetupLimits(cfg *RepositoryLimitsConfig) (err error) {
+func (c *CloneObject) SetupLimits(cfg ILimits) (err error) {
 	if cfg == nil {
 		return fmt.Errorf("%w: limits config undefined", commonerrors.ErrUndefined)
 	}
@@ -149,15 +141,8 @@ func (c *CloneObject) SetupLimits(cfg *RepositoryLimitsConfig) (err error) {
 }
 
 func NewCloneObject() *CloneObject {
-	limits := NoLimits()
 	return &CloneObject{
-		cfg: &RepositoryLimitsConfig{
-			maxTreeDepth:      limits.GetMaxTreeDepth(),
-			maxRepositorySize: limits.GetMaxTotalSize(),
-			maxFileCount:      limits.GetMaxFileCount(),
-			maxFileSize:       limits.GetMaxFileSize(),
-			maxEntries:        limits.GetMaxEntries(),
-		},
+		cfg: NoLimits(),
 	}
 }
 
@@ -187,6 +172,10 @@ func (c *CloneObject) Clone(ctx context.Context, path string, cfg *GitActionConf
 
 // After cloning without checkout, valdiate the repository to check for git bombs
 func (c *CloneObject) ValidateRepository(ctx context.Context) (err error) {
+	if !c.cfg.Apply() {
+		return
+	}
+
 	if err = c.populateInitialEntries(ctx); err != nil {
 		return
 	}
@@ -268,13 +257,7 @@ func (c *CloneObject) Checkout(gitOptions *GitActionConfig) (err error) {
 // Clone a repository with limits on the max tree depth, the max repository size, the max file count, the max individual file size, and the max entries
 func CloneWithLimits(ctx context.Context, dir string, limits ILimits, gitOptions *GitActionConfig) (err error) {
 	c := NewCloneObject()
-	err = c.SetupLimits(&RepositoryLimitsConfig{
-		maxTreeDepth:      limits.GetMaxTreeDepth(),
-		maxRepositorySize: limits.GetMaxTotalSize(),
-		maxFileCount:      limits.GetMaxFileCount(),
-		maxFileSize:       limits.GetMaxFileSize(),
-		maxEntries:        limits.GetMaxEntries(),
-	})
+	err = c.SetupLimits(limits)
 	if err != nil {
 		return
 	}
