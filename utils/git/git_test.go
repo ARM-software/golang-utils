@@ -17,6 +17,7 @@ import (
 
 func TestHandleTreeEntry(t *testing.T) {
 	// Setup
+	ValidationParallelisation = 1 // so go test doesn't break
 	var c CloneObject
 	fs := filesystem.NewFs(filesystem.StandardFS)
 	destPath, err := fs.TempDirInTempDir("git-bomb")
@@ -69,6 +70,7 @@ func getValidBlobHash(tree *object.Tree) (blobHash plumbing.Hash, err error) {
 
 func TestHandleBlobEntry(t *testing.T) {
 	// Setup
+	ValidationParallelisation = 1 // so go test doesn't break
 	var c CloneObject
 	fs := filesystem.NewFs(filesystem.StandardFS)
 	destPath, err := fs.TempDirInTempDir("git-bomb")
@@ -168,6 +170,7 @@ func TestHandleBlobEntry(t *testing.T) {
 
 func TestCheckDepthAndTotalEntries(t *testing.T) {
 	// Setup
+	ValidationParallelisation = 1 // so go test doesn't break
 	var c CloneObject
 	fs := filesystem.NewFs(filesystem.StandardFS)
 	destPath, err := fs.TempDirInTempDir("git-bomb")
@@ -241,6 +244,7 @@ func TestCheckDepthAndTotalEntries(t *testing.T) {
 
 func TestPopulateInitialEntries(t *testing.T) {
 	// Setup
+	ValidationParallelisation = 1 // so go test doesn't break
 	var c CloneObject
 	fs := filesystem.NewFs(filesystem.StandardFS)
 	destPath, err := fs.TempDirInTempDir("git-bomb")
@@ -271,6 +275,8 @@ func TestPopulateInitialEntries(t *testing.T) {
 }
 
 func TestClone(t *testing.T) {
+	// Setup
+	ValidationParallelisation = 1 // so go test doesn't break
 	fs := filesystem.NewFs(filesystem.StandardFS)
 	destPath, err := fs.TempDirInTempDir("git-test")
 	require.NoError(t, err)
