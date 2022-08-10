@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	MaxEntriesChannelSize = 100000000
+	MaxEntriesChannelSize = 1000000
 )
 
 var (
