@@ -39,7 +39,7 @@ type CloneObject struct {
 	totalFileCount *atomic.Int64
 	totalEntries   *atomic.Int64
 
-	nonTreeOnlyMutex   sync.Mutex
+	nonTreeOnlyMutex   chan int // TODO: when updated to go1.18 use sync.Mutex
 	processNonTreeOnly *atomic.Bool
 	treeSeenIdentifier *atomic.String
 }
@@ -225,14 +225,17 @@ func (c *CloneObject) SetupLimits(cfg ILimits) (err error) {
 }
 
 func NewCloneObject() *CloneObject {
-	return &CloneObject{
+	cloneObject := &CloneObject{
 		cfg:                NoLimits(),
 		totalSize:          atomic.NewInt64(0),
 		totalFileCount:     atomic.NewInt64(0),
 		totalEntries:       atomic.NewInt64(0),
 		processNonTreeOnly: atomic.NewBool(false),
 		treeSeenIdentifier: atomic.NewString(""),
+		nonTreeOnlyMutex:   make(chan int, 1),
 	}
+	cloneObject.nonTreeOnlyMutex <- 1
+	return cloneObject
 }
 
 // Clone without checkout or validation
@@ -273,15 +276,30 @@ func (c *CloneObject) setNonTreeOnlyMode() (err error) {
 	// Launch as go func so this is none blocking
 	// Also means that only the go routine that locked the resource can unlock it (so safer)
 	go func() {
-		// If already locked then do nothing and process existing round
-		if c.nonTreeOnlyMutex.TryLock() {
+		select {
+		case <-c.nonTreeOnlyMutex:
 			c.treeSeenIdentifier.Store(seenIdentifier)
 			c.processNonTreeOnly.Store(true)
 			// Wait for processNonTreeOnly==false. This will happen when a non-tree entry is handled
 			for c.processNonTreeOnly.Load() {
 			}
-			c.nonTreeOnlyMutex.Unlock()
+			c.nonTreeOnlyMutex <- 1
+		default:
+			// If already locked then do nothing and process existing round
 		}
+
+		// TODO: when updated to go1.18 replace select with sync.Mutex and TryLock()
+		/*
+			// If already locked then do nothing and process existing round
+			if c.nonTreeOnlyMutex.TryLock() {
+				c.treeSeenIdentifier.Store(seenIdentifier)
+				c.processNonTreeOnly.Store(true)
+				// Wait for processNonTreeOnly==false. This will happen when a non-tree entry is handled
+				for c.processNonTreeOnly.Load() {
+				}
+				c.nonTreeOnlyMutex.Unlock()
+			}
+		*/
 	}()
 	return
 }
