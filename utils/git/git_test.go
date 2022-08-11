@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bxcodec/faker/v3"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -17,7 +16,6 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
-	"github.com/ARM-software/golang-utils/utils/hashing"
 )
 
 // We will populate these with TestMain so they can be reused within the tests
@@ -325,77 +323,6 @@ func TestPopulateInitialEntries(t *testing.T) {
 		require.Error(t, err)
 		require.ErrorContains(t, err, fmt.Errorf("%w: entry channel saturated before initialisation complete", commonerrors.ErrTooLarge).Error())
 	})
-}
-
-func TestIsLikelyHexHashString(t *testing.T) {
-	tests := []struct {
-		input  string
-		isHash bool
-	}{
-		{
-			input:  "",
-			isHash: false,
-		},
-		{
-			input:  faker.Word(),
-			isHash: false,
-		},
-		{
-			input:  faker.Name(),
-			isHash: false,
-		},
-		{
-			input:  faker.Sentence(),
-			isHash: false,
-		},
-		{
-			input:  faker.CCNumber(),
-			isHash: false,
-		},
-		{
-			input:  faker.UUIDDigit(),
-			isHash: true,
-		},
-		{
-			input:  faker.UUIDHyphenated(),
-			isHash: false,
-		},
-		{
-			input:  faker.IPv4(),
-			isHash: false,
-		},
-		{
-			input:  faker.Paragraph(),
-			isHash: false,
-		},
-		{
-			input:  "1.0.1",
-			isHash: false,
-		},
-		{
-			input:  "v1.0.1",
-			isHash: false,
-		},
-		{
-			input:  hashing.CalculateMD5Hash(faker.Paragraph()),
-			isHash: true,
-		},
-
-		{
-			input:  hashing.CalculateHash(faker.Paragraph(), hashing.HashSha256),
-			isHash: true,
-		},
-		{
-			input:  "85817ddeed66c3e3805c73dbc7082de2674e349c",
-			isHash: true,
-		},
-	}
-	for i := range tests {
-		test := tests[i]
-		t.Run(fmt.Sprintf("%v_isHash(%v)", i, test.input), func(t *testing.T) {
-			require.Equal(t, test.isHash, IsLikelyHexHashString(test.input))
-		})
-	}
 }
 
 func TestParseReference(t *testing.T) {

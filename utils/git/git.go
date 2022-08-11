@@ -2,10 +2,8 @@ package git
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 	"io"
-	"math"
 	"strings"
 	"sync"
 
@@ -16,9 +14,9 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/hashing"
 	"github.com/ARM-software/golang-utils/utils/idgen"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
-	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
 const (
@@ -357,50 +355,12 @@ func (c *CloneObject) ValidateRepository(ctx context.Context) (err error) {
 	return
 }
 
-// CalculateStringShannonEntropy measures the Shannon entropy of a string
-// the returned value is a bits/byte 'entropy' value between 0.0 and 8.0,
-// 0 being no, and 8 being maximal entropy.
-// See http://bearcave.com/misl/misl_tech/wavelets/compression/shannon.html for the algorithmic explanation.
-// Code comes from https://rosettacode.org/wiki/Entropy#Go:_Slice_version
-func CalculateStringShannonEntropy(str string) (entropy float64) {
-	if reflection.IsEmpty(str) {
-		return 0
-	}
-	for i := 0; i < 256; i++ {
-		px := float64(strings.Count(str, string(byte(i)))) / float64(len(str))
-		if px > 0 {
-			entropy += -px * math.Log2(px)
-		}
-	}
-	return entropy
-}
-
-// HasLikelyHexHashStringEntropy states whether a string has an entropy which may entail it is a hexadecimal hash
-// This is based on the work done by `detect-secrets` https://github.com/Yelp/detect-secrets/blob/2fc0e31f067af98d97ad0f507dac032c9506f667/detect_secrets/plugins/high_entropy_strings.py#L150
-func HasLikelyHexHashStringEntropy(str string) bool {
-	entropy := CalculateStringShannonEntropy(str)
-	entropy -= 1.2 / math.Log2(float64(len(str)))
-	return entropy > 3.0
-}
-
-// IsLikelyHexHashString determines whether the string is likely to be a hexadecimal hash or not.
-func IsLikelyHexHashString(str string) bool {
-	if reflection.IsEmpty(str) {
-		return false
-	}
-	_, err := hex.DecodeString(str)
-	if err != nil {
-		return false
-	}
-	return HasLikelyHexHashStringEntropy(str)
-}
-
 func (c *CloneObject) parseReference(cfg *GitActionConfig) (branch plumbing.ReferenceName, hash plumbing.Hash) {
 	ref := cfg.GetReference()
 	if strings.HasPrefix(ref, refPrefix) || strings.HasPrefix(ref, symrefPrefix) {
 		branch = plumbing.ReferenceName(strings.TrimPrefix(ref, symrefPrefix))
 	} else {
-		if IsLikelyHexHashString(ref) {
+		if hashing.IsLikelyHexHashString(ref) {
 			hash = plumbing.NewHash(ref)
 		} else {
 			tag, err := c.repo.Tag(ref)
