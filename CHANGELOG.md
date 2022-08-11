@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.17.2" (2022-08-11)
+========================
+
+Bugfixes
+--------
+
+- [git] Return HEAD if reference not provided (#202208111622)
+
+
 "" "1.17.1" (2022-08-11)
 ========================
 
