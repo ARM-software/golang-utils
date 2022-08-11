@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.17.1" (2022-08-11)
+========================
+
+Bugfixes
+--------
+
+- [git] modified interface to handle more generic references (tag, commit hash or branch name) (#202208111416)
+
+
 "" "1.17.0" (2022-08-11)
 ========================
 
