@@ -105,8 +105,8 @@ func TestCloneNormalRepo(t *testing.T) {
 			require.True(t, empty)
 			// Run test
 			cloneOptions := GitActionConfig{
-				URL:    test.url,
-				Branch: "main",
+				URL:       test.url,
+				Reference: "main",
 			}
 			err = CloneWithLimits(context.Background(), destPath, test.limits, &cloneOptions)
 			require.NoError(t, err)

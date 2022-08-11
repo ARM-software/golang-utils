@@ -2,7 +2,7 @@ package git
 
 import (
 	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	"github.com/ARM-software/golang-utils/utils/config"
@@ -13,15 +13,11 @@ type GitActionConfig struct {
 	// The (possibly remote) repository URL to clone from.
 	URL string `mapstructure:"url"`
 	// Auth credentials, if required, to use with the remote repository.
-	Auth transport.AuthMethod
+	Auth http.BasicAuth `mapstructure:"auth"`
 	// Limit fetching to the specified number of commits.
 	Depth int `mapstructure:"depth"`
-	// Hash is the hash of the commit to be checked out. If used, HEAD will be
-	// in detached mode. If Create is not used, Branch and Hash are mutually
-	// exclusive.
-	Hash string `mapstructure:"hash"`
-	// Branch to be checked out, if Branch and Hash are empty is set to `master`.
-	Branch string `mapstructure:"branch"`
+	// Regerence can be a hash, a branch, or a tag
+	Reference string `mapstructure:"ref"`
 	// RecurseSubmodules after the clone is created, initialize all submodules
 	// within, using their default settings. This option is ignored if the
 	// cloned repository does not have a worktree.
@@ -39,20 +35,16 @@ func (c *GitActionConfig) GetURL() string {
 	return c.URL
 }
 
-func (c *GitActionConfig) GetAuth() transport.AuthMethod {
-	return c.Auth
+func (c *GitActionConfig) GetAuth() *http.BasicAuth {
+	return &c.Auth
 }
 
 func (c *GitActionConfig) GetDepth() int {
 	return c.Depth
 }
 
-func (c *GitActionConfig) GetHash() string {
-	return c.Hash
-}
-
-func (c *GitActionConfig) GetBranch() string {
-	return c.Branch
+func (c *GitActionConfig) GetReference() string {
+	return c.Reference
 }
 
 func (c *GitActionConfig) GetRecursiveSubModules() bool {

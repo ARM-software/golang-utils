@@ -29,8 +29,7 @@ type IGitActionConfig interface {
 	GetUrl() string
 	GetAuth() transport.AuthMethod
 	GetDepth() int
-	GetHash() string
-	GetBranch() string
+	GetReference() string
 	GetRecursiveSubModules() git.SubmoduleRescursivity
 	GetTags() git.TagMode
 	GetCreate() bool
