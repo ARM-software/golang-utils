@@ -5,16 +5,13 @@
 package hashing
 
 import (
-	// nolint:gosec
-	"crypto/md5"
-	"math"
-
-	// nolint:gosec
-	"crypto/sha1"
+	"crypto/md5"  //nolint:gosec
+	"crypto/sha1" //nolint:gosec
 	"crypto/sha256"
 	"encoding/hex"
 	"hash"
 	"io"
+	"math"
 	"strings"
 
 	"github.com/OneOfOne/xxhash"
