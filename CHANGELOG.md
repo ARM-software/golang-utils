@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.17.0" (2022-08-11)
+========================
+
+Features
+--------
+
+- Add git utility to prevent cloning git bombs (#202208081656)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v3-3.22.7 (#202208011032)
+- Remove TryLock as it isn't available in go1.16 (#202208111140)
+
+
 "" "1.16.0" (2022-07-29)
 ========================
 
