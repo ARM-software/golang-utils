@@ -5,20 +5,21 @@
 package hashing
 
 import (
-	// nolint:gosec
-	"crypto/md5"
-	// nolint:gosec
-	"crypto/sha1"
+	"crypto/md5"  //nolint:gosec
+	"crypto/sha1" //nolint:gosec
 	"crypto/sha256"
 	"encoding/hex"
 	"hash"
 	"io"
+	"math"
 	"strings"
 
 	"github.com/OneOfOne/xxhash"
 	"github.com/spaolacci/murmur3"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/reflection"
+	strings2 "github.com/ARM-software/golang-utils/utils/strings"
 )
 
 const (
@@ -90,4 +91,24 @@ func CalculateHash(text, htype string) string {
 		return ""
 	}
 	return hash
+}
+
+// HasLikelyHexHashStringEntropy states whether a string has an entropy which may entail it is a hexadecimal hash
+// This is based on the work done by `detect-secrets` https://github.com/Yelp/detect-secrets/blob/2fc0e31f067af98d97ad0f507dac032c9506f667/detect_secrets/plugins/high_entropy_strings.py#L150
+func HasLikelyHexHashStringEntropy(str string) bool {
+	entropy := strings2.CalculateStringShannonEntropy(str)
+	entropy -= 1.2 / math.Log2(float64(len(str)))
+	return entropy > 3.0
+}
+
+// IsLikelyHexHashString determines whether the string is likely to be a hexadecimal hash or not.
+func IsLikelyHexHashString(str string) bool {
+	if reflection.IsEmpty(str) {
+		return false
+	}
+	_, err := hex.DecodeString(str)
+	if err != nil {
+		return false
+	}
+	return HasLikelyHexHashStringEntropy(str)
 }

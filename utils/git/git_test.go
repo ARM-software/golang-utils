@@ -6,6 +6,7 @@ import (
 	"log"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -21,6 +22,7 @@ import (
 var (
 	validBlobHash    plumbing.Hash
 	validTreeHash    plumbing.Hash
+	validTag         *plumbing.Reference
 	repoTest         *git.Repository
 	repoGitBomb      *git.Repository
 	validTreeEntries []object.TreeEntry
@@ -82,6 +84,20 @@ func TestMain(m *testing.M) {
 		log.Panic(err)
 	}
 	validBlobHash = blobHash
+
+	// Create a valid tag
+	tag, err := repoTest.CreateTag("testTag", validBlobHash, &git.CreateTagOptions{
+		Tagger: &object.Signature{
+			Name:  "user",
+			Email: "example@arm.com",
+			When:  time.Now(),
+		},
+		Message: "test message for tag.",
+	})
+	if err != nil {
+		log.Panic(err)
+	}
+	validTag = tag
 
 	// Run the tests
 	_ = m.Run()
@@ -300,11 +316,59 @@ func TestPopulateInitialEntries(t *testing.T) {
 		MaxEntriesChannelSize = 100
 		c = NewCloneObject()
 		err = c.SetupLimits(NewLimits(1e8, 1e10, 1e6, 20, 1e6)) // max file size: 100MB, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 1 million
-		c.repo = repoTest
 		require.NoError(t, err)
+		c.repo = repoTest
 		require.Empty(t, c.allEntries)
 		err = c.populateInitialEntries(context.Background())
 		require.Error(t, err)
 		require.ErrorContains(t, err, fmt.Errorf("%w: entry channel saturated before initialisation complete", commonerrors.ErrTooLarge).Error())
 	})
+}
+
+func TestParseReference(t *testing.T) {
+	tests := []struct {
+		reference string
+		branch    plumbing.ReferenceName
+		hash      plumbing.Hash
+	}{
+		{
+			reference: "main",
+			branch:    plumbing.NewBranchReferenceName("main"),
+			hash:      plumbing.NewHash(""),
+		},
+		{
+			reference: "refs/heads/main",
+			branch:    plumbing.NewBranchReferenceName("main"),
+			hash:      plumbing.NewHash(""),
+		},
+		{
+			reference: "ref: refs/heads/main",
+			branch:    plumbing.NewBranchReferenceName("main"),
+			hash:      plumbing.NewHash(""),
+		},
+		{
+			reference: validBlobHash.String(),
+			branch:    plumbing.ReferenceName(""),
+			hash:      validBlobHash,
+		},
+		{
+			reference: validTag.Name().String(),
+			branch:    validTag.Name(),
+			hash:      plumbing.NewHash(""),
+		},
+	}
+	for i := range tests {
+		test := tests[i]
+		t.Run(fmt.Sprintf("%v_parseReference(%v)", i, test.reference), func(t *testing.T) {
+			c := NewCloneObject()
+			err := c.SetupLimits(DefaultLimits())
+			require.NoError(t, err)
+			c.repo = repoTest
+			branch, hash := c.parseReference(&GitActionConfig{
+				Reference: test.reference,
+			})
+			require.Equal(t, test.branch, branch)
+			require.Equal(t, test.hash, hash)
+		})
+	}
 }

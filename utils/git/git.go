@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"sync"
 
 	git "github.com/go-git/go-git/v5"
@@ -13,8 +14,14 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/hashing"
 	"github.com/ARM-software/golang-utils/utils/idgen"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
+)
+
+const (
+	refPrefix    = "refs/"
+	symrefPrefix = "ref: "
 )
 
 var (
@@ -348,19 +355,31 @@ func (c *CloneObject) ValidateRepository(ctx context.Context) (err error) {
 	return
 }
 
+func (c *CloneObject) parseReference(cfg *GitActionConfig) (branch plumbing.ReferenceName, hash plumbing.Hash) {
+	ref := cfg.GetReference()
+	if strings.HasPrefix(ref, refPrefix) || strings.HasPrefix(ref, symrefPrefix) {
+		branch = plumbing.ReferenceName(strings.TrimPrefix(ref, symrefPrefix))
+	} else {
+		if hashing.IsLikelyHexHashString(ref) {
+			hash = plumbing.NewHash(ref)
+		} else {
+			tag, err := c.repo.Tag(ref)
+			if err == nil {
+				branch = tag.Name()
+			} else {
+				branch = plumbing.NewBranchReferenceName(ref)
+			}
+		}
+	}
+	return
+}
+
 func (c *CloneObject) Checkout(gitOptions *GitActionConfig) (err error) {
 	worktree, err := c.repo.Worktree()
 	if err != nil {
 		return
 	}
-	var branch plumbing.ReferenceName
-	if gitOptions.GetBranch() != "" {
-		branch = plumbing.NewBranchReferenceName(gitOptions.Branch)
-	}
-	var hash plumbing.Hash
-	if gitOptions.GetHash() != "" {
-		hash = plumbing.NewHash(gitOptions.Hash)
-	}
+	branch, hash := c.parseReference(gitOptions)
 	checkoutOptions := git.CheckoutOptions{
 		Hash:   hash,
 		Branch: branch,

@@ -31,8 +31,8 @@ func TestCloneGitBomb(t *testing.T) {
 			name:                  "git bomb large channel",
 			url:                   "https://github.com/Katee/git-bomb.git",
 			err:                   fmt.Errorf("%w: maximum file count exceeded", commonerrors.ErrTooLarge),
-			limits:                NewLimits(1e5, 1e6, 1e3, 10, 1e6), // max file size: 100KB, max repo size: 1MB, max file count: 1 thousand, max tree depth 10, max entries 1 million
-			maxEntriesChannelSize: 10000,
+			limits:                NewLimits(1e5, 1e6, 1e2, 10, 1e6), // max file size: 100KB, max repo size: 1MB, max file count: 1 hundred, max tree depth 10, max entries 1 million
+			maxEntriesChannelSize: 25000,
 		},
 		{
 			name:                  "git bomb seg fault",
@@ -105,8 +105,8 @@ func TestCloneNormalRepo(t *testing.T) {
 			require.True(t, empty)
 			// Run test
 			cloneOptions := GitActionConfig{
-				URL:    test.url,
-				Branch: "main",
+				URL:       test.url,
+				Reference: "main",
 			}
 			err = CloneWithLimits(context.Background(), destPath, test.limits, &cloneOptions)
 			require.NoError(t, err)
