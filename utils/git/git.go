@@ -357,6 +357,10 @@ func (c *CloneObject) ValidateRepository(ctx context.Context) (err error) {
 
 func (c *CloneObject) parseReference(cfg *GitActionConfig) (branch plumbing.ReferenceName, hash plumbing.Hash) {
 	ref := cfg.GetReference()
+	if ref == "" {
+		branch = plumbing.HEAD
+		return
+	}
 	if strings.HasPrefix(ref, refPrefix) || strings.HasPrefix(ref, symrefPrefix) {
 		branch = plumbing.ReferenceName(strings.TrimPrefix(ref, symrefPrefix))
 	} else {
