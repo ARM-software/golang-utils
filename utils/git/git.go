@@ -17,13 +17,10 @@ import (
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
-const (
-	ValidationParallelisation = 32
-)
-
 var (
 	// Var so it can be modified in testing
-	MaxEntriesChannelSize = 100000
+	MaxEntriesChannelSize     = 100000
+	ValidationParallelisation = 32
 )
 
 type Entry struct {

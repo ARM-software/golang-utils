@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"path/filepath"
 	"testing"
 
 	"github.com/go-git/go-git/v5"
@@ -21,26 +22,40 @@ var (
 	validBlobHash    plumbing.Hash
 	validTreeHash    plumbing.Hash
 	repoTest         *git.Repository
+	repoGitBomb      *git.Repository
 	validTreeEntries []object.TreeEntry
 )
 
 // Clone the repository once and use it and the valid trees/blobs/entries in all the tests
 func TestMain(m *testing.M) {
 	fs := filesystem.NewFs(filesystem.StandardFS)
-	destPath, err := fs.TempDirInTempDir("git-bomb")
+	destBase, err := fs.TempDirInTempDir("git-test")
 	if err != nil {
 		log.Panic(err)
 	}
+	destPath := filepath.Join(destBase, "blinky")
 	defer func() { _ = fs.Rm(destPath) }()
+	destGitBomb := filepath.Join(destBase, "bomb")
+	defer func() { _ = fs.Rm(destGitBomb) }()
 
-	// Set up a repo
-	r, err := git.PlainClone(destPath, false, &git.CloneOptions{
+	// Set up a git bomb
+	r1, err := git.PlainClone(destPath, false, &git.CloneOptions{
 		URL: "https://github.com/Arm-Examples/Blinky_MIMXRT1064-EVK_RTX",
 	})
 	if err != nil {
 		log.Panic(err)
 	}
-	repoTest = r
+
+	// Set up a repo
+	r2, err := git.PlainClone(destGitBomb, false, &git.CloneOptions{
+		URL:        "https://github.com/Katee/git-bomb.git",
+		NoCheckout: true,
+	})
+	if err != nil {
+		log.Panic(err)
+	}
+	repoTest = r1
+	repoGitBomb = r2
 
 	// Get a valid tree
 	trees, err := repoTest.TreeObjects()

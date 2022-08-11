@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -158,20 +156,13 @@ func TestValidationNormalReposErrors(t *testing.T) {
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
 
-	r, err := git.PlainClone(destPath, false, &git.CloneOptions{
-		URL:           "https://github.com/Arm-Examples/Blinky_MIMXRT1064-EVK_RTX",
-		ReferenceName: plumbing.NewBranchReferenceName("main"),
-		NoCheckout:    true,
-	})
-	require.NoError(t, err)
-
 	// Re-run tests but saturate channel during population
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
 
 			c := NewCloneObject()
-			c.repo = r
+			c.repo = repoTest
 			err = c.SetupLimits(test.limits)
 			require.NoError(t, err)
 
@@ -187,7 +178,7 @@ func TestValidationNormalReposErrors(t *testing.T) {
 			MaxEntriesChannelSize = 100
 
 			c := NewCloneObject()
-			c.repo = r
+			c.repo = repoTest
 			err = c.SetupLimits(test.limits)
 			require.NoError(t, err)
 
@@ -201,14 +192,9 @@ func TestValidationNormalReposErrors(t *testing.T) {
 		MaxEntriesChannelSize = 1000
 		err = fs.Rm(destPath)
 		require.NoError(t, err)
-		r, err = git.PlainClone(destPath, false, &git.CloneOptions{
-			URL:        "https://github.com/Katee/git-bomb.git",
-			NoCheckout: true,
-		})
-		require.NoError(t, err)
 
 		c := NewCloneObject()
-		c.repo = r
+		c.repo = repoGitBomb
 		err = c.SetupLimits(DefaultLimits())
 		require.NoError(t, err)
 
@@ -271,24 +257,7 @@ func TestClone(t *testing.T) {
 	require.True(t, isEmpty)
 	defer func() { _ = fs.Rm(destPath) }()
 	limits := NewLimits(1e8, 1e10, 1e6, 20, 1e6) // max file size: 100MB, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 1 million
-	branch := "main"
 	c := NewCloneObject()
-
-	t.Run("test clone", func(t *testing.T) {
-		err = c.SetupLimits(limits)
-		require.NoError(t, err)
-		err = c.Clone(context.Background(), destPath, &GitActionConfig{
-			URL:    "https://github.com/Arm-Examples/Blinky_MIMXRT1064-EVK_RTX",
-			Branch: "main",
-		})
-		require.NoError(t, err)
-		isEmpty, err = filesystem.IsEmpty(destPath)
-		require.NoError(t, err)
-		require.False(t, isEmpty)
-		head, err := c.repo.Head()
-		require.NoError(t, err)
-		require.Equal(t, plumbing.NewBranchReferenceName(branch), head.Name())
-	})
 
 	// Cleanup and make sure cloning git bomb with no checkout doesn't crash
 	t.Run("cloning git bomb with no checkout doesn't crash", func(t *testing.T) {
