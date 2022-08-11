@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math"
 	"math/rand"
 	"os"
@@ -95,7 +94,7 @@ func TestOpen(t *testing.T) {
 			require.NoError(t, err)
 			defer func() { _ = file.Close() }()
 
-			contents, err := ioutil.ReadAll(file)
+			contents, err := io.ReadAll(file)
 			require.NoError(t, err)
 			expectedContents := "initial|append"
 			assert.Equal(t, expectedContents, string(contents))
@@ -110,7 +109,7 @@ func TestOpen(t *testing.T) {
 
 			testFileMode(t, fs, filePath, mode)
 
-			contents, err = ioutil.ReadAll(file)
+			contents, err = io.ReadAll(file)
 			require.NoError(t, err)
 			err = file.Close()
 			require.NoError(t, err)

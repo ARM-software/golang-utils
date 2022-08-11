@@ -9,6 +9,7 @@ require (
 	github.com/bombsimon/logrusr v1.1.0
 	github.com/bxcodec/faker/v3 v3.8.0
 	github.com/djherbis/times v1.5.0
+	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
 	github.com/go-logr/logr v0.4.0 // Staying on this version until kubernetes uses a more recent one
 	github.com/go-logr/stdr v0.4.0
@@ -20,7 +21,6 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.1
 	github.com/joho/godotenv v1.4.0
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5
 	github.com/rs/zerolog v1.27.0
 	github.com/sasha-s/go-deadlock v0.3.1
@@ -34,7 +34,8 @@ require (
 	go.uber.org/atomic v1.9.0
 	go.uber.org/goleak v1.1.12
 	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2
+	golang.org/x/sync v0.0.0-20220513210516-0976fa681c29
 	golang.org/x/text v0.3.7
-	golang.org/x/tools v0.1.7 // indirect
-	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 )
+
+require golang.org/x/tools v0.1.7 // indirect

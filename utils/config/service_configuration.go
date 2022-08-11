@@ -35,12 +35,12 @@ func Load(envVarPrefix string, configurationToSet IServiceConfiguration, default
 // LoadFromViper is the same as `Load` but instead of creating a new viper session, reuse the one provided.
 // Important note:
 // Viper's precedence order is maintained:
-//    1) values set using explicit calls to `Set`
-//    2) flags
-//    3) environment (variables or `.env`)
-//    4) configuration file
-//    5) key/value store
-//    6) default values (set via flag default values, or calls to `SetDefault` or via `defaultConfiguration` argument provided)
+// 1) values set using explicit calls to `Set`
+// 2) flags
+// 3) environment (variables or `.env`)
+// 4) configuration file
+// 5) key/value store
+// 6) default values (set via flag default values, or calls to `SetDefault` or via `defaultConfiguration` argument provided)
 // Nonetheless, when it comes to default values. It differs slightly from Viper as default values from the default Configuration (i.e. `defaultConfiguration` argument provided) will take precedence over defaults set via `SetDefault` or flags unless they are considered empty values according to `reflection.IsEmpty`.
 func LoadFromViper(viperSession *viper.Viper, envVarPrefix string, configurationToSet IServiceConfiguration, defaultConfiguration IServiceConfiguration) (err error) {
 	// Load Defaults

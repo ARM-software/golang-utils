@@ -6,7 +6,7 @@ package charset
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"reflect"
 	"strings"
@@ -81,7 +81,7 @@ func TestIconv(t *testing.T) {
 
 			dst, err := IconvFromLabels(strings.NewReader(test.src), test.fromEncoding, test.toEncoding)
 			require.NoError(t, err)
-			bytes, err := ioutil.ReadAll(dst)
+			bytes, err := io.ReadAll(dst)
 			require.NoError(t, err)
 			require.Equal(t, test.expected, string(bytes))
 		})

@@ -6,7 +6,7 @@ package iconv
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"strings"
 	"testing"
 
@@ -58,7 +58,7 @@ func TestConvertBytes(t *testing.T) {
 			require.Equal(t, test.expected, string(dstBytes))
 
 			dst := test.converter.Convert(strings.NewReader(test.src))
-			bytes, err := ioutil.ReadAll(dst)
+			bytes, err := io.ReadAll(dst)
 			require.NoError(t, err)
 			require.Equal(t, test.expected, string(bytes))
 		})
