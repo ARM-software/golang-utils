@@ -356,6 +356,11 @@ func TestParseReference(t *testing.T) {
 			branch:    validTag.Name(),
 			hash:      plumbing.NewHash(""),
 		},
+		{
+			reference: "",
+			branch:    plumbing.HEAD,
+			hash:      plumbing.NewHash(""),
+		},
 	}
 	for i := range tests {
 		test := tests[i]
