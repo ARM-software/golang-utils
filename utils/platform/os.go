@@ -7,7 +7,6 @@ package platform
 import (
 	"errors"
 	"fmt"
-	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"os"
 	"runtime"
 	"strings"
@@ -15,6 +14,8 @@ import (
 
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/mem"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 var (

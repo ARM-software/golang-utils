@@ -211,18 +211,18 @@ func TestChown(t *testing.T) {
 			err = file.Close()
 			require.NoError(t, err)
 			require.True(t, fs.Exists(filePath))
-			uid, gid, err := fs.FetchOwners(filePath)
+			uID, gID, err := fs.FetchOwners(filePath)
 			if err != nil {
 				assert.True(t, commonerrors.Any(err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported))
 			} else {
-				err = fs.Chown(filePath, uid, gid)
+				err = fs.Chown(filePath, uID, gID)
 				if err != nil {
 					assert.True(t, commonerrors.Any(err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported))
 				} else {
-					newUid, newGid, err := fs.FetchOwners(filePath)
+					newUID, newGID, err := fs.FetchOwners(filePath)
 					require.NoError(t, err)
-					assert.Equal(t, uid, newUid)
-					assert.Equal(t, gid, newGid)
+					assert.Equal(t, uID, newUID)
+					assert.Equal(t, gID, newGID)
 				}
 			}
 			_ = fs.Rm(tmpDir)
