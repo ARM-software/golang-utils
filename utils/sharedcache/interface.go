@@ -19,7 +19,7 @@ type ISharedCacheRepository interface {
 	Store(ctx context.Context, key, src string) error
 	// CleanEntry cleans up cache[`key`]. The key is still present in the cache.
 	CleanEntry(ctx context.Context, key string) error
-	//RemoveEntry removes cache[`key`] entry. The key is then no longer present in the cache.
+	// RemoveEntry removes cache[`key`] entry. The key is then no longer present in the cache.
 	RemoveEntry(ctx context.Context, key string) error
 	// GetEntryAge returns the age of the cache[`key`] entry
 	GetEntryAge(ctx context.Context, key string) (age time.Duration, err error)
