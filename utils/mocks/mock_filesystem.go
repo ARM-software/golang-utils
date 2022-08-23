@@ -1101,6 +1101,22 @@ func (mr *MockFSMockRecorder) Exists(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockFS)(nil).Exists), arg0)
 }
 
+// FetchOwners mocks base method.
+func (m *MockFS) FetchOwners(arg0 string) (int, int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FetchOwners", arg0)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(int)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// FetchOwners indicates an expected call of FetchOwners.
+func (mr *MockFSMockRecorder) FetchOwners(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchOwners", reflect.TypeOf((*MockFS)(nil).FetchOwners), arg0)
+}
+
 // FileHash mocks base method.
 func (m *MockFS) FileHash(arg0, arg1 string) (string, error) {
 	m.ctrl.T.Helper()
@@ -1195,10 +1211,10 @@ func (mr *MockFSMockRecorder) GetFileSize(arg0 interface{}) *gomock.Call {
 }
 
 // GetType mocks base method.
-func (m *MockFS) GetType() int {
+func (m *MockFS) GetType() filesystem.FilesystemType {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetType")
-	ret0, _ := ret[0].(int)
+	ret0, _ := ret[0].(filesystem.FilesystemType)
 	return ret0
 }
 

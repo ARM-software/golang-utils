@@ -196,6 +196,40 @@ func TestChmod(t *testing.T) {
 	}
 }
 
+func TestChown(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-chown-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+
+			filePath := fmt.Sprintf("%v%v%v", tmpDir, string(fs.PathSeparator()), "test.txt")
+			file, err := fs.CreateFile(filePath)
+			require.NoError(t, err)
+			defer func() { _ = file.Close() }()
+			err = file.Close()
+			require.NoError(t, err)
+			require.True(t, fs.Exists(filePath))
+			uid, gid, err := fs.FetchOwners(filePath)
+			if err != nil {
+				assert.True(t, commonerrors.Any(err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported))
+			} else {
+				err = fs.Chown(filePath, uid, gid)
+				if err != nil {
+					assert.True(t, commonerrors.Any(err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported))
+				} else {
+					newUid, newGid, err := fs.FetchOwners(filePath)
+					require.NoError(t, err)
+					assert.Equal(t, uid, newUid)
+					assert.Equal(t, gid, newGid)
+				}
+			}
+			_ = fs.Rm(tmpDir)
+		})
+	}
+}
+
 func createTestFileTree(t *testing.T, fs FS, testDir, basePath string, withLinks bool, fileModTime time.Time, fileAccessTime time.Time) []string {
 	err := fs.MkDir(testDir)
 	require.NoError(t, err)
@@ -664,7 +698,7 @@ func TestWalk(t *testing.T) {
 }
 
 func TestGarbageCollection(t *testing.T) {
-	for _, fsType := range []int{StandardFS} {
+	for _, fsType := range []FilesystemType{StandardFS} {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			fs := NewFs(fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-gc-")

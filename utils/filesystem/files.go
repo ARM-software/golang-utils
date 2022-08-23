@@ -68,11 +68,11 @@ func IdentityPathConverterFunc(path string) string {
 
 type VFS struct {
 	vfs           afero.Fs
-	fsType        int
+	fsType        FilesystemType
 	pathConverter func(path string) string
 }
 
-func NewVirtualFileSystem(vfs afero.Fs, fsType int, pathConverter func(path string) string) FS {
+func NewVirtualFileSystem(vfs afero.Fs, fsType FilesystemType, pathConverter func(path string) string) FS {
 	return &VFS{
 		vfs:           vfs,
 		fsType:        fsType,
@@ -84,7 +84,7 @@ func GetGlobalFileSystem() FS {
 	return globalFileSystem
 }
 
-func GetType() int {
+func GetType() FilesystemType {
 	return globalFileSystem.GetType()
 }
 
@@ -151,7 +151,7 @@ func (fs *VFS) walk(ctx context.Context, path string, info os.FileInfo, fn filep
 
 }
 
-func (fs *VFS) GetType() int {
+func (fs *VFS) GetType() FilesystemType {
 	return fs.fsType
 }
 
@@ -692,6 +692,23 @@ func (fs *VFS) Chown(name string, uid, gid int) (err error) {
 		return
 	}
 	err = commonerrors.ErrNotImplemented
+	return
+}
+
+func (fs *VFS) FetchOwners(name string) (uid, gid int, err error) {
+	stat, err := fs.Stat(name)
+	if err != nil {
+		return
+	}
+	if stat == nil {
+		err = fmt.Errorf("%w: missing file info", commonerrors.ErrUndefined)
+		return
+	}
+	if reflection.IsEmpty(stat.Sys()) {
+		err = commonerrors.ErrNotImplemented
+		return
+	}
+	uid, gid, err = determineFileOwners(stat)
 	return
 }
 
