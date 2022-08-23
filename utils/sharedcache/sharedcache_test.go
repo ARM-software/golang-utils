@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"testing"
 	"time"
 
@@ -108,7 +107,7 @@ func TestNothingInCacheWorkflow(t *testing.T) { // Single fetch with no file pre
 				require.NoError(t, err)
 				assert.Zero(t, count)
 
-				key := remoteCache.GenerateKey("test", "cache", strconv.Itoa(cacheType))
+				key := remoteCache.GenerateKey("test", "cache", fmt.Sprintf("%v", cacheType))
 
 				err = remoteCache.Fetch(ctx, key, tmpDestDir)
 				require.NotNil(t, err)
@@ -160,7 +159,7 @@ func TestSimpleCacheWorkflow(t *testing.T) { // Simple store, followed by fetch
 				require.NoError(t, err)
 				assert.Zero(t, count)
 
-				key := remoteCache.GenerateKey("test", "cache", strconv.Itoa(cacheType))
+				key := remoteCache.GenerateKey("test", "cache", fmt.Sprintf("%v", cacheType))
 				err = remoteCache.Store(ctx, key, tmpSrcDir)
 				require.NoError(t, err)
 
@@ -256,7 +255,7 @@ func TestSimpleCacheWorkflow_WithExcludedFilesystemItems(t *testing.T) { // Simp
 				require.NoError(t, err)
 				assert.Zero(t, count)
 
-				key := remoteCache.GenerateKey("test", "cache", strconv.Itoa(cacheType))
+				key := remoteCache.GenerateKey("test", "cache", fmt.Sprintf("%v", cacheType))
 				err = remoteCache.Store(ctx, key, tmpSrcDir)
 				require.NoError(t, err)
 
@@ -315,7 +314,7 @@ func TestComplexCacheWorkflow(t *testing.T) { // Multiple Store action. The fetc
 				assert.Zero(t, count)
 
 				var expectedTree []string
-				key := remoteCache.GenerateKey("test", "cache", strconv.Itoa(cacheType))
+				key := remoteCache.GenerateKey("test", "cache", fmt.Sprintf("%v", cacheType))
 
 				for i := 0; i < 10; i++ {
 					err = fs.CleanDir(tmpSrcDir)
@@ -391,7 +390,7 @@ func TestComplexCacheWorkflowWithCleanCache(t *testing.T) { // Multiple Store ac
 				assert.Zero(t, count)
 
 				var expectedTree []string
-				key := remoteCache.GenerateKey("test", "cache", strconv.Itoa(cacheType))
+				key := remoteCache.GenerateKey("test", "cache", fmt.Sprintf("%v", cacheType))
 
 				for i := 0; i < 10; i++ {
 					err = fs.CleanDir(tmpSrcDir)
@@ -463,7 +462,7 @@ func TestRemoveEntry(t *testing.T) { // A store followed by a remove entry follo
 				require.NoError(t, err)
 				assert.Zero(t, count)
 
-				key := remoteCache.GenerateKey("test", "cache", strconv.Itoa(cacheType))
+				key := remoteCache.GenerateKey("test", "cache", fmt.Sprintf("%v", cacheType))
 
 				_, err = createTestFileTree(fs, tmpSrcDir, time.Now(), time.Now())
 				require.NoError(t, err)
@@ -522,7 +521,7 @@ func TestEntryAge(t *testing.T) { // A store followed by a remove entry followed
 				require.NoError(t, err)
 				assert.Zero(t, count)
 
-				key := remoteCache.GenerateKey("test", "cache", strconv.Itoa(cacheType))
+				key := remoteCache.GenerateKey("test", "cache", fmt.Sprintf("%v", cacheType))
 
 				_, err = createTestFileTree(fs, tmpSrcDir, time.Now(), time.Now())
 				require.NoError(t, err)

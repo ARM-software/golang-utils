@@ -10,7 +10,7 @@ import (
 
 type Configuration struct {
 	RemoteStoragePath       string        `mapstructure:"remote_storage_path"` // Path where the cache will be stored.
-	Timeout                 time.Duration `mapstructure:"Timeout"`             // Cache timeout if need be
+	Timeout                 time.Duration `mapstructure:"timeout"`             // Cache timeout if need be
 	FilesystemItemsToIgnore string        `mapstructure:"ignore_fs_items"`     // List of files/folders to ignore (pattern list separated by commas)
 }
 

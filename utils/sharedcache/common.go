@@ -77,7 +77,7 @@ func TransferFiles(ctx context.Context, fs filesystem.FS, dst, src string) (dest
 		return
 	}
 	if result, suberr := fs.IsFile(src); !result || suberr != nil {
-		err = fmt.Errorf("%w: source is not a file [%v, (%v)]", commonerrors.ErrInvalid, src, suberr)
+		err = fmt.Errorf("%w: source is expected to be a file [%v, (%v)]", commonerrors.ErrInvalid, src, suberr)
 		return
 	}
 

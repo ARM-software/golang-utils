@@ -7,16 +7,18 @@ import (
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 )
 
+type CacheType int
+
 const (
-	CacheMutable int = iota
+	CacheMutable CacheType = iota
 	CacheImmutable
 )
 
 var (
-	CacheTypes = []int{CacheMutable, CacheImmutable}
+	CacheTypes = []CacheType{CacheMutable, CacheImmutable}
 )
 
-func NewCache(cacheType int, fs filesystem.FS, cfg *Configuration) (ISharedCacheRepository, error) {
+func NewCache(cacheType CacheType, fs filesystem.FS, cfg *Configuration) (ISharedCacheRepository, error) {
 	switch cacheType {
 	case CacheMutable:
 		return NewSharedMutableCacheRepository(cfg, fs)

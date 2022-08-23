@@ -39,13 +39,13 @@ func NewSharedImmutableCacheRepository(cfg *Configuration, fs filesystem.FS) (re
 	return
 }
 
+// listCompleteFilesByModTime sorts the files by mod time
 func listCompleteFilesByModTime(ctx context.Context, fs filesystem.FS, entryDir string) (sorted []string, err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
 	}
 
-	// sort the files by mod time
 	var fileModTimes []FileWithModTime
 	files, err := fs.Ls(entryDir)
 	if err != nil {
@@ -53,7 +53,8 @@ func listCompleteFilesByModTime(ctx context.Context, fs filesystem.FS, entryDir 
 	}
 
 	// Create array of non .part and non .hash files with their modtimes
-	for _, file := range files {
+	for i := range files {
+		file := files[i]
 		err = parallelisation.DetermineContextError(ctx)
 		if err != nil {
 			return sorted, err
@@ -75,11 +76,12 @@ func listCompleteFilesByModTime(ctx context.Context, fs filesystem.FS, entryDir 
 	}
 	// can't do this directly using strings and stattimes to check on the
 	// file because the sort.Slice requires the function to output bool
-	// so if we wouldn't be abele to return an error if stattimes failed
+	// so if we wouldn't be able to return an error if stattimes failed
 	sort.Slice(fileModTimes, func(i, j int) bool { return fileModTimes[i].modTime.After(fileModTimes[j].modTime) })
 
 	// map to just string
-	for _, file := range fileModTimes {
+	for i := range fileModTimes {
+		file := fileModTimes[i]
 		err = parallelisation.DetermineContextError(ctx)
 		if err != nil {
 			return sorted, err
@@ -189,7 +191,8 @@ func (s *SharedImmutableCacheRepository) CleanEntry(ctx context.Context, key str
 		return
 	}
 	toClean := files[1:]
-	for _, file := range toClean {
+	for i := range toClean {
+		file := toClean[i]
 		err = parallelisation.DetermineContextError(ctx)
 		if err != nil {
 			return err
