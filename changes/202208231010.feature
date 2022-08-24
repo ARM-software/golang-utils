@@ -1,0 +1,1 @@
+`[shared cache]` Added a new module to create and manage shared cache between processes
