@@ -18,6 +18,7 @@ import (
 
 //go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IFileHash,Chowner,Linker,File,DiskUsage,FileTimeInfo,ILock,ILimits,FS
 
+// IFileHash defines a file hash.
 // For reference.
 // https://stackoverflow.com/questions/1761607/what-is-the-fastest-hash-algorithm-to-check-if-two-files-are-equal
 type IFileHash interface {
@@ -26,13 +27,13 @@ type IFileHash interface {
 	GetType() string
 }
 
-// Optional interface. It is only implemented by the
+// Chowner is an Optional interface. It is only implemented by the
 // filesystems saying so.
 type Chowner interface {
 	ChownIfPossible(string, int, int) error
 }
 
-// Optional interface. It is only implemented by the
+// Linker is an Optional  interface. It is only implemented by the
 // filesystems saying so.
 type Linker interface {
 	LinkIfPossible(string, string) error
@@ -116,7 +117,7 @@ type FS interface {
 	// StatTimes returns file time information.
 	StatTimes(name string) (FileTimeInfo, error)
 	// GetType returns the type of the file system.
-	GetType() int
+	GetType() FilesystemType
 	// CleanDir removes all the files in a directory (equivalent rm -rf .../*)
 	CleanDir(dir string) (err error)
 	// CleanDirWithContext removes all the files in a directory (equivalent rm -rf .../*)
@@ -195,6 +196,8 @@ type FS interface {
 	Chtimes(name string, atime time.Time, mtime time.Time) error
 	// Chown changes the numeric uid and gid of the named file.
 	Chown(name string, uid, gid int) error
+	// FetchOwners returns the numeric uid and gid of the named file
+	FetchOwners(name string) (uid, gid int, err error)
 	// Link creates newname as a hard link to the oldname file
 	Link(oldname, newname string) error
 	// Readlink returns the destination of the named symbolic link.
@@ -227,7 +230,7 @@ type FS interface {
 	Zip(source string, destination string) error
 	// ZipWithContext compresses a file tree (source) into a zip file (destination)
 	ZipWithContext(ctx context.Context, source string, destination string) error
-	// ZipWithContextAndLimits(ctx context.Context, source string, destination string) error compresses a file tree (source) into a zip file (destination) .Nonetheless, if FileSystemLimits are exceeded, an error will be returned and the process will be stopped.
+	// ZipWithContextAndLimits compresses a file tree (source) into a zip file (destination) .Nonetheless, if FileSystemLimits are exceeded, an error will be returned and the process will be stopped.
 	// It is however the responsibility of the caller to clean any partially created zipped archive if error occurs.
 	ZipWithContextAndLimits(ctx context.Context, source string, destination string, limits ILimits) error
 	// Unzip decompresses a source zip archive into the destination
