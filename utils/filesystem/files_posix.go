@@ -1,5 +1,5 @@
-//go:build unix || (js && wasm)
-// +build unix js,wasm
+//go:build unix || (js && wasm) || darwin
+// +build unix js,wasm darwin
 
 package filesystem
 
