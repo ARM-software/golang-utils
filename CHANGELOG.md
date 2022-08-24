@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.18.0" (2022-08-24)
+========================
+
+Features
+--------
+
+- `[filesystem]` Add utility to retrieve file ownership information i.e. `UID` and `GID` (#202208131936)
+- `[shared cache]` Added a new module to create and manage shared cache between processes (#202208231010)
+
+
+Deprecations and Removals
+-------------------------
+
+- Reverted a dependency upgrade as not supported on MacOs (#202208241429)
+
+
 "" "1.17.2" (2022-08-11)
 ========================
 

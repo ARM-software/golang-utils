@@ -1,1 +1,0 @@
-`[filesystem]` Add utility to retrieve file ownership information i.e. `UID` and `GID`
