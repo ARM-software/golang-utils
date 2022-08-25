@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.18.1" (2022-08-25)
+========================
+
+Bugfixes
+--------
+
+- `[filesystem]` Fixed the platform dependent code on Linux (#202208251445)
+
+
 "" "1.18.0" (2022-08-24)
 ========================
 
