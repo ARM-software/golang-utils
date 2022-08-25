@@ -1,5 +1,5 @@
-//go:build unix || (js && wasm) || darwin
-// +build unix js,wasm darwin
+//go:build linux || unix || (js && wasm) || darwin || aix || dragonfly || freebsd || nacl || netbsd || openbsd || solaris
+// +build linux unix js,wasm darwin aix dragonfly freebsd nacl netbsd openbsd solaris
 
 package filesystem
 
