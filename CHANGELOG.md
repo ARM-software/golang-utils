@@ -14,6 +14,16 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.18.2" (2022-08-31)
+========================
+
+Bugfixes
+--------
+
+- Dependency upgrade: zerolog-1.28.0 (#202208291023, #202208291024, #20220829102301)
+- `[logs]` Fixed the error message logged by a slow writer (#202208311750)
+
+
 "" "1.18.1" (2022-08-25)
 ========================
 
