@@ -14,7 +14,7 @@ require (
 	github.com/go-logr/logr v0.4.0 // Staying on this version until kubernetes uses a more recent one
 	github.com/go-logr/stdr v0.4.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
-	github.com/gofrs/uuid v4.2.0+incompatible
+	github.com/gofrs/uuid v4.3.0+incompatible
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f
 	github.com/golang/mock v1.6.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
