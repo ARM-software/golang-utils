@@ -414,6 +414,14 @@ func TestZip(t *testing.T) {
 	}
 }
 
+func TestMaxZipFiles(t *testing.T) {
+	
+}
+
+func TestBelowMaxZipFiles(t *testing.T) {
+
+}
+
 func TestLink(t *testing.T) {
 	if platform.IsWindows() {
 		fmt.Println("In order to run TestLink on Windows, Developer mode must be enabled: https://github.com/golang/go/pull/24307")
