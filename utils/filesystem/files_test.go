@@ -19,7 +19,6 @@ import (
 	"testing"
 	"time"
 
-
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
