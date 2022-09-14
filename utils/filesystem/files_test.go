@@ -19,6 +19,7 @@ import (
 	"testing"
 	"time"
 
+
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -412,14 +413,6 @@ func TestZip(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestMaxZipFiles(t *testing.T) {
-	
-}
-
-func TestBelowMaxZipFiles(t *testing.T) {
-
 }
 
 func TestLink(t *testing.T) {
@@ -1314,6 +1307,37 @@ func TestFilepathStem(t *testing.T) {
 	})
 }
 
+func TestUnzipFileCountLimit(t *testing.T) {
+	fs := NewFs(StandardFS)
+
+	testInDir := "testdata"
+	limits := NewLimits(1<<30, 10<<30, 10)
+
+	// above file count limit test
+	testFile := "abovefilecountlimitzip"
+	srcPath := filepath.Join(testInDir, testFile+".zip")
+
+	destPath, err := fs.TempDirInTempDir("unzip-limits-")
+	assert.NoError(t, err)
+
+	defer fs.Rm(destPath)
+
+	_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
+	assert.Error(t, err)
+
+	//below file count limit test
+	testFile = "abovefilecountlimitzip"
+	srcPath = filepath.Join(testInDir, testFile+".zip")
+
+	destPath, err = fs.TempDirInTempDir("unzip-limits-")
+	assert.NoError(t, err)
+
+	defer fs.Rm(destPath)
+
+	_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
+	assert.NoError(t, err)
+}
+
 func checkCopyDir(t *testing.T, fs FS, src string, dest string) {
 	assert.True(t, fs.Exists(src))
 	assert.False(t, fs.Exists(dest))
@@ -1407,3 +1431,4 @@ func testFileMode(t *testing.T, fs FS, filePath string, mode int) {
 		assert.Equal(t, mode, int(fi.Mode().Perm()))
 	}
 }
+
