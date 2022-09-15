@@ -1312,29 +1312,31 @@ func TestUnzipFileCountLimit(t *testing.T) {
 	testInDir := "testdata"
 	limits := NewLimits(1<<30, 10<<30, 10)
 
-	// above file count limit test
-	testFile := "abovefilecountlimitzip"
-	srcPath := filepath.Join(testInDir, testFile+".zip")
+	t.Run("unzip file above file count limit", func(t *testing.T){
+		testFile := "abovefilecountlimitzip"
+		srcPath := filepath.Join(testInDir, testFile+".zip")
+	
+		destPath, err := fs.TempDirInTempDir("unzip-limits-")
+		assert.NoError(t, err)
+	
+		defer fs.Rm(destPath)
+	
+		_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
+		assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
+	})
 
-	destPath, err := fs.TempDirInTempDir("unzip-limits-")
-	assert.NoError(t, err)
-
-	defer fs.Rm(destPath)
-
-	_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
-	assert.Error(t, err)
-
-	//below file count limit test
-	testFile = "abovefilecountlimitzip"
-	srcPath = filepath.Join(testInDir, testFile+".zip")
-
-	destPath, err = fs.TempDirInTempDir("unzip-limits-")
-	assert.NoError(t, err)
-
-	defer fs.Rm(destPath)
-
-	_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
-	assert.NoError(t, err)
+	t.Run("unzip file below file count limit",func(t *testing.T) {
+		testFile := "belowfilecountlimitzip"
+		srcPath := filepath.Join(testInDir, testFile+".zip")
+	
+		destPath, err := fs.TempDirInTempDir("unzip-limits-")
+		assert.NoError(t, err)
+	
+		defer fs.Rm(destPath)
+	
+		_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
+		assert.NoError(t, err)
+	})
 }
 
 func checkCopyDir(t *testing.T, fs FS, src string, dest string) {
