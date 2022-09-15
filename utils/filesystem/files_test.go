@@ -1315,11 +1315,14 @@ func TestUnzipFileCountLimit(t *testing.T) {
 	t.Run("unzip file above file count limit", func(t *testing.T){
 		testFile := "abovefilecountlimitzip"
 		srcPath := filepath.Join(testInDir, testFile+".zip")
-	
+
 		destPath, err := fs.TempDirInTempDir("unzip-limits-")
 		assert.NoError(t, err)
-	
-		defer fs.Rm(destPath)
+		defer func() {
+			if tempErr := fs.Rm(destPath); tempErr != nil {
+					err = tempErr
+			}
+		}()
 	
 		_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
 		assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
@@ -1332,8 +1335,12 @@ func TestUnzipFileCountLimit(t *testing.T) {
 		destPath, err := fs.TempDirInTempDir("unzip-limits-")
 		assert.NoError(t, err)
 	
-		defer fs.Rm(destPath)
-	
+		defer func() {
+			if tempErr := fs.Rm(destPath); tempErr != nil {
+					err = tempErr
+			}
+		}()
+
 		_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
 		assert.NoError(t, err)
 	})

@@ -1225,8 +1225,8 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 	}
 
 	var fileCounter int
-	// List of file paths to return
 
+	// List of file paths to return
 	totalSizeOnDisk := atomic.NewUint64(0)
 
 	info, err := fs.Lstat(source)
@@ -1262,7 +1262,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 	// For each file in the zip file
 	for i := range zipReader.File {
 		fileCounter ++
-		
+
 		zippedFile := zipReader.File[i]
 		subErr := parallelisation.DetermineContextError(ctx)
 		if subErr != nil {
