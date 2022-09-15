@@ -1032,7 +1032,7 @@ func TestUnzip_Limits(t *testing.T) {
 	destPath, err := fs.TempDirInTempDir("unzip-limits-")
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
-	limits := NewLimits(1<<30, 1<<10) // Total size limited to 10 Kb
+	limits := NewLimits(1<<30, 1<<10, 1000000) // Total size limited to 10 Kb
 
 	empty, err := fs.IsEmpty(destPath)
 	assert.NoError(t, err)
@@ -1085,7 +1085,7 @@ func TestUnzip_ZipBomb(t *testing.T) {
 	destPath, err := fs.TempDirInTempDir("unzip-limits-")
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
-	limits := NewLimits(1<<30, 1<<20) // Total size limited to 1 Mb
+	limits := NewLimits(1<<30, 1<<20, 1000000) // Total size limited to 1 Mb
 
 	empty, err := fs.IsEmpty(destPath)
 	assert.NoError(t, err)
