@@ -1319,9 +1319,7 @@ func TestUnzipFileCountLimit(t *testing.T) {
 		destPath, err := fs.TempDirInTempDir("unzip-limits-")
 		assert.NoError(t, err)
 		defer func() {
-			if tempErr := fs.Rm(destPath); tempErr != nil {
-					err = tempErr
-			}
+			_ = fs.Rm(destPath)
 		}()
 	
 		_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
