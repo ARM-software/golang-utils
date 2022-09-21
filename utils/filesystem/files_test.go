@@ -1032,7 +1032,7 @@ func TestUnzip_Limits(t *testing.T) {
 	destPath, err := fs.TempDirInTempDir("unzip-limits-")
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
-	limits := NewLimits(1<<30, 1<<10) // Total size limited to 10 Kb
+	limits := NewLimits(1<<30, 1<<10, 1000000) // Total size limited to 10 Kb
 
 	empty, err := fs.IsEmpty(destPath)
 	assert.NoError(t, err)
@@ -1085,7 +1085,7 @@ func TestUnzip_ZipBomb(t *testing.T) {
 	destPath, err := fs.TempDirInTempDir("unzip-limits-")
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
-	limits := NewLimits(1<<30, 1<<20) // Total size limited to 1 Mb
+	limits := NewLimits(1<<30, 1<<20, 1000000) // Total size limited to 1 Mb
 
 	empty, err := fs.IsEmpty(destPath)
 	assert.NoError(t, err)
@@ -1303,6 +1303,44 @@ func TestFilepathStem(t *testing.T) {
 		assert.Equal(t, "bar", FilepathStem(fp))
 		fp = filepath.Join("nice", "file", "path")
 		assert.Equal(t, "path", FilepathStem(fp))
+	})
+}
+
+func TestUnzipFileCountLimit(t *testing.T) {
+	fs := NewFs(StandardFS)
+
+	testInDir := "testdata"
+	limits := NewLimits(1<<30, 10<<30, 10)
+
+	t.Run("unzip file above file count limit", func(t *testing.T) {
+		testFile := "abovefilecountlimitzip"
+		srcPath := filepath.Join(testInDir, testFile+".zip")
+
+		destPath, err := fs.TempDirInTempDir("unzip-limits-")
+		assert.NoError(t, err)
+		defer func() {
+			_ = fs.Rm(destPath)
+		}()
+
+		_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
+		assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
+	})
+
+	t.Run("unzip file below file count limit", func(t *testing.T) {
+		testFile := "belowfilecountlimitzip"
+		srcPath := filepath.Join(testInDir, testFile+".zip")
+
+		destPath, err := fs.TempDirInTempDir("unzip-limits-")
+		assert.NoError(t, err)
+
+		defer func() {
+			if tempErr := fs.Rm(destPath); tempErr != nil {
+				err = tempErr
+			}
+		}()
+
+		_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
+		assert.NoError(t, err)
 	})
 }
 

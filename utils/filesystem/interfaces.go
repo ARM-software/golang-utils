@@ -74,6 +74,8 @@ type ILimits interface {
 	GetMaxFileSize() int64
 	// GetMaxTotalSize returns the maximum size in byte a location can have on a file system (whether it is a file or a folder)
 	GetMaxTotalSize() uint64
+	// GetMaxFileCount returns the maximum files in byte a file can have on a file system
+	GetMaxFileCount() int64
 }
 
 // ILock defines a generic lock using the file system.

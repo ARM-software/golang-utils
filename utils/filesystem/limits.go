@@ -21,6 +21,10 @@ func (n *noLimits) GetMaxTotalSize() uint64 {
 	return 0
 }
 
+func (n *noLimits) GetMaxFileCount() int64 {
+	return 0
+}
+
 func (n *noLimits) Validate() error {
 	return nil
 }
@@ -29,6 +33,7 @@ func (n *noLimits) Validate() error {
 type Limits struct {
 	MaxFileSize  int64  `mapstructure:"max_file_size"`
 	MaxTotalSize uint64 `mapstructure:"max_total_size"`
+	MaxFileCount int64  `mapstructure:"max_file_count"`
 }
 
 func (l *Limits) Apply() bool {
@@ -43,6 +48,10 @@ func (l *Limits) GetMaxTotalSize() uint64 {
 	return l.MaxTotalSize
 }
 
+func (l *Limits) GetMaxFileCount() int64 {
+	return l.MaxFileCount
+}
+
 func (l *Limits) Validate() error {
 	validation.ErrorTag = "mapstructure"
 
@@ -54,6 +63,7 @@ func (l *Limits) Validate() error {
 	return validation.ValidateStruct(l,
 		validation.Field(&l.MaxFileSize, validation.Required.When(l.Apply())),
 		validation.Field(&l.MaxTotalSize, validation.Required.When(l.Apply())),
+		validation.Field(&l.MaxFileCount, validation.Required.When(l.Apply())),
 	)
 }
 
@@ -63,14 +73,15 @@ func NoLimits() ILimits {
 }
 
 // NewLimits defines file system FileSystemLimits.
-func NewLimits(maxFileSize int64, maxTotalSize uint64) ILimits {
+func NewLimits(maxFileSize int64, maxTotalSize uint64, maxFileCount int64) ILimits {
 	return &Limits{
 		MaxFileSize:  maxFileSize,
 		MaxTotalSize: maxTotalSize,
+		MaxFileCount: maxFileCount,
 	}
 }
 
 // DefaultLimits defines default file system FileSystemLimits
 func DefaultLimits() ILimits {
-	return NewLimits(1<<30, 10<<30)
+	return NewLimits(1<<30, 10<<30, 1000000)
 }
