@@ -41,6 +41,13 @@ func TestCloneGitBomb(t *testing.T) {
 			limits:                NewLimits(1e5, 1e6, 1e4, 4, 1e6), // max file size: 100KB, max repo size: 1MB, max file count: 100 thousand, max tree depth 10, max entries 1 million
 			maxEntriesChannelSize: 25000,
 		},
+		{
+			name: "git bomb large file count",
+			url: "https://github.com/way2autotesting/DVLA_AutoTest.git",
+			err: fmt.Errorf("%w: maximum file count exceeded", commonerrors.ErrTooLarge),
+			limits: NewLimits(1e6, 1e6, 10, 4, 1e6), // max file size: 100KB, max repo size: 1MB, max file count: 10, max tree depth 10, max entries 1 million
+			maxEntriesChannelSize: 25000,
+		},
 	}
 	fs := filesystem.NewFs(filesystem.StandardFS)
 	destPath, err := fs.TempDirInTempDir("git-bomb")
