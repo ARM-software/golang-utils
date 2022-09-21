@@ -805,6 +805,20 @@ func (mr *MockILimitsMockRecorder) Apply() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Apply", reflect.TypeOf((*MockILimits)(nil).Apply))
 }
 
+// GetMaxFileCount mocks base method.
+func (m *MockILimits) GetMaxFileCount() int64 {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMaxFileCount")
+	ret0, _ := ret[0].(int64)
+	return ret0
+}
+
+// GetMaxFileCount indicates an expected call of GetMaxFileCount.
+func (mr *MockILimitsMockRecorder) GetMaxFileCount() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaxFileCount", reflect.TypeOf((*MockILimits)(nil).GetMaxFileCount))
+}
+
 // GetMaxFileSize mocks base method.
 func (m *MockILimits) GetMaxFileSize() int64 {
 	m.ctrl.T.Helper()
