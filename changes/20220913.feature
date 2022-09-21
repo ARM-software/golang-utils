@@ -1,1 +1,0 @@
-[Filesystem] Added a file number limit when unzipping to protect against attacks with zip files

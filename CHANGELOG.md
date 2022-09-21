@@ -14,6 +14,24 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.19.0" (2022-09-21)
+========================
+
+Features
+--------
+
+- [Filesystem] Added a file number limit when unzipping to protect against attacks with zip files (#20220913)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v3-3.22.8 (#202209011025, #202209011026, #20220901102601)
+- Dependency upgrade: viper-1.13.0 (#202209071022)
+- Dependency upgrade: goleak-1.2.0 (#202209081025)
+- Dependency upgrade: uuid-4.3.0incompatible (#202209121025, #202209121026, #202209121027, #202209121028, #202209121029, #202209121030, #202209121031, #20220912102501, #20220912102601, #20220912102701, #20220912102801, #20220912102901, #20220912103001)
+
+
 "" "1.18.2" (2022-08-31)
 ========================
 
