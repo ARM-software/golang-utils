@@ -21,7 +21,7 @@ func (n *noLimits) GetMaxTotalSize() uint64 {
 	return 0
 }
 
-func(n *noLimits) GetMaxFileCount() int64 {
+func (n *noLimits) GetMaxFileCount() int64 {
 	return 0
 }
 
@@ -33,7 +33,7 @@ func (n *noLimits) Validate() error {
 type Limits struct {
 	MaxFileSize  int64  `mapstructure:"max_file_size"`
 	MaxTotalSize uint64 `mapstructure:"max_total_size"`
-	MaxFileCount int64    `mapstructure:"max_file_count"`
+	MaxFileCount int64  `mapstructure:"max_file_count"`
 }
 
 func (l *Limits) Apply() bool {

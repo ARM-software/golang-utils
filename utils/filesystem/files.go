@@ -1306,7 +1306,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		if limits.Apply() && totalSizeOnDisk.Load() > limits.GetMaxTotalSize() {
 			return fileList, fmt.Errorf("%w: more than %v B of disk space was used while unzipping %v (%v B used already)", commonerrors.ErrTooLarge, limits.GetMaxTotalSize(), source, totalSizeOnDisk.Load())
 		}
-		if limits.Apply() && int64(fileCounter.Load()) > limits.GetMaxFileCount(){
+		if limits.Apply() && int64(fileCounter.Load()) > limits.GetMaxFileCount() {
 			return fileList, fmt.Errorf("%w: more than %v files were created while unzipping %v (%v files created already)", commonerrors.ErrTooLarge, limits.GetMaxFileCount(), source, fileCounter)
 		}
 	}
