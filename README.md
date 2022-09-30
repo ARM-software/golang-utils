@@ -12,6 +12,7 @@ SPDX-License-Identifier: Apache-2.0
 [![Go Report Card](https://goreportcard.com/badge/github.com/ARM-software/golang-utils)](https://goreportcard.com/report/github.com/ARM-software/golang-utils)
 [![Maintainability](https://api.codeclimate.com/v1/badges/dbe25c45c2756142fd08/maintainability)](https://codeclimate.com/github/ARM-software/golang-utils/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/dbe25c45c2756142fd08/test_coverage)](https://codeclimate.com/github/ARM-software/golang-utils/test_coverage)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/6531/badge)](https://bestpractices.coreinfrastructure.org/projects/6531)
 
 ## Overview
  
