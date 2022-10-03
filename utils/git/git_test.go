@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	mapset "github.com/deckarep/golang-set"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -172,8 +173,10 @@ func TestHandleBlobEntry(t *testing.T) {
 		err = c.SetupLimits(limits)
 		require.NoError(t, err)
 
+		c.seen = mapset.NewSet()
 		totalSize = atomic.NewInt64(0)
 		totalFileCount = atomic.NewInt64(0)
+		totalTrueSize = atomic.NewInt64(0)
 		err = c.handleBlobEntry(Entry{
 			TreeEntry: object.TreeEntry{
 				Name: "test",
@@ -192,8 +195,10 @@ func TestHandleBlobEntry(t *testing.T) {
 		err = c.SetupLimits(limits)
 		require.NoError(t, err)
 
+		c.seen = mapset.NewSet()
 		totalSize = atomic.NewInt64(0)
 		totalFileCount = atomic.NewInt64(0)
+		totalTrueSize = atomic.NewInt64(0)
 		err = c.handleBlobEntry(Entry{
 			TreeEntry: object.TreeEntry{
 				Name: "test",
@@ -212,8 +217,10 @@ func TestHandleBlobEntry(t *testing.T) {
 		err = c.SetupLimits(limits)
 		require.NoError(t, err)
 
+		c.seen = mapset.NewSet()
 		totalSize = atomic.NewInt64(0)
 		totalFileCount = atomic.NewInt64(0)
+		totalTrueSize = atomic.NewInt64(0)
 		err = c.handleBlobEntry(Entry{
 			TreeEntry: object.TreeEntry{
 				Name: "test",
@@ -224,6 +231,28 @@ func TestHandleBlobEntry(t *testing.T) {
 		}, totalSize, totalFileCount, totalTrueSize)
 		require.Error(t, err)
 		require.ErrorContains(t, err, fmt.Errorf("%w: maximum repository size exceeded", commonerrors.ErrTooLarge).Error())
+	})
+
+	// Test whether too large repo fails based on true size
+	t.Run("too large repo fails based on true size", func(t *testing.T) {
+		limits = NewLimits(1e5, 1e10, 1e6, 20, 1e6, 0) // max file size: 100MB, max repo size: 10gb, max file count: 1 million, max tree depth 1, max entries 1 million, max true size 0
+		err = c.SetupLimits(limits)
+		require.NoError(t, err)
+
+		c.seen = mapset.NewSet()
+		totalSize = atomic.NewInt64(0)
+		totalFileCount = atomic.NewInt64(0)
+		totalTrueSize = atomic.NewInt64(0)
+		err = c.handleBlobEntry(Entry{
+			TreeEntry: object.TreeEntry{
+				Name: "test",
+				Hash: validBlobHash,
+				Mode: 0,
+			},
+			TreeDepth: 0,
+		}, totalSize, totalFileCount, totalTrueSize)
+		require.Error(t, err)
+		require.ErrorContains(t, err, fmt.Errorf("%w: maximum true size exceeded", commonerrors.ErrTooLarge).Error())
 	})
 }
 

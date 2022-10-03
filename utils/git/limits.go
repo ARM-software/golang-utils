@@ -93,6 +93,7 @@ func (l *Limits) Validate() error {
 		validation.Field(&l.MaxFileCount, validation.Required.When(l.Apply())),
 		validation.Field(&l.MaxTreeDepth, validation.Required.When(l.Apply())),
 		validation.Field(&l.MaxEntries, validation.Required.When(l.Apply())),
+		validation.Field(&l.MaxTrueSize, validation.Required.When(l.Apply())),
 	)
 }
 
