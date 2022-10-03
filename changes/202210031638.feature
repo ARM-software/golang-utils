@@ -1,0 +1,1 @@
+Upgrade the library to golang `1.17` so that dependencies can work on all plaftorms
