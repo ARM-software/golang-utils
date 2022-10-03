@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	mapset "github.com/deckarep/golang-set"
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -42,7 +43,10 @@ type CloneObject struct {
 	repo       *git.Repository
 	allEntries chan Entry
 
+	seen mapset.Set
+
 	totalSize      *atomic.Int64
+	trueSize       *atomic.Int64
 	totalFileCount *atomic.Int64
 	totalEntries   *atomic.Int64
 
@@ -94,7 +98,7 @@ func (c *CloneObject) handleEntry(entry Entry) (err error) {
 		}
 	default:
 		// Blob
-		if err = c.handleBlobEntry(entry, c.totalSize, c.totalFileCount); err != nil {
+		if err = c.handleBlobEntry(entry, c.totalSize, c.totalFileCount, c.trueSize); err != nil {
 			return
 		}
 	}
@@ -129,7 +133,7 @@ func (c *CloneObject) handleTreeEntry(entry Entry) (err error) {
 	return
 }
 
-func (c *CloneObject) handleBlobEntry(entry Entry, totalSize *atomic.Int64, totalFileCount *atomic.Int64) (err error) {
+func (c *CloneObject) handleBlobEntry(entry Entry, totalSize *atomic.Int64, totalFileCount *atomic.Int64, trueSize *atomic.Int64) (err error) {
 	blob, subErr := c.getBlobObject(entry.TreeEntry.Hash)
 	if subErr != nil {
 		err = subErr
@@ -145,6 +149,15 @@ func (c *CloneObject) handleBlobEntry(entry Entry, totalSize *atomic.Int64, tota
 	if blob.Size > c.cfg.GetMaxFileSize() {
 		err = fmt.Errorf("%w: maximum individual file size exceeded [%d > %d]", commonerrors.ErrTooLarge, blob.Size, c.cfg.GetMaxFileSize())
 		return
+	}
+
+	if !c.seen.Contains(entry.TreeEntry.Hash) {
+		c.seen.Add(entry.TreeEntry.Hash)
+		trueSize.Add(blob.Size)
+		if trueSize.Load() > c.cfg.GetMaxTrueSize() {
+			err = fmt.Errorf("%w: maximum true size exceeded [%d > %d]", commonerrors.ErrTooLarge, trueSize.Load(), c.cfg.GetMaxTrueSize())
+			return
+		}
 	}
 
 	totalFileCount.Inc()
@@ -237,9 +250,11 @@ func NewCloneObject() *CloneObject {
 		totalSize:          atomic.NewInt64(0),
 		totalFileCount:     atomic.NewInt64(0),
 		totalEntries:       atomic.NewInt64(0),
+		trueSize:           atomic.NewInt64(0),
 		processNonTreeOnly: atomic.NewBool(false),
 		treeSeenIdentifier: atomic.NewString(""),
 		nonTreeOnlyMutex:   make(chan int, 1),
+		seen:               mapset.NewSet(),
 	}
 	cloneObject.nonTreeOnlyMutex <- 1
 	return cloneObject

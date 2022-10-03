@@ -38,4 +38,8 @@ require (
 	golang.org/x/text v0.3.7
 )
 
-require golang.org/x/tools v0.1.7 // indirect
+require (
+	github.com/deckarep/golang-set v1.8.0
+	github.com/deckarep/golang-set/v2 v2.1.0
+	golang.org/x/tools v0.1.7 // indirect
+)
