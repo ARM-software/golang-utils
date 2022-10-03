@@ -33,6 +33,10 @@ func (n *noLimits) GetMaxEntries() int64 {
 	return 0
 }
 
+func (n *noLimits) GetMaxTrueSize() int64 {
+	return 0
+}
+
 func (n *noLimits) Validate() error {
 	return nil
 }
@@ -44,6 +48,7 @@ type Limits struct {
 	MaxFileCount int64 `mapstructure:"max_file_count"`
 	MaxTreeDepth int64 `mapstructure:"max_tree_depth"`
 	MaxEntries   int64 `mapstructure:"max_entries"`
+	MaxTrueSize  int64 `mapstructure:"max_true_size"`
 }
 
 func (l *Limits) Apply() bool {
@@ -65,8 +70,13 @@ func (l *Limits) GetMaxFileCount() int64 {
 func (l *Limits) GetMaxTreeDepth() int64 {
 	return l.MaxTreeDepth
 }
+
 func (l *Limits) GetMaxEntries() int64 {
 	return l.MaxEntries
+}
+
+func (l *Limits) GetMaxTrueSize() int64 {
+	return l.MaxTrueSize
 }
 
 func (l *Limits) Validate() error {
@@ -83,6 +93,7 @@ func (l *Limits) Validate() error {
 		validation.Field(&l.MaxFileCount, validation.Required.When(l.Apply())),
 		validation.Field(&l.MaxTreeDepth, validation.Required.When(l.Apply())),
 		validation.Field(&l.MaxEntries, validation.Required.When(l.Apply())),
+		validation.Field(&l.MaxTrueSize, validation.Required.When(l.Apply())),
 	)
 }
 
@@ -92,17 +103,18 @@ func NoLimits() ILimits {
 }
 
 // NewLimits defines file system FileSystemLimits.
-func NewLimits(maxFileSize, maxTotalSize, maxFileCount, maxTreeDepth, maxEntries int64) ILimits {
+func NewLimits(maxFileSize, maxTotalSize, maxFileCount, maxTreeDepth, maxEntries, maxTrueSize int64) ILimits {
 	return &Limits{
 		MaxFileSize:  maxFileSize,
 		MaxTotalSize: maxTotalSize,
 		MaxFileCount: maxFileCount,
 		MaxTreeDepth: maxTreeDepth,
 		MaxEntries:   maxEntries,
+		MaxTrueSize:  maxTrueSize,
 	}
 }
 
 // DefaultLimits defines default file system FileSystemLimits
 func DefaultLimits() ILimits {
-	return NewLimits(1e8, 1e9, 1e6, 12, 1e8) // 100MB, 1GB, 1 million, 12, 100 million
+	return NewLimits(1e8, 10e9, 1e6, 12, 1e8, 1e9) // 100MB, 10GB, 1 million, 12, 100 million 1GB
 }
