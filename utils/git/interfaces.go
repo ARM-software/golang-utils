@@ -22,6 +22,8 @@ type ILimits interface {
 	GetMaxTreeDepth() int64
 	// GetMaxEntries returns the maximum total entries allowed in the it repo
 	GetMaxEntries() int64
+	// GetMaxTrueSize returns the maximum true size of the repo based on blobs
+	GetMaxTrueSize() int64
 }
 
 type IGitActionConfig interface {
