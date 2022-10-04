@@ -1,0 +1,383 @@
+package filesystem
+
+import (
+	"context"
+	"fmt"
+	"math"
+	"path/filepath"
+	"sort"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/hashing"
+)
+
+func TestZip(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			for i := 0; i < 10; i++ {
+				func() {
+					// create a directory for the test
+					tmpDir, err := fs.TempDirInTempDir("temp")
+					require.NoError(t, err)
+					defer func() { _ = fs.Rm(tmpDir) }()
+
+					testDir := filepath.Join(tmpDir, "test") // remember to read tmpdir at beginning
+					zipfile := filepath.Join(tmpDir, "test.zip")
+					outDir := filepath.Join(tmpDir, "output")
+
+					// create a file tree for the test
+					// Regarding timestamp preservation, the following link should be read as it gives some insight about how zip tools work or behave
+					// https://blog.joshlemon.com.au/dfir-for-compressed-files/
+					// The bottom line though is that the zip specification stipulates that file timestamp is stored using MS-DOS format which has a 2-second precision.
+					// see Section 4.4.6 of the spec https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
+					// As a result, the built-in timestamp resolution of files in a ZIP archive is only two seconds and so, file timestamps will not be fully preserved when a zip/unzip is performed.
+					// Making the FS think the tree was made 3 seconds ago.
+					tree := createTestFileTree(t, fs, testDir, "", false, time.Now().Add(-3*time.Second), time.Now())
+
+					// zip the directory into the zipfile
+					err = fs.Zip(testDir, zipfile)
+					require.NoError(t, err)
+
+					// unzip
+					tree2, err := fs.Unzip(zipfile, outDir)
+					require.NoError(t, err)
+
+					// Check no files were lost in the zip/unzip process.
+					relativeSrcTree, err := fs.ConvertToRelativePath(testDir, tree...)
+					require.NoError(t, err)
+					relativeResultTree, err := fs.ConvertToRelativePath(outDir, tree2...)
+					require.NoError(t, err)
+					sort.Strings(relativeSrcTree)
+					sort.Strings(relativeResultTree)
+					require.Equal(t, relativeSrcTree, relativeResultTree)
+
+					hasher, err := NewFileHash(hashing.HashXXHash)
+					require.NoError(t, err)
+
+					// check for size, timestamp, hash preservation
+					for _, path := range relativeSrcTree {
+						srcFilePath := filepath.Join(testDir, path)
+						fileinfoSrc, err := fs.Lstat(srcFilePath)
+						require.NoError(t, err)
+						resultFilePath := filepath.Join(outDir, path)
+						fileinfoResult, err := fs.Lstat(resultFilePath)
+						require.NoError(t, err)
+						// TODO handle links separately
+						if IsSymLink(fileinfoSrc) {
+							continue
+						}
+						// Check sizes
+						assert.Equal(t, fileinfoSrc.Size(), fileinfoResult.Size())
+
+						// Check file timestamps
+						// FIXME understand why the timestamp is not preserved when using the FS in memory
+						// https://github.com/spf13/afero/issues/297
+						if fs.GetType() != InMemoryFS {
+							// Allowing some tolerance in case of time rounding or truncation happening (https://golang.org/pkg/os/#Chtimes) + the 2-second time resolution of zip
+							// see comment above
+							assert.True(t, math.Abs(fileinfoSrc.ModTime().Sub(fileinfoResult.ModTime()).Seconds()) <= 2)
+
+							fileTimesSrc, err := fs.StatTimes(filepath.Join(testDir, path))
+							require.NoError(t, err)
+							fileTimeResult, err := fs.StatTimes(filepath.Join(outDir, path))
+							require.NoError(t, err)
+							assert.True(t, math.Abs(fileTimesSrc.ModTime().Sub(fileTimeResult.ModTime()).Seconds()) <= 2)
+						}
+
+						// perform hash comparison
+						if IsRegularFile(fileinfoSrc) {
+							hashSrc, err := hasher.CalculateFile(fs, srcFilePath)
+							require.NoError(t, err)
+							hashResult, err := hasher.CalculateFile(fs, resultFilePath)
+							require.NoError(t, err)
+							assert.Equal(t, hashSrc, hashResult)
+						}
+					}
+					err = fs.Rm(tmpDir)
+					require.NoError(t, err)
+				}()
+			}
+		})
+	}
+}
+
+func TestZipWithExclusion(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			for i := 0; i < 10; i++ {
+				func() {
+					// create a directory for the test
+					tmpDir, err := fs.TempDirInTempDir("temp")
+					require.NoError(t, err)
+					defer func() { _ = fs.Rm(tmpDir) }()
+
+					testDir := filepath.Join(tmpDir, "test") // remember to read tmpdir at beginning
+					zipfile := filepath.Join(tmpDir, "test.zip")
+					outDir := filepath.Join(tmpDir, "output")
+
+					// create a file tree for the test
+					tree := createTestFileTree(t, fs, testDir, "", false, time.Now().Add(-3*time.Second), time.Now())
+
+					exclusionPatterns := []string{".*test2.*", ".*test3.*"}
+
+					cleansedTree, err := fs.ExcludeAll(tree, exclusionPatterns...)
+					require.NoError(t, err)
+
+					// zip the directory into the zipfile ignoring some paths.
+					err = fs.ZipWithContextAndLimitsAndExclusionPatterns(context.TODO(), testDir, zipfile, DefaultLimits(), exclusionPatterns...)
+					require.NoError(t, err)
+
+					// unzip
+					tree2, err := fs.Unzip(zipfile, outDir)
+					require.NoError(t, err)
+
+					// Check no files were lost in the zip/unzip process.
+					relativeSrcTree, err := fs.ConvertToRelativePath(testDir, cleansedTree...)
+					require.NoError(t, err)
+					relativeResultTree, err := fs.ConvertToRelativePath(outDir, tree2...)
+					require.NoError(t, err)
+					sort.Strings(relativeSrcTree)
+					sort.Strings(relativeResultTree)
+					require.Equal(t, relativeSrcTree, relativeResultTree)
+
+					err = fs.Rm(tmpDir)
+					require.NoError(t, err)
+				}()
+			}
+		})
+	}
+}
+
+func TestUnzip_Limits(t *testing.T) {
+	fs := NewFs(StandardFS)
+
+	testInDir := "testdata"
+	testFile := "validlargezipfile"
+	srcPath := filepath.Join(testInDir, testFile+".zip")
+	destPath, err := fs.TempDirInTempDir("unzip-limits-")
+	require.NoError(t, err)
+	defer func() { _ = fs.Rm(destPath) }()
+	limits := NewLimits(1<<30, 1<<10, 1000000) // Total size limited to 10 Kb
+
+	empty, err := fs.IsEmpty(destPath)
+	assert.NoError(t, err)
+	assert.True(t, empty)
+	_, err = fs.Unzip(srcPath, destPath)
+	assert.NoError(t, err)
+	empty, err = fs.IsEmpty(destPath)
+	assert.NoError(t, err)
+	assert.False(t, empty)
+
+	err = fs.CleanDirWithContext(context.Background(), destPath)
+	require.NoError(t, err)
+	empty, err = fs.IsEmpty(destPath)
+	assert.NoError(t, err)
+	assert.True(t, empty)
+
+	contextWithTimeOut, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
+	defer cancel()
+	_, err = fs.UnzipWithContext(contextWithTimeOut, srcPath, destPath)
+	assert.Error(t, err)
+	assert.True(t, commonerrors.Any(err, commonerrors.ErrTimeout))
+
+	err = fs.CleanDirWithContext(context.Background(), destPath)
+	require.NoError(t, err)
+	empty, err = fs.IsEmpty(destPath)
+	assert.NoError(t, err)
+	assert.True(t, empty)
+
+	_, err = fs.UnzipWithContextAndLimits(context.Background(), srcPath, destPath, limits)
+	assert.Error(t, err)
+	assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
+}
+
+func TestUnzip_ZipBomb(t *testing.T) {
+	// See description of ZIP bombs https://en.wikipedia.org/wiki/Zip_bomb
+	// Until protection is part of Go https://github.com/golang/go/issues/33026 & https://github.com/golang/go/issues/33036
+	tests := []struct {
+		testFile string
+	}{
+		{
+			testFile: "42", // See https://unforgettable.dk/
+		},
+		{
+			testFile: "zbsm", // See https://www.bamsoftware.com/hacks/zipbomb/
+		},
+	}
+
+	fs := NewFs(StandardFS)
+	testInDir := "testdata"
+	destPath, err := fs.TempDirInTempDir("unzip-limits-")
+	require.NoError(t, err)
+	defer func() { _ = fs.Rm(destPath) }()
+	limits := NewLimits(1<<30, 1<<20, 1000000) // Total size limited to 1 Mb
+
+	empty, err := fs.IsEmpty(destPath)
+	assert.NoError(t, err)
+	assert.True(t, empty)
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.testFile, func(t *testing.T) {
+			srcPath := filepath.Join(testInDir, test.testFile+".zip")
+
+			_, err = fs.UnzipWithContextAndLimits(context.Background(), srcPath, destPath, limits)
+			assert.Error(t, err)
+			assert.True(t, commonerrors.Any(err, commonerrors.ErrUnsupported, commonerrors.ErrTooLarge))
+		})
+	}
+
+}
+
+func TestUnzip(t *testing.T) {
+	fs := NewFs(StandardFS)
+
+	testInDir := "testdata"
+	testFile := "testunzip"
+	srcPath := filepath.Join(testInDir, testFile+".zip")
+	destPath, err := fs.TempDirInTempDir("unzip")
+	require.NoError(t, err)
+	defer func() { _ = fs.Rm(destPath) }()
+	outPath := filepath.Join(destPath, testFile)
+	expectedfileList := []string{
+		filepath.Join(outPath, "readme.txt"),
+		filepath.Join(outPath, "test.txt"),
+		filepath.Join(outPath, "todo.txt"),
+		filepath.Join(outPath, "child.zip"),
+		filepath.Join(outPath, "L'irrǸsolution est toujours une marque de faiblesse.txt"),
+		filepath.Join(outPath, "ไป ไหน มา.txt"),
+	}
+	sort.Strings(expectedfileList)
+
+	/* Check Unzip */
+	fileList, err := fs.Unzip(srcPath, destPath)
+
+	sort.Strings(fileList)
+	assert.NoError(t, err)
+	assert.Equal(t, len(fileList), 6)
+	assert.Equal(t, expectedfileList, fileList)
+
+	/* Source zip file not available */
+	srcPath = filepath.Join(testInDir, "unknownfile.zip")
+	_, err = fs.Unzip(srcPath, destPath)
+	assert.Error(t, err)
+
+	/* Invalid source path */
+	srcPath = filepath.Join(testInDir, "invalidzipfile.zip")
+	_, err = fs.Unzip(srcPath, destPath)
+	assert.Error(t, err)
+}
+
+func TestUnzipWithNonUTF8Filenames(t *testing.T) {
+	fs := NewFs(StandardFS)
+	// Testing zip file attached to https://github.com/golang/go/issues/10741
+	testInDir := "testdata"
+	tests := []struct {
+		zipFile       string
+		expectedFiles []string
+		expectedError error
+	}{
+		{
+			zipFile: "zipwithnonutf8.zip",
+			expectedFiles: []string{
+				"La douceur du miel ne console pas de la piq�re de l'abeille.txt",
+				"\x83T\x83\x93\x83v\x83\x8b.txt",
+			},
+			expectedError: nil,
+		},
+		{
+			zipFile: "zipwithnonutf8filenames2.zip",
+			expectedFiles: []string{"examples",
+				filepath.Join("examples", "AN-32013 FT32F0XX\xb2\xce\xca\xfd.pdf"),
+				filepath.Join("examples", "BAT32G133_Packʹ\xd3\xc3˵\xc3\xf7.pdf"),
+				filepath.Join("examples", "OpenAtomFoundation_TencentOS-tiny_ \xcc\xdaѶ\xce\xef\xc1\xaa\xcd\xf8\xd6ն˲\xd9\xd7\xf7ϵͳ.html"),
+				filepath.Join("examples", "hello_world.c"),
+				filepath.Join("examples", "main.c"),
+			},
+			expectedError: nil,
+		},
+		// TODO create a zip file with non supported encoding
+		// {
+		//	zipFile:       ,
+		//	expectedFiles: nil,
+		//	expectedError: commonerrors.ErrInvalid,
+		// },
+	}
+	for i := range tests {
+		test := tests[i]
+		t.Run(fmt.Sprintf("zipfile_%v", test.zipFile), func(t *testing.T) {
+			srcPath := filepath.Join(testInDir, test.zipFile)
+			destPath, err := fs.TempDirInTempDir("unzip")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(destPath) }()
+			/* Check Unzip */
+			fileList, err := fs.Unzip(srcPath, destPath)
+			if test.expectedError != nil {
+				require.Error(t, err)
+				assert.True(t, commonerrors.Any(err, test.expectedError))
+				assert.Empty(t, fileList)
+			} else {
+				require.NoError(t, err)
+				sort.Strings(fileList)
+				var expectedFiles []string
+				for j := range test.expectedFiles {
+					expectedFiles = append(expectedFiles, filepath.Join(destPath, test.expectedFiles[j]))
+				}
+				sort.Strings(expectedFiles)
+				assert.NoError(t, err)
+
+				assert.Equal(t, len(fileList), len(test.expectedFiles))
+				assert.Equal(t, expectedFiles, fileList)
+			}
+			_ = fs.Rm(destPath)
+		})
+	}
+
+}
+
+func TestUnzipFileCountLimit(t *testing.T) {
+	fs := NewFs(StandardFS)
+
+	testInDir := "testdata"
+	limits := NewLimits(1<<30, 10<<30, 10)
+
+	t.Run("unzip file above file count limit", func(t *testing.T) {
+		testFile := "abovefilecountlimitzip"
+		srcPath := filepath.Join(testInDir, testFile+".zip")
+
+		destPath, err := fs.TempDirInTempDir("unzip-limits-")
+		assert.NoError(t, err)
+		defer func() {
+			_ = fs.Rm(destPath)
+		}()
+
+		_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
+		assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
+	})
+
+	t.Run("unzip file below file count limit", func(t *testing.T) {
+		testFile := "belowfilecountlimitzip"
+		srcPath := filepath.Join(testInDir, testFile+".zip")
+
+		destPath, err := fs.TempDirInTempDir("unzip-limits-")
+		assert.NoError(t, err)
+
+		defer func() {
+			if tempErr := fs.Rm(destPath); tempErr != nil {
+				err = tempErr
+			}
+		}()
+
+		_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
+		assert.NoError(t, err)
+	})
+}
