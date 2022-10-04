@@ -14,6 +14,24 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.20.0" (2022-10-04)
+========================
+
+Features
+--------
+
+- git: Add checks for true repository size, not just the virtual size (#202210031606)
+- Upgrade the library to golang `1.17` so that dependencies can work on all plaftorms (#202210031638)
+- `[filesystem]` Expanded most recursive filesystem APIs so that exclusion patterns can be used to ignore some paths during the processing (#202210040057)
+
+
+Bugfixes
+--------
+
+- [git] added new test cases to mitigate git bombing, with a large number of files (#202209211609)
+- Dependency upgrade: v3-3.22.9 (#202210031026)
+
+
 "" "1.19.0" (2022-09-21)
 ========================
 
