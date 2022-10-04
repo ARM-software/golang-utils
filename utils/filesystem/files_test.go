@@ -1108,6 +1108,7 @@ func TestSubDirectories(t *testing.T) {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			fs := NewFs(fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-subdirectories-")
+			require.NoError(t, err)
 
 			// Test empty directory
 			dirlist, err := fs.SubDirectories(tmpDir)
@@ -1145,6 +1146,7 @@ func TestSubDirectoriesWithExclusion(t *testing.T) {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			fs := NewFs(fsType)
 			tmpDir, err := fs.TempDirInTempDir("test-subdirectories-with-exclusion-")
+			require.NoError(t, err)
 
 			// Test directory with subdirectories
 			testInput := filepath.Join(tmpDir, "ARM")

@@ -240,7 +240,6 @@ func TestIsPathExcludedFromPatterns(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(fmt.Sprintf("exlusions [%v]", test.exclusionPatterns), func(t *testing.T) {
-			//t.Parallel()
 			if test.exclude {
 				assert.True(t, IsPathExcludedFromPatterns(test.path, test.pathSeparator, test.exclusionPatterns...))
 			} else {
