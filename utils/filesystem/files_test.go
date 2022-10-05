@@ -1122,6 +1122,8 @@ func TestSubDirectories(t *testing.T) {
 			testInput := filepath.Join(tmpDir, "ARM")
 			require.NoError(t, fs.MkDir(filepath.Join(testInput, ".CMSIS")))
 			require.NoError(t, fs.MkDir(filepath.Join(testInput, ".git")))
+			require.NoError(t, fs.MkDir(filepath.Join(testInput, "1Test")))
+			require.NoError(t, fs.MkDir(filepath.Join(testInput, "Test.Test")))
 			require.NoError(t, fs.MkDir(filepath.Join(testInput, "CMSIS")))
 			require.NoError(t, fs.MkDir(filepath.Join(testInput, "Tools")))
 			file, err := fs.CreateFile(filepath.Join(testInput, "testfile.ini"))
@@ -1130,12 +1132,11 @@ func TestSubDirectories(t *testing.T) {
 
 			dirlist, err = fs.SubDirectories(testInput)
 			assert.NoError(t, err)
-			assert.Len(t, dirlist, 2)
+			assert.Len(t, dirlist, 4)
 			sort.Strings(dirlist)
 
-			expected := []string{"CMSIS", "Tools"}
+			expected := []string{"1Test", "CMSIS", "Test.Test", "Tools"}
 			assert.Equal(t, expected, dirlist)
-
 			require.NoError(t, fs.Rm(testInput))
 		})
 	}

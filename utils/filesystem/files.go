@@ -1136,7 +1136,7 @@ func (fs *VFS) SubDirectories(directory string) ([]string, error) {
 }
 
 func (fs *VFS) SubDirectoriesWithContext(ctx context.Context, directory string) ([]string, error) {
-	return fs.SubDirectoriesWithContextAndExclusionPatterns(ctx, directory, "[.].*")
+	return fs.SubDirectoriesWithContextAndExclusionPatterns(ctx, directory, "^[.].*$")
 }
 func (fs *VFS) SubDirectoriesWithContextAndExclusionPatterns(ctx context.Context, directory string, exclusionPatterns ...string) (directories []string, err error) {
 	err = parallelisation.DetermineContextError(ctx)
