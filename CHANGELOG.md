@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.20.1" (2022-10-05)
+========================
+
+Bugfixes
+--------
+
+- `[filesystem]`: Fix the exclusion regex used in `subDirectories` to filter "hidden" folders (#202210051012)
+
+
 "" "1.20.0" (2022-10-04)
 ========================
 
