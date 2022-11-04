@@ -43,7 +43,7 @@ func TestMain(m *testing.M) {
 
 	// Set up a git bomb
 	r1, err := git.PlainClone(destPath, false, &git.CloneOptions{
-		URL: "https://github.com/Arm-Examples/Blinky_MIMXRT1064-EVK_RTX",
+		URL: "https://github.com/Open-CMSIS-Pack/csolution-examples.git",
 	})
 	if err != nil {
 		log.Panic(err)
