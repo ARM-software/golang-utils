@@ -407,7 +407,7 @@ func (c *CloneObject) Checkout(gitOptions *GitActionConfig) (err error) {
 	return worktree.Checkout(&checkoutOptions)
 }
 
-// Clone a repository with limits on the max tree depth, the max repository size, the max file count, the max individual file size, and the max entries
+// CloneWithLimits clones a repository with limits on the max tree depth, the max repository size, the max file count, the max individual file size, and the max entries
 func CloneWithLimits(ctx context.Context, dir string, limits ILimits, gitOptions *GitActionConfig) (err error) {
 	c := NewCloneObject()
 	err = c.SetupLimits(limits)
