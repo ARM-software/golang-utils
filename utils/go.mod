@@ -30,13 +30,13 @@ require (
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/spf13/afero v1.9.3
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.13.0
+	github.com/spf13/viper v1.14.0
 	github.com/stretchr/testify v1.8.1
 	go.uber.org/atomic v1.9.0
 	go.uber.org/goleak v1.2.0
-	golang.org/x/net v0.0.0-20220520000938-2e3eb7b945c2
-	golang.org/x/sync v0.0.0-20220513210516-0976fa681c29
-	golang.org/x/text v0.3.7
+	golang.org/x/net v0.0.0-20221014081412-f15817d10f9b
+	golang.org/x/sync v0.1.0
+	golang.org/x/text v0.4.0
 )
 
 require (
@@ -45,7 +45,7 @@ require (
 	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
-	github.com/fsnotify/fsnotify v1.5.4 // indirect
+	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
@@ -71,10 +71,9 @@ require (
 	github.com/tklauser/numcpus v0.4.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
-	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
+	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
-	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
-	golang.org/x/tools v0.1.7 // indirect
+	golang.org/x/sys v0.0.0-20220908164124-27713097b956 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
