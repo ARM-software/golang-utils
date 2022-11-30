@@ -13,13 +13,15 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
+type FilesystemType int
+
 const (
-	StandardFS int = iota
+	StandardFS FilesystemType = iota
 	InMemoryFS
 )
 
 var (
-	FileSystemTypes = []int{StandardFS, InMemoryFS}
+	FileSystemTypes = []FilesystemType{StandardFS, InMemoryFS}
 )
 
 func NewInMemoryFileSystem() FS {
@@ -30,7 +32,7 @@ func NewStandardFileSystem() FS {
 	return NewVirtualFileSystem(NewExtendedOsFs(), StandardFS, IdentityPathConverterFunc)
 }
 
-func NewFs(fsType int) FS {
+func NewFs(fsType FilesystemType) FS {
 	switch fsType {
 	case StandardFS:
 		return NewStandardFileSystem()

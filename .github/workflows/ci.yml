@@ -10,7 +10,7 @@ on:
 
 # Set environment variables available in all jobs and steps
 env:
-  go_version: "1.16"
+  go_version: "1.17"
   go_cache_macOS_path: |
     ~/Library/Caches/go-build
   go_cache_windows_path: |
@@ -97,12 +97,12 @@ jobs:
             ${{ matrix.os }}-${{ matrix.go-module }}-
       - if: ${{ startsWith(matrix.os, 'ubuntu') }}
         name: Linting
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v3
         with:
           # Required: the version of golangci-lint is required and must be specified without patch version.
           version: latest
           working-directory: ${{ matrix.go-module }}
-          args: "--verbose --print-issued-lines --print-linter-name --out-${NO_FUTURE}format colored-line-number"
+          args: "--verbose --print-issued-lines --print-linter-name --out-${NO_FUTURE}format colored-line-number --timeout 300s --max-issues-per-linter 0 --max-same-issues 0"
       - name: Build ${{ matrix.go-module }} on ${{ matrix.os }}
         run: go build -v ./...
         working-directory: ${{ matrix.go-module }}
@@ -115,7 +115,7 @@ jobs:
         with:
           debug: true
           workingDirectory: ${{ matrix.go-module }}
-          coverageCommand: go test -race -cover -v -coverprofile ${{ matrix.go-module }}_coverage.out ./...
+          coverageCommand: go test -race -cover -v -tags integration -coverprofile ${{ matrix.go-module }}_coverage.out ./...
           prefix: github.com/ARM-software/${{ github.event.repository.name }}/${{ matrix.go-module }}
           coverageLocations:
             "${{github.workspace}}/${{ matrix.go-module }}/${{ matrix.go-module }}_coverage.out:gocov"

@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -20,7 +21,11 @@ import (
 func NewTestServer(t *testing.T, ctx context.Context, handler http.Handler, port string) {
 	list, err := net.Listen("tcp", fmt.Sprintf(":%v", port))
 	require.Nil(t, err)
-	srv := &http.Server{Handler: handler}
+	srv := &http.Server{
+		Handler:           handler,
+		ReadHeaderTimeout: time.Minute,
+		ReadTimeout:       time.Minute,
+	}
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return

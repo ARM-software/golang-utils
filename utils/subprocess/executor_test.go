@@ -150,7 +150,7 @@ func TestStartStop(t *testing.T) {
 			require.Nil(t, err)
 			assert.True(t, p.IsOn())
 
-			//Checking idempotence
+			// Checking idempotence
 			err = p.Start()
 			require.Nil(t, err)
 			err = p.Check()
@@ -163,7 +163,7 @@ func TestStartStop(t *testing.T) {
 			err = p.Stop()
 			require.Nil(t, err)
 			assert.False(t, p.IsOn())
-			//Checking idempotence
+			// Checking idempotence
 			err = p.Stop()
 			require.Nil(t, err)
 			time.Sleep(100 * time.Millisecond)

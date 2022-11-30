@@ -5,21 +5,46 @@
 package platform
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/mem"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
-// Checks whether we are running on Windows or not.
+var (
+	errNotSupportedByWindows = errors.New("not supported by windows")
+)
+
+// ConvertError converts a platform error into a commonerrors
+func ConvertError(err error) error {
+	switch {
+	case err == nil:
+		return err
+	case commonerrors.Any(err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported):
+		return err
+	case IsWindows() && commonerrors.Any(err, errNotSupportedByWindows):
+		return fmt.Errorf("%w: %v", commonerrors.ErrUnsupported, err.Error())
+	case strings.Contains(err.Error(), "not supported"):
+		return fmt.Errorf("%w: %v", commonerrors.ErrUnsupported, err.Error())
+	default:
+		return err
+		// TODO extend with more platform specific errors
+	}
+}
+
+// IsWindows checks whether we are running on Windows or not.
 func IsWindows() bool {
 	return runtime.GOOS == "windows"
 }
 
-// Returns the line separator.
+// LineSeparator returns the line separator.
 func LineSeparator() string {
 	if IsWindows() {
 		return "\r\n"
@@ -27,17 +52,17 @@ func LineSeparator() string {
 	return UnixLineSeparator()
 }
 
-// Returns the line separator on Unix platform.
+// UnixLineSeparator returns the line separator on Unix platform.
 func UnixLineSeparator() string {
 	return "\n"
 }
 
-// Gets hostname.
+// Hostname returns the hostname.
 func Hostname() (string, error) {
 	return os.Hostname()
 }
 
-// Gets system uptime.
+// UpTime returns system uptime.
 func UpTime() (uptime time.Duration, err error) {
 	_uptime, err := host.Uptime()
 	if err != nil {
@@ -47,7 +72,7 @@ func UpTime() (uptime time.Duration, err error) {
 	return
 }
 
-// Gets system uptime.
+// BootTime returns system uptime.
 func BootTime() (bootime time.Time, err error) {
 	_bootime, err := host.BootTime()
 	if err != nil {
@@ -58,7 +83,7 @@ func BootTime() (bootime time.Time, err error) {
 
 }
 
-// Gets system node name (equivalent to uname -n).
+// NodeName returns the system node name (equivalent to uname -n).
 func NodeName() (nodename string, err error) {
 	info, err := host.Info()
 	if err != nil {
@@ -68,7 +93,7 @@ func NodeName() (nodename string, err error) {
 	return
 }
 
-// Gets platform information (equivalent to uname -s).
+// PlatformInformation returns the platform information (equivalent to uname -s).
 func PlatformInformation() (information string, err error) {
 	platform, family, version, err := host.PlatformInformation()
 	if err != nil {
@@ -78,7 +103,7 @@ func PlatformInformation() (information string, err error) {
 	return
 }
 
-// Gets system information (equivalent to uname -a)
+// SystemInformation returns the system information (equivalent to uname -a)
 func SystemInformation() (information string, err error) {
 	hostname, err := Hostname()
 	if err != nil {
@@ -109,15 +134,15 @@ func Uname() (string, error) {
 }
 
 type RAM interface {
-	// Gets total amount of RAM on this system
+	// GetTotal returns total amount of RAM on this system
 	GetTotal() uint64
-	//Gets RAM available for programs to allocate
+	// GetAvailable returns RAM available for programs to allocate
 	GetAvailable() uint64
-	// Gets RAM used by programs
+	// GetUsed returns RAM used by programs
 	GetUsed() uint64
-	// Gets Percentage of RAM used by programs
+	// GetUsedPercent returns Percentage of RAM used by programs
 	GetUsedPercent() float64
-	// Gets kernel's notion of free memory
+	// GetFree returns kernel's notion of free memory
 	GetFree() uint64
 }
 

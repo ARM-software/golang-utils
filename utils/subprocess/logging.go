@@ -37,17 +37,17 @@ func (l *logStreamer) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func newLogStreamer(IsStdErr bool, Loggers logs.Loggers) *logStreamer {
+func newLogStreamer(isStdErr bool, loggers logs.Loggers) *logStreamer {
 	return &logStreamer{
-		IsStdErr: IsStdErr,
-		Loggers:  Loggers,
+		IsStdErr: isStdErr,
+		Loggers:  loggers,
 	}
 }
 
-func newOutStreamer(Loggers logs.Loggers) *logStreamer {
-	return newLogStreamer(false, Loggers)
+func newOutStreamer(loggers logs.Loggers) *logStreamer {
+	return newLogStreamer(false, loggers)
 }
 
-func newErrLogStreamer(Loggers logs.Loggers) *logStreamer {
-	return newLogStreamer(true, Loggers)
+func newErrLogStreamer(loggers logs.Loggers) *logStreamer {
+	return newLogStreamer(true, loggers)
 }

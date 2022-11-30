@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
@@ -34,12 +35,12 @@ func Load(envVarPrefix string, configurationToSet IServiceConfiguration, default
 // LoadFromViper is the same as `Load` but instead of creating a new viper session, reuse the one provided.
 // Important note:
 // Viper's precedence order is maintained:
-//    1) values set using explicit calls to `Set`
-//    2) flags
-//    3) environment (variables or `.env`)
-//    4) configuration file
-//    5) key/value store
-//    6) default values (set via flag default values, or calls to `SetDefault` or via `defaultConfiguration` argument provided)
+// 1) values set using explicit calls to `Set`
+// 2) flags
+// 3) environment (variables or `.env`)
+// 4) configuration file
+// 5) key/value store
+// 6) default values (set via flag default values, or calls to `SetDefault` or via `defaultConfiguration` argument provided)
 // Nonetheless, when it comes to default values. It differs slightly from Viper as default values from the default Configuration (i.e. `defaultConfiguration` argument provided) will take precedence over defaults set via `SetDefault` or flags unless they are considered empty values according to `reflection.IsEmpty`.
 func LoadFromViper(viperSession *viper.Viper, envVarPrefix string, configurationToSet IServiceConfiguration, defaultConfiguration IServiceConfiguration) (err error) {
 	// Load Defaults
@@ -132,7 +133,7 @@ func linkFlagKeysToStructureKeys(viperSession *viper.Viper, envVarPrefix string)
 	keys := viperSession.AllKeys()
 	for i := range keys {
 		key := keys[i]
-		//This is modifying the value of the structured configuration if flags have been set.
+		// This is modifying the value of the structured configuration if flags have been set.
 		if !isFlagKey(key) {
 			flagKey, _ := generateEnvVarConfigKeys(key, envVarPrefix)
 			// if the flag is set, it takes precedence over the structured configuration value.
@@ -151,4 +152,45 @@ func linkFlagKeysToStructureKeys(viperSession *viper.Viper, envVarPrefix string)
 			viperSession.RegisterAlias(flagKey, key)
 		}
 	}
+}
+
+func flattenDefaultsMap(m map[string]interface{}) map[string]interface{} {
+	output := make(map[string]interface{})
+	for key, value := range m {
+		switch child := value.(type) {
+		case map[string]interface{}:
+			next := flattenDefaultsMap(child)
+			for nextKey, nextValue := range next {
+				output[strings.ToUpper(fmt.Sprintf("%s_%s", key, nextKey))] = nextValue
+			}
+		default:
+			output[strings.ToUpper(key)] = value
+		}
+	}
+	return output
+}
+
+// DetermineConfigurationEnvironmentVariables returns all the environment variables corresponding to a configuration structure as well as all the default values currently set.
+func DetermineConfigurationEnvironmentVariables(appName string, configurationToDecode IServiceConfiguration) (defaults map[string]interface{}, err error) {
+	withoutPrefix := make(map[string]interface{})
+	if reflection.IsEmpty(configurationToDecode) {
+		err = fmt.Errorf("%w: configurationToDecode isn't defined", commonerrors.ErrUndefined)
+		return
+	}
+
+	err = mapstructure.Decode(configurationToDecode, &withoutPrefix)
+	if err != nil {
+		return
+	}
+	withoutPrefix = flattenDefaultsMap(withoutPrefix)
+	if err != nil {
+		return
+	}
+
+	defaults = make(map[string]interface{})
+	for key, value := range withoutPrefix {
+		newKey := fmt.Sprintf("%s_%s", strings.ToUpper(appName), key)
+		defaults[newKey] = value
+	}
+	return
 }

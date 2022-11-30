@@ -25,7 +25,7 @@ type RetryPolicyConfiguration struct {
 	RetryWaitMax time.Duration
 	// BackOffEnabled states whether backoff must be performed during retries (by default, exponential backoff is performed unless LinearBackoff is enabled).
 	BackOffEnabled bool `mapstructure:"backoff_enabled"`
-	//LinearBackOffEnabled forces to perform linear backoff instead of exponential backoff provided BackOffEnabled is set to true.
+	// LinearBackOffEnabled forces to perform linear backoff instead of exponential backoff provided BackOffEnabled is set to true.
 	LinearBackOffEnabled bool `mapstructure:"linear_backoff_enabled"`
 }
 
@@ -46,7 +46,7 @@ func (cfg *RetryPolicyConfiguration) Validate() error {
 	)
 }
 
-//DefaultNoRetryPolicyConfiguration defines a configuration for no retry being performed.
+// DefaultNoRetryPolicyConfiguration defines a configuration for no retry being performed.
 func DefaultNoRetryPolicyConfiguration() *RetryPolicyConfiguration {
 	return &RetryPolicyConfiguration{
 		Enabled:            false,
@@ -54,7 +54,7 @@ func DefaultNoRetryPolicyConfiguration() *RetryPolicyConfiguration {
 	}
 }
 
-//DefaultBasicRetryPolicyConfiguration defines a configuration for basic retries i.e. retrying straight after a failure for maximum 4 attempts.
+// DefaultBasicRetryPolicyConfiguration defines a configuration for basic retries i.e. retrying straight after a failure for maximum 4 attempts.
 func DefaultBasicRetryPolicyConfiguration() *RetryPolicyConfiguration {
 	return &RetryPolicyConfiguration{
 		Enabled:              true,
@@ -67,7 +67,7 @@ func DefaultBasicRetryPolicyConfiguration() *RetryPolicyConfiguration {
 	}
 }
 
-//DefaultRobustRetryPolicyConfiguration defines a configuration for basic retries but considering any `Retry-After` being returned by server.
+// DefaultRobustRetryPolicyConfiguration defines a configuration for basic retries but considering any `Retry-After` being returned by server.
 func DefaultRobustRetryPolicyConfiguration() *RetryPolicyConfiguration {
 	return &RetryPolicyConfiguration{
 		Enabled:              true,
@@ -80,7 +80,7 @@ func DefaultRobustRetryPolicyConfiguration() *RetryPolicyConfiguration {
 	}
 }
 
-//DefaultExponentialBackoffRetryPolicyConfiguration defines a configuration for retries with exponential backoff.
+// DefaultExponentialBackoffRetryPolicyConfiguration defines a configuration for retries with exponential backoff.
 func DefaultExponentialBackoffRetryPolicyConfiguration() *RetryPolicyConfiguration {
 	return &RetryPolicyConfiguration{
 		Enabled:              true,
@@ -93,14 +93,14 @@ func DefaultExponentialBackoffRetryPolicyConfiguration() *RetryPolicyConfigurati
 	}
 }
 
-//DefaultLinearBackoffRetryPolicyConfiguration defines a configuration for retries with linear backoff.
+// DefaultLinearBackoffRetryPolicyConfiguration defines a configuration for retries with linear backoff.
 func DefaultLinearBackoffRetryPolicyConfiguration() *RetryPolicyConfiguration {
 	return &RetryPolicyConfiguration{
 		Enabled:              true,
 		RetryMax:             4,
 		RetryAfterDisabled:   false,
 		RetryWaitMin:         time.Second,
-		RetryWaitMax:         time.Second, //See https://github.com/hashicorp/go-retryablehttp/blob/ff6d014e72d968e0f328637b209477ee09393175/client.go#L505
+		RetryWaitMax:         time.Second, // See https://github.com/hashicorp/go-retryablehttp/blob/ff6d014e72d968e0f328637b209477ee09393175/client.go#L505
 		BackOffEnabled:       true,
 		LinearBackOffEnabled: true,
 	}

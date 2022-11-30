@@ -115,13 +115,13 @@ func NewJSONLogger(writer WriterWithSource, loggerSource string, source string) 
 // wrapped around slowWriter
 //
 // params:
-//		slowWriter : writer used to write data streams
-// 		ringBufferSize : size of ring buffer used to receive messages
-// 		pollInterval : polling duration to check buffer content
-//		loggerSource : logger application name
-//		source : source string
-//		droppedMessagesLogger : logger for dropped messages
-//
+// slowWriter : writer used to write data streams
+// ringBufferSize : size of ring buffer used to receive messages
+// pollInterval : polling duration to check buffer content
+// loggerSource : logger application name
+// source : source string
+// droppedMessagesLogger : logger for dropped messages
+
 // If pollInterval is greater than 0, a poller is used otherwise a waiter is used.
 func NewJSONLoggerForSlowWriter(slowWriter WriterWithSource, ringBufferSize int, pollInterval time.Duration, loggerSource string, source string, droppedMessagesLogger Loggers) (loggers Loggers, err error) {
 	return NewJSONLogger(NewDiodeWriterForSlowWriter(slowWriter, ringBufferSize, pollInterval, droppedMessagesLogger), loggerSource, source)

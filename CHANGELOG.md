@@ -14,6 +14,190 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.20.1" (2022-10-05)
+========================
+
+Bugfixes
+--------
+
+- `[filesystem]`: Fix the exclusion regex used in `subDirectories` to filter "hidden" folders (#202210051012)
+
+
+"" "1.20.0" (2022-10-04)
+========================
+
+Features
+--------
+
+- git: Add checks for true repository size, not just the virtual size (#202210031606)
+- Upgrade the library to golang `1.17` so that dependencies can work on all plaftorms (#202210031638)
+- `[filesystem]` Expanded most recursive filesystem APIs so that exclusion patterns can be used to ignore some paths during the processing (#202210040057)
+
+
+Bugfixes
+--------
+
+- [git] added new test cases to mitigate git bombing, with a large number of files (#202209211609)
+- Dependency upgrade: v3-3.22.9 (#202210031026)
+
+
+"" "1.19.0" (2022-09-21)
+========================
+
+Features
+--------
+
+- [Filesystem] Added a file number limit when unzipping to protect against attacks with zip files (#20220913)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v3-3.22.8 (#202209011025, #202209011026, #20220901102601)
+- Dependency upgrade: viper-1.13.0 (#202209071022)
+- Dependency upgrade: goleak-1.2.0 (#202209081025)
+- Dependency upgrade: uuid-4.3.0incompatible (#202209121025, #202209121026, #202209121027, #202209121028, #202209121029, #202209121030, #202209121031, #20220912102501, #20220912102601, #20220912102701, #20220912102801, #20220912102901, #20220912103001)
+
+
+"" "1.18.2" (2022-08-31)
+========================
+
+Bugfixes
+--------
+
+- Dependency upgrade: zerolog-1.28.0 (#202208291023, #202208291024, #20220829102301)
+- `[logs]` Fixed the error message logged by a slow writer (#202208311750)
+
+
+"" "1.18.1" (2022-08-25)
+========================
+
+Bugfixes
+--------
+
+- `[filesystem]` Fixed the platform dependent code on Linux (#202208251445)
+
+
+"" "1.18.0" (2022-08-24)
+========================
+
+Features
+--------
+
+- `[filesystem]` Add utility to retrieve file ownership information i.e. `UID` and `GID` (#202208131936)
+- `[shared cache]` Added a new module to create and manage shared cache between processes (#202208231010)
+
+
+Deprecations and Removals
+-------------------------
+
+- Reverted a dependency upgrade as not supported on MacOs (#202208241429)
+
+
+"" "1.17.2" (2022-08-11)
+========================
+
+Bugfixes
+--------
+
+- [git] Return HEAD if reference not provided (#202208111622)
+
+
+"" "1.17.1" (2022-08-11)
+========================
+
+Bugfixes
+--------
+
+- [git] modified interface to handle more generic references (tag, commit hash or branch name) (#202208111416)
+
+
+"" "1.17.0" (2022-08-11)
+========================
+
+Features
+--------
+
+- Add git utility to prevent cloning git bombs (#202208081656)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v3-3.22.7 (#202208011032)
+- Remove TryLock as it isn't available in go1.16 (#202208111140)
+
+
+"" "1.16.0" (2022-07-29)
+========================
+
+Features
+--------
+
+- Add utility for generating a list of the environment variables based on a struct that uses mapstructure (#202207290929)
+
+
+"" "1.15.2" (2022-07-27)
+========================
+
+Bugfixes
+--------
+
+- Dependency upgrade: afero-1.9.1 (#202207191022, #20220719102201)
+- Dependency upgrade: logrus-1.9.0 (#202207191615, #202207191616, #20220719161501)
+- Dependency upgrade: afero-1.9.2 (#202207201737)
+
+
+Misc
+----
+
+- #202207201838
+
+
+"" "1.15.1" (2022-07-18)
+========================
+
+Bugfixes
+--------
+
+- `[filesystem]` Updated limit structure to have tags specified (#202207181519)
+- `[httptest]` Fixed security issue `(G112: Potential Slowloris Attack because ReadHeaderTimeout is not configured in the http.Server (gosec))` (#202207181802)
+
+
+"" "1.15.0" (2022-07-18)
+========================
+
+Features
+--------
+
+- `[filesystem]` Added ability to better control long running file system actions such as zipping, walking, etc. with context (#202207151751)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: afero-1.9.0 (#202207151021, #202207151022, #202207151023, #20220715102101, #20220715102201)
+
+
+"" "1.14.0" (2022-07-12)
+========================
+
+Features
+--------
+
+- [logs] New utility to create a `Logger` from a [logr.Logger](https://github.com/go-logr/logr) (#202207111655)
+- [logs] Changed constructors to follow naming convention (:warning; May mean breaking changes) (#202207111821)
+- [logs] constructors using old naming convention i.e. `create...` are marked as deprecated (#202207120946)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: testify-1.7.3 (#202206201048, #202206201049, #202206201050, #202206201051, #202206201052, #202206201053, #202206201054, #20220620104801, #20220620104901, #20220620104902, #20220620105001, #20220620105101, #20220620105201, #20220620105301, #20220620105302)
+- Dependency upgrade: testify-1.8.0 (#202207011611)
+- Dependency upgrade: v3-3.22.6 (#202207011616, #202207011617, #20220701161601, #20220701161701)
+
+
 "" "1.13.2" (2022-06-10)
 ========================
 

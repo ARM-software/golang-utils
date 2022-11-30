@@ -6,7 +6,7 @@ package charset
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"reflect"
 	"strings"
@@ -35,7 +35,7 @@ func selectRandomUnsupportedCharset() string {
 
 func selectRandomSupportedCharset() string {
 	rand.Seed(time.Now().Unix())
-	//aliases := charsetaliases.ICUCharsetAliases
+	// aliases := charsetaliases.ICUCharsetAliases
 	aliases := []string{"csUTF8", "utf8", "iso-ir-138", "ISO_8859-8", "ISO-8859-8", "hebrew", "csISOLatinHebrew", "iso-ir-6", "ANSI_X3.4-1968", "ANSI_X3.4-1986", "ISO_646.irv:1991", "ISO646-US", "US-ASCII", "us", "IBM367", "cp367", "csASCII"}
 	return aliases[rand.Intn(len(aliases))] //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 }
@@ -81,7 +81,7 @@ func TestIconv(t *testing.T) {
 
 			dst, err := IconvFromLabels(strings.NewReader(test.src), test.fromEncoding, test.toEncoding)
 			require.NoError(t, err)
-			bytes, err := ioutil.ReadAll(dst)
+			bytes, err := io.ReadAll(dst)
 			require.NoError(t, err)
 			require.Equal(t, test.expected, string(bytes))
 		})
@@ -210,7 +210,7 @@ func TestDetectEncoding(t *testing.T) {
 }
 
 func TestDetectEncodingError(t *testing.T) {
-	input := "\x80" //Input is too small for detecting its charset.
+	input := "\x80" // Input is too small for detecting its charset.
 	encoding, charsetName, err := DetectTextEncoding([]byte(input))
 	require.Error(t, err)
 	assert.True(t, commonerrors.Any(err, commonerrors.ErrNotFound))

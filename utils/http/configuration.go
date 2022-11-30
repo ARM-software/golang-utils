@@ -13,8 +13,8 @@ import (
 	"github.com/ARM-software/golang-utils/utils/config"
 )
 
-//HTTPClientConfiguration defines the client configuration. It can be used to tweak low level transport
-//parameters in order to adapt the client to your usecase.
+// HTTPClientConfiguration defines the client configuration. It can be used to tweak low level transport
+// parameters in order to adapt the client to your usecase.
 // If unsure about the values to set, use the DefaultHTTPClientConfiguration or FastHTTPClientConfiguration depending on
 // what flow you are dealing with.
 type HTTPClientConfiguration struct {
@@ -47,7 +47,7 @@ type HTTPClientConfiguration struct {
 	// waiting for the server to approve.
 	// This time does not include the time to send the request header.
 	ExpectContinueTimeout time.Duration `mapstructure:"timeout_expect_continue"`
-	//RetryPolicy defines the retry policy to use for the retryable client
+	// RetryPolicy defines the retry policy to use for the retryable client
 	RetryPolicy RetryPolicyConfiguration `mapstructure:"retry_policy"`
 }
 

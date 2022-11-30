@@ -1,0 +1,553 @@
+package sharedcache
+
+import (
+	"context"
+	"fmt"
+	"math/rand"
+	"path/filepath"
+	"sort"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/filesystem"
+	"github.com/ARM-software/golang-utils/utils/idgen"
+)
+
+func createTestFileTree(fs filesystem.FS, testDir string, fileModTime time.Time, fileAccessTime time.Time) ([]string, error) {
+	// This can be fixed for testing.
+	rand.Seed(time.Now().UnixNano())
+	err := fs.MkDir(testDir)
+	if err != nil {
+		return nil, err
+	}
+	randI := rand.Intn(5) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+	if randI == 0 {
+		randI = 1
+	}
+	for i := 0; i < randI; i++ {
+		c := fmt.Sprintf("test%v", i+1)
+		path := filepath.Join(testDir, c)
+
+		err = fs.MkDir(path)
+		if err != nil {
+			return nil, err
+		}
+		for j := 0; j < rand.Intn(5); j++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+			uuid, err := idgen.GenerateUUID4()
+			if err != nil {
+				uuid = "uuid"
+			}
+			c := fmt.Sprintf("test-%v-%v", uuid, j+1)
+			path := filepath.Join(path, c)
+
+			err = fs.MkDir(path)
+			if err != nil {
+				return nil, err
+			}
+			for k := 0; k < rand.Intn(5); k++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+				uuid, err = idgen.GenerateUUID4()
+				if err != nil {
+					uuid = "uuid"
+				}
+				c := fmt.Sprintf("test-%v-%v%v", uuid, k+1, ".txt")
+				finalPath := filepath.Join(path, c)
+
+				s := fmt.Sprintf("file-%v-%v%v%v ", uuid, i+1, j+1, k+1)
+				err = fs.WriteFile(finalPath, []byte(s), 0755)
+				if err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+	var tree []string
+	err = fs.ListDirTree(testDir, &tree)
+	if err != nil {
+		return nil, err
+	}
+
+	// unifying timestamps
+	for _, path := range tree {
+		err = fs.Chtimes(path, fileAccessTime, fileModTime)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return tree, nil
+}
+
+func TestNothingInCacheWorkflow(t *testing.T) { // Single fetch with no file previously cached
+	for _, cacheType := range CacheTypes {
+		for _, fsType := range filesystem.FileSystemTypes {
+			testName := fmt.Sprintf("%v_for_fs_%v_and_cache_%v", t.Name(), fsType, cacheType)
+			t.Run(testName, func(t *testing.T) {
+				t.Parallel()
+				ctx := context.Background()
+				fs := filesystem.NewFs(fsType)
+				// set up temp remote directory
+				tmpRemoteDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-remote", testName))
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(tmpRemoteDir) }()
+
+				tmpDestDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-local", testName))
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(tmpDestDir) }()
+
+				remoteCache, err := NewCache(cacheType, fs, &Configuration{
+					RemoteStoragePath: tmpRemoteDir,
+					Timeout:           time.Second,
+				})
+				require.NoError(t, err)
+				count, err := remoteCache.EntriesCount(context.TODO())
+				require.NoError(t, err)
+				assert.Zero(t, count)
+
+				key := remoteCache.GenerateKey("test", "cache", fmt.Sprintf("%v", cacheType))
+
+				err = remoteCache.Fetch(ctx, key, tmpDestDir)
+				require.NotNil(t, err)
+				assert.True(t, commonerrors.Any(err, commonerrors.ErrNotFound, commonerrors.ErrEmpty))
+			})
+		}
+	}
+}
+
+func TestSimpleCacheWorkflow(t *testing.T) { // Simple store, followed by fetch
+	for _, cacheType := range CacheTypes {
+		for _, fsType := range filesystem.FileSystemTypes {
+			if fsType == filesystem.InMemoryFS && cacheType == CacheMutable {
+				// FIXME There is an error with lock unlock when using in memory fs
+				continue
+			}
+			testName := fmt.Sprintf("%v_for_fs_%v_and_cache_%v", t.Name(), fsType, cacheType)
+			t.Run(testName, func(t *testing.T) {
+				t.Parallel()
+				ctx := context.Background()
+				fs := filesystem.NewFs(fsType)
+				// set up temp remote directory
+				tmpRemoteDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-remote", testName))
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(tmpRemoteDir) }()
+
+				tmpSrcDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-local", testName))
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(tmpSrcDir) }()
+
+				tmpDestDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-dest", testName))
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(tmpDestDir) }()
+				items, err := fs.Ls(tmpDestDir)
+				require.NoError(t, err)
+				require.Empty(t, items)
+
+				tree, err := createTestFileTree(fs, tmpSrcDir, time.Now(), time.Now())
+				require.NoError(t, err)
+				expectedTree, err := fs.ConvertToRelativePath(tmpSrcDir, tree...)
+				require.NoError(t, err)
+
+				remoteCache, err := NewCache(cacheType, fs, &Configuration{
+					RemoteStoragePath: tmpRemoteDir,
+					Timeout:           time.Second,
+				})
+				require.NoError(t, err)
+				count, err := remoteCache.EntriesCount(context.TODO())
+				require.NoError(t, err)
+				assert.Zero(t, count)
+
+				key := remoteCache.GenerateKey("test", "cache", fmt.Sprintf("%v", cacheType))
+				err = remoteCache.Store(ctx, key, tmpSrcDir)
+				require.NoError(t, err)
+
+				// check remote directory isn't empty
+				count, err = remoteCache.EntriesCount(context.TODO())
+				require.NoError(t, err)
+				assert.Equal(t, int64(1), count)
+
+				err = remoteCache.Fetch(ctx, key, tmpDestDir)
+				require.NoError(t, err)
+				items, err = fs.Ls(tmpDestDir)
+				require.NoError(t, err)
+				require.NotEmpty(t, items)
+				var content []string
+				err = fs.ListDirTree(tmpDestDir, &content)
+				require.NoError(t, err)
+				actualTree, err := fs.ConvertToRelativePath(tmpDestDir, content...)
+				require.NoError(t, err)
+
+				sort.Strings(expectedTree)
+				sort.Strings(actualTree)
+				require.Equal(t, expectedTree, actualTree)
+			})
+		}
+	}
+}
+
+func TestSimpleCacheWorkflow_WithExcludedFilesystemItems(t *testing.T) { // Simple store, followed by fetch
+	for _, cacheType := range CacheTypes {
+		for _, fsType := range filesystem.FileSystemTypes {
+			if fsType == filesystem.InMemoryFS && cacheType == CacheMutable {
+				// FIXME There is an error with lock unlock when using in memory fs
+				continue
+			}
+			testName := fmt.Sprintf("%v_for_fs_%v_and_cache_%v", t.Name(), fsType, cacheType)
+			t.Run(testName, func(t *testing.T) {
+				t.Parallel()
+				ctx := context.Background()
+				fs := filesystem.NewFs(fsType)
+				// set up temp remote directory
+				tmpRemoteDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-remote", testName))
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(tmpRemoteDir) }()
+
+				// Add random folders in the cache
+				_, err = fs.TempDir(tmpRemoteDir, ".snapshot-to-ignore")
+				require.NoError(t, err)
+				_, err = fs.TempDir(tmpRemoteDir, "ignore-folder.snapshot-to")
+				require.NoError(t, err)
+				_, err = fs.TempDir(tmpRemoteDir, ".exclude-folder")
+				require.NoError(t, err)
+				_, err = fs.TempDir(tmpRemoteDir, "another-folder-to-exclude")
+				require.NoError(t, err)
+				f, err := fs.TempFile(tmpRemoteDir, ".ignore-file.*.test")
+				require.NoError(t, err)
+				require.NoError(t, f.Close())
+				f, err = fs.TempFile(tmpRemoteDir, "another-file-to-exclude.*.test")
+				require.NoError(t, err)
+				require.NoError(t, f.Close())
+
+				tmpSrcDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-local", testName))
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(tmpSrcDir) }()
+
+				tmpDestDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-dest", testName))
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(tmpDestDir) }()
+				items, err := fs.Ls(tmpDestDir)
+				require.NoError(t, err)
+				require.Empty(t, items)
+
+				tree, err := createTestFileTree(fs, tmpSrcDir, time.Now(), time.Now())
+				require.NoError(t, err)
+				expectedTree, err := fs.ConvertToRelativePath(tmpSrcDir, tree...)
+				require.NoError(t, err)
+
+				remoteCache, err := NewCache(cacheType, fs, &Configuration{
+					RemoteStoragePath: tmpRemoteDir,
+					Timeout:           time.Second,
+				})
+				require.NoError(t, err)
+				count, err := remoteCache.EntriesCount(context.TODO())
+				require.NoError(t, err)
+				assert.Equal(t, int64(6), count)
+
+				remoteCache, err = NewCache(cacheType, fs, &Configuration{
+					RemoteStoragePath:       tmpRemoteDir,
+					Timeout:                 time.Second,
+					FilesystemItemsToIgnore: ".*exclude.*,.*ignore.*",
+				})
+				require.NoError(t, err)
+				count, err = remoteCache.EntriesCount(context.TODO())
+				require.NoError(t, err)
+				assert.Zero(t, count)
+
+				key := remoteCache.GenerateKey("test", "cache", fmt.Sprintf("%v", cacheType))
+				err = remoteCache.Store(ctx, key, tmpSrcDir)
+				require.NoError(t, err)
+
+				// check remote directory isn't empty
+				count, err = remoteCache.EntriesCount(context.TODO())
+				require.NoError(t, err)
+				assert.Equal(t, int64(1), count)
+
+				err = remoteCache.Fetch(ctx, key, tmpDestDir)
+				require.NoError(t, err)
+				items, err = fs.Ls(tmpDestDir)
+				require.NoError(t, err)
+				require.NotEmpty(t, items)
+				var content []string
+				err = fs.ListDirTree(tmpDestDir, &content)
+				require.NoError(t, err)
+				actualTree, err := fs.ConvertToRelativePath(tmpDestDir, content...)
+				require.NoError(t, err)
+
+				sort.Strings(expectedTree)
+				sort.Strings(actualTree)
+				require.Equal(t, expectedTree, actualTree)
+			})
+		}
+	}
+}
+
+func TestComplexCacheWorkflow(t *testing.T) { // Multiple Store action. The fetch should return the latest files stored in cache.
+	for _, cacheType := range CacheTypes {
+		for _, fsType := range filesystem.FileSystemTypes {
+			if fsType == filesystem.InMemoryFS && cacheType == CacheMutable {
+				// FIXME There is an error with locks and in-memory fs (see details in ILock)
+				continue
+			}
+			testName := fmt.Sprintf("%v_for_fs_%v_and_cache_%v", t.Name(), fsType, cacheType)
+			t.Run(testName, func(t *testing.T) {
+				t.Parallel()
+				ctx := context.Background()
+				fs := filesystem.NewFs(fsType)
+				// set up temp remote directory
+				tmpRemoteDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-remote", testName))
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(tmpRemoteDir) }()
+
+				tmpSrcDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-local", testName))
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(tmpSrcDir) }()
+
+				remoteCache, err := NewCache(cacheType, fs, &Configuration{
+					RemoteStoragePath: tmpRemoteDir,
+					Timeout:           time.Second,
+				})
+				require.NoError(t, err)
+				count, err := remoteCache.EntriesCount(context.TODO())
+				require.NoError(t, err)
+				assert.Zero(t, count)
+
+				var expectedTree []string
+				key := remoteCache.GenerateKey("test", "cache", fmt.Sprintf("%v", cacheType))
+
+				for i := 0; i < 10; i++ {
+					err = fs.CleanDir(tmpSrcDir)
+					require.NoError(t, err)
+					tree, err := createTestFileTree(fs, tmpSrcDir, time.Now(), time.Now())
+					require.NoError(t, err)
+					expectedTree, err = fs.ConvertToRelativePath(tmpSrcDir, tree...)
+					require.NoError(t, err)
+					err = remoteCache.Store(ctx, key, tmpSrcDir)
+					require.NoError(t, err)
+					time.Sleep(5 * time.Millisecond)
+				}
+
+				// check remote directory isn't empty
+				count, err = remoteCache.EntriesCount(context.TODO())
+				require.NoError(t, err)
+				assert.Equal(t, int64(1), count)
+
+				// Cleaning up src directory
+				err = fs.CleanDir(tmpSrcDir)
+				require.NoError(t, err)
+				items, err := fs.Ls(tmpSrcDir)
+				require.NoError(t, err)
+				require.Empty(t, items)
+
+				err = remoteCache.Fetch(ctx, key, tmpSrcDir)
+				require.NoError(t, err)
+				items, err = fs.Ls(tmpSrcDir)
+				require.NoError(t, err)
+				require.NotEmpty(t, items)
+				var content []string
+				err = fs.ListDirTree(tmpSrcDir, &content)
+				require.NoError(t, err)
+				actualTree, err := fs.ConvertToRelativePath(tmpSrcDir, content...)
+				require.NoError(t, err)
+
+				sort.Strings(expectedTree)
+				sort.Strings(actualTree)
+				require.Equal(t, expectedTree, actualTree)
+			})
+		}
+	}
+}
+
+func TestComplexCacheWorkflowWithCleanCache(t *testing.T) { // Multiple Store action. The fetch should return the latest files stored in cache. A clean entry is performed after the multiple stores
+	for _, cacheType := range CacheTypes {
+		for _, fsType := range filesystem.FileSystemTypes {
+			if fsType == filesystem.InMemoryFS {
+				// FIXME There is an error with locks and in-memory fs (see details in ILock)
+				continue
+			}
+			testName := fmt.Sprintf("%v_for_fs_%v_and_cache_%v", t.Name(), fsType, cacheType)
+			t.Run(testName, func(t *testing.T) {
+				t.Parallel()
+				ctx := context.Background()
+				fs := filesystem.NewFs(fsType)
+				// set up temp remote directory
+				tmpRemoteDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-remote", testName))
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(tmpRemoteDir) }()
+
+				tmpSrcDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-local", testName))
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(tmpSrcDir) }()
+
+				remoteCache, err := NewCache(cacheType, fs, &Configuration{
+					RemoteStoragePath: tmpRemoteDir,
+					Timeout:           time.Second,
+				})
+				require.NoError(t, err)
+				count, err := remoteCache.EntriesCount(context.TODO())
+				require.NoError(t, err)
+				assert.Zero(t, count)
+
+				var expectedTree []string
+				key := remoteCache.GenerateKey("test", "cache", fmt.Sprintf("%v", cacheType))
+
+				for i := 0; i < 10; i++ {
+					err = fs.CleanDir(tmpSrcDir)
+					require.NoError(t, err)
+					tree, err := createTestFileTree(fs, tmpSrcDir, time.Now(), time.Now())
+					require.NoError(t, err)
+					expectedTree, err = fs.ConvertToRelativePath(tmpSrcDir, tree...)
+					require.NoError(t, err)
+					err = remoteCache.Store(ctx, key, tmpSrcDir)
+					require.NoError(t, err)
+				}
+				err = remoteCache.CleanEntry(ctx, key)
+				require.NoError(t, err)
+
+				// check remote directory isn't empty
+				count, err = remoteCache.EntriesCount(context.TODO())
+				require.NoError(t, err)
+				assert.Equal(t, int64(1), count)
+
+				// Cleaning up src directory
+				err = fs.CleanDir(tmpSrcDir)
+				require.NoError(t, err)
+				items, err := fs.Ls(tmpSrcDir)
+				require.NoError(t, err)
+				require.Empty(t, items)
+
+				err = remoteCache.Fetch(ctx, key, tmpSrcDir)
+				require.NoError(t, err)
+				items, err = fs.Ls(tmpSrcDir)
+				require.NoError(t, err)
+				require.NotEmpty(t, items)
+				var content []string
+				err = fs.ListDirTree(tmpSrcDir, &content)
+				require.NoError(t, err)
+				actualTree, err := fs.ConvertToRelativePath(tmpSrcDir, content...)
+				require.NoError(t, err)
+
+				sort.Strings(expectedTree)
+				sort.Strings(actualTree)
+				require.Equal(t, expectedTree, actualTree)
+			})
+		}
+	}
+}
+
+func TestRemoveEntry(t *testing.T) { // A store followed by a remove entry followed by a fetch
+	for _, cacheType := range CacheTypes {
+		for _, fsType := range filesystem.FileSystemTypes {
+			testName := fmt.Sprintf("%v_for_fs_%v_and_cache_%v", t.Name(), fsType, cacheType)
+			t.Run(testName, func(t *testing.T) {
+				t.Parallel()
+				ctx := context.Background()
+				fs := filesystem.NewFs(fsType)
+				// set up temp remote directory
+				tmpRemoteDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-remote", testName))
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(tmpRemoteDir) }()
+
+				tmpSrcDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-local", testName))
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(tmpSrcDir) }()
+
+				remoteCache, err := NewCache(cacheType, fs, &Configuration{
+					RemoteStoragePath: tmpRemoteDir,
+					Timeout:           time.Second,
+				})
+				require.NoError(t, err)
+				count, err := remoteCache.EntriesCount(context.TODO())
+				require.NoError(t, err)
+				assert.Zero(t, count)
+
+				key := remoteCache.GenerateKey("test", "cache", fmt.Sprintf("%v", cacheType))
+
+				_, err = createTestFileTree(fs, tmpSrcDir, time.Now(), time.Now())
+				require.NoError(t, err)
+				err = remoteCache.Store(ctx, key, tmpSrcDir)
+				require.NoError(t, err)
+
+				// check remote directory isn't empty
+				count, err = remoteCache.EntriesCount(context.TODO())
+				require.NoError(t, err)
+				assert.Equal(t, int64(1), count)
+
+				// Cleaning up src directory
+				err = fs.CleanDir(tmpSrcDir)
+				require.NoError(t, err)
+				items, err := fs.Ls(tmpSrcDir)
+				require.NoError(t, err)
+				require.Empty(t, items)
+
+				err = remoteCache.RemoveEntry(ctx, key)
+				require.NoError(t, err)
+				count, err = remoteCache.EntriesCount(context.TODO())
+				require.NoError(t, err)
+				assert.Zero(t, count)
+
+				err = remoteCache.Fetch(ctx, key, tmpSrcDir)
+				require.NotNil(t, err)
+				assert.True(t, commonerrors.Any(err, commonerrors.ErrNotFound, commonerrors.ErrEmpty))
+			})
+		}
+	}
+}
+
+func TestEntryAge(t *testing.T) { // A store followed by a remove entry followed by a fetch
+	for _, cacheType := range CacheTypes {
+		for _, fsType := range filesystem.FileSystemTypes {
+			testName := fmt.Sprintf("%v_for_fs_%v_and_cache_%v", t.Name(), fsType, cacheType)
+			t.Run(testName, func(t *testing.T) {
+				t.Parallel()
+				ctx := context.Background()
+				fs := filesystem.NewFs(fsType)
+				// set up temp remote directory
+				tmpRemoteDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-remote", testName))
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(tmpRemoteDir) }()
+
+				tmpSrcDir, err := fs.TempDirInTempDir(fmt.Sprintf("test-%v-local", testName))
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(tmpSrcDir) }()
+
+				remoteCache, err := NewCache(cacheType, fs, &Configuration{
+					RemoteStoragePath: tmpRemoteDir,
+					Timeout:           time.Second,
+				})
+				require.NoError(t, err)
+				count, err := remoteCache.EntriesCount(context.TODO())
+				require.NoError(t, err)
+				assert.Zero(t, count)
+
+				key := remoteCache.GenerateKey("test", "cache", fmt.Sprintf("%v", cacheType))
+
+				_, err = createTestFileTree(fs, tmpSrcDir, time.Now(), time.Now())
+				require.NoError(t, err)
+				err = remoteCache.Store(ctx, key, tmpSrcDir)
+				require.NoError(t, err)
+
+				// check remote directory isn't empty
+				count, err = remoteCache.EntriesCount(context.TODO())
+				require.NoError(t, err)
+				assert.Equal(t, int64(1), count)
+
+				// Check entry age
+				age, err := remoteCache.GetEntryAge(context.TODO(), key)
+				require.NoError(t, err)
+				assert.True(t, age < 5*time.Second)
+
+				testAge := time.Duration(rand.Intn(24)) * time.Hour //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+				err = remoteCache.SetEntryAge(context.TODO(), key, testAge)
+				require.NoError(t, err)
+				age, err = remoteCache.GetEntryAge(context.TODO(), key)
+				require.NoError(t, err)
+				assert.Equal(t, int64(testAge.Seconds()), int64(age.Seconds()))
+
+				err = remoteCache.RemoveEntry(ctx, key)
+				require.NoError(t, err)
+			})
+		}
+	}
+}

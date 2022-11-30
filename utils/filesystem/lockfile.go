@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-//Distributed lock using lock files https://fileinfo.com/extension/lock
+// Distributed lock using lock files https://fileinfo.com/extension/lock
 package filesystem
 
 import (
@@ -223,16 +223,16 @@ func (l *RemoteLockFile) MakeStale(ctx context.Context) error {
 	parallelisation.SleepWithContext(ctx, l.lockHeartBeatPeriod+time.Millisecond)
 	lockPath := l.lockPath()
 	filePath := l.heartBeatFile(lockPath)
-	time := time.Now().Add(-1 * (l.lockHeartBeatPeriod + time.Millisecond))
+	newTime := time.Now().Add(-1 * (l.lockHeartBeatPeriod + time.Millisecond))
 	return retry.Do(
 		func() error {
 			if !l.fs.Exists(lockPath) {
 				return nil
 			}
 			if l.fs.Exists(filePath) {
-				_ = l.fs.Chtimes(filePath, time, time)
+				_ = l.fs.Chtimes(filePath, newTime, newTime)
 			} else {
-				_ = l.fs.Chtimes(lockPath, time, time)
+				_ = l.fs.Chtimes(lockPath, newTime, newTime)
 			}
 			if !l.IsStale() {
 				return fmt.Errorf("cannot make lock [%v] stale", l.id)
