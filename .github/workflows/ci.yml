@@ -24,10 +24,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checkout with full history for to allow compare with base branch
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
       - uses: FranzDiebold/github-env-vars-action@v2
       - name: Install CI/CD tools
         run: pip install continuous-delivery-scripts && pip list
@@ -44,10 +44,10 @@ jobs:
     name: Check for secrets
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4
     - name: Install tools
       run: pip install detect-secrets==1.0.3 && pip list
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
     # FIXME; GitLeaks now requires a licence.
@@ -74,9 +74,9 @@ jobs:
     name: Build and test
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ env.go_version }}
 
@@ -87,7 +87,7 @@ jobs:
       - if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: echo "CACHE_PATH=${{ env.go_cache_ubuntu_path }}" >> $GITHUB_ENV
       - name: Load Go Dependency Cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ${{ env.CACHE_PATH }}
@@ -109,7 +109,7 @@ jobs:
 
       - if: ${{ startsWith(matrix.os, 'ubuntu') }}
         name: Test [${{ matrix.go-module }} on ${{ matrix.os }}] & Publish Code Coverage
-        uses: paambaati/codeclimate-action@v2.7.5
+        uses: paambaati/codeclimate-action@v3.2.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
