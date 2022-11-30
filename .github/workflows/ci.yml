@@ -97,12 +97,12 @@ jobs:
             ${{ matrix.os }}-${{ matrix.go-module }}-
       - if: ${{ startsWith(matrix.os, 'ubuntu') }}
         name: Linting
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v3
         with:
           # Required: the version of golangci-lint is required and must be specified without patch version.
           version: latest
           working-directory: ${{ matrix.go-module }}
-          args: "--verbose --print-issued-lines --print-linter-name --out-${NO_FUTURE}format colored-line-number"
+          args: "--verbose --print-issued-lines --print-linter-name --out-${NO_FUTURE}format colored-line-number --timeout 300s --max-issues-per-linter 0 --max-same-issues 0"
       - name: Build ${{ matrix.go-module }} on ${{ matrix.os }}
         run: go build -v ./...
         working-directory: ${{ matrix.go-module }}
