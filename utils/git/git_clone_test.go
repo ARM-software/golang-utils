@@ -19,29 +19,30 @@ func TestCloneGitBomb(t *testing.T) {
 		limits                ILimits
 		maxEntriesChannelSize int
 	}{
+		// FIXME https://kate.io/blog/git-bomb/ is no longer accessible. Uncomment when a new git bomb is available.
 		// /*
 		// See: https://kate.io/blog/git-bomb/
-		{
-			name:                  "git bomb small channel saturated",
-			url:                   "https://github.com/Katee/git-bomb.git",
-			err:                   fmt.Errorf("%w: entry channel saturated with tree entries", commonerrors.ErrTooLarge),
-			limits:                NewLimits(1e10, 1e10, 1e10, 10, 1e10, 1e10),
-			maxEntriesChannelSize: 1000,
-		},
-		{
-			name:                  "git bomb large channel",
-			url:                   "https://github.com/Katee/git-bomb.git",
-			err:                   fmt.Errorf("%w: maximum file count exceeded", commonerrors.ErrTooLarge),
-			limits:                NewLimits(1e5, 1e6, 1e2, 100, 1e6, 1e10), // max file size: 100KB, max repo size: 1MB, max file count: 1 hundred, max tree depth 10, max entries 1 million, max true size: 10gb
-			maxEntriesChannelSize: 25000,
-		},
-		{
-			name:                  "git bomb seg fault",
-			url:                   "https://github.com/Katee/git-bomb-segfault.git",
-			err:                   fmt.Errorf("%w: maximum tree depth exceeded", commonerrors.ErrTooLarge),
-			limits:                NewLimits(1e5, 1e6, 1e4, 4, 1e6, 1e10), // max file size: 100KB, max repo size: 1MB, max file count: 100 thousand, max tree depth 10, max entries 1 million, max true size: 10gb
-			maxEntriesChannelSize: 25000,
-		},
+		// {
+		//	name:                  "git bomb small channel saturated",
+		//	url:                   "https://github.com/Katee/git-bomb.git",
+		//	err:                   fmt.Errorf("%w: entry channel saturated with tree entries", commonerrors.ErrTooLarge),
+		//	limits:                NewLimits(1e10, 1e10, 1e10, 10, 1e10, 1e10),
+		//	maxEntriesChannelSize: 1000,
+		// },
+		// {
+		//	name:                  "git bomb large channel",
+		//	url:                   "https://github.com/Katee/git-bomb.git",
+		//	err:                   fmt.Errorf("%w: maximum file count exceeded", commonerrors.ErrTooLarge),
+		//	limits:                NewLimits(1e5, 1e6, 1e2, 100, 1e6, 1e10), // max file size: 100KB, max repo size: 1MB, max file count: 1 hundred, max tree depth 10, max entries 1 million, max true size: 10gb
+		//	maxEntriesChannelSize: 25000,
+		// },
+		// {
+		//	name:                  "git bomb seg fault",
+		//	url:                   "https://github.com/Katee/git-bomb-segfault.git",
+		//	err:                   fmt.Errorf("%w: maximum tree depth exceeded", commonerrors.ErrTooLarge),
+		//	limits:                NewLimits(1e5, 1e6, 1e4, 4, 1e6, 1e10), // max file size: 100KB, max repo size: 1MB, max file count: 100 thousand, max tree depth 10, max entries 1 million, max true size: 10gb
+		//	maxEntriesChannelSize: 25000,
+		// },
 		{
 			name:                  "git bomb large file count",
 			url:                   "https://github.com/way2autotesting/DVLA_AutoTest.git",
@@ -220,20 +221,21 @@ func TestValidationNormalReposErrors(t *testing.T) {
 		})
 	}
 
-	// Check channel saturation during run
-	t.Run("channel saturation during run", func(t *testing.T) {
-		MaxEntriesChannelSize = 1000
-		err = fs.Rm(destPath)
-		require.NoError(t, err)
-
-		c := NewCloneObject()
-		c.repo = repoGitBomb
-		err = c.SetupLimits(DefaultLimits())
-		require.NoError(t, err)
-
-		err = c.ValidateRepository(context.Background())
-		require.ErrorContains(t, err, fmt.Errorf("%w: entry channel saturated with tree entries", commonerrors.ErrTooLarge).Error())
-	})
+	// FIXME enable when a git bomb is created
+	//// Check channel saturation during run
+	// t.Run("channel saturation during run", func(t *testing.T) {
+	//	MaxEntriesChannelSize = 1000
+	//	err = fs.Rm(destPath)
+	//	require.NoError(t, err)
+	//
+	//	c := NewCloneObject()
+	//	c.repo = repoGitBomb
+	//	err = c.SetupLimits(DefaultLimits())
+	//	require.NoError(t, err)
+	//
+	//	err = c.ValidateRepository(context.Background())
+	//	require.ErrorContains(t, err, fmt.Errorf("%w: entry channel saturated with tree entries", commonerrors.ErrTooLarge).Error())
+	// })
 }
 
 func TestCloneNonExistentRepo(t *testing.T) {
