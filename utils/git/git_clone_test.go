@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -87,10 +88,10 @@ func TestCloneGitBomb(t *testing.T) {
 			err = CloneWithLimits(context.Background(), destPath, test.limits, &cloneOptions)
 			if test.err != nil {
 				require.Error(t, err)
-				require.ErrorContains(t, err, test.err.Error())
+				assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
+				assert.ErrorContains(t, err, test.err.Error())
 			} else {
 				require.NoError(t, err)
-				require.Nil(t, err)
 			}
 		})
 	}
@@ -176,12 +177,12 @@ func TestValidationNormalReposErrors(t *testing.T) {
 		{
 			name:   "too many entries",
 			err:    fmt.Errorf("%w: maximum entries count exceeded", commonerrors.ErrTooLarge),
-			limits: NewLimits(1e10, 1e10, 1e10, 1e10, 1000, 1e10), // entries must be greater than MaxEntriesChannelSize
+			limits: NewLimits(1e10, 1e10, 1e10, 1e10, 10, 1e10), // entries must be greater than MaxEntriesChannelSize
 		},
 		{
 			name:   "too large true size",
 			err:    fmt.Errorf("%w: maximum true size exceeded", commonerrors.ErrTooLarge),
-			limits: NewLimits(1e10, 1e10, 1e10, 1e10, 1e10, 1000), // entries must be greater than MaxEntriesChannelSize
+			limits: NewLimits(1e10, 1e10, 1e10, 1e10, 1e10, 10), // entries must be greater than MaxEntriesChannelSize
 		},
 	}
 
@@ -201,7 +202,9 @@ func TestValidationNormalReposErrors(t *testing.T) {
 			require.NoError(t, err)
 
 			err = c.ValidateRepository(context.Background())
-			require.ErrorContains(t, err, test.err.Error())
+			fmt.Println(err)
+			assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
+			assert.ErrorContains(t, err, test.err.Error())
 		})
 	}
 
@@ -217,7 +220,7 @@ func TestValidationNormalReposErrors(t *testing.T) {
 			require.NoError(t, err)
 
 			err = c.ValidateRepository(context.Background())
-			require.ErrorContains(t, err, fmt.Errorf("%w: entry channel saturated before initialisation complete", commonerrors.ErrTooLarge).Error())
+			assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
 		})
 	}
 
@@ -234,7 +237,7 @@ func TestValidationNormalReposErrors(t *testing.T) {
 	//	require.NoError(t, err)
 	//
 	//	err = c.ValidateRepository(context.Background())
-	//	require.ErrorContains(t, err, fmt.Errorf("%w: entry channel saturated with tree entries", commonerrors.ErrTooLarge).Error())
+	//	assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
 	// })
 }
 
@@ -276,37 +279,39 @@ func TestCloneNonExistentRepo(t *testing.T) {
 				URL: test.url,
 			}
 			err = CloneWithLimits(context.Background(), destPath, limits, &cloneOptions)
-			require.ErrorContains(t, err, test.errorContains)
+			require.Error(t, err)
+			assert.ErrorContains(t, err, test.errorContains)
 		})
 	}
 }
 
-func TestClone(t *testing.T) {
-	// Setup
-	MaxEntriesChannelSize = 1000
-	fs := filesystem.NewFs(filesystem.StandardFS)
-	destPath, err := fs.TempDirInTempDir("git-test")
-	require.NoError(t, err)
-	isEmpty, err := filesystem.IsEmpty(destPath)
-	require.NoError(t, err)
-	require.True(t, isEmpty)
-	defer func() { _ = fs.Rm(destPath) }()
-	limits := NewLimits(1e8, 1e10, 1e6, 20, 1e6, 1e10) // max file size: 100MB, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 1 million
-	c := NewCloneObject()
-
-	// Cleanup and make sure cloning git bomb with no checkout doesn't crash
-	t.Run("cloning git bomb with no checkout doesn't crash", func(t *testing.T) {
-		err = fs.Rm(destPath)
-		require.NoError(t, err)
-		empty, err := fs.IsEmpty(destPath)
-		require.NoError(t, err)
-		require.True(t, empty)
-		err = c.SetupLimits(limits)
-		require.NoError(t, err)
-		err = c.Clone(context.Background(), destPath, &GitActionConfig{
-			URL:        "https://github.com/Katee/git-bomb.git",
-			NoCheckout: true,
-		})
-		require.NoError(t, err)
-	})
-}
+// FIXME uncomment when a git bomb repository is at disposal
+// func TestClone(t *testing.T) {
+//	// Setup
+//	MaxEntriesChannelSize = 1000
+//	fs := filesystem.NewFs(filesystem.StandardFS)
+//	destPath, err := fs.TempDirInTempDir("git-test")
+//	require.NoError(t, err)
+//	isEmpty, err := filesystem.IsEmpty(destPath)
+//	require.NoError(t, err)
+//	require.True(t, isEmpty)
+//	defer func() { _ = fs.Rm(destPath) }()
+//	limits := NewLimits(1e8, 1e10, 1e6, 20, 1e6, 1e10) // max file size: 100MB, max repo size: 1GB, max file count: 1 million, max tree depth 1, max entries 1 million
+//	c := NewCloneObject()
+//
+//	// Cleanup and make sure cloning git bomb with no checkout doesn't crash
+//	t.Run("cloning git bomb with no checkout doesn't crash", func(t *testing.T) {
+//		err = fs.Rm(destPath)
+//		require.NoError(t, err)
+//		empty, err := fs.IsEmpty(destPath)
+//		require.NoError(t, err)
+//		require.True(t, empty)
+//		err = c.SetupLimits(limits)
+//		require.NoError(t, err)
+//		err = c.Clone(context.Background(), destPath, &GitActionConfig{
+//			URL:        "https://github.com/Katee/git-bomb.git",
+//			NoCheckout: true,
+//		})
+//		require.NoError(t, err)
+//	})
+// }
