@@ -954,6 +954,25 @@ func (mr *MockFSMockRecorder) CleanDirWithContext(arg0, arg1 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CleanDirWithContext", reflect.TypeOf((*MockFS)(nil).CleanDirWithContext), arg0, arg1)
 }
 
+// CleanDirWithContextAndExclusionPatterns mocks base method.
+func (m *MockFS) CleanDirWithContextAndExclusionPatterns(arg0 context.Context, arg1 string, arg2 ...string) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CleanDirWithContextAndExclusionPatterns", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CleanDirWithContextAndExclusionPatterns indicates an expected call of CleanDirWithContextAndExclusionPatterns.
+func (mr *MockFSMockRecorder) CleanDirWithContextAndExclusionPatterns(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CleanDirWithContextAndExclusionPatterns", reflect.TypeOf((*MockFS)(nil).CleanDirWithContextAndExclusionPatterns), varargs...)
+}
+
 // ConvertFilePath mocks base method.
 func (m *MockFS) ConvertFilePath(arg0 string) string {
 	m.ctrl.T.Helper()
@@ -1034,6 +1053,25 @@ func (m *MockFS) CopyWithContext(arg0 context.Context, arg1, arg2 string) error 
 func (mr *MockFSMockRecorder) CopyWithContext(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CopyWithContext", reflect.TypeOf((*MockFS)(nil).CopyWithContext), arg0, arg1, arg2)
+}
+
+// CopyWithContextAndExclusionPatterns mocks base method.
+func (m *MockFS) CopyWithContextAndExclusionPatterns(arg0 context.Context, arg1, arg2 string, arg3 ...string) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1, arg2}
+	for _, a := range arg3 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CopyWithContextAndExclusionPatterns", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CopyWithContextAndExclusionPatterns indicates an expected call of CopyWithContextAndExclusionPatterns.
+func (mr *MockFSMockRecorder) CopyWithContextAndExclusionPatterns(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CopyWithContextAndExclusionPatterns", reflect.TypeOf((*MockFS)(nil).CopyWithContextAndExclusionPatterns), varargs...)
 }
 
 // CreateFile mocks base method.
@@ -1340,6 +1378,25 @@ func (mr *MockFSMockRecorder) ListDirTreeWithContext(arg0, arg1, arg2 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDirTreeWithContext", reflect.TypeOf((*MockFS)(nil).ListDirTreeWithContext), arg0, arg1, arg2)
 }
 
+// ListDirTreeWithContextAndExclusionPatterns mocks base method.
+func (m *MockFS) ListDirTreeWithContextAndExclusionPatterns(arg0 context.Context, arg1 string, arg2 *[]string, arg3 ...string) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1, arg2}
+	for _, a := range arg3 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ListDirTreeWithContextAndExclusionPatterns", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ListDirTreeWithContextAndExclusionPatterns indicates an expected call of ListDirTreeWithContextAndExclusionPatterns.
+func (mr *MockFSMockRecorder) ListDirTreeWithContextAndExclusionPatterns(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDirTreeWithContextAndExclusionPatterns", reflect.TypeOf((*MockFS)(nil).ListDirTreeWithContextAndExclusionPatterns), varargs...)
+}
+
 // Lls mocks base method.
 func (m *MockFS) Lls(arg0 string) ([]fs.FileInfo, error) {
 	m.ctrl.T.Helper()
@@ -1398,6 +1455,26 @@ func (m *MockFS) LsFromOpenedDirectory(arg0 filesystem.File) ([]string, error) {
 func (mr *MockFSMockRecorder) LsFromOpenedDirectory(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LsFromOpenedDirectory", reflect.TypeOf((*MockFS)(nil).LsFromOpenedDirectory), arg0)
+}
+
+// LsWithExclusionPatterns mocks base method.
+func (m *MockFS) LsWithExclusionPatterns(arg0 string, arg1 ...string) ([]string, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0}
+	for _, a := range arg1 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "LsWithExclusionPatterns", varargs...)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LsWithExclusionPatterns indicates an expected call of LsWithExclusionPatterns.
+func (mr *MockFSMockRecorder) LsWithExclusionPatterns(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0}, arg1...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LsWithExclusionPatterns", reflect.TypeOf((*MockFS)(nil).LsWithExclusionPatterns), varargs...)
 }
 
 // Lstat mocks base method.
@@ -1588,6 +1665,25 @@ func (mr *MockFSMockRecorder) RemoveWithContext(arg0, arg1 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveWithContext", reflect.TypeOf((*MockFS)(nil).RemoveWithContext), arg0, arg1)
 }
 
+// RemoveWithContextAndExclusionPatterns mocks base method.
+func (m *MockFS) RemoveWithContextAndExclusionPatterns(arg0 context.Context, arg1 string, arg2 ...string) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "RemoveWithContextAndExclusionPatterns", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveWithContextAndExclusionPatterns indicates an expected call of RemoveWithContextAndExclusionPatterns.
+func (mr *MockFSMockRecorder) RemoveWithContextAndExclusionPatterns(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveWithContextAndExclusionPatterns", reflect.TypeOf((*MockFS)(nil).RemoveWithContextAndExclusionPatterns), varargs...)
+}
+
 // Rm mocks base method.
 func (m *MockFS) Rm(arg0 string) error {
 	m.ctrl.T.Helper()
@@ -1660,6 +1756,26 @@ func (m *MockFS) SubDirectoriesWithContext(arg0 context.Context, arg1 string) ([
 func (mr *MockFSMockRecorder) SubDirectoriesWithContext(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubDirectoriesWithContext", reflect.TypeOf((*MockFS)(nil).SubDirectoriesWithContext), arg0, arg1)
+}
+
+// SubDirectoriesWithContextAndExclusionPatterns mocks base method.
+func (m *MockFS) SubDirectoriesWithContextAndExclusionPatterns(arg0 context.Context, arg1 string, arg2 ...string) ([]string, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "SubDirectoriesWithContextAndExclusionPatterns", varargs...)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubDirectoriesWithContextAndExclusionPatterns indicates an expected call of SubDirectoriesWithContextAndExclusionPatterns.
+func (mr *MockFSMockRecorder) SubDirectoriesWithContextAndExclusionPatterns(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubDirectoriesWithContextAndExclusionPatterns", reflect.TypeOf((*MockFS)(nil).SubDirectoriesWithContextAndExclusionPatterns), varargs...)
 }
 
 // Symlink mocks base method.
@@ -1823,6 +1939,25 @@ func (mr *MockFSMockRecorder) WalkWithContext(arg0, arg1, arg2 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WalkWithContext", reflect.TypeOf((*MockFS)(nil).WalkWithContext), arg0, arg1, arg2)
 }
 
+// WalkWithContextAndExclusionPatterns mocks base method.
+func (m *MockFS) WalkWithContextAndExclusionPatterns(arg0 context.Context, arg1 string, arg2 filepath.WalkFunc, arg3 ...string) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1, arg2}
+	for _, a := range arg3 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "WalkWithContextAndExclusionPatterns", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WalkWithContextAndExclusionPatterns indicates an expected call of WalkWithContextAndExclusionPatterns.
+func (mr *MockFSMockRecorder) WalkWithContextAndExclusionPatterns(arg0, arg1, arg2 interface{}, arg3 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1, arg2}, arg3...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WalkWithContextAndExclusionPatterns", reflect.TypeOf((*MockFS)(nil).WalkWithContextAndExclusionPatterns), varargs...)
+}
+
 // WriteFile mocks base method.
 func (m *MockFS) WriteFile(arg0 string, arg1 []byte, arg2 fs.FileMode) error {
 	m.ctrl.T.Helper()
@@ -1877,4 +2012,23 @@ func (m *MockFS) ZipWithContextAndLimits(arg0 context.Context, arg1, arg2 string
 func (mr *MockFSMockRecorder) ZipWithContextAndLimits(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ZipWithContextAndLimits", reflect.TypeOf((*MockFS)(nil).ZipWithContextAndLimits), arg0, arg1, arg2, arg3)
+}
+
+// ZipWithContextAndLimitsAndExclusionPatterns mocks base method.
+func (m *MockFS) ZipWithContextAndLimitsAndExclusionPatterns(arg0 context.Context, arg1, arg2 string, arg3 filesystem.ILimits, arg4 ...string) error {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1, arg2, arg3}
+	for _, a := range arg4 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ZipWithContextAndLimitsAndExclusionPatterns", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ZipWithContextAndLimitsAndExclusionPatterns indicates an expected call of ZipWithContextAndLimitsAndExclusionPatterns.
+func (mr *MockFSMockRecorder) ZipWithContextAndLimitsAndExclusionPatterns(arg0, arg1, arg2, arg3 interface{}, arg4 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1, arg2, arg3}, arg4...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ZipWithContextAndLimitsAndExclusionPatterns", reflect.TypeOf((*MockFS)(nil).ZipWithContextAndLimitsAndExclusionPatterns), varargs...)
 }

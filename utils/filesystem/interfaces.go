@@ -99,8 +99,10 @@ type ILock interface {
 }
 
 // FS defines all the methods a file system should provide.
+// Note: When an API accepting exclusion patterns, it means its processing will not be applied on path matching an exclusion pattern
+// An exclusion pattern correspond to a regex string following the syntax defined in the [regexp](https://pkg.go.dev/regexp) module.
 type FS interface {
-	// Open opens a file. The following is for being able to use doublestar
+	// Open opens a file. The following is for being able to use `doublestar`. Use GenericOpen instead.
 	Open(name string) (doublestar.File, error)
 	// GenericOpen opens a file for reading. It opens the named file with specified flag (O_RDONLY etc.).
 	// See os.Open()
@@ -124,12 +126,16 @@ type FS interface {
 	CleanDir(dir string) (err error)
 	// CleanDirWithContext removes all the files in a directory (equivalent rm -rf .../*)
 	CleanDirWithContext(ctx context.Context, dir string) (err error)
+	// CleanDirWithContextAndExclusionPatterns removes all the files in a directory (equivalent rm -rf .../*) unless they match some exclusion pattern.
+	CleanDirWithContextAndExclusionPatterns(ctx context.Context, dir string, exclusionPatterns ...string) (err error)
 	// Exists checks whether a file or folder exists
 	Exists(path string) bool
 	// Rm removes directory (equivalent to rm -r)
 	Rm(dir string) (err error)
 	// RemoveWithContext removes directory (equivalent to rm -r)
 	RemoveWithContext(ctx context.Context, dir string) (err error)
+	// RemoveWithContextAndExclusionPatterns removes directory (equivalent to rm -r) unless they match some exclusion pattern.
+	RemoveWithContextAndExclusionPatterns(ctx context.Context, dir string, exclusionPatterns ...string) (err error)
 	// IsFile states whether it is a file or not
 	IsFile(path string) (result bool, err error)
 	// IsDir states whether it is a directory or not
@@ -152,8 +158,13 @@ type FS interface {
 	// WalkWithContext walks  the file tree rooted at root, calling fn for each file or
 	// directory in the tree, including root. See https://golang.org/pkg/path/filepath/#WalkDir
 	WalkWithContext(ctx context.Context, root string, fn filepath.WalkFunc) error
+	// WalkWithContextAndExclusionPatterns walks through the file tree rooted at root, calling fn for each file or
+	// directory in the tree as long as they do not match an exclusion pattern.
+	WalkWithContextAndExclusionPatterns(ctx context.Context, root string, fn filepath.WalkFunc, exclusionPatterns ...string) error
 	// Ls lists all files and directory (equivalent to ls)
 	Ls(dir string) (files []string, err error)
+	// LsWithExclusionPatterns lists all files and directory (equivalent to ls) but exclude the ones matching the exclusion patterns.
+	LsWithExclusionPatterns(dir string, exclusionPatterns ...string) (files []string, err error)
 	// LsFromOpenedDirectory lists all files and directory (equivalent to ls)
 	LsFromOpenedDirectory(dir File) (files []string, err error)
 	// Lls lists all files and directory (equivalent to ls -l)
@@ -164,6 +175,8 @@ type FS interface {
 	Copy(src string, dest string) (err error)
 	// CopyWithContext copies files and directory (equivalent to cp -r)
 	CopyWithContext(ctx context.Context, src string, dest string) (err error)
+	// CopyWithContextAndExclusionPatterns copies files and directory (equivalent to cp -r) but ignores any file matching the exclusion pattern.
+	CopyWithContextAndExclusionPatterns(ctx context.Context, src string, dest string, exclusionPatterns ...string) (err error)
 	// Move moves a file (equivalent to mv)
 	Move(src string, dest string) (err error)
 	// MoveWithContext moves a file (equivalent to mv)
@@ -210,14 +223,19 @@ type FS interface {
 	DiskUsage(name string) (DiskUsage, error)
 	// GetFileSize gets file size
 	GetFileSize(filename string) (int64, error)
-	// SubDirectories returns a list of all subdirectories (which are not hidden) names
+	// SubDirectories returns a list of all subdirectories names. Any "hidden" directory (i.e. starting with `.`) is ignored.
 	SubDirectories(directory string) ([]string, error)
-	// SubDirectoriesWithContext returns a list of all subdirectories (which are not hidden)
+	// SubDirectoriesWithContext returns a list of all subdirectories which are not hidden
 	SubDirectoriesWithContext(ctx context.Context, directory string) ([]string, error)
+	// SubDirectoriesWithContextAndExclusionPatterns returns a list of all subdirectories but ignores any file matching the exclusion pattern.
+	// Note: all folders are returned whether they are hidden or not unless matching an exclusion pattern.
+	SubDirectoriesWithContextAndExclusionPatterns(ctx context.Context, directory string, exclusionPatterns ...string) ([]string, error)
 	// ListDirTree lists the content of directory recursively
 	ListDirTree(dirPath string, list *[]string) error
 	// ListDirTreeWithContext lists the content of directory recursively
 	ListDirTreeWithContext(ctx context.Context, dirPath string, list *[]string) error
+	// ListDirTreeWithContextAndExclusionPatterns lists the content of directory recursively but ignores any file matching the exclusion pattern.
+	ListDirTreeWithContextAndExclusionPatterns(ctx context.Context, dirPath string, list *[]string, exclusionPatterns ...string) error
 	// ConvertFilePath gets FS file path instead of real file path. In most cases, returned file path
 	// should be identical however this may not be true for some particular file systems e.g. for base FS, file path
 	// returned will have any base prefix removed.
@@ -235,6 +253,8 @@ type FS interface {
 	// ZipWithContextAndLimits compresses a file tree (source) into a zip file (destination) .Nonetheless, if FileSystemLimits are exceeded, an error will be returned and the process will be stopped.
 	// It is however the responsibility of the caller to clean any partially created zipped archive if error occurs.
 	ZipWithContextAndLimits(ctx context.Context, source string, destination string, limits ILimits) error
+	// ZipWithContextAndLimitsAndExclusionPatterns compresses a file tree (source) into a zip file (destination) but ignores any file/folder matching an exclusion pattern.
+	ZipWithContextAndLimitsAndExclusionPatterns(ctx context.Context, source string, destination string, limits ILimits, exclusionPatterns ...string) error
 	// Unzip decompresses a source zip archive into the destination
 	Unzip(source string, destination string) ([]string, error)
 	// UnzipWithContext decompresses a source zip archive into the destination

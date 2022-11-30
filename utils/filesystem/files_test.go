@@ -25,9 +25,9 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
-	"github.com/ARM-software/golang-utils/utils/hashing"
 	"github.com/ARM-software/golang-utils/utils/idgen"
 	"github.com/ARM-software/golang-utils/utils/platform"
+	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
 func TestExists(t *testing.T) {
@@ -323,97 +323,6 @@ func TestConvertPaths(t *testing.T) {
 	}
 }
 
-func TestZip(t *testing.T) {
-	for _, fsType := range FileSystemTypes {
-		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
-
-			for i := 0; i < 10; i++ {
-				func() {
-					// create a directory for the test
-					tmpDir, err := fs.TempDirInTempDir("temp")
-					require.NoError(t, err)
-					defer func() { _ = fs.Rm(tmpDir) }()
-
-					testDir := filepath.Join(tmpDir, "test") // remember to read tmpdir at beginning
-					zipfile := filepath.Join(tmpDir, "test.zip")
-					outDir := filepath.Join(tmpDir, "output")
-
-					// create a file tree for the test
-					// Regarding timestamp preservation, the following link should be read as it gives some insight about how zip tools work or behave
-					// https://blog.joshlemon.com.au/dfir-for-compressed-files/
-					// The bottom line though is that the zip specification stipulates that file timestamp is stored using MS-DOS format which has a 2-second precision.
-					// see Section 4.4.6 of the spec https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
-					// As a result, the built-in timestamp resolution of files in a ZIP archive is only two seconds and so, file timestamps will not be fully preserved when a zip/unzip is performed.
-					// Making the FS think the tree was made 3 seconds ago.
-					tree := createTestFileTree(t, fs, testDir, "", false, time.Now().Add(-3*time.Second), time.Now())
-
-					// zip the directory into the zipfile
-					err = fs.Zip(testDir, zipfile)
-					require.NoError(t, err)
-
-					// unzip
-					tree2, err := fs.Unzip(zipfile, outDir)
-					require.NoError(t, err)
-
-					// Check no files were lost in the zip/unzip process.
-					relativeSrcTree, err := fs.ConvertToRelativePath(testDir, tree...)
-					require.NoError(t, err)
-					relativeResultTree, err := fs.ConvertToRelativePath(outDir, tree2...)
-					require.NoError(t, err)
-					sort.Strings(relativeSrcTree)
-					sort.Strings(relativeResultTree)
-					require.Equal(t, relativeSrcTree, relativeResultTree)
-
-					hasher, err := NewFileHash(hashing.HashXXHash)
-					require.NoError(t, err)
-
-					// check for size, timestamp, hash preservation
-					for _, path := range relativeSrcTree {
-						srcFilePath := filepath.Join(testDir, path)
-						fileinfoSrc, err := fs.Lstat(srcFilePath)
-						require.NoError(t, err)
-						resultFilePath := filepath.Join(outDir, path)
-						fileinfoResult, err := fs.Lstat(resultFilePath)
-						require.NoError(t, err)
-						// TODO handle links separately
-						if IsSymLink(fileinfoSrc) {
-							continue
-						}
-						// Check sizes
-						assert.Equal(t, fileinfoSrc.Size(), fileinfoResult.Size())
-
-						// Check file timestamps
-						// FIXME understand why the timestamp is not preserved when using the FS in memory
-						if fs.GetType() != InMemoryFS {
-							// Allowing some tolerance in case of time rounding or truncation happening (https://golang.org/pkg/os/#Chtimes) + the 2-second time resolution of zip
-							// see comment above
-							assert.True(t, math.Abs(fileinfoSrc.ModTime().Sub(fileinfoResult.ModTime()).Seconds()) <= 2)
-
-							fileTimesSrc, err := fs.StatTimes(filepath.Join(testDir, path))
-							require.NoError(t, err)
-							fileTimeResult, err := fs.StatTimes(filepath.Join(outDir, path))
-							require.NoError(t, err)
-							assert.True(t, math.Abs(fileTimesSrc.ModTime().Sub(fileTimeResult.ModTime()).Seconds()) <= 2)
-						}
-
-						// perform hash comparison
-						if IsRegularFile(fileinfoSrc) {
-							hashSrc, err := hasher.CalculateFile(fs, srcFilePath)
-							require.NoError(t, err)
-							hashResult, err := hasher.CalculateFile(fs, resultFilePath)
-							require.NoError(t, err)
-							assert.Equal(t, hashSrc, hashResult)
-						}
-					}
-					err = fs.Rm(tmpDir)
-					require.NoError(t, err)
-				}()
-			}
-		})
-	}
-}
-
 func TestLink(t *testing.T) {
 	if platform.IsWindows() {
 		fmt.Println("In order to run TestLink on Windows, Developer mode must be enabled: https://github.com/golang/go/pull/24307")
@@ -633,6 +542,105 @@ func TestCleanDir(t *testing.T) {
 	}
 }
 
+func TestCleanDirWithExclusion(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-cleandir-with-exclusion-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+
+			empty, err := fs.IsEmpty(tmpDir)
+			require.NoError(t, err)
+			assert.True(t, empty)
+
+			tmpFile, err := fs.TempFile(tmpDir, "test-cleandir-*.test")
+			require.NoError(t, err)
+			err = tmpFile.Close()
+			require.NoError(t, err)
+
+			checkNotEmpty(t, fs, tmpDir)
+
+			testDir := filepath.Join(tmpDir, "testDirToIgnorePlease")
+			err = fs.MkDir(testDir)
+			require.NoError(t, err)
+
+			err = fs.MkDir(filepath.Join(tmpDir, "testDirToRemove"))
+			require.NoError(t, err)
+
+			checkNotEmpty(t, fs, tmpDir)
+
+			err = fs.CleanDirWithContextAndExclusionPatterns(context.TODO(), tmpDir, ".*ToIgnore.*")
+			require.NoError(t, err)
+			assert.True(t, fs.Exists(tmpDir))
+
+			empty, err = fs.IsEmpty(tmpDir)
+			require.NoError(t, err)
+			assert.False(t, empty)
+
+			var tree []string
+			err = fs.ListDirTree(tmpDir, &tree)
+			require.NoError(t, err)
+			require.Len(t, tree, 1)
+			assert.Equal(t, "testDirToIgnorePlease", filepath.Base(tree[0]))
+			_ = fs.Rm(tmpDir)
+		})
+	}
+}
+func TestRemoveWithExclusion(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-rm-with-exclusion-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+
+			empty, err := fs.IsEmpty(tmpDir)
+			require.NoError(t, err)
+			assert.True(t, empty)
+
+			tmpFile, err := fs.TempFile(tmpDir, "test-rm-*.test")
+			require.NoError(t, err)
+			err = tmpFile.Close()
+			require.NoError(t, err)
+
+			checkNotEmpty(t, fs, tmpDir)
+
+			testDir := filepath.Join(tmpDir, "testDirToIgnorePlease")
+			err = fs.MkDir(testDir)
+			require.NoError(t, err)
+
+			err = fs.MkDir(filepath.Join(tmpDir, "testDirToRemove"))
+			require.NoError(t, err)
+
+			checkNotEmpty(t, fs, tmpDir)
+
+			err = fs.RemoveWithContextAndExclusionPatterns(context.TODO(), tmpDir, ".*ToIgnore.*")
+			require.NoError(t, err)
+			assert.True(t, fs.Exists(tmpDir))
+
+			empty, err = fs.IsEmpty(tmpDir)
+			require.NoError(t, err)
+			assert.False(t, empty)
+
+			var tree []string
+			err = fs.ListDirTree(tmpDir, &tree)
+			require.NoError(t, err)
+			require.Len(t, tree, 1)
+			assert.Equal(t, "testDirToIgnorePlease", filepath.Base(tree[0]))
+
+			err = fs.RemoveWithContextAndExclusionPatterns(context.TODO(), tmpDir, "test-rm-with-exclusion-.*")
+			require.NoError(t, err)
+			assert.True(t, fs.Exists(tmpDir))
+			empty, err = fs.IsEmpty(tmpDir)
+			require.NoError(t, err)
+			assert.True(t, empty)
+
+			_ = fs.Rm(tmpDir)
+		})
+	}
+}
+
 func TestLs(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
@@ -663,13 +671,48 @@ func TestLs(t *testing.T) {
 	}
 }
 
+func TestLsWithExclusion(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-ls-with-exclusion-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+
+			tmpDir1, err := fs.TempDir(tmpDir, "test-ls-")
+			require.NoError(t, err)
+			tmpFile, err := fs.TempFile(tmpDir, "test-ls-*.test")
+			require.NoError(t, err)
+
+			err = tmpFile.Close()
+			require.NoError(t, err)
+
+			fileName := tmpFile.Name()
+
+			files, err := fs.Ls(tmpDir)
+			require.NoError(t, err)
+			assert.Len(t, files, 2)
+
+			files, err = fs.LsWithExclusionPatterns(tmpDir, ".*[.]test")
+			require.NoError(t, err)
+			assert.Len(t, files, 1)
+
+			_, found := collection.Find(&files, filepath.Base(fileName))
+			assert.False(t, found)
+			_, found = collection.Find(&files, filepath.Base(tmpDir1))
+			assert.True(t, found)
+			_ = fs.Rm(tmpDir)
+		})
+	}
+}
+
 func TestWalk(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			fs := NewFs(fsType)
 
 			// set up temp directory
-			tmpDir, err := fs.TempDirInTempDir("temp")
+			tmpDir, err := fs.TempDirInTempDir("test_walk")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
 
@@ -693,6 +736,51 @@ func TestWalk(t *testing.T) {
 
 			// check if equal
 			require.Equal(t, walkList, tree)
+		})
+	}
+}
+
+func TestWalkWithExclusions(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			// set up temp directory
+			tmpDir, err := fs.TempDirInTempDir("test_walk_with_exclusion")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+
+			testDir := filepath.Join(tmpDir, "tree")
+			_ = fs.Rm(testDir)
+
+			// create a directory for the test
+			tree := createTestFileTree(t, fs, testDir, "", false, time.Now(), time.Now())
+			tree = append(tree, testDir) // Walk requires root too
+
+			exclusionPatterns := ".*test2.*"
+			var walkList []string
+			walkFunc := func(path string, info os.FileInfo, err error) error {
+				walkList = append(walkList, path)
+				return nil
+			}
+			err = fs.WalkWithContextAndExclusionPatterns(context.TODO(), testDir, walkFunc, exclusionPatterns)
+			require.NoError(t, err)
+
+			cleansedTree, err := ExcludeAll(tree, exclusionPatterns)
+			require.NoError(t, err)
+			assert.GreaterOrEqual(t, len(tree), len(cleansedTree))
+
+			// Sort lists so that equal works better
+			sort.Strings(cleansedTree)
+			sort.Strings(walkList)
+
+			// check if equal
+			require.Equal(t, walkList, cleansedTree)
+
+			walkList = nil
+			err = fs.WalkWithContextAndExclusionPatterns(context.TODO(), testDir, walkFunc, ".*tree.*")
+			require.NoError(t, err)
+			assert.Empty(t, walkList)
 		})
 	}
 }
@@ -759,74 +847,6 @@ func TestGarbageCollection(t *testing.T) {
 	}
 }
 
-func TestExcludes(t *testing.T) {
-	t.Parallel() // marks TLog as capable of running in parallel with other tests
-	var listOfPaths = []string{
-		"some/path", "somepath", ".snapshot", ".snapshot/path", "test/.snapshot/some/path", ".snapshot123", ".snapshot123/path", "test/.snapshot123/some-path", "test/.snapshot123/some/path",
-	}
-	tests := []struct {
-		inputlist       []string
-		exclusions      []string
-		expectedResults []string
-	}{
-		{
-			inputlist:       listOfPaths,
-			exclusions:      []string{},
-			expectedResults: listOfPaths,
-		},
-		{
-			inputlist:       listOfPaths,
-			exclusions:      []string{"noexclusion"},
-			expectedResults: listOfPaths,
-		},
-		{
-			inputlist:       []string{},
-			exclusions:      []string{"any"},
-			expectedResults: []string{},
-		},
-		{
-			inputlist:       listOfPaths,
-			exclusions:      []string{""},
-			expectedResults: listOfPaths,
-		},
-		{
-			inputlist:       listOfPaths,
-			exclusions:      []string{"some.*"},
-			expectedResults: []string{".snapshot", ".snapshot/path", ".snapshot123", ".snapshot123/path"},
-		},
-		{
-			inputlist:       listOfPaths,
-			exclusions:      []string{".*path"},
-			expectedResults: []string{".snapshot", ".snapshot123"},
-		},
-		{
-			inputlist:       listOfPaths,
-			exclusions:      []string{"[.]snapshot.*"},
-			expectedResults: []string{"some/path", "somepath"},
-		},
-		{
-			inputlist:       listOfPaths,
-			exclusions:      []string{"[.]snapshot.*/.*"},
-			expectedResults: []string{"some/path", "somepath", ".snapshot", ".snapshot123"},
-		},
-		{
-			inputlist:       listOfPaths,
-			exclusions:      []string{"[.]snapshot.*", ".*path"},
-			expectedResults: []string{},
-		},
-	}
-	for i, tt := range tests {
-		tt := tt // NOTE: https://github.com/golang/go/wiki/CommonMistakes#using-goroutines-on-loop-iterator-variables
-		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
-			t.Parallel() // marks each test case as capable of running in parallel with each other
-			actualList, err := ExcludeAll(tt.inputlist, tt.exclusions...)
-			require.NoError(t, err)
-			assert.Equal(t, tt.expectedResults, actualList)
-		})
-	}
-
-}
-
 func TestFindAll(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
@@ -868,9 +888,14 @@ func TestFindAll(t *testing.T) {
 			err = tmpFile3.Close()
 			require.NoError(t, err)
 
+			var tree []string
+			require.NoError(t, fs.ListDirTreeWithContextAndExclusionPatterns(context.TODO(), tmpDir, &tree, ".*[.]test[^13]"))
+			require.NotEmpty(t, tree)
+			assert.Len(t, tree, 5)
+
 			list, err := fs.FindAll(tmpDir, ".test1", "test3")
 			require.NoError(t, err)
-			assert.Equal(t, 2, len(list))
+			assert.Len(t, list, 2)
 
 			for _, file := range list {
 				ext := filepath.Ext(file)
@@ -907,6 +932,30 @@ func TestCopy(t *testing.T) {
 	}
 }
 
+func TestCopyWithExclusion(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-copy-with-exclusion-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+
+			empty, err := fs.IsEmpty(tmpDir)
+			require.NoError(t, err)
+			assert.True(t, empty)
+
+			tmpFile, err := fs.TempFile(tmpDir, "test-copy-*.test")
+			require.NoError(t, err)
+			err = tmpFile.Close()
+			require.NoError(t, err)
+
+			checkNotEmpty(t, fs, tmpDir)
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "newDir"), "test-copy-with-exclusion-.*")
+			_ = fs.Rm(tmpDir)
+		})
+	}
+}
+
 func TestCopyFolder(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
@@ -932,6 +981,37 @@ func TestCopyFolder(t *testing.T) {
 
 			checkNotEmpty(t, fs, parentDir)
 			checkCopyDir(t, fs, parentDir, filepath.Join(testDir, "newDir"))
+		})
+	}
+}
+
+func TestCopyFolderWithExclusion(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-src-copy-with-exclusion-")
+			require.NoError(t, err)
+			defer func() {
+				_ = fs.Rm(tmpDir)
+			}()
+
+			parentDir, err := fs.TempDir(tmpDir, "parentDir-")
+			require.NoError(t, err)
+
+			childDir, err := fs.TempDir(parentDir, "childDir-")
+			require.NoError(t, err)
+
+			_, err = fs.TempDir(childDir, "gcDir-")
+			require.NoError(t, err)
+
+			testDir, err := fs.TempDirInTempDir("test-dest-dir-")
+			require.NoError(t, err)
+			defer func() {
+				_ = fs.Rm(testDir)
+			}()
+
+			checkNotEmpty(t, fs, parentDir)
+			checkCopyDir(t, fs, parentDir, filepath.Join(testDir, "newDir"), "childDir-.*")
 		})
 	}
 }
@@ -1023,223 +1103,80 @@ func TestGetFileSize(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestUnzip_Limits(t *testing.T) {
-	fs := NewFs(StandardFS)
-
-	testInDir := "testdata"
-	testFile := "validlargezipfile"
-	srcPath := filepath.Join(testInDir, testFile+".zip")
-	destPath, err := fs.TempDirInTempDir("unzip-limits-")
-	require.NoError(t, err)
-	defer func() { _ = fs.Rm(destPath) }()
-	limits := NewLimits(1<<30, 1<<10, 1000000) // Total size limited to 10 Kb
-
-	empty, err := fs.IsEmpty(destPath)
-	assert.NoError(t, err)
-	assert.True(t, empty)
-	_, err = fs.Unzip(srcPath, destPath)
-	assert.NoError(t, err)
-	empty, err = fs.IsEmpty(destPath)
-	assert.NoError(t, err)
-	assert.False(t, empty)
-
-	err = fs.CleanDirWithContext(context.Background(), destPath)
-	require.NoError(t, err)
-	empty, err = fs.IsEmpty(destPath)
-	assert.NoError(t, err)
-	assert.True(t, empty)
-
-	contextWithTimeOut, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
-	defer cancel()
-	_, err = fs.UnzipWithContext(contextWithTimeOut, srcPath, destPath)
-	assert.Error(t, err)
-	assert.True(t, commonerrors.Any(err, commonerrors.ErrTimeout))
-
-	err = fs.CleanDirWithContext(context.Background(), destPath)
-	require.NoError(t, err)
-	empty, err = fs.IsEmpty(destPath)
-	assert.NoError(t, err)
-	assert.True(t, empty)
-
-	_, err = fs.UnzipWithContextAndLimits(context.Background(), srcPath, destPath, limits)
-	assert.Error(t, err)
-	assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
-}
-
-func TestUnzip_ZipBomb(t *testing.T) {
-	// See description of ZIP bombs https://en.wikipedia.org/wiki/Zip_bomb
-	// Until protection is part of Go https://github.com/golang/go/issues/33026 & https://github.com/golang/go/issues/33036
-	tests := []struct {
-		testFile string
-	}{
-		{
-			testFile: "42", // See https://unforgettable.dk/
-		},
-		{
-			testFile: "zbsm", // See https://www.bamsoftware.com/hacks/zipbomb/
-		},
-	}
-
-	fs := NewFs(StandardFS)
-	testInDir := "testdata"
-	destPath, err := fs.TempDirInTempDir("unzip-limits-")
-	require.NoError(t, err)
-	defer func() { _ = fs.Rm(destPath) }()
-	limits := NewLimits(1<<30, 1<<20, 1000000) // Total size limited to 1 Mb
-
-	empty, err := fs.IsEmpty(destPath)
-	assert.NoError(t, err)
-	assert.True(t, empty)
-
-	for i := range tests {
-		test := tests[i]
-		t.Run(test.testFile, func(t *testing.T) {
-			srcPath := filepath.Join(testInDir, test.testFile+".zip")
-
-			_, err = fs.UnzipWithContextAndLimits(context.Background(), srcPath, destPath, limits)
-			assert.Error(t, err)
-			assert.True(t, commonerrors.Any(err, commonerrors.ErrUnsupported, commonerrors.ErrTooLarge))
-		})
-	}
-
-}
-
-func TestUnzip(t *testing.T) {
-	fs := NewFs(StandardFS)
-
-	testInDir := "testdata"
-	testFile := "testunzip"
-	srcPath := filepath.Join(testInDir, testFile+".zip")
-	destPath, err := fs.TempDirInTempDir("unzip")
-	require.NoError(t, err)
-	defer func() { _ = fs.Rm(destPath) }()
-	outPath := filepath.Join(destPath, testFile)
-	expectedfileList := []string{
-		filepath.Join(outPath, "readme.txt"),
-		filepath.Join(outPath, "test.txt"),
-		filepath.Join(outPath, "todo.txt"),
-		filepath.Join(outPath, "child.zip"),
-		filepath.Join(outPath, "L'irrǸsolution est toujours une marque de faiblesse.txt"),
-		filepath.Join(outPath, "ไป ไหน มา.txt"),
-	}
-	sort.Strings(expectedfileList)
-
-	/* Check Unzip */
-	fileList, err := fs.Unzip(srcPath, destPath)
-
-	sort.Strings(fileList)
-	assert.NoError(t, err)
-	assert.Equal(t, len(fileList), 6)
-	assert.Equal(t, expectedfileList, fileList)
-
-	/* Source zip file not available */
-	srcPath = filepath.Join(testInDir, "unknownfile.zip")
-	_, err = fs.Unzip(srcPath, destPath)
-	assert.Error(t, err)
-
-	/* Invalid source path */
-	srcPath = filepath.Join(testInDir, "invalidzipfile.zip")
-	_, err = fs.Unzip(srcPath, destPath)
-	assert.Error(t, err)
-}
-
-func TestUnzipWithNonUTF8Filenames(t *testing.T) {
-	fs := NewFs(StandardFS)
-	// Testing zip file attached to https://github.com/golang/go/issues/10741
-	testInDir := "testdata"
-	tests := []struct {
-		zipFile       string
-		expectedFiles []string
-		expectedError error
-	}{
-		{
-			zipFile: "zipwithnonutf8.zip",
-			expectedFiles: []string{
-				"La douceur du miel ne console pas de la piq�re de l'abeille.txt",
-				"\x83T\x83\x93\x83v\x83\x8b.txt",
-			},
-			expectedError: nil,
-		},
-		{
-			zipFile: "zipwithnonutf8filenames2.zip",
-			expectedFiles: []string{"examples",
-				filepath.Join("examples", "AN-32013 FT32F0XX\xb2\xce\xca\xfd.pdf"),
-				filepath.Join("examples", "BAT32G133_Packʹ\xd3\xc3˵\xc3\xf7.pdf"),
-				filepath.Join("examples", "OpenAtomFoundation_TencentOS-tiny_ \xcc\xdaѶ\xce\xef\xc1\xaa\xcd\xf8\xd6ն˲\xd9\xd7\xf7ϵͳ.html"),
-				filepath.Join("examples", "hello_world.c"),
-				filepath.Join("examples", "main.c"),
-			},
-			expectedError: nil,
-		},
-		// TODO create a zip file with non supported encoding
-		// {
-		//	zipFile:       ,
-		//	expectedFiles: nil,
-		//	expectedError: commonerrors.ErrInvalid,
-		// },
-	}
-	for i := range tests {
-		test := tests[i]
-		t.Run(fmt.Sprintf("zipfile_%v", test.zipFile), func(t *testing.T) {
-			srcPath := filepath.Join(testInDir, test.zipFile)
-			destPath, err := fs.TempDirInTempDir("unzip")
-			require.NoError(t, err)
-			defer func() { _ = fs.Rm(destPath) }()
-			/* Check Unzip */
-			fileList, err := fs.Unzip(srcPath, destPath)
-			if test.expectedError != nil {
-				require.Error(t, err)
-				assert.True(t, commonerrors.Any(err, test.expectedError))
-				assert.Empty(t, fileList)
-			} else {
-				require.NoError(t, err)
-				sort.Strings(fileList)
-				var expectedFiles []string
-				for j := range test.expectedFiles {
-					expectedFiles = append(expectedFiles, filepath.Join(destPath, test.expectedFiles[j]))
-				}
-				sort.Strings(expectedFiles)
-				assert.NoError(t, err)
-
-				assert.Equal(t, len(fileList), len(test.expectedFiles))
-				assert.Equal(t, expectedFiles, fileList)
-			}
-			_ = fs.Rm(destPath)
-		})
-	}
-
-}
-
 func TestSubDirectories(t *testing.T) {
-	fs := NewFs(StandardFS)
-	testDir := "testdata"
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-subdirectories-")
+			require.NoError(t, err)
 
-	// Test empty directory
-	dirlist, err := fs.SubDirectories(testDir)
-	assert.Nil(t, dirlist)
-	assert.Nil(t, err)
+			// Test empty directory
+			dirlist, err := fs.SubDirectories(tmpDir)
+			assert.Empty(t, dirlist)
+			assert.NoError(t, err)
+			empty, err := fs.IsEmpty(tmpDir)
+			assert.NoError(t, err)
+			assert.True(t, empty)
 
-	// Test directory with subdirectories
-	testInput := filepath.Join(testDir, "ARM")
-	_ = fs.MkDir(filepath.Join(testInput, "CMSIS"))
-	_ = fs.MkDir(filepath.Join(testInput, "Tools"))
-	file, _ := fs.CreateFile(filepath.Join(testInput, "testfile.ini"))
-	defer func() {
-		_ = file.Close()
-		_ = fs.Rm(testInput)
-	}()
+			// Test directory with subdirectories
+			testInput := filepath.Join(tmpDir, "ARM")
+			require.NoError(t, fs.MkDir(filepath.Join(testInput, ".CMSIS")))
+			require.NoError(t, fs.MkDir(filepath.Join(testInput, ".git")))
+			require.NoError(t, fs.MkDir(filepath.Join(testInput, "1Test")))
+			require.NoError(t, fs.MkDir(filepath.Join(testInput, "Test.Test")))
+			require.NoError(t, fs.MkDir(filepath.Join(testInput, "CMSIS")))
+			require.NoError(t, fs.MkDir(filepath.Join(testInput, "Tools")))
+			file, err := fs.CreateFile(filepath.Join(testInput, "testfile.ini"))
+			require.NoError(t, err)
+			require.NoError(t, file.Close())
 
-	dirlist, err = fs.SubDirectories(testInput)
-	expected := []string{"CMSIS", "Tools"}
-	assert.Equal(t, expected, dirlist)
-	assert.Nil(t, err)
+			dirlist, err = fs.SubDirectories(testInput)
+			assert.NoError(t, err)
+			assert.Len(t, dirlist, 4)
+			sort.Strings(dirlist)
+
+			expected := []string{"1Test", "CMSIS", "Test.Test", "Tools"}
+			assert.Equal(t, expected, dirlist)
+			require.NoError(t, fs.Rm(testInput))
+		})
+	}
+}
+
+func TestSubDirectoriesWithExclusion(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-subdirectories-with-exclusion-")
+			require.NoError(t, err)
+
+			// Test directory with subdirectories
+			testInput := filepath.Join(tmpDir, "ARM")
+			require.NoError(t, fs.MkDir(filepath.Join(testInput, ".CMSIS")))
+			require.NoError(t, fs.MkDir(filepath.Join(testInput, ".git")))
+			require.NoError(t, fs.MkDir(filepath.Join(testInput, "CMSIS")))
+			require.NoError(t, fs.MkDir(filepath.Join(testInput, "Tools")))
+			file, err := fs.CreateFile(filepath.Join(testInput, "testfile.ini"))
+			require.NoError(t, err)
+			require.NoError(t, file.Close())
+
+			dirlist, err := fs.SubDirectoriesWithContextAndExclusionPatterns(context.TODO(), testInput, ".*CMSIS.*")
+			assert.NoError(t, err)
+			assert.Len(t, dirlist, 2)
+			sort.Strings(dirlist)
+
+			expected := []string{".git", "Tools"}
+			assert.Equal(t, expected, dirlist)
+
+			require.NoError(t, fs.Rm(testInput))
+		})
+	}
 }
 
 func TestListDirTree(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			fs := NewFs(fsType)
-			testDir, err := fs.TempDirInTempDir("test-list-Dir")
+			testDir, err := fs.TempDirInTempDir("test-list-tree")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(testDir) }()
 
@@ -1263,9 +1200,9 @@ func TestListDirTree(t *testing.T) {
 
 			checkNotEmpty(t, fs, testDir)
 
-			list := []string{}
+			var list []string
 			err = fs.ListDirTree(testDir, &list)
-			assert.Equal(t, 4, len(list))
+			assert.Len(t, list, 4)
 			require.NoError(t, err)
 
 			parentDir := filepath.Base(parentDirPath)
@@ -1279,6 +1216,65 @@ func TestListDirTree(t *testing.T) {
 				filepath.Join(string(fs.PathSeparator()), parentDir, childDir),
 				filepath.Join(string(fs.PathSeparator()), parentDir, childDir, gcDir),
 				filepath.Join(string(fs.PathSeparator()), testFileName)}
+
+			for _, item := range list {
+				fileList = append(fileList, strings.ReplaceAll(item, filepath.Dir(parentDirPath), ""))
+			}
+
+			sort.Strings(fileList)
+			sort.Strings(expectedList)
+			assert.True(t, reflect.DeepEqual(fileList, expectedList))
+		})
+	}
+}
+
+func TestListDirTreeWithExclusion(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			testDir, err := fs.TempDirInTempDir("test-list-tree-with-exclusion")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(testDir) }()
+
+			empty, err := fs.IsEmpty(testDir)
+			require.NoError(t, err)
+			assert.True(t, empty)
+
+			parentDirPath, err := fs.TempDir(testDir, "parentDir-")
+			require.NoError(t, err)
+
+			testFile, err := fs.TempFile(testDir, "test-file-*.test")
+			require.NoError(t, err)
+			err = testFile.Close()
+			require.NoError(t, err)
+
+			childDirPath, err := fs.TempDir(parentDirPath, "childDir-")
+			require.NoError(t, err)
+
+			_, err = fs.TempDir(childDirPath, "gcDir-")
+			require.NoError(t, err)
+			_, err = fs.TempDir(childDirPath, "gcDir-1234-")
+			require.NoError(t, err)
+
+			checkNotEmpty(t, fs, testDir)
+
+			var list []string
+			err = fs.ListDirTree(testDir, &list)
+			assert.Len(t, list, 5)
+			require.NoError(t, err)
+			list = nil
+			err = fs.ListDirTreeWithContextAndExclusionPatterns(context.TODO(), testDir, &list, ".*[.]test", "gcDir-.*")
+			assert.Len(t, list, 2)
+			require.NoError(t, err)
+
+			parentDir := filepath.Base(parentDirPath)
+			childDir := filepath.Base(childDirPath)
+
+			var fileList []string
+			var expectedList = []string{
+				filepath.Join(string(fs.PathSeparator()), parentDir),
+				filepath.Join(string(fs.PathSeparator()), parentDir, childDir),
+			}
 
 			for _, item := range list {
 				fileList = append(fileList, strings.ReplaceAll(item, filepath.Dir(parentDirPath), ""))
@@ -1306,63 +1302,29 @@ func TestFilepathStem(t *testing.T) {
 	})
 }
 
-func TestUnzipFileCountLimit(t *testing.T) {
-	fs := NewFs(StandardFS)
-
-	testInDir := "testdata"
-	limits := NewLimits(1<<30, 10<<30, 10)
-
-	t.Run("unzip file above file count limit", func(t *testing.T) {
-		testFile := "abovefilecountlimitzip"
-		srcPath := filepath.Join(testInDir, testFile+".zip")
-
-		destPath, err := fs.TempDirInTempDir("unzip-limits-")
-		assert.NoError(t, err)
-		defer func() {
-			_ = fs.Rm(destPath)
-		}()
-
-		_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
-		assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
-	})
-
-	t.Run("unzip file below file count limit", func(t *testing.T) {
-		testFile := "belowfilecountlimitzip"
-		srcPath := filepath.Join(testInDir, testFile+".zip")
-
-		destPath, err := fs.TempDirInTempDir("unzip-limits-")
-		assert.NoError(t, err)
-
-		defer func() {
-			if tempErr := fs.Rm(destPath); tempErr != nil {
-				err = tempErr
-			}
-		}()
-
-		_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
-		assert.NoError(t, err)
-	})
-}
-
-func checkCopyDir(t *testing.T, fs FS, src string, dest string) {
+func checkCopyDir(t *testing.T, fs FS, src string, dest string, exclusionPattern ...string) {
 	assert.True(t, fs.Exists(src))
 	assert.False(t, fs.Exists(dest))
-
-	err := fs.Copy(src, dest)
+	var err error
+	if reflection.IsEmpty(exclusionPattern) {
+		err = fs.Copy(src, dest)
+	} else {
+		err = fs.CopyWithContextAndExclusionPatterns(context.TODO(), src, dest, exclusionPattern...)
+	}
 	require.NoError(t, err)
 
 	defer func() { _ = fs.Rm(dest) }()
 	assert.True(t, fs.Exists(src))
 	assert.True(t, fs.Exists(dest))
 
-	srcFiles := []string{}
-	destFiles := []string{}
+	var srcFiles []string
+	var destFiles []string
 
-	err = fs.ListDirTree(src, &srcFiles)
+	err = fs.ListDirTreeWithContextAndExclusionPatterns(context.TODO(), src, &srcFiles, exclusionPattern...)
 	require.NoError(t, err)
 
 	destPath := filepath.Join(dest, filepath.Base(src))
-	err = fs.ListDirTree(destPath, &destFiles)
+	err = fs.ListDirTreeWithContextAndExclusionPatterns(context.TODO(), destPath, &destFiles, exclusionPattern...)
 	require.NoError(t, err)
 
 	var srcContent []string
@@ -1380,7 +1342,7 @@ func checkCopyDir(t *testing.T, fs FS, src string, dest string) {
 	assert.True(t, reflect.DeepEqual(srcContent, destContent))
 }
 
-func checkCopy(t *testing.T, fs FS, oldFile string, dest string) {
+func checkCopy(t *testing.T, fs FS, oldFile string, dest string, exclusionPattern ...string) {
 
 	assert.True(t, fs.Exists(oldFile))
 	assert.False(t, fs.Exists(dest))
@@ -1388,16 +1350,29 @@ func checkCopy(t *testing.T, fs FS, oldFile string, dest string) {
 	empty, err := fs.IsEmpty(oldFile)
 	require.NoError(t, err)
 
-	err = fs.Copy(oldFile, dest)
+	if reflection.IsEmpty(exclusionPattern) {
+		err = fs.Copy(oldFile, dest)
+	} else {
+		err = fs.CopyWithContextAndExclusionPatterns(context.TODO(), oldFile, dest, exclusionPattern...)
+	}
 	require.NoError(t, err)
-
 	defer func() { _ = fs.Rm(dest) }()
-	assert.True(t, fs.Exists(oldFile))
-	assert.True(t, fs.Exists(dest))
 
-	empty2, err := fs.IsEmpty(filepath.Join(dest, filepath.Base(oldFile)))
-	require.NoError(t, err)
-	assert.Equal(t, empty, empty2)
+	assert.True(t, fs.Exists(oldFile))
+	if reflection.IsEmpty(exclusionPattern) {
+		assert.True(t, fs.Exists(dest))
+
+		empty2, err := fs.IsEmpty(filepath.Join(dest, filepath.Base(oldFile)))
+		require.NoError(t, err)
+		assert.Equal(t, empty, empty2)
+	} else {
+		if IsPathExcludedFromPatterns(dest, fs.PathSeparator(), exclusionPattern...) || IsPathExcludedFromPatterns(oldFile, fs.PathSeparator(), exclusionPattern...) {
+			assert.False(t, fs.Exists(dest))
+		} else {
+			assert.True(t, fs.Exists(dest))
+		}
+	}
+	require.NoError(t, fs.Rm(dest))
 }
 
 func checkMove(t *testing.T, fs FS, oldFile string, newFile string) {
