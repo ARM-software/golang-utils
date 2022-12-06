@@ -3,9 +3,10 @@ package units
 import (
 	"testing"
 
-	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/filesystem"
 )
 
 // If it works for M and K it will probaby work for the larger ones as they are just multiplying by 1000/1024
