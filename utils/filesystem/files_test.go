@@ -25,6 +25,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/filesystem/units"
 	"github.com/ARM-software/golang-utils/utils/idgen"
 	"github.com/ARM-software/golang-utils/utils/platform"
 	"github.com/ARM-software/golang-utils/utils/reflection"
@@ -1097,7 +1098,7 @@ func TestGetFileSize(t *testing.T) {
 
 	size, err := fs.GetFileSize(tmpFile.Name())
 	require.NoError(t, err)
-	assert.Equal(t, int64(1300), size)
+	assert.Equal(t, int64(1.3*units.KB), size)
 
 	_, err = fs.GetFileSize("Unknown-File")
 	assert.NotNil(t, err)

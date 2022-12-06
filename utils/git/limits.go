@@ -4,6 +4,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	"github.com/ARM-software/golang-utils/utils/config"
+	"github.com/ARM-software/golang-utils/utils/filesystem/units"
 )
 
 type noLimits struct {
@@ -116,5 +117,5 @@ func NewLimits(maxFileSize, maxTotalSize, maxFileCount, maxTreeDepth, maxEntries
 
 // DefaultLimits defines default file system FileSystemLimits
 func DefaultLimits() ILimits {
-	return NewLimits(1e8, 10e9, 1e6, 12, 1e8, 1e9) // 100MB, 10GB, 1 million, 12, 100 million 1GB
+	return NewLimits(100*units.MB, 10*units.GB, 1e6, 12, 1e8, 1*units.GB) // 100MB, 10GB, 1 million, 12, 100 million, 1GB
 }
