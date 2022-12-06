@@ -45,17 +45,17 @@ func TestCloneGitBomb(t *testing.T) {
 		//	maxEntriesChannelSize: 25000,
 		// },
 		{
-			name:                  "git bomb large file count",
+			name:                  "large file count",
 			url:                   "https://github.com/way2autotesting/DVLA_AutoTest.git",
 			err:                   fmt.Errorf("%w: maximum file count exceeded", commonerrors.ErrTooLarge),
-			limits:                NewLimits(100*units.KB, 1*units.MB, 10, 4, 1e9, 10*units.GB), // max file size: 100KB, max repo size: 1MB, max file count: 10, max tree depth 10, max entries 1 million, max true size: 10GB
+			limits:                NewLimits(100*units.MB, 100*units.MB, 10, 4, 1e9, 10*units.GB), // max file size: 100MB, max repo size: 100MB, max file count: 10, max tree depth 10, max entries 1 million, max true size: 10GB
 			maxEntriesChannelSize: 25000,
 		},
 		{
-			name:                  "git bomb max true size",
+			name:                  "max true size",
 			url:                   "https://github.com/way2autotesting/DVLA_AutoTest.git",
 			err:                   fmt.Errorf("%w: maximum true size exceeded", commonerrors.ErrTooLarge),
-			limits:                NewLimits(100*units.KB, 1*units.MB, 10, 4, 1e9, 100*units.B), // max file size: 100KB, max repo size: 1MB, max file count: 10, max tree depth 10, max entries 1 million, max true size: 100b
+			limits:                NewLimits(100*units.MB, 100*units.MB, 10, 4, 1e9, 100*units.B), // max file size: 100MB, max repo size: 100MB, max file count: 10, max tree depth 10, max entries 1 million, max true size: 100b
 			maxEntriesChannelSize: 25000,
 		},
 
