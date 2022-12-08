@@ -56,7 +56,7 @@ type IPaginator interface {
 // IStreamPaginator is an iterator over a stream. A stream is a collection without any know ending.
 type IStreamPaginator interface {
 	IPaginator
-	//DryUp indicates to the stream that it will soon run out.
+	// DryUp indicates to the stream that it will soon run out.
 	DryUp() error
 	// IsRunningDry indicates whether the stream is about to run out.
 	IsRunningDry() bool
