@@ -38,7 +38,7 @@ func (l *logrLogger) SetLogSource(source string) error {
 	if reflection.IsEmpty(source) {
 		return commonerrors.ErrNoLogSource
 	}
-	l.logger.WithValues(KeyLogSource, source)
+	l.logger = l.logger.WithValues(KeyLogSource, source)
 	return nil
 }
 
@@ -46,8 +46,7 @@ func (l *logrLogger) SetLoggerSource(source string) error {
 	if reflection.IsEmpty(source) {
 		return commonerrors.ErrNoLoggerSource
 	}
-	l.logger.WithName(source)
-	l.logger.WithValues(KeyLoggerSource, source)
+	l.logger = l.logger.WithName(source).WithValues(KeyLoggerSource, source)
 	return nil
 }
 
@@ -56,7 +55,16 @@ func (l *logrLogger) Log(output ...interface{}) {
 }
 
 func (l *logrLogger) LogError(err ...interface{}) {
-	l.logger.Error(nil, fmt.Sprintln(err...))
+	if len(err) > 0 {
+		if subErr, ok := err[0].(error); ok {
+			l.logger.Error(subErr, fmt.Sprintln(err...))
+		} else {
+			l.logger.Error(nil, fmt.Sprintln(err...))
+		}
+	} else {
+		l.logger.Error(nil, "")
+	}
+
 }
 
 // NewLogrLogger creates loggers based on a logr implementation (https://github.com/go-logr/logr)

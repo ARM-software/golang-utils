@@ -16,13 +16,14 @@ import (
 
 func TestLogrLogger(t *testing.T) {
 	loggers, err := NewLogrLogger(logstest.NewTestLogger(t), "Test")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	testLog(t, loggers)
+	loggers.LogError(commonerrors.ErrUnexpected, ": no idea what happened")
 }
 
 func TestLogrLoggerConversion(t *testing.T) {
 	loggers, err := NewLogrLogger(logstest.NewTestLogger(t), "Test")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	converted := NewLogrLoggerFromLoggers(loggers)
 	converted.WithName(faker.Name()).WithValues(faker.Word(), faker.Name()).Error(commonerrors.ErrUnexpected, faker.Sentence())
 }

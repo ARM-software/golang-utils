@@ -13,15 +13,15 @@ import (
 
 func TestLogMessage(t *testing.T) {
 	loggers, err := NewJSONLogger(&StdWriter{}, "Test", "TestLogMessage")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	testLog(t, loggers)
 }
 
 func TestLogMessageToSlowLogger(t *testing.T) {
 	stdloggers, err := NewStdLogger("ERR:")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	loggers, err := NewJSONLoggerForSlowWriter(&SlowWriter{}, 1024, 2*time.Millisecond, "Test", "TestLogMessageToSlowLogger", stdloggers)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	testLog(t, loggers)
 	time.Sleep(100 * time.Millisecond)
 }

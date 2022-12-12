@@ -14,20 +14,20 @@ import (
 func TestLog(t *testing.T) {
 	var loggers Loggers = &GenericLoggers{}
 	err := loggers.Check()
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 	err = loggers.Close()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 }
 
 func testLog(t *testing.T, loggers Loggers) {
 	err := loggers.Check()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer func() { _ = loggers.Close() }()
 
 	err = loggers.SetLogSource("source1")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = loggers.SetLoggerSource("LoggerSource1")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	loggers.Log("Test output1")
 	loggers.Log("Test output2")
@@ -35,21 +35,21 @@ func testLog(t *testing.T, loggers Loggers) {
 	loggers.Log("\n")
 	loggers.LogError("\n")
 	err = loggers.SetLogSource("source2")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	loggers.Log("Test output3")
 	loggers.LogError("Test err1")
 	err = loggers.SetLogSource("source3")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	err = loggers.SetLoggerSource("LoggerSource2")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	loggers.LogError("Test err2")
 	err = loggers.SetLogSource("source4")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	loggers.LogError("Test err3")
 	err = loggers.Close()
-	require.Nil(t, err)
+	require.NoError(t, err)
 }

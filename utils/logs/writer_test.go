@@ -34,7 +34,7 @@ func CreateMultipleWriterLogger(prefix string) (loggers Loggers, err error) {
 
 func TestMultipleWriters(t *testing.T) {
 	stdloggers, err := CreateMultipleWriterLogger("Test")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	testLog(t, stdloggers)
 	time.Sleep(100 * time.Millisecond)
 }
