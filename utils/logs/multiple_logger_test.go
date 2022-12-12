@@ -13,8 +13,20 @@ import (
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 )
 
-func TestFileLogger(t *testing.T) {
-	file, err := filesystem.TempFileInTempDir("test-filelog-*.log")
+func TestMultipleLogger(t *testing.T) {
+	loggers, err := NewMultipleLoggers("Test")
+	require.NoError(t, err)
+	testLog(t, loggers)
+}
+
+func TestMultipleLoggers(t *testing.T) {
+	// With default logger
+	loggers, err := NewMultipleLoggers("Test Multiple")
+	require.NoError(t, err)
+	testLog(t, loggers)
+
+	// Adding a file logger to the mix.
+	file, err := filesystem.TempFileInTempDir("test-multiplelog-filelog-*.log")
 	require.NoError(t, err)
 
 	err = file.Close()
@@ -26,8 +38,16 @@ func TestFileLogger(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, empty)
 
-	loggers, err := NewFileLogger(file.Name(), "Test")
+	fl, err := NewFileLogger(file.Name(), "Test")
 	require.NoError(t, err)
+
+	require.NoError(t, loggers.Append(fl))
+
+	nl, err := NewNoopLogger("Test2")
+	require.NoError(t, err)
+
+	// Adding various loggers
+	require.NoError(t, loggers.Append(fl, nl))
 
 	testLog(t, loggers)
 

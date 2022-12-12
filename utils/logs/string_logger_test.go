@@ -13,7 +13,7 @@ import (
 
 func TestStringLogger(t *testing.T) {
 	loggers, err := NewStringLogger("Test")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	testLog(t, loggers)
 	loggers.LogError("Test err")
 	loggers.Log("Test1")

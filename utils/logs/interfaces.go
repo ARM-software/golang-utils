@@ -4,9 +4,13 @@
  */
 package logs
 
-import "io"
+import (
+	"io"
 
-//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE Loggers,WriterWithSource,StdLogger
+	"github.com/go-logr/logr"
+)
+
+//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE Loggers,IMultipleLoggers,WriterWithSource,StdLogger
 
 // Loggers define generic loggers.
 type Loggers interface {
@@ -21,6 +25,15 @@ type Loggers interface {
 	Log(output ...interface{})
 	// LogError logs to the Error logger.
 	LogError(err ...interface{})
+}
+
+// IMultipleLoggers provides an interface to manage multiple loggers the same way as a single logger.
+type IMultipleLoggers interface {
+	Loggers
+	// AppendLogger appends generic loggers to the internal list of loggers managed by this system.
+	AppendLogger(l ...logr.Logger) error
+	// Append appends loggers to the internal list of loggers managed by this system.
+	Append(l ...Loggers) error
 }
 
 type WriterWithSource interface {

@@ -13,12 +13,12 @@ import (
 
 func TestStdLogger(t *testing.T) {
 	loggers, err := NewStdLogger("Test")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	testLog(t, loggers)
 }
 
 func TestAsynchronousStdLogger(t *testing.T) {
 	loggers, err := NewAsynchronousStdLogger("Test", 1024, 2*time.Millisecond, "test source")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	testLog(t, loggers)
 }
