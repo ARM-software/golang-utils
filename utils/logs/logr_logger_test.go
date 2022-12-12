@@ -19,6 +19,9 @@ func TestLogrLogger(t *testing.T) {
 	require.NoError(t, err)
 	testLog(t, loggers)
 	loggers.LogError(commonerrors.ErrUnexpected, ": no idea what happened")
+	loggers.LogError(nil, ": no idea what happened")
+	loggers.LogError("no idea what happened")
+	loggers.LogError("no idea what happened", nil)
 }
 
 func TestLogrLoggerConversion(t *testing.T) {

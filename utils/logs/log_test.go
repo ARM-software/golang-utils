@@ -9,6 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 func TestLog(t *testing.T) {
@@ -50,6 +52,11 @@ func testLog(t *testing.T, loggers Loggers) {
 	require.NoError(t, err)
 
 	loggers.LogError("Test err3")
+	loggers.LogError(commonerrors.ErrCancelled)
+	loggers.LogError(nil)
+	loggers.LogError(commonerrors.ErrUnexpected, "some error")
+	loggers.LogError("some error", commonerrors.ErrUnexpected)
+	loggers.LogError(nil, "no error")
 	err = loggers.Close()
 	require.NoError(t, err)
 }
