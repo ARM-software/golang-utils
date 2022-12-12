@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.22.0" (2022-12-12)
+========================
+
+Features
+--------
+
+- :sparkles: `[logs]` Added a way to manage multiple loggers transparently in the same way as a single logger (#20221212133537)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v5-5.5.1 (#20221212110922, #20221212110927, #20221212111004, #20221212111008, #20221212111042, #20221212111045, #20221212111127)
+
+
 "" "1.21.0" (2022-12-09)
 ========================
 
