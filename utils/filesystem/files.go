@@ -926,7 +926,7 @@ func (fs *VFS) moveFile(ctx context.Context, src string, dest string) (err error
 	if src == dest {
 		return
 	}
-	err = copyFolderBetweenFSWithExclusionRegexes(ctx, fs, src, fs, dest, []*regexp.Regexp{}, []*regexp.Regexp{})
+	err = CopyBetweenFSWithExclusionRegexes(ctx, fs, src, fs, dest, []*regexp.Regexp{}, []*regexp.Regexp{})
 	if err != nil {
 		return
 	}
