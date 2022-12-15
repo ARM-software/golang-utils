@@ -1345,6 +1345,20 @@ func (mr *MockFSMockRecorder) IsLink(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsLink", reflect.TypeOf((*MockFS)(nil).IsLink), arg0)
 }
 
+// IsZip mocks base method
+func (m *MockFS) IsZip(arg0 string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsZip", arg0)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsZip indicates an expected call of IsZip
+func (mr *MockFSMockRecorder) IsZip(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsZip", reflect.TypeOf((*MockFS)(nil).IsZip), arg0)
+}
+
 // Link mocks base method
 func (m *MockFS) Link(arg0, arg1 string) error {
 	m.ctrl.T.Helper()

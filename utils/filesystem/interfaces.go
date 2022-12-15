@@ -266,4 +266,6 @@ type FS interface {
 	UnzipWithContextAndLimits(ctx context.Context, source string, destination string, limits ILimits) (fileList []string, err error)
 	// FileHash calculates file hash
 	FileHash(hashAlgo string, path string) (string, error)
+	// IsZip tells you with a file is a zip file
+	IsZip(path string) bool
 }

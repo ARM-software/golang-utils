@@ -1358,3 +1358,8 @@ func convertToExtendedFile(file afero.File, onCloseCallBack func() error) (File,
 func FilepathStem(fp string) string {
 	return strings.TrimSuffix(filepath.Base(fp), filepath.Ext(fp))
 }
+
+func (fs *VFS) IsZip(path string) bool {
+	// Placeholder until we use a better way
+	return filepath.Ext(path) == zipExt
+}

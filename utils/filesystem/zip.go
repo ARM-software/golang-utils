@@ -235,7 +235,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		}
 
 		// Keep list of files unzipped (except zip files as they will be handled later)
-		if filepath.Ext(zippedFile.Name) != zipExt {
+		if !fs.IsZip(zippedFile.Name) {
 			fileList = append(fileList, filePath)
 		}
 
@@ -265,7 +265,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		}
 
 		// If file that was copied is a zip, unzip that zip
-		if filepath.Ext(zippedFile.Name) == zipExt {
+		if fs.IsZip(zippedFile.Name) {
 			defer func() { _ = fs.Rm(filePath) }()
 
 			nestedUnzipFiles, subErr := fs.unzip(ctx, filePath, strings.TrimSuffix(filePath, zipExt), limits, depth+1)
