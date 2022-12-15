@@ -166,7 +166,7 @@ func TestUnzip_Limits(t *testing.T) {
 	destPath, err := fs.TempDirInTempDir("unzip-limits-")
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
-	limits := NewLimits(1<<30, 1<<10, 1000000) // Total size limited to 10 Kb
+	limits := NewLimits(1<<30, 1<<10, 1000000, 1) // Total size limited to 10 Kb
 
 	empty, err := fs.IsEmpty(destPath)
 	assert.NoError(t, err)
@@ -212,6 +212,15 @@ func TestUnzip_ZipBomb(t *testing.T) {
 		{
 			testFile: "zbsm", // See https://www.bamsoftware.com/hacks/zipbomb/
 		},
+		{
+			testFile: "zip-bomb-nested-large", // lots of large files
+		},
+		{
+			testFile: "zip-bomb-nested-small", // empty file zipped and that zip also zipped (repeated a few times)
+		},
+		{
+			testFile: "zip-bomb", // 4.5 exabytes with 10 layers
+		},
 	}
 
 	fs := NewFs(StandardFS)
@@ -219,7 +228,7 @@ func TestUnzip_ZipBomb(t *testing.T) {
 	destPath, err := fs.TempDirInTempDir("unzip-limits-")
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
-	limits := NewLimits(1<<30, 1<<20, 1000000) // Total size limited to 1 Mb
+	limits := NewLimits(1<<30, 1<<20, 1000000, 3) // Total size limited to 1 Mb with a max nesting depth of 3
 
 	empty, err := fs.IsEmpty(destPath)
 	assert.NoError(t, err)
@@ -252,7 +261,9 @@ func TestUnzip(t *testing.T) {
 		filepath.Join(outPath, "readme.txt"),
 		filepath.Join(outPath, "test.txt"),
 		filepath.Join(outPath, "todo.txt"),
-		filepath.Join(outPath, "child.zip"),
+		filepath.Join(outPath, "child", "readme.txt"),
+		filepath.Join(outPath, "child", "test.txt"),
+		filepath.Join(outPath, "child", "todo.txt"),
 		filepath.Join(outPath, "L'irrǸsolution est toujours une marque de faiblesse.txt"),
 		filepath.Join(outPath, "ไป ไหน มา.txt"),
 	}
@@ -263,7 +274,7 @@ func TestUnzip(t *testing.T) {
 
 	sort.Strings(fileList)
 	assert.NoError(t, err)
-	assert.Equal(t, len(fileList), 6)
+	assert.Equal(t, len(fileList), len(expectedfileList))
 	assert.Equal(t, expectedfileList, fileList)
 
 	/* Source zip file not available */
@@ -348,7 +359,7 @@ func TestUnzipFileCountLimit(t *testing.T) {
 	fs := NewFs(StandardFS)
 
 	testInDir := "testdata"
-	limits := NewLimits(1<<30, 10<<30, 10)
+	limits := NewLimits(1<<30, 10<<30, 10, 10)
 
 	t.Run("unzip file above file count limit", func(t *testing.T) {
 		testFile := "abovefilecountlimitzip"

@@ -76,6 +76,8 @@ type ILimits interface {
 	GetMaxTotalSize() uint64
 	// GetMaxFileCount returns the maximum files in byte a file can have on a file system
 	GetMaxFileCount() int64
+	// GetMaxZipDepth returns the maximum number of recursive zipped directories that can exist
+	GetMaxZipDepth() int64
 }
 
 // ILock defines a generic lock using the file system.

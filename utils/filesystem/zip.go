@@ -18,6 +18,10 @@ import (
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
+const (
+	zipExt = ".zip"
+)
+
 // Zip zips a source directory into a destination archive
 func Zip(source string, destination string) error {
 	return globalFileSystem.Zip(source, destination)
@@ -157,18 +161,25 @@ func (fs *VFS) Unzip(source, destination string) ([]string, error) {
 }
 
 func (fs *VFS) UnzipWithContext(ctx context.Context, source string, destination string) (fileList []string, err error) {
-	return fs.unzip(ctx, source, destination, NoLimits())
+	return fs.unzip(ctx, source, destination, NoLimits(), 0)
 }
+
 func (fs *VFS) UnzipWithContextAndLimits(ctx context.Context, source string, destination string, limits ILimits) (fileList []string, err error) {
-	return fs.unzip(ctx, source, destination, limits)
+	return fs.unzip(ctx, source, destination, limits, 0)
 }
-func (fs *VFS) unzip(ctx context.Context, source string, destination string, limits ILimits) (fileList []string, err error) {
+
+func (fs *VFS) unzip(ctx context.Context, source string, destination string, limits ILimits, depth int64) (fileList []string, err error) {
 	if limits == nil {
 		err = fmt.Errorf("%w: missing file system limits", commonerrors.ErrUndefined)
 		return
 	}
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
+		return
+	}
+
+	if limits.Apply() && depth > limits.GetMaxZipDepth() {
+		err = fmt.Errorf("%w: zip file [%v] is contains too many nested zipped directories (%v) and beyond limits (max: %v)", commonerrors.ErrTooLarge, source, depth, limits.GetMaxZipDepth())
 		return
 	}
 
@@ -223,8 +234,10 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 			return fileList, subErr
 		}
 
-		// Keep list of files unzipped
-		fileList = append(fileList, filePath)
+		// Keep list of files unzipped (except zip files as they will be handled later)
+		if filepath.Ext(zippedFile.Name) != zipExt {
+			fileList = append(fileList, filePath)
+		}
 
 		if zippedFile.FileInfo().IsDir() {
 			// Create directory
@@ -250,6 +263,20 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		if subErr != nil {
 			return fileList, subErr
 		}
+
+		// If file that was copied is a zip, unzip that zip
+		if filepath.Ext(zippedFile.Name) == zipExt {
+			defer func() { _ = fs.Rm(filePath) }()
+
+			nestedUnzipFiles, subErr := fs.unzip(ctx, filePath, strings.TrimSuffix(filePath, zipExt), limits, depth+1)
+			if subErr != nil {
+				return fileList, fmt.Errorf("unable to unzip nested zip [%s] to [%s] at depth (%d): %w", filepath.Join(filepath.Dir(source), zippedFile.Name), filepath.Dir(filePath), depth, subErr)
+			}
+
+			fileList = append(fileList, nestedUnzipFiles...)
+			continue
+		}
+
 		totalSizeOnDisk.Add(uint64(fileSizeOnDisk))
 		if limits.Apply() && totalSizeOnDisk.Load() > limits.GetMaxTotalSize() {
 			return fileList, fmt.Errorf("%w: more than %v B of disk space was used while unzipping %v (%v B used already)", commonerrors.ErrTooLarge, limits.GetMaxTotalSize(), source, totalSizeOnDisk.Load())

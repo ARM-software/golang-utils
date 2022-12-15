@@ -25,6 +25,10 @@ func (n *noLimits) GetMaxFileCount() int64 {
 	return 0
 }
 
+func (n *noLimits) GetMaxZipDepth() int64 {
+	return 0
+}
+
 func (n *noLimits) Validate() error {
 	return nil
 }
@@ -34,6 +38,7 @@ type Limits struct {
 	MaxFileSize  int64  `mapstructure:"max_file_size"`
 	MaxTotalSize uint64 `mapstructure:"max_total_size"`
 	MaxFileCount int64  `mapstructure:"max_file_count"`
+	MaxDepth     int64  `mapstructure:"max_depth"`
 }
 
 func (l *Limits) Apply() bool {
@@ -52,6 +57,10 @@ func (l *Limits) GetMaxFileCount() int64 {
 	return l.MaxFileCount
 }
 
+func (l *Limits) GetMaxZipDepth() int64 {
+	return l.MaxDepth
+}
+
 func (l *Limits) Validate() error {
 	validation.ErrorTag = "mapstructure"
 
@@ -64,6 +73,7 @@ func (l *Limits) Validate() error {
 		validation.Field(&l.MaxFileSize, validation.Required.When(l.Apply())),
 		validation.Field(&l.MaxTotalSize, validation.Required.When(l.Apply())),
 		validation.Field(&l.MaxFileCount, validation.Required.When(l.Apply())),
+		validation.Field(&l.MaxDepth, validation.Required.When(l.Apply())),
 	)
 }
 
@@ -73,15 +83,16 @@ func NoLimits() ILimits {
 }
 
 // NewLimits defines file system FileSystemLimits.
-func NewLimits(maxFileSize int64, maxTotalSize uint64, maxFileCount int64) ILimits {
+func NewLimits(maxFileSize int64, maxTotalSize uint64, maxFileCount int64, maxDepth int64) ILimits {
 	return &Limits{
 		MaxFileSize:  maxFileSize,
 		MaxTotalSize: maxTotalSize,
 		MaxFileCount: maxFileCount,
+		MaxDepth:     maxDepth,
 	}
 }
 
 // DefaultLimits defines default file system FileSystemLimits
 func DefaultLimits() ILimits {
-	return NewLimits(1<<30, 10<<30, 1000000)
+	return NewLimits(1<<30, 10<<30, 1000000, 2)
 }
