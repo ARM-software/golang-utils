@@ -1572,10 +1572,10 @@ func (mr *MockFSMockRecorder) NewRemoteLockFile(arg0, arg1 interface{}) *gomock.
 }
 
 // Open mocks base method
-func (m *MockFS) Open(arg0 string) (v3.File, error) {
+func (m *MockFS) Open(arg0 string) (doublestar.File, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Open", arg0)
-	ret0, _ := ret[0].(v3.File)
+	ret0, _ := ret[0].(doublestar.File)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
