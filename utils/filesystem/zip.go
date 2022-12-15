@@ -270,7 +270,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 
 			nestedUnzipFiles, subErr := fs.unzip(ctx, filePath, strings.TrimSuffix(filePath, zipExt), limits, depth+1)
 			if subErr != nil {
-				return fileList, fmt.Errorf("unable to unzip nested zip [%s] to [%s] at depth (%d): %w", filepath.Join(filepath.Dir(source), zippedFile.Name), filepath.Dir(filePath), depth, subErr)
+				return fileList, fmt.Errorf("unable to unzip nested zip [%s] to [%s] at depth (%d): %w", filePath, strings.TrimSuffix(filePath, zipExt), depth, subErr)
 			}
 
 			fileList = append(fileList, nestedUnzipFiles...)
