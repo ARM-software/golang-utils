@@ -19,36 +19,88 @@ import (
 
 func TestPaginator(t *testing.T) {
 	tests := []struct {
-		paginator func(context.Context, IStream) (IPaginator, error)
+		paginator func(context.Context, IStaticPageStream) (IGenericPaginator, error)
 		name      string
 		useStream bool
 	}{
 		{
-			paginator: func(ctx context.Context, collection IStream) (IPaginator, error) {
-				return NewAbstractPaginator(ctx, collection), nil
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
+				return NewAbstractPaginator(ctx, collection, func(fCtx context.Context, current IStaticPage) (IStaticPage, error) {
+					c, err := toDynamicPage(current)
+					if err != nil {
+						return nil, err
+					}
+					return c.GetNext(fCtx)
+				})
 			},
 			name: "Abstract paginator",
 		},
 		{
-			paginator: func(ctx context.Context, collection IStream) (IPaginator, error) {
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
+				return NewStaticPagePaginator(ctx, func(context.Context) (IStaticPage, error) {
+					return collection, nil
+				}, func(fCtx context.Context, current IStaticPage) (IStaticPage, error) {
+					c, err := toDynamicPage(current)
+					if err != nil {
+						return nil, err
+					}
+					return c.GetNext(fCtx)
+				})
+			},
+			name: "Static page paginator",
+		},
+		{
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
 				return NewCollectionPaginator(ctx, func(context.Context) (IPage, error) {
-					return collection, nil
+					return toDynamicPage(collection)
 				})
 			},
-			name: "paginator over a collection",
+			name: "paginator over a collection of dynamic pages",
 		},
 		{
-			paginator: func(ctx context.Context, collection IStream) (IPaginator, error) {
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
+				return NewStaticPageStreamPaginator(ctx, time.Second, 10*time.Millisecond, func(context.Context) (IStaticPageStream, error) {
+					return collection, nil
+				}, func(fCtx context.Context, current IStaticPage) (IStaticPage, error) {
+					c, err := toDynamicPage(current)
+					if err != nil {
+						return nil, err
+					}
+					return c.GetNext(fCtx)
+				}, func(fCtx context.Context, current IStaticPageStream) (IStaticPageStream, error) {
+					s, err := toDynamicStream(current)
+					if err != nil {
+						return nil, err
+					}
+					return s.GetFuture(fCtx)
+				})
+			},
+			name: "stream paginator over a collection of static pages",
+		},
+		{
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
 				return NewStreamPaginator(ctx, time.Second, 10*time.Millisecond, func(context.Context) (IStream, error) {
-					return collection, nil
+					return toDynamicStream(collection)
 				})
 			},
-			name: "stream paginator over a collection",
+			name: "stream paginator over a collection of dynamic pages",
 		},
 		{
-			paginator: func(ctx context.Context, collection IStream) (IPaginator, error) {
-				paginator, err := NewStreamPaginator(ctx, 50*time.Millisecond, 10*time.Millisecond, func(context.Context) (IStream, error) {
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
+				paginator, err := NewStaticPageStreamPaginator(ctx, time.Second, 10*time.Millisecond, func(context.Context) (IStaticPageStream, error) {
 					return collection, nil
+				}, func(fCtx context.Context, current IStaticPage) (IStaticPage, error) {
+					c, err := toDynamicPage(current)
+					if err != nil {
+						return nil, err
+					}
+					return c.GetNext(fCtx)
+				}, func(fCtx context.Context, current IStaticPageStream) (IStaticPageStream, error) {
+					s, err := toDynamicStream(current)
+					if err != nil {
+						return nil, err
+					}
+					return s.GetFuture(fCtx)
 				})
 				if paginator != nil {
 					// Indicate the stream will run out.
@@ -56,14 +108,28 @@ func TestPaginator(t *testing.T) {
 				}
 				return paginator, err
 			},
-			name:      "stream paginator over a running dry stream",
+			name:      "stream paginator over a running dry stream of static pages",
+			useStream: true,
+		},
+		{
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
+				paginator, err := NewStreamPaginator(ctx, 50*time.Millisecond, 10*time.Millisecond, func(context.Context) (IStream, error) {
+					return toDynamicStream(collection)
+				})
+				if paginator != nil {
+					// Indicate the stream will run out.
+					err = paginator.DryUp()
+				}
+				return paginator, err
+			},
+			name:      "stream paginator over a running dry stream of dynamic pages",
 			useStream: true,
 		},
 	}
 
 	for te := range tests {
 		test := tests[te]
-		for i := 0; i < 10; i++ {
+		for i := 0; i < 1000; i++ {
 			var mockPages IStream
 			var expectedCount int64
 			var err error
@@ -97,36 +163,88 @@ func TestPaginator(t *testing.T) {
 
 func TestPaginator_stop(t *testing.T) {
 	tests := []struct {
-		paginator func(context.Context, IStream) (IPaginator, error)
+		paginator func(context.Context, IStaticPageStream) (IGenericPaginator, error)
 		name      string
 		useStream bool
 	}{
 		{
-			paginator: func(ctx context.Context, collection IStream) (IPaginator, error) {
-				return NewAbstractPaginator(ctx, collection), nil
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
+				return NewAbstractPaginator(ctx, collection, func(fCtx context.Context, current IStaticPage) (IStaticPage, error) {
+					c, err := toDynamicPage(current)
+					if err != nil {
+						return nil, err
+					}
+					return c.GetNext(fCtx)
+				})
 			},
 			name: "Abstract paginator",
 		},
 		{
-			paginator: func(ctx context.Context, collection IStream) (IPaginator, error) {
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
+				return NewStaticPagePaginator(ctx, func(context.Context) (IStaticPage, error) {
+					return collection, nil
+				}, func(fCtx context.Context, current IStaticPage) (IStaticPage, error) {
+					c, err := toDynamicPage(current)
+					if err != nil {
+						return nil, err
+					}
+					return c.GetNext(fCtx)
+				})
+			},
+			name: "Static page paginator",
+		},
+		{
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
 				return NewCollectionPaginator(ctx, func(context.Context) (IPage, error) {
-					return collection, nil
+					return toDynamicPage(collection)
 				})
 			},
-			name: "paginator over a collection",
+			name: "paginator over a collection of dynamic pages",
 		},
 		{
-			paginator: func(ctx context.Context, collection IStream) (IPaginator, error) {
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
+				return NewStaticPageStreamPaginator(ctx, time.Second, 10*time.Millisecond, func(context.Context) (IStaticPageStream, error) {
+					return collection, nil
+				}, func(fCtx context.Context, current IStaticPage) (IStaticPage, error) {
+					c, err := toDynamicPage(current)
+					if err != nil {
+						return nil, err
+					}
+					return c.GetNext(fCtx)
+				}, func(fCtx context.Context, current IStaticPageStream) (IStaticPageStream, error) {
+					s, err := toDynamicStream(current)
+					if err != nil {
+						return nil, err
+					}
+					return s.GetFuture(fCtx)
+				})
+			},
+			name: "stream paginator over a collection of static pages",
+		},
+		{
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
 				return NewStreamPaginator(ctx, time.Second, 10*time.Millisecond, func(context.Context) (IStream, error) {
-					return collection, nil
+					return toDynamicStream(collection)
 				})
 			},
-			name: "stream paginator over a collection",
+			name: "stream paginator over a collection of dynamic pages",
 		},
 		{
-			paginator: func(ctx context.Context, collection IStream) (IPaginator, error) {
-				paginator, err := NewStreamPaginator(ctx, 50*time.Millisecond, 10*time.Millisecond, func(context.Context) (IStream, error) {
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
+				paginator, err := NewStaticPageStreamPaginator(ctx, time.Second, 10*time.Millisecond, func(context.Context) (IStaticPageStream, error) {
 					return collection, nil
+				}, func(fCtx context.Context, current IStaticPage) (IStaticPage, error) {
+					c, err := toDynamicPage(current)
+					if err != nil {
+						return nil, err
+					}
+					return c.GetNext(fCtx)
+				}, func(fCtx context.Context, current IStaticPageStream) (IStaticPageStream, error) {
+					s, err := toDynamicStream(current)
+					if err != nil {
+						return nil, err
+					}
+					return s.GetFuture(fCtx)
 				})
 				if paginator != nil {
 					// Indicate the stream will run out.
@@ -134,7 +252,21 @@ func TestPaginator_stop(t *testing.T) {
 				}
 				return paginator, err
 			},
-			name:      "stream paginator over a running dry stream",
+			name:      "stream paginator over a running dry stream of static pages",
+			useStream: true,
+		},
+		{
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
+				paginator, err := NewStreamPaginator(ctx, 50*time.Millisecond, 10*time.Millisecond, func(context.Context) (IStream, error) {
+					return toDynamicStream(collection)
+				})
+				if paginator != nil {
+					// Indicate the stream will run out.
+					err = paginator.DryUp()
+				}
+				return paginator, err
+			},
+			name:      "stream paginator over a running dry stream of dynamic pages",
 			useStream: true,
 		},
 	}
