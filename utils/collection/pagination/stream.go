@@ -122,7 +122,6 @@ func newAbstractStreamPaginator(ctx context.Context, runOutTimeOut, backoff time
 
 func toDynamicStream(stream IStaticPageStream) (dynamicStream IStream, err error) {
 	if stream == nil {
-		//err = fmt.Errorf("%w: empty stream", commonerrors.ErrUndefined)
 		return
 	}
 	dynamicStream, ok := stream.(IStream)

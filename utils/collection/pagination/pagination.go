@@ -160,7 +160,6 @@ func (d *DynamicPagePaginator) GetCurrentPage() (dynamicPage IPage, err error) {
 
 func toDynamicPage(page IStaticPage) (dynamicPage IPage, err error) {
 	if page == nil {
-		//err = fmt.Errorf("%w: empty page", commonerrors.ErrUndefined)
 		return
 	}
 	dynamicPage, ok := page.(IPage)
