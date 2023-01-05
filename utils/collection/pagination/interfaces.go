@@ -12,52 +12,91 @@ import (
 	"io"
 )
 
-//go:generate mockgen -destination=../../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/collection/$GOPACKAGE IPage,IStream,IIterator,IPaginator,IStreamPaginator
+//go:generate mockgen -destination=../../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/collection/$GOPACKAGE IStaticPage,IPage,IStaticPageStream,IStream,IIterator,IPaginator,IPaginatorAndPageFetcher,IStreamPaginator,IStreamPaginatorAndPageFetcher
 
 // IIterator defines an iterator over a collection of items.
 type IIterator interface {
 	// HasNext returns whether there are more items available or not.
 	HasNext() bool
 	// GetNext returns the next item.
-	GetNext() (*interface{}, error)
+	GetNext() (interface{}, error)
 }
 
-// IPage defines a generic page for a collection.
-type IPage interface {
+// IStaticPage defines a generic page for a collection.
+type IStaticPage interface {
 	// HasNext states whether more pages are accessible.
 	HasNext() bool
-	// GetNext returns the next page.
-	GetNext(ctx context.Context) (IPage, error)
-	// GetItemIterator returns an iterator over the page's items.
+	// GetItemIterator returns a new iterator over the page's items.
 	GetItemIterator() (IIterator, error)
 	// GetItemCount returns the number of items in this page
 	GetItemCount() (int64, error)
 }
 
-// IStream defines a page for a collection which does not have any known ending.
-type IStream interface {
-	IPage
-	// HasFuture states whether there may be future items.
-	HasFuture() bool
-	// GetFuture returns the future page.
-	GetFuture(ctx context.Context) (IPage, error)
+// IPage defines a page with the ability to access next pages.
+type IPage interface {
+	IStaticPage
+	// GetNext returns the next page.
+	GetNext(ctx context.Context) (IPage, error)
 }
 
-// IPaginator is an iterator over multiple pages
-type IPaginator interface {
+// IStaticPageStream defines a page for a collection which does not have any known ending.
+type IStaticPageStream interface {
+	IStaticPage
+	// HasFuture states whether there may be future items.
+	HasFuture() bool
+}
+
+// IStream defines a stream with the ability to access future pages.
+type IStream interface {
+	IPage
+	IStaticPageStream
+	// GetFuture returns the future page.
+	GetFuture(ctx context.Context) (IStream, error)
+}
+
+// IGenericPaginator defines a generic paginator.
+type IGenericPaginator interface {
 	io.Closer
 	IIterator
 	// Stop returns a stop function which stops the iteration.
 	Stop() context.CancelFunc
+}
+
+// IPaginator is an iterator over multiple pages
+type IPaginator interface {
+	IGenericPaginator
 	// GetCurrentPage returns the current page.
 	GetCurrentPage() (IPage, error)
 }
 
-// IStreamPaginator is an iterator over a stream. A stream is a collection without any know ending.
-type IStreamPaginator interface {
-	IPaginator
+// IPaginatorAndPageFetcher is a paginator dealing with static pages
+type IPaginatorAndPageFetcher interface {
+	IGenericPaginator
+	// GetCurrentPage returns the current page.
+	GetCurrentPage() (IStaticPage, error)
+	// FetchNextPage fetches the next page.
+	FetchNextPage(ctx context.Context, currentPage IStaticPage) (IStaticPage, error)
+}
+
+// IGenericStreamPaginator is an iterator over a stream. A stream is a collection without any know ending.
+type IGenericStreamPaginator interface {
+	IGenericPaginator
 	// DryUp indicates to the stream that it will soon run out.
 	DryUp() error
 	// IsRunningDry indicates whether the stream is about to run out.
 	IsRunningDry() bool
+}
+
+// IStreamPaginator is stream paginator over dynamic pages.
+type IStreamPaginator interface {
+	IGenericStreamPaginator
+	IPaginator
+}
+
+// IStreamPaginatorAndPageFetcher is a stream paginator over static pages.
+type IStreamPaginatorAndPageFetcher interface {
+	IGenericStreamPaginator
+	IPaginatorAndPageFetcher
+	// FetchFuturePage returns the future page.
+	FetchFuturePage(ctx context.Context, currentPage IStaticPageStream) (IStaticPageStream, error)
 }

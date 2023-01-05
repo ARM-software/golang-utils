@@ -12,6 +12,6 @@ import (
 
 func TestNoopLogger(t *testing.T) {
 	loggers, err := NewNoopLogger("Test")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	testLog(t, loggers)
 }
