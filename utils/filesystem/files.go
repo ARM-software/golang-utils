@@ -351,8 +351,12 @@ func (fs *VFS) WriteToFile(ctx context.Context, filename string, reader io.Reade
 		return
 	}
 	defer func() { _ = f.Close() }()
-	written, err = copyDataWithContext(ctx, "written", reader, f)
+	written, err = copyDataWithContext(ctx, reader, f)
 	if err != nil {
+		return
+	}
+	if written == 0 {
+		err = fmt.Errorf("%w: no bytes were written", commonerrors.ErrEmpty)
 		return
 	}
 	err = f.Close()
@@ -1135,22 +1139,19 @@ func copyFileBetweenFSWithExclusionPatternsWithExclusionRegexes(ctx context.Cont
 // CopyDataWithContext copies from src to dst similarly to io.Copy but with context control to stop when asked to.
 // If no bytes have been copied, an error will also be reported.
 func CopyDataWithContext(ctx context.Context, src io.Reader, dst io.Writer) (err error) {
-	_, err = copyDataWithContext(ctx, "copied", src, dst)
+	_, err = copyDataWithContext(ctx, src, dst)
 	return
 }
 
-func copyDataWithContext(ctx context.Context, action string, src io.Reader, dst io.Writer) (written int64, err error) {
+func copyDataWithContext(ctx context.Context, src io.Reader, dst io.Writer) (copied int64, err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
 	}
-	written, err = io.Copy(contextio.NewWriter(ctx, dst), contextio.NewReader(ctx, src))
+	copied, err = io.Copy(contextio.NewWriter(ctx, dst), contextio.NewReader(ctx, src))
 	err = commonerrors.ConvertContextError(err)
 	if err != nil {
 		return
-	}
-	if written == 0 {
-		err = fmt.Errorf("%w: no bytes were %v", commonerrors.ErrEmpty, action)
 	}
 	return
 }
