@@ -71,7 +71,7 @@ func (a *AbstractPaginator) fetchNextPage() (err error) {
 	return
 }
 
-func (a *AbstractPaginator) GetNext() (item *interface{}, err error) {
+func (a *AbstractPaginator) GetNext() (item interface{}, err error) {
 	err = parallelisation.DetermineContextError(a.ctx)
 	if err != nil {
 		return

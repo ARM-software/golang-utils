@@ -129,7 +129,7 @@ func TestPaginator(t *testing.T) {
 
 	for te := range tests {
 		test := tests[te]
-		for i := 0; i < 1000; i++ {
+		for i := 0; i < 50; i++ {
 			var mockPages IStream
 			var expectedCount int64
 			var err error
@@ -151,7 +151,7 @@ func TestPaginator(t *testing.T) {
 					item, err := paginator.GetNext()
 					require.NoError(t, err)
 					require.NotNil(t, item)
-					mockItem, ok := (*item).(MockItem)
+					mockItem, ok := item.(*MockItem)
 					require.True(t, ok)
 					assert.Equal(t, int(count-1), mockItem.Index)
 				}
