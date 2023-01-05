@@ -39,6 +39,8 @@ require (
 	golang.org/x/text v0.6.0
 )
 
+require github.com/dolmen-go/contextio v0.0.0-20220904134943-e50796217f5f
+
 require (
 	github.com/Microsoft/go-winio v0.5.2 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20221026131551-cf6655e29de4 // indirect

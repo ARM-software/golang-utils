@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/bmatcuk/doublestar/v3"
+	"github.com/dolmen-go/contextio"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/spf13/afero"
 
@@ -242,7 +243,7 @@ func ReadFile(name string) ([]byte, error) {
 }
 
 func (fs *VFS) ReadFile(filename string) (content []byte, err error) {
-	return fs.readFileWithLimits(filename, NoLimits())
+	return fs.readFileWithContextAndLimits(context.Background(), filename, NoLimits())
 }
 
 func ReadFileWithLimits(filename string, limits ILimits) ([]byte, error) {
@@ -250,10 +251,22 @@ func ReadFileWithLimits(filename string, limits ILimits) ([]byte, error) {
 }
 
 func (fs *VFS) ReadFileWithLimits(filename string, limits ILimits) ([]byte, error) {
-	return fs.readFileWithLimits(filename, limits)
+	return fs.readFileWithContextAndLimits(context.Background(), filename, limits)
 }
 
-func (fs *VFS) readFileWithLimits(filename string, limits ILimits) (content []byte, err error) {
+func (fs *VFS) ReadFileWithContext(ctx context.Context, filename string) ([]byte, error) {
+	return fs.readFileWithContextAndLimits(ctx, filename, NoLimits())
+}
+
+func (fs *VFS) ReadFileWithContextAndLimits(ctx context.Context, filename string, limits ILimits) ([]byte, error) {
+	return fs.readFileWithContextAndLimits(ctx, filename, limits)
+}
+
+func (fs *VFS) readFileWithContextAndLimits(ctx context.Context, filename string, limits ILimits) (content []byte, err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
 	if limits == nil {
 		err = fmt.Errorf("%w: missing file system limits definition", commonerrors.ErrUndefined)
 		return
@@ -292,30 +305,54 @@ func (fs *VFS) readFileWithLimits(filename string, limits ILimits) (content []by
 			panic(e)
 		}
 	}()
+	var reader io.Reader
+
 	if limits.Apply() {
-		_, err = buf.ReadFrom(io.LimitReader(f, limits.GetMaxFileSize()))
+		reader = io.LimitReader(f, limits.GetMaxFileSize())
 	} else {
-		_, err = buf.ReadFrom(f)
+		reader = f
 	}
+	n, err := buf.ReadFrom(contextio.NewReader(ctx, reader))
+	err = commonerrors.ConvertContextError(err)
 	if commonerrors.Any(err, io.EOF, io.ErrUnexpectedEOF) {
 		err = fmt.Errorf("%w: %v", commonerrors.ErrEOF, err.Error())
+		return
+	}
+	if n == int64(0) {
+		err = fmt.Errorf("%w: no bytes were read", commonerrors.ErrEmpty)
 	}
 	content = buf.Bytes()
 	return
 }
 
-func (fs *VFS) WriteFile(filename string, data []byte, perm os.FileMode) (err error) {
+func (fs *VFS) WriteFile(filename string, data []byte, perm os.FileMode) error {
+	return fs.WriteFileWithContext(context.Background(), filename, data, perm)
+}
+
+func (fs *VFS) WriteFileWithContext(ctx context.Context, filename string, data []byte, perm os.FileMode) (err error) {
+	reader := bytes.NewReader(data)
+	n, err := fs.WriteToFile(ctx, filename, reader, perm)
+	if err != nil {
+		return
+	}
+	if int(n) < len(data) {
+		err = io.ErrShortWrite
+	}
+	return
+}
+
+func (fs *VFS) WriteToFile(ctx context.Context, filename string, reader io.Reader, perm os.FileMode) (written int64, err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
 	f, err := fs.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
 	if err != nil {
 		return
 	}
 	defer func() { _ = f.Close() }()
-	n, err := f.Write(data)
+	written, err = copyDataWithContext(ctx, "written", reader, f)
 	if err != nil {
-		return
-	}
-	if n < len(data) {
-		err = io.ErrShortWrite
 		return
 	}
 	err = f.Close()
@@ -1080,7 +1117,7 @@ func copyFileBetweenFSWithExclusionPatternsWithExclusionRegexes(ctx context.Cont
 		return
 	}
 	defer func() { _ = outputFile.Close() }()
-	_, err = io.Copy(outputFile, inputFile)
+	err = CopyDataWithContext(ctx, inputFile, outputFile)
 	if err != nil {
 		return
 	}
@@ -1091,6 +1128,29 @@ func copyFileBetweenFSWithExclusionPatternsWithExclusionRegexes(ctx context.Cont
 	err = outputFile.Close()
 	if err != nil {
 		return
+	}
+	return
+}
+
+// CopyDataWithContext copies from src to dst similarly to io.Copy but with context control to stop when asked to.
+// If no bytes have been copied, an error will also be reported.
+func CopyDataWithContext(ctx context.Context, src io.Reader, dst io.Writer) (err error) {
+	_, err = copyDataWithContext(ctx, "copied", src, dst)
+	return
+}
+
+func copyDataWithContext(ctx context.Context, action string, src io.Reader, dst io.Writer) (written int64, err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+	written, err = io.Copy(contextio.NewWriter(ctx, dst), contextio.NewReader(ctx, src))
+	err = commonerrors.ConvertContextError(err)
+	if err != nil {
+		return
+	}
+	if written == 0 {
+		err = fmt.Errorf("%w: no bytes were %v", commonerrors.ErrEmpty, action)
 	}
 	return
 }
