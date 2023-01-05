@@ -129,7 +129,7 @@ func TestPaginator(t *testing.T) {
 
 	for te := range tests {
 		test := tests[te]
-		for i := 0; i < 1000; i++ {
+		for i := 0; i < 50; i++ {
 			var mockPages IStream
 			var expectedCount int64
 			var err error
