@@ -151,7 +151,7 @@ func TestPaginator(t *testing.T) {
 					item, err := paginator.GetNext()
 					require.NoError(t, err)
 					require.NotNil(t, item)
-					mockItem, ok := (*item).(MockItem)
+					mockItem, ok := item.(*MockItem)
 					require.True(t, ok)
 					assert.Equal(t, int(count-1), mockItem.Index)
 				}

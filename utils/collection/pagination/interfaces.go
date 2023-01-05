@@ -19,7 +19,7 @@ type IIterator interface {
 	// HasNext returns whether there are more items available or not.
 	HasNext() bool
 	// GetNext returns the next item.
-	GetNext() (*interface{}, error)
+	GetNext() (interface{}, error)
 }
 
 // IStaticPage defines a generic page for a collection.

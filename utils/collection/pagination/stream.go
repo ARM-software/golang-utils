@@ -67,7 +67,7 @@ func (s *AbstractStreamPaginator) HasNext() bool {
 	return s.HasNext()
 }
 
-func (s *AbstractStreamPaginator) GetNext() (*interface{}, error) {
+func (s *AbstractStreamPaginator) GetNext() (interface{}, error) {
 	for {
 		item, err := s.AbstractPaginator.GetNext()
 		if commonerrors.Any(err, nil, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
