@@ -41,7 +41,7 @@ func (m *MockPageIterator) HasNext() bool {
 	return m.currentIndex < len(m.elements)
 }
 
-func (m *MockPageIterator) GetNext() (item *interface{}, err error) {
+func (m *MockPageIterator) GetNext() (item interface{}, err error) {
 	if m.currentIndex < 0 {
 		err = fmt.Errorf("%w: incorrect element index", commonerrors.ErrInvalid)
 		return
@@ -50,7 +50,7 @@ func (m *MockPageIterator) GetNext() (item *interface{}, err error) {
 		err = fmt.Errorf("%w: there is no more items", commonerrors.ErrNotFound)
 		return
 	}
-	element := interface{}(m.elements[m.currentIndex])
+	element := m.elements[m.currentIndex]
 	item = &element
 	m.currentIndex++
 	return
@@ -67,10 +67,9 @@ func NewMockPageIterator(page *MockPage) (IIterator, error) {
 }
 
 type MockPage struct {
-	elements     []MockItem
-	nextPage     IStream
-	futurePage   IStream
-	pageIterator IIterator
+	elements   []MockItem
+	nextPage   IStream
+	futurePage IStream
 }
 
 func (m *MockPage) HasNext() bool {
@@ -89,12 +88,8 @@ func (m *MockPage) GetNext(ctx context.Context) (page IPage, err error) {
 	return
 }
 
-func (m *MockPage) GetItemIterator() (iterator IIterator, err error) {
-	if m.pageIterator == nil {
-		m.pageIterator, err = NewMockPageIterator(m)
-	}
-	iterator = m.pageIterator
-	return
+func (m *MockPage) GetItemIterator() (IIterator, error) {
+	return NewMockPageIterator(m)
 }
 
 func (m *MockPage) AppendItem(i *MockItem) error {
@@ -143,7 +138,7 @@ func (m *MockPage) HasFuture() bool {
 	return m.futurePage != nil
 }
 
-func (m *MockPage) GetFuture(ctx context.Context) (future IPage, err error) {
+func (m *MockPage) GetFuture(ctx context.Context) (future IStream, err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return

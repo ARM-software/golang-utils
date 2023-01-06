@@ -6,6 +6,7 @@ package filesystem
 
 import (
 	"context"
+	"io"
 	"os"
 	"path/filepath"
 	"time"
@@ -195,14 +196,26 @@ type FS interface {
 	TempDirectory() string
 	// CurrentDirectory returns current directory.
 	CurrentDirectory() (string, error)
-	// ReadFile reads a file and return its content.
+	// ReadFile reads a file and returns its content.
 	ReadFile(filename string) ([]byte, error)
-	// ReadFileWithLimits reads a file and return its content. Nonetheless, it stops with EOF after FileSystemLimits are exceeded.
+	// ReadFileWithContext reads a file but with control of a context and returns its content.
+	ReadFileWithContext(ctx context.Context, filename string) ([]byte, error)
+	// ReadFileWithLimits reads a file and returns its content. Nonetheless, it stops with EOF after FileSystemLimits are exceeded.
 	ReadFileWithLimits(filename string, limits ILimits) ([]byte, error)
+	// ReadFileWithContextAndLimits reads a file and returns its content. Limits and context are taken into account during the reading process.
+	ReadFileWithContextAndLimits(ctx context.Context, filename string, limits ILimits) ([]byte, error)
 	// WriteFile writes data to a file named by filename.
 	// If the file does not exist, WriteFile creates it with permissions perm;
 	// otherwise WriteFile truncates it before writing.
 	WriteFile(filename string, data []byte, perm os.FileMode) error
+	// WriteFileWithContext writes data to a file named by filename.
+	// It works like WriteFile but is also controlled by a context.
+	WriteFileWithContext(ctx context.Context, filename string, data []byte, perm os.FileMode) error
+	// WriteToFile writes data from a reader to a file named by filename.
+	// If the file does not exist, WriteToFile creates it with permissions perm;
+	// otherwise WriteFile truncates it before writing.
+	// It returns the number of bytes written.
+	WriteToFile(ctx context.Context, filename string, reader io.Reader, perm os.FileMode) (written int64, err error)
 	// GarbageCollect runs the Garbage collector on the filesystem (removes any file which has not been accessed for a certain duration)
 	GarbageCollect(root string, durationSinceLastAccess time.Duration) error
 	// GarbageCollectWithContext runs the Garbage collector on the filesystem (removes any file which has not been accessed for a certain duration)
