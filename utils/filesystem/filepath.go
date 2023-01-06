@@ -1,7 +1,6 @@
 package filesystem
 
 import (
-	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -26,7 +25,6 @@ func FileTreeDepth(fs FS, root, filePath string) (depth int64, err error) {
 	if reflection.IsEmpty(diff) {
 		return
 	}
-	fmt.Println(diff)
 	diff = strings.ReplaceAll(diff, string(fs.PathSeparator()), "/")
 	depth = int64(len(strings.Split(diff, "/")) - 1)
 	return

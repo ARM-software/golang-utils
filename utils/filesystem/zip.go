@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,12 +13,30 @@ import (
 	"golang.org/x/text/encoding/unicode"
 
 	"github.com/ARM-software/golang-utils/utils/charset"
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
+	"github.com/ARM-software/golang-utils/utils/safeio"
 )
 
 const (
-	zipExt = ".zip"
+	zipExt         = ".zip"
+	sevenzipExt    = ".7z"
+	sevenzipmacExt = ".s7z"
+	gzipExt        = ".gz"
+	lzipExt        = ".lz"
+	zipxExt        = ".zipx"
+	targzExt       = ".tar.gz"
+	targz2Ext      = ".tgz"
+	xzExt          = ".xz"
+	lzmaExt        = ".lzma"
+	rzipExt        = ".rz"
+	packExt        = ".pack"
+	compressExt    = ".z"
+)
+
+var (
+	ZipFileExtensions = []string{zipExt, zipxExt, sevenzipExt, sevenzipmacExt, gzipExt, targzExt, targz2Ext, xzExt, lzipExt, lzmaExt, rzipExt, packExt, compressExt}
 )
 
 // Zip zips a source directory into a destination archive
@@ -110,7 +127,7 @@ func (fs *VFS) ZipWithContextAndLimitsAndExclusionPatterns(ctx context.Context, 
 		if err != nil {
 			return err
 		}
-		n, err := io.Copy(dest, src)
+		n, err := safeio.CopyDataWithContext(ctx, src, dest)
 		if err != nil {
 			return err
 		}
@@ -147,7 +164,7 @@ func sanitiseZipExtractPath(fs FS, filePath string, destination string) (destPat
 	if strings.HasPrefix(destPath, fmt.Sprintf("%v/", destination)) {
 		return
 	}
-	err = fmt.Errorf("%w: zipslip security breach detected, file dirPath '%s' not in destination directory '%s'", commonerrors.ErrInvalidDestination, filePath, destination)
+	err = fmt.Errorf("%w: zipslip security breach detected, file dirPath '%s' not in destination directory '%s'", commonerrors.ErrMalicious, filePath, destination)
 	return
 }
 
@@ -161,14 +178,21 @@ func (fs *VFS) Unzip(source, destination string) ([]string, error) {
 }
 
 func (fs *VFS) UnzipWithContext(ctx context.Context, source string, destination string) (fileList []string, err error) {
-	return fs.unzip(ctx, source, destination, NoLimits(), 0)
+	fileList, _, _, err = fs.unzip(ctx, source, destination, NoLimits(), 0)
+	return
+}
+
+// UnzipWithContextAndLimits unzips an source archive file into destination.
+func UnzipWithContextAndLimits(ctx context.Context, source string, destination string, limits ILimits) ([]string, error) {
+	return globalFileSystem.UnzipWithContextAndLimits(ctx, source, destination, limits)
 }
 
 func (fs *VFS) UnzipWithContextAndLimits(ctx context.Context, source string, destination string, limits ILimits) (fileList []string, err error) {
-	return fs.unzip(ctx, source, destination, limits, 0)
+	fileList, _, _, err = fs.unzip(ctx, source, destination, limits, 0)
+	return
 }
 
-func (fs *VFS) unzip(ctx context.Context, source string, destination string, limits ILimits, depth int64) (fileList []string, err error) {
+func (fs *VFS) unzip(ctx context.Context, source string, destination string, limits ILimits, currentDepth int64) (fileList []string, fileOnDiskCount uint64, sizeOnDisk uint64, err error) {
 	if limits == nil {
 		err = fmt.Errorf("%w: missing file system limits", commonerrors.ErrUndefined)
 		return
@@ -178,8 +202,13 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		return
 	}
 
-	if limits.Apply() && depth > limits.GetMaxZipDepth() {
-		err = fmt.Errorf("%w: zip file [%v] is contains too many nested zipped directories (%v) and beyond limits (max: %v)", commonerrors.ErrTooLarge, source, depth, limits.GetMaxZipDepth())
+	if limits.Apply() && limits.GetMaxDepth() > 0 && currentDepth > limits.GetMaxDepth() {
+		err = fmt.Errorf("%w: depth [%v] of zip file [%v] is beyond allowed limits (max: %v)", commonerrors.ErrTooLarge, currentDepth, source, limits.GetMaxDepth())
+		return
+	}
+
+	if !fs.Exists(source) {
+		err = fmt.Errorf("%w: could not find archive [%v]", commonerrors.ErrNotFound, source)
 		return
 	}
 
@@ -207,6 +236,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 
 	zipReader, err := zip.NewReader(f, zipFileSize)
 	if err != nil {
+		err = convertZipError(err)
 		return
 	}
 
@@ -220,31 +250,41 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 
 	// For each file in the zip file
 	for i := range zipReader.File {
-		fileCounter.Inc()
-
 		zippedFile := zipReader.File[i]
 		subErr := parallelisation.DetermineContextError(ctx)
 		if subErr != nil {
-			return fileList, subErr
+			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
 		}
 
 		// Calculate file dirPath
 		filePath, subErr := sanitiseZipExtractPath(fs, zippedFile.Name, destination)
 		if subErr != nil {
-			return fileList, subErr
+			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
 		}
 
-		// Keep list of files unzipped (except zip files as they will be handled later)
-		if !fs.IsZip(zippedFile.Name) {
+		if limits.Apply() && limits.GetMaxDepth() > 0 {
+			depth, subErr := FileTreeDepth(fs, destination, filePath)
+			futureFileDepth := depth + currentDepth
+			if subErr != nil {
+				return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
+			}
+			if futureFileDepth > limits.GetMaxDepth() {
+				subErr = fmt.Errorf("%w: depth [%v] of zip file [%v] is beyond allowed limits (max: %v)", commonerrors.ErrTooLarge, currentDepth, source, limits.GetMaxDepth())
+				return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
+			}
+		}
+
+		// record unzipped files (except zip files if they get unzipped later)
+		if !(limits.ApplyRecursively() && fs.IsZip(zippedFile.Name)) {
+			fileCounter.Inc()
 			fileList = append(fileList, filePath)
 		}
 
 		if zippedFile.FileInfo().IsDir() {
 			// Create directory
 			subErr = fs.MkDir(filePath)
-
 			if subErr != nil {
-				return fileList, fmt.Errorf("unable to create directory [%s]: %w", filePath, subErr)
+				return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), fmt.Errorf("unable to create directory [%s]: %w", filePath, subErr)
 			}
 			// recording directory dirInfo to preserve timestamps
 			directoryInfo[filePath] = zippedFile.FileInfo()
@@ -256,56 +296,82 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		directoryPath := filepath.Dir(filePath)
 		subErr = fs.MkDir(directoryPath)
 		if subErr != nil {
-			return fileList, fmt.Errorf("unable to create directory '%s': %w", directoryPath, subErr)
+			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), fmt.Errorf("unable to create directory '%s': %w", directoryPath, subErr)
 		}
 
-		fileSizeOnDisk, subErr := fs.unzipZipFile(ctx, filePath, zippedFile, limits)
+		fileSizeOnDisk, subErr := fs.unzipZippedFile(ctx, filePath, zippedFile, limits, currentDepth)
 		if subErr != nil {
-			return fileList, subErr
+			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
 		}
 
-		// If file that was copied is a zip, unzip that zip
-		if fs.IsZip(zippedFile.Name) {
-			defer func() { _ = fs.Rm(filePath) }()
-
-			nestedUnzipFiles, subErr := fs.unzip(ctx, filePath, strings.TrimSuffix(filePath, zipExt), limits, depth+1)
+		// If the copied file is a zip, unzip that zip if the action is marked as recursive
+		if limits.ApplyRecursively() && fs.IsZip(zippedFile.Name) {
+			nestedUnzippedFiles, filesOnDiskCount, filesSizeOnDisk, subErr := fs.unzipNestedZipFiles(ctx, filePath, limits, currentDepth)
 			if subErr != nil {
-				return fileList, fmt.Errorf("unable to unzip nested zip [%s] to [%s] at depth (%d): %w", filePath, strings.TrimSuffix(filePath, zipExt), depth, subErr)
+				return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
 			}
-
-			fileList = append(fileList, nestedUnzipFiles...)
-			continue
+			totalSizeOnDisk.Add(filesSizeOnDisk)
+			fileCounter.Add(filesOnDiskCount)
+			fileList = append(fileList, nestedUnzippedFiles...)
+		} else {
+			totalSizeOnDisk.Add(uint64(fileSizeOnDisk))
 		}
 
-		totalSizeOnDisk.Add(uint64(fileSizeOnDisk))
 		if limits.Apply() && totalSizeOnDisk.Load() > limits.GetMaxTotalSize() {
-			return fileList, fmt.Errorf("%w: more than %v B of disk space was used while unzipping %v (%v B used already)", commonerrors.ErrTooLarge, limits.GetMaxTotalSize(), source, totalSizeOnDisk.Load())
+			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), fmt.Errorf("%w: more than %v B of disk space was used while unzipping %v (%v B used already)", commonerrors.ErrTooLarge, limits.GetMaxTotalSize(), source, totalSizeOnDisk.Load())
 		}
 		if limits.Apply() && int64(fileCounter.Load()) > limits.GetMaxFileCount() {
-			return fileList, fmt.Errorf("%w: more than %v files were created while unzipping %v (%v files created already)", commonerrors.ErrTooLarge, limits.GetMaxFileCount(), source, fileCounter)
+			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), fmt.Errorf("%w: more than %v files were created while unzipping %v (%v files created already)", commonerrors.ErrTooLarge, limits.GetMaxFileCount(), source, fileCounter.Load())
 		}
 	}
 
 	// Ensuring directory timestamps are preserved (this needs to be done after all the files have been created).
+	err = preserveDirectoriesTimestamps(ctx, fs, directoryInfo)
+	if err != nil {
+		return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), err
+	}
+
+	return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), nil
+}
+
+func (fs *VFS) unzipNestedZipFiles(ctx context.Context, nestedZipFile string, limits ILimits, currentDepth int64) (nestedUnzippedFiles []string, fileOnDiskCount uint64, filesSizeOnDisk uint64, err error) {
+	destination := filepath.Join(filepath.Dir(nestedZipFile), FilepathStem(nestedZipFile))
+	nestedUnzippedFiles, fileOnDiskCount, filesSizeOnDisk, subErr := fs.unzip(ctx, nestedZipFile, destination, limits, currentDepth)
+	if subErr != nil {
+		err = fmt.Errorf("unable to unzip nested zip [%s] to [%s] at depth (%d): %w", nestedZipFile, destination, currentDepth, subErr)
+		return
+	}
+	subErr = fs.Rm(nestedZipFile)
+	if subErr != nil {
+		err = fmt.Errorf("unable to remove nested zip [%s] : %w", nestedZipFile, subErr)
+	}
+	return
+}
+
+func preserveDirectoriesTimestamps(ctx context.Context, fs FS, directoryInfo map[string]os.FileInfo) error {
 	for dirPath, dirInfo := range directoryInfo {
 		subErr := parallelisation.DetermineContextError(ctx)
 		if subErr != nil {
-			return fileList, subErr
+			return subErr
 		}
 		times := newDefaultTimeInfo(dirInfo)
 		subErr = fs.Chtimes(dirPath, times.AccessTime(), times.ModTime())
 		if subErr != nil {
-			return fileList, fmt.Errorf("unable to set directory timestamp [%s]: %w", dirPath, subErr)
+			return fmt.Errorf("unable to set directory timestamp [%s]: %w", dirPath, subErr)
 		}
 	}
-
-	return fileList, nil
+	return nil
 }
 
-// unzipZipFile unzips file to destination directory
-func (fs *VFS) unzipZipFile(ctx context.Context, dest string, zippedFile *zip.File, limits ILimits) (fileSizeOnDisk int64, err error) {
+// unzipZippedFile unzips file to destination directory
+func (fs *VFS) unzipZippedFile(ctx context.Context, dest string, zippedFile *zip.File, limits ILimits, currentDepth int64) (fileSizeOnDisk int64, err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
+		return
+	}
+
+	if limits.Apply() && limits.GetMaxDepth() > 0 && currentDepth > limits.GetMaxDepth() {
+		err = fmt.Errorf("%w: depth [%v] of zipped file [%v] is beyond allowed limits (max: %v)", commonerrors.ErrTooLarge, currentDepth, zippedFile.Name, limits.GetMaxDepth())
 		return
 	}
 
@@ -337,7 +403,7 @@ func (fs *VFS) unzipZipFile(ctx context.Context, dest string, zippedFile *zip.Fi
 		}
 	}
 
-	_, err = io.CopyN(destinationFile, sourceFile, fileSizeOnDisk)
+	_, err = safeio.CopyNWithContext(ctx, sourceFile, destinationFile, fileSizeOnDisk)
 	if err != nil {
 		err = fmt.Errorf("copy of zipped file to '%s' failed: %w", destinationPath, err)
 		return
@@ -349,7 +415,6 @@ func (fs *VFS) unzipZipFile(ctx context.Context, dest string, zippedFile *zip.Fi
 	// Ensuring the timestamp is preserved.
 	times := newDefaultTimeInfo(info)
 	err = fs.Chtimes(destinationPath, times.AccessTime(), times.ModTime())
-	// Nothing more to do for a directory, move to next zip file
 	return
 }
 
@@ -379,4 +444,21 @@ func determineUnzippedFilepath(destinationPath string) (string, error) {
 		// destinationPath = strings.ToValidUTF8(dest, charset.InvalidUTF8CharacterReplacement)
 	}
 	return convertedDestinationPath, err
+}
+
+func (fs *VFS) IsZip(path string) bool {
+	// Placeholder until we use a better way
+	_, found := collection.Find(&ZipFileExtensions, strings.ToLower(filepath.Ext(path)))
+	return found
+}
+
+func convertZipError(err error) error {
+	err = commonerrors.ConvertContextError(err)
+	if commonerrors.Any(err, zip.ErrFormat, zip.ErrChecksum) {
+		return fmt.Errorf("%w: %v", commonerrors.ErrInvalid, err.Error())
+	}
+	if commonerrors.Any(err, zip.ErrFormat, zip.ErrAlgorithm) {
+		return fmt.Errorf("%w: %v", commonerrors.ErrUnsupported, err.Error())
+	}
+	return err
 }
