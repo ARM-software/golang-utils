@@ -19,6 +19,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bxcodec/faker/v3"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -164,6 +165,71 @@ func TestCreate(t *testing.T) {
 
 			assert.Equal(t, txt, string(bytes))
 			_ = fs.Rm(tmpDir)
+		})
+	}
+}
+
+func TestCancelledWrite(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-cancel-write-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+
+			txt := faker.Sentence()
+			filePath := fmt.Sprintf("%v%v%v", tmpDir, string(fs.PathSeparator()), "test.txt")
+			ctx, cancel := context.WithCancel(context.TODO())
+			cancel()
+			err = fs.WriteFileWithContext(ctx, filePath, []byte(txt), 0755)
+			require.Error(t, err)
+			assert.True(t, commonerrors.Any(err, commonerrors.ErrCancelled))
+			if fs.Exists(filePath) {
+				empty, err := fs.IsEmpty(filePath)
+				require.NoError(t, err)
+
+				bytes, err := fs.ReadFile(filePath)
+				if empty {
+					require.Error(t, err)
+					assert.True(t, commonerrors.Any(err, commonerrors.ErrEmpty))
+				} else {
+					require.NoError(t, err)
+					assert.NotEqual(t, txt, string(bytes))
+				}
+			}
+			require.NoError(t, fs.Rm(tmpDir))
+		})
+	}
+}
+
+func TestCancelledRead(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-cancel-read-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+
+			txt := faker.Sentence()
+			filePath := fmt.Sprintf("%v%v%v", tmpDir, string(fs.PathSeparator()), "test.txt")
+			ctx, cancel := context.WithCancel(context.TODO())
+			cancel()
+			err = fs.WriteFile(filePath, []byte(txt), 0755)
+			require.NoError(t, err)
+
+			assert.True(t, fs.Exists(filePath))
+
+			bytes, err := fs.ReadFile(filePath)
+			require.NoError(t, err)
+
+			assert.Equal(t, txt, string(bytes))
+
+			bytes, err = fs.ReadFileWithContext(ctx, filePath)
+			require.Error(t, err)
+			assert.True(t, commonerrors.Any(err, commonerrors.ErrCancelled))
+			assert.NotEqual(t, txt, string(bytes))
+
+			require.NoError(t, fs.Rm(tmpDir))
 		})
 	}
 }
