@@ -5,6 +5,7 @@
 package filesystem
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -41,9 +42,12 @@ func TestFileHash(t *testing.T) {
 	for _, test := range tests {
 		t.Run(fmt.Sprintf("Hash %v", test.Type), func(t *testing.T) {
 			hasher, err := NewFileHash(test.Type)
-			require.Nil(t, err)
+			require.NoError(t, err)
 			hash, err := hasher.CalculateFile(fs, testFilePath)
-			require.Nil(t, err)
+			require.NoError(t, err)
+			hash2, err := hasher.CalculateFileWithContext(context.TODO(), fs, testFilePath)
+			require.NoError(t, err)
+			assert.Equal(t, hash, hash2)
 			assert.Equal(t, strings.ToLower(test.Hash), strings.ToLower(hash))
 		})
 

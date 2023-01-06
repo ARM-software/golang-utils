@@ -5,6 +5,7 @@
 package filesystem
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -13,6 +14,13 @@ import (
 
 type fileHashing struct {
 	algo hashing.IHash
+}
+
+func (h *fileHashing) CalculateWithContext(ctx context.Context, f File) (string, error) {
+	if f == nil {
+		return "", commonerrors.ErrUndefined
+	}
+	return h.algo.CalculateWithContext(ctx, f)
 }
 
 func (h *fileHashing) Calculate(f File) (string, error) {
@@ -26,7 +34,15 @@ func (h *fileHashing) GetType() string {
 	return h.algo.GetType()
 }
 
+func (h *fileHashing) CalculateFileWithContext(ctx context.Context, fs FS, path string) (string, error) {
+	return h.calculateFile(fs, path, func(m *fileHashing, f File) (string, error) { return m.CalculateWithContext(ctx, f) })
+}
+
 func (h *fileHashing) CalculateFile(fs FS, path string) (string, error) {
+	return h.calculateFile(fs, path, func(m *fileHashing, f File) (string, error) { return m.Calculate(f) })
+}
+
+func (h *fileHashing) calculateFile(fs FS, path string, hashFunc func(h *fileHashing, f File) (string, error)) (string, error) {
 	ok, err := fs.IsFile(path)
 	if err != nil || !ok {
 		if err != nil {
@@ -40,7 +56,7 @@ func (h *fileHashing) CalculateFile(fs FS, path string) (string, error) {
 		return "", err
 	}
 	defer func() { _ = f.Close() }()
-	return h.Calculate(f)
+	return hashFunc(h, f)
 }
 
 func NewFileHash(hashType string) (IFileHash, error) {

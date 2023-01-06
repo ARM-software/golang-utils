@@ -2,13 +2,16 @@
  * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
+
 package hashing
 
 import (
+	"context"
 	"crypto/md5"  //nolint:gosec
 	"crypto/sha1" //nolint:gosec
 	"crypto/sha256"
 	"encoding/hex"
+
 	"hash"
 	"io"
 	"math"
@@ -19,6 +22,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
+	"github.com/ARM-software/golang-utils/utils/safeio"
 	strings2 "github.com/ARM-software/golang-utils/utils/strings"
 )
 
@@ -35,18 +39,22 @@ type hashingAlgo struct {
 	Type string
 }
 
-func (h *hashingAlgo) Calculate(r io.Reader) (hashN string, err error) {
+func (h *hashingAlgo) CalculateWithContext(ctx context.Context, r io.Reader) (hashN string, err error) {
 	if r == nil {
 		err = commonerrors.ErrUndefined
 		return
 	}
-	_, err = io.Copy(h.Hash, r)
+	_, err = safeio.CopyDataWithContext(ctx, r, h.Hash)
 	if err != nil {
 		return
 	}
 	hashN = hex.EncodeToString(h.Hash.Sum(nil))
 	h.Hash.Reset()
 	return
+}
+
+func (h *hashingAlgo) Calculate(r io.Reader) (string, error) {
+	return h.CalculateWithContext(context.Background(), r)
 }
 
 func (h *hashingAlgo) GetType() string {
