@@ -208,7 +208,7 @@ func (c *CloneObject) populateInitialEntries(ctx context.Context) (err error) {
 		}
 		tree, subErr := trees.Next()
 		if subErr != nil {
-			if commonerrors.Any(subErr, io.EOF) {
+			if commonerrors.Any(subErr, io.EOF, commonerrors.ErrEOF) {
 				break
 			} else {
 				err = subErr

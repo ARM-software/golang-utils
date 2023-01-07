@@ -9,6 +9,14 @@ import (
 type noLimits struct {
 }
 
+func (n *noLimits) GetMaxDepth() int64 {
+	return 0
+}
+
+func (n *noLimits) ApplyRecursively() bool {
+	return false
+}
+
 func (n *noLimits) Apply() bool {
 	return false
 }
@@ -34,6 +42,12 @@ type Limits struct {
 	MaxFileSize  int64  `mapstructure:"max_file_size"`
 	MaxTotalSize uint64 `mapstructure:"max_total_size"`
 	MaxFileCount int64  `mapstructure:"max_file_count"`
+	MaxDepth     int64  `mapstructure:"max_depth"`
+	Recursive    bool   `mapstructure:"recursive"`
+}
+
+func (l *Limits) ApplyRecursively() bool {
+	return l.Recursive
 }
 
 func (l *Limits) Apply() bool {
@@ -52,6 +66,10 @@ func (l *Limits) GetMaxFileCount() int64 {
 	return l.MaxFileCount
 }
 
+func (l *Limits) GetMaxDepth() int64 {
+	return l.MaxDepth
+}
+
 func (l *Limits) Validate() error {
 	validation.ErrorTag = "mapstructure"
 
@@ -64,6 +82,7 @@ func (l *Limits) Validate() error {
 		validation.Field(&l.MaxFileSize, validation.Required.When(l.Apply())),
 		validation.Field(&l.MaxTotalSize, validation.Required.When(l.Apply())),
 		validation.Field(&l.MaxFileCount, validation.Required.When(l.Apply())),
+		validation.Field(&l.MaxDepth, validation.Required.When(l.Apply())),
 	)
 }
 
@@ -73,15 +92,32 @@ func NoLimits() ILimits {
 }
 
 // NewLimits defines file system FileSystemLimits.
-func NewLimits(maxFileSize int64, maxTotalSize uint64, maxFileCount int64) ILimits {
+func NewLimits(maxFileSize int64, maxTotalSize uint64, maxFileCount int64, maxDepth int64, recursive bool) ILimits {
 	return &Limits{
 		MaxFileSize:  maxFileSize,
 		MaxTotalSize: maxTotalSize,
 		MaxFileCount: maxFileCount,
+		MaxDepth:     maxDepth,
+		Recursive:    recursive,
 	}
 }
 
-// DefaultLimits defines default file system FileSystemLimits
+// DefaultLimits defines default file system limits
 func DefaultLimits() ILimits {
-	return NewLimits(1<<30, 10<<30, 1000000)
+	return NewLimits(1<<30, 10<<30, 1000000, -1, true)
+}
+
+// DefaultZipLimits defines default file system limits for handling zips
+func DefaultZipLimits() ILimits {
+	return RecursiveZipLimits(-1)
+}
+
+// RecursiveZipLimits defines file system limits for handling zips recursively
+func RecursiveZipLimits(maxDepth int64) ILimits {
+	return NewLimits(1<<30, 10<<30, 1000000, maxDepth, true)
+}
+
+// DefaultNonRecursiveZipLimits defines default file system limits for handling zips
+func DefaultNonRecursiveZipLimits() ILimits {
+	return NewLimits(1<<30, 10<<30, 1000000, 10, false)
 }

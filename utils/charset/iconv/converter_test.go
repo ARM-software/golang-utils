@@ -5,8 +5,8 @@
 package iconv
 
 import (
+	"context"
 	"fmt"
-	"io"
 	"strings"
 	"testing"
 
@@ -16,6 +16,8 @@ import (
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/encoding/traditionalchinese"
 	"golang.org/x/text/encoding/unicode"
+
+	"github.com/ARM-software/golang-utils/utils/safeio"
 )
 
 func TestConvertBytes(t *testing.T) {
@@ -58,7 +60,7 @@ func TestConvertBytes(t *testing.T) {
 			require.Equal(t, test.expected, string(dstBytes))
 
 			dst := test.converter.Convert(strings.NewReader(test.src))
-			bytes, err := io.ReadAll(dst)
+			bytes, err := safeio.ReadAll(context.TODO(), dst)
 			require.NoError(t, err)
 			require.Equal(t, test.expected, string(bytes))
 		})

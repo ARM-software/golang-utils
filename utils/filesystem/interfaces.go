@@ -24,7 +24,9 @@ import (
 // https://stackoverflow.com/questions/1761607/what-is-the-fastest-hash-algorithm-to-check-if-two-files-are-equal
 type IFileHash interface {
 	Calculate(f File) (string, error)
+	CalculateWithContext(ctx context.Context, f File) (string, error)
 	CalculateFile(fs FS, path string) (string, error)
+	CalculateFileWithContext(ctx context.Context, fs FS, path string) (string, error)
 	GetType() string
 }
 
@@ -77,6 +79,10 @@ type ILimits interface {
 	GetMaxTotalSize() uint64
 	// GetMaxFileCount returns the maximum files in byte a file can have on a file system
 	GetMaxFileCount() int64
+	// GetMaxDepth returns the maximum depth of directory tree allowed (set to a negative number if disabled)
+	GetMaxDepth() int64
+	// ApplyRecursively specifies whether recursive action should be applied or not e.g. expand zip within zips during unzipping
+	ApplyRecursively() bool
 }
 
 // ILock defines a generic lock using the file system.
@@ -277,4 +283,6 @@ type FS interface {
 	UnzipWithContextAndLimits(ctx context.Context, source string, destination string, limits ILimits) (fileList []string, err error)
 	// FileHash calculates file hash
 	FileHash(hashAlgo string, path string) (string, error)
+	// IsZip states whether a file is a zip file or not
+	IsZip(filepath string) bool
 }
