@@ -111,7 +111,8 @@ func TestOpen(t *testing.T) {
 			testFileMode(t, fs, filePath, mode)
 
 			contents, err = safeio.ReadAll(context.TODO(), file)
-			require.NoError(t, err)
+			require.Error(t, err)
+			assert.True(t, commonerrors.Any(err, commonerrors.ErrEmpty))
 			err = file.Close()
 			require.NoError(t, err)
 			assert.Equal(t, "", string(contents))

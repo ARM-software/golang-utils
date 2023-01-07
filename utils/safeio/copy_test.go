@@ -74,8 +74,7 @@ func TestCopyNWithContext(t *testing.T) {
 	require.NotZero(t, n)
 	assert.Equal(t, len(text), n)
 	n2, err = CopyNWithContext(context.Background(), &buf1, &buf2, int64(len(text)-1))
-	require.Error(t, err)
-	assert.True(t, commonerrors.Any(err, commonerrors.ErrEOF))
+	require.NoError(t, err)
 	require.NotZero(t, n2)
 	assert.Equal(t, int64(len(text)-1), n2)
 }
