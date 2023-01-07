@@ -202,7 +202,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		return
 	}
 
-	if limits.Apply() && limits.GetMaxDepth() > 0 && currentDepth > limits.GetMaxDepth() {
+	if limits.Apply() && limits.GetMaxDepth() >= 0 && currentDepth > limits.GetMaxDepth() {
 		err = fmt.Errorf("%w: depth [%v] of zip file [%v] is beyond allowed limits (max: %v)", commonerrors.ErrTooLarge, currentDepth, source, limits.GetMaxDepth())
 		return
 	}
@@ -262,14 +262,15 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
 		}
 
-		if limits.Apply() && limits.GetMaxDepth() > 0 {
+		var fileDepth int64
+		if limits.Apply() && limits.GetMaxDepth() >= 0 {
 			depth, subErr := FileTreeDepth(fs, destination, filePath)
-			futureFileDepth := depth + currentDepth
+			fileDepth = depth + currentDepth
 			if subErr != nil {
 				return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
 			}
-			if futureFileDepth > limits.GetMaxDepth() {
-				subErr = fmt.Errorf("%w: depth [%v] of zip file [%v] is beyond allowed limits (max: %v)", commonerrors.ErrTooLarge, currentDepth, source, limits.GetMaxDepth())
+			if fileDepth > limits.GetMaxDepth() {
+				subErr = fmt.Errorf("%w: depth [%v] of file [%v] within zip [%v] is beyond allowed limits (max: %v)", commonerrors.ErrTooLarge, fileDepth, filepath.Base(filePath), filepath.Base(source), limits.GetMaxDepth())
 				return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
 			}
 		}
@@ -299,14 +300,14 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), fmt.Errorf("unable to create directory '%s': %w", directoryPath, subErr)
 		}
 
-		fileSizeOnDisk, subErr := fs.unzipZippedFile(ctx, filePath, zippedFile, limits, currentDepth)
+		fileSizeOnDisk, subErr := fs.unzipZippedFile(ctx, filePath, zippedFile, limits, fileDepth)
 		if subErr != nil {
 			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
 		}
 
 		// If the copied file is a zip, unzip that zip if the action is marked as recursive
 		if limits.ApplyRecursively() && fs.IsZip(zippedFile.Name) {
-			nestedUnzippedFiles, filesOnDiskCount, filesSizeOnDisk, subErr := fs.unzipNestedZipFiles(ctx, filePath, limits, currentDepth)
+			nestedUnzippedFiles, filesOnDiskCount, filesSizeOnDisk, subErr := fs.unzipNestedZipFiles(ctx, filePath, limits, fileDepth)
 			if subErr != nil {
 				return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
 			}
@@ -336,9 +337,9 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 
 func (fs *VFS) unzipNestedZipFiles(ctx context.Context, nestedZipFile string, limits ILimits, currentDepth int64) (nestedUnzippedFiles []string, fileOnDiskCount uint64, filesSizeOnDisk uint64, err error) {
 	destination := filepath.Join(filepath.Dir(nestedZipFile), FilepathStem(nestedZipFile))
-	nestedUnzippedFiles, fileOnDiskCount, filesSizeOnDisk, subErr := fs.unzip(ctx, nestedZipFile, destination, limits, currentDepth)
+	nestedUnzippedFiles, fileOnDiskCount, filesSizeOnDisk, subErr := fs.unzip(ctx, nestedZipFile, destination, limits, currentDepth+1)
 	if subErr != nil {
-		err = fmt.Errorf("unable to unzip nested zip [%s] to [%s] at depth (%d): %w", nestedZipFile, destination, currentDepth, subErr)
+		err = fmt.Errorf("unable to unzip nested zip [%s] present at depth (%d) to [%s] : %w", filepath.Base(nestedZipFile), currentDepth, destination, subErr)
 		return
 	}
 	subErr = fs.Rm(nestedZipFile)

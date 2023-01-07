@@ -14,7 +14,7 @@ func (n *noLimits) GetMaxDepth() int64 {
 }
 
 func (n *noLimits) ApplyRecursively() bool {
-	return true
+	return false
 }
 
 func (n *noLimits) Apply() bool {
@@ -102,17 +102,22 @@ func NewLimits(maxFileSize int64, maxTotalSize uint64, maxFileCount int64, maxDe
 	}
 }
 
-// DefaultLimits defines default file system FileSystemLimits
+// DefaultLimits defines default file system limits
 func DefaultLimits() ILimits {
 	return NewLimits(1<<30, 10<<30, 1000000, -1, true)
 }
 
-// DefaultZipLimits defines default file system FileSystemLimits for handling zips
+// DefaultZipLimits defines default file system limits for handling zips
 func DefaultZipLimits() ILimits {
-	return NewLimits(1<<30, 10<<30, 1000000, -1, true)
+	return RecursiveZipLimits(-1)
 }
 
-// DefaultNonRecursiveZipLimits defines default file system FileSystemLimits for handling zips
+// RecursiveZipLimits defines file system limits for handling zips recursively
+func RecursiveZipLimits(maxDepth int64) ILimits {
+	return NewLimits(1<<30, 10<<30, 1000000, maxDepth, true)
+}
+
+// DefaultNonRecursiveZipLimits defines default file system limits for handling zips
 func DefaultNonRecursiveZipLimits() ILimits {
 	return NewLimits(1<<30, 10<<30, 1000000, 10, false)
 }

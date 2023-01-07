@@ -261,9 +261,7 @@ func TestUnzip(t *testing.T) {
 		filepath.Join(outPath, "readme.txt"),
 		filepath.Join(outPath, "test.txt"),
 		filepath.Join(outPath, "todo.txt"),
-		filepath.Join(outPath, "child", "readme.txt"),
-		filepath.Join(outPath, "child", "test.txt"),
-		filepath.Join(outPath, "child", "todo.txt"),
+		filepath.Join(outPath, "child.zip"),
 		filepath.Join(outPath, "L'irrǸsolution est toujours une marque de faiblesse.txt"),
 		filepath.Join(outPath, "ไป ไหน มา.txt"),
 	}
@@ -463,7 +461,50 @@ func TestUnzip_Failures(t *testing.T) {
 			assert.True(t, commonerrors.Any(err, test.expectedError))
 		})
 	}
+}
 
+func TestUnzip_DepthLimit(t *testing.T) {
+	fs := NewFs(StandardFS)
+
+	testInDir := "testdata"
+	destPath, err := fs.TempDirInTempDir("test-unzip-depth-limit-")
+	require.NoError(t, err)
+	defer func() { _ = fs.Rm(destPath) }()
+
+	tests := []struct {
+		zipFile       string
+		expectedDepth int64
+		expectedError error
+	}{
+		{
+			zipFile:       filepath.Join(testInDir, "testunzip.zip"),
+			expectedDepth: 2,
+		},
+		{
+			zipFile:       filepath.Join(testInDir, "testunzip2.zip"),
+			expectedDepth: 3,
+		},
+	}
+	for i := range tests {
+		test := tests[i]
+		t.Run(fmt.Sprintf("#%v %v", i, FilepathStem(test.zipFile)), func(t *testing.T) {
+
+			_, err := fs.UnzipWithContextAndLimits(context.TODO(), test.zipFile, destPath, DefaultZipLimits())
+			assert.NoError(t, err)
+			require.NoError(t, fs.CleanDir(destPath))
+			_, err = fs.UnzipWithContextAndLimits(context.TODO(), test.zipFile, destPath, RecursiveZipLimits(test.expectedDepth))
+			assert.NoError(t, err)
+			require.NoError(t, fs.CleanDir(destPath))
+			_, err = fs.UnzipWithContextAndLimits(context.TODO(), test.zipFile, destPath, RecursiveZipLimits(test.expectedDepth-1))
+			assert.Error(t, err)
+			assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
+			require.NoError(t, fs.CleanDir(destPath))
+			_, err = fs.UnzipWithContextAndLimits(context.TODO(), test.zipFile, destPath, RecursiveZipLimits(0))
+			assert.Error(t, err)
+			assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
+			require.NoError(t, fs.CleanDir(destPath))
+		})
+	}
 }
 
 func TestUnzipWithNonUTF8Filenames(t *testing.T) {
