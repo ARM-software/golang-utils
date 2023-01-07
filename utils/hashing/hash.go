@@ -11,7 +11,6 @@ import (
 	"crypto/sha1" //nolint:gosec
 	"crypto/sha256"
 	"encoding/hex"
-
 	"hash"
 	"io"
 	"math"

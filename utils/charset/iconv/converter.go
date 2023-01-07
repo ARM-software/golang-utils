@@ -12,10 +12,11 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ARM-software/golang-utils/utils/safeio"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
+
+	"github.com/ARM-software/golang-utils/utils/safeio"
 )
 
 // This is really similar to https://github.com/mushroomsir/iconv
