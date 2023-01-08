@@ -26,7 +26,8 @@ const (
 )
 
 var (
-	// Var so it can be modified in testing
+	// Variables so it can be modified in testing
+
 	MaxEntriesChannelSize     = 100000
 	ValidationParallelisation = 32
 )

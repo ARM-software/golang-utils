@@ -1,4 +1,4 @@
-package units
+package sizetest
 
 import (
 	"testing"
@@ -7,16 +7,17 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/filesystem"
+	"github.com/ARM-software/golang-utils/utils/units/size"
 )
 
-// If it works for M and K it will probaby work for the larger ones as they are just multiplying by 1000/1024
+// If it works for M and K it will most likely work for the larger ones as they are just multiplying by 1000/1024
 
 var testCases = []float64{
-	1 * B, 12 * B, 125 * B, 988 * B, 67 * B,
-	1 * KB, 102 * KB, 12.5 * KB, 98 * KB, 679 * KB,
-	1 * MB, 77 * MB, 5 * MB, 188 * MB, 617 * MB,
-	1011 * KiB, 2 * KiB, 1000 * KiB, 2000 * KiB, 1111 * KiB,
-	27 * MiB, 2 * MiB, 76 * MiB, 22 * MiB, 0.7 * MiB,
+	1 * size.B, 12 * size.B, 125 * size.B, 988 * size.B, 67 * size.B,
+	1 * size.KB, 102 * size.KB, 12.5 * size.KB, 98 * size.KB, 679 * size.KB,
+	1 * size.MB, 77 * size.MB, 5 * size.MB, 188 * size.MB, 617 * size.MB,
+	1011 * size.KiB, 2 * size.KiB, 1000 * size.KiB, 2000 * size.KiB, 1111 * size.KiB,
+	27 * size.MiB, 2 * size.MiB, 76 * size.MiB, 22 * size.MiB, 0.7 * size.MiB,
 }
 
 func TestGetFileSize(t *testing.T) {
@@ -38,5 +39,4 @@ func TestGetFileSize(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, int64(testCases[i]), size)
 	}
-
 }
