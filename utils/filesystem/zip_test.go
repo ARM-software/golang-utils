@@ -166,7 +166,7 @@ func TestUnzip_Limits(t *testing.T) {
 	destPath, err := fs.TempDirInTempDir("unzip-limits-")
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
-	limits := NewLimits(1<<30, 1<<10, 1000000) // Total size limited to 10 Kb
+	limits := NewLimits(1<<30, 1<<10, 1000000, 1, true) // Total size limited to 10 Kb
 
 	empty, err := fs.IsEmpty(destPath)
 	assert.NoError(t, err)
@@ -212,6 +212,15 @@ func TestUnzip_ZipBomb(t *testing.T) {
 		{
 			testFile: "zbsm", // See https://www.bamsoftware.com/hacks/zipbomb/
 		},
+		{
+			testFile: "zip-bomb-nested-large", // lots of large files
+		},
+		{
+			testFile: "zip-bomb-nested-small", // empty file zipped and that zip also zipped (repeated a few times)
+		},
+		{
+			testFile: "zip-bomb", // 4.5 exabytes with 10 layers
+		},
 	}
 
 	fs := NewFs(StandardFS)
@@ -219,7 +228,7 @@ func TestUnzip_ZipBomb(t *testing.T) {
 	destPath, err := fs.TempDirInTempDir("unzip-limits-")
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
-	limits := NewLimits(1<<30, 1<<20, 1000000) // Total size limited to 1 Mb
+	limits := NewLimits(1<<30, 1<<20, 1000000, 3, true) // Total size limited to 1 Mb with a max nesting depth of 3
 
 	empty, err := fs.IsEmpty(destPath)
 	assert.NoError(t, err)
@@ -263,18 +272,239 @@ func TestUnzip(t *testing.T) {
 
 	sort.Strings(fileList)
 	assert.NoError(t, err)
-	assert.Equal(t, len(fileList), 6)
+	assert.Equal(t, len(fileList), len(expectedfileList))
 	assert.Equal(t, expectedfileList, fileList)
 
-	/* Source zip file not available */
-	srcPath = filepath.Join(testInDir, "unknownfile.zip")
-	_, err = fs.Unzip(srcPath, destPath)
-	assert.Error(t, err)
+}
 
-	/* Invalid source path */
-	srcPath = filepath.Join(testInDir, "invalidzipfile.zip")
-	_, err = fs.Unzip(srcPath, destPath)
-	assert.Error(t, err)
+func TestUnzip_NonRecursive(t *testing.T) {
+	fs := NewFs(StandardFS)
+
+	testInDir := "testdata"
+	destPath, err := fs.TempDirInTempDir("test-unzip-recursive-")
+	require.NoError(t, err)
+	defer func() { _ = fs.Rm(destPath) }()
+
+	tests := []struct {
+		zipFile           string
+		expectedfileList  []string
+		expectedTopFolder bool
+	}{
+		{
+			zipFile: filepath.Join(testInDir, "testunzip.zip"),
+			expectedfileList: []string{
+				"readme.txt",
+				"test.txt",
+				"todo.txt",
+				"L'irrǸsolution est toujours une marque de faiblesse.txt",
+				"ไป ไหน มา.txt",
+				"child.zip",
+			},
+			expectedTopFolder: true,
+		},
+		{
+			zipFile: filepath.Join(testInDir, "testunzip2.zip"),
+			expectedfileList: []string{
+				"test1.txt",
+				"test2.txt",
+				"testunzip.zip",
+				"child.zip",
+			},
+			expectedTopFolder: false,
+		},
+		{
+			zipFile: filepath.Join(testInDir, "testunzip3.zip"),
+			expectedfileList: []string{
+				"testunzip2.7z",
+				"testunzip2.zip",
+				"testunzip.zip",
+				"test1.txt",
+				"test2.txt",
+			},
+			expectedTopFolder: false,
+		},
+	}
+	for i := range tests {
+		test := tests[i]
+		t.Run(fmt.Sprintf("#%v %v", i, FilepathStem(test.zipFile)), func(t *testing.T) {
+			var outPath string
+			if test.expectedTopFolder {
+				outPath = filepath.Join(destPath, FilepathStem(test.zipFile))
+			} else {
+				outPath = destPath
+			}
+			expectedfileList, err := fs.ConvertToAbsolutePath(outPath, test.expectedfileList...)
+			require.NoError(t, err)
+			sort.Strings(expectedfileList)
+
+			/* Check Unzip */
+			fileList, err := fs.UnzipWithContextAndLimits(context.TODO(), test.zipFile, destPath, DefaultNonRecursiveZipLimits())
+			require.NoError(t, err)
+			sort.Strings(fileList)
+			assert.Equal(t, len(fileList), len(expectedfileList))
+			assert.Equal(t, expectedfileList, fileList)
+		})
+	}
+}
+
+func TestUnzip_Recursive(t *testing.T) {
+	fs := NewFs(StandardFS)
+
+	testInDir := "testdata"
+	destPath, err := fs.TempDirInTempDir("test-unzip-recursive-")
+	require.NoError(t, err)
+	defer func() { _ = fs.Rm(destPath) }()
+
+	tests := []struct {
+		zipFile           string
+		expectedfileList  []string
+		expectedTopFolder bool
+		expectedError     error
+	}{
+		{
+			zipFile: filepath.Join(testInDir, "testunzip.zip"),
+			expectedfileList: []string{
+				"readme.txt",
+				"test.txt",
+				"todo.txt",
+				"L'irrǸsolution est toujours une marque de faiblesse.txt",
+				"ไป ไหน มา.txt",
+				filepath.Join("child", "readme.txt"),
+				filepath.Join("child", "test.txt"),
+				filepath.Join("child", "todo.txt"),
+			},
+			expectedTopFolder: true,
+		},
+		{
+			zipFile: filepath.Join(testInDir, "testunzip2.zip"),
+			expectedfileList: []string{
+				"test1.txt",
+				"test2.txt",
+				filepath.Join("child", "readme.txt"),
+				filepath.Join("child", "test.txt"),
+				filepath.Join("child", "todo.txt"),
+				filepath.Join("testunzip", "testunzip", "readme.txt"),
+				filepath.Join("testunzip", "testunzip", "test.txt"),
+				filepath.Join("testunzip", "testunzip", "todo.txt"),
+				filepath.Join("testunzip", "testunzip", "L'irrǸsolution est toujours une marque de faiblesse.txt"),
+				filepath.Join("testunzip", "testunzip", "ไป ไหน มา.txt"),
+				filepath.Join("testunzip", "testunzip", "child", "readme.txt"),
+				filepath.Join("testunzip", "testunzip", "child", "test.txt"),
+				filepath.Join("testunzip", "testunzip", "child", "todo.txt"),
+			},
+			expectedTopFolder: false,
+		},
+		{
+			zipFile:       filepath.Join(testInDir, "testunzip3.zip"),
+			expectedError: commonerrors.ErrInvalid,
+		},
+	}
+	for i := range tests {
+		test := tests[i]
+		t.Run(fmt.Sprintf("#%v %v", i, FilepathStem(test.zipFile)), func(t *testing.T) {
+			var outPath string
+			if test.expectedTopFolder {
+				outPath = filepath.Join(destPath, FilepathStem(test.zipFile))
+			} else {
+				outPath = destPath
+			}
+			expectedfileList, err := fs.ConvertToAbsolutePath(outPath, test.expectedfileList...)
+			require.NoError(t, err)
+			sort.Strings(expectedfileList)
+
+			/* Check Unzip */
+			fileList, err := fs.UnzipWithContextAndLimits(context.TODO(), test.zipFile, destPath, DefaultZipLimits())
+			if test.expectedError == nil {
+				require.NoError(t, err)
+				sort.Strings(fileList)
+				assert.Equal(t, len(fileList), len(expectedfileList))
+				assert.Equal(t, expectedfileList, fileList)
+			} else {
+				require.Error(t, err)
+				assert.True(t, commonerrors.Any(err, test.expectedError))
+			}
+			require.NoError(t, fs.CleanDir(destPath))
+		})
+	}
+}
+
+func TestUnzip_Failures(t *testing.T) {
+	fs := NewFs(StandardFS)
+
+	testInDir := "testdata"
+	destPath, err := fs.TempDirInTempDir("unzip")
+	require.NoError(t, err)
+	defer func() { _ = fs.Rm(destPath) }()
+
+	tests := []struct {
+		zipFile       string
+		expectedError error
+	}{
+		{
+			zipFile:       filepath.Join(testInDir, "unknownfile.zip"),
+			expectedError: commonerrors.ErrNotFound,
+		},
+		{
+			zipFile:       filepath.Join(testInDir, "invalidzipfile.zip"),
+			expectedError: commonerrors.ErrInvalid,
+		},
+		{
+			zipFile:       filepath.Join(testInDir, "testunzip2.7z"),
+			expectedError: commonerrors.ErrInvalid,
+		},
+	}
+	for i := range tests {
+		test := tests[i]
+		t.Run(fmt.Sprintf("#%v", i), func(t *testing.T) {
+			_, err = fs.Unzip(test.zipFile, destPath)
+			require.Error(t, err)
+			assert.True(t, commonerrors.Any(err, test.expectedError))
+		})
+	}
+}
+
+func TestUnzip_DepthLimit(t *testing.T) {
+	fs := NewFs(StandardFS)
+
+	testInDir := "testdata"
+	destPath, err := fs.TempDirInTempDir("test-unzip-depth-limit-")
+	require.NoError(t, err)
+	defer func() { _ = fs.Rm(destPath) }()
+
+	tests := []struct {
+		zipFile       string
+		expectedDepth int64
+		expectedError error
+	}{
+		{
+			zipFile:       filepath.Join(testInDir, "testunzip.zip"),
+			expectedDepth: 2,
+		},
+		{
+			zipFile:       filepath.Join(testInDir, "testunzip2.zip"),
+			expectedDepth: 3,
+		},
+	}
+	for i := range tests {
+		test := tests[i]
+		t.Run(fmt.Sprintf("#%v %v", i, FilepathStem(test.zipFile)), func(t *testing.T) {
+
+			_, err := fs.UnzipWithContextAndLimits(context.TODO(), test.zipFile, destPath, DefaultZipLimits())
+			assert.NoError(t, err)
+			require.NoError(t, fs.CleanDir(destPath))
+			_, err = fs.UnzipWithContextAndLimits(context.TODO(), test.zipFile, destPath, RecursiveZipLimits(test.expectedDepth))
+			assert.NoError(t, err)
+			require.NoError(t, fs.CleanDir(destPath))
+			_, err = fs.UnzipWithContextAndLimits(context.TODO(), test.zipFile, destPath, RecursiveZipLimits(test.expectedDepth-1))
+			assert.Error(t, err)
+			assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
+			require.NoError(t, fs.CleanDir(destPath))
+			_, err = fs.UnzipWithContextAndLimits(context.TODO(), test.zipFile, destPath, RecursiveZipLimits(0))
+			assert.Error(t, err)
+			assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
+			require.NoError(t, fs.CleanDir(destPath))
+		})
+	}
 }
 
 func TestUnzipWithNonUTF8Filenames(t *testing.T) {
@@ -306,11 +536,12 @@ func TestUnzipWithNonUTF8Filenames(t *testing.T) {
 			expectedError: nil,
 		},
 		// TODO create a zip file with non supported encoding
-		// {
-		//	zipFile:       ,
-		//	expectedFiles: nil,
-		//	expectedError: commonerrors.ErrInvalid,
-		// },
+		//
+		//	{
+		//		zipFile:       ,
+		//		expectedFiles: nil,
+		//		expectedError: commonerrors.ErrInvalid,
+		//	},
 	}
 	for i := range tests {
 		test := tests[i]
@@ -348,7 +579,7 @@ func TestUnzipFileCountLimit(t *testing.T) {
 	fs := NewFs(StandardFS)
 
 	testInDir := "testdata"
-	limits := NewLimits(1<<30, 10<<30, 10)
+	limits := NewLimits(1<<30, 10<<30, 10, 10, true)
 
 	t.Run("unzip file above file count limit", func(t *testing.T) {
 		testFile := "abovefilecountlimitzip"

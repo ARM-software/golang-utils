@@ -5,8 +5,8 @@
 package charset
 
 import (
+	"context"
 	"fmt"
-	"io"
 	"math/rand"
 	"reflect"
 	"strings"
@@ -25,6 +25,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/charset/charsetaliases"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/safeio"
 )
 
 func selectRandomUnsupportedCharset() string {
@@ -81,7 +82,7 @@ func TestIconv(t *testing.T) {
 
 			dst, err := IconvFromLabels(strings.NewReader(test.src), test.fromEncoding, test.toEncoding)
 			require.NoError(t, err)
-			bytes, err := io.ReadAll(dst)
+			bytes, err := safeio.ReadAll(context.TODO(), dst)
 			require.NoError(t, err)
 			require.Equal(t, test.expected, string(bytes))
 		})

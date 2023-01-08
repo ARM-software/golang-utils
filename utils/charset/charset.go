@@ -36,7 +36,7 @@ func DetectTextEncoding(content []byte) (encoding.Encoding, string, error) {
 // DetectTextEncodingFromReader returns best guess of encoding of given reader content. Looks at the first 1024 bytes in the same way as https://pkg.go.dev/golang.org/x/net/html/charset#DetermineEncoding
 func DetectTextEncodingFromReader(reader io.Reader) (encoding.Encoding, string, error) {
 	bytes, err := bufio.NewReader(reader).Peek(1024)
-	if !commonerrors.Any(err, nil, io.EOF) {
+	if !commonerrors.Any(err, nil, io.EOF, commonerrors.ErrEOF) {
 		return nil, "", err
 	}
 	return DetectTextEncoding(bytes)

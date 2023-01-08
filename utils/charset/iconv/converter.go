@@ -2,17 +2,21 @@
  * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
+
 package iconv
 
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
+
+	"github.com/ARM-software/golang-utils/utils/safeio"
 )
 
 // This is really similar to https://github.com/mushroomsir/iconv
@@ -29,8 +33,8 @@ type Converter struct {
 	toEncoding   encoding.Encoding
 }
 
-func (t *Converter) ConvertString(input string) (transformedStr string, err error) {
-	res, err := t.ConvertBytes([]byte(input))
+func (t *Converter) ConvertStringWithContext(ctx context.Context, input string) (transformedStr string, err error) {
+	res, err := t.ConvertBytesWithContext(ctx, []byte(input))
 	if err != nil {
 		return
 	}
@@ -38,9 +42,17 @@ func (t *Converter) ConvertString(input string) (transformedStr string, err erro
 	return
 }
 
-func (t *Converter) ConvertBytes(input []byte) ([]byte, error) {
+func (t *Converter) ConvertBytesWithContext(ctx context.Context, input []byte) ([]byte, error) {
 	reader := t.Convert(bytes.NewReader(input))
-	return io.ReadAll(reader)
+	return safeio.ReadAll(ctx, reader)
+}
+
+func (t *Converter) ConvertString(input string) (string, error) {
+	return t.ConvertStringWithContext(context.Background(), input)
+}
+
+func (t *Converter) ConvertBytes(input []byte) ([]byte, error) {
+	return t.ConvertBytesWithContext(context.Background(), input)
 }
 
 func (t *Converter) Convert(reader io.Reader) io.Reader {

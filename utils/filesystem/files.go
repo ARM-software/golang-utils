@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/bmatcuk/doublestar/v3"
-	"github.com/dolmen-go/contextio"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/spf13/afero"
 
@@ -26,6 +25,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 	"github.com/ARM-software/golang-utils/utils/platform"
 	"github.com/ARM-software/golang-utils/utils/reflection"
+	"github.com/ARM-software/golang-utils/utils/safeio"
 )
 
 var (
@@ -271,7 +271,7 @@ func (fs *VFS) readFileWithContextAndLimits(ctx context.Context, filename string
 		err = fmt.Errorf("%w: missing file system limits definition", commonerrors.ErrUndefined)
 		return
 	}
-	// Really similar to afero iotutils Read file but using our utilities instead.
+	// Really similar to afero ioutils Read file but using our utilities instead.
 	f, err := fs.GenericOpen(filename)
 	if err != nil {
 		return
@@ -279,49 +279,24 @@ func (fs *VFS) readFileWithContextAndLimits(ctx context.Context, filename string
 	defer func() { _ = f.Close() }()
 
 	var bufferCapacity int64 = bytes.MinRead
+	var max int64 = -1
+	if limits.Apply() {
+		max = limits.GetMaxFileSize()
+	}
 	fi, err := f.Stat()
 	if err == nil {
 		// Don't preallocate a huge buffer, just in case.
-		size := fi.Size()
-		if size < 1e9 {
-			bufferCapacity += size
+		fileSize := fi.Size()
+		if fileSize < 1e9 {
+			bufferCapacity += fileSize
 		}
-		if limits.Apply() && size > limits.GetMaxFileSize() {
-			err = commonerrors.ErrEOF
+		if limits.Apply() && fileSize > max {
+			err = fmt.Errorf("%w: file [%v] is bigger than allowed size [%vB]", commonerrors.ErrTooLarge, filename, max)
 			return
 		}
 	}
-	buf := bytes.NewBuffer(make([]byte, 0, bufferCapacity))
-	// If the buffer overflows, we will get bytes.ErrTooLarge.
-	// Return that as an error. Any other panic remains.
-	defer func() {
-		e := recover()
-		if e == nil {
-			return
-		}
-		if panicErr, ok := e.(error); ok && panicErr == bytes.ErrTooLarge {
-			err = panicErr
-		} else {
-			panic(e)
-		}
-	}()
-	var reader io.Reader
 
-	if limits.Apply() {
-		reader = io.LimitReader(f, limits.GetMaxFileSize())
-	} else {
-		reader = f
-	}
-	n, err := buf.ReadFrom(contextio.NewReader(ctx, reader))
-	err = commonerrors.ConvertContextError(err)
-	if commonerrors.Any(err, io.EOF, io.ErrUnexpectedEOF) {
-		err = fmt.Errorf("%w: %v", commonerrors.ErrEOF, err.Error())
-		return
-	}
-	if n == int64(0) {
-		err = fmt.Errorf("%w: no bytes were read", commonerrors.ErrEmpty)
-	}
-	content = buf.Bytes()
+	content, err = safeio.ReadAtMost(ctx, f, max, bufferCapacity)
 	return
 }
 
@@ -351,7 +326,7 @@ func (fs *VFS) WriteToFile(ctx context.Context, filename string, reader io.Reade
 		return
 	}
 	defer func() { _ = f.Close() }()
-	written, err = copyDataWithContext(ctx, reader, f)
+	written, err = safeio.CopyDataWithContext(ctx, reader, f)
 	if err != nil {
 		return
 	}
@@ -1121,7 +1096,7 @@ func copyFileBetweenFSWithExclusionPatternsWithExclusionRegexes(ctx context.Cont
 		return
 	}
 	defer func() { _ = outputFile.Close() }()
-	err = CopyDataWithContext(ctx, inputFile, outputFile)
+	_, err = safeio.CopyDataWithContext(ctx, inputFile, outputFile)
 	if err != nil {
 		return
 	}
@@ -1130,26 +1105,6 @@ func copyFileBetweenFSWithExclusionPatternsWithExclusionRegexes(ctx context.Cont
 		return
 	}
 	err = outputFile.Close()
-	if err != nil {
-		return
-	}
-	return
-}
-
-// CopyDataWithContext copies from src to dst similarly to io.Copy but with context control to stop when asked to.
-// If no bytes have been copied, an error will also be reported.
-func CopyDataWithContext(ctx context.Context, src io.Reader, dst io.Writer) (err error) {
-	_, err = copyDataWithContext(ctx, src, dst)
-	return
-}
-
-func copyDataWithContext(ctx context.Context, src io.Reader, dst io.Writer) (copied int64, err error) {
-	err = parallelisation.DetermineContextError(ctx)
-	if err != nil {
-		return
-	}
-	copied, err = io.Copy(contextio.NewWriter(ctx, dst), contextio.NewReader(ctx, src))
-	err = commonerrors.ConvertContextError(err)
 	if err != nil {
 		return
 	}
@@ -1413,9 +1368,4 @@ func convertToExtendedFile(file afero.File, onCloseCallBack func() error) (File,
 		File:            file,
 		onCloseCallBack: onCloseCallBack,
 	}, nil
-}
-
-// FilepathStem returns  the final path component, without its suffix.
-func FilepathStem(fp string) string {
-	return strings.TrimSuffix(filepath.Base(fp), filepath.Ext(fp))
 }

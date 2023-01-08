@@ -8,7 +8,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"math"
 	"math/rand"
 	"os"
@@ -30,6 +29,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/idgen"
 	"github.com/ARM-software/golang-utils/utils/platform"
 	"github.com/ARM-software/golang-utils/utils/reflection"
+	"github.com/ARM-software/golang-utils/utils/safeio"
 )
 
 func TestExists(t *testing.T) {
@@ -71,7 +71,7 @@ func TestOpen(t *testing.T) {
 			require.NoError(t, err)
 			defer func() { _ = file.Close() }()
 
-			_, err = io.WriteString(file, "initial")
+			_, err = safeio.WriteString(context.TODO(), file, "initial")
 			require.NoError(t, err)
 			err = file.Close()
 			require.NoError(t, err)
@@ -85,7 +85,7 @@ func TestOpen(t *testing.T) {
 			require.NoError(t, err)
 			defer func() { _ = file.Close() }()
 
-			_, err = io.WriteString(file, "|append")
+			_, err = safeio.WriteString(context.TODO(), file, "|append")
 			require.NoError(t, err)
 			err = file.Close()
 			require.NoError(t, err)
@@ -96,7 +96,7 @@ func TestOpen(t *testing.T) {
 			require.NoError(t, err)
 			defer func() { _ = file.Close() }()
 
-			contents, err := io.ReadAll(file)
+			contents, err := safeio.ReadAll(context.TODO(), file)
 			require.NoError(t, err)
 			expectedContents := "initial|append"
 			assert.Equal(t, expectedContents, string(contents))
@@ -111,8 +111,9 @@ func TestOpen(t *testing.T) {
 
 			testFileMode(t, fs, filePath, mode)
 
-			contents, err = io.ReadAll(file)
-			require.NoError(t, err)
+			contents, err = safeio.ReadAll(context.TODO(), file)
+			require.Error(t, err)
+			assert.True(t, commonerrors.Any(err, commonerrors.ErrEmpty))
 			err = file.Close()
 			require.NoError(t, err)
 			assert.Equal(t, "", string(contents))
@@ -1352,21 +1353,6 @@ func TestListDirTreeWithExclusion(t *testing.T) {
 			assert.True(t, reflect.DeepEqual(fileList, expectedList))
 		})
 	}
-}
-
-func TestFilepathStem(t *testing.T) {
-	t.Run("given a filename with extension, it strips extension", func(t *testing.T) {
-		assert.Equal(t, "foo", FilepathStem("foo.bar"))
-		assert.Equal(t, "library.tar", FilepathStem("library.tar.gz"))
-		assert.Equal(t, "cool", FilepathStem("cool"))
-	})
-
-	t.Run("given a filepath, it returns only file name", func(t *testing.T) {
-		fp := filepath.Join("super", "foo", "bar.baz")
-		assert.Equal(t, "bar", FilepathStem(fp))
-		fp = filepath.Join("nice", "file", "path")
-		assert.Equal(t, "path", FilepathStem(fp))
-	})
 }
 
 func checkCopyDir(t *testing.T, fs FS, src string, dest string, exclusionPattern ...string) {
