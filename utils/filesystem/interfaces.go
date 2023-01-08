@@ -283,6 +283,8 @@ type FS interface {
 	UnzipWithContextAndLimits(ctx context.Context, source string, destination string, limits ILimits) (fileList []string, err error)
 	// FileHash calculates file hash
 	FileHash(hashAlgo string, path string) (string, error)
-	// IsZip states whether a file is a zip file or not
+	// IsZip states whether a file is a zip file or not. If the file does not exist, it will state whether the filename has a zip extension or not.
 	IsZip(filepath string) bool
+	// IsZipWithContext states whether a file is a zip file or not. Since the process can take some time (i.e type detection with sniffers such as http.DetectContentType), it is controlled by a context.
+	IsZipWithContext(ctx context.Context, filepath string) (bool, error)
 }

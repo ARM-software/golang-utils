@@ -157,6 +157,91 @@ func TestZipWithExclusion(t *testing.T) {
 	}
 }
 
+func Test_IsZip(t *testing.T) {
+	fs := NewFs(StandardFS)
+
+	testInDir := "testdata"
+	tests := []struct {
+		testFile string
+		isZip    bool
+	}{
+		{
+			testFile: "",
+			isZip:    false,
+		},
+		{
+			testFile: filepath.Join(testInDir, "5MB.zip"),
+			isZip:    false,
+		},
+		{
+			testFile: filepath.Join(testInDir, "1KB.bin"),
+			isZip:    false,
+		},
+		{
+			testFile: filepath.Join(testInDir, "1KB.gz"),
+			isZip:    false,
+		},
+		{
+			testFile: filepath.Join(testInDir, "unknownfile.zip"),
+			isZip:    true, // File does not exist but has a ZIP name
+		},
+		{
+			testFile: filepath.Join(testInDir, "unknownfile.zipx"),
+			isZip:    true, // File does not exist but has a ZIP name
+		},
+		{
+			testFile: filepath.Join(testInDir, "invalidzipfile.zip"),
+			isZip:    false,
+		},
+		{
+			testFile: filepath.Join(testInDir, "testunzip2.7z"),
+			isZip:    false,
+		},
+		{
+			testFile: filepath.Join(testInDir, "testunzip.zip"),
+			isZip:    true,
+		},
+		{
+			testFile: filepath.Join(testInDir, "42.zip"),
+			isZip:    true,
+		},
+		{
+			testFile: filepath.Join(testInDir, "zip-bomb.zip"),
+			isZip:    true,
+		},
+		{
+			testFile: filepath.Join(testInDir, "zbsm.zip"),
+			isZip:    true,
+		},
+		{
+			testFile: filepath.Join(testInDir, "zipwithnonutf8.zip"),
+			isZip:    true,
+		},
+		{
+			testFile: filepath.Join(testInDir, "zipwithnonutf8filenames2.zip"),
+			isZip:    true,
+		},
+		{
+			testFile: filepath.Join(testInDir, "k64f.pack"),
+			isZip:    true,
+		},
+		{
+			testFile: filepath.Join(testInDir, "10.zip"),
+			isZip:    true,
+		},
+		{
+			testFile: filepath.Join(testInDir, "child.zip"),
+			isZip:    true,
+		},
+	}
+	for i := range tests {
+		test := tests[i]
+		t.Run(fmt.Sprintf("#%v (%v)", i, filepath.Base(test.testFile)), func(t *testing.T) {
+			assert.Equal(t, test.isZip, fs.IsZip(test.testFile))
+		})
+	}
+}
+
 func TestUnzip_Limits(t *testing.T) {
 	fs := NewFs(StandardFS)
 
@@ -395,8 +480,31 @@ func TestUnzip_Recursive(t *testing.T) {
 			expectedTopFolder: false,
 		},
 		{
-			zipFile:       filepath.Join(testInDir, "testunzip3.zip"),
-			expectedError: commonerrors.ErrInvalid,
+			zipFile: filepath.Join(testInDir, "testunzip3.zip"),
+			expectedfileList: []string{
+				"test1.txt",
+				"test2.txt",
+				"testunzip2.7z",
+				filepath.Join("testunzip2", "testunzip2"),
+				filepath.Join("testunzip2", "testunzip2", "test1.txt"),
+				filepath.Join("testunzip2", "testunzip2", "test2.txt"),
+				filepath.Join("testunzip2", "testunzip2", "testunzip", "testunzip", "L'irrǸsolution est toujours une marque de faiblesse.txt"),
+				filepath.Join("testunzip2", "testunzip2", "testunzip", "testunzip", "child", "readme.txt"),
+				filepath.Join("testunzip2", "testunzip2", "testunzip", "testunzip", "child", "test.txt"),
+				filepath.Join("testunzip2", "testunzip2", "testunzip", "testunzip", "child", "todo.txt"),
+				filepath.Join("testunzip2", "testunzip2", "testunzip", "testunzip", "readme.txt"),
+				filepath.Join("testunzip2", "testunzip2", "testunzip", "testunzip", "test.txt"),
+				filepath.Join("testunzip2", "testunzip2", "testunzip", "testunzip", "todo.txt"),
+				filepath.Join("testunzip2", "testunzip2", "testunzip", "testunzip", "ไป ไหน มา.txt"),
+				filepath.Join("testunzip", "testunzip", "L'irrǸsolution est toujours une marque de faiblesse.txt"),
+				filepath.Join("testunzip", "testunzip", "child", "readme.txt"),
+				filepath.Join("testunzip", "testunzip", "child", "test.txt"),
+				filepath.Join("testunzip", "testunzip", "child", "todo.txt"),
+				filepath.Join("testunzip", "testunzip", "readme.txt"),
+				filepath.Join("testunzip", "testunzip", "test.txt"),
+				filepath.Join("testunzip", "testunzip", "todo.txt"),
+				filepath.Join("testunzip", "testunzip", "ไป ไหน มา.txt")},
+			expectedTopFolder: false,
 		},
 	}
 	for i := range tests {
@@ -450,6 +558,14 @@ func TestUnzip_Failures(t *testing.T) {
 		},
 		{
 			zipFile:       filepath.Join(testInDir, "testunzip2.7z"),
+			expectedError: commonerrors.ErrInvalid,
+		},
+		{
+			zipFile:       filepath.Join(testInDir, "5MB.zip"),
+			expectedError: commonerrors.ErrInvalid,
+		},
+		{
+			zipFile:       filepath.Join(testInDir, "1KB.gz"),
 			expectedError: commonerrors.ErrInvalid,
 		},
 	}
