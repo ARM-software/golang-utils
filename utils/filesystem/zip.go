@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,23 +21,33 @@ import (
 )
 
 const (
-	zipExt         = ".zip"
-	sevenzipExt    = ".7z"
-	sevenzipmacExt = ".s7z"
-	gzipExt        = ".gz"
-	lzipExt        = ".lz"
-	zipxExt        = ".zipx"
-	targzExt       = ".tar.gz"
-	targz2Ext      = ".tgz"
-	xzExt          = ".xz"
-	lzmaExt        = ".lzma"
-	rzipExt        = ".rz"
-	packExt        = ".pack"
-	compressExt    = ".z"
+	zipExt                = ".zip"
+	sevenzipExt           = ".7z"
+	sevenzipmacExt        = ".s7z"
+	gzipExt               = ".gz"
+	lzipExt               = ".lz"
+	zipxExt               = ".zipx"
+	targzExt              = ".tar.gz"
+	targz2Ext             = ".tgz"
+	xzExt                 = ".xz"
+	lzmaExt               = ".lzma"
+	rzipExt               = ".rz"
+	packExt               = ".pack"
+	compressExt           = ".z"
+	jarExt                = ".jar"
+	zipMimeType           = "application/zip"
+	zipxMimeType          = "application/x-zip"
+	zipCompressedMimeType = "application/x-zip-compressed"
+	jarMimeType           = "application/jar"
+	epubMimeType          = "application/epub+zip"
 )
 
 var (
-	ZipFileExtensions = []string{zipExt, zipxExt, sevenzipExt, sevenzipmacExt, gzipExt, targzExt, targz2Ext, xzExt, lzipExt, lzmaExt, rzipExt, packExt, compressExt}
+	// ZipFileExtensions returns a list of commonly used extensions to describe zip archive files
+	// This list was populated from [Wikipedia](https://en.wikipedia.org/wiki/List_of_archive_formats)
+	ZipFileExtensions = []string{zipExt, zipxExt, sevenzipExt, sevenzipmacExt, gzipExt, targzExt, targz2Ext, xzExt, lzipExt, lzmaExt, rzipExt, packExt, compressExt, jarExt}
+	// ZipMimeTypes returns a list of MIME types describing zip archive files.
+	ZipMimeTypes = []string{zipMimeType, zipxMimeType, zipCompressedMimeType, jarMimeType, epubMimeType}
 )
 
 // Zip zips a source directory into a destination archive
@@ -276,7 +287,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		}
 
 		// record unzipped files (except zip files if they get unzipped later)
-		if !(limits.ApplyRecursively() && fs.IsZip(zippedFile.Name)) {
+		if !(limits.ApplyRecursively() && fs.isZipWithContext(ctx, zippedFile.Name)) {
 			fileCounter.Inc()
 			fileList = append(fileList, filePath)
 		}
@@ -306,14 +317,22 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		}
 
 		// If the copied file is a zip, unzip that zip if the action is marked as recursive
-		if limits.ApplyRecursively() && fs.IsZip(zippedFile.Name) {
-			nestedUnzippedFiles, filesOnDiskCount, filesSizeOnDisk, subErr := fs.unzipNestedZipFiles(ctx, filePath, limits, fileDepth)
-			if subErr != nil {
-				return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
+		if limits.ApplyRecursively() {
+			if fs.isZipWithContext(ctx, filePath) {
+				nestedUnzippedFiles, filesOnDiskCount, filesSizeOnDisk, subErr := fs.unzipNestedZipFiles(ctx, filePath, limits, fileDepth)
+				if subErr != nil {
+					return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
+				}
+				totalSizeOnDisk.Add(filesSizeOnDisk)
+				fileCounter.Add(filesOnDiskCount)
+				fileList = append(fileList, nestedUnzippedFiles...)
+			} else {
+				if fs.isZipWithContext(ctx, zippedFile.Name) { // If not an actual zip file but with a zip name.
+					fileCounter.Inc()
+					fileList = append(fileList, filePath)
+				}
+				totalSizeOnDisk.Add(uint64(fileSizeOnDisk))
 			}
-			totalSizeOnDisk.Add(filesSizeOnDisk)
-			fileCounter.Add(filesOnDiskCount)
-			fileList = append(fileList, nestedUnzippedFiles...)
 		} else {
 			totalSizeOnDisk.Add(uint64(fileSizeOnDisk))
 		}
@@ -448,9 +467,43 @@ func determineUnzippedFilepath(destinationPath string) (string, error) {
 }
 
 func (fs *VFS) IsZip(path string) bool {
-	// Placeholder until we use a better way
-	_, found := collection.Find(&ZipFileExtensions, strings.ToLower(filepath.Ext(path)))
+	return fs.isZipWithContext(context.Background(), path)
+}
+
+func (fs *VFS) isZipWithContext(ctx context.Context, path string) bool {
+	found, _ := fs.IsZipWithContext(ctx, path)
 	return found
+}
+
+func (fs *VFS) IsZipWithContext(ctx context.Context, path string) (ok bool, err error) {
+	if path == "" {
+		err = fmt.Errorf("%w: missing path", commonerrors.ErrUndefined)
+		return
+	}
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+	_, found := collection.Find(&ZipFileExtensions, strings.ToLower(filepath.Ext(path)))
+	if !found || err != nil {
+		return
+	}
+	if !fs.Exists(path) {
+		ok = found
+		return
+	}
+	f, err := fs.GenericOpen(path)
+	if err != nil {
+		return
+	}
+	defer func() { _ = f.Close() }()
+	content, err := safeio.ReadAll(ctx, f)
+	if err != nil {
+		return
+	}
+	mime := http.DetectContentType(content)
+	_, ok = collection.Find(&ZipMimeTypes, mime)
+	return
 }
 
 func convertZipError(err error) error {
