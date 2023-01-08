@@ -1,8 +1,9 @@
 package multiplication
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNumbers(t *testing.T) {

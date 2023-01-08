@@ -182,7 +182,7 @@ func TestValidationNormalReposErrors(t *testing.T) {
 		{
 			name:   "too large true size",
 			err:    fmt.Errorf("%w: maximum true size exceeded", commonerrors.ErrTooLarge),
-			limits: NewLimits(10*size.GB, 10*size.GB, 10*multiplication.Giga, 10*multiplication.Giga, 10*multiplication.Giga, 10*size.GB), // entries must be greater than MaxEntriesChannelSize
+			limits: NewLimits(10*size.GB, 10*size.GB, 10*multiplication.Giga, 10*multiplication.Giga, 10*multiplication.Giga, 10), // entries must be greater than MaxEntriesChannelSize
 		},
 	}
 
@@ -202,7 +202,6 @@ func TestValidationNormalReposErrors(t *testing.T) {
 			require.NoError(t, err)
 
 			err = c.ValidateRepository(context.Background())
-			fmt.Println(err)
 			assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
 			assert.ErrorContains(t, err, test.err.Error())
 		})
