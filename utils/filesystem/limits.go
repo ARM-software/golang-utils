@@ -4,6 +4,8 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	"github.com/ARM-software/golang-utils/utils/config"
+	"github.com/ARM-software/golang-utils/utils/units/multiplication"
+	"github.com/ARM-software/golang-utils/utils/units/size"
 )
 
 type noLimits struct {
@@ -104,7 +106,7 @@ func NewLimits(maxFileSize int64, maxTotalSize uint64, maxFileCount int64, maxDe
 
 // DefaultLimits defines default file system limits
 func DefaultLimits() ILimits {
-	return NewLimits(1<<30, 10<<30, 1000000, -1, true)
+	return NewLimits(int64(size.GiB), uint64(10*size.GiB), multiplication.Mega, -1, true)
 }
 
 // DefaultZipLimits defines default file system limits for handling zips
@@ -114,10 +116,10 @@ func DefaultZipLimits() ILimits {
 
 // RecursiveZipLimits defines file system limits for handling zips recursively
 func RecursiveZipLimits(maxDepth int64) ILimits {
-	return NewLimits(1<<30, 10<<30, 1000000, maxDepth, true)
+	return NewLimits(int64(size.GiB), uint64(10*size.GiB), multiplication.Mega, maxDepth, true)
 }
 
 // DefaultNonRecursiveZipLimits defines default file system limits for handling zips
 func DefaultNonRecursiveZipLimits() ILimits {
-	return NewLimits(1<<30, 10<<30, 1000000, 10, false)
+	return NewLimits(int64(size.GiB), uint64(10*size.GiB), multiplication.Mega, 10, false)
 }

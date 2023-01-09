@@ -18,6 +18,8 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
+	"github.com/ARM-software/golang-utils/utils/units/multiplication"
+	"github.com/ARM-software/golang-utils/utils/units/size"
 )
 
 // We will populate these with TestMain so they can be reused within the tests
@@ -112,7 +114,7 @@ func TestHandleTreeEntry(t *testing.T) {
 	// Setup
 	MaxEntriesChannelSize = 100000
 	c := NewCloneObject()
-	limits := NewLimits(1e8, 1e10, 1e6, 20, 1e6, 1e10) // max file size: 100MB, max repo size: 10GB, max file count: 1 million, max tree depth 1, max entries 1 million, max true size 10GB
+	limits := NewLimits(100*size.MB, 10*size.GB, multiplication.Mega, 20, multiplication.Mega, 10*size.GB)
 	err := c.SetupLimits(limits)
 	require.NoError(t, err)
 	c.repo = repoTest
@@ -148,7 +150,7 @@ func TestHandleBlobEntry(t *testing.T) {
 	// Setup
 	MaxEntriesChannelSize = 100000
 	c := NewCloneObject()
-	limits := NewLimits(1e8, 1e10, 1e6, 20, 1e6, 1e10) // max file size: 100MB, max repo size: 10GB, max file count: 1 million, max tree depth 1, max entries 1 million, max true size 10GB
+	limits := NewLimits(100*size.MB, 10*size.GB, multiplication.Mega, 20, multiplication.Mega, 10*size.GB)
 	err := c.SetupLimits(limits)
 	require.NoError(t, err)
 	c.repo = repoTest
@@ -173,7 +175,7 @@ func TestHandleBlobEntry(t *testing.T) {
 
 	// Test whether too large blob returns error
 	t.Run("too large blob returns error", func(t *testing.T) {
-		limits = NewLimits(0, 1e10, 1e6, 20, 1e6, 1e10) // max file size: 0, max repo size: 10GB, max file count: 1 million, max tree depth 1, max entries 1 million, max true size 10GB
+		limits = NewLimits(0, 10*size.GB, multiplication.Mega, 20, multiplication.Mega, 10*size.GB)
 		err = c.SetupLimits(limits)
 		require.NoError(t, err)
 
@@ -195,7 +197,7 @@ func TestHandleBlobEntry(t *testing.T) {
 
 	// Test whether too many files returns error
 	t.Run("too many files returns error", func(t *testing.T) {
-		limits = NewLimits(1e5, 1e10, 0, 20, 1e6, 1e10) // max file size: 100MB, max repo size: 10GB, max file count: 0, max tree depth 1, max entries 1 million, max true size 10GB
+		limits = NewLimits(100*size.KB, 10*size.GB, 0, 20, multiplication.Mega, 10*size.GB)
 		err = c.SetupLimits(limits)
 		require.NoError(t, err)
 
@@ -217,7 +219,7 @@ func TestHandleBlobEntry(t *testing.T) {
 
 	// Test whether too large repo fails
 	t.Run("too large repo fails", func(t *testing.T) {
-		limits = NewLimits(1e5, 0, 1e6, 20, 1e6, 1e10) // max file size: 100MB, max repo size: 0, max file count: 1 million, max tree depth 1, max entries 1 million, max true size 10GB
+		limits = NewLimits(100*size.KB, 0, multiplication.Mega, 20, multiplication.Mega, 10*size.GB)
 		err = c.SetupLimits(limits)
 		require.NoError(t, err)
 
@@ -239,7 +241,7 @@ func TestHandleBlobEntry(t *testing.T) {
 
 	// Test whether too large repo fails based on true size
 	t.Run("too large repo fails based on true size", func(t *testing.T) {
-		limits = NewLimits(1e5, 1e10, 1e6, 20, 1e6, 0) // max file size: 100MB, max repo size: 10gb, max file count: 1 million, max tree depth 1, max entries 1 million, max true size 0
+		limits = NewLimits(100*size.KB, 10*size.GB, multiplication.Mega, 20, multiplication.Mega, 0)
 		err = c.SetupLimits(limits)
 		require.NoError(t, err)
 
@@ -264,7 +266,7 @@ func TestCheckDepthAndTotalEntries(t *testing.T) {
 	// Setup
 	MaxEntriesChannelSize = 100000
 	c := NewCloneObject()
-	limits := NewLimits(1e8, 1e10, 1e6, 10, 1e6, 1e10) // max file size: 100MB, max repo size: 10GB, max file count: 1 million, max tree depth 1, max entries 1 million, max true size 10GB
+	limits := NewLimits(100*size.MB, 10*size.GB, multiplication.Mega, 10, multiplication.Mega, 10*size.GB)
 	err := c.SetupLimits(limits)
 	require.NoError(t, err)
 	c.repo = repoTest
@@ -302,7 +304,7 @@ func TestCheckDepthAndTotalEntries(t *testing.T) {
 
 	// Check too many entries
 	t.Run("too many entries", func(t *testing.T) {
-		limits = NewLimits(1e8, 1e10, 1e6, 20, 0, 1e10) // max file size: 100MB, max repo size: 10GB, max file count: 1 million, max tree depth 1, max entries 0, max true size 10GB
+		limits = NewLimits(100*size.MB, 10*size.GB, multiplication.Mega, 20, 0, 10*size.GB)
 		err = c.SetupLimits(limits)
 		require.NoError(t, err)
 		totalEntries = atomic.NewInt64(0)
@@ -322,7 +324,7 @@ func TestCheckDepthAndTotalEntries(t *testing.T) {
 func TestPopulateInitialEntries(t *testing.T) {
 	// Setup
 	c := NewCloneObject()
-	limits := NewLimits(1e8, 1e10, 1e6, 20, 1e6, 1e10) // max file size: 100MB, max repo size: 10GB, max file count: 1 million, max tree depth 1, max entries 1 million, max true size 10GB
+	limits := NewLimits(100*size.MB, 10*size.GB, multiplication.Mega, 20, multiplication.Mega, 10*size.GB)
 	err := c.SetupLimits(limits)
 	require.NoError(t, err)
 	c.repo = repoTest

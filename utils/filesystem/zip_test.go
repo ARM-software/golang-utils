@@ -14,6 +14,8 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/hashing"
+	"github.com/ARM-software/golang-utils/utils/units/multiplication"
+	"github.com/ARM-software/golang-utils/utils/units/size"
 )
 
 func TestZip(t *testing.T) {
@@ -251,7 +253,7 @@ func TestUnzip_Limits(t *testing.T) {
 	destPath, err := fs.TempDirInTempDir("unzip-limits-")
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
-	limits := NewLimits(1<<30, 1<<10, 1000000, 1, true) // Total size limited to 10 Kb
+	limits := NewLimits(int64(size.GiB), uint64(size.KiB), multiplication.Mega, 1, true) // Total size limited to 10 Kb
 
 	empty, err := fs.IsEmpty(destPath)
 	assert.NoError(t, err)
@@ -313,7 +315,7 @@ func TestUnzip_ZipBomb(t *testing.T) {
 	destPath, err := fs.TempDirInTempDir("unzip-limits-")
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
-	limits := NewLimits(1<<30, 1<<20, 1000000, 3, true) // Total size limited to 1 Mb with a max nesting depth of 3
+	limits := NewLimits(int64(size.GiB), uint64(size.MiB), multiplication.Mega, 3, true) // Total size limited to 1 Mb with a max nesting depth of 3
 
 	empty, err := fs.IsEmpty(destPath)
 	assert.NoError(t, err)
@@ -695,7 +697,7 @@ func TestUnzipFileCountLimit(t *testing.T) {
 	fs := NewFs(StandardFS)
 
 	testInDir := "testdata"
-	limits := NewLimits(1<<30, 10<<30, 10, 10, true)
+	limits := NewLimits(int64(size.GiB), uint64(10*size.GiB), multiplication.Deka, multiplication.Deka, true)
 
 	t.Run("unzip file above file count limit", func(t *testing.T) {
 		testFile := "abovefilecountlimitzip"

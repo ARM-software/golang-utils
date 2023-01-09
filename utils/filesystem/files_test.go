@@ -29,6 +29,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/platform"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 	"github.com/ARM-software/golang-utils/utils/safeio"
+	sizeUnits "github.com/ARM-software/golang-utils/utils/units/size"
 )
 
 func TestExists(t *testing.T) {
@@ -442,8 +443,8 @@ func TestLink(t *testing.T) {
 			assert.Equal(t, filePath, link)
 
 			link, err = fs.Readlink(hardlink)
-			require.NotNil(t, err)
-			assert.Equal(t, "", link)
+			require.Error(t, err)
+			assert.Empty(t, link)
 
 			bytes, err := fs.ReadFile(symlink)
 			require.NoError(t, err)
@@ -1144,13 +1145,14 @@ func TestReadFile(t *testing.T) {
 	assert.Equal(t, byteOut, byteInput)
 
 	_, err = fs.ReadFile("unknown_file")
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
 func TestGetFileSize(t *testing.T) {
 	fs := NewFs(InMemoryFS)
 	tmpFile, err := fs.TempFileInTempDir("test-filesize-")
 	require.NoError(t, err)
+	defer func() { _ = tmpFile.Close() }()
 
 	for indx := 0; indx < 50; indx++ {
 		_, _ = tmpFile.WriteString(" Here is a Test string....")
@@ -1164,10 +1166,10 @@ func TestGetFileSize(t *testing.T) {
 
 	size, err := fs.GetFileSize(tmpFile.Name())
 	require.NoError(t, err)
-	assert.Equal(t, int64(1300), size)
+	assert.Equal(t, int64(1.3*sizeUnits.KB), size)
 
 	_, err = fs.GetFileSize("Unknown-File")
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
 func TestSubDirectories(t *testing.T) {
