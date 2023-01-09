@@ -1,5 +1,5 @@
 <!--
-Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
+Copyright (C) 2020-2023 Arm Limited or its affiliates and Contributors. All rights reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
 # Changelog
@@ -13,6 +13,33 @@ This document contains a history of significant changes which have been released
 beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
+
+"" "1.24.0" (2023-01-09)
+========================
+
+Features
+--------
+
+- :sparkles: Add `[units]` to ease limit/size setting (#202212061433)
+- `[filesystem]` allow unzip to be recursive for ease of use (#202212151320)
+- `[filesystem]` Extended potentially long running actions such as writing or reading files to be controlled by a context (#20230105170818)
+- :sparkles: `[safeio]` created new utilities to harden `io` actions (#20230106191918)
+- `[filesystem]` expanded filepath utilities (#20230106192012)
+- `[filesystem]` Added a way to control the recursivity and depth of filesystem action (#20230106192158)
+- `[filesystem]` Added a way to detect zip archive files (#20230108123045)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v3-3.22.12 (#20230102110852, #20230102110855)
+- Dependency upgrade: go-retryablehttp-0.7.2 (#20230104110511, #20230104110515, #20230104110601)
+- Dependency upgrade: text-0.6.0 (#20230104163113, #20230104163124)
+- Dependency upgrade: net-0.5.0 (#20230104163125, #20230104163131, #20230104163213)
+- :bug: `[pagination]` changed iterator definition to allow item casting (#20230105095148)
+- Dependency upgrade: v5-5.5.2 (#20230106092118, #20230106092122, #20230106092158, #20230106092204, #20230106092240, #20230106092250, #20230106092318, #20230106092333, #20230106092409, #20230106092420, #20230106092450, #20230106092503, #20230106092530, #20230106092546, #20230106092606, #20230106092624, #20230106092650, #20230106092703, #20230106092736, #20230106092755)
+- `[filesystem]` fixed `unzip` to mitigate against the risk of zip bombs (#20230107200833)
+
 
 "" "1.23.0" (2022-12-28)
 ========================
