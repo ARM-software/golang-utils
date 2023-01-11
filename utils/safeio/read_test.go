@@ -100,4 +100,5 @@ func TestNewByteReader(t *testing.T) {
 	result, err = ReadAll(context.TODO(), NewByteReader(ctx, []byte(text)))
 	require.Error(t, err)
 	assert.True(t, commonerrors.Any(err, commonerrors.ErrCancelled))
+	assert.Empty(t, result)
 }
