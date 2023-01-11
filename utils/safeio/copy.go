@@ -5,8 +5,6 @@ import (
 	"context"
 	"io"
 
-	"github.com/dolmen-go/contextio"
-
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
@@ -25,10 +23,12 @@ func copyDataWithContext(ctx context.Context, src io.Reader, dst io.Writer, copy
 	if err != nil {
 		return
 	}
-	copied, err = copyFunc(contextio.NewWriter(ctx, dst), contextio.NewReader(ctx, src))
-	err = convertIOError(err)
-	if err != nil {
-		return
-	}
+	copied, err = safeCopy(ContextualWriter(ctx, dst), NewContextualReader(ctx, src), copyFunc)
 	return
+}
+
+func safeCopy(w io.Writer, r io.Reader, iocopyFunc func(io.Writer, io.Reader) (int64, error)) (int64, error) {
+	copied, err := iocopyFunc(w, r)
+	err = ConvertIOError(err)
+	return copied, err
 }

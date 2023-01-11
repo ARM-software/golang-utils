@@ -7,13 +7,16 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
-func convertIOError(err error) error {
-	err = commonerrors.ConvertContextError(err)
-	if commonerrors.Any(err, io.EOF, io.ErrUnexpectedEOF, commonerrors.ErrEOF) {
-		if err == commonerrors.ErrEOF {
-			return err
-		}
-		return fmt.Errorf("%w: %v", commonerrors.ErrEOF, err.Error())
+// ConvertIOError converts an I/O error into common errors.
+func ConvertIOError(err error) (newErr error) {
+	if err == nil {
+		return
 	}
-	return err
+	newErr = commonerrors.ConvertContextError(err)
+	switch {
+	case commonerrors.Any(newErr, commonerrors.ErrEOF):
+	case commonerrors.Any(newErr, io.EOF, io.ErrUnexpectedEOF):
+		newErr = fmt.Errorf("%w: %v", commonerrors.ErrEOF, newErr.Error())
+	}
+	return
 }
