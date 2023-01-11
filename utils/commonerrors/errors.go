@@ -60,7 +60,7 @@ func None(target error, err ...error) bool {
 	return true
 }
 
-// Converts a context error into common errors.
+// ConvertContextError converts a context error into common errors.
 func ConvertContextError(err error) error {
 	if err == nil {
 		return nil

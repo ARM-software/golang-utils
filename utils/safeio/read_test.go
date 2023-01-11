@@ -41,6 +41,14 @@ func TestReadAll(t *testing.T) {
 	assert.Empty(t, rbytes)
 }
 
+func TestReadAllEmpty(t *testing.T) {
+	var buf bytes.Buffer
+	rbytes, err := ReadAll(context.Background(), &buf)
+	require.Error(t, err)
+	assert.True(t, commonerrors.Any(err, commonerrors.ErrEmpty))
+	assert.Empty(t, rbytes)
+}
+
 func TestReadAtMost(t *testing.T) {
 	var buf bytes.Buffer
 	text := faker.Sentence()
@@ -79,4 +87,17 @@ func TestReadAtMost(t *testing.T) {
 	require.Error(t, err)
 	assert.True(t, commonerrors.Any(err, commonerrors.ErrCancelled))
 	assert.Empty(t, rbytes)
+}
+
+func TestNewByteReader(t *testing.T) {
+	text := faker.Sentence()
+	ctx, cancel := context.WithCancel(context.TODO())
+	result, err := ReadAll(context.TODO(), NewByteReader(ctx, []byte(text)))
+	require.NoError(t, err)
+	assert.Equal(t, text, string(result))
+
+	cancel()
+	result, err = ReadAll(context.TODO(), NewByteReader(ctx, []byte(text)))
+	require.Error(t, err)
+	assert.True(t, commonerrors.Any(err, commonerrors.ErrCancelled))
 }

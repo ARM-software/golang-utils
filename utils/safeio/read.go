@@ -41,7 +41,7 @@ func ReadAtMost(ctx context.Context, src io.Reader, max int64, bufferCapacity in
 		if e == nil {
 			return
 		}
-		if panicErr, ok := e.(error); ok && panicErr == bytes.ErrTooLarge {
+		if panicErr, ok := e.(error); ok && (panicErr == bytes.ErrTooLarge || commonerrors.Any(panicErr, commonerrors.ErrTooLarge, bytes.ErrTooLarge)) {
 			err = fmt.Errorf("%w: %v", commonerrors.ErrTooLarge, panicErr.Error())
 		} else {
 			panic(e)
@@ -53,8 +53,9 @@ func ReadAtMost(ctx context.Context, src io.Reader, max int64, bufferCapacity in
 	} else {
 		reader = src
 	}
-	read, err := buf.ReadFrom(contextio.NewReader(ctx, reader))
-	err = convertIOError(err)
+	safeBuf := NewContextualReaderFrom(ctx, buf)
+	read, err := safeBuf.ReadFrom(NewContextualReader(ctx, reader))
+	err = ConvertIOError(err)
 	if err != nil {
 		return
 	}
@@ -62,5 +63,37 @@ func ReadAtMost(ctx context.Context, src io.Reader, max int64, bufferCapacity in
 		err = fmt.Errorf("%w: no bytes were read", commonerrors.ErrEmpty)
 	}
 	content = buf.Bytes()
+	return
+}
+
+// NewByteReader return a byte reader which is context aware.
+func NewByteReader(ctx context.Context, someBytes []byte) io.Reader {
+	return NewContextualReader(ctx, bytes.NewReader(someBytes))
+}
+
+// NewContextualReader returns a reader which is context aware.
+// Context state is checked BEFORE every Read.
+func NewContextualReader(ctx context.Context, reader io.Reader) io.Reader {
+	return contextio.NewReader(ctx, reader)
+}
+
+// NewContextualReaderFrom returns a io.ReaderFrom which is context aware.
+// Context state is checked BEFORE every Read, Write, Copy.
+func NewContextualReaderFrom(ctx context.Context, reader io.ReaderFrom) io.ReaderFrom {
+	return &contextualReaderFrom{r: reader, ctx: ctx}
+}
+
+type contextualReaderFrom struct {
+	r   io.ReaderFrom
+	ctx context.Context
+}
+
+func (c *contextualReaderFrom) ReadFrom(r io.Reader) (n int64, err error) {
+	return safeReadFrom(c.r, NewContextualReader(c.ctx, r))
+}
+
+func safeReadFrom(rr io.ReaderFrom, r io.Reader) (n int64, err error) {
+	n, err = rr.ReadFrom(r)
+	err = ConvertIOError(err)
 	return
 }
