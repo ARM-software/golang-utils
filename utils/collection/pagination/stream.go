@@ -191,6 +191,9 @@ func NewStaticPageStreamPaginator(ctx context.Context, runOutTimeOut, backoff ti
 	parent, err := newAbstractStreamPaginator(ctx, runOutTimeOut, backoff, func(fCtx context.Context) (IStaticPage, error) {
 		return fetchFirstPageFunc(fCtx)
 	}, fetchNextPageFunc, fetchFutureFunc)
+	if err != nil {
+		return
+	}
 	paginator = &StaticPageStreamPaginator{
 		AbstractStreamPaginator: *parent,
 	}
