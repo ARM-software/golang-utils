@@ -161,6 +161,119 @@ func TestPaginator(t *testing.T) {
 	}
 }
 
+// TestPaginator_InitialisationError tests whether errors are correctly handled if API returns some error
+func TestPaginator_InitialisationError(t *testing.T) {
+	tests := []struct {
+		paginator                 func(context.Context, IStaticPageStream) (IGenericPaginator, error)
+		name                      string
+		expectInitialisationError bool
+	}{
+		{
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
+				return NewAbstractPaginator(ctx, collection, func(fCtx context.Context, current IStaticPage) (IStaticPage, error) {
+					return nil, commonerrors.ErrUnexpected
+				})
+			},
+			name:                      "Abstract paginator",
+			expectInitialisationError: false,
+		},
+		{
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
+				return NewStaticPagePaginator(ctx, func(context.Context) (IStaticPage, error) {
+					return nil, commonerrors.ErrUnexpected
+				}, func(fCtx context.Context, current IStaticPage) (IStaticPage, error) {
+					return nil, commonerrors.ErrUnexpected
+				})
+			},
+			name:                      "Static page paginator",
+			expectInitialisationError: true,
+		},
+		{
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
+				return NewCollectionPaginator(ctx, func(context.Context) (IPage, error) {
+					return nil, commonerrors.ErrUnexpected
+				})
+			},
+			name:                      "paginator over a collection of dynamic pages",
+			expectInitialisationError: true,
+		},
+		{
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
+				return NewStaticPageStreamPaginator(ctx, time.Second, 10*time.Millisecond, func(context.Context) (IStaticPageStream, error) {
+					return nil, commonerrors.ErrUnexpected
+				}, func(fCtx context.Context, current IStaticPage) (IStaticPage, error) {
+					return nil, commonerrors.ErrUnexpected
+				}, func(fCtx context.Context, current IStaticPageStream) (IStaticPageStream, error) {
+					return nil, commonerrors.ErrUnexpected
+				})
+			},
+			name:                      "stream paginator over a collection of static pages",
+			expectInitialisationError: true,
+		},
+		{
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
+				return NewStreamPaginator(ctx, time.Second, 10*time.Millisecond, func(context.Context) (IStream, error) {
+					return nil, commonerrors.ErrUnexpected
+				})
+			},
+			name:                      "stream paginator over a collection of dynamic pages",
+			expectInitialisationError: true,
+		},
+		{
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
+				paginator, err := NewStaticPageStreamPaginator(ctx, time.Second, 10*time.Millisecond, func(context.Context) (IStaticPageStream, error) {
+					return nil, commonerrors.ErrUnexpected
+				}, func(fCtx context.Context, current IStaticPage) (IStaticPage, error) {
+					return nil, commonerrors.ErrUnexpected
+				}, func(fCtx context.Context, current IStaticPageStream) (IStaticPageStream, error) {
+					return nil, commonerrors.ErrUnexpected
+				})
+				if paginator != nil {
+					// Indicate the stream will run out.
+					err = paginator.DryUp()
+				}
+				return paginator, err
+			},
+			name:                      "stream paginator over a running dry stream of static pages",
+			expectInitialisationError: true,
+		},
+		{
+			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericPaginator, error) {
+				paginator, err := NewStreamPaginator(ctx, 50*time.Millisecond, 10*time.Millisecond, func(context.Context) (IStream, error) {
+					return nil, commonerrors.ErrUnexpected
+				})
+				if paginator != nil {
+					// Indicate the stream will run out.
+					err = paginator.DryUp()
+				}
+				return paginator, err
+			},
+			name:                      "stream paginator over a running dry stream of dynamic pages",
+			expectInitialisationError: true,
+		},
+	}
+
+	for te := range tests {
+		test := tests[te]
+		for i := 0; i < 50; i++ {
+			var mockPages IStream
+			t.Run(fmt.Sprintf("%v-#%v", test.name, i), func(t *testing.T) {
+				paginator, err := test.paginator(context.TODO(), mockPages)
+				if test.expectInitialisationError {
+					assert.Error(t, err)
+					assert.Nil(t, paginator)
+				} else {
+					assert.NoError(t, err)
+					assert.NotNil(t, paginator)
+					assert.False(t, paginator.HasNext())
+					require.NoError(t, paginator.Close())
+				}
+
+			})
+		}
+	}
+}
+
 func TestPaginator_stop(t *testing.T) {
 	tests := []struct {
 		paginator func(context.Context, IStaticPageStream) (IGenericPaginator, error)
