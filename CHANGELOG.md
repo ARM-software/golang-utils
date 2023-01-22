@@ -14,6 +14,23 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.25.0" (2023-01-22)
+========================
+
+Features
+--------
+
+- :sparkles: `[safeio]` Add utilities to convert readers/writers into context aware actors (#20230111140925)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: upload-artifact-3.1.2 (#20230109112003, #20230109112009, #20230109112051)
+- Dependency upgrade: viper-1.15.0 (#20230120110409, #20230120110413, #20230120110457)
+- :bug:`[pagination]` Fix panic in contructor (#20230121234948)
+
+
 "" "1.24.0" (2023-01-09)
 ========================
 
