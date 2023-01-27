@@ -8,8 +8,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -298,70 +296,6 @@ func TestChown(t *testing.T) {
 	}
 }
 
-func createTestFileTree(t *testing.T, fs FS, testDir, basePath string, withLinks bool, fileModTime time.Time, fileAccessTime time.Time) []string {
-	err := fs.MkDir(testDir)
-	require.NoError(t, err)
-
-	var sLinks []string
-	rand.Seed(time.Now().UnixMilli())                                        //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
-	for i := 0; i < int(math.Max(float64(1), float64(rand.Intn(10)))); i++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
-		c := fmt.Sprint("test", i+1)
-		path := filepath.Join(testDir, c)
-
-		err := fs.MkDir(path)
-		require.NoError(t, err)
-
-		for j := 0; j < int(math.Max(float64(1), float64(rand.Intn(10)))); j++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
-			c := fmt.Sprint("test", j+1)
-			path := filepath.Join(path, c)
-
-			err := fs.MkDir(path)
-			require.NoError(t, err)
-
-			if withLinks {
-				if len(sLinks) > 0 {
-					c1 := fmt.Sprint("link", j+1)
-					c2 := filepath.Join(path, c1)
-					err = fs.Symlink(sLinks[0], c2)
-					require.NoError(t, err)
-					if len(sLinks) > 1 {
-						sLinks = sLinks[1:]
-					} else {
-						sLinks = nil
-					}
-				}
-			}
-
-			for k := 0; k < int(math.Max(float64(1), float64(rand.Intn(10)))); k++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
-				c := fmt.Sprint("test", k+1, ".txt")
-				finalPath := filepath.Join(path, c)
-
-				// pick a couple of files to make symlinks (1 in 10)
-				r := rand.Intn(10) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
-				if r == 4 {
-					fPath := filepath.Join(basePath, path, c)
-					sLinks = append(sLinks, fPath)
-				}
-
-				s := fmt.Sprint("file ", i+1, j+1, k+1)
-				err = fs.WriteFile(finalPath, []byte(s), 0755)
-				require.NoError(t, err)
-			}
-		}
-	}
-	var tree []string
-	err = fs.ListDirTree(testDir, &tree)
-	require.NoError(t, err)
-
-	// unifying timestamps
-	for _, path := range tree {
-		err = fs.Chtimes(path, fileAccessTime, fileModTime)
-		require.NoError(t, err)
-	}
-
-	return tree
-}
-
 func TestConvertPaths(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
@@ -373,7 +307,7 @@ func TestConvertPaths(t *testing.T) {
 			defer func() { _ = fs.Rm(tmpDir) }()
 
 			// create a directory for the test
-			tree := createTestFileTree(t, fs, tmpDir, "", false, time.Now(), time.Now())
+			tree := GenerateTestFileTree(t, fs, tmpDir, "", false, time.Now(), time.Now())
 			relTree, err := fs.ConvertToRelativePath(tmpDir, tree...)
 			require.NoError(t, err)
 			absTree, err := fs.ConvertToAbsolutePath(tmpDir, relTree...)
@@ -788,7 +722,7 @@ func TestWalk(t *testing.T) {
 			_ = fs.Rm(testDir)
 
 			// create a directory for the test
-			tree := createTestFileTree(t, fs, testDir, "", false, time.Now(), time.Now())
+			tree := GenerateTestFileTree(t, fs, testDir, "", false, time.Now(), time.Now())
 			tree = append(tree, testDir) // Walk requires root too
 
 			var walkList []string
@@ -822,7 +756,7 @@ func TestWalkWithExclusions(t *testing.T) {
 			_ = fs.Rm(testDir)
 
 			// create a directory for the test
-			tree := createTestFileTree(t, fs, testDir, "", false, time.Now(), time.Now())
+			tree := GenerateTestFileTree(t, fs, testDir, "", false, time.Now(), time.Now())
 			tree = append(tree, testDir) // Walk requires root too
 
 			exclusionPatterns := ".*test2.*"
@@ -995,6 +929,7 @@ func TestCopy(t *testing.T) {
 
 			checkNotEmpty(t, fs, tmpDir)
 			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "newDir"))
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "newFile.file"))
 			_ = fs.Rm(tmpDir)
 		})
 	}
@@ -1019,6 +954,7 @@ func TestCopyWithExclusion(t *testing.T) {
 
 			checkNotEmpty(t, fs, tmpDir)
 			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "newDir"), "test-copy-with-exclusion-.*")
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "newFile.file"), "test-copy-with-exclusion-.*")
 			_ = fs.Rm(tmpDir)
 		})
 	}
@@ -1080,6 +1016,74 @@ func TestCopyFolderWithExclusion(t *testing.T) {
 
 			checkNotEmpty(t, fs, parentDir)
 			checkCopyDir(t, fs, parentDir, filepath.Join(testDir, "newDir"), "childDir-.*")
+		})
+	}
+}
+
+func TestCopyTreeWithExistingDestination(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-copy-tree-with-existing-destination-")
+			require.NoError(t, err)
+			defer func() {
+				_ = fs.Rm(tmpDir)
+			}()
+			srcFolderName := "src"
+			src := filepath.Join(tmpDir, srcFolderName)
+			dest := filepath.Join(tmpDir, "dest")
+			err = fs.MkDir(dest)
+			require.NoError(t, err)
+
+			srcFileList := GenerateTestFileTree(t, fs, src, "", false, time.Now(), time.Now())
+			srcFileList, err = fs.ConvertToRelativePath(tmpDir, srcFileList...)
+			require.NoError(t, err)
+
+			err = fs.Copy(src, dest)
+			require.NoError(t, err)
+
+			var destFileList []string
+			err = fs.ListDirTree(dest, &destFileList)
+			require.NoError(t, err)
+			destFileList, err = fs.ConvertToRelativePath(dest, destFileList...)
+			require.NoError(t, err)
+
+			// the srcFolderName is present in the destination
+			srcFileList = append(srcFileList, srcFolderName)
+
+			assert.ElementsMatch(t, srcFileList, destFileList, "all items should have been copied and under the srcFolderName path")
+		})
+	}
+}
+
+func TestCopyTreeWithMissingDestination(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-copy-tree-with-missing-destination-")
+			require.NoError(t, err)
+			defer func() {
+				_ = fs.Rm(tmpDir)
+			}()
+			srcFolderName := "src"
+			src := filepath.Join(tmpDir, srcFolderName)
+			dest := filepath.Join(tmpDir, "dest")
+
+			srcFileList := GenerateTestFileTree(t, fs, src, "", false, time.Now(), time.Now())
+			srcFileList, err = fs.ConvertToRelativePath(src, srcFileList...)
+			require.NoError(t, err)
+
+			err = fs.Copy(src, dest)
+			require.NoError(t, err)
+
+			var destFileList []string
+			err = fs.ListDirTree(dest, &destFileList)
+			require.NoError(t, err)
+			destFileList, err = fs.ConvertToRelativePath(dest, destFileList...)
+			require.NoError(t, err)
+
+			// the src folder must not be present in the destination
+			assert.ElementsMatch(t, srcFileList, destFileList, "all items should have been copied right under the destination root. srcFolderName should not be present in destination")
 		})
 	}
 }
@@ -1359,6 +1363,8 @@ func TestListDirTreeWithExclusion(t *testing.T) {
 func checkCopyDir(t *testing.T, fs FS, src string, dest string, exclusionPattern ...string) {
 	assert.True(t, fs.Exists(src))
 	assert.False(t, fs.Exists(dest))
+	require.NoError(t, fs.MkDir(dest))
+	assert.True(t, fs.Exists(dest))
 	var err error
 	if reflection.IsEmpty(exclusionPattern) {
 		err = fs.Copy(src, dest)
@@ -1414,18 +1420,39 @@ func checkCopy(t *testing.T, fs FS, oldFile string, dest string, exclusionPatter
 
 	assert.True(t, fs.Exists(oldFile))
 	if reflection.IsEmpty(exclusionPattern) {
-		assert.True(t, fs.Exists(dest))
 
-		empty2, err := fs.IsEmpty(filepath.Join(dest, filepath.Base(oldFile)))
-		require.NoError(t, err)
-		assert.Equal(t, empty, empty2)
+		assert.True(t, fs.Exists(dest))
+		t.Run(fmt.Sprintf("checking compliance with [cp %v %v]", filepath.Base(oldFile), filepath.Base(dest)), func(t *testing.T) {
+			isSrcFile, err := fs.IsFile(oldFile)
+			require.NoError(t, err)
+			if isSrcFile {
+				if !reflection.IsEmpty(filepath.Ext(dest)) {
+					isDestFile, err := fs.IsFile(dest)
+					require.NoError(t, err)
+					assert.True(t, isDestFile, "destination should be a file")
+					empty2, err := fs.IsEmpty(dest)
+					require.NoError(t, err)
+					assert.Equal(t, empty, empty2, "content of destination file should be the same as source")
+				} else {
+					isDestDir, err := fs.IsDir(dest)
+					require.NoError(t, err)
+					assert.True(t, isDestDir)
+					empty2, err := fs.IsEmpty(filepath.Join(dest, filepath.Base(oldFile)))
+					require.NoError(t, err)
+					assert.Equal(t, empty, empty2, "content of destination file should be the same as source")
+				}
+			}
+		})
 	} else {
-		if IsPathExcludedFromPatterns(dest, fs.PathSeparator(), exclusionPattern...) || IsPathExcludedFromPatterns(oldFile, fs.PathSeparator(), exclusionPattern...) {
-			assert.False(t, fs.Exists(dest))
-		} else {
-			assert.True(t, fs.Exists(dest))
-		}
+		t.Run("checking path exclusions", func(t *testing.T) {
+			if IsPathExcludedFromPatterns(dest, fs.PathSeparator(), exclusionPattern...) || IsPathExcludedFromPatterns(oldFile, fs.PathSeparator(), exclusionPattern...) {
+				assert.False(t, fs.Exists(dest))
+			} else {
+				assert.True(t, fs.Exists(dest))
+			}
+		})
 	}
+
 	require.NoError(t, fs.Rm(dest))
 }
 

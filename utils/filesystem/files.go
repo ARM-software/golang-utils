@@ -1027,17 +1027,36 @@ func CopyBetweenFSWithExclusionRegexes(ctx context.Context, srcFs FS, src string
 		err = fmt.Errorf("path [%v] does not exist: %w", src, commonerrors.ErrNotFound)
 		return
 	}
-	err = destFs.MkDir(dest)
-	if err != nil {
-		return
+	destExists := destFs.Exists(dest)
+	isDestDir := false
+	if destExists {
+		isDestDir, err = destFs.IsDir(dest)
+		if err != nil {
+			return
+		}
+	} else {
+		isDestDir = reflection.IsEmpty(filepath.Ext(dest))
+		if isDestDir {
+			err = destFs.MkDir(dest)
+		} else {
+			err = destFs.MkDir(filepath.Dir(dest))
+		}
+		if err != nil {
+			return
+		}
 	}
 
-	isDir, err := srcFs.IsDir(src)
+	isSrcDir, err := srcFs.IsDir(src)
 	if err != nil {
 		return
 	}
-	dst := filepath.Join(dest, filepath.Base(src))
-	if isDir {
+	var dst string
+	if !(isSrcDir && !destExists) && isDestDir {
+		dst = filepath.Join(dest, filepath.Base(src))
+	} else {
+		dst = dest
+	}
+	if isSrcDir {
 		err = copyFolderBetweenFSWithExclusionRegexes(ctx, srcFs, src, destFs, dst, exclusionSrcFsRegexes, exclusionDestFsRegexes)
 	} else {
 		err = copyFileBetweenFSWithExclusionPatternsWithExclusionRegexes(ctx, srcFs, src, destFs, dst, exclusionSrcFsRegexes, exclusionDestFsRegexes)
