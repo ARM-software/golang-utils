@@ -929,6 +929,7 @@ func TestCopy(t *testing.T) {
 
 			checkNotEmpty(t, fs, tmpDir)
 			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "newDir"))
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "newFile.file"))
 			_ = fs.Rm(tmpDir)
 		})
 	}
@@ -953,6 +954,7 @@ func TestCopyWithExclusion(t *testing.T) {
 
 			checkNotEmpty(t, fs, tmpDir)
 			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "newDir"), "test-copy-with-exclusion-.*")
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "newFile.file"), "test-copy-with-exclusion-.*")
 			_ = fs.Rm(tmpDir)
 		})
 	}
@@ -1418,18 +1420,39 @@ func checkCopy(t *testing.T, fs FS, oldFile string, dest string, exclusionPatter
 
 	assert.True(t, fs.Exists(oldFile))
 	if reflection.IsEmpty(exclusionPattern) {
-		assert.True(t, fs.Exists(dest))
 
-		empty2, err := fs.IsEmpty(filepath.Join(dest, filepath.Base(oldFile)))
-		require.NoError(t, err)
-		assert.Equal(t, empty, empty2)
+		assert.True(t, fs.Exists(dest))
+		t.Run(fmt.Sprintf("checking compliance with [cp %v %v]", filepath.Base(oldFile), filepath.Base(dest)), func(t *testing.T) {
+			isSrcFile, err := fs.IsFile(oldFile)
+			require.NoError(t, err)
+			if isSrcFile {
+				if !reflection.IsEmpty(filepath.Ext(dest)) {
+					isDestFile, err := fs.IsFile(dest)
+					require.NoError(t, err)
+					assert.True(t, isDestFile, "destination should be a file")
+					empty2, err := fs.IsEmpty(dest)
+					require.NoError(t, err)
+					assert.Equal(t, empty, empty2, "content of destination file should be the same as source")
+				} else {
+					isDestDir, err := fs.IsDir(dest)
+					require.NoError(t, err)
+					assert.True(t, isDestDir)
+					empty2, err := fs.IsEmpty(filepath.Join(dest, filepath.Base(oldFile)))
+					require.NoError(t, err)
+					assert.Equal(t, empty, empty2, "content of destination file should be the same as source")
+				}
+			}
+		})
 	} else {
-		if IsPathExcludedFromPatterns(dest, fs.PathSeparator(), exclusionPattern...) || IsPathExcludedFromPatterns(oldFile, fs.PathSeparator(), exclusionPattern...) {
-			assert.False(t, fs.Exists(dest))
-		} else {
-			assert.True(t, fs.Exists(dest))
-		}
+		t.Run("checking path exclusions", func(t *testing.T) {
+			if IsPathExcludedFromPatterns(dest, fs.PathSeparator(), exclusionPattern...) || IsPathExcludedFromPatterns(oldFile, fs.PathSeparator(), exclusionPattern...) {
+				assert.False(t, fs.Exists(dest))
+			} else {
+				assert.True(t, fs.Exists(dest))
+			}
+		})
 	}
+
 	require.NoError(t, fs.Rm(dest))
 }
 

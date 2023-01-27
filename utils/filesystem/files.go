@@ -1028,22 +1028,35 @@ func CopyBetweenFSWithExclusionRegexes(ctx context.Context, srcFs FS, src string
 		return
 	}
 	destExists := destFs.Exists(dest)
-	err = destFs.MkDir(dest)
-	if err != nil {
-		return
+	isDestDir := false
+	if destExists {
+		isDestDir, err = destFs.IsDir(dest)
+		if err != nil {
+			return
+		}
+	} else {
+		isDestDir = reflection.IsEmpty(filepath.Ext(dest))
+		if isDestDir {
+			err = destFs.MkDir(dest)
+		} else {
+			err = destFs.MkDir(filepath.Dir(dest))
+		}
+		if err != nil {
+			return
+		}
 	}
 
-	isDir, err := srcFs.IsDir(src)
+	isSrcDir, err := srcFs.IsDir(src)
 	if err != nil {
 		return
 	}
 	var dst string
-	if !(isDir && !destExists) {
+	if !(isSrcDir && !destExists) && isDestDir {
 		dst = filepath.Join(dest, filepath.Base(src))
 	} else {
 		dst = dest
 	}
-	if isDir {
+	if isSrcDir {
 		err = copyFolderBetweenFSWithExclusionRegexes(ctx, srcFs, src, destFs, dst, exclusionSrcFsRegexes, exclusionDestFsRegexes)
 	} else {
 		err = copyFileBetweenFSWithExclusionPatternsWithExclusionRegexes(ctx, srcFs, src, destFs, dst, exclusionSrcFsRegexes, exclusionDestFsRegexes)
