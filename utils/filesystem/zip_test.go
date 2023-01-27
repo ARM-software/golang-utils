@@ -41,7 +41,7 @@ func TestZip(t *testing.T) {
 					// see Section 4.4.6 of the spec https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
 					// As a result, the built-in timestamp resolution of files in a ZIP archive is only two seconds and so, file timestamps will not be fully preserved when a zip/unzip is performed.
 					// Making the FS think the tree was made 3 seconds ago.
-					tree := createTestFileTree(t, fs, testDir, "", false, time.Now().Add(-3*time.Second), time.Now())
+					tree := GenerateTestFileTree(t, fs, testDir, "", false, time.Now().Add(-3*time.Second), time.Now())
 
 					// zip the directory into the zipfile
 					err = fs.Zip(testDir, zipfile)
@@ -127,7 +127,7 @@ func TestZipWithExclusion(t *testing.T) {
 					outDir := filepath.Join(tmpDir, "output")
 
 					// create a file tree for the test
-					tree := createTestFileTree(t, fs, testDir, "", false, time.Now().Add(-3*time.Second), time.Now())
+					tree := GenerateTestFileTree(t, fs, testDir, "", false, time.Now().Add(-3*time.Second), time.Now())
 
 					exclusionPatterns := []string{".*test2.*", ".*test3.*"}
 
