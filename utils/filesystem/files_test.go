@@ -910,6 +910,121 @@ func TestFindAll(t *testing.T) {
 	}
 }
 
+// TestCopyFile verifies `Copy` has a similar behaviour to `cp -r` when copying files
+// e.g. filesystem.Copy("source.txt","does-not-exist") and filesystem.Copy("source.txt",".does-not-exist") both create files with the content of source.txt
+func TestCopyFile(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-copy-file-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+
+			empty, err := fs.IsEmpty(tmpDir)
+			require.NoError(t, err)
+			assert.True(t, empty)
+
+			tmpFile, err := fs.TempFile(tmpDir, "test-copy-*.test")
+			require.NoError(t, err)
+			err = tmpFile.Close()
+			require.NoError(t, err)
+
+			checkNotEmpty(t, fs, tmpDir)
+
+			empty, err = fs.IsEmpty(tmpFile.Name())
+			require.NoError(t, err)
+			require.True(t, empty, "created file must be empty")
+
+			destinationFiles := []string{faker.Word(), faker.DomainName(), "." + faker.Word(), faker.Word() + "." + faker.Word(), "." + faker.Word() + "." + faker.Word()}
+			for i := range destinationFiles {
+				destinationFile := destinationFiles[i]
+				// This should result to the creation of a new file named after destination and with the content of the source
+				t.Run(fmt.Sprintf("copy file to a non existing file [%v]", destinationFile), func(t *testing.T) {
+					dest := filepath.Join(tmpDir, destinationFile)
+					assert.False(t, fs.Exists(dest))
+					err = fs.Copy(tmpFile.Name(), dest)
+					require.NoError(t, err)
+					assert.True(t, fs.Exists(dest))
+					isFile, err := fs.IsFile(dest)
+					require.NoError(t, err)
+					assert.True(t, isFile)
+				})
+			}
+
+			for i := range destinationFiles {
+				destinationFile := destinationFiles[i]
+				// any existing file should be overwritten
+				t.Run(fmt.Sprintf("copy file to an existing file [%v]", destinationFile), func(t *testing.T) {
+					dest := filepath.Join(tmpDir, destinationFile)
+					err := fs.WriteFile(dest, []byte("this is a test "+faker.Sentence()), os.ModePerm)
+					require.NoError(t, err)
+					assert.True(t, fs.Exists(dest))
+					empty, err = fs.IsEmpty(dest)
+					require.NoError(t, err)
+					assert.False(t, empty)
+					err = fs.Copy(tmpFile.Name(), dest)
+					require.NoError(t, err)
+					assert.True(t, fs.Exists(dest))
+					isFile, err := fs.IsFile(dest)
+					require.NoError(t, err)
+					assert.True(t, isFile)
+					empty, err = fs.IsEmpty(dest)
+					require.NoError(t, err)
+					assert.True(t, empty, "existing file must be overwritten during copy")
+					require.NoError(t, fs.Rm(dest))
+				})
+			}
+			destinationFolders := []string{faker.DomainName(), faker.DomainName(), "." + faker.Word(), faker.Word() + "." + faker.Word(), "." + faker.Word() + "." + faker.Word()}
+			pathSeparators := []string{"/", string(fs.PathSeparator())}
+			for i := range destinationFolders {
+				for j := range pathSeparators {
+					sep := pathSeparators[j]
+					destinationFolder := destinationFolders[i] + sep
+					// if the destination ends with a path separator then it must be understood as a folder
+					t.Run(fmt.Sprintf("copy file to a non existing folder [%v]", destinationFolder), func(t *testing.T) {
+						dest := filepath.Join(tmpDir, destinationFolder) + sep
+						require.NoError(t, fs.Rm(dest))
+						assert.False(t, fs.Exists(dest))
+						err = fs.Copy(tmpFile.Name(), dest)
+						require.NoError(t, err)
+						assert.True(t, fs.Exists(dest))
+						isDir, err := fs.IsDir(dest)
+						require.NoError(t, err)
+						assert.True(t, isDir)
+						destFile := filepath.Join(dest, filepath.Base(tmpFile.Name()))
+						assert.True(t, fs.Exists(destFile))
+						isFile, err := fs.IsFile(destFile)
+						require.NoError(t, err)
+						assert.True(t, isFile)
+					})
+				}
+			}
+			// if the destination is an existing folder, then the file must be copied to a new file in the destination folder named after the source file.
+			destinationFolders = []string{faker.DomainName(), faker.DomainName() + string(fs.PathSeparator()), "." + faker.Word(), faker.Word() + "." + faker.Word(), "." + faker.Word() + "." + faker.Word()}
+			for i := range destinationFolders {
+				destinationFolder := destinationFolders[i]
+				t.Run(fmt.Sprintf("copy file to an existing folder [%v]", destinationFolder), func(t *testing.T) {
+					dest := filepath.Join(tmpDir, destinationFolder)
+					err = fs.MkDir(dest)
+					assert.True(t, fs.Exists(dest))
+					isDir, err := fs.IsDir(dest)
+					require.NoError(t, err)
+					assert.True(t, isDir)
+					err = fs.Copy(tmpFile.Name(), dest)
+					require.NoError(t, err)
+					destFile := filepath.Join(dest, filepath.Base(tmpFile.Name()))
+					assert.True(t, fs.Exists(destFile))
+					isFile, err := fs.IsFile(destFile)
+					require.NoError(t, err)
+					assert.True(t, isFile)
+				})
+			}
+
+			_ = fs.Rm(tmpDir)
+		})
+	}
+}
+
 func TestCopy(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
@@ -928,8 +1043,18 @@ func TestCopy(t *testing.T) {
 			require.NoError(t, err)
 
 			checkNotEmpty(t, fs, tmpDir)
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "newDir"))
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "newFile.file"))
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist"))
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist")+string(fs.PathSeparator()))
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, ".does-not-exist")+string(fs.PathSeparator()))
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist")+"/")
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, ".does-not-exist")+"/")
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, ".does-not-exist"))
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist.file"))
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, ".does-not-exist.file"))
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist", "does-not-exist"))
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist", ".does-not-exist"))
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist", "does-not-exist.file"))
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist", ".does-not-exist.file"))
 			_ = fs.Rm(tmpDir)
 		})
 	}
@@ -953,8 +1078,11 @@ func TestCopyWithExclusion(t *testing.T) {
 			require.NoError(t, err)
 
 			checkNotEmpty(t, fs, tmpDir)
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "newDir"), "test-copy-with-exclusion-.*")
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "newFile.file"), "test-copy-with-exclusion-.*")
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "test-copy-with-exclusion-test"), "test-copy-with-exclusion-.*")
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist", "test-copy-with-exclusion-test"), "test-copy-with-exclusion-.*")
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, ".does-not-exist", "test-copy-with-exclusion-test"), "test-copy-with-exclusion-.*")
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist.file", "test-copy-with-exclusion-test"), "test-copy-with-exclusion-.*")
+			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, ".does-not-exist.file", "test-copy-with-exclusion-test"), "test-copy-with-exclusion-.*")
 			_ = fs.Rm(tmpDir)
 		})
 	}
@@ -984,7 +1112,8 @@ func TestCopyFolder(t *testing.T) {
 			}()
 
 			checkNotEmpty(t, fs, parentDir)
-			checkCopyDir(t, fs, parentDir, filepath.Join(testDir, "newDir"))
+			checkCopyDir(t, fs, parentDir, filepath.Join(testDir, "does-not-exist"))
+			checkCopyDir(t, fs, parentDir, filepath.Join(testDir, ".does-not-exist"))
 		})
 	}
 }
@@ -1425,22 +1554,23 @@ func checkCopy(t *testing.T, fs FS, oldFile string, dest string, exclusionPatter
 		t.Run(fmt.Sprintf("checking compliance with [cp %v %v]", filepath.Base(oldFile), filepath.Base(dest)), func(t *testing.T) {
 			isSrcFile, err := fs.IsFile(oldFile)
 			require.NoError(t, err)
+			isDestFile, err := fs.IsFile(dest)
+			require.NoError(t, err)
 			if isSrcFile {
-				if !reflection.IsEmpty(filepath.Ext(dest)) {
-					isDestFile, err := fs.IsFile(dest)
-					require.NoError(t, err)
-					assert.True(t, isDestFile, "destination should be a file")
+				if isDestFile {
 					empty2, err := fs.IsEmpty(dest)
 					require.NoError(t, err)
 					assert.Equal(t, empty, empty2, "content of destination file should be the same as source")
 				} else {
-					isDestDir, err := fs.IsDir(dest)
-					require.NoError(t, err)
-					assert.True(t, isDestDir)
-					empty2, err := fs.IsEmpty(filepath.Join(dest, filepath.Base(oldFile)))
+					file := filepath.Join(filepath.Clean(dest), filepath.Base(oldFile))
+					require.True(t, fs.Exists(file), "destination folder should be created and the source file should be a child")
+					empty2, err := fs.IsEmpty(file)
 					require.NoError(t, err)
 					assert.Equal(t, empty, empty2, "content of destination file should be the same as source")
 				}
+
+			} else {
+				assert.False(t, isDestFile, "destination should be a directory like the source")
 			}
 		})
 	} else {

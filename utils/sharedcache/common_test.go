@@ -182,8 +182,8 @@ func TestTransferWithNonExistentDestinationFolders(t *testing.T) {
 			folder2, err := fs.TempDirInTempDir("test-tranfer2")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(folder2) }()
-			dest1 := filepath.Join(folder1, "test_dest_tranfer1_dir/")
-			dest2 := filepath.Join(folder2, "test_dest_tranfer2_dir/")
+			dest1 := filepath.Join(folder1, "test_dest_tranfer1_dir") + "/"
+			dest2 := filepath.Join(folder2, "test_dest_tranfer2_dir") + "/"
 
 			testTransfert(t, ctx, fs, folder1, dest1, dest2)
 		})

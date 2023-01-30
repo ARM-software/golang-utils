@@ -100,13 +100,13 @@ func TransferFiles(ctx context.Context, fs filesystem.FS, dst, src string) (dest
 	}
 
 	// download/upload from/to cache
-	err = fs.Copy(src, destDir)
+	err = fs.CopyWithContext(ctx, src, destDir)
 	if err != nil {
 		return
 	}
 
 	if renameFile {
-		err = fs.Move(filepath.Join(destDir, filepath.Base(src)), destFile)
+		err = fs.MoveWithContext(ctx, filepath.Join(destDir, filepath.Base(src)), destFile)
 		if err != nil {
 			return
 		}

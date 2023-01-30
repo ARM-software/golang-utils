@@ -100,3 +100,20 @@ func TestFileTreeDepth(t *testing.T) {
 		})
 	}
 }
+
+func TestEndsWithPathSeparator(t *testing.T) {
+	for fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(FileSystemTypes[fsType])
+
+			assert.True(t, EndsWithPathSeparator(fs, "test fsdfs .fsdffs /"))
+			assert.False(t, EndsWithPathSeparator(fs, "test fsdfs .fsdffs "))
+			assert.False(t, EndsWithPathSeparator(fs, filepath.Join(faker.DomainName(), "test fsdfs .fsdffs ")))
+			assert.True(t, EndsWithPathSeparator(fs, filepath.Join(faker.DomainName(), "test fsdfs .fsdffs ")+"/"))
+			assert.False(t, EndsWithPathSeparator(fs, filepath.Join(faker.DomainName(), "test fsdfs .fsdffs /")), "join should trim the tailing separator")
+			assert.True(t, EndsWithPathSeparator(fs, "test fsdfs .fsdffs "+string(fs.PathSeparator())))
+			assert.True(t, EndsWithPathSeparator(fs, filepath.Join(faker.DomainName(), "test fsdfs .fsdffs ")+string(fs.PathSeparator())))
+			assert.False(t, EndsWithPathSeparator(fs, filepath.Join(faker.DomainName(), "test fsdfs .fsdffs "+string(fs.PathSeparator()))), "join should trim the tailing separator")
+		})
+	}
+}

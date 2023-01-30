@@ -16,13 +16,13 @@ beta releases are not included in this history.
 
 "" "1.25.1" (2023-01-27)
 ========================
-
+:warning: the change of bevahiour of `filesystem.Copy` when destination does not exist may result in a breaking change
 Bugfixes
 --------
 
 - Dependency upgrade: fetch-metadata-1.3.6 (#20230124111318, #20230124111321)
 - Dependency upgrade: uuid-4.4.0incompatible (#20230126110437, #20230126110454, #20230126110522, #20230126110538, #20230126110604, #20230126110651)
-- :bug:`[filesystem]` Fix `Copy` behaviour to match `cp -r` when destination does not exists (#20230126194148)
+- :bug:`[filesystem]` Fix `Copy` behaviour to match `cp -r` when destination does not exist (#20230126194148)
 - Dependency upgrade: zerolog-1.29.0 (#20230126195900, #20230126195917, #20230126195937, #20230126195956, #20230126200018, #20230126200036, #20230126200111)
 - :bug:`[filesystem]` Fix `Copy` behaviour to match `cp <file>` when destination has a file name (#20230127113013)
 
