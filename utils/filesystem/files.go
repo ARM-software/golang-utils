@@ -969,11 +969,74 @@ func (fs *VFS) Copy(src string, dest string) (err error) {
 	return fs.CopyWithContext(context.Background(), src, dest)
 }
 
-func (fs *VFS) CopyWithContext(ctx context.Context, src string, dest string) (err error) {
+// CopyToFile copies a file into another file
+func CopyToFile(srcFile, destFile string) error {
+	return globalFileSystem.CopyToFile(srcFile, destFile)
+}
+
+func (fs *VFS) CopyToFile(src string, dest string) error {
+	return fs.CopyToFileWithContext(context.Background(), src, dest)
+}
+
+// CopyToFileWithContext copies a file into another file
+func CopyToFileWithContext(ctx context.Context, srcFile, destFile string) error {
+	return globalFileSystem.CopyToFileWithContext(ctx, srcFile, destFile)
+}
+
+func (fs *VFS) CopyToFileWithContext(ctx context.Context, src string, dest string) (err error) {
+	isFile, err := fs.IsFile(src)
+	if err != nil {
+		return
+	}
+	if !isFile {
+		err = fmt.Errorf("%w: the copy source [%v] must be a file", commonerrors.ErrInvalid, src)
+		return
+	}
+	if fs.Exists(dest) {
+		isFile, err = fs.IsFile(dest)
+		if err != nil {
+			return
+		}
+		if !isFile {
+			err = fmt.Errorf("%w: the copy destination [%v] must be a file", commonerrors.ErrInvalid, dest)
+			return
+		}
+	} else if reflection.IsEmpty(dest) || strings.HasSuffix(dest, "/") || strings.HasSuffix(dest, string(fs.PathSeparator())) {
+		err = fmt.Errorf("%w: the copy destination [%v] must be a valid filename", commonerrors.ErrInvalid, dest)
+		return
+	}
+
+	return fs.CopyWithContext(ctx, src, dest)
+}
+
+// CopyToDirectory copies a src to a directory  destDirectory which will be created as such if not present.
+func CopyToDirectory(src, destDirectory string) error {
+	return GetGlobalFileSystem().CopyToDirectory(src, destDirectory)
+}
+
+func (fs *VFS) CopyToDirectory(src, destDirectory string) error {
+	return fs.CopyToDirectoryWithContext(context.Background(), src, destDirectory)
+}
+
+// CopyToDirectoryWithContext copies a src to a directory  destDirectory which will be created as such if not present.
+func CopyToDirectoryWithContext(ctx context.Context, src, destDirectory string) error {
+	return GetGlobalFileSystem().CopyToDirectoryWithContext(ctx, src, destDirectory)
+}
+
+func (fs *VFS) CopyToDirectoryWithContext(ctx context.Context, src, destDirectory string) (err error) {
+	err = fs.MkDir(destDirectory)
+	if err != nil {
+		return
+	}
+	err = fs.CopyWithContext(ctx, src, destDirectory)
+	return
+}
+
+func (fs *VFS) CopyWithContext(ctx context.Context, src string, dest string) error {
 	return fs.CopyWithContextAndExclusionPatterns(ctx, src, dest)
 }
 
-func (fs *VFS) CopyWithContextAndExclusionPatterns(ctx context.Context, src string, dest string, exclusionPatterns ...string) (err error) {
+func (fs *VFS) CopyWithContextAndExclusionPatterns(ctx context.Context, src string, dest string, exclusionPatterns ...string) error {
 	return CopyBetweenFSWithExclusionPatterns(ctx, fs, src, fs, dest, exclusionPatterns...)
 }
 

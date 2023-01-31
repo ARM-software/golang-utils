@@ -910,6 +910,185 @@ func TestFindAll(t *testing.T) {
 	}
 }
 
+func TestCopyToFile(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-copy-to-file-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+
+			empty, err := fs.IsEmpty(tmpDir)
+			require.NoError(t, err)
+			assert.True(t, empty)
+
+			tmpFile, err := fs.TempFile(tmpDir, "test-copy-to-file-*.test")
+			require.NoError(t, err)
+			err = tmpFile.Close()
+			require.NoError(t, err)
+
+			checkNotEmpty(t, fs, tmpDir)
+
+			empty, err = fs.IsEmpty(tmpFile.Name())
+			require.NoError(t, err)
+			require.True(t, empty, "created file must be empty")
+
+			destinationFiles := []string{faker.Word(), faker.DomainName(), "." + faker.Word(), faker.Word() + "." + faker.Word(), "." + faker.Word() + "." + faker.Word()}
+			for i := range destinationFiles {
+				destinationFile := destinationFiles[i]
+				// This should result to the creation of a new file named after destination and with the content of the source
+				t.Run(fmt.Sprintf("copy to file to a non existing file [%v]", destinationFile), func(t *testing.T) {
+					dest := filepath.Join(tmpDir, destinationFile)
+					assert.False(t, fs.Exists(dest))
+					err = fs.CopyToFile(tmpFile.Name(), dest)
+					require.NoError(t, err)
+					assert.True(t, fs.Exists(dest))
+					isFile, err := fs.IsFile(dest)
+					require.NoError(t, err)
+					assert.True(t, isFile)
+				})
+			}
+
+			for i := range destinationFiles {
+				destinationFile := destinationFiles[i]
+				// any existing file should be overwritten
+				t.Run(fmt.Sprintf("copy to file to an existing file [%v]", destinationFile), func(t *testing.T) {
+					dest := filepath.Join(tmpDir, destinationFile)
+					err := fs.WriteFile(dest, []byte("this is a test "+faker.Sentence()), os.ModePerm)
+					require.NoError(t, err)
+					assert.True(t, fs.Exists(dest))
+					empty, err = fs.IsEmpty(dest)
+					require.NoError(t, err)
+					assert.False(t, empty)
+					err = fs.CopyToFile(tmpFile.Name(), dest)
+					require.NoError(t, err)
+					assert.True(t, fs.Exists(dest))
+					isFile, err := fs.IsFile(dest)
+					require.NoError(t, err)
+					assert.True(t, isFile)
+					empty, err = fs.IsEmpty(dest)
+					require.NoError(t, err)
+					assert.True(t, empty, "existing file must be overwritten during copy")
+					require.NoError(t, fs.Rm(dest))
+				})
+			}
+			destinationFolders := []string{faker.DomainName(), faker.DomainName(), "." + faker.Word(), faker.Word() + "." + faker.Word(), "." + faker.Word() + "." + faker.Word()}
+			pathSeparators := []string{"/", string(fs.PathSeparator())}
+			for i := range destinationFolders {
+				for j := range pathSeparators {
+					sep := pathSeparators[j]
+					destinationFolder := destinationFolders[i] + sep
+					// if the destination ends with a path separator then it must be understood as a folder
+					t.Run(fmt.Sprintf("copy to file to a non existing folder [%v] should fail", destinationFolder), func(t *testing.T) {
+						dest := filepath.Join(tmpDir, destinationFolder) + sep
+						require.NoError(t, fs.Rm(dest))
+						assert.False(t, fs.Exists(dest))
+						err = fs.CopyToFile(tmpFile.Name(), dest)
+						require.Error(t, err)
+						assert.False(t, fs.Exists(dest))
+					})
+				}
+			}
+
+			destinationFolders = []string{faker.DomainName(), faker.DomainName() + string(fs.PathSeparator()), "." + faker.Word(), faker.Word() + "." + faker.Word(), "." + faker.Word() + "." + faker.Word()}
+			for i := range destinationFolders {
+				destinationFolder := destinationFolders[i]
+				t.Run(fmt.Sprintf("copy to file to an existing folder [%v] should fail", destinationFolder), func(t *testing.T) {
+					dest := filepath.Join(tmpDir, destinationFolder)
+					err = fs.MkDir(dest)
+					assert.True(t, fs.Exists(dest))
+					isDir, err := fs.IsDir(dest)
+					require.NoError(t, err)
+					assert.True(t, isDir)
+					err = fs.CopyToFile(tmpFile.Name(), dest)
+					require.Error(t, err)
+				})
+			}
+			t.Run(fmt.Sprintf("copy to file a folder [%v] should fail", tmpDir), func(t *testing.T) {
+				err = fs.CopyToFile(tmpDir, faker.Word())
+				require.Error(t, err)
+				assert.True(t, commonerrors.Any(err, commonerrors.ErrInvalid))
+			})
+
+			_ = fs.Rm(tmpDir)
+		})
+	}
+}
+
+func TestCopyToDirectory(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-copy-to-dir-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+
+			empty, err := fs.IsEmpty(tmpDir)
+			require.NoError(t, err)
+			assert.True(t, empty)
+
+			tmpFile, err := fs.TempFile(tmpDir, "test-copy-*.test")
+			require.NoError(t, err)
+			err = tmpFile.Close()
+			require.NoError(t, err)
+
+			checkNotEmpty(t, fs, tmpDir)
+
+			empty, err = fs.IsEmpty(tmpFile.Name())
+			require.NoError(t, err)
+			require.True(t, empty, "created file must be empty")
+
+			destinationFolders := []string{faker.DomainName(), faker.DomainName(), "." + faker.Word(), faker.Word() + "." + faker.Word(), "." + faker.Word() + "." + faker.Word()}
+			pathSeparators := []string{"/", string(fs.PathSeparator())}
+			for i := range destinationFolders {
+				for j := range pathSeparators {
+					sep := pathSeparators[j]
+					destinationFolder := destinationFolders[i] + sep
+					// if the destination ends with a path separator then it must be understood as a folder
+					t.Run(fmt.Sprintf("copy file to a non existing folder [%v]", destinationFolder), func(t *testing.T) {
+						dest := filepath.Join(tmpDir, destinationFolder) + sep
+						require.NoError(t, fs.Rm(dest))
+						assert.False(t, fs.Exists(dest))
+						err = fs.CopyToDirectory(tmpFile.Name(), dest)
+						require.NoError(t, err)
+						assert.True(t, fs.Exists(dest))
+						isDir, err := fs.IsDir(dest)
+						require.NoError(t, err)
+						assert.True(t, isDir)
+						destFile := filepath.Join(dest, filepath.Base(tmpFile.Name()))
+						assert.True(t, fs.Exists(destFile))
+						isFile, err := fs.IsFile(destFile)
+						require.NoError(t, err)
+						assert.True(t, isFile)
+					})
+				}
+			}
+			// if the destination is an existing folder, then the file must be copied to a new file in the destination folder named after the source file.
+			destinationFolders = []string{faker.DomainName(), faker.DomainName() + string(fs.PathSeparator()), "." + faker.Word(), faker.Word() + "." + faker.Word(), "." + faker.Word() + "." + faker.Word()}
+			for i := range destinationFolders {
+				destinationFolder := destinationFolders[i]
+				t.Run(fmt.Sprintf("copy file to an existing folder [%v]", destinationFolder), func(t *testing.T) {
+					dest := filepath.Join(tmpDir, destinationFolder)
+					err = fs.MkDir(dest)
+					assert.True(t, fs.Exists(dest))
+					isDir, err := fs.IsDir(dest)
+					require.NoError(t, err)
+					assert.True(t, isDir)
+					err = fs.CopyToDirectory(tmpFile.Name(), dest)
+					require.NoError(t, err)
+					destFile := filepath.Join(dest, filepath.Base(tmpFile.Name()))
+					assert.True(t, fs.Exists(destFile))
+					isFile, err := fs.IsFile(destFile)
+					require.NoError(t, err)
+					assert.True(t, isFile)
+				})
+			}
+
+			_ = fs.Rm(tmpDir)
+		})
+	}
+}
+
 // TestCopyFile verifies `Copy` has a similar behaviour to `cp -r` when copying files
 // e.g. filesystem.Copy("source.txt","does-not-exist") and filesystem.Copy("source.txt",".does-not-exist") both create files with the content of source.txt
 func TestCopyFile(t *testing.T) {

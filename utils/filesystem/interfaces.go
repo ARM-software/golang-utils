@@ -178,6 +178,14 @@ type FS interface {
 	Lls(dir string) (files []os.FileInfo, err error)
 	// LlsFromOpenedDirectory lists all files and directory (equivalent to ls -l)
 	LlsFromOpenedDirectory(dir File) (files []os.FileInfo, err error)
+	// CopyToFile copies a file to another file.
+	CopyToFile(srcFile, destFile string) error
+	// CopyToFileWithContext copies a file to another file similarly to CopyToFile.
+	CopyToFileWithContext(ctx context.Context, srcFile, destFile string) error
+	// CopyToDirectory copies a src to a directory  destDirectory which will be created as such if not present.
+	CopyToDirectory(src, destDirectory string) error
+	// CopyToDirectoryWithContext copies a src to a directory similarly to CopyToDirectory.
+	CopyToDirectoryWithContext(ctx context.Context, src, destDirectory string) error
 	// Copy copies files and directory (equivalent to [POSIX cp -r](https://www.unix.com/man-page/posix/1P/cp/) or DOS `copy` or `shutil.copy()`/`shutil.copytree()` in [python](https://docs.python.org/3/library/shutil.html#shutil.copy))
 	// It should be noted that although the behaviour should match `cp -r` in most cases, there may be some corner cases in which the behaviour of Copy may differ slightly.
 	// For instance, if the destination `dest` does not exist and the source is a file, then the destination will be a file unless the destination ends with a path separator and thus, the intention was to consider it as a folder.

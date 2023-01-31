@@ -1095,6 +1095,62 @@ func (mr *MockFSMockRecorder) Copy(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Copy", reflect.TypeOf((*MockFS)(nil).Copy), arg0, arg1)
 }
 
+// CopyToDirectory mocks base method.
+func (m *MockFS) CopyToDirectory(arg0, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CopyToDirectory", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CopyToDirectory indicates an expected call of CopyToDirectory.
+func (mr *MockFSMockRecorder) CopyToDirectory(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CopyToDirectory", reflect.TypeOf((*MockFS)(nil).CopyToDirectory), arg0, arg1)
+}
+
+// CopyToDirectoryWithContext mocks base method.
+func (m *MockFS) CopyToDirectoryWithContext(arg0 context.Context, arg1, arg2 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CopyToDirectoryWithContext", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CopyToDirectoryWithContext indicates an expected call of CopyToDirectoryWithContext.
+func (mr *MockFSMockRecorder) CopyToDirectoryWithContext(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CopyToDirectoryWithContext", reflect.TypeOf((*MockFS)(nil).CopyToDirectoryWithContext), arg0, arg1, arg2)
+}
+
+// CopyToFile mocks base method.
+func (m *MockFS) CopyToFile(arg0, arg1 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CopyToFile", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CopyToFile indicates an expected call of CopyToFile.
+func (mr *MockFSMockRecorder) CopyToFile(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CopyToFile", reflect.TypeOf((*MockFS)(nil).CopyToFile), arg0, arg1)
+}
+
+// CopyToFileWithContext mocks base method.
+func (m *MockFS) CopyToFileWithContext(arg0 context.Context, arg1, arg2 string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CopyToFileWithContext", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CopyToFileWithContext indicates an expected call of CopyToFileWithContext.
+func (mr *MockFSMockRecorder) CopyToFileWithContext(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CopyToFileWithContext", reflect.TypeOf((*MockFS)(nil).CopyToFileWithContext), arg0, arg1, arg2)
+}
+
 // CopyWithContext mocks base method.
 func (m *MockFS) CopyWithContext(arg0 context.Context, arg1, arg2 string) error {
 	m.ctrl.T.Helper()
