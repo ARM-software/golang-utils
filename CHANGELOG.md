@@ -16,7 +16,9 @@ beta releases are not included in this history.
 
 "" "1.25.1" (2023-01-27)
 ========================
+
 :warning: the change of bevahiour of `filesystem.Copy` when destination does not exist may result in a breaking change
+
 Bugfixes
 --------
 
