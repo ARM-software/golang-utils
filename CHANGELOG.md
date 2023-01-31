@@ -14,6 +14,27 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.26.0" (2023-01-31)
+========================
+
+Features
+--------
+
+- :sparkle:`[filesystem]` Added more copy functions `CopyToFile` and `CopyToDirectory` to cover more copy usecases (#20230131184530)
+
+
+Bugfixes
+--------
+
+- :bug:`[filesystem]` Clarified the behaviour of `Copy` for files so that there is no wrong assumptions about the type of the destination if not existing (#20230130162624)
+
+
+Improved Documentation
+----------------------
+
+- Clarified the documentation with regards to `filesystem.Copy` (#20230130162704)
+
+
 "" "1.25.1" (2023-01-27)
 ========================
 
