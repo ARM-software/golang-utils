@@ -29,7 +29,8 @@ func TestGenerateKey(t *testing.T) {
 }
 
 func TestHashWithHashFileExists(t *testing.T) {
-	for _, fsType := range filesystem.FileSystemTypes {
+	for i := range filesystem.FileSystemTypes {
+		fsType := filesystem.FileSystemTypes[i]
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			t.Parallel()
 			fs := filesystem.NewFs(fsType)
@@ -56,7 +57,8 @@ func TestHashWithHashFileExists(t *testing.T) {
 }
 
 func TestHashWithHashFileNotExist(t *testing.T) {
-	for _, fsType := range filesystem.FileSystemTypes {
+	for i := range filesystem.FileSystemTypes {
+		fsType := filesystem.FileSystemTypes[i]
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			t.Parallel()
 			fs := filesystem.NewFs(fsType)
@@ -86,7 +88,8 @@ func TestHashWithHashFileNotExist(t *testing.T) {
 }
 
 func TestHashWithHashFileForceUpdate(t *testing.T) {
-	for _, fsType := range filesystem.FileSystemTypes {
+	for i := range filesystem.FileSystemTypes {
+		fsType := filesystem.FileSystemTypes[i]
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			t.Parallel()
 			fs := filesystem.NewFs(fsType)
@@ -132,7 +135,8 @@ func testTransfert(t *testing.T, ctx context.Context, fs filesystem.FS, folder1,
 }
 
 func TestTransferWithExistingDestination(t *testing.T) {
-	for _, fsType := range filesystem.FileSystemTypes {
+	for i := range filesystem.FileSystemTypes {
+		fsType := filesystem.FileSystemTypes[i]
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			t.Parallel()
 			ctx := context.Background()
@@ -151,7 +155,8 @@ func TestTransferWithExistingDestination(t *testing.T) {
 }
 
 func TestTransferWithDestinationFiles(t *testing.T) {
-	for _, fsType := range filesystem.FileSystemTypes {
+	for i := range filesystem.FileSystemTypes {
+		fsType := filesystem.FileSystemTypes[i]
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			ctx := context.Background()
 			fs := filesystem.NewFs(fsType)
@@ -171,7 +176,8 @@ func TestTransferWithDestinationFiles(t *testing.T) {
 }
 
 func TestTransferWithNonExistentDestinationFolders(t *testing.T) {
-	for _, fsType := range filesystem.FileSystemTypes {
+	for i := range filesystem.FileSystemTypes {
+		fsType := filesystem.FileSystemTypes[i]
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			ctx := context.Background()
 			fs := filesystem.NewFs(fsType)
