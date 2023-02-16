@@ -300,6 +300,11 @@ func (fs *VFS) readFileWithContextAndLimits(ctx context.Context, filename string
 	return
 }
 
+// WriteFile writes data to a file
+func WriteFile(filename string, data []byte, perm os.FileMode) error {
+	return globalFileSystem.WriteFile(filename, data, perm)
+}
+
 func (fs *VFS) WriteFile(filename string, data []byte, perm os.FileMode) error {
 	return fs.WriteFileWithContext(context.Background(), filename, data, perm)
 }
