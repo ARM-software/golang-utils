@@ -36,7 +36,7 @@ require (
 	go.uber.org/goleak v1.2.1
 	golang.org/x/net v0.5.0
 	golang.org/x/sync v0.1.0
-	golang.org/x/text v0.6.0
+	golang.org/x/text v0.7.0
 )
 
 require github.com/dolmen-go/contextio v0.0.0-20220904134943-e50796217f5f
