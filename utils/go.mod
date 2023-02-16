@@ -20,7 +20,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-retryablehttp v0.7.2
-	github.com/joho/godotenv v1.4.0
+	github.com/joho/godotenv v1.5.1
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5
 	github.com/rs/zerolog v1.29.0
@@ -33,13 +33,12 @@ require (
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.1
 	go.uber.org/atomic v1.10.0
-	go.uber.org/goleak v1.2.0
+	go.uber.org/goleak v1.2.1
 	golang.org/x/net v0.6.0
 	golang.org/x/sync v0.1.0
 	golang.org/x/text v0.7.0
+  github.com/dolmen-go/contextio v0.0.0-20220904134943-e50796217f5f
 )
-
-require github.com/dolmen-go/contextio v0.0.0-20220904134943-e50796217f5f
 
 require (
 	github.com/Microsoft/go-winio v0.5.2 // indirect
