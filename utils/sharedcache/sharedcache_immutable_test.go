@@ -16,7 +16,8 @@ import (
 
 // listCompleteFilesByModTime returns a slice of filenames in a directory sorted by modification time
 func TestListCompleteFilesByModTime(t *testing.T) {
-	for _, fsType := range filesystem.FileSystemTypes {
+	for i := range filesystem.FileSystemTypes {
+		fsType := filesystem.FileSystemTypes[i]
 		testName := fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType)
 		t.Run(testName, func(t *testing.T) {
 			fs := filesystem.NewFs(fsType)
@@ -66,7 +67,8 @@ func TestListCompleteFilesByModTime(t *testing.T) {
 }
 
 func TestStoreImmutableCache(t *testing.T) {
-	for _, fsType := range filesystem.FileSystemTypes {
+	for i := range filesystem.FileSystemTypes {
+		fsType := filesystem.FileSystemTypes[i]
 		testName := fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType)
 		t.Run(testName, func(t *testing.T) {
 			t.Parallel()
@@ -117,7 +119,8 @@ func TestStoreImmutableCache(t *testing.T) {
 }
 
 func TestCleanEntryImmutableCache(t *testing.T) {
-	for _, fsType := range filesystem.FileSystemTypes {
+	for i := range filesystem.FileSystemTypes {
+		fsType := filesystem.FileSystemTypes[i]
 		testName := fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType)
 		t.Run(testName, func(t *testing.T) {
 			t.Parallel()

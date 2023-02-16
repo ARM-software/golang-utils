@@ -82,8 +82,10 @@ func createTestFileTree(fs filesystem.FS, testDir string, fileModTime time.Time,
 }
 
 func TestNothingInCacheWorkflow(t *testing.T) { // Single fetch with no file previously cached
-	for _, cacheType := range CacheTypes {
-		for _, fsType := range filesystem.FileSystemTypes {
+	for c := range CacheTypes {
+		cacheType := CacheTypes[c]
+		for i := range filesystem.FileSystemTypes {
+			fsType := filesystem.FileSystemTypes[i]
 			testName := fmt.Sprintf("%v_for_fs_%v_and_cache_%v", t.Name(), fsType, cacheType)
 			t.Run(testName, func(t *testing.T) {
 				t.Parallel()
@@ -118,8 +120,10 @@ func TestNothingInCacheWorkflow(t *testing.T) { // Single fetch with no file pre
 }
 
 func TestSimpleCacheWorkflow(t *testing.T) { // Simple store, followed by fetch
-	for _, cacheType := range CacheTypes {
-		for _, fsType := range filesystem.FileSystemTypes {
+	for c := range CacheTypes {
+		cacheType := CacheTypes[c]
+		for i := range filesystem.FileSystemTypes {
+			fsType := filesystem.FileSystemTypes[i]
 			if fsType == filesystem.InMemoryFS && cacheType == CacheMutable {
 				// FIXME There is an error with lock unlock when using in memory fs
 				continue
@@ -188,8 +192,10 @@ func TestSimpleCacheWorkflow(t *testing.T) { // Simple store, followed by fetch
 }
 
 func TestSimpleCacheWorkflow_WithExcludedFilesystemItems(t *testing.T) { // Simple store, followed by fetch
-	for _, cacheType := range CacheTypes {
-		for _, fsType := range filesystem.FileSystemTypes {
+	for c := range CacheTypes {
+		cacheType := CacheTypes[c]
+		for i := range filesystem.FileSystemTypes {
+			fsType := filesystem.FileSystemTypes[i]
 			if fsType == filesystem.InMemoryFS && cacheType == CacheMutable {
 				// FIXME There is an error with lock unlock when using in memory fs
 				continue
@@ -284,8 +290,10 @@ func TestSimpleCacheWorkflow_WithExcludedFilesystemItems(t *testing.T) { // Simp
 }
 
 func TestComplexCacheWorkflow(t *testing.T) { // Multiple Store action. The fetch should return the latest files stored in cache.
-	for _, cacheType := range CacheTypes {
-		for _, fsType := range filesystem.FileSystemTypes {
+	for c := range CacheTypes {
+		cacheType := CacheTypes[c]
+		for i := range filesystem.FileSystemTypes {
+			fsType := filesystem.FileSystemTypes[i]
 			if fsType == filesystem.InMemoryFS && cacheType == CacheMutable {
 				// FIXME There is an error with locks and in-memory fs (see details in ILock)
 				continue
@@ -360,8 +368,10 @@ func TestComplexCacheWorkflow(t *testing.T) { // Multiple Store action. The fetc
 }
 
 func TestComplexCacheWorkflowWithCleanCache(t *testing.T) { // Multiple Store action. The fetch should return the latest files stored in cache. A clean entry is performed after the multiple stores
-	for _, cacheType := range CacheTypes {
-		for _, fsType := range filesystem.FileSystemTypes {
+	for c := range CacheTypes {
+		cacheType := CacheTypes[c]
+		for i := range filesystem.FileSystemTypes {
+			fsType := filesystem.FileSystemTypes[i]
 			if fsType == filesystem.InMemoryFS {
 				// FIXME There is an error with locks and in-memory fs (see details in ILock)
 				continue
@@ -437,8 +447,10 @@ func TestComplexCacheWorkflowWithCleanCache(t *testing.T) { // Multiple Store ac
 }
 
 func TestRemoveEntry(t *testing.T) { // A store followed by a remove entry followed by a fetch
-	for _, cacheType := range CacheTypes {
-		for _, fsType := range filesystem.FileSystemTypes {
+	for c := range CacheTypes {
+		cacheType := CacheTypes[c]
+		for i := range filesystem.FileSystemTypes {
+			fsType := filesystem.FileSystemTypes[i]
 			testName := fmt.Sprintf("%v_for_fs_%v_and_cache_%v", t.Name(), fsType, cacheType)
 			t.Run(testName, func(t *testing.T) {
 				t.Parallel()
@@ -496,8 +508,10 @@ func TestRemoveEntry(t *testing.T) { // A store followed by a remove entry follo
 }
 
 func TestEntryAge(t *testing.T) { // A store followed by a remove entry followed by a fetch
-	for _, cacheType := range CacheTypes {
-		for _, fsType := range filesystem.FileSystemTypes {
+	for c := range CacheTypes {
+		cacheType := CacheTypes[c]
+		for i := range filesystem.FileSystemTypes {
+			fsType := filesystem.FileSystemTypes[i]
 			testName := fmt.Sprintf("%v_for_fs_%v_and_cache_%v", t.Name(), fsType, cacheType)
 			t.Run(testName, func(t *testing.T) {
 				t.Parallel()
