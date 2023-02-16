@@ -14,6 +14,30 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.27.0" (2023-02-16)
+========================
+
+Features
+--------
+
+- :sparkles: `[filesystem]` Expose WriteFile (#20230216115815)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v3-3.23.1 (#20230201110710)
+- Dependency upgrade: godotenv-1.5.1 (#20230206111213, #20230206111216)
+- Dependency upgrade: text-0.7.0 (#20230209110456, #20230209110623)
+- Dependency upgrade: goleak-1.2.1 (#20230214115944, #20230214115947, #20230214120038)
+
+
+Misc
+----
+
+- #20230216115653
+
+
 "" "1.26.0" (2023-01-31)
 ========================
 
