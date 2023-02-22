@@ -958,12 +958,16 @@ func (fs *VFS) moveFile(ctx context.Context, src string, dest string) (err error
 	return
 }
 
-func (fs *VFS) FileHash(hashAlgo string, path string) (hash string, err error) {
+func (fs *VFS) FileHash(hashAlgo string, path string) (string, error) {
+	return fs.FileHashWithContext(context.Background(), hashAlgo, path)
+}
+
+func (fs *VFS) FileHashWithContext(ctx context.Context, hashAlgo string, path string) (hash string, err error) {
 	hasher, err := NewFileHash(hashAlgo)
 	if err != nil {
 		return
 	}
-	hash, err = hasher.CalculateFile(fs, path)
+	hash, err = hasher.CalculateFileWithContext(ctx, fs, path)
 	return
 }
 

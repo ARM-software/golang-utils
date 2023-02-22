@@ -1294,6 +1294,21 @@ func (mr *MockFSMockRecorder) FileHash(arg0, arg1 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FileHash", reflect.TypeOf((*MockFS)(nil).FileHash), arg0, arg1)
 }
 
+// FileHashWithContext mocks base method.
+func (m *MockFS) FileHashWithContext(arg0 context.Context, arg1, arg2 string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FileHashWithContext", arg0, arg1, arg2)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FileHashWithContext indicates an expected call of FileHashWithContext.
+func (mr *MockFSMockRecorder) FileHashWithContext(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FileHashWithContext", reflect.TypeOf((*MockFS)(nil).FileHashWithContext), arg0, arg1, arg2)
+}
+
 // FindAll mocks base method.
 func (m *MockFS) FindAll(arg0 string, arg1 ...string) ([]string, error) {
 	m.ctrl.T.Helper()
