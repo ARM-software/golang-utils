@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"" "1.28.0" (2023-02-22)
+========================
+
+Features
+--------
+
+- :sparkles: `[filesystem]` Make file hashing operation context aware (#20230222130436)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: net-0.6.0 (#20230209110501, #20230209110509, #20230209110545, #20230209110548)
+- Dependency upgrade: net-0.7.0 (#20230216144313)
+
+
 "" "1.27.0" (2023-02-16)
 ========================
 
