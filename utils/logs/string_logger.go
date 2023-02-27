@@ -61,7 +61,7 @@ func (l *StringLoggers) Close() (err error) {
 	return
 }
 
-// NewStringLogger creates a logger to standard output/error
+// NewStringLogger creates a logger to a string builder.
 func NewStringLogger(loggerSource string) (loggers *StringLoggers, err error) {
 	loggers = &StringLoggers{
 		LogWriter: StringWriter{},
@@ -73,7 +73,7 @@ func NewStringLogger(loggerSource string) (loggers *StringLoggers, err error) {
 	return
 }
 
-// CreateStringLogger creates a logger to standard output/error
+// CreateStringLogger creates a logger to a string builder.
 //
 // Deprecated: Use NewStringLogger instead
 func CreateStringLogger(loggerSource string) (loggers *StringLoggers, err error) {
