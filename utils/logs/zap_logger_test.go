@@ -5,10 +5,10 @@
 package logs
 
 import (
-	"go.uber.org/zap"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 func TestZapLoggerDev(t *testing.T) {

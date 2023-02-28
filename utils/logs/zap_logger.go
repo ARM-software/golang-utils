@@ -7,10 +7,16 @@
 package logs
 
 import (
+	"strings"
+
 	"github.com/go-logr/zapr"
 	"go.uber.org/zap"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+)
+
+const (
+	syncError = "invalid argument" // sync error can happen on Linux (sync /dev/stderr: invalid argument) see https://github.com/uber-go/zap/issues/328
 )
 
 // NewZapLogger returns a logger which uses zap logger (https://github.com/uber-go/zap)
@@ -20,6 +26,15 @@ func NewZapLogger(zapL *zap.Logger, loggerSource string) (loggers Loggers, err e
 		return
 	}
 	return NewLogrLoggerWithClose(zapr.NewLogger(zapL), loggerSource, func() error {
-		return zapL.Sync()
+		err := zapL.Sync()
+		// handling this error https://github.com/uber-go/zap/issues/328
+		switch {
+		case err == nil:
+			return err
+		case strings.Contains(err.Error(), syncError):
+			return nil
+		default:
+			return err
+		}
 	})
 }
