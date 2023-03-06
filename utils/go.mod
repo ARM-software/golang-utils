@@ -37,7 +37,7 @@ require (
 	go.uber.org/goleak v1.2.1
 	golang.org/x/net v0.7.0
 	golang.org/x/sync v0.1.0
-	golang.org/x/text v0.7.0
+	golang.org/x/text v0.8.0
 )
 
 require (
