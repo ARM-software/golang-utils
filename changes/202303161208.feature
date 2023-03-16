@@ -1,0 +1,1 @@
+:sparkle: Added utilities to deal with structure fields (especially optional fields)
