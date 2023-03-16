@@ -7,8 +7,6 @@
 package logs
 
 import (
-	"strings"
-
 	"github.com/go-logr/zapr"
 	"go.uber.org/zap"
 
@@ -28,13 +26,9 @@ func NewZapLogger(zapL *zap.Logger, loggerSource string) (loggers Loggers, err e
 	return NewLogrLoggerWithClose(zapr.NewLogger(zapL), loggerSource, func() error {
 		err := zapL.Sync()
 		// handling this error https://github.com/uber-go/zap/issues/328
-		switch {
-		case err == nil:
-			return err
-		case strings.Contains(err.Error(), syncError):
+		if commonerrors.CorrespondTo(err, syncError) {
 			return nil
-		default:
-			return err
 		}
+		return err
 	})
 }
