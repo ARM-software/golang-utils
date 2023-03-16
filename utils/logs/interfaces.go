@@ -2,6 +2,8 @@
  * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
+
+// Package logs defines loggers for use in projects.
 package logs
 
 import (
@@ -12,7 +14,9 @@ import (
 
 //go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE Loggers,IMultipleLoggers,WriterWithSource,StdLogger
 
-// Loggers define generic loggers.
+// Loggers defines generic loggers which separate common logging messages from errors.
+// This is to use in cases where it is necessary to separate the two streams e.g. remote procedure call (RPC)
+// In most cases however, if only a standard logger is needed, it is advised to use logr.Logger.
 type Loggers interface {
 	io.Closer
 	// Check returns whether the loggers are correctly defined or not.
@@ -21,9 +25,9 @@ type Loggers interface {
 	SetLogSource(source string) error
 	// SetLoggerSource sets the source of the logger e.g. APIs, Build worker, CMSIS tools.
 	SetLoggerSource(source string) error
-	// Log logs to the output logger.
+	// Log logs to the output stream/logger.
 	Log(output ...interface{})
-	// LogError logs to the Error logger.
+	// LogError logs to the Error stream/logger.
 	LogError(err ...interface{})
 }
 

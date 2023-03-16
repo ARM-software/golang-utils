@@ -20,10 +20,14 @@ const (
 )
 
 type logrLogger struct {
-	logger logr.Logger
+	logger    logr.Logger
+	closeFunc func() error
 }
 
 func (l *logrLogger) Close() error {
+	if l.closeFunc != nil {
+		return l.closeFunc()
+	}
 	return nil
 }
 
@@ -68,8 +72,13 @@ func (l *logrLogger) LogError(err ...interface{}) {
 }
 
 // NewLogrLogger creates loggers based on a logr implementation (https://github.com/go-logr/logr)
-func NewLogrLogger(logrImpl logr.Logger, loggerSource string) (loggers Loggers, err error) {
-	loggers = &logrLogger{logger: logrImpl}
+func NewLogrLogger(logrImpl logr.Logger, loggerSource string) (Loggers, error) {
+	return NewLogrLoggerWithClose(logrImpl, loggerSource, nil)
+}
+
+// NewLogrLoggerWithClose creates loggers based on a logr implementation (https://github.com/go-logr/logr)
+func NewLogrLoggerWithClose(logrImpl logr.Logger, loggerSource string, closeFunc func() error) (loggers Loggers, err error) {
+	loggers = &logrLogger{logger: logrImpl, closeFunc: closeFunc}
 	err = loggers.SetLoggerSource(loggerSource)
 	return
 }
