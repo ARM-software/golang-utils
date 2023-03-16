@@ -1,1 +1,0 @@
-:sparkles: `[error]` Added the `CorrespondTo` function to determine if an error corresponds to a specific description
