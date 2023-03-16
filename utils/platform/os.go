@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/shirou/gopsutil/v3/host"
@@ -31,7 +30,7 @@ func ConvertError(err error) error {
 		return err
 	case IsWindows() && commonerrors.Any(err, errNotSupportedByWindows):
 		return fmt.Errorf("%w: %v", commonerrors.ErrUnsupported, err.Error())
-	case strings.Contains(err.Error(), "not supported"):
+	case commonerrors.CorrespondTo(err, "not supported"):
 		return fmt.Errorf("%w: %v", commonerrors.ErrUnsupported, err.Error())
 	default:
 		return err
