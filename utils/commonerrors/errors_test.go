@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
@@ -35,6 +36,12 @@ func TestNone(t *testing.T) {
 	assert.False(t, None(nil, nil, ErrInvalid, ErrNotImplemented, ErrUnknown))
 	assert.False(t, None(fmt.Errorf("an error %w", ErrNotImplemented), ErrInvalid, ErrNotImplemented, ErrUnknown))
 	assert.True(t, None(fmt.Errorf("an error %w", ErrNotImplemented), ErrInvalid, ErrUnknown))
+}
+
+func TestCorrespondTo(t *testing.T) {
+	assert.False(t, CorrespondTo(ErrNotImplemented, ErrInvalid.Error(), ErrUnknown.Error()))
+	assert.True(t, CorrespondTo(ErrNotImplemented, ErrInvalid.Error(), ErrNotImplemented.Error()))
+	assert.True(t, CorrespondTo(fmt.Errorf("%v %w", faker.Sentence(), ErrUndefined), ErrUndefined.Error()))
 }
 
 func TestContextErrorConversion(t *testing.T) {

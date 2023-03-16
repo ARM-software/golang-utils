@@ -14,14 +14,14 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
-// Definition of JSON message loggers
+// JSONLoggers defines a JSON logger
 type JSONLoggers struct {
 	Loggers
 	mu           sync.RWMutex
 	source       string
 	loggerSource string
 	writer       WriterWithSource
-	Zerologger   zerolog.Logger
+	zerologger   zerolog.Logger
 }
 
 func (l *JSONLoggers) SetLogSource(source string) error {
@@ -49,7 +49,7 @@ func (l *JSONLoggers) GetLoggerSource() string {
 	return l.loggerSource
 }
 
-// Checks whether the loggers are correctly defined or not.
+// Check checks whether the logger is correctly defined or not.
 func (l *JSONLoggers) Check() error {
 	if l.GetSource() == "" {
 		return commonerrors.ErrNoLogSource
@@ -64,39 +64,40 @@ func (l *JSONLoggers) Configure() error {
 	zerolog.TimestampFieldName = "ctime"
 	zerolog.MessageFieldName = "message"
 	zerolog.LevelFieldName = "severity"
-	l.Zerologger = l.Zerologger.With().Timestamp().Logger()
+	l.zerologger = l.zerologger.With().Timestamp().Logger()
 	return nil
 }
 
-// Logs to the output logger.
+// Log logs to the output stream.
 func (l *JSONLoggers) Log(output ...interface{}) {
 	if len(output) == 1 && output[0] == "\n" {
 		return
 	}
-	l.Zerologger.Info().Str("source", l.GetLoggerSource()).Msg(fmt.Sprint(output...))
+	l.zerologger.Info().Str("source", l.GetLoggerSource()).Msg(fmt.Sprint(output...))
 }
 
-// Logs to the Error logger.
+// LogError logs to the error stream.
 func (l *JSONLoggers) LogError(err ...interface{}) {
 	if len(err) == 1 && err[0] == "\n" {
 		return
 	}
-	l.Zerologger.Error().Str("source", l.GetLoggerSource()).Msg(fmt.Sprint(err...))
+	l.zerologger.Error().Str("source", l.GetLoggerSource()).Msg(fmt.Sprint(err...))
 }
 
-// Closes the logger
+// Close closes the logger
 func (l *JSONLoggers) Close() error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return l.writer.Close()
 }
 
+// NewJSONLogger creates a Json logger.
 func NewJSONLogger(writer WriterWithSource, loggerSource string, source string) (loggers Loggers, err error) {
 	zerroLogger := JSONLoggers{
 		source:       source,
 		loggerSource: loggerSource,
 		writer:       writer,
-		Zerologger:   zerolog.New(writer),
+		zerologger:   zerolog.New(writer),
 	}
 	err = zerroLogger.Check()
 	if err != nil {
@@ -121,7 +122,6 @@ func NewJSONLogger(writer WriterWithSource, loggerSource string, source string) 
 // loggerSource : logger application name
 // source : source string
 // droppedMessagesLogger : logger for dropped messages
-
 // If pollInterval is greater than 0, a poller is used otherwise a waiter is used.
 func NewJSONLoggerForSlowWriter(slowWriter WriterWithSource, ringBufferSize int, pollInterval time.Duration, loggerSource string, source string, droppedMessagesLogger Loggers) (loggers Loggers, err error) {
 	return NewJSONLogger(NewDiodeWriterForSlowWriter(slowWriter, ringBufferSize, pollInterval, droppedMessagesLogger), loggerSource, source)
