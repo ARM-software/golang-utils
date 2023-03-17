@@ -7,6 +7,7 @@ package commonerrors
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -39,9 +40,12 @@ func TestNone(t *testing.T) {
 }
 
 func TestCorrespondTo(t *testing.T) {
+	assert.False(t, CorrespondTo(nil))
+	assert.False(t, CorrespondTo(nil, faker.Sentence()))
 	assert.False(t, CorrespondTo(ErrNotImplemented, ErrInvalid.Error(), ErrUnknown.Error()))
 	assert.True(t, CorrespondTo(ErrNotImplemented, ErrInvalid.Error(), ErrNotImplemented.Error()))
 	assert.True(t, CorrespondTo(fmt.Errorf("%v %w", faker.Sentence(), ErrUndefined), ErrUndefined.Error()))
+	assert.True(t, CorrespondTo(fmt.Errorf("%v %v", faker.Sentence(), strings.ToUpper(ErrUndefined.Error())), strings.ToLower(ErrUndefined.Error())))
 }
 
 func TestContextErrorConversion(t *testing.T) {

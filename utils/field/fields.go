@@ -165,3 +165,16 @@ func OptionalDuration(ptr *time.Duration, defaultValue time.Duration) time.Durat
 	}
 	return defaultValue
 }
+
+// ToOptionalTime returns a pointer to a Time.
+func ToOptionalTime(i time.Time) *time.Time {
+	return &i
+}
+
+// OptionalTime returns the value of an optional field or else returns defaultValue.
+func OptionalTime(ptr *time.Time, defaultValue time.Time) time.Time {
+	if ptr != nil {
+		return *ptr
+	}
+	return defaultValue
+}

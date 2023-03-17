@@ -186,6 +186,21 @@ func TestOptionalField(t *testing.T) {
 			},
 		},
 		{
+			fieldType:    "time",
+			value:        time.Now(),
+			defaultValue: time.Now().Add(-time.Hour),
+			setFunction: func(a any) any {
+				return ToOptionalTime(a.(time.Time))
+			},
+			getFunction: func(a any, a2 any) any {
+				var ptr *time.Time
+				if a != nil {
+					ptr = a.(*time.Time)
+				}
+				return OptionalTime(ptr, a2.(time.Time))
+			},
+		},
+		{
 			fieldType:    "Any",
 			value:        faker.Sentence(),
 			defaultValue: time.Now(),

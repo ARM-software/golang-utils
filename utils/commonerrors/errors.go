@@ -66,7 +66,7 @@ func None(target error, err ...error) bool {
 }
 
 // CorrespondTo determines whether a `target` error corresponds to a specific error described by `description`
-// It will check whether the error contains the string in its description.
+// It will check whether the error contains the string in its description. It is not case-sensitive.
 // ```code
 //
 //	  CorrespondTo(errors.New("feature a is not supported", "not supported") = True
@@ -75,9 +75,10 @@ func CorrespondTo(target error, description ...string) bool {
 	if target == nil {
 		return false
 	}
-	desc := target.Error()
+	desc := strings.ToLower(target.Error())
 	for i := range description {
-		if strings.Contains(desc, description[i]) {
+		d := strings.ToLower(description[i])
+		if desc == d || strings.Contains(desc, d) {
 			return true
 		}
 	}
