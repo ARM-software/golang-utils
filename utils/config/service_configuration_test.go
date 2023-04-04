@@ -5,9 +5,11 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -494,4 +496,91 @@ func TestGenerateEnvFile_Empty(t *testing.T) {
 	prefix := "test"
 	_, err := DetermineConfigurationEnvironmentVariables(prefix, struct{ IServiceConfiguration }{})
 	require.ErrorIs(t, err, commonerrors.ErrUndefined)
+}
+
+func Test_convertViperError(t *testing.T) {
+	tests := []struct {
+		viperErr      error
+		expectedError error
+	}{
+		{
+			viperErr:      nil,
+			expectedError: nil,
+		},
+		{
+			viperErr:      viper.ConfigFileNotFoundError{},
+			expectedError: commonerrors.ErrNotFound,
+		},
+		// Note: the following errors were considered but could not be created outside the viper module (non exposed fields)
+		// {
+		//	viperErr:      viper.ConfigParseError{},
+		//	expectedError: commonerrors.ErrMarshalling,
+		// },
+		// {
+		//	viperErr:      viper.ConfigMarshalError{},
+		//	expectedError: commonerrors.ErrMarshalling,
+		// },
+		{
+			viperErr:      viper.UnsupportedConfigError(faker.Sentence()),
+			expectedError: commonerrors.ErrUnsupported,
+		},
+		{
+			viperErr:      viper.UnsupportedRemoteProviderError(faker.Sentence()),
+			expectedError: commonerrors.ErrUnsupported,
+		},
+		{
+			viperErr:      viper.ConfigFileAlreadyExistsError(faker.Sentence()),
+			expectedError: commonerrors.ErrUnexpected,
+		},
+		{
+			viperErr:      viper.RemoteConfigError(faker.Sentence()),
+			expectedError: commonerrors.ErrUnexpected,
+		},
+		{
+			viperErr:      errors.New(faker.Name()),
+			expectedError: commonerrors.ErrUnexpected,
+		},
+	}
+	for i := range tests {
+		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
+			test := tests[i]
+			require.True(t, commonerrors.Any(convertViperError(test.viperErr), test.expectedError))
+		})
+	}
+}
+
+func TestServiceConfigurationLoadFromFile(t *testing.T) {
+	os.Clearenv()
+	session := viper.New()
+	err := LoadFromConfigurationFile(session, "")
+	assert.Error(t, err)
+	err = LoadFromConfigurationFile(session, fmt.Sprintf("doesnotexist-%v.test", faker.DomainName()))
+	assert.Error(t, err)
+	err = LoadFromConfigurationFile(session, filepath.Join(".", "fixtures", "config-test.json"))
+	assert.NoError(t, err)
+	value := session.Get("dummy_string")
+	assert.NotEmpty(t, value)
+	assert.Equal(t, "test string", value)
+}
+
+func TestServiceConfigurationLoadFromEnvironment(t *testing.T) {
+	os.Clearenv()
+	session := viper.New()
+	configTest := &ConfigurationTest{}
+	defaults := DefaultConfiguration()
+	err := LoadFromEnvironment(session, "test", configTest, defaults, filepath.Join(".", "fixtures", "config-test.json"))
+	require.NoError(t, err)
+	require.NoError(t, configTest.Validate())
+	assert.Equal(t, "test string", configTest.TestString)
+	assert.Equal(t, 1, configTest.TestInt)
+	assert.Equal(t, 54*time.Second, configTest.TestTime)
+	assert.Equal(t, 20, configTest.TestConfig.Port)
+	assert.Equal(t, "host1", configTest.TestConfig.Host)
+	assert.Equal(t, "password2", configTest.TestConfig2.Password)
+	assert.Equal(t, "db2", configTest.TestConfig2.DB)
+	assert.NotEqual(t, expectedHost, configTest.TestConfig2.Host)
+	assert.NotEqual(t, expectedPassword, configTest.TestConfig.Password)
+	assert.NotEqual(t, expectedDB, configTest.TestConfig.DB)
+	assert.True(t, configTest.TestConfig.Flag)
+	assert.False(t, configTest.TestConfig2.Flag)
 }

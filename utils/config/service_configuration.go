@@ -2,6 +2,7 @@
  * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
+
 package config
 
 import (
@@ -38,11 +39,24 @@ func Load(envVarPrefix string, configurationToSet IServiceConfiguration, default
 // 1) values set using explicit calls to `Set`
 // 2) flags
 // 3) environment (variables or `.env`)
+// 4) key/value store
+// 5) default values (set via flag default values, or calls to `SetDefault` or via `defaultConfiguration` argument provided)
+// Nonetheless, when it comes to default values. It differs slightly from Viper as default values from the default Configuration (i.e. `defaultConfiguration` argument provided) will take precedence over defaults set via `SetDefault` or flags unless they are considered empty values according to `reflection.IsEmpty`.
+func LoadFromViper(viperSession *viper.Viper, envVarPrefix string, configurationToSet IServiceConfiguration, defaultConfiguration IServiceConfiguration) error {
+	return LoadFromEnvironment(viperSession, envVarPrefix, configurationToSet, defaultConfiguration, "")
+}
+
+// LoadFromEnvironment is the same as `LoadFromViper` but also gives the ability to load the configuration from a configuration file as long as the format is supported by [Viper](https://github.com/spf13/viper#what-is-viper)
+// Important note:
+// Viper's precedence order is maintained:
+// 1) values set using explicit calls to `Set`
+// 2) flags
+// 3) environment (variables or `.env`)
 // 4) configuration file
 // 5) key/value store
 // 6) default values (set via flag default values, or calls to `SetDefault` or via `defaultConfiguration` argument provided)
 // Nonetheless, when it comes to default values. It differs slightly from Viper as default values from the default Configuration (i.e. `defaultConfiguration` argument provided) will take precedence over defaults set via `SetDefault` or flags unless they are considered empty values according to `reflection.IsEmpty`.
-func LoadFromViper(viperSession *viper.Viper, envVarPrefix string, configurationToSet IServiceConfiguration, defaultConfiguration IServiceConfiguration) (err error) {
+func LoadFromEnvironment(viperSession *viper.Viper, envVarPrefix string, configurationToSet IServiceConfiguration, defaultConfiguration IServiceConfiguration, configFile string) (err error) {
 	// Load Defaults
 	var defaults map[string]interface{}
 	err = mapstructure.Decode(defaultConfiguration, &defaults)
@@ -62,14 +76,49 @@ func LoadFromViper(viperSession *viper.Viper, envVarPrefix string, configuration
 
 	linkFlagKeysToStructureKeys(viperSession, envVarPrefix)
 
+	if configFile != "" {
+		err = LoadFromConfigurationFile(viperSession, configFile)
+		if err != nil {
+			return
+		}
+	}
+
 	// Merge together all the sources and unmarshal into struct
 	err = viperSession.Unmarshal(configurationToSet)
 	if err != nil {
-		err = fmt.Errorf("unable to decode config into struct, %w", err)
+		err = fmt.Errorf("%w: unable to fill configuration structure from the configuration session: %v", commonerrors.ErrMarshalling, err.Error())
 		return
 	}
 	// Run validation
 	err = configurationToSet.Validate()
+	return
+}
+
+// LoadFromConfigurationFile loads the configuration from the environment.
+// If the format is not supported, an error is raised and the same happens if the file cannot be found.
+// Supported formats are the same as what [viper](https://github.com/spf13/viper#what-is-viper) supports
+func LoadFromConfigurationFile(viperSession *viper.Viper, configFile string) (err error) {
+	if configFile == "" {
+		err = fmt.Errorf("%w: missing configuration file", commonerrors.ErrUndefined)
+		return
+	}
+	viperSession.SetConfigFile(configFile)
+	err = convertViperError(viperSession.ReadInConfig())
+	return
+}
+
+func convertViperError(vErr error) (err error) {
+	switch {
+	case vErr == nil:
+	case commonerrors.CorrespondTo(vErr, "unsupported"):
+		err = fmt.Errorf("%w: %v", commonerrors.ErrUnsupported, vErr.Error())
+	case commonerrors.CorrespondTo(vErr, "not found"):
+		err = fmt.Errorf("%w: %v", commonerrors.ErrNotFound, vErr.Error())
+	case commonerrors.CorrespondTo(vErr, "parsing", "marshaling", "decoding"):
+		err = fmt.Errorf("%w: %v", commonerrors.ErrMarshalling, vErr.Error())
+	default:
+		err = fmt.Errorf("%w: %v", commonerrors.ErrUnexpected, vErr.Error())
+	}
 	return
 }
 
