@@ -511,6 +511,7 @@ func Test_convertViperError(t *testing.T) {
 			viperErr:      viper.ConfigFileNotFoundError{},
 			expectedError: commonerrors.ErrNotFound,
 		},
+		// Note: the following errors were considered but could not be created outside the viper module (non exposed fields)
 		// {
 		//	viperErr:      viper.ConfigParseError{},
 		//	expectedError: commonerrors.ErrMarshalling,
