@@ -511,14 +511,14 @@ func Test_convertViperError(t *testing.T) {
 			viperErr:      viper.ConfigFileNotFoundError{},
 			expectedError: commonerrors.ErrNotFound,
 		},
-		//{
+		// {
 		//	viperErr:      viper.ConfigParseError{},
 		//	expectedError: commonerrors.ErrMarshalling,
-		//},
-		//{
+		// },
+		// {
 		//	viperErr:      viper.ConfigMarshalError{},
 		//	expectedError: commonerrors.ErrMarshalling,
-		//},
+		// },
 		{
 			viperErr:      viper.UnsupportedConfigError(faker.Sentence()),
 			expectedError: commonerrors.ErrUnsupported,
