@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.31.0" (2023-04-04)
+=====================
+
+Features
+--------
+
+- :sparkles: `[config]` Add a way via `LoadFromEnvironment` to read configuration from a file as long as the format is supported by [Viper](https://github.com/spf13/viper#what-is-viper) (#20230404144534)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: scorecard-action-2.1.3 (#20230330110538, #20230330110540, #20230330110620)
+- Dependency upgrade: v3-3.23.3 (#20230403110100, #20230403110109, #20230403110141, #20230403110148, #20230403110226)
+
+
 "1.30.0" (2023-03-17)
 =====================
 
