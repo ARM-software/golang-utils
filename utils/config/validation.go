@@ -6,10 +6,6 @@ package config
 
 import "reflect"
 
-type Validator interface {
-	Validate() error
-}
-
 // ValidateEmbedded uses reflection to find embedded structs and validate them
 func ValidateEmbedded(cfg Validator) error {
 	r := reflect.ValueOf(cfg).Elem()
