@@ -10,7 +10,7 @@ require (
 	github.com/bxcodec/faker/v3 v3.8.1
 	github.com/deckarep/golang-set v1.8.0
 	github.com/djherbis/times v1.5.0
-	github.com/dolmen-go/contextio v0.0.0-20220904134943-e50796217f5f
+	github.com/dolmen-go/contextio v1.0.0
 	github.com/go-git/go-git/v5 v5.6.1
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
 	github.com/go-logr/logr v0.4.0 // Staying on this version until kubernetes uses a more recent one
