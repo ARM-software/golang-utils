@@ -104,5 +104,5 @@ func Ignore(target error, ignore ...error) error {
 	if Any(target, ignore...) {
 		return nil
 	}
-	return err
+	return target
 }
