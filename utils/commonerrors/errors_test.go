@@ -72,7 +72,7 @@ func TestContextErrorConversion(t *testing.T) {
 	assert.True(t, Any(err, ErrTimeout, ErrCancelled))
 }
 
-func TestAny(t *testing.T) {
+func TestIgnore(t *testing.T) {
 	assert.Equal(t, nil, Ignore(ErrNotImplemented, ErrInvalid, ErrNotImplemented, ErrUnknown))
 	assert.Equal(t, ErrNotImplemented, Ignore(ErrNotImplemented, ErrInvalid, ErrUnknown))
 	assert.Equal(t, nil, Ignore(ErrNotImplemented, nil, ErrNotImplemented))
