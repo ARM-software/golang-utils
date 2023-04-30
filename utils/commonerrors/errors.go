@@ -100,7 +100,7 @@ func ConvertContextError(err error) error {
 }
 
 // Ignore will return nil if the target error matches one of the errors to ignore
-func Ignore(target error ignore ...error) error {
+func Ignore(target error, ignore ...error) error {
 	if commonerrors.Any(err, ignore...) {
 		return nil
 	}
