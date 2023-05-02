@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.32.0" (2023-05-02)
+=====================
+
+Features
+--------
+
+- :sparkles: `[commonerrors]` Add Ignore so that errors can be ignored (#20230428172043)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v3-3.23.4 (#20230501110143, #20230501110146, #20230501110226)
+
+
 "1.31.1" (2023-04-26)
 =====================
 
