@@ -98,3 +98,11 @@ func ConvertContextError(err error) error {
 	}
 	return err
 }
+
+// Ignore will return nil if the target error matches one of the errors to ignore
+func Ignore(target error, ignore ...error) error {
+	if Any(target, ignore...) {
+		return nil
+	}
+	return target
+}

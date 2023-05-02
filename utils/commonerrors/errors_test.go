@@ -71,3 +71,14 @@ func TestContextErrorConversion(t *testing.T) {
 	require.NotNil(t, err)
 	assert.True(t, Any(err, ErrTimeout, ErrCancelled))
 }
+
+func TestIgnore(t *testing.T) {
+	assert.Equal(t, nil, Ignore(ErrNotImplemented, ErrInvalid, ErrNotImplemented, ErrUnknown))
+	assert.Equal(t, ErrNotImplemented, Ignore(ErrNotImplemented, ErrInvalid, ErrUnknown))
+	assert.Equal(t, nil, Ignore(ErrNotImplemented, nil, ErrNotImplemented))
+	assert.Equal(t, nil, Ignore(nil, nil, ErrNotImplemented))
+	assert.Equal(t, ErrNotImplemented, Ignore(ErrNotImplemented, nil, ErrInvalid, ErrUnknown))
+	assert.Equal(t, nil, Ignore(nil, ErrInvalid, ErrUnknown))
+	assert.Equal(t, nil, Ignore(fmt.Errorf("an error %w", ErrNotImplemented), ErrInvalid, ErrNotImplemented, ErrUnknown))
+	assert.Equal(t, fmt.Errorf("an error %w", ErrNotImplemented), Ignore(fmt.Errorf("an error %w", ErrNotImplemented), ErrInvalid, ErrUnknown))
+}
