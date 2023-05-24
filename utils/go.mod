@@ -13,7 +13,7 @@ require (
 	github.com/dolmen-go/contextio v1.0.0
 	github.com/go-git/go-git/v5 v5.6.1
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
-	github.com/go-logr/logr v0.4.0 // Staying on this version until kubernetes uses a more recent one
+	github.com/go-logr/logr v1.2.4
 	github.com/go-logr/stdr v0.4.0
 	github.com/go-logr/zapr v0.4.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
