@@ -6,16 +6,16 @@ require (
 	github.com/OneOfOne/xxhash v1.2.8
 	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/bmatcuk/doublestar/v3 v3.0.0
-	github.com/bombsimon/logrusr v1.1.0
+	github.com/bombsimon/logrusr/v4 v4.0.0
 	github.com/bxcodec/faker/v3 v3.8.1
 	github.com/deckarep/golang-set v1.8.0
 	github.com/djherbis/times v1.5.0
 	github.com/dolmen-go/contextio v1.0.0
 	github.com/go-git/go-git/v5 v5.6.1
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
-	github.com/go-logr/logr v0.4.0 // Staying on this version until kubernetes uses a more recent one
-	github.com/go-logr/stdr v0.4.0
-	github.com/go-logr/zapr v0.4.0
+	github.com/go-logr/logr v1.2.4
+	github.com/go-logr/stdr v1.2.2
+	github.com/go-logr/zapr v1.2.4
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f
@@ -28,7 +28,7 @@ require (
 	github.com/rs/zerolog v1.29.1
 	github.com/sasha-s/go-deadlock v0.3.1
 	github.com/shirou/gopsutil/v3 v3.23.4
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.2
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/spf13/afero v1.9.3
 	github.com/spf13/pflag v1.0.5

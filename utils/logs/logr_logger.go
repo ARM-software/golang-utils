@@ -32,7 +32,7 @@ func (l *logrLogger) Close() error {
 }
 
 func (l *logrLogger) Check() error {
-	if l.logger == nil {
+	if l.logger.IsZero() {
 		return commonerrors.ErrNoLogger
 	}
 	return nil
