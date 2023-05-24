@@ -11,25 +11,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bombsimon/logrusr"
 	"github.com/go-http-utils/headers"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 	"go.uber.org/goleak"
 
 	"github.com/ARM-software/golang-utils/utils/http/httptest"
+	"github.com/ARM-software/golang-utils/utils/logs/logstest"
 )
 
 // This test will sleep for 50ms after the request is made asynchronously via RetryableClient
 // as to test that the retries/backoff are carried out.
 func TestClient_Delete_Backoff(t *testing.T) {
-	testLogger := logrusr.NewLogger(func() *logrus.Logger {
-		l := logrus.New()
-		l.SetLevel(logrus.DebugLevel)
-		return l
-	}(), "test")
-
+	testLogger := logstest.NewTestLogger(t)
 	tests := []struct {
 		retryableClient IClient
 		clientName      string
