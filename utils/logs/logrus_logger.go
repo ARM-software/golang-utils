@@ -9,7 +9,7 @@ package logs
 import (
 	"fmt"
 
-	"github.com/bombsimon/logrusr"
+	"github.com/bombsimon/logrusr/v4"
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
 
@@ -23,7 +23,7 @@ func NewLogrusLogger(logrusL *logrus.Logger, loggerSource string) (loggers Logge
 		err = commonerrors.ErrNoLogger
 		return
 	}
-	return NewLogrLogger(logrusr.NewLogger(logrusL), loggerSource)
+	return NewLogrLogger(logrusr.New(logrusL), loggerSource)
 }
 
 // NewLogrusLoggerWithFileHook returns a logger which uses a logrus logger (https://github.com/Sirupsen/logrus) and writes the logs to `logFilePath`

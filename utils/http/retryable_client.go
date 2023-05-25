@@ -29,7 +29,7 @@ func NewRetryableClient() IClient {
 
 // NewConfigurableRetryableClient creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff).
 func NewConfigurableRetryableClient(cfg *HTTPClientConfiguration) IClient {
-	return NewConfigurableRetryableClientWithLogger(cfg, nil)
+	return NewConfigurableRetryableClientWithLogger(cfg, logr.Logger{})
 }
 
 // NewConfigurableRetryableClientWithLogger creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff).
@@ -131,7 +131,7 @@ func (l *leveledLogger) Warn(msg string, keysAndValues ...interface{}) {
 }
 
 func newLogger(logger logr.Logger) retryablehttp.LeveledLogger {
-	if logger == nil {
+	if logger.IsZero() {
 		return nil
 	}
 	return &leveledLogger{
