@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.33.1" (2023-05-25)
+=====================
+
+Bugfixes
+--------
+
+- Dependency upgrade: logr to v1.2.4 and its dependencies: logrus, logrusr, zap, zapr, etc (#202305251052)
+
+
 "1.33.0" (2023-05-24)
 =====================
 
