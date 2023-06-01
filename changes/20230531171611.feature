@@ -1,1 +1,0 @@
-:sparkles: `[http]` Added `RetryOnError` togenerically retry a client call on error in a similar way to what `OnError` does in [kubernetes](https://github.com/kubernetes/client-go/blob/cf830e3cb3abbcc32cc1b6bea4feb1a9a1881af3/util/retry/util.go#LL48C6-L48C13)
