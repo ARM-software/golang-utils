@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.36.0" (2023-06-06)
+=====================
+
+Features
+--------
+
+- :sparkles: `[logs]` created a [hclog](https://github.com/hashicorp/go-hclog)'s wrapper over logs.Loggers (#20230606144452)
+
+
 "1.35.0" (2023-06-06)
 =====================
 
