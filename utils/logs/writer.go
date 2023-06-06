@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/diode"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 type MultipleWritersWithSource struct {
@@ -113,4 +115,56 @@ func NewDiodeWriterForSlowWriter(slowWriter WriterWithSource, ringBufferSize int
 	}),
 		slowWriter: slowWriter,
 	}
+}
+
+type infoWriter struct {
+	loggers Loggers
+}
+
+func (w *infoWriter) Write(p []byte) (n int, err error) {
+	if w.loggers == nil {
+		err = commonerrors.ErrNoLogger
+		return
+	}
+	n = len(p)
+	w.loggers.Log(string(p))
+	return
+}
+
+// NewInfoWriterFromLoggers returns a io.Writer from a Loggers by only returning INFO messages
+func NewInfoWriterFromLoggers(l Loggers) (w io.Writer, err error) {
+	if l == nil {
+		err = commonerrors.ErrNoLogger
+		return
+	}
+	w = &infoWriter{
+		loggers: l,
+	}
+	return
+}
+
+type errWriter struct {
+	loggers Loggers
+}
+
+func (w *errWriter) Write(p []byte) (n int, err error) {
+	if w.loggers == nil {
+		err = commonerrors.ErrNoLogger
+		return
+	}
+	n = len(p)
+	w.loggers.LogError(string(p))
+	return
+}
+
+// NewErrorWriterFromLoggers returns a io.Writer from a Loggers by only returning ERROR messages
+func NewErrorWriterFromLoggers(l Loggers) (w io.Writer, err error) {
+	if l == nil {
+		err = commonerrors.ErrNoLogger
+		return
+	}
+	w = &errWriter{
+		loggers: l,
+	}
+	return
 }
