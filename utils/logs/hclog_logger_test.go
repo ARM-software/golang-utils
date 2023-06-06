@@ -9,6 +9,8 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/logs/logstest"
 )
 
 func TestHclogLogger(t *testing.T) {
@@ -16,4 +18,14 @@ func TestHclogLogger(t *testing.T) {
 	loggers, err := NewHclogLogger(logger, "Test")
 	require.NoError(t, err)
 	testLog(t, loggers)
+}
+
+func TestHclogWrapper(t *testing.T) {
+	loggers, err := NewLogrLogger(logstest.NewTestLogger(t), "test")
+	require.NoError(t, err)
+	hcLogger, err := NewHclogWrapper(loggers)
+	require.NoError(t, err)
+	loggerTest, err := NewHclogLogger(hcLogger, "Test")
+	require.NoError(t, err)
+	testLog(t, loggerTest)
 }
