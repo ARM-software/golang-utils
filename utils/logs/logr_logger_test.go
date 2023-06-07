@@ -5,12 +5,16 @@
 package logs
 
 import (
+	"context"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
+	"github.com/go-logr/logr"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/logs/logstest"
 )
 
@@ -29,4 +33,23 @@ func TestLogrLoggerConversion(t *testing.T) {
 	require.NoError(t, err)
 	converted := NewLogrLoggerFromLoggers(loggers)
 	converted.WithName(faker.Name()).WithValues(faker.Word(), faker.Name()).Error(commonerrors.ErrUnexpected, faker.Sentence())
+}
+
+func TestGetLogrFromEmptyContext(t *testing.T) {
+	ctx := context.Background()
+	logger, err := GetLogrLoggerFromContext(ctx)
+
+	assert.Equal(t, logr.Logger{}, logger)
+	errortest.AssertError(t, err, commonerrors.ErrNoLogger)
+}
+
+func TestGetLogrFromContext(t *testing.T) {
+	ctx := context.Background()
+	logger := logstest.NewTestLogger(t)
+	ctx = logr.NewContext(ctx, logger)
+
+	newLogger, err := GetLogrLoggerFromContext(ctx)
+	assert.NoError(t, err)
+
+	assert.Equal(t, logger, newLogger)
 }
