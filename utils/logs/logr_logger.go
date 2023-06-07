@@ -5,6 +5,7 @@
 package logs
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/go-logr/logr"
@@ -83,4 +84,17 @@ func NewLogrLoggerWithClose(logrImpl logr.Logger, loggerSource string, closeFunc
 // NewLogrLoggerFromLoggers converts loggers into a logr.Logger
 func NewLogrLoggerFromLoggers(loggers Loggers) logr.Logger {
 	return stdr.New(newGolangStdLoggerFromLoggers(loggers))
+}
+
+// GetLogrLoggerFromContext gets a logger from a context, unless it does not exist then it returns an ErrNoLogger
+func GetLogrLoggerFromContext(ctx context.Context) (logger logr.Logger, err error) {
+	logger, err = logr.FromContext(ctx)
+	if err != nil {
+		err = fmt.Errorf("%w: %v", commonerrors.ErrNoLogger, err.Error())
+		return
+	}
+	if logger.IsZero() {
+		err = commonerrors.ErrNoLogger
+	}
+	return
 }
