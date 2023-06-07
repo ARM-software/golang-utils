@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.37.0" (2023-06-07)
+=====================
+
+Features
+--------
+
+- :sparkles: `logs` Add GetLogrLoggerFromContext to fetch a logr.logger from a context (#20230607112032)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: hclogr-0.2.0 (#20230607105950, #20230607105955, #20230607110027, #20230607110030)
+- Dependency upgrade: go-retryablehttp-0.7.4 (#20230607105951, #20230607110006, #20230607110036, #20230607110048, #20230607110125, #20230607110133, #20230607110218, #20230607110306, #20230607110338, #20230607110354, #20230607110429, #20230607110439, #20230607110521)
+
+
 "1.36.0" (2023-06-06)
 =====================
 
