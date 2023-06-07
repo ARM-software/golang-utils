@@ -11,7 +11,7 @@ require (
 	github.com/deckarep/golang-set v1.8.0
 	github.com/djherbis/times v1.5.0
 	github.com/dolmen-go/contextio v1.0.0
-	github.com/evanphx/hclogr v0.0.0-20230605173610-bf92172182d0
+	github.com/evanphx/hclogr v0.2.0
 	github.com/go-git/go-git/v5 v5.6.1
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
 	github.com/go-logr/logr v1.2.4
