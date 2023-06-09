@@ -135,7 +135,7 @@ func (l *RemoteLockFile) TryLock(ctx context.Context) (err error) {
 	lockPath := l.lockPath()
 	// create directory as lock
 	err = l.fs.vfs.Mkdir(lockPath, 0755)
-	if commonerrors.Any(ConvertFileSytemError(err), commonerrors.ErrExists) {
+	if commonerrors.Any(ConvertFileSystemError(err), commonerrors.ErrExists) {
 		if l.IsStale() {
 			if l.overrideStaleLock {
 				_ = l.ReleaseIfStale(ctx)
