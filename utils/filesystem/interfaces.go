@@ -219,6 +219,8 @@ type FS interface {
 	ReadFileWithLimits(filename string, limits ILimits) ([]byte, error)
 	// ReadFileWithContextAndLimits reads a file and returns its content. Limits and context are taken into account during the reading process.
 	ReadFileWithContextAndLimits(ctx context.Context, filename string, limits ILimits) ([]byte, error)
+	// ReadFileContent reads a file and returns its content. Limits and context are taken into account during the reading process.
+	ReadFileContent(ctx context.Context, file File, limits ILimits) ([]byte, error)
 	// WriteFile writes data to a file named by filename.
 	// If the file does not exist, WriteFile creates it with permissions perm;
 	// otherwise WriteFile truncates it before writing.

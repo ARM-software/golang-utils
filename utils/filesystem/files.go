@@ -278,12 +278,34 @@ func (fs *VFS) readFileWithContextAndLimits(ctx context.Context, filename string
 	}
 	defer func() { _ = f.Close() }()
 
+	content, err = fs.ReadFileContent(ctx, f, limits)
+	return
+}
+
+// ReadFileContent reads the file content.
+func ReadFileContent(ctx context.Context, file File) ([]byte, error) {
+	return globalFileSystem.ReadFileContent(ctx, file, NoLimits())
+}
+
+func (fs *VFS) ReadFileContent(ctx context.Context, file File, limits ILimits) (content []byte, err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+	if file == nil {
+		err = fmt.Errorf("%w: missing file definition", commonerrors.ErrUndefined)
+		return
+	}
+	if limits == nil {
+		err = fmt.Errorf("%w: missing file system limits definition", commonerrors.ErrUndefined)
+		return
+	}
 	var bufferCapacity int64 = bytes.MinRead
 	var max int64 = -1
 	if limits.Apply() {
 		max = limits.GetMaxFileSize()
 	}
-	fi, err := f.Stat()
+	fi, err := file.Stat()
 	if err == nil {
 		// Don't preallocate a huge buffer, just in case.
 		fileSize := fi.Size()
@@ -291,12 +313,12 @@ func (fs *VFS) readFileWithContextAndLimits(ctx context.Context, filename string
 			bufferCapacity += fileSize
 		}
 		if limits.Apply() && fileSize > max {
-			err = fmt.Errorf("%w: file [%v] is bigger than allowed size [%vB]", commonerrors.ErrTooLarge, filename, max)
+			err = fmt.Errorf("%w: file [%v] is bigger than allowed size [%vB]", commonerrors.ErrTooLarge, file.Name(), max)
 			return
 		}
 	}
 
-	content, err = safeio.ReadAtMost(ctx, f, max, bufferCapacity)
+	content, err = safeio.ReadAtMost(ctx, file, max, bufferCapacity)
 	return
 }
 
