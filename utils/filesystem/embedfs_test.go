@@ -131,6 +131,7 @@ func Test_embedFS_Read(t *testing.T) {
 func Test_embed_not_supported(t *testing.T) {
 	efs, err := NewEmbedFileSystem(nil)
 	errortest.RequireError(t, err, commonerrors.ErrUndefined)
+	assert.Nil(t, efs)
 
 	efs, err = NewEmbedFileSystem(&testContent)
 	require.NoError(t, err)
