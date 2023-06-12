@@ -14,6 +14,16 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.38.0" (2023-06-12)
+=====================
+
+Features
+--------
+
+- :sparkles: `[filesystem]` Created Adapter to `embed.FS` for use of common utilities (#20230609154852)
+- :sparkles: `[filesystem]` Added `ReadFileContent` in order to read from a File object (#20230609154935)
+
+
 "1.37.0" (2023-06-07)
 =====================
 
