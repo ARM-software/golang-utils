@@ -41,7 +41,7 @@ require (
 	go.uber.org/zap v1.24.0
 	golang.org/x/net v0.10.0
 	golang.org/x/sync v0.2.0
-	golang.org/x/text v0.9.0
+	golang.org/x/text v0.10.0
 )
 
 require (
