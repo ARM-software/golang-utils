@@ -8,6 +8,7 @@ package config
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/mitchellh/mapstructure"
@@ -59,7 +60,7 @@ func LoadFromViper(viperSession *viper.Viper, envVarPrefix string, configuration
 func LoadFromEnvironment(viperSession *viper.Viper, envVarPrefix string, configurationToSet IServiceConfiguration, defaultConfiguration IServiceConfiguration, configFile string) (err error) {
 	// Load Defaults
 	var defaults map[string]interface{}
-	err = mapstructure.Decode(defaultConfiguration, &defaults)
+	err = bespokeMapstructureDecode(defaultConfiguration, &defaults)
 	if err != nil {
 		return
 	}
@@ -84,7 +85,11 @@ func LoadFromEnvironment(viperSession *viper.Viper, envVarPrefix string, configu
 	}
 
 	// Merge together all the sources and unmarshal into struct
-	err = viperSession.Unmarshal(configurationToSet)
+	err = viperSession.Unmarshal(configurationToSet, viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
+		mapstructure.StringToTimeDurationHookFunc(),
+		mapstructure.StringToSliceHookFunc(","),
+		mapstructure.StringToTimeHookFunc(time.RFC3339),
+	)))
 	if err != nil {
 		err = fmt.Errorf("%w: unable to fill configuration structure from the configuration session: %v", commonerrors.ErrMarshalling, err.Error())
 		return
@@ -220,17 +225,17 @@ func flattenDefaultsMap(m map[string]interface{}) map[string]interface{} {
 }
 
 // DetermineConfigurationEnvironmentVariables returns all the environment variables corresponding to a configuration structure as well as all the default values currently set.
-func DetermineConfigurationEnvironmentVariables(appName string, configurationToDecode IServiceConfiguration) (defaults map[string]interface{}, err error) {
+func DetermineConfigurationEnvironmentVariables(prefix string, configurationToDecode IServiceConfiguration) (defaults map[string]interface{}, err error) {
 	withoutPrefix := make(map[string]interface{})
 	if reflection.IsEmpty(configurationToDecode) {
-		err = fmt.Errorf("%w: configurationToDecode isn't defined", commonerrors.ErrUndefined)
+		err = fmt.Errorf("%w: configuration isn't defined", commonerrors.ErrUndefined)
 		return
 	}
-
-	err = mapstructure.Decode(configurationToDecode, &withoutPrefix)
+	err = bespokeMapstructureDecode(configurationToDecode, &withoutPrefix)
 	if err != nil {
 		return
 	}
+	fmt.Println("decode", fmt.Sprintf("%+v", withoutPrefix))
 	withoutPrefix = flattenDefaultsMap(withoutPrefix)
 	if err != nil {
 		return
@@ -238,8 +243,24 @@ func DetermineConfigurationEnvironmentVariables(appName string, configurationToD
 
 	defaults = make(map[string]interface{})
 	for key, value := range withoutPrefix {
-		newKey := fmt.Sprintf("%s_%s", strings.ToUpper(appName), key)
+		newKey := fmt.Sprintf("%s_%s", strings.ToUpper(prefix), key)
 		defaults[newKey] = value
 	}
 	return
+}
+
+func bespokeMapstructureDecode(input interface{}, output interface{}) error {
+	//return mapstructure.Decode(input, output)
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		Metadata: nil,
+		DecodeHook: mapstructure.ComposeDecodeHookFunc(
+			mapstructure.StringToTimeHookFunc(time.RFC3339),
+		),
+		Result: output,
+	})
+	if err != nil {
+		return err
+	}
+
+	return decoder.Decode(input)
 }

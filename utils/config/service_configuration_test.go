@@ -26,7 +26,8 @@ import (
 var (
 	expectedString   = fmt.Sprintf("a test string %v", faker.Word())
 	expectedInt      = rand.Int() //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
-	expectedDuration = time.Since(time.Date(1999, 2, 3, 4, 30, 45, 46, time.UTC))
+	expectedDate     = time.Date(1998, time.July, 12, 19, 00, 00, 00, time.UTC)
+	expectedDuration = time.Since(expectedDate)
 	expectedHost     = fmt.Sprintf("a test host %v", faker.Word())
 	expectedPassword = fmt.Sprintf("a test passwd %v", faker.Password())
 	expectedDB       = fmt.Sprintf("a db %v", faker.Word())
@@ -60,12 +61,29 @@ func DefaultDummyConfiguration() *DummyConfiguration {
 	}
 }
 
+type ConfigurationDateTest struct {
+	TestDate time.Time `mapstructure:"date"`
+}
+
+func (cfg *ConfigurationDateTest) Validate() error {
+	return validation.ValidateStruct(cfg,
+		validation.Field(&cfg.TestDate, validation.Required),
+	)
+}
+
+func DefaultDateTestConfiguration() *ConfigurationDateTest {
+	return &ConfigurationDateTest{
+		TestDate: time.Now(),
+	}
+}
+
 type ConfigurationTest struct {
-	TestString  string             `mapstructure:"dummy_string"`
-	TestInt     int                `mapstructure:"dummy_int"`
-	TestTime    time.Duration      `mapstructure:"dummy_time"`
-	TestConfig  DummyConfiguration `mapstructure:"dummyconfig"`
-	TestConfig2 DummyConfiguration `mapstructure:"dummy_config"`
+	TestString  string                `mapstructure:"dummy_string"`
+	TestInt     int                   `mapstructure:"dummy_int"`
+	TestTime    time.Duration         `mapstructure:"dummy_time"`
+	TestDate    ConfigurationDateTest `mapstructure:"dummy"`
+	TestConfig  DummyConfiguration    `mapstructure:"dummyconfig"`
+	TestConfig2 DummyConfiguration    `mapstructure:"dummy_config"`
 }
 
 type DeepConfig struct {
@@ -97,6 +115,7 @@ func (cfg *ConfigurationTest) Validate() error {
 		validation.Field(&cfg.TestString, validation.Required),
 		validation.Field(&cfg.TestInt, validation.Required),
 		validation.Field(&cfg.TestTime, validation.Required),
+		validation.Field(&cfg.TestDate, validation.Required),
 		validation.Field(&cfg.TestConfig, validation.Required),
 	)
 }
@@ -106,9 +125,34 @@ func DefaultConfiguration() *ConfigurationTest {
 		TestString:  expectedString,
 		TestInt:     0,
 		TestTime:    time.Hour,
+		TestDate:    *DefaultDateTestConfiguration(),
 		TestConfig:  *DefaultDummyConfiguration(),
 		TestConfig2: *DefaultDummyConfiguration(),
 	}
+}
+
+func TestServiceConfigurationDateLoad(t *testing.T) {
+	os.Clearenv()
+	configTest := &ConfigurationDateTest{}
+	defaults := DefaultDateTestConfiguration()
+	err := Load("test", configTest, defaults)
+	fmt.Println(fmt.Sprintf("%+v", configTest))
+	fmt.Println(fmt.Sprintf("%+v", defaults))
+	fmt.Println(DetermineConfigurationEnvironmentVariables("test", configTest))
+	// Some required values are missing.
+	require.Error(t, err)
+	assert.Error(t, configTest.Validate())
+	// Setting required entries in the environment.
+	err = os.Setenv("TEST_DUMMY_DATE", expectedDate.Format(time.RFC3339))
+	require.NoError(t, err)
+	fmt.Println(os.Environ())
+
+	err = Load("test", configTest, defaults)
+	fmt.Println("date", configTest.TestDate)
+	require.NoError(t, err)
+	require.NoError(t, configTest.Validate())
+	assert.Equal(t, expectedDate, configTest.TestDate)
+
 }
 
 func TestServiceConfigurationLoad(t *testing.T) {
@@ -118,7 +162,7 @@ func TestServiceConfigurationLoad(t *testing.T) {
 	err := Load("test", configTest, defaults)
 	// Some required values are missing.
 	require.Error(t, err)
-	require.NotNil(t, configTest.Validate())
+	assert.Error(t, configTest.Validate())
 	// Setting required entries in the environment.
 	err = os.Setenv("TEST_DUMMYCONFIG_DUMMY_HOST", expectedHost)
 	require.NoError(t, err)
@@ -140,14 +184,19 @@ func TestServiceConfigurationLoad(t *testing.T) {
 	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMY_TIME", expectedDuration.String())
 	require.NoError(t, err)
+	err = os.Setenv("TEST_DUMMY_DATE", expectedDate.Format(time.RFC3339))
+	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMY_INT", fmt.Sprintf("%v", expectedInt))
 	require.NoError(t, err)
+
 	err = Load("test", configTest, defaults)
+	fmt.Println("date", configTest.TestDate)
 	require.NoError(t, err)
 	require.NoError(t, configTest.Validate())
 	assert.Equal(t, expectedString, configTest.TestString)
 	assert.Equal(t, expectedInt, configTest.TestInt)
 	assert.Equal(t, expectedDuration, configTest.TestTime)
+	assert.Equal(t, expectedDate, configTest.TestDate)
 	assert.Equal(t, defaults.TestConfig.Port, configTest.TestConfig.Port)
 	assert.Equal(t, expectedHost, configTest.TestConfig.Host)
 	assert.Equal(t, expectedPassword, configTest.TestConfig2.Password)
@@ -165,7 +214,7 @@ func TestServiceConfigurationLoad_Errors(t *testing.T) {
 	err := Load("test", configTest, DefaultConfiguration())
 	// Some required values are missing.
 	require.Error(t, err)
-	require.NotNil(t, configTest.Validate())
+	assert.Error(t, configTest.Validate())
 
 	err = Load("test", nil, DefaultDummyConfiguration())
 	// Incorrect  structure provided.
@@ -225,6 +274,7 @@ func TestFlagBinding(t *testing.T) {
 	flagSet.String("db2", "a db", "dummy db")
 	flagSet.Int("int", 0, "dummy int")
 	flagSet.Duration("time", time.Second, "dummy time")
+	flagSet.String("date", time.Now().Format(time.RFC3339), "dummy date")
 	flagSet.Bool("flag", false, "dummy flag")
 	err = BindFlagToEnv(session, prefix, "TEST_DUMMYCONFIG_DUMMY_HOST", flagSet.Lookup("host"))
 	require.NoError(t, err)
@@ -248,6 +298,8 @@ func TestFlagBinding(t *testing.T) {
 	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "DUMMY_Time", flagSet.Lookup("time"))
 	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMY_DATE", flagSet.Lookup("date"))
+	require.NoError(t, err)
 	err = flagSet.Set("host", expectedHost)
 	require.NoError(t, err)
 	err = flagSet.Set("password", expectedPassword)
@@ -266,6 +318,8 @@ func TestFlagBinding(t *testing.T) {
 	require.NoError(t, err)
 	err = flagSet.Set("time", expectedDuration.String())
 	require.NoError(t, err)
+	err = flagSet.Set("date", expectedDate.Format(time.RFC3339))
+	require.NoError(t, err)
 	err = flagSet.Set("flag", fmt.Sprintf("%v", false))
 	require.NoError(t, err)
 	flag, err := flagSet.GetBool("flag")
@@ -278,6 +332,7 @@ func TestFlagBinding(t *testing.T) {
 	assert.Equal(t, expectedString, configTest.TestString)
 	assert.Equal(t, expectedInt, configTest.TestInt)
 	assert.Equal(t, expectedDuration, configTest.TestTime)
+	assert.Equal(t, expectedDate, configTest.TestDate)
 	assert.Equal(t, defaults.TestConfig.Port, configTest.TestConfig.Port)
 	assert.Equal(t, expectedHost, configTest.TestConfig.Host)
 	assert.Equal(t, expectedHost, configTest.TestConfig2.Host)
@@ -308,6 +363,7 @@ func TestFlagBindingDefaults(t *testing.T) {
 	flagSet.String("db", aDifferentDB, "dummy db")
 	flagSet.Int("int", expectedInt, "dummy int")
 	flagSet.Duration("time", expectedDuration, "dummy time")
+
 	flagSet.Bool("flag", !DefaultDummyConfiguration().Flag, "dummy flag")
 	err = BindFlagToEnv(session, prefix, "TEST_DUMMYCONFIG_DUMMY_HOST", flagSet.Lookup("host"))
 	require.NoError(t, err)
@@ -331,6 +387,8 @@ func TestFlagBindingDefaults(t *testing.T) {
 	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "DUMMY_Time", flagSet.Lookup("time"))
 	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMY_Date", flagSet.Lookup("date"))
+	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMY_CONFIG_DB", expectedDB) // Should take precedence over flag default
 	require.NoError(t, err)
 	err = LoadFromViper(session, prefix, configTest, defaults)
@@ -341,6 +399,8 @@ func TestFlagBindingDefaults(t *testing.T) {
 	// Defaults from the default structure provided take precedence over defaults from flags when not empty.
 	assert.NotEqual(t, expectedDuration, configTest.TestTime)
 	assert.Equal(t, DefaultConfiguration().TestTime, configTest.TestTime)
+	assert.NotEqual(t, expectedDate, configTest.TestDate)
+	assert.Equal(t, DefaultConfiguration().TestDate, configTest.TestDate)
 	assert.Equal(t, defaults.TestConfig.Port, configTest.TestConfig.Port)
 	assert.NotEqual(t, anotherHostName, expectedHost)
 	assert.Equal(t, expectedHost, configTest.TestConfig.Host)
@@ -445,6 +505,7 @@ func TestGenerateEnvFile_Nested(t *testing.T) {
 			TestString  string             `mapstructure:"dummy_string"`
 			TestInt     int                `mapstructure:"dummy_int"`
 			TestTime    time.Duration      `mapstructure:"dummy_time"`
+			TestDate    time.Time           `mapstructure:"dummy_date"`
 			TestConfig  DummyConfiguration `mapstructure:"dummyconfig"`  <- nested
 			TestConfig2 DummyConfiguration `mapstructure:"dummy_config"` <- nested
 		}
@@ -473,6 +534,7 @@ func TestGenerateEnvFile_Nested(t *testing.T) {
 		"TEST_DEEP_CONFIG_DUMMY_INT":                       configTest.TestConfigDeep.TestInt,
 		"TEST_DUMMY_STRING":                                configTest.TestString,
 		"TEST_DEEP_CONFIG_DUMMY_TIME":                      configTest.TestConfigDeep.TestTime,
+		"TEST_DEEP_CONFIG_DUMMY_DATE":                      configTest.TestConfigDeep.TestDate,
 		"TEST_DEEP_CONFIG_DUMMY_STRING":                    configTest.TestConfigDeep.TestString,
 	}
 
@@ -574,6 +636,7 @@ func TestServiceConfigurationLoadFromEnvironment(t *testing.T) {
 	assert.Equal(t, "test string", configTest.TestString)
 	assert.Equal(t, 1, configTest.TestInt)
 	assert.Equal(t, 54*time.Second, configTest.TestTime)
+	assert.Equal(t, time.Date(2023, time.June, 22, 15, 40, 5, 0, time.UTC), configTest.TestDate)
 	assert.Equal(t, 20, configTest.TestConfig.Port)
 	assert.Equal(t, "host1", configTest.TestConfig.Host)
 	assert.Equal(t, "password2", configTest.TestConfig2.Password)
