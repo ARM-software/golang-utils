@@ -1775,6 +1775,21 @@ func (mr *MockFSMockRecorder) ReadFile(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadFile", reflect.TypeOf((*MockFS)(nil).ReadFile), arg0)
 }
 
+// ReadFileContent mocks base method.
+func (m *MockFS) ReadFileContent(arg0 context.Context, arg1 filesystem.File, arg2 filesystem.ILimits) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReadFileContent", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReadFileContent indicates an expected call of ReadFileContent.
+func (mr *MockFSMockRecorder) ReadFileContent(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadFileContent", reflect.TypeOf((*MockFS)(nil).ReadFileContent), arg0, arg1, arg2)
+}
+
 // ReadFileWithContext mocks base method.
 func (m *MockFS) ReadFileWithContext(arg0 context.Context, arg1 string) ([]byte, error) {
 	m.ctrl.T.Helper()
