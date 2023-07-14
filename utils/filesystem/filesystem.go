@@ -20,6 +20,7 @@ const (
 	StandardFS FilesystemType = iota
 	InMemoryFS
 	Embed
+	Custom
 )
 
 var (
