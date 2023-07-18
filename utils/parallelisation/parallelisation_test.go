@@ -8,7 +8,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -20,6 +19,7 @@ import (
 	"go.uber.org/goleak"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
 
 func TestParallelisationWithResults(t *testing.T) {
