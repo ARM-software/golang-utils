@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -34,7 +35,7 @@ func TestParallelisationWithResults(t *testing.T) {
 	}
 	var results []int64
 	rawResults, err := Parallelise(values, action, reflect.TypeOf(results))
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	results = rawResults.([]int64)
 	assert.Equal(t, length, len(results))
@@ -50,7 +51,7 @@ func TestParallelisationWithoutResults(t *testing.T) {
 		return
 	}
 	results, err := Parallelise(values, action, nil)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Nil(t, results)
 }
 
@@ -71,7 +72,7 @@ func TestParallelisationWithErrors(t *testing.T) {
 	}
 	results, err := Parallelise(values, action, nil)
 	assert.Nil(t, results)
-	assert.Equal(t, anError, err)
+	errortest.AssertError(t, err, anError)
 }
 
 func TestSleepWithInterruption(t *testing.T) {
@@ -138,7 +139,7 @@ func TestSchedule(t *testing.T) {
 	// Expected number should be 49 but there is some timing variance depending on the state of the environment this is run on.
 	// Therefore, we accept that the number of ticks achieved is not always accurate but close to what is expected.
 	tickNumbers := ticks.Load()
-	require.Nil(t, ctx.Err())
+	require.NoError(t, ctx.Err())
 	cancel()
 	assert.GreaterOrEqual(t, tickNumbers, uint64(20))
 	assert.LessOrEqual(t, tickNumbers, uint64(80))
@@ -157,7 +158,7 @@ func TestScheduleAfter(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	duration := timeS.Load().(time.Time).Sub(time1)
-	require.Nil(t, ctx.Err())
+	require.NoError(t, ctx.Err())
 	cancel()
 	assert.GreaterOrEqual(t, duration, expectedOffset)
 }
@@ -187,8 +188,8 @@ func testTimeout(t *testing.T) {
 	}
 	assert.True(t, isrunning.Load())
 	err := RunActionWithTimeout(blockingAction, 10*time.Millisecond)
-	require.NotNil(t, err)
-	assert.True(t, errors.Is(err, commonerrors.ErrTimeout))
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrTimeout)
 	assert.False(t, isrunning.Load())
 
 	isrunning.Store(true)
@@ -201,8 +202,8 @@ func testTimeout(t *testing.T) {
 	}
 	assert.True(t, isrunning.Load())
 	err = RunActionWithTimeout(blockingAction2, 10*time.Millisecond)
-	require.NotNil(t, err)
-	assert.True(t, errors.Is(err, commonerrors.ErrTimeout))
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrTimeout)
 	assert.False(t, isrunning.Load())
 
 	isrunning.Store(true)
@@ -221,8 +222,8 @@ func testTimeout(t *testing.T) {
 	}
 	assert.True(t, isrunning.Load())
 	err = RunActionWithTimeout(blockingAction3, 10*time.Millisecond)
-	require.NotNil(t, err)
-	assert.True(t, errors.Is(err, commonerrors.ErrTimeout))
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrTimeout)
 	assert.False(t, isrunning.Load())
 
 	isrunning.Store(true)
@@ -233,7 +234,7 @@ func testTimeout(t *testing.T) {
 	}
 	assert.True(t, isrunning.Load())
 	err = RunActionWithTimeout(nonblockingAction, 10*time.Millisecond)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.False(t, isrunning.Load())
 
 	isrunning.Store(true)
@@ -245,8 +246,8 @@ func testTimeout(t *testing.T) {
 	}
 	assert.True(t, isrunning.Load())
 	err = RunActionWithTimeout(failingnonblockingAction, 10*time.Millisecond)
-	require.NotNil(t, err)
-	assert.True(t, errors.Is(err, anError))
+	require.Error(t, err)
+	errortest.AssertError(t, err, anError)
 	assert.False(t, isrunning.Load())
 }
 
@@ -260,10 +261,9 @@ func testTimeoutWithContext(t *testing.T, ctx context.Context) {
 	}
 	assert.True(t, isrunning.Load())
 	err := RunActionWithTimeoutAndContext(ctx, 10*time.Millisecond, blockingAction)
-	require.Nil(t, DetermineContextError(ctx))
-	require.NotNil(t, err)
-	assert.Error(t, err)
-	assert.True(t, commonerrors.Any(err, commonerrors.ErrTimeout))
+	require.NoError(t, DetermineContextError(ctx))
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrTimeout)
 	assert.False(t, isrunning.Load())
 
 	isrunning.Store(true)
@@ -276,9 +276,9 @@ func testTimeoutWithContext(t *testing.T, ctx context.Context) {
 	}
 	assert.True(t, isrunning.Load())
 	err = RunActionWithTimeoutAndContext(ctx, 10*time.Millisecond, blockingAction2)
-	require.Nil(t, DetermineContextError(ctx))
-	require.NotNil(t, err)
-	assert.True(t, errors.Is(err, commonerrors.ErrTimeout))
+	require.NoError(t, DetermineContextError(ctx))
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrTimeout)
 	assert.False(t, isrunning.Load())
 
 	isrunning.Store(true)
@@ -289,8 +289,8 @@ func testTimeoutWithContext(t *testing.T, ctx context.Context) {
 	}
 	assert.True(t, isrunning.Load())
 	err = RunActionWithTimeoutAndContext(ctx, 10*time.Millisecond, nonblockingAction)
-	require.Nil(t, DetermineContextError(ctx))
-	require.Nil(t, err)
+	require.NoError(t, DetermineContextError(ctx))
+	require.NoError(t, err)
 	assert.False(t, isrunning.Load())
 
 	isrunning.Store(true)
@@ -302,10 +302,9 @@ func testTimeoutWithContext(t *testing.T, ctx context.Context) {
 	}
 	assert.True(t, isrunning.Load())
 	err = RunActionWithTimeoutAndContext(ctx, 10*time.Millisecond, failingnonblockingAction)
-	require.Nil(t, DetermineContextError(ctx))
-	require.NotNil(t, err)
-	assert.Error(t, err)
-	assert.True(t, commonerrors.Any(err, anError))
+	require.NoError(t, DetermineContextError(ctx))
+	require.Error(t, err)
+	errortest.AssertError(t, err, anError)
 	assert.False(t, isrunning.Load())
 
 	isrunning.Store(true)
@@ -318,17 +317,17 @@ func testTimeoutWithContext(t *testing.T, ctx context.Context) {
 	}
 	assert.True(t, isrunning.Load())
 	err = RunActionWithTimeoutAndContext(ctx, 100*time.Millisecond, nonblockingAction2)
-	require.Nil(t, DetermineContextError(ctx))
-	require.Nil(t, err)
-	require.True(t, commonerrors.Any(DetermineContextError(funcCtxatomic.Load().(context.Context)), commonerrors.ErrCancelled))
+	require.NoError(t, DetermineContextError(ctx))
+	require.NoError(t, err)
+	errortest.AssertError(t, DetermineContextError(funcCtxatomic.Load().(context.Context)), commonerrors.ErrCancelled)
 	assert.False(t, isrunning.Load())
 
 	isrunning.Store(true)
 	assert.True(t, isrunning.Load())
 	err = RunActionWithTimeoutAndCancelStore(ctx, 100*time.Millisecond, NewCancelFunctionsStore(), nonblockingAction2)
-	require.Nil(t, DetermineContextError(ctx))
-	require.Nil(t, err)
-	require.Nil(t, DetermineContextError(funcCtxatomic.Load().(context.Context)))
+	require.NoError(t, DetermineContextError(ctx))
+	require.NoError(t, err)
+	require.NoError(t, DetermineContextError(funcCtxatomic.Load().(context.Context)))
 	assert.False(t, isrunning.Load())
 }
 
@@ -374,7 +373,7 @@ func runActionWithParallelCheckHappy(t *testing.T, ctx context.Context) {
 		return nil
 	}
 	err := RunActionWithParallelCheck(ctx, action, checkAction, 10*time.Millisecond)
-	require.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func runActionWithParallelCheckFail(t *testing.T, ctx context.Context) {
@@ -389,8 +388,8 @@ func runActionWithParallelCheckFail(t *testing.T, ctx context.Context) {
 		return nil
 	}
 	err := RunActionWithParallelCheck(ctx, action, checkAction, 10*time.Millisecond)
-	require.NotNil(t, err)
-	assert.Error(t, commonerrors.ErrCancelled, err)
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrCancelled)
 }
 
 func runActionWithParallelCheckFailAtRandom(t *testing.T, ctx context.Context) {
@@ -405,6 +404,6 @@ func runActionWithParallelCheckFailAtRandom(t *testing.T, ctx context.Context) {
 		return nil
 	}
 	err := RunActionWithParallelCheck(ctx, action, checkAction, 10*time.Millisecond)
-	require.NotNil(t, err)
-	assert.Error(t, commonerrors.ErrCancelled, err)
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrCancelled)
 }
