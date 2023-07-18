@@ -2,7 +2,8 @@
  * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-// Concurrency module
+
+// Package parallelisation defines a module for `Concurrency`
 package parallelisation
 
 import (
@@ -80,15 +81,22 @@ func SleepWithInterruption(stop chan bool, delay time.Duration) {
 
 // ScheduleAfter calls once function `f` after `offset`
 func ScheduleAfter(ctx context.Context, offset time.Duration, f func(time.Time)) {
+	SafeScheduleAfter(ctx, offset, func(_ context.Context, t time.Time) {
+		f(t)
+	})
+}
+
+// SafeScheduleAfter calls once function `f` after `offset` similarly to ScheduleAfter but stops the function is controlled by the context
+func SafeScheduleAfter(ctx context.Context, offset time.Duration, f func(context.Context, time.Time)) {
 	err := DetermineContextError(ctx)
 	if err != nil {
 		return
 	}
 	timer := time.NewTimer(offset)
-	go func(ctx context.Context, function func(time.Time)) {
+	go func(ctx context.Context, function func(context.Context, time.Time)) {
 		select {
 		case v := <-timer.C:
-			function(v)
+			function(ctx, v)
 		case <-ctx.Done():
 			timer.Stop()
 			return
@@ -98,11 +106,18 @@ func ScheduleAfter(ctx context.Context, offset time.Duration, f func(time.Time))
 
 // Schedule calls function `f` regularly with a `period` and an `offset`.
 func Schedule(ctx context.Context, period time.Duration, offset time.Duration, f func(time.Time)) {
+	SafeSchedule(ctx, period, offset, func(ctx context.Context, t time.Time) {
+		f(t)
+	})
+}
+
+// SafeSchedule calls function `f` regularly with a `period` and an `offset`, similarly to Schedule but with context control.
+func SafeSchedule(ctx context.Context, period time.Duration, offset time.Duration, f func(context.Context, time.Time)) {
 	err := DetermineContextError(ctx)
 	if err != nil {
 		return
 	}
-	go func(ctx context.Context, period time.Duration, offset time.Duration, function func(time.Time)) {
+	go func(ctx context.Context, period time.Duration, offset time.Duration, function func(context.Context, time.Time)) {
 		// Position the first execution
 		first := time.Now().Truncate(period).Add(offset)
 		if first.Before(time.Now()) {
@@ -118,9 +133,9 @@ func Schedule(ctx context.Context, period time.Duration, offset time.Duration, f
 			case v := <-firstC:
 				// The ticker has to be started before f as it can take some time to finish
 				t = time.NewTicker(period)
-				function(v)
+				function(ctx, v)
 			case v := <-t.C:
-				function(v)
+				function(ctx, v)
 			case <-ctx.Done():
 				t.Stop()
 				return
