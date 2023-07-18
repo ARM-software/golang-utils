@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.40.0" (2023-07-18)
+=====================
+
+Features
+--------
+
+- :lock: `[parallelisation]` Added utilities to control long running actions with context (#20230718134812)
+
+
+Misc
+----
+
+- #20230718134854
+
+
 "1.39.0" (2023-07-14)
 =====================
 
