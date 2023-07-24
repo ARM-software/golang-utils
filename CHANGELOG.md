@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.41.0" (2023-07-24)
+=====================
+
+Features
+--------
+
+- :sparkles: `[logrimp]` Defines some typical [logr.Logger](https://github.com/go-logr/logr) implementations for ease of initialisation and use (#20230724144906)
+
+
 "1.40.0" (2023-07-18)
 =====================
 
