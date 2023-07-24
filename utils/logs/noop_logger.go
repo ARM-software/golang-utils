@@ -4,8 +4,10 @@
  */
 package logs
 
-import "github.com/go-logr/logr"
+import (
+	"github.com/ARM-software/golang-utils/utils/logs/logrimp"
+)
 
 func NewNoopLogger(loggerSource string) (loggers Loggers, err error) {
-	return NewLogrLogger(logr.Discard(), loggerSource)
+	return NewLogrLogger(logrimp.NewNoopLogger(), loggerSource)
 }

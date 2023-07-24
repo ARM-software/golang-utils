@@ -76,7 +76,7 @@ type stdAdaptor struct {
 	loggers Loggers
 }
 
-func (s *stdAdaptor) Output(calldepth int, logline string) error {
+func (s *stdAdaptor) Output(_ int, logline string) error {
 	s.loggers.Log(logline)
 	return nil
 }
