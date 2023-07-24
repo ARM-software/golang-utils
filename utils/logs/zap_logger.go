@@ -7,10 +7,10 @@
 package logs
 
 import (
-	"github.com/go-logr/zapr"
 	"go.uber.org/zap"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/logs/logrimp"
 )
 
 const (
@@ -25,7 +25,7 @@ func NewZapLogger(zapL *zap.Logger, loggerSource string) (loggers Loggers, err e
 		err = commonerrors.ErrNoLogger
 		return
 	}
-	return NewLogrLoggerWithClose(zapr.NewLogger(zapL), loggerSource, func() error {
+	return NewLogrLoggerWithClose(logrimp.NewZapLogger(zapL), loggerSource, func() error {
 		err := zapL.Sync()
 		// handling this error https://github.com/uber-go/zap/issues/328
 		if commonerrors.CorrespondTo(err, syncError, syncErrorMac) {

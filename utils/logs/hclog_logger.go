@@ -7,10 +7,10 @@
 package logs
 
 import (
-	"github.com/evanphx/hclogr"
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/logs/logrimp"
 )
 
 // NewHclogLogger returns a logger which uses hclog logger (https://github.com/hashicorp/go-hclog)
@@ -19,7 +19,7 @@ func NewHclogLogger(hclogL hclog.Logger, loggerSource string) (loggers Loggers, 
 		err = commonerrors.ErrNoLogger
 		return
 	}
-	return NewLogrLogger(hclogr.Wrap(hclogL), loggerSource)
+	return NewLogrLogger(logrimp.NewHclogLogger(hclogL), loggerSource)
 }
 
 // NewHclogWrapper returns an hclog logger from a Loggers logger

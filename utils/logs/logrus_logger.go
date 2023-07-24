@@ -9,11 +9,11 @@ package logs
 import (
 	"fmt"
 
-	"github.com/bombsimon/logrusr/v4"
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/logs/logrimp"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
@@ -23,7 +23,7 @@ func NewLogrusLogger(logrusL *logrus.Logger, loggerSource string) (loggers Logge
 		err = commonerrors.ErrNoLogger
 		return
 	}
-	return NewLogrLogger(logrusr.New(logrusL), loggerSource)
+	return NewLogrLogger(logrimp.NewLogrusLogger(logrusL), loggerSource)
 }
 
 // NewLogrusLoggerWithFileHook returns a logger which uses a logrus logger (https://github.com/Sirupsen/logrus) and writes the logs to `logFilePath`
