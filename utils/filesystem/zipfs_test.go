@@ -27,7 +27,7 @@ func Test_zipFs_Exists(t *testing.T) {
 	}()
 	require.NotNil(t, zipFile)
 	assert.False(t, fs.Exists(faker.DomainName()))
-	// FIXME: enable when issue in afero is fixed
+	// FIXME: enable when issue in afero is fixed https://github.com/spf13/afero/issues/395
 	// assert.True(t, fs.Exists(string(filepath.Separator)))
 	// assert.True(t, fs.Exists("/"))
 	assert.True(t, fs.Exists("testunzip/test.txt"))
@@ -156,7 +156,7 @@ func Test_zipFs_itemType(t *testing.T) {
 	isFile, err := fs.IsFile("unzip")
 	require.NoError(t, err)
 	assert.False(t, isFile)
-	// FIXME: Enable when issue in afero is fixed
+	// FIXME: Enable when issue in afero is fixed https://github.com/spf13/afero/issues/395
 	// isDir, err := fs.IsDir("unzip")
 	// require.NoError(t, err)
 	// assert.True(t, isDir)
