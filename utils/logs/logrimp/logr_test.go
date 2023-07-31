@@ -1,6 +1,7 @@
 package logrimp
 
 import (
+	"os"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
@@ -9,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+	"golang.org/x/exp/slog"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
@@ -39,6 +41,10 @@ func TestLoggerImplementations(t *testing.T) {
 		{
 			Logger: NewLogrusLogger(logrus.New()),
 			name:   "Logrus",
+		},
+		{
+			Logger: NewSlogLogger(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{}))),
+			name:   "slog",
 		},
 	}
 	for i := range tests {
