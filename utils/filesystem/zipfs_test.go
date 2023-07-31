@@ -19,7 +19,7 @@ const zipTestFileContent = "Test names:\r\nGeorge\r\nGeoffrey\r\nGonzo"
 
 var (
 	aferoTestZipContentTree = []string{
-		filepath.Join("/"),
+		string(globalFileSystem.PathSeparator()),
 		filepath.Join("/", "sub"),
 		filepath.Join("/", "sub", "testDir2"),
 		filepath.Join("/", "sub", "testDir2", "testFile"),

@@ -123,7 +123,7 @@ func (fs *VFS) WalkWithContextAndExclusionPatterns(ctx context.Context, root str
 	if err != nil {
 		return
 	}
-	root = filepath.Join(root)
+	root = filepath.Join(root, string(fs.PathSeparator()))
 	exclusionRegex, err := NewExclusionRegexList(fs.PathSeparator(), exclusionPatterns...)
 	if err != nil {
 		return
