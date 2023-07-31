@@ -14,7 +14,7 @@ func newZipFSAdapterFromReader(reader *zip.Reader) (afero.Fs, error) {
 	if reader == nil {
 		return nil, fmt.Errorf("%w: missing reader", commonerrors.ErrUndefined)
 	}
-	return afero.NewReadOnlyFs(&afero.Afero{Fs: zipfs.New(reader)}), nil
+	return afero.NewReadOnlyFs(zipfs.New(reader)), nil
 }
 
 func newZipFSAdapterFromFilePath(fs FS, zipFilePath string, limits ILimits) (zipFs afero.Fs, zipFile File, err error) {

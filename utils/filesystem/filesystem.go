@@ -7,6 +7,7 @@ package filesystem
 
 import (
 	"embed"
+	"fmt"
 	"os"
 
 	"github.com/spf13/afero"
@@ -47,17 +48,17 @@ func NewEmbedFileSystem(fs *embed.FS) (FS, error) {
 // NewZipFileSystem returns a filesystem over the contents of a .zip file.
 // Warning: After use of the filesystem, it is crucial to close the zip file (zipFile) which has been opened from source for the entirety of the filesystem use session.
 // fs corresponds to the filesystem to use to find the zip file.
-func NewZipFileSystem(fs FS, source string, limits ILimits) (zipFs FS, zipFile File, err error) {
+func NewZipFileSystem(fs FS, source string, limits ILimits) (zipFs ICloseableFS, zipFile File, err error) {
 	wrapped, zipFile, err := newZipFSAdapterFromFilePath(fs, source, limits)
 	if err != nil {
 		return
 	}
-	zipFs = NewVirtualFileSystem(wrapped, ZipFS, IdentityPathConverterFunc)
+	zipFs = NewCloseableVirtualFileSystem(wrapped, ZipFS, zipFile, fmt.Sprintf(".zip file `%v`", source), IdentityPathConverterFunc)
 	return
 }
 
 // NewZipFileSystemFromStandardFileSystem returns a zip filesystem similar to NewZipFileSystem but assumes the zip file described by source can be found on the standard file system.
-func NewZipFileSystemFromStandardFileSystem(source string, limits ILimits) (FS, File, error) {
+func NewZipFileSystemFromStandardFileSystem(source string, limits ILimits) (ICloseableFS, File, error) {
 	return NewZipFileSystem(NewStandardFileSystem(), source, limits)
 }
 

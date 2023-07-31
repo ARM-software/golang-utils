@@ -25,6 +25,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 	"github.com/ARM-software/golang-utils/utils/platform"
 	"github.com/ARM-software/golang-utils/utils/reflection"
+	"github.com/ARM-software/golang-utils/utils/resource"
 	"github.com/ARM-software/golang-utils/utils/safeio"
 )
 
@@ -64,13 +65,28 @@ func IdentityPathConverterFunc(path string) string {
 }
 
 type VFS struct {
+	resourceInUse resource.ICloseableResource
 	vfs           afero.Fs
 	fsType        FilesystemType
 	pathConverter func(path string) string
 }
 
+// NewVirtualFileSystem returns a virtual filesystem similarly to NewCloseableVirtualFileSystem
 func NewVirtualFileSystem(vfs afero.Fs, fsType FilesystemType, pathConverter func(path string) string) FS {
+	return NewCloseableVirtualFileSystem(vfs, fsType, nil, "", pathConverter)
+}
+
+// NewCloseableVirtualFileSystem returns a virtual filesystem which requires closing after use.
+// It is a wrapper over afero.FS virtual filesystem and tends to define common filesystem utilities as the ones available in posix.
+func NewCloseableVirtualFileSystem(vfs afero.Fs, fsType FilesystemType, resourceInUse io.Closer, resourceInUseDescription string, pathConverter func(path string) string) ICloseableFS {
+	var resourceInUseByFs resource.ICloseableResource
+	if resourceInUse == nil {
+		resourceInUseByFs = resource.NewNonCloseableResource()
+	} else {
+		resourceInUseByFs = resource.NewCloseableResource(resourceInUse, resourceInUseDescription)
+	}
 	return &VFS{
+		resourceInUse: resourceInUseByFs,
 		vfs:           vfs,
 		fsType:        fsType,
 		pathConverter: pathConverter,
@@ -85,6 +101,14 @@ func GetType() FilesystemType {
 	return globalFileSystem.GetType()
 }
 
+// checkWhetherUnderlyingResourceIsClosed checks whether the filesystem is in a working state when relying on a ICloseableResource.
+func (fs *VFS) checkWhetherUnderlyingResourceIsClosed() error {
+	if fs.resourceInUse.IsClosed() {
+		return fmt.Errorf("%w: the resource this filesystem is based on [%v] has been closed", commonerrors.ErrCondition, fs.resourceInUse.String())
+	}
+	return nil
+}
+
 // Walk walks  https://golang.org/pkg/path/filepath/#WalkDir
 func (fs *VFS) Walk(root string, fn filepath.WalkFunc) error {
 	return fs.WalkWithContext(context.Background(), root, fn)
@@ -95,6 +119,11 @@ func (fs *VFS) WalkWithContext(ctx context.Context, root string, fn filepath.Wal
 }
 
 func (fs *VFS) WalkWithContextAndExclusionPatterns(ctx context.Context, root string, fn filepath.WalkFunc, exclusionPatterns ...string) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
+	root = filepath.Join(root)
 	exclusionRegex, err := NewExclusionRegexList(fs.PathSeparator(), exclusionPatterns...)
 	if err != nil {
 		return
@@ -118,6 +147,10 @@ func (fs *VFS) WalkWithContextAndExclusionPatterns(ctx context.Context, root str
 
 // walks recursively descends path, calling fn.
 func (fs *VFS) walk(ctx context.Context, path string, info os.FileInfo, exclusions []*regexp.Regexp, fn filepath.WalkFunc) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -187,7 +220,8 @@ func CurrentDirectory() (string, error) {
 	return globalFileSystem.CurrentDirectory()
 }
 func (fs *VFS) CurrentDirectory() (string, error) {
-	return os.Getwd()
+	current, err := os.Getwd()
+	return fs.ConvertFilePath(current), err
 }
 
 func Lstat(name string) (fileInfo os.FileInfo, err error) {
@@ -195,6 +229,10 @@ func Lstat(name string) (fileInfo os.FileInfo, err error) {
 }
 
 func (fs *VFS) Lstat(name string) (fileInfo os.FileInfo, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	if correctobj, ok := fs.vfs.(interface {
 		LstatIfPossible(string) (os.FileInfo, bool, error)
 	}); ok {
@@ -216,6 +254,10 @@ func GenericOpen(name string) (File, error) {
 	return globalFileSystem.GenericOpen(name)
 }
 func (fs *VFS) GenericOpen(name string) (File, error) {
+	err := fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return nil, err
+	}
 	return convertFile(func() (afero.File, error) { return fs.vfs.Open(name) }, func() error { return nil })
 }
 
@@ -224,6 +266,10 @@ func OpenFile(name string, flag int, perm os.FileMode) (File, error) {
 }
 
 func (fs *VFS) OpenFile(name string, flag int, perm os.FileMode) (File, error) {
+	err := fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return nil, err
+	}
 	return convertFile(func() (afero.File, error) { return fs.vfs.OpenFile(name, flag, perm) }, func() error { return nil })
 }
 
@@ -231,6 +277,10 @@ func CreateFile(name string) (File, error) {
 	return globalFileSystem.CreateFile(name)
 }
 func (fs *VFS) CreateFile(name string) (File, error) {
+	err := fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return nil, err
+	}
 	return convertFile(func() (afero.File, error) { return fs.vfs.Create(name) }, func() error { return nil })
 }
 
@@ -263,6 +313,10 @@ func (fs *VFS) ReadFileWithContextAndLimits(ctx context.Context, filename string
 }
 
 func (fs *VFS) readFileWithContextAndLimits(ctx context.Context, filename string, limits ILimits) (content []byte, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -288,6 +342,10 @@ func ReadFileContent(ctx context.Context, file File) ([]byte, error) {
 }
 
 func (fs *VFS) ReadFileContent(ctx context.Context, file File, limits ILimits) (content []byte, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -332,6 +390,10 @@ func (fs *VFS) WriteFile(filename string, data []byte, perm os.FileMode) error {
 }
 
 func (fs *VFS) WriteFileWithContext(ctx context.Context, filename string, data []byte, perm os.FileMode) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	reader := bytes.NewReader(data)
 	n, err := fs.WriteToFile(ctx, filename, reader, perm)
 	if err != nil {
@@ -344,6 +406,10 @@ func (fs *VFS) WriteFileWithContext(ctx context.Context, filename string, data [
 }
 
 func (fs *VFS) WriteToFile(ctx context.Context, filename string, reader io.Reader, perm os.FileMode) (written int64, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -378,6 +444,10 @@ func Stat(name string) (os.FileInfo, error) {
 }
 
 func (fs *VFS) Stat(name string) (os.FileInfo, error) {
+	err := fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return nil, err
+	}
 	return fs.vfs.Stat(name)
 }
 
@@ -394,6 +464,10 @@ func TempDir(dir string, prefix string) (name string, err error) {
 }
 
 func (fs *VFS) TempDir(dir string, prefix string) (name string, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	return afero.TempDir(fs.vfs, dir, prefix)
 }
 
@@ -408,6 +482,10 @@ func TempFile(dir string, pattern string) (f File, err error) {
 	return globalFileSystem.TempFile(dir, pattern)
 }
 func (fs *VFS) TempFile(dir string, prefix string) (f File, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	file, err := afero.TempFile(fs.vfs, dir, prefix)
 	if err != nil {
 		return
@@ -435,6 +513,10 @@ func (fs *VFS) CleanDirWithContext(ctx context.Context, dir string) error {
 	return fs.CleanDirWithContextAndExclusionPatterns(ctx, dir)
 }
 func (fs *VFS) CleanDirWithContextAndExclusionPatterns(ctx context.Context, dir string, exclusionPatterns ...string) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -461,6 +543,10 @@ func (fs *VFS) CleanDirWithContextAndExclusionPatterns(ctx context.Context, dir 
 }
 
 func (fs *VFS) removeFileWithContext(ctx context.Context, dir, f string) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -518,6 +604,10 @@ func (fs *VFS) RemoveWithContext(ctx context.Context, dir string) error {
 	return fs.RemoveWithContextAndExclusionPatterns(ctx, dir)
 }
 func (fs *VFS) RemoveWithContextAndExclusionPatterns(ctx context.Context, dir string, exclusionPatterns ...string) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	if dir == "" {
 		return
 	}
@@ -560,6 +650,10 @@ func IsFile(path string) (result bool, err error) {
 	return globalFileSystem.IsFile(path)
 }
 func (fs *VFS) IsFile(path string) (result bool, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	if !fs.Exists(path) {
 		return
 	}
@@ -579,6 +673,10 @@ func IsRegularFile(fi os.FileInfo) bool {
 }
 
 func (fs *VFS) IsLink(path string) (result bool, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	if !fs.Exists(path) {
 		return
 	}
@@ -602,7 +700,12 @@ func IsDir(path string) (result bool, err error) {
 	return globalFileSystem.IsDir(path)
 }
 func (fs *VFS) IsDir(path string) (result bool, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	if !fs.Exists(path) {
+		err = fmt.Errorf("%w: path [%v]", commonerrors.ErrNotFound, path)
 		return
 	}
 	fi, err := fs.Stat(path)
@@ -625,6 +728,10 @@ func IsEmpty(name string) (empty bool, err error) {
 	return globalFileSystem.IsEmpty(name)
 }
 func (fs *VFS) IsEmpty(name string) (empty bool, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	if !fs.Exists(name) {
 		empty = true
 		return
@@ -649,6 +756,10 @@ func (fs *VFS) isFileEmpty(name string) (empty bool, err error) {
 }
 
 func (fs *VFS) isDirEmpty(name string) (empty bool, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	f, err := fs.vfs.Open(name)
 	if err != nil {
 		return
@@ -677,6 +788,10 @@ func (fs *VFS) MkDir(dir string) (err error) {
 }
 
 func (fs *VFS) MkDirAll(dir string, perm os.FileMode) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	if dir == "" {
 		return fmt.Errorf("missing path: %w", commonerrors.ErrUndefined)
 	}
@@ -696,6 +811,10 @@ func FindAll(dir string, extensions ...string) (files []string, err error) {
 	return globalFileSystem.FindAll(dir, extensions...)
 }
 func (fs *VFS) FindAll(dir string, extensions ...string) (files []string, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	files = []string{}
 	if !fs.Exists(dir) {
 		return
@@ -710,6 +829,10 @@ func (fs *VFS) FindAll(dir string, extensions ...string) (files []string, err er
 	return
 }
 func (fs *VFS) findAllOfExtension(dir string, ext string) (files []string, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	files, err = doublestar.GlobOS(fs, filepath.Join(dir, "**", fmt.Sprintf("*.%v", strings.TrimPrefix(ext, "."))))
 	if commonerrors.Any(err, doublestar.ErrBadPattern) {
 		err = fmt.Errorf("%w: %v", commonerrors.ErrInvalid, err.Error())
@@ -717,15 +840,29 @@ func (fs *VFS) findAllOfExtension(dir string, ext string) (files []string, err e
 	return
 }
 
-func (fs *VFS) Chmod(name string, mode os.FileMode) error {
-	return fs.vfs.Chmod(name, mode)
+func (fs *VFS) Chmod(name string, mode os.FileMode) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
+	err = fs.vfs.Chmod(name, mode)
+	return
 }
 
-func (fs *VFS) Chtimes(name string, atime time.Time, mtime time.Time) error {
-	return fs.vfs.Chtimes(name, atime, mtime)
+func (fs *VFS) Chtimes(name string, atime time.Time, mtime time.Time) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
+	err = fs.vfs.Chtimes(name, atime, mtime)
+	return
 }
 
 func (fs *VFS) Chown(name string, uid, gid int) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	if correctobj, ok := fs.vfs.(interface {
 		ChownIfPossible(string, int, int) error
 	}); ok {
@@ -737,6 +874,10 @@ func (fs *VFS) Chown(name string, uid, gid int) (err error) {
 }
 
 func (fs *VFS) FetchOwners(name string) (uid, gid int, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	stat, err := fs.Stat(name)
 	if err != nil {
 		return
@@ -754,6 +895,10 @@ func (fs *VFS) FetchOwners(name string) (uid, gid int, err error) {
 }
 
 func (fs *VFS) Link(oldname, newname string) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	if correctobj, ok := fs.vfs.(interface {
 		LinkIfPossible(string, string) error
 	}); ok {
@@ -765,6 +910,10 @@ func (fs *VFS) Link(oldname, newname string) (err error) {
 }
 
 func (fs *VFS) Readlink(name string) (value string, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	if correctobj, ok := fs.vfs.(interface {
 		ReadlinkIfPossible(string) (string, error)
 	}); ok {
@@ -776,6 +925,10 @@ func (fs *VFS) Readlink(name string) (value string, err error) {
 }
 
 func (fs *VFS) Symlink(oldname string, newname string) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	if correctobj, ok := fs.vfs.(interface {
 		SymlinkIfPossible(string, string) error
 	}); ok {
@@ -794,6 +947,10 @@ func (fs *VFS) Ls(dir string) (names []string, err error) {
 }
 
 func (fs *VFS) LsWithExclusionPatterns(dir string, exclusionPatterns ...string) (names []string, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	regexes, err := NewExclusionRegexList(fs.PathSeparator(), exclusionPatterns...)
 	if err != nil {
 		return nil, err
@@ -823,6 +980,10 @@ func LsWithExclusionPatterns(fs FS, dir string, regexes []*regexp.Regexp) (names
 }
 
 func (fs *VFS) LsFromOpenedDirectory(dir File) ([]string, error) {
+	err := fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return nil, err
+	}
 	if dir == nil {
 		return nil, fmt.Errorf("%w: nil directory", commonerrors.ErrUndefined)
 	}
@@ -830,6 +991,10 @@ func (fs *VFS) LsFromOpenedDirectory(dir File) ([]string, error) {
 }
 
 func (fs *VFS) Lls(dir string) (files []os.FileInfo, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	if isDir, err := fs.IsDir(dir); !isDir || err != nil {
 		err = fmt.Errorf("path [%v] is not a directory: %w", dir, commonerrors.ErrInvalid)
 		return nil, err
@@ -844,6 +1009,10 @@ func (fs *VFS) Lls(dir string) (files []os.FileInfo, err error) {
 }
 
 func (fs *VFS) LlsFromOpenedDirectory(dir File) ([]os.FileInfo, error) {
+	err := fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return nil, err
+	}
 	if dir == nil {
 		return nil, fmt.Errorf("%w: nil directory", commonerrors.ErrUndefined)
 	}
@@ -851,6 +1020,10 @@ func (fs *VFS) LlsFromOpenedDirectory(dir File) ([]os.FileInfo, error) {
 }
 
 func (fs *VFS) ConvertToAbsolutePath(rootPath string, paths ...string) ([]string, error) {
+	err := fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return nil, err
+	}
 	basepath := fs.ConvertFilePath(rootPath)
 	converted := make([]string, 0, len(paths))
 	for i := range paths {
@@ -867,6 +1040,10 @@ func (fs *VFS) ConvertToAbsolutePath(rootPath string, paths ...string) ([]string
 }
 
 func (fs *VFS) ConvertToRelativePath(rootPath string, paths ...string) ([]string, error) {
+	err := fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return nil, err
+	}
 	basepath := fs.ConvertFilePath(rootPath)
 	converted := make([]string, 0, len(paths))
 	for i := range paths {
@@ -889,6 +1066,10 @@ func (fs *VFS) Move(src string, dest string) error {
 }
 
 func (fs *VFS) MoveWithContext(ctx context.Context, src string, dest string) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -922,6 +1103,10 @@ func (fs *VFS) MoveWithContext(ctx context.Context, src string, dest string) (er
 }
 
 func (fs *VFS) moveFolder(ctx context.Context, src string, dest string) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -958,10 +1143,14 @@ func IsPathNotExist(err error) bool {
 	if err == nil {
 		return false
 	}
-	return os.IsNotExist(err) || commonerrors.Any(err, ErrPathNotExist)
+	return os.IsNotExist(err) || commonerrors.Any(err, ErrPathNotExist) || commonerrors.CorrespondTo(err, ErrPathNotExist.Error())
 }
 
 func (fs *VFS) moveFile(ctx context.Context, src string, dest string) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -985,6 +1174,10 @@ func (fs *VFS) FileHash(hashAlgo string, path string) (string, error) {
 }
 
 func (fs *VFS) FileHashWithContext(ctx context.Context, hashAlgo string, path string) (hash string, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	hasher, err := NewFileHash(hashAlgo)
 	if err != nil {
 		return
@@ -1015,6 +1208,10 @@ func CopyToFileWithContext(ctx context.Context, srcFile, destFile string) error 
 }
 
 func (fs *VFS) CopyToFileWithContext(ctx context.Context, src string, dest string) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	isFile, err := fs.IsFile(src)
 	if err != nil {
 		return
@@ -1055,6 +1252,10 @@ func CopyToDirectoryWithContext(ctx context.Context, src, destDirectory string) 
 }
 
 func (fs *VFS) CopyToDirectoryWithContext(ctx context.Context, src, destDirectory string) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	err = fs.MkDir(destDirectory)
 	if err != nil {
 		return
@@ -1231,6 +1432,10 @@ func copyFileBetweenFSWithExclusionPatternsWithExclusionRegexes(ctx context.Cont
 }
 
 func (fs *VFS) DiskUsage(name string) (usage DiskUsage, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	realPath := fs.pathConverter(name)
 	du, err := disk.Usage(realPath)
 	if err != nil {
@@ -1274,6 +1479,10 @@ func (fs *VFS) SubDirectoriesWithContext(ctx context.Context, directory string) 
 	return fs.SubDirectoriesWithContextAndExclusionPatterns(ctx, directory, "^[.].*$")
 }
 func (fs *VFS) SubDirectoriesWithContextAndExclusionPatterns(ctx context.Context, directory string, exclusionPatterns ...string) (directories []string, err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -1314,6 +1523,10 @@ func (fs *VFS) ListDirTreeWithContext(ctx context.Context, dirPath string, list 
 	return fs.ListDirTreeWithContextAndExclusionPatterns(ctx, dirPath, list)
 }
 func (fs *VFS) ListDirTreeWithContextAndExclusionPatterns(ctx context.Context, dirPath string, list *[]string, exclusionPatterns ...string) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	regexes, err := NewExclusionRegexList(fs.PathSeparator(), exclusionPatterns...)
 	if err != nil {
 		return
@@ -1369,6 +1582,10 @@ func (fs *VFS) GarbageCollectWithContext(ctx context.Context, root string, durat
 }
 
 func (fs *VFS) garbageCollectFile(ctx context.Context, durationSinceLastAccess time.Duration, path string) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -1385,6 +1602,10 @@ func (fs *VFS) garbageCollectFile(ctx context.Context, durationSinceLastAccess t
 }
 
 func (fs *VFS) garbageCollect(ctx context.Context, durationSinceLastAccess time.Duration, path string, deletePath bool) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -1399,6 +1620,10 @@ func (fs *VFS) garbageCollect(ctx context.Context, durationSinceLastAccess time.
 }
 
 func (fs *VFS) garbageCollectDir(ctx context.Context, durationSinceLastAccess time.Duration, path string, deletePath bool) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -1431,6 +1656,10 @@ func (fs *VFS) garbageCollectDir(ctx context.Context, durationSinceLastAccess ti
 		err = fs.RemoveWithContext(ctx, path)
 	}
 	return
+}
+
+func (fs *VFS) Close() error {
+	return fs.resourceInUse.Close()
 }
 
 type extendedFile struct {

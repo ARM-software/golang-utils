@@ -1,11 +1,11 @@
 package filesystem
 
 import (
-	"fmt"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
@@ -17,7 +17,19 @@ import (
 
 const zipTestFileContent = "Test names:\r\nGeorge\r\nGeoffrey\r\nGonzo"
 
-func Test_zipFs_Exists(t *testing.T) {
+var (
+	aferoTestZipContentTree = []string{
+		filepath.Join("/"),
+		filepath.Join("/", "sub"),
+		filepath.Join("/", "sub", "testDir2"),
+		filepath.Join("/", "sub", "testDir2", "testFile"),
+		filepath.Join("/", "testDir1"),
+		filepath.Join("/", "testDir1", "testFile"),
+		filepath.Join("/", "testFile"),
+	}
+)
+
+func Test_zipFs_Close(t *testing.T) {
 	fs, zipFile, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "testunzip.zip"), NoLimits())
 	require.NoError(t, err)
 	defer func() {
@@ -26,6 +38,20 @@ func Test_zipFs_Exists(t *testing.T) {
 		}
 	}()
 	require.NotNil(t, zipFile)
+	_, err = fs.Stat("testunzip/test.txt")
+	assert.NoError(t, err)
+	require.NoError(t, fs.Close())
+	_, err = fs.Stat("testunzip/test.txt")
+	errortest.AssertErrorDescription(t, err, "closed")
+	require.NoError(t, fs.Close())
+	require.NoError(t, fs.Close())
+}
+
+func Test_zipFs_Exists(t *testing.T) {
+	fs, _, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "testunzip.zip"), NoLimits())
+	require.NoError(t, err)
+	defer func() { _ = fs.Close() }()
+
 	assert.False(t, fs.Exists(faker.DomainName()))
 	// FIXME: enable when issue in afero is fixed
 	// assert.True(t, fs.Exists(string(filepath.Separator)))
@@ -33,19 +59,15 @@ func Test_zipFs_Exists(t *testing.T) {
 	assert.True(t, fs.Exists("testunzip/test.txt"))
 	assert.True(t, fs.Exists("testunzip/child.zip"))
 	assert.True(t, fs.Exists("testunzip/ไป ไหน มา.txt"))
-	require.NoError(t, zipFile.Close())
+	require.NoError(t, fs.Close())
 }
 
-func Test_zipFs_Exists2(t *testing.T) {
+func Test_zipFs_Exists_usingAferoTestZip(t *testing.T) {
 	// using afero test zip file
-	fs, zipFile, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "t.zip"), NoLimits())
+	fs, _, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "t.zip"), NoLimits())
 	require.NoError(t, err)
-	defer func() {
-		if zipFile != nil {
-			_ = zipFile.Close()
-		}
-	}()
-	require.NotNil(t, zipFile)
+	defer func() { _ = fs.Close() }()
+
 	assert.False(t, fs.Exists(faker.DomainName()))
 	assert.True(t, fs.Exists(string(filepath.Separator)))
 	assert.True(t, fs.Exists("/"))
@@ -53,18 +75,14 @@ func Test_zipFs_Exists2(t *testing.T) {
 	assert.True(t, fs.Exists("testDir1"))
 	assert.True(t, fs.Exists("testFile"))
 	assert.True(t, fs.Exists("testDir1/testFile"))
-	require.NoError(t, zipFile.Close())
+	require.NoError(t, fs.Close())
 }
 
 func Test_zipFS_FileInfo(t *testing.T) {
-	fs, zipFile, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "testunzip.zip"), NoLimits())
+	fs, _, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "testunzip.zip"), NoLimits())
 	require.NoError(t, err)
-	defer func() {
-		if zipFile != nil {
-			_ = zipFile.Close()
-		}
-	}()
-	require.NotNil(t, zipFile)
+	defer func() { _ = fs.Close() }()
+
 	zfile, err := fs.Stat("/")
 	require.NoError(t, err)
 	assert.Equal(t, string(filepath.Separator), zfile.Name())
@@ -77,18 +95,14 @@ func Test_zipFS_FileInfo(t *testing.T) {
 	assert.False(t, zfile.IsDir())
 	assert.NotZero(t, zfile.Size())
 
-	require.NoError(t, zipFile.Close())
+	require.NoError(t, fs.Close())
 }
 
 func Test_zipFs_Browsing(t *testing.T) {
-	fs, zipFile, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "testunzip.zip"), NoLimits())
+	fs, _, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "testunzip.zip"), NoLimits())
 	require.NoError(t, err)
-	defer func() {
-		if zipFile != nil {
-			_ = zipFile.Close()
-		}
-	}()
-	require.NotNil(t, zipFile)
+	defer func() { _ = fs.Close() }()
+
 	empty, err := fs.IsEmpty(faker.DomainName())
 	require.NoError(t, err)
 	assert.True(t, empty)
@@ -101,35 +115,35 @@ func Test_zipFs_Browsing(t *testing.T) {
 	empty, err = fs.IsEmpty("testunzip/ไป ไหน มา.txt")
 	require.NoError(t, err)
 	assert.True(t, empty)
-	require.NoError(t, zipFile.Close())
+	require.NoError(t, fs.Close())
 }
 
-func Test_zipFs_Browsing2(t *testing.T) {
-	zipFs, zipFile, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "t.zip"), NoLimits())
+func Test_zipFs_Browsing_usingAferoTestZip(t *testing.T) {
+	zipFs, _, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "t.zip"), NoLimits())
 	require.NoError(t, err)
-	defer func() {
-		if zipFile != nil {
-			_ = zipFile.Close()
-		}
-	}()
-	require.NotNil(t, zipFile)
+	defer func() { _ = zipFs.Close() }()
+
+	// Warning: this assumes the walk function is executed in the same goroutine and not concurrently.
+	// If not, this list should be created with some thread access protection in place.
+	pathList := []string{}
+
 	var wFunc = func(path string, info fs.FileInfo, err error) error {
-		fmt.Println(path)
+		pathList = append(pathList, path)
 		return nil
 	}
+
 	require.NoError(t, zipFs.Walk("/", wFunc))
-	require.NoError(t, zipFile.Close())
+	require.NoError(t, zipFs.Close())
+
+	sort.Strings(pathList)
+	sort.Strings(aferoTestZipContentTree)
+	assert.Equal(t, aferoTestZipContentTree, pathList)
 }
 
 func Test_zipFs_LS(t *testing.T) {
-	fs, zipFile, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "t.zip"), NoLimits())
+	fs, _, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "t.zip"), NoLimits())
 	require.NoError(t, err)
-	defer func() {
-		if zipFile != nil {
-			_ = zipFile.Close()
-		}
-	}()
-	require.NotNil(t, zipFile)
+	defer func() { _ = fs.Close() }()
 
 	files, err := fs.Ls("/")
 	require.NoError(t, err)
@@ -140,18 +154,13 @@ func Test_zipFs_LS(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotZero(t, files)
 	assert.Contains(t, files, "testDir2")
-	require.NoError(t, zipFile.Close())
+	require.NoError(t, fs.Close())
 }
 
 func Test_zipFs_itemType(t *testing.T) {
-	fs, zipFile, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "testunzip.zip"), NoLimits())
+	fs, _, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "testunzip.zip"), NoLimits())
 	require.NoError(t, err)
-	defer func() {
-		if zipFile != nil {
-			_ = zipFile.Close()
-		}
-	}()
-	require.NotNil(t, zipFile)
+	defer func() { _ = fs.Close() }()
 
 	isFile, err := fs.IsFile("unzip")
 	require.NoError(t, err)
@@ -166,18 +175,13 @@ func Test_zipFs_itemType(t *testing.T) {
 	isDir, err := fs.IsDir("testunzip/test.txt")
 	require.NoError(t, err)
 	assert.False(t, isDir)
-	require.NoError(t, zipFile.Close())
+	require.NoError(t, fs.Close())
 }
 
-func Test_zipFs_itemType2(t *testing.T) {
-	fs, zipFile, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "t.zip"), NoLimits())
+func Test_zipFs_itemType_usingAferoTestZip(t *testing.T) {
+	fs, _, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "t.zip"), NoLimits())
 	require.NoError(t, err)
-	defer func() {
-		if zipFile != nil {
-			_ = zipFile.Close()
-		}
-	}()
-	require.NotNil(t, zipFile)
+	defer func() { _ = fs.Close() }()
 
 	isFile, err := fs.IsFile("testDir1")
 	require.NoError(t, err)
@@ -191,18 +195,13 @@ func Test_zipFs_itemType2(t *testing.T) {
 	isDir, err = fs.IsDir("testDir1/testFile")
 	require.NoError(t, err)
 	assert.False(t, isDir)
-	require.NoError(t, zipFile.Close())
+	require.NoError(t, fs.Close())
 }
 
 func Test_zipFs_Read(t *testing.T) {
-	fs, zipFile, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "testunzip.zip"), NoLimits())
+	fs, _, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "testunzip.zip"), NoLimits())
 	require.NoError(t, err)
-	defer func() {
-		if zipFile != nil {
-			_ = zipFile.Close()
-		}
-	}()
-	require.NotNil(t, zipFile)
+	defer func() { _ = fs.Close() }()
 
 	t.Run("using file opening", func(t *testing.T) {
 		f, err := fs.GenericOpen("testunzip/test.txt")
@@ -230,18 +229,13 @@ func Test_zipFs_Read(t *testing.T) {
 		assert.Equal(t, zipTestFileContent, string(c))
 	})
 
-	require.NoError(t, zipFile.Close())
+	require.NoError(t, fs.Close())
 }
 
 func Test_zipFs_not_supported(t *testing.T) {
-	fs, zipFile, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "testunzip.zip"), NoLimits())
+	fs, _, err := NewZipFileSystemFromStandardFileSystem(filepath.Join("testdata", "testunzip.zip"), NoLimits())
 	require.NoError(t, err)
-	defer func() {
-		if zipFile != nil {
-			_ = zipFile.Close()
-		}
-	}()
-	require.NotNil(t, zipFile)
+	defer func() { _ = fs.Close() }()
 
 	_, err = fs.TempDir("testdata", "aaaa")
 	errortest.AssertErrorDescription(t, err, "operation not permitted")
@@ -259,6 +253,6 @@ func Test_zipFs_not_supported(t *testing.T) {
 	require.Error(t, err)
 	errortest.AssertErrorDescription(t, err, "operation not permitted")
 
-	require.NoError(t, zipFile.Close())
+	require.NoError(t, fs.Close())
 
 }

@@ -30,6 +30,17 @@ import (
 	sizeUnits "github.com/ARM-software/golang-utils/utils/units/size"
 )
 
+func TestCurrentDirectory(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			current, err := fs.CurrentDirectory()
+			require.NoError(t, err)
+			assert.NotEmpty(t, current)
+		})
+	}
+}
+
 func TestExists(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
