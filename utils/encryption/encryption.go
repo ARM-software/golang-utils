@@ -13,7 +13,7 @@ import (
 const KeySize = 32
 
 var (
-	keySizeError = fmt.Errorf("%w: recipient key has invalid size (expected %d bytes)", commonerrors.ErrInvalid, KeySize)
+	errKeySize = fmt.Errorf("%w: recipient key has invalid size (expected %d bytes)", commonerrors.ErrInvalid, KeySize)
 )
 
 // GenerateKeyPair generates a asymmetric key pair suitable for use with encryption utilities. Works with [NaCl box](https://nacl.cr.yp.to/box.html.)
@@ -37,7 +37,7 @@ func EncryptWithPublicKey(base64EncodedPublicKey string, message string) (encryp
 		return
 	}
 	if len(decodedPublicKey) != KeySize {
-		err = keySizeError
+		err = errKeySize
 		return
 	}
 
@@ -69,7 +69,7 @@ func DecryptWithKeyPair(base64EncodedPublicKey, base64EncodedPrivateKey, base64E
 		return
 	}
 	if len(decodedPublicKey) != KeySize {
-		err = keySizeError
+		err = errKeySize
 		return
 	}
 	decodedPrivateKey, err := base64.StdEncoding.DecodeString(base64EncodedPrivateKey)
@@ -78,7 +78,7 @@ func DecryptWithKeyPair(base64EncodedPublicKey, base64EncodedPrivateKey, base64E
 		return
 	}
 	if len(decodedPrivateKey) != KeySize {
-		err = keySizeError
+		err = errKeySize
 		return
 	}
 
