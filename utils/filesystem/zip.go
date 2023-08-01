@@ -203,16 +203,15 @@ func (fs *VFS) UnzipWithContextAndLimits(ctx context.Context, source string, des
 	return
 }
 
-func (fs *VFS) unzip(ctx context.Context, source string, destination string, limits ILimits, currentDepth int64) (fileList []string, fileOnDiskCount uint64, sizeOnDisk uint64, err error) {
+func newZipReader(fs FS, source string, limits ILimits, currentDepth int64) (zipReader *zip.Reader, file File, err error) {
+	if fs == nil {
+		err = fmt.Errorf("%w: missing file system", commonerrors.ErrUndefined)
+		return
+	}
 	if limits == nil {
 		err = fmt.Errorf("%w: missing file system limits", commonerrors.ErrUndefined)
 		return
 	}
-	err = parallelisation.DetermineContextError(ctx)
-	if err != nil {
-		return
-	}
-
 	if limits.Apply() && limits.GetMaxDepth() >= 0 && currentDepth > limits.GetMaxDepth() {
 		err = fmt.Errorf("%w: depth [%v] of zip file [%v] is beyond allowed limits (max: %v)", commonerrors.ErrTooLarge, currentDepth, source, limits.GetMaxDepth())
 		return
@@ -223,20 +222,14 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		return
 	}
 
-	fileCounter := atomic.NewUint64(0)
-
-	// List of file paths to return
-	totalSizeOnDisk := atomic.NewUint64(0)
-
 	info, err := fs.Lstat(source)
 	if err != nil {
 		return
 	}
-	f, err := fs.GenericOpen(source)
+	file, err = fs.GenericOpen(source)
 	if err != nil {
 		return
 	}
-	defer func() { _ = f.Close() }()
 
 	zipFileSize := info.Size()
 
@@ -245,9 +238,31 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		return
 	}
 
-	zipReader, err := zip.NewReader(f, zipFileSize)
+	zipReader, err = zip.NewReader(file, zipFileSize)
+	err = convertZipError(err)
+
+	return
+}
+
+func (fs *VFS) unzip(ctx context.Context, source string, destination string, limits ILimits, currentDepth int64) (fileList []string, fileOnDiskCount uint64, sizeOnDisk uint64, err error) {
+
+	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
-		err = convertZipError(err)
+		return
+	}
+
+	fileCounter := atomic.NewUint64(0)
+
+	// List of file paths to return
+	totalSizeOnDisk := atomic.NewUint64(0)
+
+	zipReader, f, err := newZipReader(fs, source, limits, currentDepth)
+	defer func() {
+		if f != nil {
+			_ = f.Close()
+		}
+	}()
+	if err != nil {
 		return
 	}
 
@@ -507,6 +522,9 @@ func (fs *VFS) IsZipWithContext(ctx context.Context, path string) (ok bool, err 
 }
 
 func convertZipError(err error) error {
+	if err == nil {
+		return nil
+	}
 	err = commonerrors.ConvertContextError(err)
 	if commonerrors.Any(err, zip.ErrFormat, zip.ErrChecksum) {
 		return fmt.Errorf("%w: %v", commonerrors.ErrInvalid, err.Error())

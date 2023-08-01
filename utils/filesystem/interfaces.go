@@ -17,7 +17,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/config"
 )
 
-//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IFileHash,Chowner,Linker,File,DiskUsage,FileTimeInfo,ILock,ILimits,FS
+//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IFileHash,Chowner,Linker,File,DiskUsage,FileTimeInfo,ILock,ILimits,FS,ICloseableFS
 
 // IFileHash defines a file hash.
 // For reference.
@@ -302,4 +302,10 @@ type FS interface {
 	IsZip(filepath string) bool
 	// IsZipWithContext states whether a file is a zip file or not. Since the process can take some time (i.e type detection with sniffers such as http.DetectContentType), it is controlled by a context.
 	IsZipWithContext(ctx context.Context, filepath string) (bool, error)
+}
+
+// ICloseableFS is a filesystem which utilises resources which must be closed when it is no longer used, such as open files. The close method is invoked to release resources that the object is holding.
+type ICloseableFS interface {
+	FS
+	io.Closer
 }
