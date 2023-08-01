@@ -13,33 +13,33 @@ import (
 )
 
 func TestGenerate(t *testing.T) {
-	public, private, err := GenerateKeyPair()
+	pair, err := GenerateKeyPair()
 	require.NoError(t, err)
-	assert.NotEmpty(t, public)
-	assert.NotEmpty(t, private)
+	assert.NotEmpty(t, pair.GetPublicKey())
+	assert.NotEmpty(t, pair.GetPrivateKey())
 
-	b, err := base64.StdEncoding.DecodeString(public)
+	b, err := base64.StdEncoding.DecodeString(pair.GetPublicKey())
 	require.NoError(t, err)
 	assert.Equal(t, 32, len(b))
-	b, err = base64.StdEncoding.DecodeString(private)
+	b, err = base64.StdEncoding.DecodeString(pair.GetPrivateKey())
 	require.NoError(t, err)
 	assert.Equal(t, 32, len(b))
 }
 
 func TestEncryptDecrypt(t *testing.T) {
 	message := faker.Paragraph()
-	public, private, err := GenerateKeyPair()
+	pair, err := GenerateKeyPair()
 	require.NoError(t, err)
 
-	encrypted, err := EncryptWithPublicKey(public, message)
+	encrypted, err := EncryptWithPublicKey(pair.GetPublicKey(), message)
 	require.NoError(t, err)
-	decryptedMessage, err := DecryptWithKeyPair(public, private, encrypted)
+	decryptedMessage, err := DecryptWithKeyPair(pair.GetPublicKey(), pair.GetPrivateKey(), encrypted)
 	require.NoError(t, err)
 	assert.Equal(t, message, decryptedMessage)
 }
 
 func TestEncryptDecrypt_Failures(t *testing.T) {
-	public, private, err := GenerateKeyPair()
+	pair, err := GenerateKeyPair()
 	require.NoError(t, err)
 
 	_, err = EncryptWithPublicKey(faker.Name(), faker.Word())
@@ -50,11 +50,11 @@ func TestEncryptDecrypt_Failures(t *testing.T) {
 	require.Error(t, err)
 	errortest.AssertError(t, err, commonerrors.ErrInvalid)
 
-	_, err = DecryptWithKeyPair(public, faker.Name(), faker.Word())
+	_, err = DecryptWithKeyPair(pair.GetPublicKey(), faker.Name(), faker.Word())
 	require.Error(t, err)
 	errortest.AssertError(t, err, commonerrors.ErrInvalid)
 
-	_, err = DecryptWithKeyPair(public, private, faker.Word())
+	_, err = DecryptWithKeyPair(pair.GetPublicKey(), pair.GetPrivateKey(), faker.Word())
 	require.Error(t, err)
 	errortest.AssertError(t, err, commonerrors.ErrInvalid)
 

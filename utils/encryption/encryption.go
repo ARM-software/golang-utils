@@ -13,19 +13,41 @@ import (
 const KeySize = 32
 
 var (
-	errKeySize = fmt.Errorf("%w: recipient key has invalid size (expected %d bytes)", commonerrors.ErrInvalid, KeySize)
+	errKeySize = fmt.Errorf("%w: recipient key has invalid size", commonerrors.ErrInvalid)
 )
 
+type keyPair struct {
+	public  string
+	private string
+}
+
+func (k *keyPair) GetPublicKey() string {
+	return k.public
+}
+
+func (k *keyPair) GetPrivateKey() string {
+	return k.private
+}
+
+func newKeyPair(public, private *[32]byte) (IKeyPair, error) {
+	if public == nil || private == nil {
+		return nil, fmt.Errorf("%w: missing key", commonerrors.ErrUndefined)
+	}
+	return &keyPair{
+		public:  base64.StdEncoding.EncodeToString((*public)[:]),
+		private: base64.StdEncoding.EncodeToString((*private)[:]),
+	}, nil
+}
+
 // GenerateKeyPair generates a asymmetric key pair suitable for use with encryption utilities. Works with [NaCl box](https://nacl.cr.yp.to/box.html.)
-func GenerateKeyPair() (base64EncodedPublicKey, base64EncodedPrivateKey string, err error) {
+func GenerateKeyPair() (pair IKeyPair, err error) {
 	pub, priv, err := box.GenerateKey(rand.Reader)
 	if err != nil {
 		err = fmt.Errorf("%w: could not generate keys: %v", commonerrors.ErrUnexpected, err.Error())
 		return
 	}
 
-	base64EncodedPublicKey = base64.StdEncoding.EncodeToString((*pub)[:])
-	base64EncodedPrivateKey = base64.StdEncoding.EncodeToString((*priv)[:])
+	pair, err = newKeyPair(pub, priv)
 	return
 }
 
