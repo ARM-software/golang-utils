@@ -11,6 +11,7 @@ import (
 	"crypto/sha1" //nolint:gosec
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"hash"
 	"io"
 	"math"
@@ -18,6 +19,7 @@ import (
 
 	"github.com/OneOfOne/xxhash"
 	"github.com/spaolacci/murmur3"
+	"golang.org/x/crypto/blake2b"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
@@ -26,11 +28,12 @@ import (
 )
 
 const (
-	HashMd5    = "MD5"
-	HashSha256 = "SHA256"
-	HashSha1   = "SHA1"
-	HashMurmur = "Murmur"
-	HashXXHash = "xxhash" //https://github.com/OneOfOne/xxhash
+	HashMd5       = "MD5"
+	HashSha256    = "SHA256"
+	HashSha1      = "SHA1"
+	HashMurmur    = "Murmur"
+	HashXXHash    = "xxhash"     // https://github.com/OneOfOne/xxhash
+	HashBlake2256 = "blake2b256" // https://www.blake2.net/
 )
 
 type hashingAlgo struct {
@@ -60,8 +63,21 @@ func (h *hashingAlgo) GetType() string {
 	return h.Type
 }
 
+// NewBespokeHashingAlgorithm defines a bespoke hashing algorithm
+func NewBespokeHashingAlgorithm(algorithm hash.Hash) (IHash, error) {
+	return newHashingAlgorithm("bespoke", algorithm)
+}
+
+func newHashingAlgorithm(htype string, algorithm hash.Hash) (IHash, error) {
+	return &hashingAlgo{
+		Hash: algorithm,
+		Type: htype,
+	}, nil
+}
+
 func NewHashingAlgorithm(htype string) (IHash, error) {
 	var hash hash.Hash
+	var err error
 	switch htype {
 	case HashMd5:
 		hash = md5.New() //nolint:gosec
@@ -73,31 +89,42 @@ func NewHashingAlgorithm(htype string) (IHash, error) {
 		hash = murmur3.New64()
 	case HashXXHash:
 		hash = xxhash.New64()
+	case HashBlake2256:
+		hash, err = blake2b.New256(nil)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed loading the hashing algorithm: %v", commonerrors.ErrUnexpected, err.Error())
 	}
 
 	if hash == nil {
-		return nil, commonerrors.ErrNotFound
+		return nil, fmt.Errorf("%w: could not find the corresponding hashing algorithm", commonerrors.ErrNotFound)
 	}
-	return &hashingAlgo{
-		Hash: hash,
-		Type: htype,
-	}, nil
+	return newHashingAlgorithm(htype, hash)
 }
 
 func CalculateMD5Hash(text string) string {
 	return CalculateHash(text, HashMd5)
 }
 
+// CalculateStringHash returns the hash of some text using a particular hashing algorithm
+func CalculateStringHash(hashingAlgo IHash, text string) string {
+	if hashingAlgo == nil {
+		return ""
+	}
+	hash, err := hashingAlgo.Calculate(strings.NewReader(text))
+	if err != nil {
+		return ""
+	}
+	return hash
+}
+
+// CalculateHash calculates the hash of some text using the requested htype hashing algorithm.
 func CalculateHash(text, htype string) string {
 	hashing, err := NewHashingAlgorithm(htype)
 	if err != nil {
 		return ""
 	}
-	hash, err := hashing.Calculate(strings.NewReader(text))
-	if err != nil {
-		return ""
-	}
-	return hash
+	return CalculateStringHash(hashing, text)
 }
 
 // HasLikelyHexHashStringEntropy states whether a string has an entropy which may entail it is a hexadecimal hash
