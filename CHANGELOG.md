@@ -14,6 +14,27 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.42.0" (2023-08-02)
+=====================
+
+Features
+--------
+
+- :sparkles: `[errortest]` Added utilities to check the error description (#20230724173139)
+- :sparkles: `[filesystem]` Added zipFS to enable filesystem utilities on zip files (#20230728174153)
+- :sparkles: Added module `[resource]` to define generic utilities regarding resource management (#20230731170709)
+- :sparkles: `[hashing]` Added support for [blake2b](https://www.blake2.net/) hashing algorithm (#20230801110107)
+- :sparkles: Added module `[encryption]` for simple cryptography utilities (#20230801144705)
+
+
+Bugfixes
+--------
+
+- :recycle: `[filesystem]` Use `afero.ReadOnlyFS` rather than our own implementation when exposing `embed.FS` (#20230724173259)
+- Dependency upgrade: zerolog-1.30.0 (#20230731100532, #20230731100536)
+- Dependency upgrade: v3-3.23.7 (#20230801101535)
+
+
 "1.41.0" (2023-07-24)
 =====================
 
