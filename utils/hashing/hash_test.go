@@ -6,12 +6,14 @@ package hashing
 
 import (
 	"fmt"
+	"math/rand"
 	"strings"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/blake2b"
 )
 
 func TestHasher(t *testing.T) {
@@ -121,4 +123,15 @@ func TestIsLikelyHexHashString(t *testing.T) {
 			require.Equal(t, test.isHash, IsLikelyHexHashString(test.input))
 		})
 	}
+}
+
+func TestBespokeHash(t *testing.T) {
+	size := rand.Intn(64) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as only for testing purposes
+	algo, err := blake2b.New(size, nil)
+	require.NoError(t, err)
+	hashing, err := NewBespokeHashingAlgorithm(algo)
+	require.NoError(t, err)
+	hash := CalculateStringHash(hashing, faker.Paragraph())
+	require.NotEmpty(t, hash)
+	assert.Equal(t, size*2, len(hash))
 }
