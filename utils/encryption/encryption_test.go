@@ -58,9 +58,9 @@ func TestKeyPrint(t *testing.T) {
 	assert.NotContains(t, fmtString, pair.GetPrivateKey())
 	fmt.Println(fmtString)
 
-	fmtJson, err := json.Marshal(pair)
+	fmtJSON, err := json.Marshal(pair)
 	require.NoError(t, err)
-	fmtString = string(fmtJson)
+	fmtString = string(fmtJSON)
 	assert.NotContains(t, fmtString, pair.GetPrivateKey())
 	fmt.Println(fmtString)
 	logger := logstest.NewTestLogger(t)
