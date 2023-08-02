@@ -18,7 +18,20 @@ var (
 
 type keyPair struct {
 	public  string
-	private string
+	private string `json:"-"`
+}
+
+func (k *keyPair) String() string {
+	return fmt.Sprintf("{Public: %v}", k.GetPublicKey())
+}
+
+func (k *keyPair) GoString() string {
+	return fmt.Sprintf("KeyPair(%q)", k.String())
+}
+
+func (k *keyPair) MarshalJSON() ([]byte, error) {
+	json := fmt.Sprintf("{\"Public\": %q}", k.GetPublicKey())
+	return []byte(json), nil
 }
 
 func (k *keyPair) GetPublicKey() string {
@@ -33,10 +46,14 @@ func newKeyPair(public, private *[32]byte) (IKeyPair, error) {
 	if public == nil || private == nil {
 		return nil, fmt.Errorf("%w: missing key", commonerrors.ErrUndefined)
 	}
+	return newBasicKeyPair(base64.StdEncoding.EncodeToString((*public)[:]), base64.StdEncoding.EncodeToString((*private)[:])), nil
+}
+
+func newBasicKeyPair(public, private string) IKeyPair {
 	return &keyPair{
-		public:  base64.StdEncoding.EncodeToString((*public)[:]),
-		private: base64.StdEncoding.EncodeToString((*private)[:]),
-	}, nil
+		public:  public,
+		private: private,
+	}
 }
 
 // GenerateKeyPair generates a asymmetric key pair suitable for use with encryption utilities. Works with [NaCl box](https://nacl.cr.yp.to/box.html.)
@@ -84,8 +101,12 @@ func base64DecodingError(err error) error {
 }
 
 // DecryptWithKeyPair decrypts small base64 encoded messages
-func DecryptWithKeyPair(base64EncodedPublicKey, base64EncodedPrivateKey, base64EncodedEncryptedMessage string) (decryptedMessage string, err error) {
-	decodedPublicKey, err := base64.StdEncoding.DecodeString(base64EncodedPublicKey)
+func DecryptWithKeyPair(keys IKeyPair, base64EncodedEncryptedMessage string) (decryptedMessage string, err error) {
+	if keys == nil {
+		err = fmt.Errorf("%w: missing keys", commonerrors.ErrUndefined)
+		return
+	}
+	decodedPublicKey, err := base64.StdEncoding.DecodeString(keys.GetPublicKey())
 	if err != nil {
 		err = base64DecodingError(err)
 		return
@@ -94,7 +115,7 @@ func DecryptWithKeyPair(base64EncodedPublicKey, base64EncodedPrivateKey, base64E
 		err = errKeySize
 		return
 	}
-	decodedPrivateKey, err := base64.StdEncoding.DecodeString(base64EncodedPrivateKey)
+	decodedPrivateKey, err := base64.StdEncoding.DecodeString(keys.GetPrivateKey())
 	if err != nil {
 		err = base64DecodingError(err)
 		return

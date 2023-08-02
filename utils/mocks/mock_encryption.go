@@ -60,3 +60,46 @@ func (mr *MockIKeyPairMockRecorder) GetPublicKey() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPublicKey", reflect.TypeOf((*MockIKeyPair)(nil).GetPublicKey))
 }
+
+// GoString mocks base method.
+func (m *MockIKeyPair) GoString() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GoString")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// GoString indicates an expected call of GoString.
+func (mr *MockIKeyPairMockRecorder) GoString() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GoString", reflect.TypeOf((*MockIKeyPair)(nil).GoString))
+}
+
+// MarshalJSON mocks base method.
+func (m *MockIKeyPair) MarshalJSON() ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MarshalJSON")
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// MarshalJSON indicates an expected call of MarshalJSON.
+func (mr *MockIKeyPairMockRecorder) MarshalJSON() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarshalJSON", reflect.TypeOf((*MockIKeyPair)(nil).MarshalJSON))
+}
+
+// String mocks base method.
+func (m *MockIKeyPair) String() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "String")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// String indicates an expected call of String.
+func (mr *MockIKeyPairMockRecorder) String() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "String", reflect.TypeOf((*MockIKeyPair)(nil).String))
+}
