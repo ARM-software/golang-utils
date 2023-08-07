@@ -137,7 +137,7 @@ func Test_embed_not_supported(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = efs.TempDir("testdata", "aaaa")
-	assert.True(t, commonerrors.CorrespondTo(err, "permission denied"))
+	errortest.AssertErrorDescription(t, err, "operation not permitted")
 
 	f, err := efs.OpenFile("testdata/embed/test.txt", os.O_RDWR, os.FileMode(0600))
 	defer func() {
@@ -146,10 +146,10 @@ func Test_embed_not_supported(t *testing.T) {
 		}
 	}()
 	require.Error(t, err)
-	errortest.AssertError(t, err, commonerrors.ErrUnsupported)
+	errortest.AssertErrorDescription(t, err, "operation not permitted")
 
 	err = efs.Chmod("testdata/embed/test.txt", os.FileMode(0600))
 	require.Error(t, err)
-	assert.True(t, commonerrors.CorrespondTo(err, "permission denied"))
+	errortest.AssertErrorDescription(t, err, "operation not permitted")
 
 }
