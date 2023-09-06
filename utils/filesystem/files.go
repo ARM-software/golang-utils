@@ -12,8 +12,10 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/user"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -858,6 +860,21 @@ func (fs *VFS) Chtimes(name string, atime time.Time, mtime time.Time) (err error
 	return
 }
 
+func (fs *VFS) ChangeOwnership(name string, owner *user.User) error {
+	if owner == nil {
+		return fmt.Errorf("%w: missing user definition", commonerrors.ErrUndefined)
+	}
+	uid, err := strconv.Atoi(owner.Uid)
+	if err != nil {
+		return fmt.Errorf("%w: cannot parse owner uid", commonerrors.ErrUnexpected)
+	}
+	gid, err := strconv.Atoi(owner.Gid)
+	if err != nil {
+		return fmt.Errorf("%w: cannot parse owner gid", commonerrors.ErrUnexpected)
+	}
+	return fs.Chown(name, uid, gid)
+}
+
 func (fs *VFS) Chown(name string, uid, gid int) (err error) {
 	err = fs.checkWhetherUnderlyingResourceIsClosed()
 	if err != nil {
@@ -891,6 +908,18 @@ func (fs *VFS) FetchOwners(name string) (uid, gid int, err error) {
 		return
 	}
 	uid, gid, err = determineFileOwners(stat)
+	return
+}
+
+func (fs *VFS) FetchFileOwner(name string) (owner *user.User, err error) {
+	uid, _, err := fs.FetchOwners(name)
+	if err != nil {
+		return
+	}
+	owner, err = user.LookupId(strconv.Itoa(uid))
+	if err != nil {
+		err = fmt.Errorf("%w: user [`%v`] could not be found: %v", commonerrors.ErrNotFound, uid, err.Error())
+	}
 	return
 }
 

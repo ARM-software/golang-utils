@@ -8,6 +8,7 @@ import (
 	context "context"
 	io "io"
 	fs "io/fs"
+	user "os/user"
 	filepath "path/filepath"
 	reflect "reflect"
 	time "time"
@@ -937,6 +938,20 @@ func (m *MockFS) EXPECT() *MockFSMockRecorder {
 	return m.recorder
 }
 
+// ChangeOwnership mocks base method.
+func (m *MockFS) ChangeOwnership(arg0 string, arg1 *user.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangeOwnership", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangeOwnership indicates an expected call of ChangeOwnership.
+func (mr *MockFSMockRecorder) ChangeOwnership(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeOwnership", reflect.TypeOf((*MockFS)(nil).ChangeOwnership), arg0, arg1)
+}
+
 // Chmod mocks base method.
 func (m *MockFS) Chmod(arg0 string, arg1 fs.FileMode) error {
 	m.ctrl.T.Helper()
@@ -1260,6 +1275,21 @@ func (m *MockFS) Exists(arg0 string) bool {
 func (mr *MockFSMockRecorder) Exists(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockFS)(nil).Exists), arg0)
+}
+
+// FetchFileOwner mocks base method.
+func (m *MockFS) FetchFileOwner(arg0 string) (*user.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FetchFileOwner", arg0)
+	ret0, _ := ret[0].(*user.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FetchFileOwner indicates an expected call of FetchFileOwner.
+func (mr *MockFSMockRecorder) FetchFileOwner(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchFileOwner", reflect.TypeOf((*MockFS)(nil).FetchFileOwner), arg0)
 }
 
 // FetchOwners mocks base method.
@@ -2283,6 +2313,20 @@ func (m *MockICloseableFS) EXPECT() *MockICloseableFSMockRecorder {
 	return m.recorder
 }
 
+// ChangeOwnership mocks base method.
+func (m *MockICloseableFS) ChangeOwnership(arg0 string, arg1 *user.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ChangeOwnership", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ChangeOwnership indicates an expected call of ChangeOwnership.
+func (mr *MockICloseableFSMockRecorder) ChangeOwnership(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ChangeOwnership", reflect.TypeOf((*MockICloseableFS)(nil).ChangeOwnership), arg0, arg1)
+}
+
 // Chmod mocks base method.
 func (m *MockICloseableFS) Chmod(arg0 string, arg1 fs.FileMode) error {
 	m.ctrl.T.Helper()
@@ -2620,6 +2664,21 @@ func (m *MockICloseableFS) Exists(arg0 string) bool {
 func (mr *MockICloseableFSMockRecorder) Exists(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockICloseableFS)(nil).Exists), arg0)
+}
+
+// FetchFileOwner mocks base method.
+func (m *MockICloseableFS) FetchFileOwner(arg0 string) (*user.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FetchFileOwner", arg0)
+	ret0, _ := ret[0].(*user.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FetchFileOwner indicates an expected call of FetchFileOwner.
+func (mr *MockICloseableFSMockRecorder) FetchFileOwner(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FetchFileOwner", reflect.TypeOf((*MockICloseableFS)(nil).FetchFileOwner), arg0)
 }
 
 // FetchOwners mocks base method.
