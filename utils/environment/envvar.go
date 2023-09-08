@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 var (
