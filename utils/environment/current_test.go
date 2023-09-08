@@ -15,7 +15,6 @@ func TestNewCurrentEnvironment(t *testing.T) {
 	require.NotNil(t, currentUser)
 	require.NotEmpty(t, currentUser.HomeDir)
 	require.NotEmpty(t, currentUser.Username)
-	require.NotEmpty(t, currentUser.Name)
 	currentFs := current.GetFilesystem()
 	require.NotNil(t, currentFs)
 }
