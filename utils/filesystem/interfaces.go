@@ -1,13 +1,11 @@
-/*
- * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
- */
+// Package filesystem defines utilities with regards to filesystem access./*
 package filesystem
 
 import (
 	"context"
 	"io"
 	"os"
+	"os/user"
 	"path/filepath"
 	"time"
 
@@ -243,8 +241,12 @@ type FS interface {
 	Chtimes(name string, atime time.Time, mtime time.Time) error
 	// Chown changes the numeric uid and gid of the named file.
 	Chown(name string, uid, gid int) error
+	// ChangeOwnership changes the ownership of the named file.
+	ChangeOwnership(name string, owner *user.User) error
 	// FetchOwners returns the numeric uid and gid of the named file
 	FetchOwners(name string) (uid, gid int, err error)
+	// FetchFileOwner returns the owner of the named file.
+	FetchFileOwner(name string) (owner *user.User, err error)
 	// Link creates newname as a hard link to the oldname file
 	Link(oldname, newname string) error
 	// Readlink returns the destination of the named symbolic link.

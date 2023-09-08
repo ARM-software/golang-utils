@@ -5,7 +5,7 @@ import (
 	"syscall"
 )
 
-func determineFileOwners(os.FileInfo) (uid, gid int, err error) {
+func determineFileOwners(_ os.FileInfo) (uid, gid int, err error) {
 	uid = syscall.Getuid()
 	gid = syscall.Getgid()
 
