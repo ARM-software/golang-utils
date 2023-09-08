@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -300,6 +301,41 @@ func TestChown(t *testing.T) {
 					require.NoError(t, err)
 					assert.Equal(t, uID, newUID)
 					assert.Equal(t, gID, newGID)
+				}
+			}
+			_ = fs.Rm(tmpDir)
+		})
+	}
+}
+
+func TestChangeOwnership(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-chown-changeownership-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+
+			filePath := fmt.Sprintf("%v%v%v", tmpDir, string(fs.PathSeparator()), "test.txt")
+			file, err := fs.CreateFile(filePath)
+			require.NoError(t, err)
+			defer func() { _ = file.Close() }()
+			err = file.Close()
+			require.NoError(t, err)
+			require.True(t, fs.Exists(filePath))
+			owner, err := fs.FetchFileOwner(filePath)
+			if err != nil {
+				assert.True(t, commonerrors.Any(err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported))
+			} else {
+				require.NotNil(t, owner)
+				err = fs.ChangeOwnership(filePath, owner)
+				if err != nil {
+					assert.True(t, commonerrors.Any(err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported))
+				} else {
+					newUID, newGID, err := fs.FetchOwners(filePath)
+					require.NoError(t, err)
+					assert.Equal(t, owner.Uid, strconv.Itoa(newUID))
+					assert.Equal(t, owner.Gid, strconv.Itoa(newGID))
 				}
 			}
 			_ = fs.Rm(tmpDir)
