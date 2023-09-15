@@ -1,3 +1,6 @@
+//go:build linux || unix || (js && wasm) || darwin || aix || dragonfly || freebsd || nacl || netbsd || openbsd || solaris
+// +build linux unix js,wasm darwin aix dragonfly freebsd nacl netbsd openbsd solaris
+
 package platform
 
 import (
