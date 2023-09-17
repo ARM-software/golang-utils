@@ -33,7 +33,7 @@ func AddUser(ctx context.Context, username, fullname, password string) error {
 	if found {
 		return nil
 	}
-	return ConvertUserError(addUser(ctx, username, fullname, password))
+	return ConvertUserGroupError(addUser(ctx, username, fullname, password))
 }
 
 // DeleteUser removes a user from the platform
@@ -55,14 +55,14 @@ func RemoveUser(ctx context.Context, username string) error {
 	if err != nil {
 		return err
 	}
-	return ConvertUserError(removeUser(ctx, username))
+	return ConvertUserGroupError(removeUser(ctx, username))
 }
 
 // HasUser checks whether a user exists
 func HasUser(username string) (found bool, err error) {
 	user, err := user.Lookup(username)
 	if err != nil {
-		err = ConvertUserError(err)
+		err = ConvertUserGroupError(err)
 		if commonerrors.Any(err, commonerrors.ErrNotFound) {
 			err = nil
 		}
@@ -77,7 +77,7 @@ func HasUser(username string) (found bool, err error) {
 func HasGroup(groupName string) (found bool, err error) {
 	group, err := user.LookupGroup(groupName)
 	if err != nil {
-		err = ConvertUserError(err)
+		err = ConvertUserGroupError(err)
 		if commonerrors.Any(err, commonerrors.ErrNotFound) {
 			err = nil
 		}
@@ -88,8 +88,64 @@ func HasGroup(groupName string) (found bool, err error) {
 	return
 }
 
-// ConvertUserError converts errors related to users in common errors.
-func ConvertUserError(err error) error {
+// AddGroup creates a group if not already existing.
+func AddGroup(ctx context.Context, groupName string) error {
+	err := parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return err
+	}
+	found, _ := HasGroup(groupName)
+	if found {
+		return nil
+	}
+	return ConvertUserGroupError(addGroup(ctx, groupName))
+}
+
+// RemoveGroup removes a group from the platform
+func RemoveGroup(ctx context.Context, groupName string) error {
+	err := parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return err
+	}
+	return ConvertUserGroupError(removeGroup(ctx, groupName))
+}
+
+// AssociateUserToGroup adds a user to a group.
+func AssociateUserToGroup(ctx context.Context, username, groupName string) error {
+	err := parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return err
+	}
+	found, err := HasGroup(groupName)
+	if err != nil || !found {
+		return fmt.Errorf("%w: the group does not seem to exist: %v", commonerrors.ErrNotFound, err.Error())
+	}
+	found, err = HasUser(username)
+	if err != nil || !found {
+		return fmt.Errorf("%w: the user does not seem to exist: %v", commonerrors.ErrNotFound, err.Error())
+	}
+	return ConvertUserGroupError(associateUserToGroup(ctx, username, groupName))
+}
+
+// DissociateUserToGroup removes a user from a group.
+func DissociateUserToGroup(ctx context.Context, username, groupName string) error {
+	err := parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return err
+	}
+	found, _ := HasGroup(groupName)
+	if !found && err == nil {
+		return nil
+	}
+	found, _ = HasUser(username)
+	if !found && err == nil {
+		return nil
+	}
+	return ConvertUserGroupError(dissociateUserToGroup(ctx, username, groupName))
+}
+
+// ConvertUserGroupError converts errors related to users in common errors.
+func ConvertUserGroupError(err error) error {
 	if err == nil {
 		return nil
 	}

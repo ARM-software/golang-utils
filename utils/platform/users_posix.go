@@ -41,3 +41,27 @@ func removeUser(ctx context.Context, username string) (err error) {
 	err = commonerrors.ConvertContextError(cmd.Run())
 	return
 }
+
+func addGroup(ctx context.Context, groupName string) (err error) {
+	cmd := exec.CommandContext(ctx, SudoCommand, "groupadd", "-f", groupName)
+	err = commonerrors.ConvertContextError(cmd.Run())
+	return
+}
+
+func removeGroup(ctx context.Context, groupName string) (err error) {
+	cmd := exec.CommandContext(ctx, SudoCommand, "groupdel", groupName)
+	err = commonerrors.ConvertContextError(cmd.Run())
+	return
+}
+
+func associateUserToGroup(ctx context.Context, username, groupName string) (err error) {
+	cmd := exec.CommandContext(ctx, SudoCommand, "usermod ", "-a", "-G", groupName, username)
+	err = commonerrors.ConvertContextError(cmd.Run())
+	return
+}
+
+func dissociateUserToGroup(ctx context.Context, username, groupName string) (err error) {
+	cmd := exec.CommandContext(ctx, SudoCommand, "gpasswd", "-d", username, groupName)
+	err = commonerrors.ConvertContextError(cmd.Run())
+	return
+}

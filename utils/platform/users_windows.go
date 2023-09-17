@@ -46,3 +46,71 @@ func removeUser(ctx context.Context, username string) (err error) {
 	}
 	return
 }
+
+func addGroup(ctx context.Context, groupName string) (err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+	success, err := wapi.LocalGroupAdd(groupName, "new group")
+	if err != nil {
+		err = fmt.Errorf("%w: could not add group: %v", commonerrors.ErrUnexpected, err.Error())
+		return
+	}
+	if !success {
+		err = fmt.Errorf("%w: failed adding group", commonerrors.ErrUnknown)
+		return
+	}
+	return
+}
+
+func associateUserToGroup(ctx context.Context, username, groupName string) (err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+	success, err := wapi.AddGroupMembership(username, groupName)
+	if err != nil {
+		err = fmt.Errorf("%w: could not associate user to group: %v", commonerrors.ErrUnexpected, err.Error())
+		return
+	}
+	if !success {
+		err = fmt.Errorf("%w: failed associating user to group", commonerrors.ErrUnknown)
+		return
+	}
+	return
+}
+
+func dissociateUserToGroup(ctx context.Context, username, groupName string) (err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+	success, err := wapi.RemoveGroupMembership(username, groupName)
+	if err != nil {
+		err = fmt.Errorf("%w: could not dissociate user to group: %v", commonerrors.ErrUnexpected, err.Error())
+		return
+	}
+	if !success {
+		err = fmt.Errorf("%w: failed dissociating user to group", commonerrors.ErrUnknown)
+		return
+	}
+	return
+}
+
+func removeGroup(ctx context.Context, groupName string) (err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+	success, err := wapi.LocalGroupDel(groupName)
+	if err != nil {
+		err = fmt.Errorf("%w: could not remove group: %v", commonerrors.ErrUnexpected, err.Error())
+		return
+	}
+	if !success {
+		err = fmt.Errorf("%w: failed removing group", commonerrors.ErrUnknown)
+		return
+	}
+	return
+}
