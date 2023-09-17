@@ -19,7 +19,7 @@ func DefineUser(ctx context.Context, user *user.User, password string) (err erro
 	if username == "" {
 		username = user.Uid
 	}
-	err = AddUser(ctx, user.Username, user.Name, password)
+	err = AddUser(ctx, username, user.Name, password)
 	return
 }
 
