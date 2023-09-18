@@ -61,7 +61,7 @@ func dissociateUserToGroup(ctx context.Context, username, groupName string) (err
 }
 
 func executeCommand(ctx context.Context, args ...string) error {
-	if len(args) <= 0 {
+	if len(args) == 0 {
 		return fmt.Errorf("%w: missing command to execute", commonerrors.ErrUndefined)
 	}
 	cmd := defineCommand(ctx, args...)
