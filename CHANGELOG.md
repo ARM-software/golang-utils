@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.44.0" (2023-09-18)
+=====================
+
+Features
+--------
+
+- :sparkles: `[platform]` Add portable user management utilities similar to `useradd`, `usermod`, `userdel` (#20230915181452)
+
+
 "1.43.0" (2023-09-08)
 =====================
 
