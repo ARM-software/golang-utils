@@ -12,10 +12,15 @@ import (
 )
 
 var (
-	// SudoCommand describes the command to use to execute command as root
+	// sudoCommand describes the command to use to execute command as root
 	// when running in Docker, change to [gosu root](https://github.com/tianon/gosu)
-	SudoCommand = []string{"sudo"}
+	sudoCommand = []string{"sudo"}
 )
+
+// DefineSudoCommand defines the command to run to be `root` or a user with enough privileges to manage accounts.
+func DefineSudoCommand(args ...string) {
+	sudoCommand = args
+}
 
 func addUser(ctx context.Context, username, fullname, password string) (err error) {
 	pwd := password
@@ -71,10 +76,10 @@ func executeCommand(ctx context.Context, args ...string) error {
 func defineCommand(ctx context.Context, args ...string) *exec.Cmd {
 	var cmdName string
 	var cmdArgs []string
-	if len(SudoCommand) > 0 {
-		cmdName = SudoCommand[0]
-		for i := 1; i < len(SudoCommand); i++ {
-			cmdArgs = append(cmdArgs, SudoCommand[i])
+	if len(sudoCommand) > 0 {
+		cmdName = sudoCommand[0]
+		for i := 1; i < len(sudoCommand); i++ {
+			cmdArgs = append(cmdArgs, sudoCommand[i])
 		}
 		cmdArgs = append(cmdArgs, args...)
 	} else {
