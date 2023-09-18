@@ -13,8 +13,8 @@ import (
 
 var (
 	// SudoCommand describes the command to use to execute command as root
-	// when running in Docker, change to [gosu](https://github.com/tianon/gosu)
-	SudoCommand = "sudo"
+	// when running in Docker, change to [gosu root](https://github.com/tianon/gosu)
+	SudoCommand = []string{"sudo"}
 )
 
 func addUser(ctx context.Context, username, fullname, password string) (err error) {
@@ -26,45 +26,64 @@ func addUser(ctx context.Context, username, fullname, password string) (err erro
 	if comment == "" {
 		comment = username
 	}
-	cmd := exec.CommandContext(ctx, SudoCommand, "useradd", "-U", "-m", username, "-p", pwd, "-c", comment)
-	err = runCommand("useradd", cmd)
+	err = executeCommand(ctx, "useradd", "-U", "-m", username, "-p", pwd, "-c", comment)
 	if err != nil {
 		return
 	}
-	cmd = exec.CommandContext(ctx, SudoCommand, "passwd", "-d", username)
-	err = runCommand("passwd", cmd)
+	err = executeCommand(ctx, "passwd", "-d", username)
 	return
 
 }
 
 func removeUser(ctx context.Context, username string) (err error) {
-	cmd := exec.CommandContext(ctx, SudoCommand, "userdel", "-f", "-r", username)
-	err = runCommand("userdel", cmd)
+	err = executeCommand(ctx, "userdel", "-f", "-r", username)
 	return
 }
 
 func addGroup(ctx context.Context, groupName string) (err error) {
-	cmd := exec.CommandContext(ctx, SudoCommand, "groupadd", "-f", groupName)
-	err = runCommand("groupadd", cmd)
+	err = executeCommand(ctx, "groupadd", "-f", groupName)
 	return
 }
 
 func removeGroup(ctx context.Context, groupName string) (err error) {
-	cmd := exec.CommandContext(ctx, SudoCommand, "groupdel", groupName)
-	err = runCommand("groupdel", cmd)
+	err = executeCommand(ctx, "groupdel", groupName)
 	return
 }
 
 func associateUserToGroup(ctx context.Context, username, groupName string) (err error) {
-	cmd := exec.CommandContext(ctx, SudoCommand, "usermod", "-a", "-G", groupName, username)
-	err = runCommand("usermod", cmd)
+	err = executeCommand(ctx, "usermod", "-a", "-G", groupName, username)
 	return
 }
 
 func dissociateUserToGroup(ctx context.Context, username, groupName string) (err error) {
-	cmd := exec.CommandContext(ctx, SudoCommand, "gpasswd", "-d", username, groupName)
-	err = runCommand("gpasswd", cmd)
+	err = executeCommand(ctx, "gpasswd", "-d", username, groupName)
 	return
+}
+
+func executeCommand(ctx context.Context, args ...string) error {
+	if len(args) <= 0 {
+		return fmt.Errorf("%w: missing command to execute", commonerrors.ErrUndefined)
+	}
+	cmd := defineCommand(ctx, args...)
+	return runCommand(args[0], cmd)
+}
+
+func defineCommand(ctx context.Context, args ...string) *exec.Cmd {
+	var cmdName string
+	var cmdArgs []string
+	if len(SudoCommand) > 0 {
+		cmdName = SudoCommand[0]
+		for i := 1; i < len(SudoCommand); i++ {
+			cmdArgs = append(cmdArgs, SudoCommand[i])
+		}
+		cmdArgs = append(cmdArgs, args...)
+	} else {
+		cmdName = args[0]
+		for i := 1; i < len(args); i++ {
+			cmdArgs = append(cmdArgs, args[i])
+		}
+	}
+	return exec.CommandContext(ctx, cmdName, cmdArgs...)
 }
 
 func runCommand(cmdDescription string, cmd *exec.Cmd) error {
