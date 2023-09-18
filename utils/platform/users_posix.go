@@ -27,47 +27,48 @@ func addUser(ctx context.Context, username, fullname, password string) (err erro
 		comment = username
 	}
 	cmd := exec.CommandContext(ctx, SudoCommand, "useradd", "-U", "-m", username, "-p", pwd, "-c", comment)
-	err = convertCommandError("useradd", cmd.Run())
+	err = runCommand("useradd", cmd)
 	if err != nil {
 		return
 	}
 	cmd = exec.CommandContext(ctx, SudoCommand, "passwd", "-d", username)
-	err = convertCommandError("passwd", cmd.Run())
+	err = runCommand("passwd", cmd)
 	return
 
 }
 
 func removeUser(ctx context.Context, username string) (err error) {
 	cmd := exec.CommandContext(ctx, SudoCommand, "userdel", "-f", "-r", "-Z", username)
-	err = convertCommandError("userdel", cmd.Run())
+	err = runCommand("userdel", cmd)
 	return
 }
 
 func addGroup(ctx context.Context, groupName string) (err error) {
 	cmd := exec.CommandContext(ctx, SudoCommand, "groupadd", "-f", groupName)
-	err = convertCommandError("groupadd", cmd.Run())
+	err = runCommand("groupadd", cmd)
 	return
 }
 
 func removeGroup(ctx context.Context, groupName string) (err error) {
 	cmd := exec.CommandContext(ctx, SudoCommand, "groupdel", groupName)
-	err = convertCommandError("groupdel", cmd.Run())
+	err = runCommand("groupdel", cmd)
 	return
 }
 
 func associateUserToGroup(ctx context.Context, username, groupName string) (err error) {
-	cmd := exec.CommandContext(ctx, SudoCommand, "usermod ", "-a", "-G", groupName, username)
-	err = convertCommandError("usermod", cmd.Run())
+	cmd := exec.CommandContext(ctx, SudoCommand, "usermod", "-a", "-G", groupName, username)
+	err = runCommand("usermod", cmd)
 	return
 }
 
 func dissociateUserToGroup(ctx context.Context, username, groupName string) (err error) {
 	cmd := exec.CommandContext(ctx, SudoCommand, "gpasswd", "-d", username, groupName)
-	err = convertCommandError("gpasswd", cmd.Run())
+	err = runCommand("gpasswd", cmd)
 	return
 }
 
-func convertCommandError(cmd string, err error) error {
+func runCommand(cmdDescription string, cmd *exec.Cmd) error {
+	_, err := cmd.Output()
 	if err == nil {
 		return nil
 	}
@@ -76,7 +77,11 @@ func convertCommandError(cmd string, err error) error {
 	case commonerrors.Any(newErr, commonerrors.ErrTimeout, commonerrors.ErrCancelled, commonerrors.ErrUnknown, commonerrors.ErrUnsupported, commonerrors.ErrCondition, commonerrors.ErrForbidden):
 		return newErr
 	default:
-		newErr = fmt.Errorf("%w: the command `%v` failed: %v", commonerrors.ErrUnknown, cmd, err.Error())
+		details := "no further details"
+		if exitError, ok := err.(*exec.ExitError); ok {
+			details = string(exitError.Stderr)
+		}
+		newErr = fmt.Errorf("%w: the command `%v` failed: %v (%v)", commonerrors.ErrUnknown, cmdDescription, err.Error(), details)
 		return newErr
 	}
 }
