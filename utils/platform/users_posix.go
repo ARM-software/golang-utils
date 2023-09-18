@@ -38,7 +38,7 @@ func addUser(ctx context.Context, username, fullname, password string) (err erro
 }
 
 func removeUser(ctx context.Context, username string) (err error) {
-	cmd := exec.CommandContext(ctx, SudoCommand, "userdel", "-f", "-r", "-Z", username)
+	cmd := exec.CommandContext(ctx, SudoCommand, "userdel", "-f", "-r", username)
 	err = runCommand("userdel", cmd)
 	return
 }
