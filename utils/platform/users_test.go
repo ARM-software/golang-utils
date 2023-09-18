@@ -23,10 +23,9 @@ func generateTestUser() (testUser *user.User) {
 	return
 }
 func TestDefineUser(t *testing.T) {
-	// FIXME Get the test to pass on Windows.
+	// Note: on Windows, it is necessary to run this test with elevated privileges https://github.com/iamacarpet/go-win64api/issues/26
 	if IsWindows() {
-		assert.True(t, true)
-		return
+		t.Log("Note: it is necessary to run this test with elevated privileges https://github.com/iamacarpet/go-win64api/issues/26")
 	}
 	user := generateTestUser()
 	err := DefineUser(context.TODO(), user, "")
