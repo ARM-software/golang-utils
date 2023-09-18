@@ -5,6 +5,7 @@ package platform
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -26,42 +27,56 @@ func addUser(ctx context.Context, username, fullname, password string) (err erro
 		comment = username
 	}
 	cmd := exec.CommandContext(ctx, SudoCommand, "useradd", "-U", "-m", username, "-p", pwd, "-c", comment)
-	err = commonerrors.ConvertContextError(cmd.Run())
+	err = convertCommandError("useradd", cmd.Run())
 	if err != nil {
 		return
 	}
 	cmd = exec.CommandContext(ctx, SudoCommand, "passwd", "-d", username)
-	err = commonerrors.ConvertContextError(cmd.Run())
+	err = convertCommandError("passwd", cmd.Run())
 	return
 
 }
 
 func removeUser(ctx context.Context, username string) (err error) {
 	cmd := exec.CommandContext(ctx, SudoCommand, "userdel", "-f", "-r", "-Z", username)
-	err = commonerrors.ConvertContextError(cmd.Run())
+	err = convertCommandError("userdel", cmd.Run())
 	return
 }
 
 func addGroup(ctx context.Context, groupName string) (err error) {
 	cmd := exec.CommandContext(ctx, SudoCommand, "groupadd", "-f", groupName)
-	err = commonerrors.ConvertContextError(cmd.Run())
+	err = convertCommandError("groupadd", cmd.Run())
 	return
 }
 
 func removeGroup(ctx context.Context, groupName string) (err error) {
 	cmd := exec.CommandContext(ctx, SudoCommand, "groupdel", groupName)
-	err = commonerrors.ConvertContextError(cmd.Run())
+	err = convertCommandError("groupdel", cmd.Run())
 	return
 }
 
 func associateUserToGroup(ctx context.Context, username, groupName string) (err error) {
 	cmd := exec.CommandContext(ctx, SudoCommand, "usermod ", "-a", "-G", groupName, username)
-	err = commonerrors.ConvertContextError(cmd.Run())
+	err = convertCommandError("usermod", cmd.Run())
 	return
 }
 
 func dissociateUserToGroup(ctx context.Context, username, groupName string) (err error) {
 	cmd := exec.CommandContext(ctx, SudoCommand, "gpasswd", "-d", username, groupName)
-	err = commonerrors.ConvertContextError(cmd.Run())
+	err = convertCommandError("gpasswd", cmd.Run())
 	return
+}
+
+func convertCommandError(cmd string, err error) error {
+	if err == nil {
+		return nil
+	}
+	newErr := commonerrors.ConvertContextError(err)
+	switch {
+	case commonerrors.Any(newErr, commonerrors.ErrTimeout, commonerrors.ErrCancelled, commonerrors.ErrUnknown, commonerrors.ErrUnsupported, commonerrors.ErrCondition, commonerrors.ErrForbidden):
+		return newErr
+	default:
+		newErr = fmt.Errorf("%w: the command `%v` failed: %v", commonerrors.ErrUnknown, cmd, err.Error())
+		return newErr
+	}
 }
