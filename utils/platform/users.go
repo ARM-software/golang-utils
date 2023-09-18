@@ -36,7 +36,7 @@ func AddUser(ctx context.Context, username, fullname, password string) error {
 	return ConvertUserGroupError(addUser(ctx, username, fullname, password))
 }
 
-// DeleteUser removes a user from the platform
+// DeleteUser removes a user from the platform when the user is specified using a `user.User` structure.
 func DeleteUser(ctx context.Context, user *user.User) (err error) {
 	if user == nil {
 		return
@@ -49,7 +49,7 @@ func DeleteUser(ctx context.Context, user *user.User) (err error) {
 	return
 }
 
-// RemoveUser removes a user from the platform
+// RemoveUser removes a user from the platform when only the username is known.
 func RemoveUser(ctx context.Context, username string) error {
 	err := parallelisation.DetermineContextError(ctx)
 	if err != nil {
