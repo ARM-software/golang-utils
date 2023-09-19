@@ -81,7 +81,7 @@ func associateUserToGroup(ctx context.Context, username, groupName string) (err 
 	return
 }
 
-func dissociateUserToGroup(ctx context.Context, username, groupName string) (err error) {
+func dissociateUserFromGroup(ctx context.Context, username, groupName string) (err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
