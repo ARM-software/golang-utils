@@ -41,7 +41,7 @@ func TestDefineUser(t *testing.T) {
 	assert.True(t, found)
 	defer func() { _ = RemoveGroup(context.Background(), user.Gid) }()
 	require.NoError(t, AssociateUserToGroup(context.TODO(), user.Username, user.Gid))
-	require.NoError(t, DissociateUserToGroup(context.TODO(), user.Username, user.Gid))
+	require.NoError(t, DissociateUserFromGroup(context.TODO(), user.Username, user.Gid))
 	require.NoError(t, DeleteUser(context.TODO(), user))
 	found, err = HasUser(user.Username)
 	assert.NoError(t, err)

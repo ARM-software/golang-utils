@@ -127,8 +127,8 @@ func AssociateUserToGroup(ctx context.Context, username, groupName string) error
 	return ConvertUserGroupError(associateUserToGroup(ctx, username, groupName))
 }
 
-// DissociateUserToGroup removes a user from a group.
-func DissociateUserToGroup(ctx context.Context, username, groupName string) error {
+// DissociateUserFromGroup removes a user from a group.
+func DissociateUserFromGroup(ctx context.Context, username, groupName string) error {
 	err := parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return err
@@ -141,7 +141,7 @@ func DissociateUserToGroup(ctx context.Context, username, groupName string) erro
 	if !found && err == nil {
 		return nil
 	}
-	return ConvertUserGroupError(dissociateUserToGroup(ctx, username, groupName))
+	return ConvertUserGroupError(dissociateUserFromGroup(ctx, username, groupName))
 }
 
 // ConvertUserGroupError converts errors related to users in common errors.
