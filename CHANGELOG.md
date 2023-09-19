@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.44.1" (2023-09-19)
+=====================
+
+Bugfixes
+--------
+
+- :bug: `[platform]` differentiate between the different architectures running Windows as `arm` is not fully supported (#20230919122752)
+
+
 "1.44.0" (2023-09-18)
 =====================
 
