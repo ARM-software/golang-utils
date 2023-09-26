@@ -3,15 +3,16 @@ package commonerrors
 import (
 	"errors"
 	"fmt"
+	"strings"
+	"testing"
+
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"strings"
-	"testing"
 )
 
 func TestDeserialise(t *testing.T) {
-	sentence := faker.Sentence()
+	sentence := strings.ReplaceAll(faker.Sentence(), "\n", ";")
 	errStr := strings.ToLower(faker.Name())
 	var tests = []struct {
 		text             string
@@ -65,10 +66,10 @@ func TestDeserialise(t *testing.T) {
 			} else {
 				require.NoError(t, mErr.UnmarshalText([]byte(test.text)))
 				if test.expectedError == nil {
-					assert.NoError(t, mErr.Error)
+					assert.NoError(t, mErr.ErrorType)
 				} else {
-					require.Error(t, mErr.Error)
-					assert.Equal(t, test.expectedError.Error(), mErr.Error.Error())
+					require.Error(t, mErr.ErrorType)
+					assert.Equal(t, test.expectedError.Error(), mErr.ErrorType.Error())
 				}
 
 				assert.Equal(t, test.expectedReason, mErr.Reason)
@@ -132,20 +133,63 @@ func TestCommonErrorSerialisation(t *testing.T) {
 			assert.True(t, Any(dErr, test.commonError))
 			dErr, err = DeserialiseError(text)
 			require.NoError(t, err)
-			fmt.Println(dErr)
 			assert.True(t, Any(dErr, test.commonError))
 		})
 	}
 }
 
-func TestGenericSerialisation(t *testing.T) {
-	text, err := SerialiseError(errors.New(faker.Sentence()))
+type multiErr []error
+
+func (m multiErr) Error() string   { return errors.Join(m...).Error() }
+func (m multiErr) Unwrap() []error { return []error(m) }
+
+func TestMultipleError(t *testing.T) {
+	expectedErr := multiErr([]error{fmt.Errorf("%w: %v", ErrInvalid, strings.ReplaceAll(faker.Sentence(), string(MultipleErrorSeparator), "sep")), errors.New(""), fmt.Errorf("%w: %v", ErrUnexpected, strings.ReplaceAll(faker.Sentence(), string(MultipleErrorSeparator), ";"))})
+	text, err := SerialiseError(expectedErr)
 	require.NoError(t, err)
 	assert.NotEmpty(t, text)
+
 	deserialisedErr, err := DeserialiseError(text)
 	require.NoError(t, err)
 	assert.Error(t, deserialisedErr)
-	assert.True(t, Any(deserialisedErr, ErrUnknown))
+	subErrors := expectedErr.Unwrap()
+	for i := range subErrors {
+		assert.True(t, CorrespondTo(deserialisedErr, subErrors[i].Error()), subErrors[i].Error())
+	}
+}
+func TestGenericSerialisation(t *testing.T) {
+	t.Run("error with no type", func(t *testing.T) {
+		expectedErr := errors.New(strings.ReplaceAll(faker.Sentence(), "\n", ";"))
+		text, err := SerialiseError(expectedErr)
+		require.NoError(t, err)
+		assert.NotEmpty(t, text)
+		deserialisedErr, err := DeserialiseError(text)
+		require.NoError(t, err)
+		assert.Error(t, deserialisedErr)
+		assert.Equal(t, expectedErr.Error(), deserialisedErr.Error())
+	})
+	t.Run("no error", func(t *testing.T) {
+		text, err := SerialiseError(nil)
+		require.NoError(t, err)
+		assert.Empty(t, text)
+	})
+	t.Run("error with no description", func(t *testing.T) {
+		expectedErr := errors.New(" ")
+		assert.True(t, IsEmpty(expectedErr))
+		text, err := SerialiseError(expectedErr)
+		require.NoError(t, err)
+		assert.NotEmpty(t, text)
+		deserialisedErr, err := DeserialiseError(text)
+		require.NoError(t, err)
+		assert.True(t, Any(deserialisedErr, ErrUnknown))
+	})
+	t.Run("error deserialisation", func(t *testing.T) {
+		text := []byte("                      ")
+		deserialisedErr, err := DeserialiseError(text)
+		require.Error(t, err)
+		assert.True(t, Any(err, ErrMarshalling))
+		assert.NoError(t, deserialisedErr)
+	})
 
 	tests := []struct {
 		commonError error
@@ -182,13 +226,12 @@ func TestGenericSerialisation(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.commonError.Error(), func(t *testing.T) {
-			reason := faker.Sentence()
-			text, err := SerialiseError(fmt.Errorf("%w: %v", test.commonError, reason))
+			reason := strings.ReplaceAll(faker.Sentence(), "\n", ";")
+			text, err := SerialiseError(fmt.Errorf("%w : %v", test.commonError, reason))
 			require.NoError(t, err)
 			dErr, err := DeserialiseError(text)
 			require.NoError(t, err)
 			assert.True(t, Any(dErr, test.commonError))
-			fmt.Println(dErr)
 			assert.True(t, strings.Contains(dErr.Error(), reason))
 		})
 	}

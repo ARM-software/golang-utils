@@ -178,3 +178,15 @@ func Ignore(target error, ignore ...error) error {
 	}
 	return target
 }
+
+// IsEmpty states whether an error is empty or not.
+// An error is considered empty if it is `nil` or has no description.
+func IsEmpty(err error) bool {
+	if err == nil {
+		return true
+	}
+	if strings.TrimSpace(err.Error()) == "" {
+		return true
+	}
+	return false
+}

@@ -1,27 +1,50 @@
 package commonerrors
 
 import (
+	"encoding"
 	"errors"
 	"fmt"
 	"strings"
 )
 
+const (
+	TypeReasonErrorSeparator = ':'
+	MultipleErrorSeparator   = '\n'
+)
+
+type iMarshallingError interface {
+	encoding.TextMarshaler
+	encoding.TextUnmarshaler
+	fmt.Stringer
+	error
+	ConvertToError() error
+	SetWrappedError(err error)
+}
+
 type marshallingError struct {
-	Reason string
-	Error  error
+	Reason    string
+	ErrorType error
 }
 
 func (e *marshallingError) MarshalText() (text []byte, err error) {
-	str := serialiseMarshallingError(e)
+	str := e.String()
 	return []byte(str), nil
 }
 
+func (e *marshallingError) String() string {
+	return serialiseMarshallingError(e)
+}
+
+func (e *marshallingError) Error() string {
+	return e.String()
+}
+
 func (e *marshallingError) UnmarshalText(text []byte) error {
-	er := processErrorStr(string(text))
+	er := processErrorStrLine(string(text))
 	if er == nil {
 		return ErrMarshalling
 	}
-	e.Error = er.Error
+	e.ErrorType = er.ErrorType
 	e.Reason = er.Reason
 	return nil
 }
@@ -30,57 +53,154 @@ func (e *marshallingError) ConvertToError() error {
 	if e == nil {
 		return nil
 	}
-	if e.Error == nil {
+	if e.ErrorType == nil {
 		if e.Reason == "" {
 			return nil
 		}
 		return errors.New(e.Reason)
 	}
 	if e.Reason == "" {
-		return e.Error
+		return e.ErrorType
 	}
-	return fmt.Errorf("%w: %v", e.Error, e.Reason)
+	return fmt.Errorf("%w%v %v", e.ErrorType, string(TypeReasonErrorSeparator), e.Reason)
 }
 
-func processError(err error) (mErr *marshallingError) {
+func (e *marshallingError) SetWrappedError(err error) {
+	e.ErrorType = err
+}
+
+type multiplemarshallingError struct {
+	subErrs []iMarshallingError
+}
+
+func (m *multiplemarshallingError) MarshalText() (text []byte, err error) {
+	for i := range m.subErrs {
+		subtext, suberr := m.subErrs[i].MarshalText()
+		if suberr != nil {
+			err = fmt.Errorf("%w%v an error item could not be marshalled%v %v", ErrMarshalling, string(TypeReasonErrorSeparator), string(TypeReasonErrorSeparator), suberr.Error())
+			return
+		}
+		text = append(text, subtext...)
+		text = append(text, MultipleErrorSeparator)
+	}
+	return
+}
+
+func (m *multiplemarshallingError) String() string {
+	text, err := m.MarshalText()
+	if err == nil {
+		return string(text)
+	}
+	return ""
+}
+
+func (m *multiplemarshallingError) Error() string {
+	return m.String()
+}
+
+func (m *multiplemarshallingError) UnmarshalText(text []byte) error {
+	sub := processErrorStr(string(text))
+	if sub == nil {
+		return ErrMarshalling
+	}
+	if mul, ok := sub.(*multiplemarshallingError); ok {
+		m.subErrs = mul.subErrs
+	} else {
+		m.subErrs = append(m.subErrs, sub)
+	}
+	return nil
+}
+
+func (m *multiplemarshallingError) ConvertToError() error {
+	var errs []error
+	for i := range m.subErrs {
+		errs = append(errs, m.subErrs[i].ConvertToError())
+	}
+	return errors.Join(errs...)
+}
+
+func (m *multiplemarshallingError) SetWrappedError(err error) {
+	if err == nil {
+		return
+	}
+	if x, ok := err.(interface{ Unwrap() []error }); ok {
+		unwrapped := x.Unwrap()
+		if len(unwrapped) > len(m.subErrs) {
+			for i := 0; i < len(unwrapped)-len(m.subErrs); i++ {
+				m.subErrs = append(m.subErrs, &marshallingError{})
+			}
+		}
+		for i := range unwrapped {
+			subErr := m.subErrs[i]
+			if subErr != nil {
+				subErr.SetWrappedError(unwrapped[i])
+			}
+		}
+	}
+}
+func processErrorStr(s string) iMarshallingError {
+	if strings.Contains(s, string(MultipleErrorSeparator)) {
+		elems := strings.Split(s, string(MultipleErrorSeparator))
+		m := &multiplemarshallingError{}
+		for i := range elems {
+			mErr := processErrorStrLine(elems[i])
+
+			if mErr != nil {
+				m.subErrs = append(m.subErrs, mErr)
+			}
+		}
+		return m
+	}
+	return processErrorStrLine(s)
+}
+
+func processError(err error) (mErr iMarshallingError) {
 	if err == nil {
 		return
 	}
 	mErr = processErrorStr(err.Error())
-	if mErr == nil {
+	if IsEmpty(mErr) {
 		mErr = &marshallingError{
-			Error: err,
+			ErrorType: fmt.Errorf("%w%v error `%T` with no description returned", ErrUnknown, string(TypeReasonErrorSeparator), err),
 		}
 		return
 	}
 	switch x := err.(type) {
 	case interface{ Unwrap() error }:
-		mErr.Error = x.Unwrap()
+		mErr.SetWrappedError(x.Unwrap())
 	case interface{ Unwrap() []error }:
-		mErr.Error = errors.Join(x.Unwrap()...)
+		unwrap := x.Unwrap()
+		var nonNilUnwrappedErrors []error
+		for i := range unwrap {
+			if !IsEmpty(unwrap[i]) {
+				nonNilUnwrappedErrors = append(nonNilUnwrappedErrors, unwrap[i])
+			}
+		}
+		mErr.SetWrappedError(errors.Join(nonNilUnwrappedErrors...))
 	}
 	return
 }
 
-func processErrorStr(err string) (mErr *marshallingError) {
+func processErrorStrLine(err string) (mErr *marshallingError) {
 	err = strings.TrimSpace(err)
 	if err == "" {
+		mErr = nil
 		return
 	}
 	mErr = &marshallingError{}
-	elems := strings.Split(err, ":")
+	elems := strings.Split(err, string(TypeReasonErrorSeparator))
 	found, commonErr := deserialiseCommonError(elems[0])
 	if !found || commonErr == nil {
-		mErr.Error = errors.New(strings.TrimSpace(elems[0]))
+		mErr.SetWrappedError(errors.New(strings.TrimSpace(elems[0])))
 	} else {
-		mErr.Error = commonErr
+		mErr.SetWrappedError(commonErr)
 	}
 	if len(elems) > 0 {
 		var reasonElems []string
 		for i := 1; i < len(elems); i++ {
 			reasonElems = append(reasonElems, strings.TrimSpace(elems[i]))
 		}
-		mErr.Reason = strings.Join(reasonElems, ": ")
+		mErr.Reason = strings.Join(reasonElems, fmt.Sprintf("%v ", string(TypeReasonErrorSeparator)))
 	}
 	return
 }
@@ -96,7 +216,7 @@ func serialiseMarshallingError(err *marshallingError) string {
 	return mErr.Error()
 }
 
-// SerialiseError marshals an error following a certain convention: `error type: reason`
+// SerialiseError marshals an error following a certain convention: `error type: reason`.
 func SerialiseError(err error) ([]byte, error) {
 	mErr := processError(err)
 	if mErr == nil {
@@ -110,7 +230,13 @@ func DeserialiseError(text []byte) (deserialisedError, err error) {
 	if len(text) == 0 {
 		return
 	}
-	mErr := marshallingError{}
+	var mErr iMarshallingError
+
+	if strings.Contains(string(text), string(MultipleErrorSeparator)) {
+		mErr = &multiplemarshallingError{}
+	} else {
+		mErr = &marshallingError{}
+	}
 	err = mErr.UnmarshalText(text)
 	if err != nil {
 		return
