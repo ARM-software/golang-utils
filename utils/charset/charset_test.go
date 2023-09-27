@@ -29,16 +29,16 @@ import (
 )
 
 func selectRandomUnsupportedCharset() string {
-	rand.Seed(time.Now().Unix())
+	random := rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for
 	keys := reflect.ValueOf(charsetaliases.KnownUnsupportedIconvEncodings).MapKeys()
-	return keys[rand.Intn(len(keys))].Interface().(string) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+	return keys[random.Intn(len(keys))].Interface().(string) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 }
 
 func selectRandomSupportedCharset() string {
-	rand.Seed(time.Now().Unix())
+	random := rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for
 	// aliases := charsetaliases.ICUCharsetAliases
 	aliases := []string{"csUTF8", "utf8", "iso-ir-138", "ISO_8859-8", "ISO-8859-8", "hebrew", "csISOLatinHebrew", "iso-ir-6", "ANSI_X3.4-1968", "ANSI_X3.4-1986", "ISO_646.irv:1991", "ISO646-US", "US-ASCII", "us", "IBM367", "cp367", "csASCII"}
-	return aliases[rand.Intn(len(aliases))] //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+	return aliases[random.Intn(len(aliases))] //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 }
 
 func TestIconv(t *testing.T) {

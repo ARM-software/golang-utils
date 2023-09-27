@@ -19,12 +19,12 @@ import (
 
 func createTestFileTree(fs filesystem.FS, testDir string, fileModTime time.Time, fileAccessTime time.Time) ([]string, error) {
 	// This can be fixed for testing.
-	rand.Seed(time.Now().UnixNano())
+	random := rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for
 	err := fs.MkDir(testDir)
 	if err != nil {
 		return nil, err
 	}
-	randI := rand.Intn(5) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+	randI := random.Intn(5) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 	if randI == 0 {
 		randI = 1
 	}
@@ -36,7 +36,7 @@ func createTestFileTree(fs filesystem.FS, testDir string, fileModTime time.Time,
 		if err != nil {
 			return nil, err
 		}
-		for j := 0; j < rand.Intn(5); j++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+		for j := 0; j < random.Intn(5); j++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 			uuid, err := idgen.GenerateUUID4()
 			if err != nil {
 				uuid = "uuid"
@@ -48,7 +48,7 @@ func createTestFileTree(fs filesystem.FS, testDir string, fileModTime time.Time,
 			if err != nil {
 				return nil, err
 			}
-			for k := 0; k < rand.Intn(5); k++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+			for k := 0; k < random.Intn(5); k++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 				uuid, err = idgen.GenerateUUID4()
 				if err != nil {
 					uuid = "uuid"
@@ -515,6 +515,7 @@ func TestEntryAge(t *testing.T) { // A store followed by a remove entry followed
 			testName := fmt.Sprintf("%v_for_fs_%v_and_cache_%v", t.Name(), fsType, cacheType)
 			t.Run(testName, func(t *testing.T) {
 				t.Parallel()
+				random := rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for
 				ctx := context.Background()
 				fs := filesystem.NewFs(fsType)
 				// set up temp remote directory
@@ -552,7 +553,7 @@ func TestEntryAge(t *testing.T) { // A store followed by a remove entry followed
 				require.NoError(t, err)
 				assert.True(t, age < 5*time.Second)
 
-				testAge := time.Duration(rand.Intn(24)) * time.Hour //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+				testAge := time.Duration(random.Intn(24)) * time.Hour //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 				err = remoteCache.SetEntryAge(context.TODO(), key, testAge)
 				require.NoError(t, err)
 				age, err = remoteCache.GetEntryAge(context.TODO(), key)

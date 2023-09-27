@@ -155,8 +155,9 @@ func GenerateEmptyPage() IStream {
 }
 
 func GenerateMockPage() (IStream, error) {
+	random := rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for testing
 	page := GenerateEmptyPage().(*MockPage)
-	n := rand.Intn(50) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for testing
+	n := random.Intn(50) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for testing
 	for i := 0; i < n; i++ {
 		err := page.AppendItem(GenerateMockItem())
 		if err != nil {
@@ -167,8 +168,8 @@ func GenerateMockPage() (IStream, error) {
 }
 
 func GenerateMockCollection() (firstPage IStream, itemTotal int64, err error) {
-	rand.Seed(int64(time.Now().Nanosecond())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for testing
-	n := rand.Intn(50)                        //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for testing
+	random := rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for testing
+	n := random.Intn(50)                                  //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for testing
 	var next IStream
 	for i := 0; i < n; i++ {
 		currentPage, subErr := GenerateMockPage()
@@ -204,8 +205,8 @@ func GenerateMockCollection() (firstPage IStream, itemTotal int64, err error) {
 }
 
 func GenerateMockStream() (firstPage IStream, itemTotal int64, err error) {
-	rand.Seed(int64(time.Now().Nanosecond())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for testing
-	n := rand.Intn(50)                        //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for testing
+	random := rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for testing
+	n := random.Intn(50)                                  //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for testing
 	var future IStream
 	for i := 0; i < n; i++ {
 		currentPage, subErr := GenerateMockPage()

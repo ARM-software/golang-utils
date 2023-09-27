@@ -22,6 +22,10 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
 
+var (
+	random = rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for
+)
+
 func TestParallelisationWithResults(t *testing.T) {
 	defer goleak.VerifyNone(t)
 	var values []int
@@ -397,7 +401,7 @@ func runActionWithParallelCheckFailAtRandom(t *testing.T, ctx context.Context) {
 	checkAction := func(ctx context.Context) bool {
 		counter.Add(1)
 		fmt.Println("Check #", counter.String())
-		return rand.Intn(2) != 0 && counter.Load() < 10 //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+		return random.Intn(2) != 0 && counter.Load() < 10 //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 	}
 	action := func(ctx context.Context) error {
 		time.Sleep(150 * time.Millisecond)
