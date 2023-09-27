@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/assert"
@@ -126,7 +127,8 @@ func TestIsLikelyHexHashString(t *testing.T) {
 }
 
 func TestBespokeHash(t *testing.T) {
-	size := rand.Intn(64) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as only for testing purposes
+	random := rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for
+	size := random.Intn(64)                               //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as only for testing purposes
 	algo, err := blake2b.New(size, nil)
 	require.NoError(t, err)
 	hashing, err := NewBespokeHashingAlgorithm(algo)

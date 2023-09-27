@@ -7,21 +7,26 @@ package collection
 import (
 	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/require"
+)
+
+var (
+	random = rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for
 )
 
 func TestParseCommaSeparatedListWordsOnly(t *testing.T) {
 	stringList := ""
 	stringArray := []string{}
 	// we don't need cryptographically secure random numbers for generating a number of elements in a list
-	lengthOfList := rand.Intn(10) //nolint:gosec
+	lengthOfList := random.Intn(10) //nolint:gosec
 	for i := 0; i < lengthOfList; i++ {
 		word := faker.Word()
 		stringList += word
 		stringArray = append(stringArray, word)
-		numSpacesToAdd := rand.Intn(5) //nolint:gosec
+		numSpacesToAdd := random.Intn(5) //nolint:gosec
 		for j := 0; j < numSpacesToAdd; j++ {
 			stringList += " "
 		}
@@ -36,12 +41,12 @@ func TestParseCommaSeparatedListWithSpacesBetweenWords(t *testing.T) {
 	stringList := ""
 	stringArray := []string{}
 	// we don't need cryptographically secure random numbers for generating a number of elements in a list
-	lengthOfList := rand.Intn(10) //nolint:gosec
+	lengthOfList := random.Intn(10) //nolint:gosec
 	for i := 0; i < lengthOfList; i++ {
 		word := faker.Sentence()
 		stringList += word
 		stringArray = append(stringArray, word)
-		numSpacesToAdd := rand.Intn(5) //nolint:gosec
+		numSpacesToAdd := random.Intn(5) //nolint:gosec
 		for j := 0; j < numSpacesToAdd; j++ {
 			stringList += " "
 		}
@@ -55,18 +60,18 @@ func TestParseCommaSeparatedListWithSpacesBetweenWordsKeepBlanks(t *testing.T) {
 	stringList := ""
 	stringArray := []string{}
 	// we don't need cryptographically secure random numbers for generating a number of elements in a list
-	lengthOfList := rand.Intn(10) + 8 //nolint:gosec
+	lengthOfList := random.Intn(10) + 8 //nolint:gosec
 	for i := 0; i < lengthOfList; i++ {
 		word := faker.Sentence()
 		stringList += word
 		stringArray = append(stringArray, word)
-		numSpacesToAdd := rand.Intn(5) //nolint:gosec
+		numSpacesToAdd := random.Intn(5) //nolint:gosec
 		for j := 0; j < numSpacesToAdd; j++ {
 			stringList += " "
 		}
 		stringList += ","
 		if i%3 == 2 {
-			numSpacesToAdd := rand.Intn(5) //nolint:gosec
+			numSpacesToAdd := random.Intn(5) //nolint:gosec
 			for j := 0; j < numSpacesToAdd; j++ {
 				stringList += " "
 			}

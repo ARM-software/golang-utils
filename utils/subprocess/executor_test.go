@@ -23,6 +23,10 @@ import (
 	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
+var (
+	random = rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for
+)
+
 func TestExecuteEmptyLines(t *testing.T) {
 	defer goleak.VerifyNone(t)
 	multilineEchos := []string{ // Some weird lines with contents and empty lines to be filtered
@@ -41,10 +45,10 @@ test 1
 		faker.Paragraph(),
 		faker.Sentence(),
 		func() (out string) { // funky random paragraph with plenty of random newlines
-			randI := rand.Intn(25)       //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+			randI := random.Intn(25)     //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 			for i := 0; i < randI; i++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 				out += faker.Sentence()
-				if rand.Intn(10) > 5 { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+				if random.Intn(10) > 5 { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 					out += platform.LineSeparator()
 				}
 			}
