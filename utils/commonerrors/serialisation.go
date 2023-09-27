@@ -100,7 +100,7 @@ func (m *multiplemarshallingError) Error() string {
 
 func (m *multiplemarshallingError) UnmarshalText(text []byte) error {
 	sub := processErrorStr(string(text))
-	if sub == nil {
+	if IsEmpty(sub) {
 		return ErrMarshalling
 	}
 	if mul, ok := sub.(*multiplemarshallingError); ok {
@@ -150,8 +150,9 @@ func processErrorStr(s string) iMarshallingError {
 			}
 		}
 		return m
+	} else {
+		return processErrorStrLine(s)
 	}
-	return processErrorStrLine(s)
 }
 
 func processError(err error) (mErr iMarshallingError) {
@@ -184,8 +185,7 @@ func processError(err error) (mErr iMarshallingError) {
 func processErrorStrLine(err string) (mErr *marshallingError) {
 	err = strings.TrimSpace(err)
 	if err == "" {
-		mErr = nil
-		return
+		return nil
 	}
 	mErr = &marshallingError{}
 	elems := strings.Split(err, string(TypeReasonErrorSeparator))
