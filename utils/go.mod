@@ -1,6 +1,6 @@
 module github.com/ARM-software/golang-utils/utils
 
-go 1.18
+go 1.20
 
 require (
 	github.com/OneOfOne/xxhash v1.2.8

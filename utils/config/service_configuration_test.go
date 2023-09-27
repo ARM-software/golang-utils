@@ -24,8 +24,9 @@ import (
 )
 
 var (
+	random           = rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for
 	expectedString   = fmt.Sprintf("a test string %v", faker.Word())
-	expectedInt      = rand.Int() //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+	expectedInt      = random.Int() //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 	expectedDuration = time.Since(time.Date(1999, 2, 3, 4, 30, 45, 46, time.UTC))
 	expectedHost     = fmt.Sprintf("a test host %v", faker.Word())
 	expectedPassword = fmt.Sprintf("a test passwd %v", faker.Password())
