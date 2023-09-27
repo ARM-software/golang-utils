@@ -14,6 +14,43 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.44.1" (2023-09-19)
+=====================
+
+Bugfixes
+--------
+
+- :bug: `[platform]` differentiate between the different architectures running Windows as `arm` is not fully supported (#20230919122752)
+
+
+"1.44.0" (2023-09-18)
+=====================
+
+Features
+--------
+
+- :sparkles: `[platform]` Add portable user management utilities similar to `useradd`, `usermod`, `userdel` (#20230915181452)
+
+
+"1.43.0" (2023-09-08)
+=====================
+
+Features
+--------
+
+- :sparkles: `[filesystem]` Add utilities to Fetch and Change file ownership using `user.User` (#20230906170005)
+- :sparkles: `[environment]` added utilities to describe the current environment (e.g. user, environment variables) (#20230907192415)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: checkout-4 (#20230905110552, #20230905110557, #20230905110628, #20230905110638, #20230905110715)
+- Dependency upgrade: net-0.15.0 (#20230906101059, #20230906101110, #20230906101135, #20230906101156, #20230906101221, #20230906101310, #20230906101328, #20230906101404, #20230906101421, #20230906101457, #20230906101519, #20230906101538, #20230906101600, #20230906101616, #20230906101638, #20230906101654, #20230906101731)
+- Dependency upgrade: crypto-0.13.0 (#20230906101108, #20230906101114, #20230906101155)
+- Dependency upgrade: upload-artifact-3.1.3 (#20230907104137)
+
+
 "1.42.1" (2023-09-04)
 =====================
 

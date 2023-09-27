@@ -21,6 +21,10 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
+var (
+	random = rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for
+)
+
 func TestLockStale(t *testing.T) {
 	lockFuncs := []struct {
 		LockFunc func(l ILock, ctx context.Context) error
@@ -235,7 +239,7 @@ func TestLockSequential(t *testing.T) {
 					if err == nil {
 						return err
 					}
-					time.Sleep(time.Duration(rand.Intn(15)) * time.Millisecond) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+					time.Sleep(time.Duration(random.Intn(15)) * time.Millisecond) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 				}
 				return err
 			},
@@ -427,7 +431,7 @@ func TestLockWithConcurrentAccess(t *testing.T) {
 			lockedCount.Inc()
 
 			// Sleep to give the other lock a chance to attempt to lock
-			time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+			time.Sleep(time.Duration(random.Intn(100)) * time.Millisecond) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 
 			// Unlock so other lock can successfully lock
 			err = l.Unlock(ctx)

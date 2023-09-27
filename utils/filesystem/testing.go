@@ -20,15 +20,15 @@ func GenerateTestFileTree(t *testing.T, fs FS, testDir, basePath string, withLin
 	require.NoError(t, err)
 
 	var sLinks []string
-	rand.Seed(time.Now().UnixMilli())                                        //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
-	for i := 0; i < int(math.Max(float64(1), float64(rand.Intn(10)))); i++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+	random := rand.New(rand.NewSource(time.Now().Unix()))                      //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+	for i := 0; i < int(math.Max(float64(1), float64(random.Intn(10)))); i++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 		c := fmt.Sprint("test", i+1)
 		path := filepath.Join(testDir, c)
 
 		err := fs.MkDir(path)
 		require.NoError(t, err)
 
-		for j := 0; j < int(math.Max(float64(1), float64(rand.Intn(10)))); j++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+		for j := 0; j < int(math.Max(float64(1), float64(random.Intn(10)))); j++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 			c := fmt.Sprint("test", j+1)
 			path := filepath.Join(path, c)
 
@@ -49,12 +49,12 @@ func GenerateTestFileTree(t *testing.T, fs FS, testDir, basePath string, withLin
 				}
 			}
 
-			for k := 0; k < int(math.Max(float64(1), float64(rand.Intn(10)))); k++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+			for k := 0; k < int(math.Max(float64(1), float64(random.Intn(10)))); k++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 				c := fmt.Sprint("test", k+1, ".txt")
 				finalPath := filepath.Join(path, c)
 
 				// pick a couple of files to make symlinks (1 in 10)
-				r := rand.Intn(10) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+				r := random.Intn(10) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 				if r == 4 {
 					fPath := filepath.Join(basePath, path, c)
 					sLinks = append(sLinks, fPath)
