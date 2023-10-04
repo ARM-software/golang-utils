@@ -14,6 +14,16 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.45.1" (2023-10-04)
+=====================
+
+Bugfixes
+--------
+
+- Dependency upgrade: zap-1.26.0 (#20230927155149)
+- Dependency upgrade: v3-3.23.9 (#20231002110104)
+
+
 "1.45.0" (2023-09-27)
 =====================
 
