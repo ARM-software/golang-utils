@@ -31,7 +31,9 @@ type IEnvironment interface {
 	// GetCurrentUser returns the environment current user.
 	GetCurrentUser() *user.User
 	// GetEnvironmentVariables returns the variables defining the environment.
-	GetEnvironmentVariables() []IEnvironmentVariable
+	GetEnvironmentVariables(dotEnvFiles ...string) []IEnvironmentVariable
 	// GetFilesystem returns the filesystem associated with the current environment
 	GetFilesystem() filesystem.FS
+	// GetEnvrionmentVariable returns the fetched environment variable or an error if it not set. optionally search .env files too
+	GetEnvironmentVariable(envvar string, dotEnvFiles ...string) (IEnvironmentVariable, error)
 }

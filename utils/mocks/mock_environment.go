@@ -8,10 +8,9 @@ import (
 	user "os/user"
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
-
 	environment "github.com/ARM-software/golang-utils/utils/environment"
 	filesystem "github.com/ARM-software/golang-utils/utils/filesystem"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockIEnvironmentVariable is a mock of IEnvironmentVariable interface.
@@ -173,18 +172,42 @@ func (mr *MockIEnvironmentMockRecorder) GetCurrentUser() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCurrentUser", reflect.TypeOf((*MockIEnvironment)(nil).GetCurrentUser))
 }
 
-// GetEnvironmentVariables mocks base method.
-func (m *MockIEnvironment) GetEnvironmentVariables() []environment.IEnvironmentVariable {
+// GetEnvironmentVariable mocks base method.
+func (m *MockIEnvironment) GetEnvironmentVariable(arg0 string, arg1 ...string) (environment.IEnvironmentVariable, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEnvironmentVariables")
+	varargs := []interface{}{arg0}
+	for _, a := range arg1 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetEnvironmentVariable", varargs...)
+	ret0, _ := ret[0].(environment.IEnvironmentVariable)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetEnvironmentVariable indicates an expected call of GetEnvironmentVariable.
+func (mr *MockIEnvironmentMockRecorder) GetEnvironmentVariable(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0}, arg1...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEnvironmentVariable", reflect.TypeOf((*MockIEnvironment)(nil).GetEnvironmentVariable), varargs...)
+}
+
+// GetEnvironmentVariables mocks base method.
+func (m *MockIEnvironment) GetEnvironmentVariables(arg0 ...string) []environment.IEnvironmentVariable {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range arg0 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetEnvironmentVariables", varargs...)
 	ret0, _ := ret[0].([]environment.IEnvironmentVariable)
 	return ret0
 }
 
 // GetEnvironmentVariables indicates an expected call of GetEnvironmentVariables.
-func (mr *MockIEnvironmentMockRecorder) GetEnvironmentVariables() *gomock.Call {
+func (mr *MockIEnvironmentMockRecorder) GetEnvironmentVariables(arg0 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEnvironmentVariables", reflect.TypeOf((*MockIEnvironment)(nil).GetEnvironmentVariables))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEnvironmentVariables", reflect.TypeOf((*MockIEnvironment)(nil).GetEnvironmentVariables), arg0...)
 }
 
 // GetFilesystem mocks base method.
