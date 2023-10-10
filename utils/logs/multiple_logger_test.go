@@ -10,12 +10,26 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
+	"github.com/ARM-software/golang-utils/utils/logs/logstest"
 )
 
 func TestMultipleLogger(t *testing.T) {
 	loggers, err := NewMultipleLoggers("Test")
 	require.NoError(t, err)
+	testLog(t, loggers)
+}
+
+func TestCombinedLogger(t *testing.T) {
+	loggers, err := NewCombinedLoggers()
+	errortest.RequireError(t, err, commonerrors.ErrNoLogger)
+	testLogger, err := NewLogrLogger(logstest.NewTestLogger(t), "Test")
+	require.NoError(t, err)
+	nl, err := NewNoopLogger("Test2")
+	require.NoError(t, err)
+	loggers, err = NewCombinedLoggers(testLogger, nl)
 	testLog(t, loggers)
 }
 

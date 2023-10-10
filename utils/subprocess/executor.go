@@ -2,7 +2,8 @@
  * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-// Package subprocess allows you to spawn new processes, retrieve their output/error pipes, and obtain their return codes.
+
+// Package subprocess allows you to spawn new processes, log their output/error and obtain their return codes.
 package subprocess
 
 import (
@@ -32,6 +33,12 @@ func New(ctx context.Context, loggers logs.Loggers, messageOnStart string, messa
 	return
 }
 
+func newPlainSubProcess(ctx context.Context, loggers logs.Loggers, cmd string, args ...string) (p *Subprocess, err error) {
+	p = new(Subprocess)
+	err = p.setup(ctx, loggers, false, "", "", "", cmd, args...)
+	return
+}
+
 // Execute executes a command (i.e. spawns a subprocess)
 func Execute(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
 	p, err := New(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
@@ -41,8 +48,37 @@ func Execute(ctx context.Context, loggers logs.Loggers, messageOnStart string, m
 	return p.Execute()
 }
 
+// Output executes a command and returns its output (stdOutput and stdErr are merged) as string.
+func Output(ctx context.Context, loggers logs.Loggers, cmd string, args ...string) (output string, err error) {
+	if loggers == nil {
+		err = commonerrors.ErrNoLogger
+		return
+	}
+
+	stringLogger, err := logs.NewPlainStringLogger()
+	if err != nil {
+		return
+	}
+	mLoggers, err := logs.NewCombinedLoggers(loggers, stringLogger)
+	if err != nil {
+		return
+	}
+	p, err := newPlainSubProcess(ctx, mLoggers, cmd, args...)
+	if err != nil {
+		return
+	}
+	err = p.Execute()
+	output = stringLogger.GetLogContent()
+	return
+}
+
 // Setup sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure.
 func (s *Subprocess) Setup(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
+	return s.setup(ctx, loggers, true, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+}
+
+// Setup sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure.
+func (s *Subprocess) setup(ctx context.Context, loggers logs.Loggers, withAdditionalMessages bool, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
 	if s.IsOn() {
 		err = s.Stop()
 		if err != nil {
@@ -54,7 +90,7 @@ func (s *Subprocess) Setup(ctx context.Context, loggers logs.Loggers, messageOnS
 	s.isRunning.Store(false)
 	s.processMonitoring = newSubprocessMonitoring(ctx)
 	s.command = newCommand(loggers, cmd, args...)
-	s.messsaging = newSubprocessMessaging(loggers, messageOnSuccess, messageOnFailure, messageOnStart, s.command.GetPath())
+	s.messsaging = newSubprocessMessaging(loggers, withAdditionalMessages, messageOnSuccess, messageOnFailure, messageOnStart, s.command.GetPath())
 	s.reset()
 	return s.check()
 }

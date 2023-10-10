@@ -2,6 +2,7 @@
  * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
+
 package subprocess
 
 import (
@@ -17,36 +18,48 @@ import (
 // Messages logged
 // Object in charge of logging subprocess output.
 type subprocessMessaging struct {
-	loggers               logs.Loggers
-	commandPath           string
-	messageOnSuccess      string
-	messageOnFailure      string
-	messageOnProcessStart string
-	pid                   atomic.Int64
+	loggers                logs.Loggers
+	commandPath            string
+	messageOnSuccess       string
+	messageOnFailure       string
+	messageOnProcessStart  string
+	withAdditionalMessages bool
+	pid                    atomic.Int64
 }
 
 // Logs subprocess start.
 func (s *subprocessMessaging) LogStart() {
-	s.loggers.Log(s.messageOnProcessStart)
+	if s.withAdditionalMessages {
+		s.loggers.Log(s.messageOnProcessStart)
+	}
 }
 
 // Logs when subprocess failed to start.
 func (s *subprocessMessaging) LogFailedStart(err error) {
-	s.loggers.LogError(fmt.Sprintf("Failed starting process `%v`: %v", s.commandPath, err))
+	if s.withAdditionalMessages {
+		s.loggers.LogError(fmt.Sprintf("Failed starting process `%v`: %v", s.commandPath, err))
+	}
 }
 
 // Logs when subprocess has started.
 func (s *subprocessMessaging) LogStarted() {
-	s.loggers.Log(fmt.Sprintf("Started process [%v]", s.pid.Load()))
+	if s.withAdditionalMessages {
+		s.loggers.Log(fmt.Sprintf("Started process [%v]", s.pid.Load()))
+	}
 }
 
 // Logs when subprocess is asked to stop.
 func (s *subprocessMessaging) LogStopping() {
-	s.loggers.Log(fmt.Sprintf("Stopping process [%v]", s.pid.Load()))
+	if s.withAdditionalMessages {
+		s.loggers.Log(fmt.Sprintf("Stopping process [%v]", s.pid.Load()))
+	}
 }
 
 // Logs subprocess end with err if an error occurred.
 func (s *subprocessMessaging) LogEnd(err error) {
+	if !s.withAdditionalMessages {
+		return
+	}
 	if err == nil {
 		s.loggers.Log(s.messageOnSuccess)
 	} else {
@@ -68,7 +81,7 @@ func (s *subprocessMessaging) Check() (err error) {
 	return
 }
 
-func newSubprocessMessaging(loggers logs.Loggers, messageOnSuccess string, messageOnFailure string, messageOnProcessStart string, commandPath string) *subprocessMessaging {
+func newSubprocessMessaging(loggers logs.Loggers, withAdditionalMessages bool, messageOnSuccess string, messageOnFailure string, messageOnProcessStart string, commandPath string) *subprocessMessaging {
 	m := &subprocessMessaging{
 		loggers:               loggers,
 		commandPath:           commandPath,
