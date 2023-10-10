@@ -83,11 +83,12 @@ func (s *subprocessMessaging) Check() (err error) {
 
 func newSubprocessMessaging(loggers logs.Loggers, withAdditionalMessages bool, messageOnSuccess string, messageOnFailure string, messageOnProcessStart string, commandPath string) *subprocessMessaging {
 	m := &subprocessMessaging{
-		loggers:               loggers,
-		commandPath:           commandPath,
-		messageOnSuccess:      messageOnSuccess,
-		messageOnFailure:      messageOnFailure,
-		messageOnProcessStart: messageOnProcessStart,
+		loggers:                loggers,
+		commandPath:            commandPath,
+		messageOnSuccess:       messageOnSuccess,
+		messageOnFailure:       messageOnFailure,
+		messageOnProcessStart:  messageOnProcessStart,
+		withAdditionalMessages: withAdditionalMessages,
 	}
 	m.messageOnFailure = messageOnFailure
 	if m.messageOnProcessStart == "" {
