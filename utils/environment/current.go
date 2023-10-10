@@ -28,7 +28,8 @@ func (c *currentEnv) GetCurrentUser() (currentUser *user.User) {
 	return
 }
 
-// GetEnvironmentVariables returns the current environment variable (and optionally those in the supplied dotEnvFiles)
+// GetEnvironmentVariables returns the current environment variable (and optionally those in the supplied in `dotEnvFiles`)
+// `dotEnvFiles` corresponds to `.env` files present on the machine and follows the mechanism described by https://github.com/bkeepers/dotenv
 func (c *currentEnv) GetEnvironmentVariables(dotEnvFiles ...string) (variables []IEnvironmentVariable) {
 	if len(dotEnvFiles) > 0 { // if no args, then it will attempt to load .env
 		_ = godotenv.Load(dotEnvFiles...) // ignore error (specifically on loading .env) consistent with config.LoadFromEnvironment
@@ -49,7 +50,7 @@ func (c *currentEnv) GetFilesystem() filesystem.FS {
 	return filesystem.NewStandardFileSystem()
 }
 
-// GetEnvironmentVariable searchs the current environment (and optionally dotEnvFiles) for a specific env var
+// GetEnvironmentVariable searches the current environment (and optionally dotEnvFiles) for a specific environment variable `envvar`.
 func (c *currentEnv) GetEnvironmentVariable(envvar string, dotEnvFiles ...string) (value IEnvironmentVariable, err error) {
 	envvars := c.GetEnvironmentVariables(dotEnvFiles...)
 	for i := range envvars {

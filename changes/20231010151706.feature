@@ -1,1 +1,1 @@
-`environment` Add GetEnvironmentVariable() to try and fetch specific environment variable
+:sparkles: [`environment`] Add `GetEnvironmentVariable()` to fetch a specific environment variable

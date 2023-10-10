@@ -8,9 +8,10 @@ import (
 	user "os/user"
 	reflect "reflect"
 
+	gomock "github.com/golang/mock/gomock"
+
 	environment "github.com/ARM-software/golang-utils/utils/environment"
 	filesystem "github.com/ARM-software/golang-utils/utils/filesystem"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockIEnvironmentVariable is a mock of IEnvironmentVariable interface.

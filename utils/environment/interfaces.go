@@ -30,10 +30,12 @@ type IEnvironmentVariable interface {
 type IEnvironment interface {
 	// GetCurrentUser returns the environment current user.
 	GetCurrentUser() *user.User
-	// GetEnvironmentVariables returns the variables defining the environment.
+	// GetEnvironmentVariables returns the variables defining the environment  (and optionally those supplied in `dotEnvFiles`)
+	// `dotEnvFiles` corresponds to `.env` files present on the machine and follows the mechanism described by https://github.com/bkeepers/dotenv
 	GetEnvironmentVariables(dotEnvFiles ...string) []IEnvironmentVariable
 	// GetFilesystem returns the filesystem associated with the current environment
 	GetFilesystem() filesystem.FS
-	// GetEnvrionmentVariable returns the fetched environment variable or an error if it not set. optionally search .env files too
+	// GetEnvironmentVariable returns the environment variable corresponding to `envvar` or an error if it not set. optionally it searches `dotEnvFiles` files too
+	// `dotEnvFiles` corresponds to `.env` files present on the machine and follows the mechanism described by https://github.com/bkeepers/dotenv
 	GetEnvironmentVariable(envvar string, dotEnvFiles ...string) (IEnvironmentVariable, error)
 }
