@@ -5,12 +5,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ARM-software/golang-utils/utils/commonerrors"
-	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
-	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/filesystem"
 )
 
 const (
@@ -47,7 +48,8 @@ func Test_currentEnv_GetEnvironmentVariables(t *testing.T) {
 		require.NoError(t, err)
 		defer func() { _ = dotenv1.Close() }()
 		test3 := NewEnvironmentVariable("test3", faker.Sentence())
-		dotenv1.WriteString(test3.String())
+		_, err = dotenv1.WriteString(test3.String())
+		require.NoError(t, err)
 		err = dotenv1.Close()
 		require.NoError(t, err)
 
@@ -55,9 +57,11 @@ func Test_currentEnv_GetEnvironmentVariables(t *testing.T) {
 		require.NoError(t, err)
 		defer func() { _ = dotenv2.Close() }()
 		test4 := NewEnvironmentVariable("test4", faker.Sentence())
-		dotenv2.WriteString(fmt.Sprintf("%v\n", test4.String()))
+		_, err = dotenv2.WriteString(fmt.Sprintf("%v\n", test4.String()))
+		require.NoError(t, err)
 		test5 := NewEnvironmentVariable("test5", faker.Sentence())
-		dotenv2.WriteString(fmt.Sprintf("%v\n", test5.String()))
+		_, err = dotenv2.WriteString(fmt.Sprintf("%v\n", test5.String()))
+		require.NoError(t, err)
 		err = dotenv2.Close()
 		require.NoError(t, err)
 
@@ -106,7 +110,8 @@ func Test_currentenv_GetEnvironmentVariable(t *testing.T) {
 		require.NoError(t, err)
 		defer func() { _ = dotenv1.Close() }()
 		test3 := NewEnvironmentVariable("test3", faker.Sentence())
-		dotenv1.WriteString(test3.String())
+		_, err = dotenv1.WriteString(test3.String())
+		require.NoError(t, err)
 		err = dotenv1.Close()
 		require.NoError(t, err)
 
@@ -114,9 +119,11 @@ func Test_currentenv_GetEnvironmentVariable(t *testing.T) {
 		require.NoError(t, err)
 		defer func() { _ = dotenv2.Close() }()
 		test4 := NewEnvironmentVariable("test4", faker.Sentence())
-		dotenv2.WriteString(fmt.Sprintf("%v\n", test4.String()))
+		_, err = dotenv2.WriteString(fmt.Sprintf("%v\n", test4.String()))
+		require.NoError(t, err)
 		test5 := NewEnvironmentVariable("test5", faker.Sentence())
-		dotenv2.WriteString(fmt.Sprintf("%v\n", test5.String()))
+		_, err = dotenv2.WriteString(fmt.Sprintf("%v\n", test5.String()))
+		require.NoError(t, err)
 		err = dotenv2.Close()
 		require.NoError(t, err)
 
