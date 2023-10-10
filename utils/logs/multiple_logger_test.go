@@ -23,13 +23,14 @@ func TestMultipleLogger(t *testing.T) {
 }
 
 func TestCombinedLogger(t *testing.T) {
-	loggers, err := NewCombinedLoggers()
+	_, err := NewCombinedLoggers()
 	errortest.RequireError(t, err, commonerrors.ErrNoLogger)
 	testLogger, err := NewLogrLogger(logstest.NewTestLogger(t), "Test")
 	require.NoError(t, err)
 	nl, err := NewNoopLogger("Test2")
 	require.NoError(t, err)
-	loggers, err = NewCombinedLoggers(testLogger, nl)
+	loggers, err := NewCombinedLoggers(testLogger, nl)
+	require.NoError(t, err)
 	testLog(t, loggers)
 }
 
