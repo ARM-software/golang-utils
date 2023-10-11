@@ -102,17 +102,28 @@ func (c *MultipleLogger) Append(l ...Loggers) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.loggers = append(c.loggers, l...)
+	return nil
+}
+
+type MultipleLoggerWithLoggerSource struct {
+	MultipleLogger
+}
+
+func (c *MultipleLoggerWithLoggerSource) Append(l ...Loggers) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.loggers = append(c.loggers, l...)
 	return c.setLoggerSource(c.loggerSource)
 }
 
 // NewMultipleLoggers returns a logger which abstracts and internally manages a list of loggers.
 // if no default loggers are provided, the logger will be set to print to the standard output.
-func NewMultipleLoggers(loggerSource string, defaultLoggers ...Loggers) (l IMultipleLoggers, err error) {
+func NewMultipleLoggers(loggerSource string, loggersList ...Loggers) (l IMultipleLoggers, err error) {
 	if loggerSource == "" {
 		err = commonerrors.ErrNoLoggerSource
 		return
 	}
-	list := defaultLoggers
+	list := loggersList
 	if len(list) == 0 {
 		std, err := NewStdLogger(loggerSource)
 		if err != nil {
@@ -120,11 +131,22 @@ func NewMultipleLoggers(loggerSource string, defaultLoggers ...Loggers) (l IMult
 		}
 		list = []Loggers{std}
 	}
-	l = &MultipleLogger{}
+	l = &MultipleLoggerWithLoggerSource{}
 	err = l.Append(list...)
 	if err != nil {
 		return
 	}
 	err = l.SetLoggerSource(loggerSource)
+	return
+}
+
+// NewCombinedLoggers returns a logger which logs to a list of logger. If list is empty, it will error.
+func NewCombinedLoggers(loggersList ...Loggers) (l IMultipleLoggers, err error) {
+	if len(loggersList) == 0 {
+		err = commonerrors.ErrNoLogger
+		return
+	}
+	l = &MultipleLogger{}
+	err = l.Append(loggersList...)
 	return
 }

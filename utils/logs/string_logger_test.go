@@ -18,7 +18,19 @@ func TestStringLogger(t *testing.T) {
 	loggers.LogError("Test err")
 	loggers.Log("Test1")
 	contents := loggers.GetLogContent()
-	require.NotZero(t, contents)
+	require.NotEmpty(t, contents)
+	require.True(t, strings.Contains(contents, "Test err"))
+	require.True(t, strings.Contains(contents, "Test1"))
+}
+
+func TestPlainStringLogger(t *testing.T) {
+	loggers, err := NewPlainStringLogger()
+	require.NoError(t, err)
+	testLog(t, loggers)
+	loggers.LogError("Test err")
+	loggers.Log("Test1")
+	contents := loggers.GetLogContent()
+	require.NotEmpty(t, contents)
 	require.True(t, strings.Contains(contents, "Test err"))
 	require.True(t, strings.Contains(contents, "Test1"))
 }

@@ -21,7 +21,7 @@ import (
 
 func TestCmdRun(t *testing.T) {
 	currentDir, err := os.Getwd()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	tests := []struct {
 		name       string
@@ -52,7 +52,7 @@ func TestCmdRun(t *testing.T) {
 			defer goleak.VerifyNone(t)
 			var cmd *command
 			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
-			require.Nil(t, err)
+			require.NoError(t, err)
 			if platform.IsWindows() {
 				cmd = newCommand(loggers, test.cmdWindows, test.argWindows...)
 			} else {
@@ -62,20 +62,20 @@ func TestCmdRun(t *testing.T) {
 			defer cancel()
 			wrapper := cmd.GetCmd(ctx)
 			err = wrapper.Run()
-			require.Nil(t, err)
+			require.NoError(t, err)
 			err = wrapper.Run()
-			require.NotNil(t, err)
+			require.Error(t, err)
 			cmd.Reset()
 			wrapper = cmd.GetCmd(ctx)
 			err = wrapper.Run()
-			require.Nil(t, err)
+			require.NoError(t, err)
 		})
 	}
 }
 
 func TestCmdStartStop(t *testing.T) {
 	currentDir, err := os.Getwd()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	tests := []struct {
 		name       string
@@ -106,7 +106,7 @@ func TestCmdStartStop(t *testing.T) {
 			defer goleak.VerifyNone(t)
 			var cmd *command
 			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			if platform.IsWindows() {
 				cmd = newCommand(loggers, test.cmdWindows, test.argWindows...)
@@ -117,14 +117,14 @@ func TestCmdStartStop(t *testing.T) {
 			defer cancel()
 			wrapper := cmd.GetCmd(ctx)
 			err = wrapper.Start()
-			require.Nil(t, err)
+			require.NoError(t, err)
 			pid, err := wrapper.Pid()
-			require.Nil(t, err)
+			require.NoError(t, err)
 			assert.NotZero(t, pid)
 			err = wrapper.Start()
-			require.NotNil(t, err)
+			require.Error(t, err)
 			err = wrapper.Stop()
-			require.Nil(t, err)
+			require.NoError(t, err)
 		})
 	}
 }

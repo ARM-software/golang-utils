@@ -88,10 +88,10 @@ test 1
 	for i := range tests {
 		for j, testInput := range tests[i].Inputs {
 			loggers, err := logs.NewStringLogger("Test") // clean log between each test
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			err = Execute(context.Background(), loggers, "", "", "", "echo", testInput)
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			contents := loggers.GetLogContent()
 			require.NotZero(t, contents)
@@ -110,7 +110,7 @@ test 1
 
 func TestStartStop(t *testing.T) {
 	currentDir, err := os.Getwd()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	tests := []struct {
 		name       string
 		cmdWindows string
@@ -139,7 +139,7 @@ func TestStartStop(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			defer goleak.VerifyNone(t)
 			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			var p *Subprocess
 			if platform.IsWindows() {
@@ -147,39 +147,39 @@ func TestStartStop(t *testing.T) {
 			} else {
 				p, err = New(context.Background(), loggers, "", "", "", test.cmdOther, test.argOther...)
 			}
-			require.Nil(t, err)
+			require.NoError(t, err)
 			require.NotNil(t, p)
 			assert.False(t, p.IsOn())
 			err = p.Start()
-			require.Nil(t, err)
+			require.NoError(t, err)
 			assert.True(t, p.IsOn())
 
 			// Checking idempotence
 			err = p.Start()
-			require.Nil(t, err)
+			require.NoError(t, err)
 			err = p.Check()
-			require.Nil(t, err)
+			require.NoError(t, err)
 
 			time.Sleep(200 * time.Millisecond)
 			err = p.Restart()
-			require.Nil(t, err)
+			require.NoError(t, err)
 			assert.True(t, p.IsOn())
 			err = p.Stop()
-			require.Nil(t, err)
+			require.NoError(t, err)
 			assert.False(t, p.IsOn())
 			// Checking idempotence
 			err = p.Stop()
-			require.Nil(t, err)
+			require.NoError(t, err)
 			time.Sleep(100 * time.Millisecond)
 			err = p.Execute()
-			require.Nil(t, err)
+			require.NoError(t, err)
 		})
 	}
 }
 
 func TestExecute(t *testing.T) {
 	currentDir, err := os.Getwd()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	tests := []struct {
 		name       string
 		cmdWindows string
@@ -209,19 +209,67 @@ func TestExecute(t *testing.T) {
 			defer goleak.VerifyNone(t)
 			var loggers logs.Loggers = &logs.GenericLoggers{}
 			err := loggers.Check()
-			assert.NotNil(t, err)
+			assert.Error(t, err)
 
 			err = Execute(context.Background(), loggers, "", "", "", "ls")
-			assert.NotNil(t, err)
+			assert.Error(t, err)
 
 			loggers, err = logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
-			require.Nil(t, err)
+			require.NoError(t, err)
 			if platform.IsWindows() {
 				err = Execute(context.Background(), loggers, "", "", "", test.cmdWindows, test.argWindows...)
 			} else {
 				err = Execute(context.Background(), loggers, "", "", "", test.cmdOther, test.argOther...)
 			}
-			require.Nil(t, err)
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestOutput(t *testing.T) {
+	currentDir, err := os.Getwd()
+	require.NoError(t, err)
+	tests := []struct {
+		name         string
+		cmdWindows   string
+		argWindows   []string
+		cmdOther     string
+		argOther     []string
+		expectOutput bool
+	}{
+		{
+			name:         "ShortProcess",
+			cmdWindows:   "cmd",
+			argWindows:   []string{"dir", currentDir},
+			cmdOther:     "ls",
+			argOther:     []string{"-l", currentDir},
+			expectOutput: true,
+		},
+		{
+			name:       "LongProcess",
+			cmdWindows: "cmd",
+			argWindows: []string{"SLEEP 1"},
+			cmdOther:   "sleep",
+			argOther:   []string{"1"},
+		},
+	}
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			defer goleak.VerifyNone(t)
+			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "testOutput")
+			require.NoError(t, err)
+			var output string
+			if platform.IsWindows() {
+				output, err = Output(context.Background(), loggers, test.cmdWindows, test.argWindows...)
+			} else {
+				output, err = Output(context.Background(), loggers, test.cmdOther, test.argOther...)
+			}
+			require.NoError(t, err)
+			if test.expectOutput {
+				assert.NotEmpty(t, output)
+			}
 		})
 	}
 }
@@ -248,7 +296,7 @@ func TestCancelledSubprocess(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			defer goleak.VerifyNone(t)
 			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
-			require.Nil(t, err)
+			require.NoError(t, err)
 			cancellableCtx, cancelFunc := context.WithCancel(context.Background())
 
 			var p *Subprocess
@@ -257,12 +305,12 @@ func TestCancelledSubprocess(t *testing.T) {
 			} else {
 				p, err = New(cancellableCtx, loggers, "", "", "", test.cmdOther, test.argOther...)
 			}
-			require.Nil(t, err)
+			require.NoError(t, err)
 			defer func() { _ = p.Stop() }()
 
 			assert.False(t, p.IsOn())
 			err = p.Start()
-			require.Nil(t, err)
+			require.NoError(t, err)
 			assert.True(t, p.IsOn())
 			time.Sleep(10 * time.Millisecond)
 			cancelFunc()
@@ -294,7 +342,7 @@ func TestCancelledSubprocess2(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			defer goleak.VerifyNone(t)
 			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
-			require.Nil(t, err)
+			require.NoError(t, err)
 			ctx, cancelFunc := context.WithCancel(context.Background())
 			var p *Subprocess
 			if platform.IsWindows() {
@@ -302,7 +350,7 @@ func TestCancelledSubprocess2(t *testing.T) {
 			} else {
 				p, err = New(ctx, loggers, "", "", "", test.cmdOther, test.argOther...)
 			}
-			require.Nil(t, err)
+			require.NoError(t, err)
 			defer func() { _ = p.Stop() }()
 
 			ready := make(chan bool)
@@ -343,7 +391,7 @@ func TestCancelledSubprocess3(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			defer goleak.VerifyNone(t)
 			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
-			require.Nil(t, err)
+			require.NoError(t, err)
 			ctx := context.Background()
 			var p *Subprocess
 			if platform.IsWindows() {
@@ -351,7 +399,7 @@ func TestCancelledSubprocess3(t *testing.T) {
 			} else {
 				p, err = New(ctx, loggers, "", "", "", test.cmdOther, test.argOther...)
 			}
-			require.Nil(t, err)
+			require.NoError(t, err)
 			defer func() { _ = p.Stop() }()
 
 			ready := make(chan bool)
