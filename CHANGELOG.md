@@ -14,6 +14,17 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.47.0" (2023-10-11)
+=====================
+
+Features
+--------
+
+- :sparkles: `[logs]` Added a `PlainStringLogger` to store only logged messages without prefixes or flags (#20231010192716)
+- :sparkles: `[logs]` Added a `CombinedLoggers` to log into multiple loggers (#20231010195032)
+- :sparkles: `[subprocess]` Added `Output` to store the output of a process into a string (#20231010200309)
+
+
 "1.46.0" (2023-10-10)
 =====================
 
