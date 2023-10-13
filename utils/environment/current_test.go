@@ -30,10 +30,11 @@ func TestNewCurrentEnvironment(t *testing.T) {
 
 func Test_currentEnv_GetEnvironmentVariables(t *testing.T) {
 	t.Run("No dotenv files", func(t *testing.T) {
-		os.Clearenv()
+		// os.Clearenv()
 		require.NoError(t, os.Setenv("test1", faker.Sentence()))
 		require.NoError(t, os.Setenv("test2", faker.Sentence()))
 		current := NewCurrentEnvironment()
+		fmt.Println(os.Environ())
 		envVars := current.GetEnvironmentVariables()
 		assert.Len(t, envVars, 2)
 		assert.False(t, envVars[0].Equal(envVars[1]))
