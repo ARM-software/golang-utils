@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.48.0" (2023-10-13)
+=====================
+
+Features
+--------
+
+- :sparkles: `[platform]` Add way to run commands as a user with privileges on posix systems (#20231013112742)
+- :sparkles: `[command]` Add utilities to translate commands so that they are run as a separate user (#20231013122936)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: net-0.17.0 (#20231011103958)
+
+
 "1.47.0" (2023-10-11)
 =====================
 
