@@ -16,6 +16,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/logs"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
+	commandUtils "github.com/ARM-software/golang-utils/utils/subprocess/command"
 )
 
 // INTERNAL
@@ -100,12 +101,14 @@ func (c *cmdWrapper) Pid() (pid int, err error) {
 type command struct {
 	cmd        string
 	args       []string
+	as         *commandUtils.CommandAsDifferentUser
 	loggers    logs.Loggers
 	cmdWrapper cmdWrapper
 }
 
 func (c *command) createCommand(cmdCtx context.Context) *exec.Cmd {
-	cmd := exec.CommandContext(cmdCtx, c.cmd, c.args...) //nolint:gosec
+	newCmd, newArgs := c.as.Redefine(c.cmd, c.args...)
+	cmd := exec.CommandContext(cmdCtx, newCmd, newArgs...) //nolint:gosec
 	cmd.Stdout = newOutStreamer(c.loggers)
 	cmd.Stderr = newErrLogStreamer(c.loggers)
 	return cmd
@@ -129,6 +132,10 @@ func (c *command) Check() (err error) {
 		err = fmt.Errorf("missing command: %w", commonerrors.ErrUndefined)
 		return
 	}
+	if c.as == nil {
+		err = fmt.Errorf("missing command translator: %w", commonerrors.ErrUndefined)
+		return
+	}
 	if c.loggers == nil {
 		err = commonerrors.ErrNoLogger
 		return
@@ -136,11 +143,12 @@ func (c *command) Check() (err error) {
 	return
 }
 
-func newCommand(loggers logs.Loggers, cmd string, args ...string) (osCmd *command) {
+func newCommand(loggers logs.Loggers, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (osCmd *command) {
 	osCmd = &command{
 		cmd:        cmd,
 		args:       args,
 		loggers:    loggers,
+		as:         as,
 		cmdWrapper: cmdWrapper{},
 	}
 	return
