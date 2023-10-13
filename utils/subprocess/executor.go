@@ -15,6 +15,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/logs"
+	commandUtils "github.com/ARM-software/golang-utils/utils/subprocess/command"
 )
 
 // Subprocess describes what a subproccess is as well as any monitoring it may need.
@@ -28,14 +29,20 @@ type Subprocess struct {
 
 // New creates a subprocess description.
 func New(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (p *Subprocess, err error) {
-	p = new(Subprocess)
-	err = p.Setup(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+	p, err = newSubProcess(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Me(), cmd, args...)
 	return
 }
 
-func newPlainSubProcess(ctx context.Context, loggers logs.Loggers, cmd string, args ...string) (p *Subprocess, err error) {
+// newSubProcess creates a subprocess description.
+func newSubProcess(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (p *Subprocess, err error) {
 	p = new(Subprocess)
-	err = p.setup(ctx, loggers, false, "", "", "", cmd, args...)
+	err = p.SetupAs(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+	return
+}
+
+func newPlainSubProcess(ctx context.Context, loggers logs.Loggers, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (p *Subprocess, err error) {
+	p = new(Subprocess)
+	err = p.setup(ctx, loggers, false, "", "", "", as, cmd, args...)
 	return
 }
 
@@ -48,8 +55,27 @@ func Execute(ctx context.Context, loggers logs.Loggers, messageOnStart string, m
 	return p.Execute()
 }
 
+// ExecuteAs executes a command (i.e. spawns a subprocess) as a different user.
+func ExecuteAs(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
+	p, err := newSubProcess(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+	if err != nil {
+		return
+	}
+	return p.Execute()
+}
+
+// ExecuteWithSudo executes a command (i.e. spawns a subprocess) as root.
+func ExecuteWithSudo(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) error {
+	return ExecuteAs(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Sudo(), cmd, args...)
+}
+
 // Output executes a command and returns its output (stdOutput and stdErr are merged) as string.
-func Output(ctx context.Context, loggers logs.Loggers, cmd string, args ...string) (output string, err error) {
+func Output(ctx context.Context, loggers logs.Loggers, cmd string, args ...string) (string, error) {
+	return OutputAs(ctx, loggers, commandUtils.Me(), cmd, args...)
+}
+
+// OutputAs executes a command as a different user and returns its output (stdOutput and stdErr are merged) as string.
+func OutputAs(ctx context.Context, loggers logs.Loggers, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (output string, err error) {
 	if loggers == nil {
 		err = commonerrors.ErrNoLogger
 		return
@@ -63,7 +89,7 @@ func Output(ctx context.Context, loggers logs.Loggers, cmd string, args ...strin
 	if err != nil {
 		return
 	}
-	p, err := newPlainSubProcess(ctx, mLoggers, cmd, args...)
+	p, err := newPlainSubProcess(ctx, mLoggers, as, cmd, args...)
 	if err != nil {
 		return
 	}
@@ -74,11 +100,16 @@ func Output(ctx context.Context, loggers logs.Loggers, cmd string, args ...strin
 
 // Setup sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure.
 func (s *Subprocess) Setup(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
-	return s.setup(ctx, loggers, true, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+	return s.setup(ctx, loggers, true, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Me(), cmd, args...)
+}
+
+// SetupAs is similar to Setup but allows the command to be run as a different user.
+func (s *Subprocess) SetupAs(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
+	return s.setup(ctx, loggers, true, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
 }
 
 // Setup sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure.
-func (s *Subprocess) setup(ctx context.Context, loggers logs.Loggers, withAdditionalMessages bool, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
+func (s *Subprocess) setup(ctx context.Context, loggers logs.Loggers, withAdditionalMessages bool, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
 	if s.IsOn() {
 		err = s.Stop()
 		if err != nil {
@@ -89,7 +120,7 @@ func (s *Subprocess) setup(ctx context.Context, loggers logs.Loggers, withAdditi
 	defer s.mu.Unlock()
 	s.isRunning.Store(false)
 	s.processMonitoring = newSubprocessMonitoring(ctx)
-	s.command = newCommand(loggers, cmd, args...)
+	s.command = newCommand(loggers, as, cmd, args...)
 	s.messsaging = newSubprocessMessaging(loggers, withAdditionalMessages, messageOnSuccess, messageOnFailure, messageOnStart, s.command.GetPath())
 	s.reset()
 	return s.check()
