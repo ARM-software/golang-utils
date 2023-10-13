@@ -82,10 +82,18 @@ func isEnvVarKey(value string) bool {
 // ParseEnvironmentVariable parses an environment variable definition, in the form "key=value".
 func ParseEnvironmentVariable(variable string) (IEnvironmentVariable, error) {
 	elements := strings.Split(strings.TrimSpace(variable), "=")
-	if len(elements) != 2 {
-		return nil, fmt.Errorf("%w: invalid environment variable entry", commonerrors.ErrInvalid)
+	if len(elements) < 2 {
+		return nil, fmt.Errorf("%w: invalid environment variable entry as not following key=value", commonerrors.ErrInvalid)
 	}
-	envvar := NewEnvironmentVariable(elements[0], elements[1])
+	value := elements[1]
+	if len(elements) > 2 {
+		var valueElems []string
+		for i := 1; i < len(elements); i++ {
+			valueElems = append(valueElems, elements[i])
+		}
+		value = strings.Join(valueElems, "=")
+	}
+	envvar := NewEnvironmentVariable(elements[0], value)
 	return envvar, envvar.Validate()
 }
 
@@ -113,4 +121,27 @@ func ValidateEnvironmentVariables(vars ...IEnvironmentVariable) error {
 		}
 	}
 	return nil
+}
+
+// ParseEnvironmentVariables parses a list of key=value entries such as os.Environ() and returns a list of the corresponding environment variables.
+// Any entry failing parsing will be ignored.
+func ParseEnvironmentVariables(variables ...string) (envVars []IEnvironmentVariable) {
+	for i := range variables {
+		envvar, err := ParseEnvironmentVariable(variables[i])
+		if err != nil {
+			continue
+		}
+		envVars = append(envVars, envvar)
+	}
+	return
+}
+
+// FindEnvironmentVariable looks for an environment variable in a list. if no environment variable matches, an error is returned
+func FindEnvironmentVariable(envvar string, envvars ...IEnvironmentVariable) (IEnvironmentVariable, error) {
+	for i := range envvars {
+		if envvars[i].GetKey() == envvar {
+			return envvars[i], nil
+		}
+	}
+	return nil, fmt.Errorf("%w: environment variable '%v' not set", commonerrors.ErrNotFound, envvar)
 }
