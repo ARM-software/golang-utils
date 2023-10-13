@@ -1,14 +1,12 @@
 package environment
 
 import (
-	"fmt"
 	"os"
 	"os/user"
 
 	"github.com/joho/godotenv"
 	"github.com/mitchellh/go-homedir"
 
-	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 )
 
@@ -35,14 +33,7 @@ func (c *currentEnv) GetEnvironmentVariables(dotEnvFiles ...string) (variables [
 		_ = godotenv.Load(dotEnvFiles...) // ignore error (specifically on loading .env) consistent with config.LoadFromEnvironment
 	}
 
-	curentEnv := os.Environ()
-	for i := range curentEnv {
-		envvar, err := ParseEnvironmentVariable(curentEnv[i])
-		if err != nil {
-			return
-		}
-		variables = append(variables, envvar)
-	}
+	variables = ParseEnvironmentVariables(os.Environ()...)
 	return
 }
 
@@ -52,13 +43,7 @@ func (c *currentEnv) GetFilesystem() filesystem.FS {
 
 // GetEnvironmentVariable searches the current environment (and optionally dotEnvFiles) for a specific environment variable `envvar`.
 func (c *currentEnv) GetEnvironmentVariable(envvar string, dotEnvFiles ...string) (value IEnvironmentVariable, err error) {
-	envvars := c.GetEnvironmentVariables(dotEnvFiles...)
-	for i := range envvars {
-		if envvars[i].GetKey() == envvar {
-			return envvars[i], nil
-		}
-	}
-	return nil, fmt.Errorf("%w: environment variable '%v' not set", commonerrors.ErrNotFound, envvar)
+	return FindEnvironmentVariable(envvar, c.GetEnvironmentVariables(dotEnvFiles...)...)
 }
 
 // NewCurrentEnvironment returns system current environment.
