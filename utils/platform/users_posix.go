@@ -11,17 +11,6 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
-var (
-	// sudoCommand describes the command to use to execute command as root
-	// when running in Docker, change to [gosu root](https://github.com/tianon/gosu)
-	sudoCommand = []string{"sudo"}
-)
-
-// DefineSudoCommand defines the command to run to be `root` or a user with enough privileges to manage accounts.
-func DefineSudoCommand(args ...string) {
-	sudoCommand = args
-}
-
 func addUser(ctx context.Context, username, fullname, password string) (err error) {
 	pwd := password
 	if pwd == "" {
@@ -69,26 +58,9 @@ func executeCommand(ctx context.Context, args ...string) error {
 	if len(args) == 0 {
 		return fmt.Errorf("%w: missing command to execute", commonerrors.ErrUndefined)
 	}
-	cmd := defineCommand(ctx, args...)
+	cmdName, cmdArgs := defineCommandWithPrivileges(args...)
+	cmd := exec.CommandContext(ctx, cmdName, cmdArgs...)
 	return runCommand(args[0], cmd)
-}
-
-func defineCommand(ctx context.Context, args ...string) *exec.Cmd {
-	var cmdName string
-	var cmdArgs []string
-	if len(sudoCommand) > 0 {
-		cmdName = sudoCommand[0]
-		for i := 1; i < len(sudoCommand); i++ {
-			cmdArgs = append(cmdArgs, sudoCommand[i])
-		}
-		cmdArgs = append(cmdArgs, args...)
-	} else {
-		cmdName = args[0]
-		for i := 1; i < len(args); i++ {
-			cmdArgs = append(cmdArgs, args[i])
-		}
-	}
-	return exec.CommandContext(ctx, cmdName, cmdArgs...)
 }
 
 func runCommand(cmdDescription string, cmd *exec.Cmd) error {
