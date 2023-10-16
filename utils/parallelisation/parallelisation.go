@@ -287,7 +287,7 @@ func RunActionWithInterruptCancellation(ctx context.Context, cancelStore *Cancel
 		}
 		return err
 	})
-	return g.Wait()
+	return commonerrors.ConvertContextError(g.Wait())
 }
 
 // RunActionWithGracefulShutdown carries out an action until asked to gracefully shutdown on which the shutdownOnSignal is executed.
