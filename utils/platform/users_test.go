@@ -9,6 +9,9 @@ import (
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
 
 func generateTestUser() (testUser *user.User) {
@@ -50,4 +53,19 @@ func TestDefineUser(t *testing.T) {
 	found, err = HasGroup(user.Gid)
 	assert.NoError(t, err)
 	assert.False(t, found)
+}
+
+func TestIsAdmin(t *testing.T) {
+	testuser := generateTestUser()
+	admin, _ := IsAdmin(testuser.Username)
+	assert.False(t, admin)
+	currentUser, err := user.Current()
+	require.NoError(t, err)
+	admin, _ = IsAdmin(currentUser.Username)
+	assert.False(t, admin)
+	admin, _ = IsUserAdmin(currentUser)
+	assert.False(t, admin)
+	_, err = IsUserAdmin(nil)
+	assert.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrUndefined)
 }

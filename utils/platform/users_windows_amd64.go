@@ -6,7 +6,6 @@ package platform
 import (
 	"context"
 	"fmt"
-
 	wapi "github.com/iamacarpet/go-win64api"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -111,6 +110,14 @@ func removeGroup(ctx context.Context, groupName string) (err error) {
 	if !success {
 		err = fmt.Errorf("%w: failed removing group", commonerrors.ErrUnknown)
 		return
+	}
+	return
+}
+
+func isAdmin(username string) (admin bool, err error) {
+	admin, err = wapi.IsLocalUserAdmin(username)
+	if err != nil {
+		err = fmt.Errorf("%w: could not determine if user is an admin: %v", commonerrors.ErrUnexpected, err.Error())
 	}
 	return
 }

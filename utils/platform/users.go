@@ -73,6 +73,54 @@ func HasUser(username string) (found bool, err error) {
 	return
 }
 
+// IsCurrentUserAnAdmin states whether the current user is a superuser or not.
+func IsCurrentUserAnAdmin() (admin bool, err error) {
+	cuser, err := user.Current()
+	if err != nil {
+		err = fmt.Errorf("%w: cannot fetch the current user: %v", commonerrors.ErrUnexpected, err.Error())
+		return
+	}
+	admin, err = IsUserAdmin(cuser)
+	return
+}
+
+// IsUserAdmin states whether the user is a superuser or not. Similar to IsAdmin but may use more checks.
+func IsUserAdmin(user *user.User) (admin bool, err error) {
+	if user == nil {
+		err = fmt.Errorf("%w: missing user", commonerrors.ErrUndefined)
+		return
+	}
+	admin, subErr := isUserAdmin(user)
+	if subErr == nil {
+		return
+	}
+	admin, err = IsAdmin(user.Username)
+	return
+}
+
+// IsAdmin states whether the user is a superuser or not.
+func IsAdmin(username string) (admin bool, err error) {
+	found, subErr := HasUser(username)
+	if !found && subErr == nil {
+		return
+	}
+	admin, err = isAdmin(username)
+	err = ConvertUserGroupError(err)
+	if err == nil {
+		return
+	}
+	// Make more check if username is current user
+	current, subErr := user.Current()
+	if subErr != nil {
+		return
+	}
+	if current.Username != username {
+		return
+	}
+	admin, err = isCurrentAdmin()
+	return
+}
+
 // HasGroup checks whether a group exists
 func HasGroup(groupName string) (found bool, err error) {
 	group, err := user.LookupGroup(groupName)
