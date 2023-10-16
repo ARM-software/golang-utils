@@ -8,7 +8,6 @@ package parallelisation
 
 import (
 	"context"
-	"golang.org/x/sync/errgroup"
 	"os"
 	"os/signal"
 	"reflect"
@@ -16,6 +15,7 @@ import (
 	"time"
 
 	"go.uber.org/atomic"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
