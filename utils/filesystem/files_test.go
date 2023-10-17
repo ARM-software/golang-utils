@@ -689,7 +689,42 @@ func TestRemoveWithExclusion(t *testing.T) {
 		})
 	}
 }
+func TestRemoveWithPrivileges(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-rm-with-privileges-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
 
+			empty, err := fs.IsEmpty(tmpDir)
+			require.NoError(t, err)
+			assert.True(t, empty)
+
+			tmpFile, err := fs.TempFile(tmpDir, "test-rm-*.test")
+			require.NoError(t, err)
+			err = tmpFile.Close()
+			require.NoError(t, err)
+
+			err = fs.MkDir(filepath.Join(tmpDir, "testDirToRemove"))
+			require.NoError(t, err)
+
+			checkNotEmpty(t, fs, tmpDir)
+
+			//TODO add user and change file and folder ownership
+
+			err = fs.RemoveWithPrivileges(context.TODO(), tmpDir)
+			require.NoError(t, err)
+			assert.True(t, fs.Exists(tmpDir))
+
+			empty, err = fs.IsEmpty(tmpDir)
+			require.NoError(t, err)
+			assert.True(t, empty)
+
+			_ = fs.Rm(tmpDir)
+		})
+	}
+}
 func TestLs(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {

@@ -15,7 +15,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/config"
 )
 
-//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IFileHash,Chowner,Linker,File,DiskUsage,FileTimeInfo,ILock,ILimits,FS,ICloseableFS
+//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IFileHash,Chowner,Linker,File,DiskUsage,FileTimeInfo,ILock,ILimits,FS,ICloseableFS,IForceRemover
 
 // IFileHash defines a file hash.
 // For reference.
@@ -28,16 +28,25 @@ type IFileHash interface {
 	GetType() string
 }
 
+// IForceRemover is an Optional interface. It is only implemented by the
+// filesystems saying so.
+type IForceRemover interface {
+	// ForceRemoveIfPossible will remove an item with escalated permissions if need be (equivalent to sudo rm -rf)
+	ForceRemoveIfPossible(name string) error
+}
+
 // Chowner is an Optional interface. It is only implemented by the
 // filesystems saying so.
 type Chowner interface {
-	ChownIfPossible(string, int, int) error
+	// Chown will change the file ownership
+	ChownIfPossible(name string, uid int, gid int) error
 }
 
 // Linker is an Optional  interface. It is only implemented by the
 // filesystems saying so.
 type Linker interface {
-	LinkIfPossible(string, string) error
+	// LinkIfPossible creates a hard link between oldname and new name.
+	LinkIfPossible(oldname, newname string) error
 }
 
 type File interface {
@@ -135,12 +144,14 @@ type FS interface {
 	CleanDirWithContextAndExclusionPatterns(ctx context.Context, dir string, exclusionPatterns ...string) (err error)
 	// Exists checks whether a file or folder exists
 	Exists(path string) bool
-	// Rm removes directory (equivalent to rm -r)
+	// Rm removes directory (equivalent to rm -rf)
 	Rm(dir string) (err error)
-	// RemoveWithContext removes directory (equivalent to rm -r)
+	// RemoveWithContext removes directory (equivalent to rm -rf)
 	RemoveWithContext(ctx context.Context, dir string) (err error)
-	// RemoveWithContextAndExclusionPatterns removes directory (equivalent to rm -r) unless they match some exclusion pattern.
+	// RemoveWithContextAndExclusionPatterns removes directory (equivalent to rm -rf) unless they match some exclusion pattern.
 	RemoveWithContextAndExclusionPatterns(ctx context.Context, dir string, exclusionPatterns ...string) (err error)
+	// RemoveWithPrivileges removes a directory even if it is not owned by user (equivalent to sudo rm -rf). It expects the current user to be a superuser.
+	RemoveWithPrivileges(ctx context.Context, dir string) (err error)
 	// IsFile states whether it is a file or not
 	IsFile(path string) (result bool, err error)
 	// IsDir states whether it is a directory or not

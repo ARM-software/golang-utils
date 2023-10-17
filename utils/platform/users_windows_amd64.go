@@ -6,6 +6,7 @@ package platform
 import (
 	"context"
 	"fmt"
+
 	wapi "github.com/iamacarpet/go-win64api"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"

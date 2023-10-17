@@ -2,9 +2,11 @@
  * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
+
 package filesystem
 
 import (
+	"context"
 	"os"
 
 	"github.com/spf13/afero"
@@ -23,6 +25,10 @@ func (c *ExtendedOsFs) ChownIfPossible(name string, uid int, gid int) error {
 
 func (c *ExtendedOsFs) LinkIfPossible(oldname, newname string) (err error) {
 	return platform.ConvertError(os.Link(oldname, newname))
+}
+
+func (c *ExtendedOsFs) ForceRemoveIfPossible(path string) error {
+	return platform.RemoveWithPrivileges(context.Background(), path)
 }
 
 func NewExtendedOsFs() afero.Fs {
