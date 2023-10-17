@@ -95,6 +95,7 @@ func IsUserAdmin(user *user.User) (admin bool, err error) {
 		return
 	}
 	admin, err = IsAdmin(user.Username)
+	err = ConvertUserGroupError(err)
 	return
 }
 
@@ -118,6 +119,7 @@ func IsAdmin(username string) (admin bool, err error) {
 		return
 	}
 	admin, err = isCurrentAdmin()
+	err = ConvertUserGroupError(err)
 	return
 }
 

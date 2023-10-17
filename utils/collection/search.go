@@ -67,16 +67,8 @@ func Any(slice []bool) bool {
 // AnyEmpty returns whether there is one entry in the slice which is empty.
 // If strict, then whitespaces are considered as empty strings
 func AnyEmpty(strict bool, slice []string) bool {
-	for i := range slice {
-		item := slice[i]
-		if strict {
-			item = strings.TrimSpace(item)
-		}
-		if item == "" {
-			return true
-		}
-	}
-	return false
+	_, found := FindInSlice(!strict, slice, "")
+	return found
 }
 
 // All returns true if all items of the slice are true.
@@ -92,14 +84,6 @@ func All(slice []bool) bool {
 // AllNotEmpty returns whether all elements of the slice are not empty.
 // If strict, then whitespaces are considered as empty strings
 func AllNotEmpty(strict bool, slice []string) bool {
-	for i := range slice {
-		item := slice[i]
-		if strict {
-			item = strings.TrimSpace(item)
-		}
-		if item == "" {
-			return false
-		}
-	}
-	return true
+	_, found := FindInSlice(!strict, slice, "")
+	return !found
 }
