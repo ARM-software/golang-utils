@@ -11,15 +11,14 @@ var (
 	sudoCommand = command.Sudo()
 )
 
-// DefineSudoCommand defines the command to run to be `root` or a user with enough privileges to manage accounts.
+// DefineSudoCommand defines the command to run to be `root` or a user with enough privileges (superuser).
 // e.g.
 //   - args="sudo" to run commands as `root`
 //   - args="su", "tom" if `tom` has enough privileges to run the command
-//   - args="gosu", "tom" if `tom` has enough privileges to run the command in a container and `gosu` is installed
 func DefineSudoCommand(args ...string) {
 	sudoCommand = command.NewCommandAsDifferentUser(args...)
 }
 
-func defineCommandWithPrivileges(args ...string) (string, []string) {
-	return sudoCommand.RedefineCommand(args...)
+func getRunCommandWithPrivileges() *command.CommandAsDifferentUser {
+	return sudoCommand
 }

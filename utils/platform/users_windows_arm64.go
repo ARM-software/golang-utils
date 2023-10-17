@@ -6,7 +6,6 @@ package platform
 import (
 	"context"
 	"fmt"
-
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
@@ -64,5 +63,10 @@ func removeGroup(ctx context.Context, groupName string) (err error) {
 		return
 	}
 	err = fmt.Errorf("%w: cannot associate user to group", commonerrors.ErrNotImplemented)
+	return
+}
+
+func isAdmin(username string) (admin bool, err error) {
+	err = fmt.Errorf("%w: cannot determine if user is admin", commonerrors.ErrNotImplemented)
 	return
 }

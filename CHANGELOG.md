@@ -14,6 +14,26 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.49.0" (2023-10-17)
+=====================
+
+Features
+--------
+
+- :sparkles: `[environment]` Expose utilities for parsing and finding environment variables (#20231013160208)
+- :sparkles: `[collection]` Added `AllNotEmpty` and `AnyEmpty` to check the content of string slices (#20231016164922)
+- :sparkles: `[collection]` Added `FindInSlice` to extend `Find` search capabilities (#20231016173631)
+- :sparkles: `[platform]` Added a way to determine if a user has admin rights (i.e. root or superuser on Linux and administrator on Windows) (#20231016175953)
+- :sparkles: `[command]` Added a way to prepend commands (using `Prepend()`) to command wrappers in order to chain command wrappers easily (#20231016204910)
+- :sparkles: `[platform]` Added `WithPrivileges` so that commands are elevated with privileges depending on the permissions of the current user (#20231016234712)
+
+
+Bugfixes
+--------
+
+- :bug: `[environment]` Fix environment variables parsing when an entry is incorrect (#20231013160247)
+
+
 "1.48.0" (2023-10-13)
 =====================
 
