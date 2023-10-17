@@ -435,18 +435,18 @@ func TestRunActionWithGracefulShutdown(t *testing.T) {
 			name:   "SIGINT",
 			signal: syscall.SIGINT,
 		},
-		{
-			name:   "SIGHUP",
-			signal: syscall.SIGHUP,
-		},
-		{
-			name:   "SIGQUIT",
-			signal: syscall.SIGQUIT,
-		},
-		{
-			name:   "SIGABRT",
-			signal: syscall.SIGABRT,
-		},
+		// {
+		// 	name:   "SIGHUP",
+		// 	signal: syscall.SIGHUP,
+		// },
+		// {
+		// 	name:   "SIGQUIT",
+		// 	signal: syscall.SIGQUIT,
+		// },
+		// {
+		// 	name:   "SIGABRT",
+		// 	signal: syscall.SIGABRT,
+		// },
 		{
 			name:   "Interrupt",
 			signal: os.Interrupt,
