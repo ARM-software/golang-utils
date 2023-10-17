@@ -22,7 +22,7 @@ func FindInSlice(strict bool, slice []string, val ...string) (int, bool) {
 		return -1, false
 	}
 
-	inSlice := make(map[string]int)
+	inSlice := make(map[string]int, len(slice))
 	for i := range slice {
 		item := slice[i]
 		if !strict {
