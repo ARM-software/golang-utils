@@ -21,33 +21,25 @@ func FindInSlice(strict bool, slice []string, val ...string) (int, bool) {
 	if len(val) == 0 || len(slice) == 0 {
 		return -1, false
 	}
-	if len(slice) > len(val) {
-		for i := range slice {
-			item := slice[i]
-			if !strict {
-				item = strings.TrimSpace(item)
-			}
-			for j := range val {
-				if !strict && strings.EqualFold(item, val[j]) {
-					return i, true
-				} else if strict && item == val[j] {
-					return i, true
-				}
-			}
+
+	inSlice := make(map[string]int)
+	for i := range slice {
+		item := slice[i]
+		if !strict {
+			item = strings.ToLower(strings.TrimSpace(item))
 		}
-	} else {
-		for j := range val {
-			for i := range slice {
-				item := slice[i]
-				if !strict {
-					item = strings.TrimSpace(item)
-				}
-				if !strict && strings.EqualFold(item, val[j]) {
-					return i, true
-				} else if strict && item == val[j] {
-					return i, true
-				}
-			}
+		if _, ok := inSlice[item]; !ok {
+			inSlice[item] = i
+		}
+	}
+
+	for i := range val {
+		item := val[i]
+		if !strict {
+			item = strings.ToLower(strings.TrimSpace(item))
+		}
+		if idx, ok := inSlice[item]; ok {
+			return idx, true
 		}
 	}
 
