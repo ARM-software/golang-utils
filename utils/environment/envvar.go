@@ -11,8 +11,12 @@ import (
 )
 
 var (
-	envvarKeyRegex   = regexp.MustCompile("^[a-zA-Z_][a-zA-Z0-9_]*$")
+	envvarKeyRegex   = regexp.MustCompile("^[a-zA-Z_][a-zA-Z0-9_]*$") // See [IEEE Std 1003.1-2008 / IEEE POSIX P1003.2/ISO 9945.2](http://www.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_10_02)
 	errEnvvarInvalid = validation.NewError("validation_is_environment_variable", "must be a valid Posix environment variable")
+
+	// IsEnvironmentVariableKey defines a validation rule for environment variable keys ([IEEE Std 1003.1-2008 / IEEE POSIX P1003.2/ISO 9945.2](http://www.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html#tag_18_10_02)) for use with github.com/go-ozzo/ozzo-validation
+	// TODO use the built-in implementation in `is` package when https://github.com/go-ozzo/ozzo-validation/issues/186 is looked at.
+	IsEnvironmentVariableKey = validation.NewStringRuleWithError(isEnvVarKey, errEnvvarInvalid)
 )
 
 type EnvVar struct {
@@ -60,7 +64,7 @@ func (e *EnvVar) String() string {
 }
 
 func (e *EnvVar) Validate() (err error) {
-	err = validation.Validate(e.GetKey(), validation.Required, validation.NewStringRuleWithError(isEnvVarKey, errEnvvarInvalid))
+	err = validation.Validate(e.GetKey(), validation.Required, IsEnvironmentVariableKey)
 	if err != nil {
 		err = fmt.Errorf("%w: environment variable name `%v` is not valid: %v", commonerrors.ErrInvalid, e.GetKey(), err.Error())
 		return
