@@ -5,9 +5,9 @@
 package collection
 
 import (
-	"github.com/bxcodec/faker/v3"
 	"testing"
 
+	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/assert"
 )
 

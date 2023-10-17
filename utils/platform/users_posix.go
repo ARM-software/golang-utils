@@ -105,6 +105,9 @@ func isUserAdmin(user *user.User) (admin bool, err error) {
 
 	if subErr == nil {
 		_, admin = collection.FindInSlice(true, gids, RootGroup, SudoersGroup)
+		if admin {
+			return
+		}
 	}
 	admin, err = isAdmin(user.Username)
 	return
