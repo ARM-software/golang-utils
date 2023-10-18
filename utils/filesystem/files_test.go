@@ -706,22 +706,32 @@ func TestRemoveWithPrivileges(t *testing.T) {
 			err = tmpFile.Close()
 			require.NoError(t, err)
 
-			err = fs.MkDir(filepath.Join(tmpDir, "testDirToRemove"))
+			dirToRemove1, err := fs.TempDir(tmpDir, "testDirToRemove"))
+			require.NoError(t, err)
+
+			dirToRemove2, err := fs.TempDir(tmpDir, "testDirToRemove"))
 			require.NoError(t, err)
 
 			checkNotEmpty(t, fs, tmpDir)
 
 			//TODO add user and change file and folder ownership
 
-			err = fs.RemoveWithPrivileges(context.TODO(), tmpDir)
+			err = fs.RemoveWithPrivileges(context.TODO(), tmpFile.Name())
 			require.NoError(t, err)
+
+			err = fs.RemoveWithPrivileges(context.TODO(), dirToRemove1)
+			require.NoError(t, err)
+
+			err = fs.RemoveWithPrivileges(context.TODO(), dirToRemove2)
+			require.NoError(t, err)
+
 			assert.True(t, fs.Exists(tmpDir))
 
 			empty, err = fs.IsEmpty(tmpDir)
 			require.NoError(t, err)
 			assert.True(t, empty)
 
-			_ = fs.Rm(tmpDir)
+			require.NoError(t, fs.Rm(tmpDir))
 		})
 	}
 }
