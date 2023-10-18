@@ -107,6 +107,7 @@ func TestEnvVar_Validate(t *testing.T) {
 			assert.Equal(t, test.value, env.GetValue())
 		})
 	}
+	require.Error(t, IsEnvironmentVariableKey.Validate(faker.Sentence()))
 
 }
 
