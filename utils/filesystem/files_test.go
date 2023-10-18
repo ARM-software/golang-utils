@@ -711,7 +711,7 @@ func TestRemoveWithPrivileges(t *testing.T) {
 
 			checkNotEmpty(t, fs, tmpDir)
 
-			//TODO add user and change file and folder ownership
+			// TODO: add user and change file and folder ownership
 
 			err = fs.RemoveWithPrivileges(context.TODO(), tmpDir)
 			require.NoError(t, err)
