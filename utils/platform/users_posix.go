@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/exec"
 	"os/user"
 
 	"github.com/ARM-software/golang-utils/utils/collection"
@@ -60,34 +59,6 @@ func associateUserToGroup(ctx context.Context, username, groupName string) (err 
 func dissociateUserFromGroup(ctx context.Context, username, groupName string) (err error) {
 	err = executeCommand(ctx, "gpasswd", "-d", username, groupName)
 	return
-}
-
-func executeCommand(ctx context.Context, args ...string) error {
-	if len(args) == 0 {
-		return fmt.Errorf("%w: missing command to execute", commonerrors.ErrUndefined)
-	}
-	cmdName, cmdArgs := WithPrivileges(nil).RedefineCommand(args...)
-	cmd := exec.CommandContext(ctx, cmdName, cmdArgs...)
-	return runCommand(args[0], cmd)
-}
-
-func runCommand(cmdDescription string, cmd *exec.Cmd) error {
-	_, err := cmd.Output()
-	if err == nil {
-		return nil
-	}
-	newErr := commonerrors.ConvertContextError(err)
-	switch {
-	case commonerrors.Any(newErr, commonerrors.ErrTimeout, commonerrors.ErrCancelled, commonerrors.ErrUnknown, commonerrors.ErrUnsupported, commonerrors.ErrCondition, commonerrors.ErrForbidden):
-		return newErr
-	default:
-		details := "no further details"
-		if exitError, ok := err.(*exec.ExitError); ok {
-			details = string(exitError.Stderr)
-		}
-		newErr = fmt.Errorf("%w: the command `%v` failed: %v (%v)", commonerrors.ErrUnknown, cmdDescription, err.Error(), details)
-		return newErr
-	}
 }
 
 func isAdmin(username string) (admin bool, err error) {

@@ -595,11 +595,40 @@ func (fs *VFS) checkDirExists(path string) (exist bool) {
 	return
 }
 
-func Rm(dir string) (err error) {
+func Rm(dir string) error {
 	return globalFileSystem.Rm(dir)
 }
+
 func (fs *VFS) Rm(dir string) error {
 	return fs.RemoveWithContext(context.Background(), dir)
+}
+
+// RemoveWithPrivileges removes any directory (equivalent to `sudo rm -rf`)
+func RemoveWithPrivileges(ctx context.Context, dir string) error {
+	return globalFileSystem.RemoveWithPrivileges(ctx, dir)
+}
+
+func (fs *VFS) RemoveWithPrivileges(ctx context.Context, dir string) (err error) {
+	err = fs.RemoveWithContext(ctx, dir)
+	if commonerrors.Any(err, nil, commonerrors.ErrTimeout, commonerrors.ErrCancelled) {
+		return
+	}
+	currentUser, subErr := user.Current()
+	if subErr != nil {
+		err = fmt.Errorf("%w: cannot retrieve information about current user: %v", commonerrors.ErrUnexpected, subErr.Error())
+		return
+	}
+	subErr = fs.ChangeOwnership(dir, currentUser)
+	if subErr == nil {
+		err = fs.RemoveWithContext(ctx, dir)
+		if commonerrors.Any(err, nil, commonerrors.ErrTimeout, commonerrors.ErrCancelled) {
+			return
+		}
+	}
+	if correctobj, ok := fs.vfs.(IForceRemover); ok {
+		err = correctobj.ForceRemoveIfPossible(dir)
+	}
+	return
 }
 
 func (fs *VFS) RemoveWithContext(ctx context.Context, dir string) error {
@@ -886,7 +915,7 @@ func (fs *VFS) Chown(name string, uid, gid int) (err error) {
 		err = correctobj.ChownIfPossible(name, uid, gid)
 		return
 	}
-	err = commonerrors.ErrNotImplemented
+	err = fs.vfs.Chown(name, uid, gid)
 	return
 }
 
