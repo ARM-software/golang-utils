@@ -14,6 +14,17 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.50.0" (2023-10-19)
+=====================
+
+Features
+--------
+
+- :sparkles: `[environment]` expose the validation rule for environment variable keys `IsEnvironmentVariableKey` (#20231017132731)
+- :sparkles: `[platform]` Add a way to remove path with escalated privileges (#20231017202810)
+- :sparkles: `[filesystem]` Add a method to force remove path assuming the user is a superuser (#20231017202858)
+
+
 "1.49.0" (2023-10-17)
 =====================
 
