@@ -9,7 +9,7 @@ require (
 	github.com/bombsimon/logrusr/v4 v4.0.0
 	github.com/bxcodec/faker/v3 v3.8.1
 	github.com/deckarep/golang-set v1.8.0
-	github.com/djherbis/times v1.5.0
+	github.com/djherbis/times v1.6.0
 	github.com/dolmen-go/contextio v1.0.0
 	github.com/evanphx/hclogr v0.2.0
 	github.com/go-git/go-git/v5 v5.6.1
@@ -46,6 +46,7 @@ require (
 	golang.org/x/exp v0.0.0-20230728194245-b0cb94b80691
 	golang.org/x/net v0.17.0
 	golang.org/x/sync v0.4.0
+	golang.org/x/sys v0.13.0
 	golang.org/x/text v0.13.0
 )
 
@@ -89,7 +90,6 @@ require (
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
