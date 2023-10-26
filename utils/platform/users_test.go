@@ -29,6 +29,10 @@ func TestDefineUser(t *testing.T) {
 	// Note: on Windows, it is necessary to run this test with elevated privileges https://github.com/iamacarpet/go-win64api/issues/26
 	if IsWindows() {
 		t.Log("Note: it is necessary to run this test with elevated privileges https://github.com/iamacarpet/go-win64api/issues/26")
+		admin, _ := IsCurrentUserAnAdmin()
+		if !admin {
+			t.Skip("Skipping as running on windows with a non-admin user")
+		}
 	}
 	user := generateTestUser()
 	err := DefineUser(context.TODO(), user, "")
@@ -53,6 +57,19 @@ func TestDefineUser(t *testing.T) {
 	found, err = HasGroup(user.Gid)
 	assert.NoError(t, err)
 	assert.False(t, found)
+}
+
+func TestGetUser(t *testing.T) {
+	currentUser, err := GetCurrentUser()
+	require.NoError(t, err)
+	require.NotEmpty(t, currentUser)
+	assert.NotEmpty(t, currentUser.HomeDir)
+	assert.NotEmpty(t, currentUser.Username)
+	user, err := GetUser(currentUser.Username)
+	require.NoError(t, err)
+	require.NotEmpty(t, user)
+	assert.Equal(t, currentUser.HomeDir, user.HomeDir)
+	assert.Equal(t, currentUser.Username, user.Username)
 }
 
 func TestIsAdmin(t *testing.T) {
