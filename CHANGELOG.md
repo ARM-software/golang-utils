@@ -14,6 +14,23 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.51.0" (2023-10-26)
+=====================
+
+Features
+--------
+
+- :sparkles: `[platform]` Add `GetUser()` and `GetCurrentUser()` (#20231026104543)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: times-1.6.0 (#20231023102717, #20231023102723, #20231023102808)
+- Dependency upgrade: scorecard-action-2.3.1 (#20231024105414)
+- Dependency upgrade: goleak-1.3.0 (#20231025101547, #20231025101554, #20231025101625, #20231025101636, #20231025101711, #20231025101712)
+
+
 "1.50.0" (2023-10-19)
 =====================
 
