@@ -9,7 +9,7 @@ require (
 	github.com/bombsimon/logrusr/v4 v4.0.0
 	github.com/bxcodec/faker/v3 v3.8.1
 	github.com/deckarep/golang-set v1.8.0
-	github.com/djherbis/times v1.5.0
+	github.com/djherbis/times v1.6.0
 	github.com/dolmen-go/contextio v1.0.0
 	github.com/evanphx/hclogr v0.2.0
 	github.com/go-git/go-git/v5 v5.6.1
