@@ -86,9 +86,8 @@ func GetUser(username string) (auser *user.User, err error) {
 		err = fmt.Errorf("%w: missing user information", commonerrors.ErrUnexpected)
 		return
 	}
-	home, err := homedir.Expand(auser.HomeDir)
+	home, err := fetchHomeDirectory(username, auser.HomeDir)
 	if err != nil {
-		err = fmt.Errorf("%w: could not expand user [%v]'s home directory: %v", commonerrors.ErrUnexpected, username, err.Error())
 		return
 	}
 	auser.HomeDir = home
