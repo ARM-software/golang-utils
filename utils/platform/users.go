@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os/user"
 
+	"github.com/mitchellh/go-homedir"
+
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
@@ -70,6 +72,46 @@ func HasUser(username string) (found bool, err error) {
 	if user != nil {
 		found = true
 	}
+	return
+}
+
+// GetUser returns information about a user and expands its home directory.
+func GetUser(username string) (auser *user.User, err error) {
+	auser, err = user.Lookup(username)
+	if err != nil {
+		err = ConvertUserGroupError(err)
+		return
+	}
+	if auser == nil {
+		err = fmt.Errorf("%w: missing user information", commonerrors.ErrUnexpected)
+		return
+	}
+	home, err := homedir.Expand(auser.HomeDir)
+	if err != nil {
+		err = fmt.Errorf("%w: could not expand user [%v]'s home directory: %v", commonerrors.ErrUnexpected, username, err.Error())
+		return
+	}
+	auser.HomeDir = home
+	return
+}
+
+// GetCurrentUser returns information about the current platform's user and expands its home directory.
+func GetCurrentUser() (currentUser *user.User, err error) {
+	currentUser, err = user.Current()
+	if err != nil {
+		err = ConvertUserGroupError(err)
+		return
+	}
+	if currentUser == nil {
+		err = fmt.Errorf("%w: missing user information", commonerrors.ErrUnexpected)
+		return
+	}
+	home, err := homedir.Dir()
+	if err != nil {
+		err = fmt.Errorf("%w: could not retrieve information about current user's home directory: %v", commonerrors.ErrUnexpected, err.Error())
+		return
+	}
+	currentUser.HomeDir = home
 	return
 }
 

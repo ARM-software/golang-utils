@@ -5,24 +5,16 @@ import (
 	"os/user"
 
 	"github.com/joho/godotenv"
-	"github.com/mitchellh/go-homedir"
 
 	"github.com/ARM-software/golang-utils/utils/filesystem"
+	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
 type currentEnv struct {
 }
 
 func (c *currentEnv) GetCurrentUser() (currentUser *user.User) {
-	currentUser, err := user.Current()
-	if err != nil {
-		return
-	}
-	home, err := homedir.Dir()
-	if err != nil {
-		return
-	}
-	currentUser.HomeDir = home
+	currentUser, _ = platform.GetCurrentUser()
 	return
 }
 
