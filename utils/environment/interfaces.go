@@ -33,9 +33,15 @@ type IEnvironment interface {
 	// GetEnvironmentVariables returns the variables defining the environment  (and optionally those supplied in `dotEnvFiles`)
 	// `dotEnvFiles` corresponds to `.env` files present on the machine and follows the mechanism described by https://github.com/bkeepers/dotenv
 	GetEnvironmentVariables(dotEnvFiles ...string) []IEnvironmentVariable
+	// GetExpandedEnvironmentVariables  is similar to GetEnvironmentVariables but returns variables with fully expanded values.
+	// e.g. on Linux, if variable1=${variable2}, then the reported value of variable1 will be the value of variable2
+	GetExpandedEnvironmentVariables(dotEnvFiles ...string) []IEnvironmentVariable
 	// GetFilesystem returns the filesystem associated with the current environment
 	GetFilesystem() filesystem.FS
 	// GetEnvironmentVariable returns the environment variable corresponding to `envvar` or an error if it not set. optionally it searches `dotEnvFiles` files too
 	// `dotEnvFiles` corresponds to `.env` files present on the machine and follows the mechanism described by https://github.com/bkeepers/dotenv
 	GetEnvironmentVariable(envvar string, dotEnvFiles ...string) (IEnvironmentVariable, error)
+	// GetExpandedEnvironmentVariable is similar to GetEnvironmentVariable but returns variables with fully expanded values.
+	//	// e.g. on Linux, if variable1=${variable2}, then the reported value of variable1 will be the value of variable2
+	GetExpandedEnvironmentVariable(envvar string, dotEnvFiles ...string) (IEnvironmentVariable, error)
 }

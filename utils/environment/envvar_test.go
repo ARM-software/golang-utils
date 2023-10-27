@@ -1,6 +1,7 @@
 package environment
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -12,6 +13,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
 func TestEnvVar_Validate(t *testing.T) {
@@ -161,4 +163,22 @@ func TestEnvVar_ParseEnvironmentVariables(t *testing.T) {
 	assert.Equal(t, username, env.GetValue())
 	_, err = FindEnvironmentVariable("TEST1", environmentVariables...)
 	errortest.AssertError(t, err, commonerrors.ErrNotFound)
+}
+
+func TestExpandEnvironmentVariable(t *testing.T) {
+	username := faker.Username()
+	var entries []string
+	if platform.IsWindows() {
+		entries = []string{"DBUS_SESSION_BUS_ADDRESS=system:path=/run%HOME%/65357/bus/", "HOME=/home/%LOGNAME%", fmt.Sprintf("LOGNAME=%v", username)}
+	} else {
+		entries = []string{"DBUS_SESSION_BUS_ADDRESS=system:path=/run${HOME}/65357/bus/", "HOME=/home/${LOGNAME}", fmt.Sprintf("LOGNAME=%v", username)}
+	}
+	expandedEnvironmentVariables := ExpandEnvironmentVariables(true, ParseEnvironmentVariables(entries...)...)
+	require.NotEmpty(t, expandedEnvironmentVariables)
+	logname, err := FindEnvironmentVariable("LOGNAME", expandedEnvironmentVariables...)
+	require.NoError(t, err)
+	assert.Equal(t, username, logname.GetValue())
+	dbus, err := FindEnvironmentVariable("DBUS_SESSION_BUS_ADDRESS", expandedEnvironmentVariables...)
+	require.NoError(t, err)
+	assert.Equal(t, fmt.Sprintf("system:path=/run/home/%v/65357/bus/", username), dbus.GetValue())
 }

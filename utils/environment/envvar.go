@@ -8,6 +8,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
 var (
@@ -107,6 +108,14 @@ func NewEnvironmentVariable(key, value string) IEnvironmentVariable {
 
 }
 
+// CloneEnvironementVariable returns a clone of the environment variable.
+func CloneEnvironementVariable(envVar IEnvironmentVariable) IEnvironmentVariable {
+	if envVar == nil {
+		return nil
+	}
+	return NewEnvironmentVariable(envVar.GetKey(), envVar.GetValue())
+}
+
 // NewEnvironmentVariableWithValidation returns an environment variable defined by a key and a value but with the possibility to define value validation rules.
 func NewEnvironmentVariableWithValidation(key, value string, rules ...validation.Rule) IEnvironmentVariable {
 	return &EnvVar{
@@ -148,4 +157,32 @@ func FindEnvironmentVariable(envvar string, envvars ...IEnvironmentVariable) (IE
 		}
 	}
 	return nil, fmt.Errorf("%w: environment variable '%v' not set", commonerrors.ErrNotFound, envvar)
+}
+
+// ExpandEnvironmentVariables returns a list of environment variables with their value being expanded.
+// Expansion assumes that all the variables are present in the envvars list.
+// If recursive is set to true, then expansion is performed recursively over the variable list.
+func ExpandEnvironmentVariables(recursive bool, envvars ...IEnvironmentVariable) (expandedEnvVars []IEnvironmentVariable) {
+	for i := range envvars {
+		expandedEnvVars = append(expandedEnvVars, ExpandEnvironmentVariable(recursive, envvars[i], envvars...))
+	}
+	return
+}
+
+// ExpandEnvironmentVariable returns a clone of envVarToExpand but with an expanded value based on environment variables defined in envvars list.
+// Expansion assumes that all the variables are present in the envvars list.
+// If recursive is set to true, then expansion is performed recursively over the variable list.
+func ExpandEnvironmentVariable(recursive bool, envVarToExpand IEnvironmentVariable, envvars ...IEnvironmentVariable) (expandedEnvVar IEnvironmentVariable) {
+	if len(envvars) == 0 || envVarToExpand == nil {
+		return envVarToExpand
+	}
+	mappingFunc := func(envvarKey string) (string, bool) {
+		envVar, err := FindEnvironmentVariable(envvarKey, envvars...)
+		if commonerrors.Any(err, commonerrors.ErrNotFound) {
+			return "", false
+		}
+		return envVar.GetValue(), true
+	}
+	expandedEnvVar = NewEnvironmentVariable(envVarToExpand.GetKey(), platform.ExpandParameter(envVarToExpand.GetValue(), mappingFunc, recursive))
+	return
 }
