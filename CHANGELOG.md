@@ -14,6 +14,24 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.52.0" (2023-10-27)
+=====================
+
+Features
+--------
+
+- :sparkles: `[platform]` Introduce `GetHomeDirectory()` and `GetDefaultDirectory()` (#20231026194444)
+- :sparkles: `[logs]` Add a quiet logger (#20231027081549)
+- :sparkles: [`platform`] portable variable expansion (#20231027143154)
+- :sparkles: [`environment`] Add utilities to expand environment variables (#20231027170436)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: logr-1.3.0 (#20231027104239)
+
+
 "1.51.0" (2023-10-26)
 =====================
 
