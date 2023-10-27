@@ -3,10 +3,8 @@
 
 package platform
 
-import (
-	"path/filepath"
-)
+import "fmt"
 
 func determineDefaultHomeDirectory(username string) (string, error) {
-	return filepath.Join(`/`, "Users", username), nil
+	return fmt.Sprintf("/Users/%v", username), nil
 }
