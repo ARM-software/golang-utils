@@ -6,7 +6,6 @@ package platform
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
@@ -16,5 +15,5 @@ func determineDefaultHomeDirectory(username string) (string, error) {
 	if drive == "" {
 		return "", fmt.Errorf("%w: cannot determine the default home drive", commonerrors.ErrUnexpected)
 	}
-	return filepath.Join(drive, `\`, "Users", username), nil
+	return fmt.Sprintf("%v\\Users\\%v", drive, username), nil
 }
