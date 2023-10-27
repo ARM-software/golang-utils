@@ -1,5 +1,5 @@
-//go:build linux || unix || (js && wasm) || aix || dragonfly || freebsd || nacl || netbsd || openbsd || solaris
-// +build linux unix js,wasm aix dragonfly freebsd nacl netbsd openbsd solaris
+//go:build !darwin && !windows
+// +build !darwin,!windows
 
 package platform
 
