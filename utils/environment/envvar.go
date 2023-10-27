@@ -2,6 +2,7 @@ package environment
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 
@@ -147,5 +148,6 @@ func FindEnvironmentVariable(envvar string, envvars ...IEnvironmentVariable) (IE
 			return envvars[i], nil
 		}
 	}
+	os.Expand()
 	return nil, fmt.Errorf("%w: environment variable '%v' not set", commonerrors.ErrNotFound, envvar)
 }
