@@ -211,6 +211,44 @@ func (mr *MockIEnvironmentMockRecorder) GetEnvironmentVariables(arg0 ...interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEnvironmentVariables", reflect.TypeOf((*MockIEnvironment)(nil).GetEnvironmentVariables), arg0...)
 }
 
+// GetExpandedEnvironmentVariable mocks base method.
+func (m *MockIEnvironment) GetExpandedEnvironmentVariable(arg0 string, arg1 ...string) (environment.IEnvironmentVariable, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0}
+	for _, a := range arg1 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetExpandedEnvironmentVariable", varargs...)
+	ret0, _ := ret[0].(environment.IEnvironmentVariable)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetExpandedEnvironmentVariable indicates an expected call of GetExpandedEnvironmentVariable.
+func (mr *MockIEnvironmentMockRecorder) GetExpandedEnvironmentVariable(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0}, arg1...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetExpandedEnvironmentVariable", reflect.TypeOf((*MockIEnvironment)(nil).GetExpandedEnvironmentVariable), varargs...)
+}
+
+// GetExpandedEnvironmentVariables mocks base method.
+func (m *MockIEnvironment) GetExpandedEnvironmentVariables(arg0 ...string) []environment.IEnvironmentVariable {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{}
+	for _, a := range arg0 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetExpandedEnvironmentVariables", varargs...)
+	ret0, _ := ret[0].([]environment.IEnvironmentVariable)
+	return ret0
+}
+
+// GetExpandedEnvironmentVariables indicates an expected call of GetExpandedEnvironmentVariables.
+func (mr *MockIEnvironmentMockRecorder) GetExpandedEnvironmentVariables(arg0 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetExpandedEnvironmentVariables", reflect.TypeOf((*MockIEnvironment)(nil).GetExpandedEnvironmentVariables), arg0...)
+}
+
 // GetFilesystem mocks base method.
 func (m *MockIEnvironment) GetFilesystem() filesystem.FS {
 	m.ctrl.T.Helper()

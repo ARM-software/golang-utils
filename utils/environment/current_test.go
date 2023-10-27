@@ -12,6 +12,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
+	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
 const (
@@ -50,8 +51,8 @@ func Test_currentEnv_GetEnvironmentVariables(t *testing.T) {
 			require.NoError(t, err)
 			tmpDir, err = filesystem.TempDir(currentDir, "dot-env")
 			require.NoError(t, err)
-			defer func() { _ = filesystem.Rm(tmpDir) }()
 		}
+		defer func() { _ = filesystem.Rm(tmpDir) }()
 		dotenv1, err := filesystem.TempFile(tmpDir, dotEnvPattern)
 		require.NoError(t, err)
 
@@ -120,8 +121,8 @@ func Test_currentenv_GetEnvironmentVariable(t *testing.T) {
 			require.NoError(t, err)
 			tmpDir, err = filesystem.TempDir(currentDir, "dot-env")
 			require.NoError(t, err)
-			defer func() { _ = filesystem.Rm(tmpDir) }()
 		}
+		defer func() { _ = filesystem.Rm(tmpDir) }()
 		dotenv1, err := filesystem.TempFile(tmpDir, dotEnvPattern)
 		require.NoError(t, err)
 		defer func() { _ = dotenv1.Close() }()
@@ -139,6 +140,14 @@ func Test_currentenv_GetEnvironmentVariable(t *testing.T) {
 		require.NoError(t, err)
 		test5 := NewEnvironmentVariable("test5", faker.Sentence())
 		_, err = dotenv2.WriteString(fmt.Sprintf("%v\n", test5.String()))
+		require.NoError(t, err)
+		var test6 IEnvironmentVariable
+		if platform.IsWindows() {
+			test6 = NewEnvironmentVariable("test6", "%test5%")
+		} else {
+			test6 = NewEnvironmentVariable("test6", "${test5}")
+		}
+		_, err = dotenv2.WriteString(fmt.Sprintf("%v\n", test6.String()))
 		require.NoError(t, err)
 		err = dotenv2.Close()
 		require.NoError(t, err)
@@ -159,6 +168,15 @@ func Test_currentenv_GetEnvironmentVariable(t *testing.T) {
 		test5Actual, err := current.GetEnvironmentVariable(test5.GetKey(), dotenv1.Name(), dotenv2.Name())
 		assert.NoError(t, err)
 		assert.Equal(t, test5, test5Actual)
+		test5Actual, err = current.GetExpandedEnvironmentVariable(test5.GetKey(), dotenv1.Name(), dotenv2.Name())
+		assert.NoError(t, err)
+		assert.Equal(t, test5, test5Actual)
+		test6Actual, err := current.GetExpandedEnvironmentVariable(test6.GetKey(), dotenv1.Name(), dotenv2.Name())
+		assert.NoError(t, err)
+		assert.NotEqual(t, test6, test6Actual)
+		assert.NotEqual(t, test5, test6Actual)
+		assert.Equal(t, test5.GetValue(), test6Actual.GetValue())
+		assert.NotEqual(t, test6.GetValue(), test6Actual.GetValue())
 
 		os.Clearenv()
 
@@ -170,4 +188,9 @@ func Test_currentenv_GetEnvironmentVariable(t *testing.T) {
 		errortest.AssertError(t, err, commonerrors.ErrNotFound)
 		assert.Nil(t, testMissing)
 	})
+}
+
+func Test_currentEnv_GetExpandedEnvironmentVariables(t *testing.T) {
+	current := NewCurrentEnvironment()
+	assert.NotEmpty(t, current.GetExpandedEnvironmentVariables())
 }

@@ -29,6 +29,10 @@ func (c *currentEnv) GetEnvironmentVariables(dotEnvFiles ...string) (variables [
 	return
 }
 
+func (c *currentEnv) GetExpandedEnvironmentVariables(dotEnvFiles ...string) []IEnvironmentVariable {
+	return ExpandEnvironmentVariables(true, c.GetEnvironmentVariables(dotEnvFiles...)...)
+}
+
 func (c *currentEnv) GetFilesystem() filesystem.FS {
 	return filesystem.NewStandardFileSystem()
 }
@@ -36,6 +40,16 @@ func (c *currentEnv) GetFilesystem() filesystem.FS {
 // GetEnvironmentVariable searches the current environment (and optionally dotEnvFiles) for a specific environment variable `envvar`.
 func (c *currentEnv) GetEnvironmentVariable(envvar string, dotEnvFiles ...string) (value IEnvironmentVariable, err error) {
 	return FindEnvironmentVariable(envvar, c.GetEnvironmentVariables(dotEnvFiles...)...)
+}
+
+func (c *currentEnv) GetExpandedEnvironmentVariable(envvar string, dotEnvFiles ...string) (value IEnvironmentVariable, err error) {
+	currentEnvvars := c.GetEnvironmentVariables(dotEnvFiles...)
+	value, err = FindEnvironmentVariable(envvar, currentEnvvars...)
+	if err != nil {
+		return
+	}
+	value = ExpandEnvironmentVariable(true, value, currentEnvvars...)
+	return
 }
 
 // NewCurrentEnvironment returns system current environment.
