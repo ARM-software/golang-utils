@@ -44,8 +44,17 @@ func Test_currentEnv_GetEnvironmentVariables(t *testing.T) {
 		require.NoError(t, os.Setenv("test1", faker.Sentence()))
 		require.NoError(t, os.Setenv("test2", faker.Sentence()))
 
-		dotenv1, err := filesystem.TempFileInTempDir(dotEnvPattern)
+		tmpDir, err := filesystem.TempDirInTempDir("dot-env")
+		if err != nil {
+			currentDir, err := os.Getwd()
+			require.NoError(t, err)
+			tmpDir, err = filesystem.TempDir(currentDir, "dot-env")
+			require.NoError(t, err)
+			defer func() { _ = filesystem.Rm(tmpDir) }()
+		}
+		dotenv1, err := filesystem.TempFile(tmpDir, dotEnvPattern)
 		require.NoError(t, err)
+
 		defer func() { _ = dotenv1.Close() }()
 		test3 := NewEnvironmentVariable("test3", faker.Sentence())
 		_, err = dotenv1.WriteString(test3.String())
@@ -53,7 +62,7 @@ func Test_currentEnv_GetEnvironmentVariables(t *testing.T) {
 		err = dotenv1.Close()
 		require.NoError(t, err)
 
-		dotenv2, err := filesystem.TempFileInTempDir(dotEnvPattern)
+		dotenv2, err := filesystem.TempFile(tmpDir, dotEnvPattern)
 		require.NoError(t, err)
 		defer func() { _ = dotenv2.Close() }()
 		test4 := NewEnvironmentVariable("test4", faker.Sentence())
@@ -105,8 +114,15 @@ func Test_currentenv_GetEnvironmentVariable(t *testing.T) {
 
 		require.NoError(t, os.Setenv(test1.GetKey(), test1.GetValue()))
 		require.NoError(t, os.Setenv(test2.GetKey(), test2.GetValue()))
-
-		dotenv1, err := filesystem.TempFileInTempDir(dotEnvPattern)
+		tmpDir, err := filesystem.TempDirInTempDir("dot-env")
+		if err != nil {
+			currentDir, err := os.Getwd()
+			require.NoError(t, err)
+			tmpDir, err = filesystem.TempDir(currentDir, "dot-env")
+			require.NoError(t, err)
+			defer func() { _ = filesystem.Rm(tmpDir) }()
+		}
+		dotenv1, err := filesystem.TempFile(tmpDir, dotEnvPattern)
 		require.NoError(t, err)
 		defer func() { _ = dotenv1.Close() }()
 		test3 := NewEnvironmentVariable("test3", faker.Sentence())
@@ -115,7 +131,7 @@ func Test_currentenv_GetEnvironmentVariable(t *testing.T) {
 		err = dotenv1.Close()
 		require.NoError(t, err)
 
-		dotenv2, err := filesystem.TempFileInTempDir(dotEnvPattern)
+		dotenv2, err := filesystem.TempFile(tmpDir, dotEnvPattern)
 		require.NoError(t, err)
 		defer func() { _ = dotenv2.Close() }()
 		test4 := NewEnvironmentVariable("test4", faker.Sentence())
