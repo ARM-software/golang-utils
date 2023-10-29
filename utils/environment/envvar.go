@@ -3,9 +3,11 @@ package environment
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"golang.org/x/exp/maps"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/platform"
@@ -108,8 +110,8 @@ func NewEnvironmentVariable(key, value string) IEnvironmentVariable {
 
 }
 
-// CloneEnvironementVariable returns a clone of the environment variable.
-func CloneEnvironementVariable(envVar IEnvironmentVariable) IEnvironmentVariable {
+// CloneEnvironmentVariable returns a clone of the environment variable.
+func CloneEnvironmentVariable(envVar IEnvironmentVariable) IEnvironmentVariable {
 	if envVar == nil {
 		return nil
 	}
@@ -159,6 +161,16 @@ func FindEnvironmentVariable(envvar string, envvars ...IEnvironmentVariable) (IE
 	return nil, fmt.Errorf("%w: environment variable '%v' not set", commonerrors.ErrNotFound, envvar)
 }
 
+// FindFoldEnvironmentVariable looks for an environment variable in a list similarly to FindEnvironmentVariable but without case-sensitivity.
+func FindFoldEnvironmentVariable(envvar string, envvars ...IEnvironmentVariable) (IEnvironmentVariable, error) {
+	for i := range envvars {
+		if strings.EqualFold(envvars[i].GetKey(), envvar) {
+			return envvars[i], nil
+		}
+	}
+	return nil, fmt.Errorf("%w: environment variable '%v' not set", commonerrors.ErrNotFound, envvar)
+}
+
 // ExpandEnvironmentVariables returns a list of environment variables with their value being expanded.
 // Expansion assumes that all the variables are present in the envvars list.
 // If recursive is set to true, then expansion is performed recursively over the variable list.
@@ -185,4 +197,46 @@ func ExpandEnvironmentVariable(recursive bool, envVarToExpand IEnvironmentVariab
 	}
 	expandedEnvVar = NewEnvironmentVariable(envVarToExpand.GetKey(), platform.ExpandParameter(envVarToExpand.GetValue(), mappingFunc, recursive))
 	return
+}
+
+// UniqueEnvironmentVariables returns a list of unique environment variables.
+// caseSensitive states whether two same keys but with different case should be both considered unique.
+func UniqueEnvironmentVariables(caseSensitive bool, envvars ...IEnvironmentVariable) (uniqueEnvVars []IEnvironmentVariable) {
+	uniqueSet := map[string]IEnvironmentVariable{}
+	recordUniqueEnvVar(caseSensitive, envvars, uniqueSet)
+	uniqueEnvVars = maps.Values(uniqueSet)
+	return
+}
+
+// SortEnvironmentVariables sorts a list of environment variable alphabetically no matter the case.
+func SortEnvironmentVariables(envvars []IEnvironmentVariable) {
+	if len(envvars) == 0 {
+		return
+	}
+	sort.SliceStable(envvars, func(i, j int) bool {
+		return strings.ToLower(envvars[i].GetKey()) < strings.ToLower(envvars[j].GetKey())
+	})
+}
+
+// MergeEnvironmentVariableSets merges two sets of environment variables.
+// If both sets have a same environment variable, its value in set 1 will take precedence.
+// caseSensitive states whether two similar keys with different case should be considered as different
+func MergeEnvironmentVariableSets(caseSensitive bool, envvarSet1 []IEnvironmentVariable, envvarSet2 ...IEnvironmentVariable) (mergedEnvVars []IEnvironmentVariable) {
+	mergeSet := map[string]IEnvironmentVariable{}
+	recordUniqueEnvVar(caseSensitive, envvarSet1, mergeSet)
+	recordUniqueEnvVar(caseSensitive, envvarSet2, mergeSet)
+	mergedEnvVars = maps.Values(mergeSet)
+	return
+}
+
+func recordUniqueEnvVar(caseSensitive bool, envvarSet []IEnvironmentVariable, hashTable map[string]IEnvironmentVariable) {
+	for i := range envvarSet {
+		key := envvarSet[i].GetKey()
+		if !caseSensitive {
+			key = strings.ToLower(key)
+		}
+		if _, contains := hashTable[key]; !contains {
+			hashTable[key] = envvarSet[i]
+		}
+	}
 }

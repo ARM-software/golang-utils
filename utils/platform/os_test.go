@@ -80,14 +80,14 @@ func TestExpandParameter(t *testing.T) {
 			expandedExpressionWindows: "",
 		},
 		{
-			expression:                "   ${}   ",
-			expandedExpressionUnix:    "      ",
-			expandedExpressionWindows: "   ${}   ",
+			expression:                fmt.Sprintf("  %v  ", SubstituteParameterUnix()),
+			expandedExpressionUnix:    "    ",
+			expandedExpressionWindows: "  ${}  ",
 		},
 		{
-			expression:                fmt.Sprintf("  ${%v}  ", random),
+			expression:                fmt.Sprintf("  %v  ", SubstituteParameterUnix(random)),
 			expandedExpressionUnix:    "    ",
-			expandedExpressionWindows: fmt.Sprintf("  ${%v}  ", random),
+			expandedExpressionWindows: fmt.Sprintf("  %v  ", SubstituteParameterUnix(random)),
 		},
 		{
 			expression:                "   $   ",
@@ -95,9 +95,9 @@ func TestExpandParameter(t *testing.T) {
 			expandedExpressionWindows: "   $   ",
 		},
 		{
-			expression:                "   %%   ",
-			expandedExpressionUnix:    "   %%   ",
-			expandedExpressionWindows: "   %%   ",
+			expression:                fmt.Sprintf("  %v  ", SubstituteParameterWindows()),
+			expandedExpressionUnix:    fmt.Sprintf("  %v  ", SubstituteParameterWindows()),
+			expandedExpressionWindows: "  %%  ",
 		},
 		{
 			expression:                "   %  %   ",
@@ -120,24 +120,24 @@ func TestExpandParameter(t *testing.T) {
 			expandedExpressionWindows: "   %  :=  %   ",
 		},
 		{
-			expression:                "   %" + random + "%   ",
-			expandedExpressionUnix:    "   %" + random + "%   ",
-			expandedExpressionWindows: "   %" + random + "%   ",
+			expression:                fmt.Sprintf("   %v   ", SubstituteParameterWindows(random)),
+			expandedExpressionUnix:    fmt.Sprintf("   %v   ", SubstituteParameterWindows(random)),
+			expandedExpressionWindows: fmt.Sprintf("   %v   ", SubstituteParameterWindows(random)),
 		},
 		{
-			expression:                fmt.Sprintf("${%v}", complexVar),
+			expression:                SubstituteParameterUnix(complexVar),
 			expandedExpressionUnix:    "a test",
-			expandedExpressionWindows: fmt.Sprintf("${%v}", complexVar),
+			expandedExpressionWindows: SubstituteParameterUnix(complexVar),
 		},
 		{
-			expression:                fmt.Sprintf("  ${%v}   ", complexVar),
+			expression:                fmt.Sprintf("  %v   ", SubstituteParameterUnix(complexVar)),
 			expandedExpressionUnix:    "  a test   ",
-			expandedExpressionWindows: fmt.Sprintf("  ${%v}   ", complexVar),
+			expandedExpressionWindows: fmt.Sprintf("  %v   ", SubstituteParameterUnix(complexVar)),
 		},
 		{
-			expression:                `%` + fmt.Sprintf("${%v}", complexVar2) + `%`,
+			expression:                SubstituteParameterWindows(SubstituteParameterUnix(complexVar2)),
 			expandedExpressionUnix:    "%another test%",
-			expandedExpressionWindows: `%` + fmt.Sprintf("${%v}", complexVar2) + `%`,
+			expandedExpressionWindows: SubstituteParameterWindows(SubstituteParameterUnix(complexVar2)),
 		},
 		{
 			expression:                fmt.Sprintf("a1234556() ${%v}a1234556() .", complexVar2),
@@ -172,6 +172,7 @@ func TestExpandParameter(t *testing.T) {
 			}
 		})
 	}
+	assert.Equal(t, "a test", ExpandParameter(SubstituteParameter(complexVar), mappingFunc, true))
 }
 
 func TestRecursiveExpandParameter(t *testing.T) {
@@ -239,22 +240,53 @@ func TestRecursiveExpandParameter(t *testing.T) {
 func TestExpandFromEnvironment(t *testing.T) {
 	if IsWindows() {
 		t.Run("on windows", func(t *testing.T) {
-			assert.NotEmpty(t, ExpandFromEnvironment("%WINDIR%", false))
-			assert.NotEqual(t, "%WINDIR%", ExpandFromEnvironment("%WINDIR%", false))
-			assert.Equal(t, "%%", ExpandFromEnvironment("%%", false))
-			assert.Equal(t, "${}", ExpandFromEnvironment("${}", false))
+			assert.NotEmpty(t, ExpandFromEnvironment(SubstituteParameterWindows("WINDIR"), false))
+			assert.NotEqual(t, SubstituteParameterWindows("WINDIR"), ExpandFromEnvironment(SubstituteParameterWindows("WINDIR"), false))
+			assert.Equal(t, SubstituteParameterWindows(), ExpandFromEnvironment(SubstituteParameterWindows(), false))
+			assert.Equal(t, SubstituteParameterUnix(), ExpandFromEnvironment(SubstituteParameterUnix(), false))
 		})
 	} else {
 		t.Run("on linux", func(t *testing.T) {
 			assert.NotEmpty(t, ExpandFromEnvironment("$HOME", false))
-			assert.NotEmpty(t, ExpandFromEnvironment("${HOME}", false))
+			assert.NotEmpty(t, ExpandFromEnvironment(SubstituteParameterUnix("HOME"), false))
 			assert.NotEqual(t, "$HOME", ExpandFromEnvironment("$HOME", false))
-			assert.NotEqual(t, "${HOME}", ExpandFromEnvironment("${HOME}", false))
-			assert.Empty(t, ExpandFromEnvironment("${}", false))
+			assert.NotEqual(t, SubstituteParameterUnix("HOME"), ExpandFromEnvironment(SubstituteParameterUnix("HOME"), false))
+			assert.Empty(t, ExpandFromEnvironment(SubstituteParameterUnix(), false))
 		})
 	}
 	random := faker.Sentence()
-	assert.Equal(t, "%"+random+"%", ExpandFromEnvironment("%"+random+"%", false))
+	assert.Equal(t, SubstituteParameterWindows(random), ExpandFromEnvironment(SubstituteParameterWindows(random), false))
 	assert.Equal(t, random, ExpandFromEnvironment(random, false))
-	assert.Equal(t, "%%", ExpandFromEnvironment("%%", false))
+	assert.Equal(t, SubstituteParameterWindows(), ExpandFromEnvironment(SubstituteParameterWindows(), false))
+}
+
+func TestSubstituteParameter(t *testing.T) {
+	require.Equal(t, "${}", SubstituteParameterUnix())
+	random := faker.Username()
+	require.Equal(t, fmt.Sprintf("${%v}", random), SubstituteParameterUnix(random))
+	require.Equal(t, fmt.Sprintf("${%v}", random), SubstituteParameterUnix(random, faker.Word()))
+	require.Equal(t, fmt.Sprintf("${%v//pattern/replacement}", random), SubstituteParameterUnix(random, "pattern", "replacement"))
+	require.Equal(t, "%%", SubstituteParameterWindows())
+	require.Equal(t, "%"+random+"%", SubstituteParameterWindows(random))
+	require.Equal(t, "%"+random+"%", SubstituteParameterWindows(random, faker.Word()))
+	require.Equal(t, "%"+random+":pattern=replacement%", SubstituteParameterWindows(random, "pattern", "replacement"))
+	require.NotEmpty(t, SubstituteParameter())
+	require.NotEmpty(t, SubstituteParameter(random))
+}
+
+func TestExpandWindows(t *testing.T) {
+	mapping := map[string]string{"var1": "first replacement", "var2": "second replacement", "var3": fmt.Sprintf("1.%v 2.%v", SubstituteParameterWindows("var1"), SubstituteParameterWindows("var2"))}
+
+	mappingFunc := func(entry string) (string, bool) {
+		if entry == "" {
+			return "", true
+		}
+		mapped, found := mapping[entry]
+		return mapped, found
+	}
+
+	assert.Equal(t, "second replacement", ExpandWindowsParameter(SubstituteParameterWindows("var2"), mappingFunc, true))
+	assert.Equal(t, "second test", ExpandWindowsParameter(SubstituteParameterWindows("var2", "replacement", "test"), mappingFunc, true))
+	// FIXME tweak the Expand function ExpandWindowsParameter to handle multiple parameter substitution in a string such as var3. Then uncomment the following test.
+	// assert.Equal(t, "1.first replacement 2.second replacement", ExpandParameter(SubstituteParameterWindows("var3"), mappingFunc, true))
 }

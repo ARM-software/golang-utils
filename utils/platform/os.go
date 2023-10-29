@@ -179,6 +179,44 @@ func GetRAM() (ram RAM, err error) {
 	return
 }
 
+// SubstituteParameter performs parameter substitution on all platforms.
+// - the first element is the parameter to substitute
+// - if find and replace is also wanted, pass the pattern and the replacement as following arguments in that order.
+func SubstituteParameter(parameter ...string) string {
+	if IsWindows() {
+		return SubstituteParameterWindows(parameter...)
+	}
+	return SubstituteParameterUnix(parameter...)
+}
+
+// SubstituteParameterUnix performs Unix parameter substitution:
+// See https://tldp.org/LDP/abs/html/parameter-substitution.html
+// - the first element is the parameter to substitute
+// - if find and replace is also wanted, pass the pattern and the replacement as following arguments in that order.
+func SubstituteParameterUnix(parameter ...string) string {
+	if len(parameter) < 1 {
+		return "${}"
+	}
+	if len(parameter) < 3 || parameter[1] == "" {
+		return fmt.Sprintf("${%v}", parameter[0])
+	}
+	return fmt.Sprintf("${%v//%v/%v}", parameter[0], parameter[1], parameter[2])
+}
+
+// SubstituteParameterWindows performs Windows parameter substitution:
+// See https://ss64.com/nt/syntax-replace.html
+// - the first element is the parameter to substitute
+// - if find and replace is also wanted, pass the pattern and the replacement as following arguments in that order.
+func SubstituteParameterWindows(parameter ...string) string {
+	if len(parameter) < 1 {
+		return "%%"
+	}
+	if len(parameter) < 3 || parameter[1] == "" {
+		return "%" + parameter[0] + "%"
+	}
+	return "%" + fmt.Sprintf("%v:%v=%v", parameter[0], parameter[1], parameter[2]) + "%"
+}
+
 // ExpandParameter expands a variable expressed in a string `s` with its value returned by the mapping function.
 // If the mapping function returns a string with variables, it will expand them too if recursive is set to true.
 func ExpandParameter(s string, mappingFunc func(string) (string, bool), recursive bool) string {
@@ -212,6 +250,7 @@ func recursiveMapping(mappingFunc func(string) (string, bool), expansionFunc fun
 
 // ExpandUnixParameter expands a ${param} or $param in `s` based on the mapping function
 // See https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html
+// os.Expand is used under the bonnet and so, only basic parameter substitution is performed.
 // TODO if os.Expand is not good enough, consider using other libraries such as https://github.com/ganbarodigital/go_shellexpand or https://github.com/mvdan/sh
 func ExpandUnixParameter(s string, mappingFunc func(string) (string, bool), recursive bool) string {
 	mapping := newMappingFunc(recursive, mappingFunc, expandUnixParameter)
@@ -229,6 +268,7 @@ func expandUnixParameter(s string, mappingFunc func(string) (string, bool)) stri
 // See https://learn.microsoft.com/en-us/previous-versions/troubleshoot/winautomation/product-documentation/best-practices/variables/percentage-character-usage-in-notations
 // https://devblogs.microsoft.com/oldnewthing/20060823-00/?p=29993
 // https://github.com/golang/go/issues/24848
+// WARNING: currently the function only works with one parameter substitution in `s`.
 func ExpandWindowsParameter(s string, mappingFunc func(string) (string, bool), recursive bool) string {
 	mapping := newMappingFunc(recursive, mappingFunc, expandWindowsParameter)
 	return expandWindowsParameter(s, mapping)
