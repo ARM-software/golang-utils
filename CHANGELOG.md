@@ -14,6 +14,17 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.53.0" (2023-10-30)
+=====================
+
+Features
+--------
+
+- :sparkles: `[platform]` Add parameter substitution utilities for all platform (#20231029203453)
+- :sparkles: `[environment]` Add utilities to manipulate environment variable collections (#20231029203455)
+- :sparkles: [`platform`] Add portable variable name validation (#20231030114112)
+
+
 "1.52.0" (2023-10-27)
 =====================
 
