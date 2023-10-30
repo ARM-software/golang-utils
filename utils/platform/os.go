@@ -30,7 +30,7 @@ var (
 	UnixVariableNameRegexString = "^[a-zA-Z_][a-zA-Z_0-9]*$"
 	// WindowsVariableNameRegexString defines the schema for variable names on Windows.
 	// See https://ss64.com/nt/syntax-variables.html
-	WindowsVariableNameRegexString = "^[A-Za-z#$'()*+,.?@\\[\\]_`{}~][A-Za-z0-9#$'()*+,.?@\\[\\]_`{}~ ]*$"
+	WindowsVariableNameRegexString = "^[A-Za-z#$'()*+,.?@\\[\\]_`{}~][A-Za-z0-9#$'()*+,.?@\\[\\]_`{}~\\s]*$"
 	errVariableNameInvalid         = validation.NewError("validation_is_variable_name", "must be a valid variable name")
 	// IsWindowsVariableName defines a validation rule for variable names on Windows for use with github.com/go-ozzo/ozzo-validation
 	IsWindowsVariableName = validation.NewStringRuleWithError(isWindowsVarName, errVariableNameInvalid)

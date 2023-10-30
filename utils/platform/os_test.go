@@ -60,7 +60,7 @@ func TestMemoryInformation(t *testing.T) {
 
 func TestExpandParameter(t *testing.T) {
 	complexVar := faker.Username()
-	complexVar2 := faker.Name()
+	complexVar2 := faker.Username()
 	random := faker.Sentence()
 	mapping := map[string]string{complexVar: "a test", "a": "b", complexVar2: "another test", "var1": "last test"}
 	mappingFunc := func(entry string) (string, bool) {
@@ -295,14 +295,14 @@ func TestExpandWindows(t *testing.T) {
 func TestValidateVariableName(t *testing.T) {
 	require.NoError(t, IsVariableName.Validate(faker.Username()))
 	require.NoError(t, IsVariableName.Validate(faker.Word()))
-	require.Error(t, IsVariableName.Validate(faker.UUIDDigit()))
+	require.Error(t, IsVariableName.Validate("9"+faker.UUIDDigit()))
 	require.NoError(t, IsVariableName.Validate(faker.Word()+strings.ReplaceAll(faker.UUIDDigit(), "-", "_")))
 	require.NoError(t, IsWindowsVariableName.Validate(faker.Username()))
 	require.NoError(t, IsWindowsVariableName.Validate(faker.DomainName()))
-	require.Error(t, IsWindowsVariableName.Validate(faker.UUIDDigit()))
+	require.Error(t, IsWindowsVariableName.Validate("9"+faker.UUIDDigit()))
 	require.NoError(t, IsWindowsVariableName.Validate(faker.Word()+strings.ReplaceAll(faker.UUIDDigit(), "-", "_")))
 	require.NoError(t, IsUnixVariableName.Validate(faker.Username()))
 	require.Error(t, IsUnixVariableName.Validate(faker.DomainName()))
-	require.Error(t, IsUnixVariableName.Validate(faker.UUIDDigit()))
+	require.Error(t, IsWindowsVariableName.Validate("9"+faker.UUIDDigit()))
 	require.NoError(t, IsUnixVariableName.Validate(faker.Word()+strings.ReplaceAll(faker.UUIDDigit(), "-", "_")))
 }
