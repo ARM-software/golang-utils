@@ -165,14 +165,52 @@ func TestEnvVar_ParseEnvironmentVariables(t *testing.T) {
 	errortest.AssertError(t, err, commonerrors.ErrNotFound)
 }
 
+func TestFindEnvironmentVariable(t *testing.T) {
+	entries := []string{"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/65357/bus", "HOME=first", "home=second", faker.UUIDHyphenated(), "EDITOR=hx", "logName=josjen01", "LOGNAME=josjen01", "teSt1=Accusantium voluptatem aut sit perferendis consequatur", "TEST1=Perferendis aut accusantium voluptatem sit consequatur.", faker.Word()}
+	environmentVariables := ParseEnvironmentVariables(entries...)
+	home, err := FindEnvironmentVariable("HOME", environmentVariables...)
+	require.NoError(t, err)
+	assert.Equal(t, "first", home.GetValue())
+	home, err = FindEnvironmentVariable("home", environmentVariables...)
+	require.NoError(t, err)
+	assert.Equal(t, "second", home.GetValue())
+	home, err = FindEnvironmentVariable(faker.Username(), environmentVariables...)
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrNotFound)
+	assert.Empty(t, home)
+	home, err = FindFoldEnvironmentVariable(faker.Username(), environmentVariables...)
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrNotFound)
+	assert.Empty(t, home)
+	home, err = FindFoldEnvironmentVariable("home", environmentVariables...)
+	require.NoError(t, err)
+	assert.Equal(t, "first", home.GetValue())
+	test1, err := FindEnvironmentVariable("TEST1", environmentVariables...)
+	require.NoError(t, err)
+	assert.True(t, strings.HasPrefix(test1.GetValue(), "Perferendis"))
+	test1, err = FindFoldEnvironmentVariable("TEST1", environmentVariables...)
+	require.NoError(t, err)
+	assert.True(t, strings.HasPrefix(test1.GetValue(), "Accusantium"))
+}
 func TestExpandEnvironmentVariable(t *testing.T) {
+	env1 := NewEnvironmentVariable("test", platform.SubstituteParameter("test"))
+	expanded1 := ExpandEnvironmentVariable(true, env1)
+	require.NotEmpty(t, expanded1)
+	assert.True(t, env1.Equal(expanded1))
+	expanded1 = ExpandEnvironmentVariable(true, env1, env1)
+	require.NotEmpty(t, expanded1)
+	assert.True(t, env1.Equal(expanded1))
+	env2 := NewEnvironmentVariable("test2", platform.SubstituteParameter("test3"))
+	env3 := NewEnvironmentVariable("test3", platform.SubstituteParameter("test"))
+	expanded2 := ExpandEnvironmentVariable(true, env2, env1, env2, env3)
+	require.NotEmpty(t, expanded2)
+	assert.False(t, env1.Equal(expanded2))
+	assert.Equal(t, expanded2.GetValue(), env1.GetValue())
+}
+
+func TestExpandEnvironmentVariables(t *testing.T) {
 	username := faker.Username()
-	var entries []string
-	if platform.IsWindows() {
-		entries = []string{"DBUS_SESSION_BUS_ADDRESS=system:path=/run%HOME%/65357/bus/", "HOME=/home/%LOGNAME%", fmt.Sprintf("LOGNAME=%v", username)}
-	} else {
-		entries = []string{"DBUS_SESSION_BUS_ADDRESS=system:path=/run${HOME}/65357/bus/", "HOME=/home/${LOGNAME}", fmt.Sprintf("LOGNAME=%v", username)}
-	}
+	entries := []string{fmt.Sprintf("DBUS_SESSION_BUS_ADDRESS=system:path=/run%v/65357/bus/", platform.SubstituteParameter("HOME")), fmt.Sprintf("HOME=/home/%v", platform.SubstituteParameter("LOGNAME")), fmt.Sprintf("LOGNAME=%v", username)}
 	expandedEnvironmentVariables := ExpandEnvironmentVariables(true, ParseEnvironmentVariables(entries...)...)
 	require.NotEmpty(t, expandedEnvironmentVariables)
 	logname, err := FindEnvironmentVariable("LOGNAME", expandedEnvironmentVariables...)
@@ -181,4 +219,94 @@ func TestExpandEnvironmentVariable(t *testing.T) {
 	dbus, err := FindEnvironmentVariable("DBUS_SESSION_BUS_ADDRESS", expandedEnvironmentVariables...)
 	require.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf("system:path=/run/home/%v/65357/bus/", username), dbus.GetValue())
+}
+
+func TestSortEnvironmentVariables(t *testing.T) {
+	entries := []string{fmt.Sprintf("ccc%v=%v", faker.Username(), faker.Sentence()), fmt.Sprintf("Aaodasdoah%v=%v", faker.Username(), faker.Sentence()), "b=second", fmt.Sprintf("Za%v=%v", faker.Word(), faker.Sentence())}
+	envVars := ParseEnvironmentVariables(entries...)
+	SortEnvironmentVariables(envVars)
+	require.Len(t, envVars, 4)
+	assert.True(t, strings.HasPrefix(envVars[0].String(), "A"))
+	assert.True(t, strings.HasPrefix(envVars[1].String(), "b"))
+	assert.True(t, strings.HasPrefix(envVars[2].String(), "c"))
+	assert.True(t, strings.HasPrefix(envVars[3].String(), "Z"))
+
+	var empty []IEnvironmentVariable
+	SortEnvironmentVariables(empty)
+}
+
+func TestUniqueEnvironmentVariables(t *testing.T) {
+	randomKey := faker.Word()
+	entries := []string{"DBUS_SESSION_BUS_ADDRESS=system:path=/run/65357/bus/", "HOME=first", "home=second", fmt.Sprintf("%v=%v", randomKey, faker.Sentence())}
+	envVars := ParseEnvironmentVariables(entries...)
+	require.NotEmpty(t, envVars)
+	assert.Len(t, envVars, 4)
+	assert.Empty(t, UniqueEnvironmentVariables(true))
+	uniqueEnvVars := UniqueEnvironmentVariables(false, envVars...)
+	require.NotEmpty(t, uniqueEnvVars)
+	assert.NotEqual(t, uniqueEnvVars, envVars)
+	assert.Len(t, uniqueEnvVars, 3)
+	home, err := FindEnvironmentVariable("HOME", uniqueEnvVars...)
+	require.NoError(t, err)
+	assert.Equal(t, "first", home.GetValue())
+
+	uniqueEnvVars2 := UniqueEnvironmentVariables(false, uniqueEnvVars...)
+	require.NotEmpty(t, uniqueEnvVars2)
+	SortEnvironmentVariables(uniqueEnvVars2)
+	SortEnvironmentVariables(uniqueEnvVars)
+	assert.EqualValues(t, uniqueEnvVars2, uniqueEnvVars)
+
+	uniqueEnvVars3 := UniqueEnvironmentVariables(true, envVars...)
+	require.NotEmpty(t, uniqueEnvVars3)
+	SortEnvironmentVariables(uniqueEnvVars3)
+	assert.Len(t, uniqueEnvVars3, 4)
+	assert.NotEqualValues(t, uniqueEnvVars3, uniqueEnvVars)
+
+}
+
+func TestMergeEnvironmentVariables(t *testing.T) {
+	randomKey := fmt.Sprintf("B%v", faker.Word())
+	entries1 := []string{fmt.Sprintf("ccc%v=%v", faker.Username(), faker.Sentence()), "HOME=first", "home=second", fmt.Sprintf("%v=%v", randomKey, faker.Sentence())}
+	entries2 := []string{"Zabcd=tmp", "HOME=third", fmt.Sprintf("%v=%v", randomKey, faker.Sentence())}
+	envVars := MergeEnvironmentVariableSets(false, ParseEnvironmentVariables(entries1...), ParseEnvironmentVariables(entries2...)...)
+	require.NotEmpty(t, envVars)
+	assert.Len(t, envVars, 4)
+	home, err := FindEnvironmentVariable("HOME", envVars...)
+	require.NoError(t, err)
+	assert.Equal(t, "first", home.GetValue())
+	home, err = FindEnvironmentVariable("home", envVars...)
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrNotFound)
+	assert.Empty(t, home)
+
+	uniqueEnvVars := UniqueEnvironmentVariables(false, envVars...)
+	require.NotEmpty(t, uniqueEnvVars)
+	SortEnvironmentVariables(envVars)
+	SortEnvironmentVariables(uniqueEnvVars)
+	assert.EqualValues(t, envVars, uniqueEnvVars)
+	assert.True(t, strings.HasPrefix(envVars[0].String(), "B"))
+	assert.True(t, strings.HasPrefix(envVars[1].String(), "c"))
+	assert.True(t, strings.HasPrefix(envVars[2].String(), "H"))
+	assert.True(t, strings.HasPrefix(envVars[3].String(), "Z"))
+
+	envVars = MergeEnvironmentVariableSets(true, ParseEnvironmentVariables(entries1...), ParseEnvironmentVariables(entries2...)...)
+	require.NotEmpty(t, envVars)
+	assert.Len(t, envVars, 5)
+	home, err = FindEnvironmentVariable("HOME", envVars...)
+	require.NoError(t, err)
+	assert.Equal(t, "first", home.GetValue())
+	home, err = FindEnvironmentVariable("home", envVars...)
+	require.NoError(t, err)
+	assert.Equal(t, "second", home.GetValue())
+}
+
+func TestCloneEnvironmentVariable(t *testing.T) {
+	env1 := NewEnvironmentVariable(faker.Word(), faker.Sentence())
+	clone1 := CloneEnvironmentVariable(env1)
+	assert.Equal(t, env1, env1)
+	assert.False(t, clone1 == env1)
+	assert.True(t, clone1.Equal(env1))
+	assert.True(t, env1.Equal(clone1))
+	clone2 := CloneEnvironmentVariable(nil)
+	assert.Nil(t, clone2)
 }

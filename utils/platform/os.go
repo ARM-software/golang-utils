@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/mem"
 
@@ -24,7 +25,43 @@ var (
 	// https://learn.microsoft.com/en-us/previous-versions/troubleshoot/winautomation/product-documentation/best-practices/variables/percentage-character-usage-in-notations
 	// https://ss64.com/nt/syntax-replace.html
 	windowsVariableExpansionRegexStr = `%(?P<variable>[^:=]*)(:(?P<StrToFind>.*)=(?P<NewString>.*))?%`
+	// UnixVariableNameRegexString defines the schema for variable names on Unix.
+	// See https://www.gnu.org/software/bash/manual/bash.html#index-name and https://mywiki.wooledge.org/BashFAQ/006
+	UnixVariableNameRegexString = "^[a-zA-Z_][a-zA-Z_0-9]*$"
+	// WindowsVariableNameRegexString defines the schema for variable names on Windows.
+	// See https://ss64.com/nt/syntax-variables.html
+	WindowsVariableNameRegexString = "^[A-Za-z#$'()*+,.?@\\[\\]_`{}~][A-Za-z0-9#$'()*+,.?@\\[\\]_`{}~\\s]*$"
+	errVariableNameInvalid         = validation.NewError("validation_is_variable_name", "must be a valid variable name")
+	// IsWindowsVariableName defines a validation rule for variable names on Windows for use with github.com/go-ozzo/ozzo-validation
+	IsWindowsVariableName = validation.NewStringRuleWithError(isWindowsVarName, errVariableNameInvalid)
+	// IsUnixVariableName defines a validation rule for variable names on Unix for use with github.com/go-ozzo/ozzo-validation
+	IsUnixVariableName = validation.NewStringRuleWithError(isUnixVarName, errVariableNameInvalid)
+	// IsVariableName defines a validation rule for variable names for use with github.com/go-ozzo/ozzo-validation
+	IsVariableName = validation.NewStringRuleWithError(isVarName, errVariableNameInvalid)
 )
+
+func isWindowsVarName(value string) bool {
+	if validation.Required.Validate(value) != nil {
+		return false
+	}
+	regex := regexp.MustCompile(WindowsVariableNameRegexString)
+	return regex.MatchString(value)
+}
+
+func isUnixVarName(value string) bool {
+	if validation.Required.Validate(value) != nil {
+		return false
+	}
+	regex := regexp.MustCompile(UnixVariableNameRegexString)
+	return regex.MatchString(value)
+}
+
+func isVarName(value string) bool {
+	if IsWindows() {
+		return isWindowsVarName(value)
+	}
+	return isUnixVarName(value)
+}
 
 // ConvertError converts a platform error into a commonerrors
 func ConvertError(err error) error {
@@ -179,6 +216,44 @@ func GetRAM() (ram RAM, err error) {
 	return
 }
 
+// SubstituteParameter performs parameter substitution on all platforms.
+// - the first element is the parameter to substitute
+// - if find and replace is also wanted, pass the pattern and the replacement as following arguments in that order.
+func SubstituteParameter(parameter ...string) string {
+	if IsWindows() {
+		return SubstituteParameterWindows(parameter...)
+	}
+	return SubstituteParameterUnix(parameter...)
+}
+
+// SubstituteParameterUnix performs Unix parameter substitution:
+// See https://tldp.org/LDP/abs/html/parameter-substitution.html
+// - the first element is the parameter to substitute
+// - if find and replace is also wanted, pass the pattern and the replacement as following arguments in that order.
+func SubstituteParameterUnix(parameter ...string) string {
+	if len(parameter) < 1 || !isUnixVarName(parameter[0]) {
+		return "${}"
+	}
+	if len(parameter) < 3 || parameter[1] == "" {
+		return fmt.Sprintf("${%v}", parameter[0])
+	}
+	return fmt.Sprintf("${%v//%v/%v}", parameter[0], parameter[1], parameter[2])
+}
+
+// SubstituteParameterWindows performs Windows parameter substitution:
+// See https://ss64.com/nt/syntax-replace.html
+// - the first element is the parameter to substitute
+// - if find and replace is also wanted, pass the pattern and the replacement as following arguments in that order.
+func SubstituteParameterWindows(parameter ...string) string {
+	if len(parameter) < 1 || !isWindowsVarName(parameter[0]) {
+		return "%%"
+	}
+	if len(parameter) < 3 || parameter[1] == "" {
+		return "%" + parameter[0] + "%"
+	}
+	return "%" + fmt.Sprintf("%v:%v=%v", parameter[0], parameter[1], parameter[2]) + "%"
+}
+
 // ExpandParameter expands a variable expressed in a string `s` with its value returned by the mapping function.
 // If the mapping function returns a string with variables, it will expand them too if recursive is set to true.
 func ExpandParameter(s string, mappingFunc func(string) (string, bool), recursive bool) string {
@@ -212,6 +287,7 @@ func recursiveMapping(mappingFunc func(string) (string, bool), expansionFunc fun
 
 // ExpandUnixParameter expands a ${param} or $param in `s` based on the mapping function
 // See https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html
+// os.Expand is used under the bonnet and so, only basic parameter substitution is performed.
 // TODO if os.Expand is not good enough, consider using other libraries such as https://github.com/ganbarodigital/go_shellexpand or https://github.com/mvdan/sh
 func ExpandUnixParameter(s string, mappingFunc func(string) (string, bool), recursive bool) string {
 	mapping := newMappingFunc(recursive, mappingFunc, expandUnixParameter)
@@ -229,6 +305,7 @@ func expandUnixParameter(s string, mappingFunc func(string) (string, bool)) stri
 // See https://learn.microsoft.com/en-us/previous-versions/troubleshoot/winautomation/product-documentation/best-practices/variables/percentage-character-usage-in-notations
 // https://devblogs.microsoft.com/oldnewthing/20060823-00/?p=29993
 // https://github.com/golang/go/issues/24848
+// WARNING: currently the function only works with one parameter substitution in `s`.
 func ExpandWindowsParameter(s string, mappingFunc func(string) (string, bool), recursive bool) string {
 	mapping := newMappingFunc(recursive, mappingFunc, expandWindowsParameter)
 	return expandWindowsParameter(s, mapping)
