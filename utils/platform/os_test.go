@@ -6,6 +6,7 @@ package platform
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
@@ -289,4 +290,19 @@ func TestExpandWindows(t *testing.T) {
 	assert.Equal(t, "second test", ExpandWindowsParameter(SubstituteParameterWindows("var2", "replacement", "test"), mappingFunc, true))
 	// FIXME tweak the Expand function ExpandWindowsParameter to handle multiple parameter substitution in a string such as var3. Then uncomment the following test.
 	// assert.Equal(t, "1.first replacement 2.second replacement", ExpandParameter(SubstituteParameterWindows("var3"), mappingFunc, true))
+}
+
+func TestValidateVariableName(t *testing.T) {
+	require.NoError(t, IsVariableName.Validate(faker.Username()))
+	require.NoError(t, IsVariableName.Validate(faker.Word()))
+	require.Error(t, IsVariableName.Validate(faker.UUIDDigit()))
+	require.NoError(t, IsVariableName.Validate(faker.Word()+strings.ReplaceAll(faker.UUIDDigit(), "-", "_")))
+	require.NoError(t, IsWindowsVariableName.Validate(faker.Username()))
+	require.NoError(t, IsWindowsVariableName.Validate(faker.DomainName()))
+	require.Error(t, IsWindowsVariableName.Validate(faker.UUIDDigit()))
+	require.NoError(t, IsWindowsVariableName.Validate(faker.Word()+strings.ReplaceAll(faker.UUIDDigit(), "-", "_")))
+	require.NoError(t, IsUnixVariableName.Validate(faker.Username()))
+	require.Error(t, IsUnixVariableName.Validate(faker.DomainName()))
+	require.Error(t, IsUnixVariableName.Validate(faker.UUIDDigit()))
+	require.NoError(t, IsUnixVariableName.Validate(faker.Word()+strings.ReplaceAll(faker.UUIDDigit(), "-", "_")))
 }
