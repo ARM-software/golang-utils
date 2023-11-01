@@ -24,6 +24,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/idgen"
 	"github.com/ARM-software/golang-utils/utils/platform"
 	"github.com/ARM-software/golang-utils/utils/reflection"
@@ -46,20 +47,16 @@ func TestExists(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			fs := NewFs(fsType)
-			tmpFile, err := fs.TempFileInTempDir("test-exist-")
+			tmpFile, err := fs.TouchTempFileInTempDir("test-exist-")
 			require.NoError(t, err)
 
-			err = tmpFile.Close()
-			require.NoError(t, err)
-
-			fileName := tmpFile.Name()
-			defer func() { _ = fs.Rm(fileName) }()
-			assert.True(t, fs.Exists(tmpFile.Name()))
+			defer func() { _ = fs.Rm(tmpFile) }()
+			assert.True(t, fs.Exists(tmpFile))
 
 			randomFile, err := idgen.GenerateUUID4()
 			require.NoError(t, err)
 			assert.False(t, fs.Exists(randomFile))
-			_ = fs.Rm(fileName)
+			_ = fs.Rm(tmpFile)
 		})
 	}
 }
@@ -123,11 +120,69 @@ func TestOpen(t *testing.T) {
 
 			contents, err = safeio.ReadAll(context.TODO(), file)
 			require.Error(t, err)
-			assert.True(t, commonerrors.Any(err, commonerrors.ErrEmpty))
+			errortest.AssertError(t, err, commonerrors.ErrEmpty)
 			err = file.Close()
 			require.NoError(t, err)
 			assert.Equal(t, "", string(contents))
 			_ = fs.Rm(filePath)
+			_ = fs.Rm(tmpDir)
+		})
+	}
+}
+
+func TestTouch(t *testing.T) {
+	// Similar to https://github.com/m-spitfire/go-touch/blob/master/touch_test.go
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-touch-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-touch*.test")
+			require.NoError(t, err)
+			assert.True(t, fs.Exists(tmpFile))
+			empty, _ := fs.IsEmpty(tmpFile)
+			assert.True(t, empty)
+			timesFile1, err := fs.StatTimes(tmpFile)
+			require.NoError(t, err)
+
+			tmpFile2 := filepath.Join(tmpDir, "testtouch2.test")
+			err = fs.Touch(tmpFile2)
+			require.NoError(t, err)
+			empty, _ = fs.IsEmpty(tmpFile2)
+			assert.True(t, empty)
+			timesFile2, err := fs.StatTimes(tmpFile2)
+			require.NoError(t, err)
+
+			err = fs.Touch(tmpFile)
+			require.NoError(t, err)
+			err = fs.Touch(tmpFile2)
+			require.NoError(t, err)
+
+			timesFile12, err := fs.StatTimes(tmpFile)
+			require.NoError(t, err)
+			timesFile22, err := fs.StatTimes(tmpFile2)
+			require.NoError(t, err)
+
+			assert.NotEqual(t, timesFile12.ModTime(), timesFile1.ModTime())
+			assert.NotEqual(t, timesFile2.ModTime(), timesFile22.ModTime())
+
+			t.Run("empty path", func(t *testing.T) {
+				err = fs.Touch("                 ")
+				require.Error(t, err)
+				errortest.AssertError(t, err, commonerrors.ErrUndefined)
+
+			})
+			t.Run("directory path", func(t *testing.T) {
+				tmpDir2 := filepath.Join(tmpDir, "testfolder") + string(fs.PathSeparator())
+				err = fs.Touch(tmpDir2)
+				require.NoError(t, err)
+				empty, _ = fs.IsEmpty(tmpDir2)
+				assert.True(t, empty)
+				isDir, _ := fs.IsDir(tmpDir2)
+				assert.True(t, isDir)
+			})
+
 			_ = fs.Rm(tmpDir)
 		})
 	}
@@ -195,7 +250,7 @@ func TestCancelledWrite(t *testing.T) {
 			cancel()
 			err = fs.WriteFileWithContext(ctx, filePath, []byte(txt), 0755)
 			require.Error(t, err)
-			assert.True(t, commonerrors.Any(err, commonerrors.ErrCancelled))
+			errortest.AssertError(t, err, commonerrors.ErrCancelled)
 			if fs.Exists(filePath) {
 				empty, err := fs.IsEmpty(filePath)
 				require.NoError(t, err)
@@ -203,7 +258,7 @@ func TestCancelledWrite(t *testing.T) {
 				bytes, err := fs.ReadFile(filePath)
 				if empty {
 					require.Error(t, err)
-					assert.True(t, commonerrors.Any(err, commonerrors.ErrEmpty))
+					errortest.AssertError(t, err, commonerrors.ErrEmpty)
 				} else {
 					require.NoError(t, err)
 					assert.NotEqual(t, txt, string(bytes))
@@ -238,7 +293,7 @@ func TestCancelledRead(t *testing.T) {
 
 			bytes, err = fs.ReadFileWithContext(ctx, filePath)
 			require.Error(t, err)
-			assert.True(t, commonerrors.Any(err, commonerrors.ErrCancelled))
+			errortest.AssertError(t, err, commonerrors.ErrCancelled)
 			assert.NotEqual(t, txt, string(bytes))
 
 			require.NoError(t, fs.Rm(tmpDir))
@@ -253,21 +308,64 @@ func TestChmod(t *testing.T) {
 			tmpDir, err := fs.TempDirInTempDir("test-chmod-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-*.txt")
+			require.NoError(t, err)
 
-			filePath := fmt.Sprintf("%v%v%v", tmpDir, string(fs.PathSeparator()), "test.txt")
-			file, err := fs.CreateFile(filePath)
-			require.NoError(t, err)
-			defer func() { _ = file.Close() }()
-			err = file.Close()
-			require.NoError(t, err)
-			require.True(t, fs.Exists(filePath))
+			require.True(t, fs.Exists(tmpFile))
 			for _, mode := range []int{0666, 0777, 0555, 0766, 0444, 0644} {
-				err = fs.Chmod(filePath, os.FileMode(mode))
-				if err != nil {
-					_ = fs.Chmod(filePath, os.FileMode(mode))
-				}
-				require.NoError(t, err)
-				testFileMode(t, fs, filePath, mode)
+				t.Run(fmt.Sprintf("%v", mode), func(t *testing.T) {
+					err = fs.Chmod(tmpFile, os.FileMode(mode))
+					if err != nil {
+						_ = fs.Chmod(tmpFile, os.FileMode(mode))
+					}
+					require.NoError(t, err)
+					testFileMode(t, fs, tmpFile, mode)
+				})
+			}
+			_ = fs.Rm(tmpDir)
+		})
+	}
+}
+
+func TestChmodRecursive(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-chmod-recursive-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-*.txt")
+			require.NoError(t, err)
+
+			tmpDir2, err := fs.TempDir(tmpDir, "test-chmod-recursive-")
+			require.NoError(t, err)
+
+			tmpFile2, err := fs.TouchTempFile(tmpDir2, "test-*.txt")
+			require.NoError(t, err)
+
+			require.True(t, fs.Exists(tmpFile))
+			for _, mode := range []int{0666, 0777, 0555, 0766, 0444, 0644} {
+				t.Run(fmt.Sprintf("%v", mode), func(t *testing.T) {
+					err = fs.ChmodRecursively(context.TODO(), tmpFile2, os.FileMode(mode))
+					if err == nil {
+						require.NoError(t, err)
+						testFileMode(t, fs, tmpFile2, mode)
+
+						err = fs.ChmodRecursively(context.TODO(), tmpDir, os.FileMode(mode))
+						if err == nil {
+							require.NoError(t, err)
+							testFileMode(t, fs, tmpFile, mode)
+							testFileMode(t, fs, tmpFile2, mode)
+						} else {
+							errortest.AssertErrorDescription(t, err, "permission denied")
+						}
+
+					} else {
+						errortest.AssertErrorDescription(t, err, "permission denied")
+					}
+
+				})
+
 			}
 			_ = fs.Rm(tmpDir)
 		})
@@ -282,22 +380,19 @@ func TestChown(t *testing.T) {
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
 
-			filePath := fmt.Sprintf("%v%v%v", tmpDir, string(fs.PathSeparator()), "test.txt")
-			file, err := fs.CreateFile(filePath)
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-*.txt")
 			require.NoError(t, err)
-			defer func() { _ = file.Close() }()
-			err = file.Close()
-			require.NoError(t, err)
-			require.True(t, fs.Exists(filePath))
-			uID, gID, err := fs.FetchOwners(filePath)
+
+			require.True(t, fs.Exists(tmpFile))
+			uID, gID, err := fs.FetchOwners(tmpFile)
 			if err != nil {
-				assert.True(t, commonerrors.Any(err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported))
+				errortest.AssertError(t, err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported)
 			} else {
-				err = fs.Chown(filePath, uID, gID)
+				err = fs.Chown(tmpFile, uID, gID)
 				if err != nil {
-					assert.True(t, commonerrors.Any(err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported))
+					errortest.AssertError(t, err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported)
 				} else {
-					newUID, newGID, err := fs.FetchOwners(filePath)
+					newUID, newGID, err := fs.FetchOwners(tmpFile)
 					require.NoError(t, err)
 					assert.Equal(t, uID, newUID)
 					assert.Equal(t, gID, newGID)
@@ -316,28 +411,79 @@ func TestChangeOwnership(t *testing.T) {
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
 
-			filePath := fmt.Sprintf("%v%v%v", tmpDir, string(fs.PathSeparator()), "test.txt")
-			file, err := fs.CreateFile(filePath)
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-*.txt")
 			require.NoError(t, err)
-			defer func() { _ = file.Close() }()
-			err = file.Close()
-			require.NoError(t, err)
-			require.True(t, fs.Exists(filePath))
-			owner, err := fs.FetchFileOwner(filePath)
+			require.True(t, fs.Exists(tmpFile))
+			owner, err := fs.FetchFileOwner(tmpFile)
 			if err != nil {
-				assert.True(t, commonerrors.Any(err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported))
+				errortest.AssertError(t, err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported, commonerrors.ErrNotFound)
 			} else {
 				require.NotNil(t, owner)
-				err = fs.ChangeOwnership(filePath, owner)
+				err = fs.ChangeOwnership(tmpFile, owner)
 				if err != nil {
-					assert.True(t, commonerrors.Any(err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported))
+					errortest.AssertError(t, err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported)
 				} else {
-					newUID, newGID, err := fs.FetchOwners(filePath)
+					newUID, newGID, err := fs.FetchOwners(tmpFile)
 					require.NoError(t, err)
 					assert.Equal(t, owner.Uid, strconv.Itoa(newUID))
 					assert.Equal(t, owner.Gid, strconv.Itoa(newGID))
 				}
 			}
+			_ = fs.Rm(tmpDir)
+		})
+	}
+}
+
+func TestChangeOwnershipRecursive(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-chown-changeownership-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+
+			tmpDir2, err := fs.TempDir(tmpDir, "test-chown-changeownership-")
+			require.NoError(t, err)
+
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-*.txt")
+			require.NoError(t, err)
+			require.True(t, fs.Exists(tmpFile))
+
+			tmpFile2, err := fs.TouchTempFile(tmpDir2, "test-*.txt")
+			require.NoError(t, err)
+			require.True(t, fs.Exists(tmpFile))
+
+			owner, err := fs.FetchFileOwner(tmpFile)
+			if err != nil {
+				errortest.AssertError(t, err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported, commonerrors.ErrNotFound)
+			} else {
+				require.NotNil(t, owner)
+				err = fs.ChangeOwnershipRecursively(context.TODO(), tmpDir, owner)
+				if err != nil {
+					errortest.AssertError(t, err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported)
+				} else {
+					newUID, newGID, err := fs.FetchOwners(tmpFile)
+					require.NoError(t, err)
+					assert.Equal(t, owner.Uid, strconv.Itoa(newUID))
+					assert.Equal(t, owner.Gid, strconv.Itoa(newGID))
+					newUID, newGID, err = fs.FetchOwners(tmpFile2)
+					require.NoError(t, err)
+					assert.Equal(t, owner.Uid, strconv.Itoa(newUID))
+					assert.Equal(t, owner.Gid, strconv.Itoa(newGID))
+				}
+			}
+			t.Run("empty user", func(t *testing.T) {
+				err = fs.ChangeOwnershipRecursively(context.TODO(), tmpFile, nil)
+				require.Error(t, err)
+				errortest.AssertError(t, err, commonerrors.ErrUndefined)
+			})
+			t.Run("cancelled context", func(t *testing.T) {
+				ctx, cancel := context.WithCancel(context.TODO())
+				cancel()
+				err = fs.ChangeOwnershipRecursively(ctx, tmpFile, nil)
+				require.Error(t, err)
+				errortest.AssertError(t, err, commonerrors.ErrCancelled, commonerrors.ErrTimeout)
+			})
 			_ = fs.Rm(tmpDir)
 		})
 	}
@@ -383,21 +529,22 @@ func TestLink(t *testing.T) {
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
 
-			txt := "This is a test sentence!!!"
-			filePath := fmt.Sprintf("%v%v%v", tmpDir, string(fs.PathSeparator()), "test.txt")
-			err = fs.WriteFile(filePath, []byte(txt), 0755)
+			txt := fmt.Sprintf("This is a test sentence!!! %v", faker.Sentence())
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-*.txt")
+			require.NoError(t, err)
+			err = fs.WriteFile(tmpFile, []byte(txt), 0755)
 			require.NoError(t, err)
 
 			symlink := filepath.Join(tmpDir, "symlink-tofile")
 			hardlink := filepath.Join(tmpDir, "hardlink-tofile")
 
-			err = fs.Symlink(filePath, symlink)
+			err = fs.Symlink(tmpFile, symlink)
 			if errors.Is(err, commonerrors.ErrNotImplemented) || errors.Is(err, afero.ErrNoSymlink) {
 				return
 			}
 			require.NoError(t, err)
 
-			err = fs.Link(filePath, hardlink)
+			err = fs.Link(tmpFile, hardlink)
 			require.NoError(t, err)
 
 			assert.True(t, fs.Exists(symlink))
@@ -421,7 +568,7 @@ func TestLink(t *testing.T) {
 
 			link, err := fs.Readlink(symlink)
 			require.NoError(t, err)
-			assert.Equal(t, filePath, link)
+			assert.Equal(t, tmpFile, link)
 
 			link, err = fs.Readlink(hardlink)
 			require.Error(t, err)
@@ -443,17 +590,12 @@ func TestStatTimes(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			fs := NewFs(fsType)
-			tmpFile, err := fs.TempFileInTempDir("test-times-")
+			tmpFile, err := fs.TouchTempFileInTempDir("test-filetimes-*.txt")
 			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpFile) }()
 
-			err = tmpFile.Close()
-			require.NoError(t, err)
-			defer func() { _ = fs.Rm(tmpFile.Name()) }()
-
-			fileName := tmpFile.Name()
-			defer func() { _ = fs.Rm(fileName) }()
-			assert.True(t, fs.Exists(tmpFile.Name()))
-			fileTimes, err := fs.StatTimes(fileName)
+			assert.True(t, fs.Exists(tmpFile))
+			fileTimes, err := fs.StatTimes(tmpFile)
 			require.NoError(t, err)
 			assert.NotZero(t, fileTimes)
 			assert.NotZero(t, fileTimes.AccessTime())
@@ -464,7 +606,7 @@ func TestStatTimes(t *testing.T) {
 			if fileTimes.HasChangeTime() {
 				assert.NotZero(t, fileTimes.ChangeTime())
 			}
-			_ = fs.Rm(tmpFile.Name())
+			_ = fs.Rm(tmpFile)
 		})
 	}
 }
@@ -481,12 +623,11 @@ func TestIsEmpty(t *testing.T) {
 			require.NoError(t, err)
 			assert.True(t, empty)
 
-			tmpFile, err := fs.TempFile(tmpDir, "test-isempty-*.test")
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-isempty-*.test")
 			require.NoError(t, err)
-			_ = tmpFile.Close()
-			defer func() { _ = fs.Rm(tmpFile.Name()) }()
+			defer func() { _ = fs.Rm(tmpFile) }()
 
-			isFileEmpty, err := fs.IsEmpty(tmpFile.Name())
+			isFileEmpty, err := fs.IsEmpty(tmpFile)
 			require.NoError(t, err)
 			assert.True(t, isFileEmpty)
 
@@ -516,25 +657,24 @@ func TestChtimes(t *testing.T) {
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
 
-			tmpFile, err := fs.TempFile(tmpDir, "test-isempty-*.test")
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-isempty-*.test")
 			require.NoError(t, err)
-			_ = tmpFile.Close()
-			defer func() { _ = fs.Rm(tmpFile.Name()) }()
+			defer func() { _ = fs.Rm(tmpFile) }()
 
 			timesDirOrig, err := fs.StatTimes(tmpDir)
 			require.NoError(t, err)
-			timesFileOrig, err := fs.StatTimes(tmpFile.Name())
+			timesFileOrig, err := fs.StatTimes(tmpFile)
 			require.NoError(t, err)
 			newTimeA := time.Now().Add(-time.Hour)
 			newTimeM := time.Now().Add(-30 * time.Minute)
 			err = fs.Chtimes(tmpDir, newTimeA, newTimeM)
 			require.NoError(t, err)
-			err = fs.Chtimes(tmpFile.Name(), newTimeA, newTimeM)
+			err = fs.Chtimes(tmpFile, newTimeA, newTimeM)
 			require.NoError(t, err)
 
 			timesDirMod, err := fs.StatTimes(tmpDir)
 			require.NoError(t, err)
-			timesFileMod, err := fs.StatTimes(tmpFile.Name())
+			timesFileMod, err := fs.StatTimes(tmpFile)
 			require.NoError(t, err)
 
 			assert.NotEqual(t, timesDirOrig, timesDirMod)
@@ -566,9 +706,7 @@ func TestCleanDir(t *testing.T) {
 			require.NoError(t, err)
 			assert.True(t, empty)
 
-			tmpFile, err := fs.TempFile(tmpDir, "test-cleandir-*.test")
-			require.NoError(t, err)
-			err = tmpFile.Close()
+			_, err = fs.TouchTempFile(tmpDir, "test-cleandir-*.test")
 			require.NoError(t, err)
 
 			checkNotEmpty(t, fs, tmpDir)
@@ -603,9 +741,7 @@ func TestCleanDirWithExclusion(t *testing.T) {
 			require.NoError(t, err)
 			assert.True(t, empty)
 
-			tmpFile, err := fs.TempFile(tmpDir, "test-cleandir-*.test")
-			require.NoError(t, err)
-			err = tmpFile.Close()
+			_, err = fs.TouchTempFile(tmpDir, "test-cleandir-*.test")
 			require.NoError(t, err)
 
 			checkNotEmpty(t, fs, tmpDir)
@@ -648,9 +784,7 @@ func TestRemoveWithExclusion(t *testing.T) {
 			require.NoError(t, err)
 			assert.True(t, empty)
 
-			tmpFile, err := fs.TempFile(tmpDir, "test-rm-*.test")
-			require.NoError(t, err)
-			err = tmpFile.Close()
+			_, err = fs.TouchTempFile(tmpDir, "test-rm-*.test")
 			require.NoError(t, err)
 
 			checkNotEmpty(t, fs, tmpDir)
@@ -701,9 +835,7 @@ func TestRemoveWithPrivileges(t *testing.T) {
 			require.NoError(t, err)
 			assert.True(t, empty)
 
-			tmpFile, err := fs.TempFile(tmpDir, "test-rm-*.test")
-			require.NoError(t, err)
-			err = tmpFile.Close()
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-rm-*.test")
 			require.NoError(t, err)
 
 			dirToRemove1, err := fs.TempDir(tmpDir, "testDirToRemove")
@@ -716,7 +848,7 @@ func TestRemoveWithPrivileges(t *testing.T) {
 
 			// TODO: add user and change file and folder ownership
 
-			err = fs.RemoveWithPrivileges(context.TODO(), tmpFile.Name())
+			err = fs.RemoveWithPrivileges(context.TODO(), tmpFile)
 			require.NoError(t, err)
 
 			err = fs.RemoveWithPrivileges(context.TODO(), dirToRemove1)
@@ -745,18 +877,13 @@ func TestLs(t *testing.T) {
 
 			tmpDir1, err := fs.TempDir(tmpDir, "test-ls-")
 			require.NoError(t, err)
-			tmpFile, err := fs.TempFile(tmpDir, "test-ls-*.test")
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-ls-*.test")
 			require.NoError(t, err)
-
-			err = tmpFile.Close()
-			require.NoError(t, err)
-
-			fileName := tmpFile.Name()
 
 			files, err := fs.Ls(tmpDir)
 			require.NoError(t, err)
 			assert.Len(t, files, 2)
-			_, found := collection.Find(&files, filepath.Base(fileName))
+			_, found := collection.Find(&files, filepath.Base(tmpFile))
 			assert.True(t, found)
 			_, found = collection.Find(&files, filepath.Base(tmpDir1))
 			assert.True(t, found)
@@ -775,13 +902,8 @@ func TestLsWithExclusion(t *testing.T) {
 
 			tmpDir1, err := fs.TempDir(tmpDir, "test-ls-")
 			require.NoError(t, err)
-			tmpFile, err := fs.TempFile(tmpDir, "test-ls-*.test")
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-ls-*.test")
 			require.NoError(t, err)
-
-			err = tmpFile.Close()
-			require.NoError(t, err)
-
-			fileName := tmpFile.Name()
 
 			files, err := fs.Ls(tmpDir)
 			require.NoError(t, err)
@@ -791,7 +913,7 @@ func TestLsWithExclusion(t *testing.T) {
 			require.NoError(t, err)
 			assert.Len(t, files, 1)
 
-			_, found := collection.Find(&files, filepath.Base(fileName))
+			_, found := collection.Find(&files, filepath.Base(tmpFile))
 			assert.False(t, found)
 			_, found = collection.Find(&files, filepath.Base(tmpDir1))
 			assert.True(t, found)
@@ -891,14 +1013,10 @@ func TestGarbageCollection(t *testing.T) {
 			require.NoError(t, err)
 			tmpDir2, err := fs.TempDir(tmpDir, "test-gc-")
 			require.NoError(t, err)
-			tmpFile, err := fs.TempFile(tmpDir, "test-gc-*.test")
+			_, err = fs.TouchTempFile(tmpDir, "test-gc-*.test")
 			require.NoError(t, err)
 
-			err = tmpFile.Close()
-			require.NoError(t, err)
-			tmpFile1, err := fs.TempFile(tmpDir1, "test-gc-*.test")
-			require.NoError(t, err)
-			err = tmpFile1.Close()
+			_, err = fs.TouchTempFile(tmpDir1, "test-gc-*.test")
 			require.NoError(t, err)
 
 			ctime := time.Now()
@@ -906,13 +1024,9 @@ func TestGarbageCollection(t *testing.T) {
 
 			tmpDir3, err := fs.TempDir(tmpDir, "test-gc-")
 			require.NoError(t, err)
-			tmpFile2, err := fs.TempFile(tmpDir3, "test-gc-*.test")
+			tmpFile, err := fs.TouchTempFile(tmpDir3, "test-gc-*.test")
 			require.NoError(t, err)
-			err = tmpFile2.Close()
-			require.NoError(t, err)
-			tmpFile3, err := fs.TempFile(tmpDir2, "test-gc-*.test")
-			require.NoError(t, err)
-			err = tmpFile3.Close()
+			_, err = fs.TouchTempFile(tmpDir2, "test-gc-*.test")
 			require.NoError(t, err)
 
 			files, err := fs.Ls(tmpDir)
@@ -934,7 +1048,7 @@ func TestGarbageCollection(t *testing.T) {
 			files, err = fs.Ls(tmpDir3)
 			require.NoError(t, err)
 			assert.Len(t, files, 1)
-			_, found = collection.Find(&files, filepath.Base(tmpFile2.Name()))
+			_, found = collection.Find(&files, filepath.Base(tmpFile))
 			assert.True(t, found)
 			_ = fs.Rm(tmpDir)
 		})
@@ -967,19 +1081,13 @@ func TestFindAll(t *testing.T) {
 
 			checkNotEmpty(t, fs, tmpDir)
 
-			tmpFile1, err := fs.TempFile(level1, "test-findall-*.test1")
-			require.NoError(t, err)
-			err = tmpFile1.Close()
+			_, err = fs.TouchTempFile(level1, "test-findall-*.test1")
 			require.NoError(t, err)
 
-			tmpFile2, err := fs.TempFile(level2, "test-findall-*.test2")
-			require.NoError(t, err)
-			err = tmpFile2.Close()
+			_, err = fs.TouchTempFile(level2, "test-findall-*.test2")
 			require.NoError(t, err)
 
-			tmpFile3, err := fs.TempFile(level3, "test-findall-*.test3")
-			require.NoError(t, err)
-			err = tmpFile3.Close()
+			_, err = fs.TouchTempFile(level3, "test-findall-*.test3")
 			require.NoError(t, err)
 
 			var tree []string
@@ -1014,14 +1122,12 @@ func TestCopyToFile(t *testing.T) {
 			require.NoError(t, err)
 			assert.True(t, empty)
 
-			tmpFile, err := fs.TempFile(tmpDir, "test-copy-to-file-*.test")
-			require.NoError(t, err)
-			err = tmpFile.Close()
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-copy-to-file-*.test")
 			require.NoError(t, err)
 
 			checkNotEmpty(t, fs, tmpDir)
 
-			empty, err = fs.IsEmpty(tmpFile.Name())
+			empty, err = fs.IsEmpty(tmpFile)
 			require.NoError(t, err)
 			require.True(t, empty, "created file must be empty")
 
@@ -1032,7 +1138,7 @@ func TestCopyToFile(t *testing.T) {
 				t.Run(fmt.Sprintf("copy to file to a non existing file [%v]", destinationFile), func(t *testing.T) {
 					dest := filepath.Join(tmpDir, destinationFile)
 					assert.False(t, fs.Exists(dest))
-					err = fs.CopyToFile(tmpFile.Name(), dest)
+					err = fs.CopyToFile(tmpFile, dest)
 					require.NoError(t, err)
 					assert.True(t, fs.Exists(dest))
 					isFile, err := fs.IsFile(dest)
@@ -1052,7 +1158,7 @@ func TestCopyToFile(t *testing.T) {
 					empty, err = fs.IsEmpty(dest)
 					require.NoError(t, err)
 					assert.False(t, empty)
-					err = fs.CopyToFile(tmpFile.Name(), dest)
+					err = fs.CopyToFile(tmpFile, dest)
 					require.NoError(t, err)
 					assert.True(t, fs.Exists(dest))
 					isFile, err := fs.IsFile(dest)
@@ -1075,7 +1181,7 @@ func TestCopyToFile(t *testing.T) {
 						dest := filepath.Join(tmpDir, destinationFolder) + sep
 						require.NoError(t, fs.Rm(dest))
 						assert.False(t, fs.Exists(dest))
-						err = fs.CopyToFile(tmpFile.Name(), dest)
+						err = fs.CopyToFile(tmpFile, dest)
 						require.Error(t, err)
 						assert.False(t, fs.Exists(dest))
 					})
@@ -1092,14 +1198,14 @@ func TestCopyToFile(t *testing.T) {
 					isDir, err := fs.IsDir(dest)
 					require.NoError(t, err)
 					assert.True(t, isDir)
-					err = fs.CopyToFile(tmpFile.Name(), dest)
+					err = fs.CopyToFile(tmpFile, dest)
 					require.Error(t, err)
 				})
 			}
 			t.Run(fmt.Sprintf("copy to file a folder [%v] should fail", tmpDir), func(t *testing.T) {
 				err = fs.CopyToFile(tmpDir, faker.Word())
 				require.Error(t, err)
-				assert.True(t, commonerrors.Any(err, commonerrors.ErrInvalid))
+				errortest.AssertError(t, err, commonerrors.ErrInvalid)
 			})
 
 			_ = fs.Rm(tmpDir)
@@ -1119,14 +1225,12 @@ func TestCopyToDirectory(t *testing.T) {
 			require.NoError(t, err)
 			assert.True(t, empty)
 
-			tmpFile, err := fs.TempFile(tmpDir, "test-copy-*.test")
-			require.NoError(t, err)
-			err = tmpFile.Close()
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-copy-*.test")
 			require.NoError(t, err)
 
 			checkNotEmpty(t, fs, tmpDir)
 
-			empty, err = fs.IsEmpty(tmpFile.Name())
+			empty, err = fs.IsEmpty(tmpFile)
 			require.NoError(t, err)
 			require.True(t, empty, "created file must be empty")
 
@@ -1141,13 +1245,13 @@ func TestCopyToDirectory(t *testing.T) {
 						dest := filepath.Join(tmpDir, destinationFolder) + sep
 						require.NoError(t, fs.Rm(dest))
 						assert.False(t, fs.Exists(dest))
-						err = fs.CopyToDirectory(tmpFile.Name(), dest)
+						err = fs.CopyToDirectory(tmpFile, dest)
 						require.NoError(t, err)
 						assert.True(t, fs.Exists(dest))
 						isDir, err := fs.IsDir(dest)
 						require.NoError(t, err)
 						assert.True(t, isDir)
-						destFile := filepath.Join(dest, filepath.Base(tmpFile.Name()))
+						destFile := filepath.Join(dest, filepath.Base(tmpFile))
 						assert.True(t, fs.Exists(destFile))
 						isFile, err := fs.IsFile(destFile)
 						require.NoError(t, err)
@@ -1166,9 +1270,9 @@ func TestCopyToDirectory(t *testing.T) {
 					isDir, err := fs.IsDir(dest)
 					require.NoError(t, err)
 					assert.True(t, isDir)
-					err = fs.CopyToDirectory(tmpFile.Name(), dest)
+					err = fs.CopyToDirectory(tmpFile, dest)
 					require.NoError(t, err)
-					destFile := filepath.Join(dest, filepath.Base(tmpFile.Name()))
+					destFile := filepath.Join(dest, filepath.Base(tmpFile))
 					assert.True(t, fs.Exists(destFile))
 					isFile, err := fs.IsFile(destFile)
 					require.NoError(t, err)
@@ -1195,14 +1299,12 @@ func TestCopyFile(t *testing.T) {
 			require.NoError(t, err)
 			assert.True(t, empty)
 
-			tmpFile, err := fs.TempFile(tmpDir, "test-copy-*.test")
-			require.NoError(t, err)
-			err = tmpFile.Close()
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-copy-*.test")
 			require.NoError(t, err)
 
 			checkNotEmpty(t, fs, tmpDir)
 
-			empty, err = fs.IsEmpty(tmpFile.Name())
+			empty, err = fs.IsEmpty(tmpFile)
 			require.NoError(t, err)
 			require.True(t, empty, "created file must be empty")
 
@@ -1213,7 +1315,7 @@ func TestCopyFile(t *testing.T) {
 				t.Run(fmt.Sprintf("copy file to a non existing file [%v]", destinationFile), func(t *testing.T) {
 					dest := filepath.Join(tmpDir, destinationFile)
 					assert.False(t, fs.Exists(dest))
-					err = fs.Copy(tmpFile.Name(), dest)
+					err = fs.Copy(tmpFile, dest)
 					require.NoError(t, err)
 					assert.True(t, fs.Exists(dest))
 					isFile, err := fs.IsFile(dest)
@@ -1233,7 +1335,7 @@ func TestCopyFile(t *testing.T) {
 					empty, err = fs.IsEmpty(dest)
 					require.NoError(t, err)
 					assert.False(t, empty)
-					err = fs.Copy(tmpFile.Name(), dest)
+					err = fs.Copy(tmpFile, dest)
 					require.NoError(t, err)
 					assert.True(t, fs.Exists(dest))
 					isFile, err := fs.IsFile(dest)
@@ -1256,13 +1358,13 @@ func TestCopyFile(t *testing.T) {
 						dest := filepath.Join(tmpDir, destinationFolder) + sep
 						require.NoError(t, fs.Rm(dest))
 						assert.False(t, fs.Exists(dest))
-						err = fs.Copy(tmpFile.Name(), dest)
+						err = fs.Copy(tmpFile, dest)
 						require.NoError(t, err)
 						assert.True(t, fs.Exists(dest))
 						isDir, err := fs.IsDir(dest)
 						require.NoError(t, err)
 						assert.True(t, isDir)
-						destFile := filepath.Join(dest, filepath.Base(tmpFile.Name()))
+						destFile := filepath.Join(dest, filepath.Base(tmpFile))
 						assert.True(t, fs.Exists(destFile))
 						isFile, err := fs.IsFile(destFile)
 						require.NoError(t, err)
@@ -1281,9 +1383,9 @@ func TestCopyFile(t *testing.T) {
 					isDir, err := fs.IsDir(dest)
 					require.NoError(t, err)
 					assert.True(t, isDir)
-					err = fs.Copy(tmpFile.Name(), dest)
+					err = fs.Copy(tmpFile, dest)
 					require.NoError(t, err)
-					destFile := filepath.Join(dest, filepath.Base(tmpFile.Name()))
+					destFile := filepath.Join(dest, filepath.Base(tmpFile))
 					assert.True(t, fs.Exists(destFile))
 					isFile, err := fs.IsFile(destFile)
 					require.NoError(t, err)
@@ -1308,24 +1410,30 @@ func TestCopy(t *testing.T) {
 			require.NoError(t, err)
 			assert.True(t, empty)
 
-			tmpFile, err := fs.TempFile(tmpDir, "test-copy-*.test")
-			require.NoError(t, err)
-			err = tmpFile.Close()
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-copy-*.test")
 			require.NoError(t, err)
 
 			checkNotEmpty(t, fs, tmpDir)
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist"))
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist")+string(fs.PathSeparator()))
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, ".does-not-exist")+string(fs.PathSeparator()))
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist")+"/")
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, ".does-not-exist")+"/")
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, ".does-not-exist"))
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist.file"))
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, ".does-not-exist.file"))
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist", "does-not-exist"))
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist", ".does-not-exist"))
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist", "does-not-exist.file"))
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist", ".does-not-exist.file"))
+			dests := []string{
+				filepath.Join(tmpDir, "does-not-exist"),
+				filepath.Join(tmpDir, "does-not-exist") + string(fs.PathSeparator()),
+				filepath.Join(tmpDir, ".does-not-exist") + string(fs.PathSeparator()),
+				filepath.Join(tmpDir, "does-not-exist") + "/",
+				filepath.Join(tmpDir, ".does-not-exist") + "/",
+				filepath.Join(tmpDir, ".does-not-exist"),
+				filepath.Join(tmpDir, "does-not-exist.file"),
+				filepath.Join(tmpDir, ".does-not-exist.file"),
+				filepath.Join(tmpDir, "does-not-exist", "does-not-exist"),
+				filepath.Join(tmpDir, "does-not-exist", ".does-not-exist"),
+				filepath.Join(tmpDir, "does-not-exist", "does-not-exist.file"),
+				filepath.Join(tmpDir, "does-not-exist", ".does-not-exist.file"),
+			}
+			for i := range dests {
+				dest := dests[i]
+				t.Run(dest, func(t *testing.T) {
+					checkCopy(t, fs, tmpFile, dest)
+				})
+			}
 			_ = fs.Rm(tmpDir)
 		})
 	}
@@ -1343,17 +1451,25 @@ func TestCopyWithExclusion(t *testing.T) {
 			require.NoError(t, err)
 			assert.True(t, empty)
 
-			tmpFile, err := fs.TempFile(tmpDir, "test-copy-*.test")
-			require.NoError(t, err)
-			err = tmpFile.Close()
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-copy-*.test")
 			require.NoError(t, err)
 
 			checkNotEmpty(t, fs, tmpDir)
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "test-copy-with-exclusion-test"), "test-copy-with-exclusion-.*")
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist", "test-copy-with-exclusion-test"), "test-copy-with-exclusion-.*")
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, ".does-not-exist", "test-copy-with-exclusion-test"), "test-copy-with-exclusion-.*")
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "does-not-exist.file", "test-copy-with-exclusion-test"), "test-copy-with-exclusion-.*")
-			checkCopy(t, fs, tmpFile.Name(), filepath.Join(tmpDir, ".does-not-exist.file", "test-copy-with-exclusion-test"), "test-copy-with-exclusion-.*")
+
+			dests := []string{
+				filepath.Join(tmpDir, "test-copy-with-exclusion-test"),
+				filepath.Join(tmpDir, "does-not-exist", "test-copy-with-exclusion-test"),
+				filepath.Join(tmpDir, ".does-not-exist", "test-copy-with-exclusion-test"),
+				filepath.Join(tmpDir, "does-not-exist.file", "test-copy-with-exclusion-test"),
+				filepath.Join(tmpDir, ".does-not-exist.file", "test-copy-with-exclusion-test"),
+			}
+			for i := range dests {
+				dest := dests[i]
+				t.Run(dest, func(t *testing.T) {
+					checkCopy(t, fs, tmpFile, dest, "test-copy-with-exclusion-.*")
+				})
+			}
+
 			_ = fs.Rm(tmpDir)
 		})
 	}
@@ -1500,9 +1616,7 @@ func TestMove(t *testing.T) {
 			require.NoError(t, err)
 			assert.True(t, empty)
 
-			tmpFile, err := fs.TempFile(tmpDir, "test-move-*.test")
-			require.NoError(t, err)
-			err = tmpFile.Close()
+			tmpFile, err := fs.TouchTempFile(tmpDir, "test-move-*.test")
 			require.NoError(t, err)
 
 			testDir := filepath.Join(tmpDir, "testDir")
@@ -1518,11 +1632,11 @@ func TestMove(t *testing.T) {
 			err = fs.MkDir(testDir2)
 			require.NoError(t, err)
 			checkNotEmpty(t, fs, tmpDir)
-			err = fs.Move(tmpFile.Name(), tmpFile.Name())
+			err = fs.Move(tmpFile, tmpFile)
 			require.NoError(t, err)
 			err = fs.Move(testDir, testDir)
 			require.NoError(t, err)
-			checkMove(t, fs, tmpFile.Name(), filepath.Join(tmpDir, "test.test"))
+			checkMove(t, fs, tmpFile, filepath.Join(tmpDir, "test.test"))
 			checkMove(t, fs, testDir, filepath.Join(tmpDir, "testDir3"))
 			_ = fs.Rm(tmpDir)
 		})
@@ -1544,7 +1658,7 @@ func TestReadFile(t *testing.T) {
 	fileName := tmpFile.Name()
 	defer func() { _ = fs.Rm(fileName) }()
 
-	byteOut, err := fs.ReadFile(tmpFile.Name())
+	byteOut, err := fs.ReadFile(fileName)
 	require.NoError(t, err)
 	assert.Equal(t, byteOut, byteInput)
 
@@ -1554,21 +1668,20 @@ func TestReadFile(t *testing.T) {
 
 func TestGetFileSize(t *testing.T) {
 	fs := NewFs(InMemoryFS)
-	tmpFile, err := fs.TempFileInTempDir("test-filesize-")
-	require.NoError(t, err)
-	defer func() { _ = tmpFile.Close() }()
 
+	tmpFile, err := fs.TouchTempFileInTempDir("test-filesize-*.test")
+	require.NoError(t, err)
+	defer func() { _ = fs.Rm(tmpFile) }()
+
+	builder := strings.Builder{}
 	for indx := 0; indx < 50; indx++ {
-		_, _ = tmpFile.WriteString(" Here is a Test string....")
+		builder.WriteString(" Here is a Test string....")
 	}
 
-	err = tmpFile.Close()
+	err = fs.WriteFile(tmpFile, []byte(builder.String()), os.FileMode(0777))
 	require.NoError(t, err)
 
-	fileName := tmpFile.Name()
-	defer func() { _ = fs.Rm(fileName) }()
-
-	size, err := fs.GetFileSize(tmpFile.Name())
+	size, err := fs.GetFileSize(tmpFile)
 	require.NoError(t, err)
 	assert.Equal(t, int64(1.3*sizeUnits.KB), size)
 
@@ -1599,9 +1712,8 @@ func TestSubDirectories(t *testing.T) {
 			require.NoError(t, fs.MkDir(filepath.Join(testInput, "Test.Test")))
 			require.NoError(t, fs.MkDir(filepath.Join(testInput, "CMSIS")))
 			require.NoError(t, fs.MkDir(filepath.Join(testInput, "Tools")))
-			file, err := fs.CreateFile(filepath.Join(testInput, "testfile.ini"))
+			_, err = fs.TouchTempFile(testInput, "test-subdir-*.ini")
 			require.NoError(t, err)
-			require.NoError(t, file.Close())
 
 			dirlist, err = fs.SubDirectories(testInput)
 			assert.NoError(t, err)
@@ -1628,9 +1740,8 @@ func TestSubDirectoriesWithExclusion(t *testing.T) {
 			require.NoError(t, fs.MkDir(filepath.Join(testInput, ".git")))
 			require.NoError(t, fs.MkDir(filepath.Join(testInput, "CMSIS")))
 			require.NoError(t, fs.MkDir(filepath.Join(testInput, "Tools")))
-			file, err := fs.CreateFile(filepath.Join(testInput, "testfile.ini"))
+			_, err = fs.TouchTempFile(testInput, "test-subdirectory-*.ini")
 			require.NoError(t, err)
-			require.NoError(t, file.Close())
 
 			dirlist, err := fs.SubDirectoriesWithContextAndExclusionPatterns(context.TODO(), testInput, ".*CMSIS.*")
 			assert.NoError(t, err)
@@ -1660,9 +1771,7 @@ func TestListDirTree(t *testing.T) {
 			parentDirPath, err := fs.TempDir(testDir, "parentDir-")
 			require.NoError(t, err)
 
-			testFile, err := fs.TempFile(testDir, "test-file-*.test")
-			require.NoError(t, err)
-			err = testFile.Close()
+			tmpFile, err := fs.TouchTempFile(testDir, "test-listdir-*.test")
 			require.NoError(t, err)
 
 			childDirPath, err := fs.TempDir(parentDirPath, "childDir-")
@@ -1681,7 +1790,7 @@ func TestListDirTree(t *testing.T) {
 			parentDir := filepath.Base(parentDirPath)
 			childDir := filepath.Base(childDirPath)
 			gcDir := filepath.Base(gcDirPath)
-			testFileName := filepath.Base(testFile.Name())
+			testFileName := filepath.Base(tmpFile)
 
 			var fileList []string
 			var expectedList = []string{
@@ -1716,9 +1825,7 @@ func TestListDirTreeWithExclusion(t *testing.T) {
 			parentDirPath, err := fs.TempDir(testDir, "parentDir-")
 			require.NoError(t, err)
 
-			testFile, err := fs.TempFile(testDir, "test-file-*.test")
-			require.NoError(t, err)
-			err = testFile.Close()
+			_, err = fs.TouchTempFile(testDir, "test-listdir-*.test")
 			require.NoError(t, err)
 
 			childDirPath, err := fs.TempDir(parentDirPath, "childDir-")
