@@ -77,6 +77,7 @@ func Test_currentEnv_GetEnvironmentVariables(t *testing.T) {
 
 		current := NewCurrentEnvironment()
 		envVars := current.GetEnvironmentVariables(dotenv1.Name(), dotenv2.Name())
+		SortEnvironmentVariables(envVars)
 		assert.Len(t, envVars, 5)
 		assert.False(t, envVars[0].Equal(envVars[1]))
 		assert.True(t, envVars[2].Equal(test3))
