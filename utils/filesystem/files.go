@@ -235,9 +235,7 @@ func (fs *VFS) Lstat(name string) (fileInfo os.FileInfo, err error) {
 	if err != nil {
 		return
 	}
-	if correctobj, ok := fs.vfs.(interface {
-		LstatIfPossible(string) (os.FileInfo, bool, error)
-	}); ok {
+	if correctobj, ok := fs.vfs.(IStater); ok {
 		fileInfo, _, err = correctobj.LstatIfPossible(name)
 		return
 	}
@@ -495,12 +493,35 @@ func (fs *VFS) TempFile(dir string, prefix string) (f File, err error) {
 	return convertToExtendedFile(file, func() error { return nil })
 }
 
+// TouchTempFile creates an empty file in `dir` and returns it filename
+func TouchTempFile(dir string, prefix string) (filename string, err error) {
+	return globalFileSystem.TouchTempFile(dir, prefix)
+}
+
+func (fs *VFS) TouchTempFile(dir string, prefix string) (filename string, err error) {
+	file, err := fs.TempFile(dir, prefix)
+	if file != nil {
+		_ = file.Close()
+		filename = file.Name()
+	}
+	return
+}
+
 func TempFileInTempDir(pattern string) (f File, err error) {
 	return globalFileSystem.TempFileInTempDir(pattern)
 }
 
 func (fs *VFS) TempFileInTempDir(prefix string) (f File, err error) {
 	return fs.TempFile("", prefix)
+}
+
+// TouchTempFileInTempDir creates an empty file in temp directory and returns it filename
+func TouchTempFileInTempDir(prefix string) (filename string, err error) {
+	return globalFileSystem.TouchTempFileInTempDir(prefix)
+}
+
+func (fs *VFS) TouchTempFileInTempDir(prefix string) (filename string, err error) {
+	return fs.TouchTempFile("", prefix)
 }
 
 func CleanDir(dir string) (err error) {
@@ -860,15 +881,31 @@ func (fs *VFS) FindAll(dir string, extensions ...string) (files []string, err er
 	return
 }
 func (fs *VFS) findAllOfExtension(dir string, ext string) (files []string, err error) {
+	files, err = fs.Glob(filepath.Join(dir, "**", fmt.Sprintf("*.%v", strings.TrimPrefix(ext, "."))))
+	return
+}
+
+// Glob returns the names of all files matching pattern with support for "doublestar" (aka globstar: **) patterns
+// You can find the children with patterns such as: **/child*, grandparent/**/child?, **/parent/*, or even just ** by itself (which will return all files and directories recursively).
+func Glob(pattern string) ([]string, error) {
+	return GetGlobalFileSystem().Glob(pattern)
+}
+
+func (fs *VFS) Glob(pattern string) (matches []string, err error) {
 	err = fs.checkWhetherUnderlyingResourceIsClosed()
 	if err != nil {
 		return
 	}
-	files, err = doublestar.GlobOS(fs, filepath.Join(dir, "**", fmt.Sprintf("*.%v", strings.TrimPrefix(ext, "."))))
+	matches, err = doublestar.GlobOS(fs, pattern)
 	if commonerrors.Any(err, doublestar.ErrBadPattern) {
 		err = fmt.Errorf("%w: %v", commonerrors.ErrInvalid, err.Error())
 	}
 	return
+}
+
+// Chmod changes the file mode of a filesystem item.
+func Chmod(name string, mode os.FileMode) error {
+	return GetGlobalFileSystem().Chmod(name, mode)
 }
 
 func (fs *VFS) Chmod(name string, mode os.FileMode) (err error) {
@@ -877,6 +914,50 @@ func (fs *VFS) Chmod(name string, mode os.FileMode) (err error) {
 		return
 	}
 	err = fs.vfs.Chmod(name, mode)
+	return
+}
+
+func (fs *VFS) ChmodRecursively(ctx context.Context, path string, mode os.FileMode) (err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+	if isFile, _ := fs.IsFile(path); isFile {
+		err = fs.Chmod(path, mode)
+		return
+	}
+	err = fs.WalkWithContext(ctx, path, func(subPath string, info os.FileInfo, subErr error) error {
+		if subErr != nil {
+			return subErr
+		}
+		return fs.Chmod(subPath, mode)
+	})
+	return
+}
+
+func (fs *VFS) Touch(path string) (err error) {
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return
+	}
+	if fs.Exists(path) {
+		now := time.Now().UTC()
+		err = fs.Chtimes(path, now, now)
+		return
+	}
+	if strings.TrimSpace(path) == "" {
+		err = fmt.Errorf("%w: empty path", commonerrors.ErrUndefined)
+		return
+	}
+	if EndsWithPathSeparator(fs, path) {
+		err = fs.MkDir(path)
+		return
+	}
+	file, err := fs.CreateFile(path)
+	if file != nil {
+		_ = file.Close()
+	}
+
 	return
 }
 
@@ -904,14 +985,51 @@ func (fs *VFS) ChangeOwnership(name string, owner *user.User) error {
 	return fs.Chown(name, uid, gid)
 }
 
+func (fs *VFS) ChangeOwnershipRecursively(ctx context.Context, path string, owner *user.User) (err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+	if isFile, _ := fs.IsFile(path); isFile {
+		err = fs.ChangeOwnership(path, owner)
+		return
+	}
+	if owner == nil {
+		return fmt.Errorf("%w: missing user definition", commonerrors.ErrUndefined)
+	}
+	err = fs.WalkWithContext(ctx, path, func(subPath string, info os.FileInfo, subErr error) error {
+		if subErr != nil {
+			return subErr
+		}
+		return fs.ChangeOwnership(subPath, owner)
+	})
+	return
+}
+
+func (fs *VFS) ChownRecursively(ctx context.Context, path string, uid, gid int) (err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+	if isFile, _ := fs.IsFile(path); isFile {
+		err = fs.Chown(path, uid, gid)
+		return
+	}
+	err = fs.WalkWithContext(ctx, path, func(subPath string, info os.FileInfo, subErr error) error {
+		if subErr != nil {
+			return subErr
+		}
+		return fs.Chown(subPath, uid, gid)
+	})
+	return
+}
+
 func (fs *VFS) Chown(name string, uid, gid int) (err error) {
 	err = fs.checkWhetherUnderlyingResourceIsClosed()
 	if err != nil {
 		return
 	}
-	if correctobj, ok := fs.vfs.(interface {
-		ChownIfPossible(string, int, int) error
-	}); ok {
+	if correctobj, ok := fs.vfs.(IChowner); ok {
 		err = correctobj.ChownIfPossible(name, uid, gid)
 		return
 	}
@@ -957,9 +1075,7 @@ func (fs *VFS) Link(oldname, newname string) (err error) {
 	if err != nil {
 		return
 	}
-	if correctobj, ok := fs.vfs.(interface {
-		LinkIfPossible(string, string) error
-	}); ok {
+	if correctobj, ok := fs.vfs.(ILinker); ok {
 		err = correctobj.LinkIfPossible(oldname, newname)
 		return
 	}
@@ -972,9 +1088,7 @@ func (fs *VFS) Readlink(name string) (value string, err error) {
 	if err != nil {
 		return
 	}
-	if correctobj, ok := fs.vfs.(interface {
-		ReadlinkIfPossible(string) (string, error)
-	}); ok {
+	if correctobj, ok := fs.vfs.(ILinkReader); ok {
 		value, err = correctobj.ReadlinkIfPossible(name)
 		return
 	}
@@ -987,9 +1101,7 @@ func (fs *VFS) Symlink(oldname string, newname string) (err error) {
 	if err != nil {
 		return
 	}
-	if correctobj, ok := fs.vfs.(interface {
-		SymlinkIfPossible(string, string) error
-	}); ok {
+	if correctobj, ok := fs.vfs.(ISymLinker); ok {
 		err = correctobj.SymlinkIfPossible(oldname, newname)
 		return
 	}
@@ -1287,7 +1399,7 @@ func (fs *VFS) CopyToFileWithContext(ctx context.Context, src string, dest strin
 			err = fmt.Errorf("%w: the copy destination [%v] must be a file", commonerrors.ErrInvalid, dest)
 			return
 		}
-	} else if reflection.IsEmpty(dest) || strings.HasSuffix(dest, "/") || strings.HasSuffix(dest, string(fs.PathSeparator())) {
+	} else if reflection.IsEmpty(dest) || EndsWithPathSeparator(fs, dest) {
 		err = fmt.Errorf("%w: the copy destination [%v] must be a valid filename", commonerrors.ErrInvalid, dest)
 		return
 	}

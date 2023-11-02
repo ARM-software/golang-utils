@@ -15,7 +15,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/config"
 )
 
-//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IFileHash,Chowner,Linker,File,DiskUsage,FileTimeInfo,ILock,ILimits,FS,ICloseableFS,IForceRemover
+//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IFileHash,IChowner,ILinker,File,DiskUsage,FileTimeInfo,ILock,ILimits,FS,ICloseableFS,IForceRemover,IStater,ILinkReader,ISymLinker
 
 // IFileHash defines a file hash.
 // For reference.
@@ -35,18 +35,37 @@ type IForceRemover interface {
 	ForceRemoveIfPossible(name string) error
 }
 
-// Chowner is an Optional interface. It is only implemented by the
+// IChowner is an Optional interface. It is only implemented by the
 // filesystems saying so.
-type Chowner interface {
-	// Chown will change the file ownership
+type IChowner interface {
+	// ChownIfPossible will change the file ownership
 	ChownIfPossible(name string, uid int, gid int) error
 }
 
-// Linker is an Optional  interface. It is only implemented by the
+// ILinker is an Optional interface. It is only implemented by the
 // filesystems saying so.
-type Linker interface {
+type ILinker interface {
 	// LinkIfPossible creates a hard link between oldname and new name.
 	LinkIfPossible(oldname, newname string) error
+}
+
+// ILinkReader is an Optional interface. It is only implemented by the
+// filesystems saying so.
+type ILinkReader interface {
+	ReadlinkIfPossible(string) (string, error)
+}
+
+// IStater is an Optional interface. It is only implemented by the
+// filesystems saying so.
+type IStater interface {
+	// LstatIfPossible returns file information about an item.
+	LstatIfPossible(string) (os.FileInfo, bool, error)
+}
+
+// ISymLinker is an Optional interface. It is only implemented by the
+// filesystems saying so.
+type ISymLinker interface {
+	SymlinkIfPossible(string, string) error
 }
 
 type File interface {
@@ -166,6 +185,8 @@ type FS interface {
 	MkDirAll(dir string, perm os.FileMode) (err error)
 	// ExcludeAll returns the list without the path matching the exclusion patterns.
 	ExcludeAll(files []string, exclusionPatterns ...string) ([]string, error)
+	// Glob returns the paths of all files matching pattern with support for "doublestar" (aka globstar: **) patterns.
+	Glob(pattern string) ([]string, error)
 	// FindAll finds all the files with extensions
 	FindAll(dir string, extensions ...string) (files []string, err error)
 	// Walk walks  the file tree rooted at root, calling fn for each file or
@@ -214,8 +235,12 @@ type FS interface {
 	TempDirInTempDir(prefix string) (name string, err error)
 	// TempFile creates a temp file
 	TempFile(dir string, pattern string) (f File, err error)
+	// TouchTempFile creates an empty temporary file in dir and returns its path.
+	TouchTempFile(dir string, pattern string) (filename string, err error)
 	// TempFileInTempDir creates a temp file in temp directory.
 	TempFileInTempDir(pattern string) (f File, err error)
+	// TouchTempFileInTempDir creates an empty temporary  in temp directory and returns its path.
+	TouchTempFileInTempDir(pattern string) (filename string, err error)
 	// TempDirectory returns the temp directory.
 	TempDirectory() string
 	// CurrentDirectory returns current directory.
@@ -248,12 +273,18 @@ type FS interface {
 	GarbageCollectWithContext(ctx context.Context, root string, durationSinceLastAccess time.Duration) error
 	// Chmod changes the mode of the named file to mode.
 	Chmod(name string, mode os.FileMode) error
+	// ChmodRecursively changes the mode of anything within the `path`.
+	ChmodRecursively(ctx context.Context, path string, mode os.FileMode) error
 	// Chtimes changes the access and modification times of the named file
 	Chtimes(name string, atime time.Time, mtime time.Time) error
 	// Chown changes the numeric uid and gid of the named file.
 	Chown(name string, uid, gid int) error
+	// ChownRecursively changes recursively the numeric uid and gid of any sub items of `path`.
+	ChownRecursively(ctx context.Context, path string, uid, gid int) error
 	// ChangeOwnership changes the ownership of the named file.
 	ChangeOwnership(name string, owner *user.User) error
+	// ChangeOwnershipRecursively changes the ownership anything within the path.
+	ChangeOwnershipRecursively(ctx context.Context, path string, owner *user.User) error
 	// FetchOwners returns the numeric uid and gid of the named file
 	FetchOwners(name string) (uid, gid int, err error)
 	// FetchFileOwner returns the owner of the named file.
@@ -275,6 +306,8 @@ type FS interface {
 	// SubDirectoriesWithContextAndExclusionPatterns returns a list of all subdirectories but ignores any file matching the exclusion pattern.
 	// Note: all folders are returned whether they are hidden or not unless matching an exclusion pattern.
 	SubDirectoriesWithContextAndExclusionPatterns(ctx context.Context, directory string, exclusionPatterns ...string) ([]string, error)
+	// Touch is a command used to update the access date and/or modification date of a computer file or directory (equivalent to posix touch).
+	Touch(path string) error
 	// ListDirTree lists the content of directory recursively
 	ListDirTree(dirPath string, list *[]string) error
 	// ListDirTreeWithContext lists the content of directory recursively
