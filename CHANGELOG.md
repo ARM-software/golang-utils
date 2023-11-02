@@ -14,6 +14,23 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.54.0" (2023-11-02)
+=====================
+
+Features
+--------
+
+- :sparkles: [`filesystem`] Add recursive methods for changing mode and ownership (#20231101113816)
+- :sparkles: [`filesystem`] Add `Touch` function to create empty files (#20231101113838)
+- :sparkles: [`filesystem`] Add `Glob` function to search for items which names match a glob pattern (#20231101113928)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v3-3.23.10 (#20231101111226)
+
+
 "1.53.0" (2023-10-30)
 =====================
 
