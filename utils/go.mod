@@ -6,7 +6,7 @@ require (
 	github.com/OneOfOne/xxhash v1.2.8
 	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/bmatcuk/doublestar/v3 v3.0.0
-	github.com/bombsimon/logrusr/v4 v4.0.0
+	github.com/bombsimon/logrusr/v4 v4.1.0
 	github.com/bxcodec/faker/v3 v3.8.1
 	github.com/deckarep/golang-set v1.8.0
 	github.com/djherbis/times v1.6.0
@@ -45,7 +45,7 @@ require (
 	golang.org/x/crypto v0.15.0
 	golang.org/x/exp v0.0.0-20230728194245-b0cb94b80691
 	golang.org/x/net v0.17.0
-	golang.org/x/sync v0.4.0
+	golang.org/x/sync v0.5.0
 	golang.org/x/sys v0.14.0
 	golang.org/x/text v0.14.0
 )
