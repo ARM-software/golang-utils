@@ -16,7 +16,7 @@ require (
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
 	github.com/go-logr/logr v1.3.0
 	github.com/go-logr/stdr v1.2.2
-	github.com/go-logr/zapr v1.2.4
+	github.com/go-logr/zapr v1.3.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f
