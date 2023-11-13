@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.56.0" (2023-11-13)
+=====================
+
+Features
+--------
+
+- :sparkles: [`logs`] Add a `logr.Logger` quiet logger to only log errors (#20231113111138)
+
+
 "1.55.0" (2023-11-13)
 =====================
 
