@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.55.0" (2023-11-13)
+=====================
+
+Features
+--------
+
+- `[logs]` Allow logrusr options to be set in NewLogrusLogger (#20231112110816)
+
+
 "1.54.1" (2023-11-10)
 =====================
 
