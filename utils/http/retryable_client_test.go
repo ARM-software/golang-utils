@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 	"go.uber.org/goleak"
+	"golang.org/x/oauth2"
 
 	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/http/httptest"
@@ -80,6 +81,11 @@ func TestClient_Delete_Backoff(t *testing.T) {
 			token:           field.ToOptionalString("test-token"),
 			retryableClient: NewConfigurableRetryableOauthClient(DefaultRobustHTTPClientConfigurationWithRetryAfter(), "test-token "),
 			clientName:      "custom oauth client with retry after but no backoff",
+		},
+		{
+			token:           field.ToOptionalString("test-token"),
+			retryableClient: NewConfigurableRetryableOauthClientWithToken(DefaultRobustHTTPClientConfigurationWithRetryAfter(), &oauth2.Token{AccessToken: "test-token"}),
+			clientName:      "custom oauth client with retry after but no backoff using oauth2.Token",
 		},
 	}
 	for i := range tests {
@@ -176,6 +182,11 @@ func TestClient_Get_Fail_Timeout(t *testing.T) {
 			token:           field.ToOptionalString("test-token"),
 			retryableClient: NewConfigurableRetryableOauthClient(DefaultRobustHTTPClientConfigurationWithRetryAfter(), "test-token "),
 			clientName:      "custom oauth client with retry after but no backoff",
+		},
+		{
+			token:           field.ToOptionalString("test-token"),
+			retryableClient: NewConfigurableRetryableOauthClientWithToken(DefaultRobustHTTPClientConfigurationWithRetryAfter(), &oauth2.Token{AccessToken: "test-token"}),
+			clientName:      "custom oauth client with retry after but no backoff using oauth2.Token",
 		},
 	}
 	for i := range tests {
