@@ -15,7 +15,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 	"go.uber.org/goleak"
+	"golang.org/x/oauth2"
 
+	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/http/httptest"
 	"github.com/ARM-software/golang-utils/utils/logs/logstest"
 )
@@ -27,6 +29,7 @@ func TestClient_Delete_Backoff(t *testing.T) {
 	tests := []struct {
 		retryableClient IClient
 		clientName      string
+		token           *string
 	}{
 		{
 			retryableClient: NewRetryableClient(),
@@ -64,6 +67,26 @@ func TestClient_Delete_Backoff(t *testing.T) {
 			}(), testLogger),
 			clientName: "client with linear backoff but no retry-after",
 		},
+		{
+			token:           field.ToOptionalString("test-token"),
+			retryableClient: NewRetryableOauthClient("test-token"),
+			clientName:      "default client with oath",
+		},
+		{
+			token:           field.ToOptionalString("test-token"),
+			retryableClient: NewConfigurableRetryableOauthClientWithLogger(DefaultRobustHTTPClientConfiguration(), testLogger, "test-token"),
+			clientName:      "custom oauth client with retry but no backoff",
+		},
+		{
+			token:           field.ToOptionalString("test-token"),
+			retryableClient: NewConfigurableRetryableOauthClient(DefaultRobustHTTPClientConfigurationWithRetryAfter(), "test-token "),
+			clientName:      "custom oauth client with retry after but no backoff",
+		},
+		{
+			token:           field.ToOptionalString("test-token"),
+			retryableClient: NewConfigurableRetryableOauthClientWithToken(DefaultRobustHTTPClientConfigurationWithRetryAfter(), &oauth2.Token{AccessToken: "test-token"}),
+			clientName:      "custom oauth client with retry after but no backoff using oauth2.Token",
+		},
 	}
 	for i := range tests {
 		test := tests[i]
@@ -77,6 +100,9 @@ func TestClient_Delete_Backoff(t *testing.T) {
 			counter := atomic.NewInt32(0)
 			// Mock server which returns an error on first attempt.
 			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if test.token != nil {
+					require.Equal(t, fmt.Sprintf("Bearer %v", *test.token), r.Header.Get(headers.Authorization))
+				}
 				require.Equal(t, r.Method, http.MethodDelete)
 				require.Equal(t, r.RequestURI, "/foo/bar")
 				if counter.Inc() == int32(1) {
@@ -120,6 +146,7 @@ func TestClient_Get_Fail_Timeout(t *testing.T) {
 	tests := []struct {
 		retryableClient IClient
 		clientName      string
+		token           *string
 	}{
 		{
 			retryableClient: NewRetryableClient(),
@@ -141,6 +168,26 @@ func TestClient_Get_Fail_Timeout(t *testing.T) {
 			retryableClient: NewConfigurableRetryableClient(DefaultRobustHTTPClientConfigurationWithLinearBackOff()),
 			clientName:      "client with linear backoff",
 		},
+		{
+			token:           field.ToOptionalString("test-token"),
+			retryableClient: NewRetryableOauthClient("test-token"),
+			clientName:      "custom oauth retryablehttp default client with oath",
+		},
+		{
+			token:           field.ToOptionalString("test-token"),
+			retryableClient: NewConfigurableRetryableOauthClient(DefaultRobustHTTPClientConfiguration(), "test-token"),
+			clientName:      "custom oauth client with retry but no backoff",
+		},
+		{
+			token:           field.ToOptionalString("test-token"),
+			retryableClient: NewConfigurableRetryableOauthClient(DefaultRobustHTTPClientConfigurationWithRetryAfter(), "test-token "),
+			clientName:      "custom oauth client with retry after but no backoff",
+		},
+		{
+			token:           field.ToOptionalString("test-token"),
+			retryableClient: NewConfigurableRetryableOauthClientWithToken(DefaultRobustHTTPClientConfigurationWithRetryAfter(), &oauth2.Token{AccessToken: "test-token"}),
+			clientName:      "custom oauth client with retry after but no backoff using oauth2.Token",
+		},
 	}
 	for i := range tests {
 		test := tests[i]
@@ -153,6 +200,9 @@ func TestClient_Get_Fail_Timeout(t *testing.T) {
 
 			// Mock server which always responds 200.
 			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if test.token != nil {
+					require.Equal(t, fmt.Sprintf("Bearer %v", *test.token), r.Header.Get(headers.Authorization))
+				}
 				require.Equal(t, r.Method, http.MethodGet)
 				require.Equal(t, r.RequestURI, "/foo/bar")
 				// The request fails
