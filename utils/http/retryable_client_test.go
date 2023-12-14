@@ -69,17 +69,17 @@ func TestClient_Delete_Backoff(t *testing.T) {
 		{
 			token:           field.ToOptionalString("test-token"),
 			retryableClient: NewRetryableOauthClient("test-token"),
-			clientName:      "retryablehttp default client with oath",
+			clientName:      "default client with oath",
 		},
 		{
 			token:           field.ToOptionalString("test-token"),
 			retryableClient: NewConfigurableRetryableOauthClientWithLogger(DefaultRobustHTTPClientConfiguration(), testLogger, "test-token"),
-			clientName:      "client with retry but no backoff",
+			clientName:      "custom oauth client with retry but no backoff",
 		},
 		{
 			token:           field.ToOptionalString("test-token"),
 			retryableClient: NewConfigurableRetryableOauthClient(DefaultRobustHTTPClientConfigurationWithRetryAfter(), "test-token "),
-			clientName:      "client with retry after but no backoff",
+			clientName:      "custom oauth client with retry after but no backoff",
 		},
 	}
 	for i := range tests {
@@ -165,17 +165,17 @@ func TestClient_Get_Fail_Timeout(t *testing.T) {
 		{
 			token:           field.ToOptionalString("test-token"),
 			retryableClient: NewRetryableOauthClient("test-token"),
-			clientName:      "retryablehttp default client with oath",
+			clientName:      "custom oauth retryablehttp default client with oath",
 		},
 		{
 			token:           field.ToOptionalString("test-token"),
 			retryableClient: NewConfigurableRetryableOauthClient(DefaultRobustHTTPClientConfiguration(), "test-token"),
-			clientName:      "client with retry but no backoff",
+			clientName:      "custom oauth client with retry but no backoff",
 		},
 		{
 			token:           field.ToOptionalString("test-token"),
 			retryableClient: NewConfigurableRetryableOauthClient(DefaultRobustHTTPClientConfigurationWithRetryAfter(), "test-token "),
-			clientName:      "client with retry after but no backoff",
+			clientName:      "custom oauth client with retry after but no backoff",
 		},
 	}
 	for i := range tests {
