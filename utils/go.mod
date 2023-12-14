@@ -12,7 +12,7 @@ require (
 	github.com/djherbis/times v1.6.0
 	github.com/dolmen-go/contextio v1.0.0
 	github.com/evanphx/hclogr v0.2.0
-	github.com/go-git/go-git/v5 v5.10.1
+	github.com/go-git/go-git/v5 v5.11.0
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
 	github.com/go-logr/logr v1.3.0
 	github.com/go-logr/stdr v1.2.2
@@ -22,7 +22,7 @@ require (
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f
 	github.com/golang/mock v1.6.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
-	github.com/hashicorp/go-hclog v1.5.0
+	github.com/hashicorp/go-hclog v1.6.1
 	github.com/hashicorp/go-retryablehttp v0.7.5
 	github.com/iamacarpet/go-win64api v0.0.0-20230324134531-ef6dbdd6db97
 	github.com/joho/godotenv v1.5.1
