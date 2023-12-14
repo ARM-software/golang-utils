@@ -14,6 +14,27 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.57.0" (2023-12-14)
+=====================
+
+Features
+--------
+
+- :sparkles: [`http`] Add support for using a custom HTTP client as the base for the retryable HTTP client (#20231214113956)
+- :sparkles: [`http`] Add NewRetryableOauthClient for creating a retryable client with OAuth2 token headers (#20231214114035)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: go-hclog-1.6.1 (#20231205115603, #20231205115604)
+- Dependency upgrade: viper-1.18.0 (#20231207114443)
+- Dependency upgrade: setup-go-5 (#20231207115845, #20231207115850, #20231207115920, #20231207115931, #20231207115948, #20231207120002, #20231207120018, #20231207120030, #20231207120048, #20231207120102, #20231207120120, #20231207120136, #20231207120153, #20231207120206, #20231207120220, #20231207120242, #20231207120251, #20231207120311, #20231207120323, #20231207120343, #20231207120352, #20231207120412, #20231207120421, #20231207120442, #20231207120455, #20231207120524, #20231207120529, #20231207120644)
+- Dependency upgrade: setup-python-5 (#20231207115854)
+- Dependency upgrade: v5-5.11.0 (#20231211114542, #20231211114544)
+- Dependency upgrade: codeql-action-3 (#20231214112333, #20231214112339, #20231214112408)
+
+
 "1.56.1" (2023-12-04)
 =====================
 
