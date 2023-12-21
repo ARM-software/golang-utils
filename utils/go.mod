@@ -14,7 +14,7 @@ require (
 	github.com/evanphx/hclogr v0.2.0
 	github.com/go-git/go-git/v5 v5.11.0
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
-	github.com/go-logr/logr v1.3.0
+	github.com/go-logr/logr v1.4.0
 	github.com/go-logr/stdr v1.2.2
 	github.com/go-logr/zapr v1.3.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
