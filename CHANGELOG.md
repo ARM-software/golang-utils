@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.58.0" (2024-01-04)
+=====================
+
+Features
+--------
+
+- :sparkles: `[filesystem]` Add validation rules to verify if a value is a valid path (#20240104152047)
+
+
 "1.57.3" (2024-01-02)
 =====================
 
