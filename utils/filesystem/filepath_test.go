@@ -3,11 +3,15 @@ package filesystem
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/bxcodec/faker/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
 
 func TestFilepathStem(t *testing.T) {
@@ -116,4 +120,70 @@ func TestEndsWithPathSeparator(t *testing.T) {
 			assert.False(t, EndsWithPathSeparator(fs, filepath.Join(faker.DomainName(), "test fsdfs .fsdffs "+string(fs.PathSeparator()))), "join should trim the tailing separator")
 		})
 	}
+}
+
+func TestNewPathExistRule(t *testing.T) {
+	t.Run("disable", func(t *testing.T) {
+		err := NewOSPathExistRule(false).Validate(faker.URL())
+		require.NoError(t, err)
+	})
+	t.Run("happy existing path", func(t *testing.T) {
+		require.NoError(t, NewOSPathExistRule(true).Validate(TempDirectory()))
+		testDir, err := TempDirInTempDir("test-path-rule-")
+		require.NoError(t, err)
+		defer func() { _ = Rm(testDir) }()
+		require.NoError(t, NewOSPathExistRule(true).Validate(testDir))
+		testFile, err := TouchTempFile(testDir, "test-file*.test")
+		require.NoError(t, err)
+		require.NoError(t, NewOSPathExistRule(true).Validate(testFile))
+	})
+	t.Run("non-existent path but valid", func(t *testing.T) {
+		err := NewOSPathExistRule(true).Validate(strings.ReplaceAll(faker.Sentence(), " ", "/"))
+		require.Error(t, err)
+		errortest.AssertError(t, err, commonerrors.ErrNotFound)
+		err = NewOSPathValidationRule(true).Validate(strings.ReplaceAll(faker.Sentence(), " ", "/"))
+		require.NoError(t, err)
+		err = NewOSPathExistRule(true).Validate(faker.URL())
+		require.Error(t, err)
+		errortest.AssertError(t, err, commonerrors.ErrNotFound)
+		err = NewOSPathValidationRule(true).Validate(faker.URL())
+		require.NoError(t, err)
+	})
+
+	t.Run("invalid paths", func(t *testing.T) {
+		tests := []struct {
+			entry         any
+			expectedError []error
+		}{
+			{
+				entry:         nil,
+				expectedError: []error{commonerrors.ErrUndefined, commonerrors.ErrInvalid},
+			},
+			{
+				entry:         "                  ",
+				expectedError: []error{commonerrors.ErrUndefined, commonerrors.ErrInvalid},
+			},
+			{
+				entry:         123,
+				expectedError: []error{commonerrors.ErrInvalid},
+			},
+			{
+				entry:         fmt.Sprintf("%v\n%v\n%v", faker.Paragraph(), faker.Paragraph(), faker.Sentence()),
+				expectedError: []error{commonerrors.ErrInvalid},
+			},
+		}
+		for i := range tests {
+			test := tests[i]
+			t.Run(fmt.Sprintf("%v", test.entry), func(t *testing.T) {
+				err := NewOSPathValidationRule(true).Validate(test.entry)
+				require.Error(t, err)
+				errortest.AssertError(t, err, test.expectedError...)
+				err = NewOSPathExistRule(true).Validate(test.entry)
+				require.Error(t, err)
+				errortest.AssertError(t, err, test.expectedError...)
+			})
+		}
+
+	})
+
 }
