@@ -73,6 +73,8 @@ func (r *pathValidationRule) Validate(value interface{}) error {
 		return fmt.Errorf("%w: path [%v] must be a string: %v", commonerrors.ErrInvalid, value, err.Error())
 	}
 	pathString = strings.TrimSpace(pathString)
+	// This check is here because it validates the path on any platform (it is a cross-platform check)
+	// Indeed if the path exists, then it can only be valid.
 	if r.filesystem.Exists(pathString) {
 		return nil
 	}
@@ -81,14 +83,18 @@ func (r *pathValidationRule) Validate(value interface{}) error {
 	if pathString == "" {
 		return fmt.Errorf("%w: the path [%v] is empty", commonerrors.ErrUndefined, value)
 	}
+	// This check is to catch errors on Linux. It does not work as well on Windows.
 	if _, err := r.filesystem.Stat(pathString); err != nil {
 		switch t := err.(type) {
 		case *fs.PathError:
 			if t.Err == syscall.EINVAL {
 				return fmt.Errorf("%w: the path [%v] has invalid characters: %v", commonerrors.ErrInvalid, value, err.Error())
 			}
+		default:
+			// make the linter happy
 		}
 	}
+	// The following case is not caught on Windows by the check above.
 	if strings.Contains(pathString, "\n") {
 		return fmt.Errorf("%w: the path [%v] has carriage returns characters", commonerrors.ErrInvalid, value)
 	}
