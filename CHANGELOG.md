@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.59.0" (2024-01-18)
+=====================
+
+Features
+--------
+
+- :sparkles: `[filesystem]` Add a way to convert `filesystem.File` to `*os.File` for legacy functions which have not moved to using `fs.File` (#20240118145043)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: upload-artifact-4.1.0 (#20240115110713, #20240115110715)
+- Dependency upgrade: cache-4 (#20240118113611, #20240118113618, #20240118113643, #20240118113652, #20240118113722, #20240118113725, #20240118113752, #20240118113756, #20240118113825)
+
+
 "1.58.1" (2024-01-09)
 =====================
 
