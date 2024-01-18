@@ -1887,3 +1887,12 @@ func convertToExtendedFile(file afero.File, onCloseCallBack func() error) (File,
 		onCloseCallBack: onCloseCallBack,
 	}, nil
 }
+
+// ConvertToOSFile converts a file to a `os` implementation of a file for certain use-cases where functions have not moved to using `fs.File`.
+func ConvertToOSFile(f File) (osFile *os.File) {
+	if f == nil {
+		return
+	}
+	osFile = os.NewFile(f.Fd(), f.Name())
+	return
+}

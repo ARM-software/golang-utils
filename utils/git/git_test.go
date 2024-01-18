@@ -142,7 +142,7 @@ func getValidBlobHash(tree *object.Tree) (blobHash plumbing.Hash, err error) {
 			return
 		}
 	}
-	err = commonerrors.ErrNotFound
+	blobHash = tree.Hash
 	return
 }
 

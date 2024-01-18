@@ -5,9 +5,11 @@
 package filesystem
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -2003,4 +2005,28 @@ func testFileMode(t *testing.T, fs FS, filePath string, mode int) {
 	} else {
 		assert.Equal(t, mode, int(fi.Mode().Perm()))
 	}
+}
+
+func TestConvertToOSFile(t *testing.T) {
+	temp := t.TempDir()
+	file, err := TempFile(temp, "test-file-convert-.test")
+	require.NoError(t, err)
+	defer func() { _ = file.Close() }()
+	osFile := ConvertToOSFile(file)
+	require.NotNil(t, osFile)
+	text := fmt.Sprintf("test some file data; %v", faker.Paragraph())
+	_, err = safeio.CopyDataWithContext(context.TODO(), bytes.NewReader([]byte(text)), osFile)
+	require.NoError(t, err)
+	require.NoError(t, osFile.Close())
+	require.Error(t, file.Close(), "file must already be closed")
+	rFile, err := GenericOpen(file.Name())
+	require.NoError(t, err)
+	defer func() { _ = rFile.Close() }()
+	osFile = ConvertToOSFile(rFile)
+	defer func() { _ = osFile.Close() }()
+	content, err := io.ReadAll(osFile)
+	require.NoError(t, err)
+	assert.Equal(t, text, string(content))
+	require.NoError(t, osFile.Close())
+	require.Error(t, rFile.Close(), "file must already be closed")
 }
