@@ -88,7 +88,10 @@ func TestMain(m *testing.M) {
 	// Get a valid blob
 	blobHash, err := getValidBlobHash(tree)
 	if err != nil {
-		log.Panic(err)
+		if commonerrors.Any(err, commonerrors.ErrNotFound) {
+			log.Println("Cannot find a valid blob: ", err)
+			return
+		}
 	}
 	validBlobHash = blobHash
 
@@ -142,7 +145,7 @@ func getValidBlobHash(tree *object.Tree) (blobHash plumbing.Hash, err error) {
 			return
 		}
 	}
-	blobHash = tree.Hash
+	err = commonerrors.ErrNotFound
 	return
 }
 
