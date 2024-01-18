@@ -2025,6 +2025,7 @@ func TestConvertToOSFile(t *testing.T) {
 	osFile = ConvertToOSFile(rFile)
 	defer func() { _ = osFile.Close() }()
 	content, err := io.ReadAll(osFile)
+	require.NoError(t, err)
 	assert.Equal(t, text, string(content))
 	require.NoError(t, osFile.Close())
 	require.Error(t, rFile.Close(), "file must already be closed")
