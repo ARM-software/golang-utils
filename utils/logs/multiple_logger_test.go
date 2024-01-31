@@ -5,6 +5,8 @@
 package logs
 
 import (
+	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -71,5 +73,38 @@ func TestMultipleLoggers(t *testing.T) {
 	assert.False(t, empty)
 
 	err = filesystem.Rm(file.Name())
+	require.NoError(t, err)
+
+	// Concurrency test multiple loggers
+
+	stdLogger, err := NewStdLogger("Test std logger")
+	require.NoError(t, err)
+
+	stringLogger, err := NewPlainStringLogger()
+	if err != nil {
+		return
+	}
+	mLoggers, err := NewCombinedLoggers(stdLogger, stringLogger)
+	if err != nil {
+		return
+	}
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 100; i++ {
+			mLoggers.Log(fmt.Sprintf("Test output %v", i))
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 100; i++ {
+			mLoggers.LogError(fmt.Sprintf("Test output %v", i))
+		}
+	}()
+
+	wg.Wait()
+	err = loggers.Close()
 	require.NoError(t, err)
 }
