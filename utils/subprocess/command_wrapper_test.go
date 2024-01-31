@@ -55,9 +55,9 @@ func TestCmdRun(t *testing.T) {
 			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
 			require.NoError(t, err)
 			if platform.IsWindows() {
-				cmd = newCommand(loggers, commandUtils.Me(), test.cmdWindows, test.argWindows...)
+				cmd = newCommand(loggers, commandUtils.Me(), nil, test.cmdWindows, test.argWindows...)
 			} else {
-				cmd = newCommand(loggers, commandUtils.Me(), test.cmdOther, test.argOther...)
+				cmd = newCommand(loggers, commandUtils.Me(), nil, test.cmdOther, test.argOther...)
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
@@ -110,9 +110,9 @@ func TestCmdStartStop(t *testing.T) {
 			require.NoError(t, err)
 
 			if platform.IsWindows() {
-				cmd = newCommand(loggers, commandUtils.Me(), test.cmdWindows, test.argWindows...)
+				cmd = newCommand(loggers, commandUtils.Me(), nil, test.cmdWindows, test.argWindows...)
 			} else {
-				cmd = newCommand(loggers, commandUtils.Me(), test.cmdOther, test.argOther...)
+				cmd = newCommand(loggers, commandUtils.Me(), nil, test.cmdOther, test.argOther...)
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
