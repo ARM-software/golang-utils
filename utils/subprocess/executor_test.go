@@ -236,6 +236,7 @@ func TestOutput(t *testing.T) {
 		cmdOther     string
 		argOther     []string
 		expectOutput bool
+		runCount     int
 	}{
 		{
 			name:         "ShortProcess",
@@ -244,6 +245,7 @@ func TestOutput(t *testing.T) {
 			cmdOther:     "ls",
 			argOther:     []string{"-l", currentDir},
 			expectOutput: true,
+			runCount:     1,
 		},
 		{
 			name:       "LongProcess",
@@ -251,12 +253,14 @@ func TestOutput(t *testing.T) {
 			argWindows: []string{"SLEEP 1"},
 			cmdOther:   "sleep",
 			argOther:   []string{"1"},
+			runCount:   1,
 		},
 		{
 			name:         "BothStdOutandStdErr",
 			cmdOther:     "./testdata/echo_stdout_and_stderr.sh",
 			argOther:     []string{"foo"},
 			expectOutput: true,
+			runCount:     5,
 		},
 	}
 
@@ -267,14 +271,16 @@ func TestOutput(t *testing.T) {
 			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "testOutput")
 			require.NoError(t, err)
 			var output string
-			if platform.IsWindows() && test.cmdWindows != "" {
-				output, err = Output(context.Background(), loggers, test.cmdWindows, test.argWindows...)
-			} else {
-				output, err = Output(context.Background(), loggers, test.cmdOther, test.argOther...)
-			}
-			require.NoError(t, err)
-			if test.expectOutput {
-				assert.NotEmpty(t, output)
+			for i := 0; i < test.runCount; i++ {
+				if platform.IsWindows() && test.cmdWindows != "" {
+					output, err = Output(context.Background(), loggers, test.cmdWindows, test.argWindows...)
+				} else {
+					output, err = Output(context.Background(), loggers, test.cmdOther, test.argOther...)
+				}
+				require.NoError(t, err)
+				if test.expectOutput {
+					assert.NotEmpty(t, output)
+				}
 			}
 		})
 	}
