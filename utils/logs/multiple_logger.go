@@ -63,16 +63,16 @@ func (c *MultipleLogger) setLoggerSource(source string) error {
 }
 
 func (c *MultipleLogger) Log(output ...interface{}) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	for i := range c.loggers {
 		c.loggers[i].Log(output...)
 	}
 }
 
 func (c *MultipleLogger) LogError(err ...interface{}) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	for i := range c.loggers {
 		c.loggers[i].LogError(err...)
 	}
