@@ -252,6 +252,12 @@ func TestOutput(t *testing.T) {
 			cmdOther:   "sleep",
 			argOther:   []string{"1"},
 		},
+		{
+			name:         "BothStdOutandStdErr",
+			cmdOther:     "./testdata/echo_stdout_and_stderr.sh",
+			argOther:     []string{"foo"},
+			expectOutput: true,
+		},
 	}
 
 	for i := range tests {
@@ -261,7 +267,7 @@ func TestOutput(t *testing.T) {
 			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "testOutput")
 			require.NoError(t, err)
 			var output string
-			if platform.IsWindows() {
+			if platform.IsWindows() && test.cmdWindows != "" {
 				output, err = Output(context.Background(), loggers, test.cmdWindows, test.argWindows...)
 			} else {
 				output, err = Output(context.Background(), loggers, test.cmdOther, test.argOther...)
