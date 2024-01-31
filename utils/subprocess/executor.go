@@ -51,8 +51,8 @@ func newPlainSubProcess(ctx context.Context, loggers logs.Loggers, env []string,
 	return
 }
 
-// Execute executes a command (i.e. spawns a subprocess)
-func Execute(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
+// ExecuteWithEnvironment executes a command (i.e. spawns a subprocess). It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func ExecuteWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
 	p, err := NewWithEnvironment(ctx, loggers, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
 	if err != nil {
 		return
@@ -60,13 +60,9 @@ func Execute(ctx context.Context, loggers logs.Loggers, additionalEnvVars []stri
 	return p.Execute()
 }
 
-// ExecuteWithEnvironment executes a command (i.e. spawns a subprocess). It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
-func ExecuteWithEnvironment(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
-	p, err := New(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
-	if err != nil {
-		return
-	}
-	return p.Execute()
+// Execute executes a command (i.e. spawns a subprocess).
+func Execute(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) error {
+	return ExecuteWithEnvironment(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
 }
 
 // ExecuteAs executes a command (i.e. spawns a subprocess) as a different user.
@@ -90,7 +86,7 @@ func ExecuteWithSudo(ctx context.Context, loggers logs.Loggers, messageOnStart s
 
 // Output executes a command and returns its output (stdOutput and stdErr are merged) as string.
 func Output(ctx context.Context, loggers logs.Loggers, cmd string, args ...string) (string, error) {
-	return OutputAs(ctx, loggers, commandUtils.Me(), cmd, args...)
+	return OutputWithEnvironment(ctx, loggers, nil, cmd, args...)
 }
 
 // OutputWithEnvironment executes a command and returns its output (stdOutput and stdErr are merged) as string. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
