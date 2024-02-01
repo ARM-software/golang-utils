@@ -81,7 +81,7 @@ func TestCmdRunWithEnv(t *testing.T) {
 		cmdOther   string
 		envVars    []string
 	}{
-		cmdWindows: "set",
+		cmdWindows: "Env",
 		cmdOther:   "env",
 		envVars:    []string{"TEST1=TEST2", "TEST3=TEST4"},
 	}
@@ -92,7 +92,7 @@ func TestCmdRunWithEnv(t *testing.T) {
 		loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
 		require.NoError(t, err)
 		if platform.IsWindows() {
-			cmd = newCommand(loggers, commandUtils.Me(), envTest.envVars, envTest.cmdWindows)
+			cmd = newCommand(loggers, commandUtils.Me(), envTest.envVars, "powershell", "-Command", envTest.cmdWindows)
 		} else {
 			cmd = newCommand(loggers, commandUtils.Me(), envTest.envVars, envTest.cmdOther)
 		}
