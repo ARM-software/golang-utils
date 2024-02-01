@@ -14,6 +14,24 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.60.0" (2024-02-01)
+=====================
+
+Features
+--------
+
+- :sparkles: `[subprocess]` Enable specifying additional environment variables for the subprocess to run with (#20240131182504)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: upload-artifact-4.2.0 (#20240119112633, #20240119112639, #20240119112704, #20240119112707, #20240119112734, #20240119112735)
+- Dependency upgrade: upload-artifact-4.3.0 (#20240124111907, #20240124111909)
+- :bug: `subprocess` Fix issue where subprocess.Output results in data race if the output prints to both stderr and stdout (#20240131145019)
+- :bug: `logs` Fix mutex lock in multipleLoggers as it was using a read only lock in situation where loggers can actually be accessing the same underlying resource (#20240131151659)
+
+
 "1.59.0" (2024-01-18)
 =====================
 
