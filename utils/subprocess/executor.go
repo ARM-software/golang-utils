@@ -28,36 +28,51 @@ type Subprocess struct {
 }
 
 // New creates a subprocess description.
-func New(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (p *Subprocess, err error) {
-	p, err = newSubProcess(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Me(), cmd, args...)
+func New(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (*Subprocess, error) {
+	return NewWithEnvironment(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+}
+
+// NewWithEnvironment creates a subprocess description. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func NewWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (p *Subprocess, err error) {
+	p, err = newSubProcess(ctx, loggers, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Me(), cmd, args...)
 	return
 }
 
 // newSubProcess creates a subprocess description.
-func newSubProcess(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (p *Subprocess, err error) {
+func newSubProcess(ctx context.Context, loggers logs.Loggers, env []string, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (p *Subprocess, err error) {
 	p = new(Subprocess)
-	err = p.SetupAs(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+	err = p.SetupAsWithEnvironment(ctx, loggers, env, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
 	return
 }
 
-func newPlainSubProcess(ctx context.Context, loggers logs.Loggers, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (p *Subprocess, err error) {
+func newPlainSubProcess(ctx context.Context, loggers logs.Loggers, env []string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (p *Subprocess, err error) {
 	p = new(Subprocess)
-	err = p.setup(ctx, loggers, false, "", "", "", as, cmd, args...)
+	err = p.setup(ctx, loggers, env, false, "", "", "", as, cmd, args...)
 	return
 }
 
-// Execute executes a command (i.e. spawns a subprocess)
-func Execute(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
-	p, err := New(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+// ExecuteWithEnvironment executes a command (i.e. spawns a subprocess). It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func ExecuteWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
+	p, err := NewWithEnvironment(ctx, loggers, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
 	if err != nil {
 		return
 	}
 	return p.Execute()
 }
 
+// Execute executes a command (i.e. spawns a subprocess).
+func Execute(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) error {
+	return ExecuteWithEnvironment(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+}
+
 // ExecuteAs executes a command (i.e. spawns a subprocess) as a different user.
-func ExecuteAs(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
-	p, err := newSubProcess(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+func ExecuteAs(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) error {
+	return ExecuteAsWithEnvironment(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+}
+
+// ExecuteAsWithEnvironment executes a command (i.e. spawns a subprocess) as a different user. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func ExecuteAsWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
+	p, err := newSubProcess(ctx, loggers, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
 	if err != nil {
 		return
 	}
@@ -71,11 +86,21 @@ func ExecuteWithSudo(ctx context.Context, loggers logs.Loggers, messageOnStart s
 
 // Output executes a command and returns its output (stdOutput and stdErr are merged) as string.
 func Output(ctx context.Context, loggers logs.Loggers, cmd string, args ...string) (string, error) {
-	return OutputAs(ctx, loggers, commandUtils.Me(), cmd, args...)
+	return OutputWithEnvironment(ctx, loggers, nil, cmd, args...)
+}
+
+// OutputWithEnvironment executes a command and returns its output (stdOutput and stdErr are merged) as string. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func OutputWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, cmd string, args ...string) (string, error) {
+	return OutputAsWithEnvironment(ctx, loggers, additionalEnvVars, commandUtils.Me(), cmd, args...)
 }
 
 // OutputAs executes a command as a different user and returns its output (stdOutput and stdErr are merged) as string.
-func OutputAs(ctx context.Context, loggers logs.Loggers, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (output string, err error) {
+func OutputAs(ctx context.Context, loggers logs.Loggers, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (string, error) {
+	return OutputAsWithEnvironment(ctx, loggers, nil, as, cmd, args...)
+}
+
+// OutputAsWithEnvironment executes a command as a different user and returns its output (stdOutput and stdErr are merged) as string. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func OutputAsWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (output string, err error) {
 	if loggers == nil {
 		err = commonerrors.ErrNoLogger
 		return
@@ -89,7 +114,7 @@ func OutputAs(ctx context.Context, loggers logs.Loggers, as *commandUtils.Comman
 	if err != nil {
 		return
 	}
-	p, err := newPlainSubProcess(ctx, mLoggers, as, cmd, args...)
+	p, err := newPlainSubProcess(ctx, mLoggers, additionalEnvVars, as, cmd, args...)
 	if err != nil {
 		return
 	}
@@ -100,16 +125,26 @@ func OutputAs(ctx context.Context, loggers logs.Loggers, as *commandUtils.Comman
 
 // Setup sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure.
 func (s *Subprocess) Setup(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
-	return s.setup(ctx, loggers, true, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Me(), cmd, args...)
+	return s.SetupWithEnvironment(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+}
+
+// SetupWithEnvironment sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure. Compared to Setup, it allows specifying additional environment variables to be used by the process.
+func (s *Subprocess) SetupWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnv []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
+	return s.setup(ctx, loggers, additionalEnv, true, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Me(), cmd, args...)
 }
 
 // SetupAs is similar to Setup but allows the command to be run as a different user.
 func (s *Subprocess) SetupAs(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
-	return s.setup(ctx, loggers, true, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+	return s.SetupAsWithEnvironment(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+}
+
+// SetupAsWithEnvironment is similar to Setup but allows the command to be run as a different user. Compared to SetupAs, it allows specifying additional environment variables to be used by the process.
+func (s *Subprocess) SetupAsWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnv []string, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
+	return s.setup(ctx, loggers, additionalEnv, true, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
 }
 
 // Setup sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure.
-func (s *Subprocess) setup(ctx context.Context, loggers logs.Loggers, withAdditionalMessages bool, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
+func (s *Subprocess) setup(ctx context.Context, loggers logs.Loggers, env []string, withAdditionalMessages bool, messageOnStart, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
 	if s.IsOn() {
 		err = s.Stop()
 		if err != nil {
@@ -120,7 +155,7 @@ func (s *Subprocess) setup(ctx context.Context, loggers logs.Loggers, withAdditi
 	defer s.mu.Unlock()
 	s.isRunning.Store(false)
 	s.processMonitoring = newSubprocessMonitoring(ctx)
-	s.command = newCommand(loggers, as, cmd, args...)
+	s.command = newCommand(loggers, as, env, cmd, args...)
 	s.messsaging = newSubprocessMessaging(loggers, withAdditionalMessages, messageOnSuccess, messageOnFailure, messageOnStart, s.command.GetPath())
 	s.reset()
 	return s.check()

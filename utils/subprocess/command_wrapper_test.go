@@ -7,6 +7,7 @@ package subprocess
 import (
 	"context"
 	"os"
+	"regexp"
 	"testing"
 	"time"
 
@@ -55,9 +56,9 @@ func TestCmdRun(t *testing.T) {
 			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
 			require.NoError(t, err)
 			if platform.IsWindows() {
-				cmd = newCommand(loggers, commandUtils.Me(), test.cmdWindows, test.argWindows...)
+				cmd = newCommand(loggers, commandUtils.Me(), nil, test.cmdWindows, test.argWindows...)
 			} else {
-				cmd = newCommand(loggers, commandUtils.Me(), test.cmdOther, test.argOther...)
+				cmd = newCommand(loggers, commandUtils.Me(), nil, test.cmdOther, test.argOther...)
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
@@ -72,6 +73,41 @@ func TestCmdRun(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
+}
+
+func TestCmdRunWithEnv(t *testing.T) {
+	envTest := struct {
+		cmdWindows string
+		cmdOther   string
+		envVars    []string
+	}{
+		cmdWindows: "Env",
+		cmdOther:   "env",
+		envVars:    []string{"TEST1=TEST2", "TEST3=TEST4"},
+	}
+
+	t.Run("Test command run with env vars", func(t *testing.T) {
+		defer goleak.VerifyNone(t)
+		var cmd *command
+		loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
+		require.NoError(t, err)
+		if platform.IsWindows() {
+			cmd = newCommand(loggers, commandUtils.Me(), envTest.envVars, "powershell", "-Command", envTest.cmdWindows)
+		} else {
+			cmd = newCommand(loggers, commandUtils.Me(), envTest.envVars, envTest.cmdOther)
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		wrapper := cmd.GetCmd(ctx)
+		wrapper.cmd.Stdout = nil
+		out, err := wrapper.cmd.Output()
+		require.NoError(t, err)
+
+		for i := range envTest.envVars {
+			envVar := envTest.envVars[i]
+			assert.True(t, regexp.MustCompile(envVar).Match(out))
+		}
+	})
 }
 
 func TestCmdStartStop(t *testing.T) {
@@ -110,9 +146,9 @@ func TestCmdStartStop(t *testing.T) {
 			require.NoError(t, err)
 
 			if platform.IsWindows() {
-				cmd = newCommand(loggers, commandUtils.Me(), test.cmdWindows, test.argWindows...)
+				cmd = newCommand(loggers, commandUtils.Me(), nil, test.cmdWindows, test.argWindows...)
 			} else {
-				cmd = newCommand(loggers, commandUtils.Me(), test.cmdOther, test.argOther...)
+				cmd = newCommand(loggers, commandUtils.Me(), nil, test.cmdOther, test.argOther...)
 			}
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()

@@ -101,6 +101,7 @@ func (c *cmdWrapper) Pid() (pid int, err error) {
 type command struct {
 	cmd        string
 	args       []string
+	env        []string
 	as         *commandUtils.CommandAsDifferentUser
 	loggers    logs.Loggers
 	cmdWrapper cmdWrapper
@@ -111,6 +112,8 @@ func (c *command) createCommand(cmdCtx context.Context) *exec.Cmd {
 	cmd := exec.CommandContext(cmdCtx, newCmd, newArgs...) //nolint:gosec
 	cmd.Stdout = newOutStreamer(c.loggers)
 	cmd.Stderr = newErrLogStreamer(c.loggers)
+	cmd.Env = cmd.Environ()
+	cmd.Env = append(cmd.Env, c.env...)
 	return cmd
 }
 
@@ -143,12 +146,13 @@ func (c *command) Check() (err error) {
 	return
 }
 
-func newCommand(loggers logs.Loggers, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (osCmd *command) {
+func newCommand(loggers logs.Loggers, as *commandUtils.CommandAsDifferentUser, env []string, cmd string, args ...string) (osCmd *command) {
 	osCmd = &command{
 		cmd:        cmd,
 		args:       args,
-		loggers:    loggers,
+		env:        env,
 		as:         as,
+		loggers:    loggers,
 		cmdWrapper: cmdWrapper{},
 	}
 	return
