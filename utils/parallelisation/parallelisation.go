@@ -8,10 +8,14 @@ package parallelisation
 
 import (
 	"context"
+	"os"
+	"os/signal"
 	"reflect"
+	"syscall"
 	"time"
 
 	"go.uber.org/atomic"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
@@ -214,7 +218,7 @@ func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Durati
 }
 
 // RunActionWithParallelCheck runs an action with a check in parallel
-// The function performing the check should return true if the check was favorable; false otherwise. If the check did not have the expected result and the whole function would be cancelled.
+// The function performing the check should return true if the check was favorable; false otherwise. If the check did not have the expected result, the whole function would be cancelled.
 func RunActionWithParallelCheck(ctx context.Context, action func(ctx context.Context) error, checkAction func(ctx context.Context) bool, checkPeriod time.Duration) error {
 	err := DetermineContextError(ctx)
 	if err != nil {
@@ -245,4 +249,49 @@ func RunActionWithParallelCheck(ctx context.Context, action func(ctx context.Con
 		return err2
 	}
 	return err
+}
+
+// RunActionWithInterruptCancellation runs an action listening to interrupt signals such as SIGTERM or SIGINT
+// On interrupt, any cancellation functions in store are called followed by actionOnInterrupt. These functions are not called if no interrupts were raised but action completed.
+func RunActionWithInterruptCancellation(ctx context.Context, cancelStore *CancelFunctionStore, action func(ctx context.Context) error, actionOnInterrupt func(ctx context.Context) error) error {
+	err := DetermineContextError(ctx)
+	if err != nil {
+		return err
+	}
+	if cancelStore == nil {
+		cancelStore = NewCancelFunctionsStore()
+	}
+	defer cancelStore.Cancel()
+	// Listening to the following interrupt signals https://www.man7.org/linux/man-pages/man7/signal.7.html
+	interruptableCtx, cancel := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGABRT)
+	cancelStore.RegisterCancelFunction(cancel)
+	g, groupCancellableCtx := errgroup.WithContext(ctx)
+	groupCancellableCtx, cancelOnSuccess := context.WithCancel(groupCancellableCtx)
+	g.Go(func() error {
+		select {
+		case <-interruptableCtx.Done():
+		case <-groupCancellableCtx.Done():
+		}
+		err = DetermineContextError(interruptableCtx)
+		if err != nil {
+			// An interrupt was raised.
+			cancelStore.Cancel()
+			return actionOnInterrupt(ctx)
+		}
+		return err
+	})
+	g.Go(func() error {
+		err := action(interruptableCtx)
+		if err == nil {
+			cancelOnSuccess()
+		}
+		return err
+	})
+	return commonerrors.ConvertContextError(g.Wait())
+}
+
+// RunActionWithGracefulShutdown carries out an action until asked to gracefully shutdown on which the shutdownOnSignal is executed.
+// if the action is completed before the shutdown request is performed, shutdownOnSignal will not be executed.
+func RunActionWithGracefulShutdown(ctx context.Context, action func(ctx context.Context) error, shutdownOnSignal func(ctx context.Context) error) error {
+	return RunActionWithInterruptCancellation(ctx, NewCancelFunctionsStore(), action, shutdownOnSignal)
 }
