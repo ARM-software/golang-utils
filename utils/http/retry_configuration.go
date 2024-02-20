@@ -7,6 +7,7 @@ package http
 import (
 	"github.com/ARM-software/golang-utils/utils/retry"
 )
+
 // RetryPolicyConfiguration was moved to the `retry` module. Nonetheless, it was redefined here to avoid breaking changes
 type RetryPolicyConfiguration = retry.RetryPolicyConfiguration
 
