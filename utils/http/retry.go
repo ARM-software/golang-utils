@@ -11,10 +11,8 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
-// RetryOnError allows the caller to retry fn when the error returned by fn is retriable
-// as in of the type specified by retriableErr. backoff defines the maximum retries and the wait
-// interval between two retries.
-func RetryOnError(ctx context.Context, logger logr.Logger, retryPolicy *RetryPolicyConfiguration, fn func() error, msgOnRetry string, retriableErr ...error) error {
+// RetryIf will retry fn when the value returned from retryConditionFn is true
+func RetryIf(ctx context.Context, logger logr.Logger, retryPolicy *RetryPolicyConfiguration, fn func() error, msgOnRetry string, retryConditionFn func(err error) bool) error {
 	if retryPolicy == nil {
 		return fmt.Errorf("%w: missing retry policy configuration", commonerrors.ErrUndefined)
 	}
@@ -42,11 +40,18 @@ func RetryOnError(ctx context.Context, logger logr.Logger, retryPolicy *RetryPol
 			retry.MaxJitter(25*time.Millisecond),
 			retry.DelayType(retryType),
 			retry.Attempts(uint(retryPolicy.RetryMax)),
-			retry.RetryIf(func(err error) bool {
-				return commonerrors.Any(err, retriableErr...)
-			}),
+			retry.RetryIf(retryConditionFn),
 			retry.LastErrorOnly(true),
 			retry.Context(ctx),
 		),
 	)
+}
+
+// RetryOnError allows the caller to retry fn when the error returned by fn is retriable
+// as in of the type specified by retriableErr. backoff defines the maximum retries and the wait
+// interval between two retries.
+func RetryOnError(ctx context.Context, logger logr.Logger, retryPolicy *RetryPolicyConfiguration, fn func() error, msgOnRetry string, retriableErr ...error) error {
+	return RetryIf(ctx, logger, retryPolicy, fn, msgOnRetry, func(err error) bool {
+		return commonerrors.Any(err, retriableErr...)
+	})
 }
