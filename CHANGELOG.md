@@ -14,6 +14,16 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.61.0" (2024-02-20)
+=====================
+
+Features
+--------
+
+- :sparkles: `http` Add RetryIf function to do retries based on an arbitrary condition (#20240220143843)
+- :sparkles: `retry` Add retry module (#20240220151510)
+
+
 "1.60.1" (2024-02-15)
 =====================
 
