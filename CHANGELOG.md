@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.61.2" (2024-03-20)
+=====================
+
+Bugfixes
+--------
+
+- Dependency upgrade: protobuf-1.33.0 (#20240318120618, #20240318120622, #20240318120653, #20240318120655)
+
+
 "1.61.1" (2024-03-12)
 =====================
 
