@@ -27,7 +27,8 @@ func killGroup(ctx context.Context, pid int32) (err error) {
 	if err != nil {
 		return
 	}
-	// use pgid, ref: http://unix.stackexchange.com/questions/14815/process-descendants
+	// kill a whole process group by sending a signal to -xyz where xyz is the pgid
+	// http://unix.stackexchange.com/questions/14815/process-descendants
 	if pgid != int(pid) {
 		err = fmt.Errorf("%w: process #%v is not group leader", commonerrors.ErrUnexpected, pid)
 		return
