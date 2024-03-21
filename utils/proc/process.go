@@ -145,9 +145,7 @@ func killProcessAndChildren(ctx context.Context, p *process.Process) (err error)
 	}
 	err = killChildren(ctx, p)
 	if err != nil {
-		if commonerrors.Any(err, commonerrors.ErrNotFound) {
-			err = nil
-		}
+		err = commonerrors.Ignore(err, commonerrors.ErrNotFound)
 		return
 	}
 	err = ConvertProcessError(p.KillWithContext(ctx))
