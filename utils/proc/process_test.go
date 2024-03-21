@@ -69,10 +69,17 @@ func TestKill(t *testing.T) {
 	defer func() { _ = cmd.Wait() }()
 	process, err := FindProcess(context.Background(), cmd.Process.Pid)
 	require.NoError(t, err)
+	assert.True(t, process.IsRunning())
 	require.NoError(t, process.Terminate(context.Background()))
 	require.NoError(t, process.KillWithChildren(context.Background()))
 	process, err = FindProcess(context.Background(), cmd.Process.Pid)
-	errortest.AssertError(t, err, commonerrors.ErrNotFound)
+	if err == nil {
+		require.NotEmpty(t, process)
+		assert.False(t, process.IsRunning())
+	} else {
+		errortest.AssertError(t, err, commonerrors.ErrNotFound)
+		assert.Empty(t, process)
+	}
 }
 
 func TestPs_KillWithChildrenillProcessAndChildren(t *testing.T) {
@@ -88,7 +95,14 @@ func TestPs_KillWithChildrenillProcessAndChildren(t *testing.T) {
 	require.NotNil(t, cmd.Process)
 	p, err := FindProcess(context.Background(), cmd.Process.Pid)
 	require.NoError(t, err)
+	assert.True(t, p.IsRunning())
 	require.NoError(t, p.KillWithChildren(context.Background()))
-	process, err = FindProcess(context.Background(), cmd.Process.Pid)
-	errortest.AssertError(t, err, commonerrors.ErrNotFound)
+	p, err = FindProcess(context.Background(), cmd.Process.Pid)
+	if err == nil {
+		require.NotEmpty(t, p)
+		assert.False(t, p.IsRunning())
+	} else {
+		errortest.AssertError(t, err, commonerrors.ErrNotFound)
+		assert.Empty(t, p)
+	}
 }

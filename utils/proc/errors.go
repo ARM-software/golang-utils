@@ -19,6 +19,7 @@ const (
 	errKilledProcess     = "signal: killed"
 	errTerminatedProcess = "signal: terminated"
 	errAccessDenied      = "Access is denied"
+	errNotImplemented    = "not implemented"
 )
 
 func ConvertProcessError(err error) error {
@@ -41,6 +42,8 @@ func ConvertProcessError(err error) error {
 		return fmt.Errorf("%w: %v", commonerrors.ErrNotFound, err.Error())
 	case commonerrors.CorrespondTo(err, errAccessDenied):
 		return fmt.Errorf("%w: %v", commonerrors.ErrNotFound, err.Error())
+	case commonerrors.CorrespondTo(err, errNotImplemented):
+		return fmt.Errorf("%w: %v", commonerrors.ErrNotImplemented, err.Error())
 	default:
 		return err
 	}

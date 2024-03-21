@@ -50,6 +50,21 @@ type ps struct {
 	imp *process.Process
 }
 
+func (p *ps) IsRunning() (running bool) {
+	running, _ = p.imp.IsRunning()
+	if !running {
+		return
+	}
+	// from man 2 kill: If sig is 0, then no signal is sent, but error checking is still performed; this can be used to check for the existence of a process ID or process group ID.
+	subErr := ConvertProcessError(p.imp.SendSignal(process.Signal(0x0)))
+	if commonerrors.Any(subErr, commonerrors.ErrNotImplemented) {
+		// Not a unix platform
+		return
+	}
+	running = subErr == nil
+	return
+}
+
 func (p *ps) Cmdline() string {
 	cmd, _ := p.imp.Cmdline()
 	return cmd
@@ -132,20 +147,21 @@ func killProcessAndChildren(ctx context.Context, p *process.Process) (err error)
 		err = commonerrors.Ignore(err, commonerrors.ErrNotFound)
 		return
 	}
-	err = ConvertProcessError(killGroup(ctx, p.Pid))
-	if err == nil {
-		if commonerrors.Any(err, commonerrors.ErrNotFound) {
+	// First of all, we try to kill the group as it is the preferred/quicker option but requires the processes to have been defined as part of the group
+	subErr := ConvertProcessError(killGroup(ctx, p.Pid))
+	if subErr != nil {
+		subErr = commonerrors.Ignore(subErr, commonerrors.ErrNotFound)
+		if subErr == nil {
 			err = nil
+			return
 		}
-		return
 	}
 	err = killChildren(ctx, p)
 	if err != nil {
 		err = commonerrors.Ignore(err, commonerrors.ErrNotFound)
 		return
 	}
-	err = ConvertProcessError(p.KillWithContext(ctx))
-	err = commonerrors.Ignore(err, commonerrors.ErrNotFound)
+	err = commonerrors.Ignore(ConvertProcessError(p.KillWithContext(ctx)), commonerrors.ErrNotFound)
 	return
 }
 
@@ -172,7 +188,10 @@ func killChildren(ctx context.Context, p *process.Process) (err error) {
 		}
 	}
 	if err != nil {
-		_ = killGroup(ctx, p.Pid) // Radical approach of killing the whole process group
+		subErr := killGroup(ctx, p.Pid) // Radical approach of killing the whole process group
+		if subErr == nil {
+			err = nil
+		}
 	}
 	return err
 

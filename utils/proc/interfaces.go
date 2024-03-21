@@ -40,6 +40,9 @@ type IProcess interface {
 	// Children returns the children of the process if any.
 	Children(ctx context.Context) ([]IProcess, error)
 
+	// IsRunning returns whether the process is still running or not.
+	IsRunning() bool
+
 	// Terminate sends SIGTERM to the process.
 	Terminate(context.Context) error
 
