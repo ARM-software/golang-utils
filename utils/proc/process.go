@@ -108,9 +108,7 @@ func (p *ps) Executable() string {
 
 func (p *ps) Terminate(ctx context.Context) error {
 	err := ConvertProcessError(p.imp.TerminateWithContext(ctx))
-	if commonerrors.Any(err, commonerrors.ErrNotFound) {
-		err = nil
-	}
+	err = commonerrors.Ignore(err, commonerrors.ErrNotFound)
 	return err
 }
 
