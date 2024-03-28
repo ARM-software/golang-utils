@@ -82,7 +82,7 @@ func TestKill(t *testing.T) {
 	}
 }
 
-func TestPs_KillWithChildrenillProcessAndChildren(t *testing.T) {
+func TestPs_KillWithChildren(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("test with bash")
 	}

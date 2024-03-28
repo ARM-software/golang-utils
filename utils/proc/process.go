@@ -8,11 +8,18 @@ package proc
 import (
 	"context"
 	"fmt"
+	"github.com/ARM-software/golang-utils/utils/collection"
 
 	"github.com/shirou/gopsutil/v3/process"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
+)
+
+const (
+	statusRunning = "running"
+	statusSleep   = "sleep"
+	statusIdle    = "idle"
 )
 
 // Ps returns all processes in a similar fashion to `ps` command on Unix.
@@ -56,12 +63,17 @@ func (p *ps) IsRunning() (running bool) {
 		return
 	}
 	// from man 2 kill: If sig is 0, then no signal is sent, but error checking is still performed; this can be used to check for the existence of a process ID or process group ID.
-	subErr := ConvertProcessError(p.imp.SendSignal(process.Signal(0x0)))
-	if commonerrors.Any(subErr, commonerrors.ErrNotImplemented) {
-		// Not a unix platform
+	exist, _ := process.PidExists(p.imp.Pid)
+	if !exist {
+		running = false
 		return
 	}
-	running = subErr == nil
+	status, err := p.imp.Status()
+	if err != nil {
+		return
+	}
+	// https://github.com/shirou/gopsutil/blob/e230f528f075f78e713f167c28b692cc15307d19/process/process.go#L48
+	_, running = collection.FindInSlice(false, status, statusRunning, statusSleep, statusIdle)
 	return
 }
 
