@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/proc"
 	"github.com/ARM-software/golang-utils/utils/subprocess/command"
 )
 
@@ -37,6 +39,20 @@ func executeCommandAs(ctx context.Context, as *command.CommandAsDifferentUser, a
 	}
 	cmdName, cmdArgs := as.RedefineCommand(args...)
 	cmd := exec.CommandContext(ctx, cmdName, cmdArgs...)
+	// setting the following to avoid having hanging subprocesses as described in https://github.com/golang/go/issues/24050
+	cmd.WaitDelay = 5 * time.Second
+	cmd.Cancel = func() error {
+		if cmd.Process == nil {
+			return nil
+		}
+		p, err := proc.FindProcess(context.Background(), cmd.Process.Pid)
+		if err == nil {
+			return p.KillWithChildren(context.Background())
+		} else {
+			// Default behaviour
+			return cmd.Process.Kill()
+		}
+	}
 	return runCommand(args[0], cmd)
 }
 

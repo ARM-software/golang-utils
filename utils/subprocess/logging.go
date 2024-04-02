@@ -5,11 +5,13 @@
 package subprocess
 
 import (
+	"context"
 	"io"
 	"strings"
 
 	"github.com/ARM-software/golang-utils/utils/logs"
 	"github.com/ARM-software/golang-utils/utils/platform"
+	"github.com/ARM-software/golang-utils/utils/safeio"
 )
 
 var lineSep = platform.UnixLineSeparator()
@@ -17,7 +19,6 @@ var lineSep = platform.UnixLineSeparator()
 // INTERNAL
 // Way of redirecting process output to a logger.
 type logStreamer struct {
-	io.Writer
 	IsStdErr bool
 	Loggers  logs.Loggers
 }
@@ -37,17 +38,17 @@ func (l *logStreamer) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func newLogStreamer(isStdErr bool, loggers logs.Loggers) *logStreamer {
-	return &logStreamer{
+func newLogStreamer(ctx context.Context, isStdErr bool, loggers logs.Loggers) io.Writer {
+	return safeio.ContextualWriter(ctx, &logStreamer{
 		IsStdErr: isStdErr,
 		Loggers:  loggers,
-	}
+	})
 }
 
-func newOutStreamer(loggers logs.Loggers) *logStreamer {
-	return newLogStreamer(false, loggers)
+func newOutStreamer(ctx context.Context, loggers logs.Loggers) io.Writer {
+	return newLogStreamer(ctx, false, loggers)
 }
 
-func newErrLogStreamer(loggers logs.Loggers) *logStreamer {
-	return newLogStreamer(true, loggers)
+func newErrLogStreamer(ctx context.Context, loggers logs.Loggers) io.Writer {
+	return newLogStreamer(ctx, true, loggers)
 }

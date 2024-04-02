@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -72,6 +73,7 @@ func TestKill(t *testing.T) {
 	assert.True(t, process.IsRunning())
 	require.NoError(t, process.Terminate(context.Background()))
 	require.NoError(t, process.KillWithChildren(context.Background()))
+	time.Sleep(500 * time.Millisecond)
 	process, err = FindProcess(context.Background(), cmd.Process.Pid)
 	if err == nil {
 		require.NotEmpty(t, process)
