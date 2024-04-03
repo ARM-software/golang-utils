@@ -18,13 +18,13 @@ import (
 	commandUtils "github.com/ARM-software/golang-utils/utils/subprocess/command"
 )
 
-// Subprocess describes what a subproccess is as well as any monitoring it may need.
+// Subprocess describes what a subprocess is as well as any monitoring it may need.
 type Subprocess struct {
 	mu                deadlock.RWMutex
 	isRunning         atomic.Bool
 	command           *command
 	processMonitoring *subprocessMonitoring
-	messsaging        *subprocessMessaging
+	messaging         *subprocessMessaging
 }
 
 // New creates a subprocess description.
@@ -156,7 +156,7 @@ func (s *Subprocess) setup(ctx context.Context, loggers logs.Loggers, env []stri
 	s.isRunning.Store(false)
 	s.processMonitoring = newSubprocessMonitoring(ctx)
 	s.command = newCommand(loggers, as, env, cmd, args...)
-	s.messsaging = newSubprocessMessaging(loggers, withAdditionalMessages, messageOnSuccess, messageOnFailure, messageOnStart, s.command.GetPath())
+	s.messaging = newSubprocessMessaging(loggers, withAdditionalMessages, messageOnSuccess, messageOnFailure, messageOnStart, s.command.GetPath())
 	s.reset()
 	return s.check()
 }
@@ -172,11 +172,11 @@ func (s *Subprocess) check() (err error) {
 	if err != nil {
 		return
 	}
-	if s.messsaging == nil {
+	if s.messaging == nil {
 		err = commonerrors.ErrNoLogger
 		return
 	}
-	err = s.messsaging.Check()
+	err = s.messaging.Check()
 	return
 }
 
@@ -212,26 +212,26 @@ func (s *Subprocess) Start() (err error) {
 	cmd := s.getCmd()
 	err = cmd.Start()
 	if err != nil {
-		s.messsaging.LogFailedStart(err)
+		s.messaging.LogFailedStart(err)
 		s.isRunning.Store(false)
 		s.Cancel()
 		return
 	}
 	pid, err := cmd.Pid()
 	if err != nil {
-		s.messsaging.LogFailedStart(err)
+		s.messaging.LogFailedStart(err)
 		s.isRunning.Store(false)
 		s.Cancel()
 		return
 	}
 
 	s.isRunning.Store(true)
-	s.messsaging.SetPid(pid)
-	s.messsaging.LogStarted()
+	s.messaging.SetPid(pid)
+	s.messaging.LogStarted()
 	return
 }
 
-// Cancel interrupts an on-going process. This method is idempotent.
+// Cancel interrupts an ongoing process. This method is idempotent.
 func (s *Subprocess) Cancel() {
 	s.processMonitoring.CancelSubprocess()
 }
@@ -251,13 +251,13 @@ func (s *Subprocess) Execute() (err error) {
 	}
 	s.processMonitoring.Reset()
 	s.command.Reset()
-	s.messsaging.LogStart()
+	s.messaging.LogStart()
 	s.runProcessMonitoring()
 	cmd := s.getCmd()
 	s.isRunning.Store(true)
 	err = cmd.Run()
 	s.isRunning.Store(false)
-	s.messsaging.LogEnd(err)
+	s.messaging.LogEnd(err)
 	return
 }
 
@@ -307,10 +307,10 @@ func (s *Subprocess) stop(cancel bool) (err error) {
 	if !s.IsOn() {
 		return
 	}
-	s.messsaging.LogStopping()
+	s.messaging.LogStopping()
 	err = s.getCmd().Stop()
 	s.command.Reset()
 	s.isRunning.Store(false)
-	s.messsaging.LogEnd(nil)
+	s.messaging.LogEnd(nil)
 	return
 }

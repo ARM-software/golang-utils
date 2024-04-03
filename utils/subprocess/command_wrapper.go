@@ -2,12 +2,12 @@
  * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
+
 package subprocess
 
 import (
 	"context"
 	"fmt"
-	"os"
 	"os/exec"
 	"time"
 
@@ -16,6 +16,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/logs"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
+	"github.com/ARM-software/golang-utils/utils/proc"
 	commandUtils "github.com/ARM-software/golang-utils/utils/subprocess/command"
 )
 
@@ -46,7 +47,7 @@ func (c *cmdWrapper) Start() error {
 	if c.cmd == nil {
 		return fmt.Errorf("%w:undefined command", commonerrors.ErrUndefined)
 	}
-	return commonerrors.ConvertContextError(c.cmd.Start())
+	return ConvertCommandError(c.cmd.Start())
 }
 
 func (c *cmdWrapper) Run() error {
@@ -55,7 +56,7 @@ func (c *cmdWrapper) Run() error {
 	if c.cmd == nil {
 		return fmt.Errorf("%w:undefined command", commonerrors.ErrUndefined)
 	}
-	return commonerrors.ConvertContextError(c.cmd.Run())
+	return ConvertCommandError(c.cmd.Run())
 }
 
 func (c *cmdWrapper) Stop() error {
@@ -70,11 +71,11 @@ func (c *cmdWrapper) Stop() error {
 	if subprocess != nil {
 		pid := subprocess.Pid
 		parallelisation.ScheduleAfter(ctx, 10*time.Millisecond, func(time.Time) {
-			process, err := os.FindProcess(pid)
+			process, err := proc.FindProcess(ctx, pid)
 			if process == nil || err != nil {
 				return
 			}
-			_ = process.Kill()
+			_ = process.KillWithChildren(ctx)
 		})
 	}
 	_ = c.cmd.Wait()
@@ -110,10 +111,11 @@ type command struct {
 func (c *command) createCommand(cmdCtx context.Context) *exec.Cmd {
 	newCmd, newArgs := c.as.Redefine(c.cmd, c.args...)
 	cmd := exec.CommandContext(cmdCtx, newCmd, newArgs...) //nolint:gosec
-	cmd.Stdout = newOutStreamer(c.loggers)
-	cmd.Stderr = newErrLogStreamer(c.loggers)
+	cmd.Stdout = newOutStreamer(cmdCtx, c.loggers)
+	cmd.Stderr = newErrLogStreamer(cmdCtx, c.loggers)
 	cmd.Env = cmd.Environ()
 	cmd.Env = append(cmd.Env, c.env...)
+	setGroupAttrToCmd(cmd)
 	return cmd
 }
 
@@ -154,6 +156,34 @@ func newCommand(loggers logs.Loggers, as *commandUtils.CommandAsDifferentUser, e
 		as:         as,
 		loggers:    loggers,
 		cmdWrapper: cmdWrapper{},
+	}
+	return
+}
+
+func ConvertCommandError(err error) error {
+	return proc.ConvertProcessError(err)
+}
+
+func CleanKillOfCommand(ctx context.Context, cmd *exec.Cmd) (err error) {
+	if cmd == nil {
+		return
+	}
+	defer func() {
+		if cmd.Process != nil {
+			_ = cmd.Process.Kill()
+		}
+	}()
+
+	thisP := cmd.Process
+	if thisP == nil {
+		return
+	} else {
+		p, subErr := proc.FindProcess(ctx, thisP.Pid)
+		if subErr != nil {
+			err = subErr
+			return
+		}
+		err = p.KillWithChildren(ctx)
 	}
 	return
 }
