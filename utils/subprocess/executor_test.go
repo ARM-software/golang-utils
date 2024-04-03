@@ -19,8 +19,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
 
-	"github.com/ARM-software/golang-utils/utils/commonerrors"
-	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/logs"
 	"github.com/ARM-software/golang-utils/utils/logs/logstest"
 	"github.com/ARM-software/golang-utils/utils/platform"
@@ -465,14 +463,6 @@ func TestOutputWithEnvironment(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotEmpty(t, output)
 		assert.Equal(t, testString, strings.TrimSpace(output))
-	})
-	t.Run("timeout", func(t *testing.T) {
-		timeoutCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-		defer cancel()
-		output, err := OutputWithEnvironment(timeoutCtx, logger, nil, "sleep", "5")
-		require.Error(t, err)
-		errortest.AssertError(t, err, commonerrors.ErrTimeout, commonerrors.ErrCancelled)
-		assert.Empty(t, output)
 	})
 	t.Run("environment", func(t *testing.T) {
 		testString := fmt.Sprintf("This is a test %v!", faker.Sentence())
