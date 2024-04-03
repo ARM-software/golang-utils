@@ -451,7 +451,7 @@ func TestOutputWithEnvironment(t *testing.T) {
 		fmt.Println(output)
 	})
 	t.Run("happy with output", func(t *testing.T) {
-		testString := fmt.Sprintf("This is a test %v!", faker.Sentence())
+		testString := fmt.Sprintf("'This is a test %v!'", faker.Sentence())
 		output, err := OutputWithEnvironment(context.Background(), logger, nil, "echo", testString)
 		require.NoError(t, err)
 		assert.NotEmpty(t, output)
