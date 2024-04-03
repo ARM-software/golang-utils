@@ -6,6 +6,7 @@ package subprocess
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"os"
 	"regexp"
@@ -18,6 +19,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/logs"
 	"github.com/ARM-software/golang-utils/utils/logs/logstest"
 	"github.com/ARM-software/golang-utils/utils/platform"
@@ -227,6 +230,8 @@ func TestExecute(t *testing.T) {
 }
 
 func TestOutput(t *testing.T) {
+	loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "testOutput")
+	require.NoError(t, err)
 	currentDir, err := os.Getwd()
 	require.NoError(t, err)
 	tests := []struct {
@@ -268,12 +273,14 @@ func TestOutput(t *testing.T) {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
 			defer goleak.VerifyNone(t)
-			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "testOutput")
-			require.NoError(t, err)
 			var output string
 			for i := 0; i < test.runCount; i++ {
-				if platform.IsWindows() && test.cmdWindows != "" {
-					output, err = Output(context.Background(), loggers, test.cmdWindows, test.argWindows...)
+				if platform.IsWindows() {
+					if test.cmdWindows == "" {
+						t.Skip("Not suitable for Windows")
+					} else {
+						output, err = Output(context.Background(), loggers, test.cmdWindows, test.argWindows...)
+					}
 				} else {
 					output, err = Output(context.Background(), loggers, test.cmdOther, test.argOther...)
 				}
@@ -430,4 +437,56 @@ func TestCancelledSubprocess3(t *testing.T) {
 			assert.False(t, p.IsOn())
 		})
 	}
+}
+
+func TestOutputWithEnvironment(t *testing.T) {
+	if platform.IsWindows() {
+		t.Skip("access denied")
+	}
+	defer goleak.VerifyNone(t)
+	logger, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
+	require.NoError(t, err)
+	t.Run("happy", func(t *testing.T) {
+		output, err := OutputWithEnvironment(context.Background(), logger, nil, "du", "-h")
+		require.NoError(t, err)
+		assert.NotEmpty(t, output)
+		fmt.Println(output)
+	})
+	t.Run("happy with output", func(t *testing.T) {
+		testString := fmt.Sprintf("This is a test %v!", faker.Sentence())
+		output, err := OutputWithEnvironment(context.Background(), logger, nil, "echo", testString)
+		require.NoError(t, err)
+		assert.NotEmpty(t, output)
+		assert.Equal(t, testString, strings.TrimSpace(output))
+	})
+	t.Run("happy with output in stderr", func(t *testing.T) {
+		testString := fmt.Sprintf("This is a test %v!", faker.Sentence())
+		output, err := OutputWithEnvironment(context.Background(), logger, nil, "bash", "-c", fmt.Sprintf("echo %v 1>&2", testString))
+		require.NoError(t, err)
+		assert.NotEmpty(t, output)
+		assert.Equal(t, testString, strings.TrimSpace(output))
+	})
+	t.Run("timeout", func(t *testing.T) {
+		timeoutCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		output, err := OutputWithEnvironment(timeoutCtx, logger, nil, "sleep", "5")
+		require.Error(t, err)
+		errortest.AssertError(t, err, commonerrors.ErrTimeout, commonerrors.ErrCancelled)
+		assert.Empty(t, output)
+	})
+	t.Run("environment", func(t *testing.T) {
+		testString := fmt.Sprintf("This is a test %v!", faker.Sentence())
+		output, err := OutputWithEnvironment(context.Background(), logger, []string{fmt.Sprintf("TEST_ENV=%v", testString)}, "env")
+		require.NoError(t, err)
+		assert.NotEmpty(t, output)
+		fmt.Println(output)
+
+	})
+	t.Run("environment 2", func(t *testing.T) {
+		testString := fmt.Sprintf("This is a test %v!", faker.Sentence())
+		output, err := OutputWithEnvironment(context.Background(), logger, []string{fmt.Sprintf("TEST_ENV=%v", testString)}, "bash", "-c", "echo ${TEST_ENV}")
+		require.NoError(t, err)
+		assert.NotEmpty(t, output)
+		assert.Equal(t, testString, strings.TrimSpace(output))
+	})
 }

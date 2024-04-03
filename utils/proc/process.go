@@ -53,27 +53,30 @@ func FindProcess(ctx context.Context, pid int) (p IProcess, err error) {
 	return
 }
 
+// IsProcessRunning states whether a process is running or not. An error is returned if the context is Done while looking for the process state.
+func IsProcessRunning(ctx context.Context, pid int) (running bool, err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+	p, SubErr := FindProcess(ctx, pid)
+	switch {
+	case SubErr == nil:
+		running = p.IsRunning()
+	case commonerrors.Any(SubErr, commonerrors.ErrTimeout, commonerrors.ErrCancelled):
+		err = SubErr
+	default:
+		running = false
+	}
+	return
+}
+
 type ps struct {
 	imp *process.Process
 }
 
 func (p *ps) IsRunning() (running bool) {
-	running, _ = p.imp.IsRunning()
-	if !running {
-		return
-	}
-	// from man 2 kill: If sig is 0, then no signal is sent, but error checking is still performed; this can be used to check for the existence of a process ID or process group ID.
-	exist, _ := process.PidExists(p.imp.Pid)
-	if !exist {
-		running = false
-		return
-	}
-	status, err := p.imp.Status()
-	if err != nil {
-		return
-	}
-	// https://github.com/shirou/gopsutil/blob/e230f528f075f78e713f167c28b692cc15307d19/process/process.go#L48
-	_, running = collection.FindInSlice(false, status, statusRunning, statusSleep, statusIdle)
+	running = isProcessRunning(p.imp)
 	return
 }
 
@@ -144,6 +147,7 @@ func (p *ps) KillWithChildren(ctx context.Context) error {
 }
 
 func killProcessAndChildren(ctx context.Context, p *process.Process) (err error) {
+	// See https://varunksaini.com/posts/kiling-processes-in-go/
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -171,6 +175,9 @@ func killProcessAndChildren(ctx context.Context, p *process.Process) (err error)
 	err = killChildren(ctx, p)
 	if err != nil {
 		err = commonerrors.Ignore(err, commonerrors.ErrNotFound)
+		return
+	}
+	if !isProcessRunning(p) {
 		return
 	}
 	err = commonerrors.Ignore(ConvertProcessError(p.KillWithContext(ctx)), commonerrors.ErrNotFound)
@@ -207,6 +214,29 @@ func killChildren(ctx context.Context, p *process.Process) (err error) {
 	}
 	return err
 
+}
+
+func isProcessRunning(p *process.Process) (running bool) {
+	if p == nil {
+		return
+	}
+	running, _ = p.IsRunning()
+	if !running {
+		return
+	}
+	// from man 2 kill: If sig is 0, then no signal is sent, but error checking is still performed; this can be used to check for the existence of a process ID or process group ID.
+	exist, _ := process.PidExists(p.Pid)
+	if !exist {
+		running = false
+		return
+	}
+	status, err := p.Status()
+	if err != nil {
+		return
+	}
+	// https://github.com/shirou/gopsutil/blob/e230f528f075f78e713f167c28b692cc15307d19/process/process.go#L48
+	_, running = collection.FindInSlice(false, status, statusRunning, statusSleep, statusIdle)
+	return
 }
 
 // NewProcess creates a new Process instance, it only stores the pid and
