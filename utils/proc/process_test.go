@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,6 +27,40 @@ func TestFindProcess(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, p)
 	assert.Equal(t, os.Getpid(), p.Pid())
+}
+
+func TestIsProcessRunning(t *testing.T) {
+	t.Run("Happy running process", func(t *testing.T) {
+		running, err := IsProcessRunning(context.Background(), os.Getpid())
+		require.NoError(t, err)
+		assert.True(t, running)
+	})
+	t.Run("cancelled context", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		running, err := IsProcessRunning(ctx, os.Getpid())
+		require.Error(t, err)
+		errortest.AssertError(t, err, commonerrors.ErrTimeout, commonerrors.ErrCancelled)
+		assert.False(t, running)
+	})
+	t.Run("non existent process", func(t *testing.T) {
+		found := false
+		i := 0
+		for i = 0; i < 1000; i++ {
+			p, err := FindProcess(context.Background(), i)
+			if commonerrors.Any(err, commonerrors.ErrNotFound) || p == nil {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Skip("could not find a non existent pid")
+		}
+
+		running, err := IsProcessRunning(context.Background(), i)
+		require.NoError(t, err)
+		assert.False(t, running)
+	})
 }
 
 func TestProcesses(t *testing.T) {
@@ -72,6 +107,7 @@ func TestKill(t *testing.T) {
 	assert.True(t, process.IsRunning())
 	require.NoError(t, process.Terminate(context.Background()))
 	require.NoError(t, process.KillWithChildren(context.Background()))
+	time.Sleep(500 * time.Millisecond)
 	process, err = FindProcess(context.Background(), cmd.Process.Pid)
 	if err == nil {
 		require.NotEmpty(t, process)
