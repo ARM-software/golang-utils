@@ -230,7 +230,7 @@ func isProcessRunning(p *process.Process) (running bool) {
 		running = false
 		return
 	}
-        // On some platforms, such as *nix, a zombie process is reported as a running process by p.IsRunning() but this is not the case. Therefore, a further check is performed on the process status to verify a running process is actually in the expected running state. Nonetheless, status is not cross platform and is not implemented on Windows. For those platform, the status returned by IsRunning is then considered
+	// On some platforms, such as *nix, a zombie process is reported as a running process by p.IsRunning() but this is not the case. Therefore, a further check is performed on the process status to verify a running process is actually in the expected running state. Nonetheless, status is not cross platform and is not implemented on Windows. For those platform, the status returned by IsRunning is then considered
 	status, err := p.Status()
 	if err != nil {
 		return
