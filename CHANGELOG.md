@@ -14,6 +14,27 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.62.0" (2024-04-04)
+=====================
+
+Features
+--------
+
+- :sparkles: Add utilities to manage processes (#20240320185150)
+- :sparkles: `[proc]` Add a utility to check whether a process is running or not (#20240403150239)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v5-5.12.0 (#20240401100303)
+- Dependency upgrade: v3-3.24.3 (#20240401100307, #20240401100318)
+- Dependency upgrade: go-hclog-1.6.3 (#20240403074309, #20240403074315, #20240403074343)
+- :bug: Fix hanging sub processes when deleting folders as described in [(go issue)](https://github.com/golang/go/issues/24050). See https://github.com/go-cmd/cmd/tree/master?tab=readme-ov-file#proper-process-termination for inspiration (#20240403145328)
+- :bug: Fix sub processes termination and command process setup as described in [(go issue)](https://github.com/golang/go/issues/24050). (#20240403170926)
+- Dependency upgrade: net-0.23.0 (#20240404103821)
+
+
 "1.61.2" (2024-03-20)
 =====================
 
