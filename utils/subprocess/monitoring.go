@@ -32,7 +32,7 @@ func newSubprocessMonitoring(parentCtx context.Context) *subprocessMonitoring {
 	return m
 }
 
-// Interrupts an on-going process.
+// CancelSubprocess interrupts an on-going process.
 func (s *subprocessMonitoring) CancelSubprocess() {
 	s.monitoringStopping.Store(true)
 	s.cancelStore.Cancel()

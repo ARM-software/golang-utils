@@ -27,35 +27,35 @@ type subprocessMessaging struct {
 	pid                    atomic.Int64
 }
 
-// Logs subprocess start.
+// LogStart logs subprocess start.
 func (s *subprocessMessaging) LogStart() {
 	if s.withAdditionalMessages {
 		s.loggers.Log(s.messageOnProcessStart)
 	}
 }
 
-// Logs when subprocess failed to start.
+// LogFailedStart logs when subprocess failed to start.
 func (s *subprocessMessaging) LogFailedStart(err error) {
 	if s.withAdditionalMessages {
 		s.loggers.LogError(fmt.Sprintf("Failed starting process `%v`: %v", s.commandPath, err))
 	}
 }
 
-// Logs when subprocess has started.
+// LogStarted logs when subprocess has started.
 func (s *subprocessMessaging) LogStarted() {
 	if s.withAdditionalMessages {
 		s.loggers.Log(fmt.Sprintf("Started process [%v]", s.pid.Load()))
 	}
 }
 
-// Logs when subprocess is asked to stop.
+// LogStopping logs when subprocess is asked to stop.
 func (s *subprocessMessaging) LogStopping() {
 	if s.withAdditionalMessages {
 		s.loggers.Log(fmt.Sprintf("Stopping process [%v]", s.pid.Load()))
 	}
 }
 
-// Logs subprocess end with err if an error occurred.
+// LogEnd logs subprocess end with err if an error occurred.
 func (s *subprocessMessaging) LogEnd(err error) {
 	if !s.withAdditionalMessages {
 		return
@@ -67,7 +67,7 @@ func (s *subprocessMessaging) LogEnd(err error) {
 	}
 }
 
-// Sets the process PID.
+// SetPid sets the process PID.
 func (s *subprocessMessaging) SetPid(pid int) {
 	s.pid.Store(int64(pid))
 }
