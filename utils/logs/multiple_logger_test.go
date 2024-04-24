@@ -111,8 +111,6 @@ func TestMultipleLoggers(t *testing.T) {
 	})
 
 	t.Run("Add loggers at start", func(t *testing.T) {
-
-		// Adding a file logger to the mix.
 		file, err := filesystem.TempFileInTempDir("test-multiplelog-filelog-*.log")
 		require.NoError(t, err)
 
@@ -131,10 +129,8 @@ func TestMultipleLoggers(t *testing.T) {
 		nl, err := NewNoopLogger("Test2")
 		require.NoError(t, err)
 
-		// With default logger
 		loggers, err := NewMultipleLoggers("Test Multiple", fl, nl)
 		require.NoError(t, err)
 		testLog(t, loggers)
-
 	})
 }
