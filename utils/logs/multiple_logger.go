@@ -1,6 +1,7 @@
 package logs
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/go-logr/logr"
@@ -55,11 +56,13 @@ func (c *MultipleLogger) setLoggerSource(source string) error {
 	var err error
 	for i := range c.loggers {
 		err = c.loggers[i].SetLoggerSource(source)
+		if err != nil {
+			return err
+		}
 	}
-	if err == nil {
-		c.loggerSource = source
-	}
-	return err
+
+	c.loggerSource = source
+	return nil
 }
 
 func (c *MultipleLogger) Log(output ...interface{}) {
@@ -123,6 +126,12 @@ func NewMultipleLoggers(loggerSource string, loggersList ...Loggers) (l IMultipl
 		err = commonerrors.ErrNoLoggerSource
 		return
 	}
+	l = &MultipleLoggerWithLoggerSource{}
+	err = l.SetLoggerSource(loggerSource)
+	if err != nil {
+		return
+	}
+
 	list := loggersList
 	if len(list) == 0 {
 		std, err := NewStdLogger(loggerSource)
@@ -131,12 +140,7 @@ func NewMultipleLoggers(loggerSource string, loggersList ...Loggers) (l IMultipl
 		}
 		list = []Loggers{std}
 	}
-	l = &MultipleLoggerWithLoggerSource{}
 	err = l.Append(list...)
-	if err != nil {
-		return
-	}
-	err = l.SetLoggerSource(loggerSource)
 	return
 }
 
