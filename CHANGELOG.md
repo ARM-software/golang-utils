@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.62.2" (2024-04-24)
+=====================
+
+Bugfixes
+--------
+
+- :bug: Make sure that loggers added in NewMultipleLoggers don't fail with 'No Logger Source' (#20240424131658)
+
+
 "1.62.1" (2024-04-18)
 =====================
 
