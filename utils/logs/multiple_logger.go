@@ -1,7 +1,6 @@
 package logs
 
 import (
-	"fmt"
 	"sync"
 
 	"github.com/go-logr/logr"
