@@ -64,7 +64,7 @@ func (s *AbstractStreamPaginator) HasNext() bool {
 	} else {
 		s.timeReachLast.Store(time.Now())
 	}
-	return s.HasNext()
+	return s.AbstractPaginator.HasNext()
 }
 
 func (s *AbstractStreamPaginator) GetNext() (interface{}, error) {
