@@ -14,6 +14,23 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.64.0" (2024-05-30)
+=====================
+
+Features
+--------
+
+- :sparkles: `commonerrors` Add support for warnings in commonerrors (#20240530162101)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: logr-1.4.2 (#20240522100830, #20240522100831)
+- Dependency upgrade: zerolog-1.33.0 (#20240529101645, #20240529101647)
+- Dependency upgrade: go-retryablehttp-0.7.7 (#20240530103631)
+
+
 "1.63.0" (2024-05-13)
 =====================
 
