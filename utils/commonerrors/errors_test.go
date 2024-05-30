@@ -6,6 +6,7 @@ package commonerrors
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -70,6 +71,109 @@ func TestContextErrorConversion(t *testing.T) {
 	err := ConvertContextError(cancelCtx.Err())
 	require.NotNil(t, err)
 	assert.True(t, Any(err, ErrTimeout, ErrCancelled))
+}
+
+func TestIsCommonError(t *testing.T) {
+	commonErrors := []error{
+		ErrNotImplemented,
+		ErrNoExtension,
+		ErrNoLogger,
+		ErrNoLoggerSource,
+		ErrNoLogSource,
+		ErrUndefined,
+		ErrInvalidDestination,
+		ErrTimeout,
+		ErrLocked,
+		ErrStaleLock,
+		ErrExists,
+		ErrNotFound,
+		ErrUnsupported,
+		ErrUnavailable,
+		ErrWrongUser,
+		ErrUnauthorised,
+		ErrUnknown,
+		ErrInvalid,
+		ErrConflict,
+		ErrMarshalling,
+		ErrCancelled,
+		ErrEmpty,
+		ErrUnexpected,
+		ErrTooLarge,
+		ErrForbidden,
+		ErrCondition,
+		ErrEOF,
+		ErrMalicious,
+		ErrWarning,
+	}
+	for i := range commonErrors {
+		assert.True(t, IsCommonError(commonErrors[i]))
+	}
+
+	assert.False(t, IsCommonError(errors.New(faker.Sentence())))
+}
+
+func TestIsWarning(t *testing.T) {
+	assert.True(t, IsWarning(ErrWarning))
+	assert.False(t, IsWarning(ErrUnexpected))
+	assert.False(t, IsWarning(nil))
+	assert.True(t, IsWarning(fmt.Errorf("%w: i am i warning", ErrWarning)))
+	assert.True(t, IsWarning(fmt.Errorf("%w: i am i warning too: %v", ErrWarning, ErrUnknown)))
+}
+
+func TestNewWarning(t *testing.T) {
+	testErr := fmt.Errorf("%w: i am a test error", ErrUnexpected)
+
+	t.Run("Normal", func(t *testing.T) {
+		ok, err := NewWarning(testErr)
+		assert.True(t, ok)
+		assert.Equal(t, fmt.Errorf("%v%w", warningStrPrepend, testErr), err)
+	})
+
+	t.Run("Nil", func(t *testing.T) {
+		ok, err := NewWarning(nil)
+		assert.False(t, ok)
+		assert.Nil(t, err)
+	})
+
+	t.Run("Not commonerror", func(t *testing.T) {
+		fakeError := errors.New(faker.Word())
+		ok, err := NewWarning(fakeError)
+		assert.False(t, ok)
+		assert.Equal(t, fakeError, err)
+	})
+
+	t.Run("Warning on a warning", func(t *testing.T) {
+		ok, err := NewWarning(testErr)
+		assert.True(t, ok)
+		ok, err = NewWarning(err)
+		assert.True(t, ok)
+		assert.Equal(t, fmt.Errorf("%v%w", warningStrPrepend, testErr), err)
+	})
+}
+
+func TestParseWarning(t *testing.T) {
+	t.Run("Normal", func(t *testing.T) {
+		testErr := fmt.Errorf("%w: i am a test error", ErrUnexpected)
+		ok, errWarning := NewWarning(testErr)
+		require.True(t, ok)
+		require.True(t, IsWarning(errWarning))
+		ok, err := ParseWarning(errWarning)
+		assert.True(t, ok)
+		assert.Equal(t, testErr, err)
+	})
+
+	t.Run("Nil", func(t *testing.T) {
+		ok, err := ParseWarning(nil)
+		assert.False(t, ok)
+		assert.Nil(t, err)
+	})
+
+	t.Run("Not Warning", func(t *testing.T) {
+		testErr := fmt.Errorf("%w: i am a test error", ErrUnexpected)
+		ok, err := ParseWarning(testErr)
+		assert.False(t, ok)
+		assert.Nil(t, err)
+	})
 }
 
 func TestIgnore(t *testing.T) {

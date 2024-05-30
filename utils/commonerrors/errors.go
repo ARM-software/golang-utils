@@ -9,6 +9,7 @@ package commonerrors
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -43,7 +44,19 @@ var (
 	ErrCondition          = errors.New("failed condition")
 	ErrEOF                = errors.New("end of file")
 	ErrMalicious          = errors.New("suspected malicious intent")
+	// ErrWarning is a generic error that can be used when an error should be raised but it shouldn't necessary be
+	// passed up the chain, for example in cases where an error should be logged but the program should continue. In
+	// these situations it should be handled immediately and then ignored/set to nil.
+	ErrWarning = errors.New(warningStr)
 )
+
+const warningStr = "warning"
+
+var warningStrPrepend = fmt.Sprintf("%v: ", warningStr)
+
+func IsCommonError(target error) bool {
+	return Any(target, ErrNotImplemented, ErrNoExtension, ErrNoLogger, ErrNoLoggerSource, ErrNoLogSource, ErrUndefined, ErrInvalidDestination, ErrTimeout, ErrLocked, ErrStaleLock, ErrExists, ErrNotFound, ErrUnsupported, ErrUnavailable, ErrWrongUser, ErrUnauthorised, ErrUnknown, ErrInvalid, ErrConflict, ErrMarshalling, ErrCancelled, ErrEmpty, ErrUnexpected, ErrTooLarge, ErrForbidden, ErrCondition, ErrEOF, ErrMalicious, ErrWarning)
+}
 
 // Any determines whether the target error is of the same type as any of the errors `err`
 func Any(target error, err ...error) bool {
@@ -71,7 +84,7 @@ func None(target error, err ...error) bool {
 // It will check whether the error contains the string in its description. It is not case-sensitive.
 // ```code
 //
-//	  CorrespondTo(errors.New("feature a is not supported", "not supported") = True
+//	  CorrespondTo(errors.New("feature a is not supported"), "not supported") = True
 //	```
 func CorrespondTo(target error, description ...string) bool {
 	if target == nil {
@@ -153,6 +166,8 @@ func deserialiseCommonError(errStr string) (bool, error) {
 		return true, ErrEOF
 	case CorrespondTo(ErrMalicious, errStr):
 		return true, ErrMalicious
+	case CorrespondTo(ErrWarning, errStr):
+		return true, ErrWarning
 	}
 	return false, ErrUnknown
 }
@@ -169,6 +184,52 @@ func ConvertContextError(err error) error {
 		return ErrTimeout
 	}
 	return err
+}
+
+// IsWarning will return whether an error is actually a warning
+func IsWarning(target error) bool {
+	if target == nil {
+		return false
+	}
+
+	if Any(target, ErrWarning) {
+		return true
+	}
+
+	underlyingErr := errors.Unwrap(target)
+	if underlyingErr == nil {
+		return false
+	}
+
+	return strings.TrimSuffix(target.Error(), underlyingErr.Error()) == warningStrPrepend
+}
+
+// NewWarning will create a warning wrapper around an existing commonerror so that it can be easily recovered. If the
+// underlying error is not a commonerror then ok will be set to false
+func NewWarning(target error) (ok bool, err error) {
+	if target == nil {
+		return false, nil
+	}
+
+	if !IsCommonError(target) {
+		return false, target
+	}
+
+	if IsWarning(target) {
+		return true, target
+	}
+
+	return true, fmt.Errorf("%v%w", warningStrPrepend, target)
+}
+
+// ParseWarning will extract the error that has been wrapped by ErrWarning. It will return nil if the error was not
+// one of ErrWarning with ok set to false. It will also set ok to false if the underlying error cannot be parsed
+func ParseWarning(target error) (ok bool, err error) {
+	if target == nil || !IsWarning(target) {
+		return
+	}
+
+	return true, errors.Unwrap(target)
 }
 
 // Ignore will return nil if the target error matches one of the errors to ignore
