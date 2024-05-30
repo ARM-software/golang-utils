@@ -54,6 +54,7 @@ const warningStr = "warning"
 
 var warningStrPrepend = fmt.Sprintf("%v: ", warningStr)
 
+// IsCommonError returns whether an error is a commonerror
 func IsCommonError(target error) bool {
 	return Any(target, ErrNotImplemented, ErrNoExtension, ErrNoLogger, ErrNoLoggerSource, ErrNoLogSource, ErrUndefined, ErrInvalidDestination, ErrTimeout, ErrLocked, ErrStaleLock, ErrExists, ErrNotFound, ErrUnsupported, ErrUnavailable, ErrWrongUser, ErrUnauthorised, ErrUnknown, ErrInvalid, ErrConflict, ErrMarshalling, ErrCancelled, ErrEmpty, ErrUnexpected, ErrTooLarge, ErrForbidden, ErrCondition, ErrEOF, ErrMalicious, ErrWarning)
 }
