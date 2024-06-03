@@ -39,7 +39,9 @@ func TestClientHappy(t *testing.T) {
 		},
 		{
 			clientName: "default retryable client",
-			client:     NewRetryableClient,
+			client: func() IClient {
+				return NewRetryableClient()
+			},
 		},
 		{
 			clientName: "client with no retry",
@@ -182,7 +184,9 @@ func TestClientWithDifferentBodies(t *testing.T) {
 		},
 		{
 			clientName: "default retryable client",
-			client:     NewRetryableClient,
+			client: func() IClient {
+				return NewRetryableClient()
+			},
 		},
 		{
 			clientName: "client with no retry",

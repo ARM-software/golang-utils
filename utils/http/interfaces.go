@@ -22,6 +22,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 //go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IClient,IRetryWaitPolicy
@@ -56,4 +58,10 @@ type IRetryWaitPolicy interface {
 	// Apply determines the amount of time to wait before the next retry attempt.
 	// the time will be comprised between the `min` and `max` value unless other information are retrieved from the server response e.g. `Retry-After` header.
 	Apply(min, max time.Duration, attemptNum int, resp *http.Response) time.Duration
+}
+
+// IRetryableClient is a retryable client. It is a normal client with the additional method of extracting the underlying go-retryablehttp client so it can be used in libraries that use it
+type IRetryableClient interface {
+	IClient
+	UnderlyingClient() *retryablehttp.Client
 }
