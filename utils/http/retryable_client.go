@@ -25,41 +25,41 @@ type RetryableClient struct {
 
 // NewRetryableClient creates a new http client which will retry failed requests with exponential backoff.
 // It is based on `retryablehttp` default client
-func NewRetryableClient() IClient {
+func NewRetryableClient() IRetryableClient {
 	return &RetryableClient{client: retryablehttp.NewClient()}
 }
 
 // NewRetryableOauthClient creates a new http client with an authorisation token which will retry failed requests with exponential backoff.
-func NewRetryableOauthClient(token string) IClient {
+func NewRetryableOauthClient(token string) IRetryableClient {
 	return NewConfigurableRetryableOauthClient(DefaultRobustHTTPClientConfigurationWithExponentialBackOff(), token)
 }
 
 // NewRetryableOauthClientWithToken creates a new http client with an authorisation token which will retry failed requests with exponential backoff. It takes a full oauth2.Token to give more configuration for the token
-func NewRetryableOauthClientWithToken(t *oauth2.Token) IClient {
+func NewRetryableOauthClientWithToken(t *oauth2.Token) IRetryableClient {
 	return NewConfigurableRetryableOauthClientWithToken(DefaultRobustHTTPClientConfigurationWithExponentialBackOff(), t)
 }
 
 // NewConfigurableRetryableOauthClientWithToken creates a new http client with an authorisation token which will retry based on the configuration.
 // It takes a full oauth2.Token to give more configuration for the token
-func NewConfigurableRetryableOauthClientWithToken(cfg *HTTPClientConfiguration, t *oauth2.Token) IClient {
+func NewConfigurableRetryableOauthClientWithToken(cfg *HTTPClientConfiguration, t *oauth2.Token) IRetryableClient {
 	return NewConfigurableRetryableOauthClientWithTokenAndLogger(cfg, logr.Logger{}, t)
 }
 
 // NewConfigurableRetryableOauthClientWithToken creates a new http client with an authorisation token which will retry based on the configuration.
 // It takes a logger to allow for debugging. It takes a full oauth2.Token to give more configuration for the token
-func NewConfigurableRetryableOauthClientWithTokenAndLogger(cfg *HTTPClientConfiguration, logger logr.Logger, t *oauth2.Token) IClient {
+func NewConfigurableRetryableOauthClientWithTokenAndLogger(cfg *HTTPClientConfiguration, logger logr.Logger, t *oauth2.Token) IRetryableClient {
 	tc := oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(t))
 	return NewConfigurableRetryableClientWithLoggerFromClient(cfg, logger, tc)
 }
 
 // NewConfigurableRetryableOauthClient creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff) with the authorisation header set to token
-func NewConfigurableRetryableOauthClient(cfg *HTTPClientConfiguration, token string) IClient {
+func NewConfigurableRetryableOauthClient(cfg *HTTPClientConfiguration, token string) IRetryableClient {
 	return NewConfigurableRetryableOauthClientWithLogger(cfg, logr.Logger{}, token)
 }
 
 // NewConfigurableRetryableOauthClientWithLogger creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff) with the authorisation header set to token
 // It is also possible to supply a logger for debug purposes
-func NewConfigurableRetryableOauthClientWithLogger(cfg *HTTPClientConfiguration, logger logr.Logger, token string) IClient {
+func NewConfigurableRetryableOauthClientWithLogger(cfg *HTTPClientConfiguration, logger logr.Logger, token string) IRetryableClient {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
@@ -69,25 +69,25 @@ func NewConfigurableRetryableOauthClientWithLogger(cfg *HTTPClientConfiguration,
 }
 
 // NewConfigurableRetryableClient creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff).
-func NewConfigurableRetryableClient(cfg *HTTPClientConfiguration) IClient {
+func NewConfigurableRetryableClient(cfg *HTTPClientConfiguration) IRetryableClient {
 	return NewConfigurableRetryableClientWithLogger(cfg, logr.Logger{})
 }
 
 // NewConfigurableRetryableClientFromClient creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff).
 // It also takes a custom client if you need an authenticated client
-func NewConfigurableRetryableClientFromClient(cfg *HTTPClientConfiguration, client *http.Client) IClient {
+func NewConfigurableRetryableClientFromClient(cfg *HTTPClientConfiguration, client *http.Client) IRetryableClient {
 	return NewConfigurableRetryableClientWithLoggerFromClient(cfg, logr.Logger{}, client)
 }
 
 // NewConfigurableRetryableClientWithLogger creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff).
 // It is also possible to supply a logger for debug purposes
-func NewConfigurableRetryableClientWithLogger(cfg *HTTPClientConfiguration, logger logr.Logger) IClient {
+func NewConfigurableRetryableClientWithLogger(cfg *HTTPClientConfiguration, logger logr.Logger) IRetryableClient {
 	return NewConfigurableRetryableClientWithLoggerFromClient(cfg, logger, cleanhttp.DefaultPooledClient())
 }
 
 // NewConfigurableRetryableClientWithLoggerFromClient creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff).
 // It is also possible to supply a logger for debug purposes as well as a custom client if you need an authenticated client
-func NewConfigurableRetryableClientWithLoggerFromClient(cfg *HTTPClientConfiguration, logger logr.Logger, client *http.Client) IClient {
+func NewConfigurableRetryableClientWithLoggerFromClient(cfg *HTTPClientConfiguration, logger logr.Logger, client *http.Client) IRetryableClient {
 	subClient := &retryablehttp.Client{
 		HTTPClient:      client,
 		Logger:          newLogger(logger),
@@ -124,6 +124,10 @@ func (c *RetryableClient) PostForm(url string, data url.Values) (*http.Response,
 
 func (c *RetryableClient) StandardClient() *http.Client {
 	return c.client.StandardClient()
+}
+
+func (c *RetryableClient) UnderlyingClient() *retryablehttp.Client {
+	return c.client
 }
 
 func (c *RetryableClient) Get(url string) (*http.Response, error) {

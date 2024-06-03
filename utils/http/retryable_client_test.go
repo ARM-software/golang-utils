@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-http-utils/headers"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 	"go.uber.org/goleak"
@@ -234,6 +235,59 @@ func TestClient_Get_Fail_Timeout(t *testing.T) {
 			case <-time.After(1000 * time.Millisecond):
 				t.Fatalf("Client should fail instantly with a 404 response, not retrying!")
 			}
+		})
+	}
+}
+
+func TestUnderlyingClient(t *testing.T) {
+	tests := []struct {
+		retryableClient IRetryableClient
+		clientName      string
+	}{
+		{
+			retryableClient: NewRetryableClient(),
+			clientName:      "retryablehttp default client",
+		},
+		{
+			retryableClient: NewConfigurableRetryableClient(DefaultRobustHTTPClientConfiguration()),
+			clientName:      "client with retry but no backoff",
+		},
+		{
+			retryableClient: NewConfigurableRetryableClient(DefaultRobustHTTPClientConfigurationWithRetryAfter()),
+			clientName:      "client with retry after but no backoff",
+		},
+		{
+			retryableClient: NewConfigurableRetryableClient(DefaultRobustHTTPClientConfigurationWithExponentialBackOff()),
+			clientName:      "client with exponential backoff",
+		},
+		{
+			retryableClient: NewConfigurableRetryableClient(DefaultRobustHTTPClientConfigurationWithLinearBackOff()),
+			clientName:      "client with linear backoff",
+		},
+		{
+			retryableClient: NewRetryableOauthClient("test-token"),
+			clientName:      "custom oauth retryablehttp default client with oath",
+		},
+		{
+			retryableClient: NewConfigurableRetryableOauthClient(DefaultRobustHTTPClientConfiguration(), "test-token"),
+			clientName:      "custom oauth client with retry but no backoff",
+		},
+		{
+			retryableClient: NewConfigurableRetryableOauthClient(DefaultRobustHTTPClientConfigurationWithRetryAfter(), "test-token "),
+			clientName:      "custom oauth client with retry after but no backoff",
+		},
+		{
+			retryableClient: NewConfigurableRetryableOauthClientWithToken(DefaultRobustHTTPClientConfigurationWithRetryAfter(), &oauth2.Token{AccessToken: "test-token"}),
+			clientName:      "custom oauth client with retry after but no backoff using oauth2.Token",
+		},
+	}
+
+	for i := range tests {
+		t.Run(tests[i].clientName, func(t *testing.T) {
+			client := tests[i].retryableClient
+			rawClient, ok := client.(*RetryableClient)
+			require.True(t, ok)
+			assert.Equal(t, client.UnderlyingClient(), rawClient.UnderlyingClient())
 		})
 	}
 }
