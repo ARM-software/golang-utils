@@ -186,3 +186,18 @@ func TestIgnore(t *testing.T) {
 	assert.Equal(t, nil, Ignore(fmt.Errorf("an error %w", ErrNotImplemented), ErrInvalid, ErrNotImplemented, ErrUnknown))
 	assert.Equal(t, fmt.Errorf("an error %w", ErrNotImplemented), Ignore(fmt.Errorf("an error %w", ErrNotImplemented), ErrInvalid, ErrUnknown))
 }
+
+func TestErrorRelatesTo(t *testing.T) {
+	assert.True(t, RelatesTo(fmt.Errorf("%w: %v", ErrInvalid, faker.Sentence()).Error(), ErrInvalid))
+	assert.True(t, RelatesTo(fmt.Errorf("%w: %v", ErrInvalid, faker.Sentence()).Error(), ErrInvalid, ErrCondition))
+	assert.False(t, RelatesTo(fmt.Errorf("%w: %v", ErrUnauthorised, faker.Sentence()).Error(), ErrInvalid))
+	assert.False(t, RelatesTo(fmt.Errorf("%w: %v", ErrUnauthorised, faker.Sentence()).Error(), ErrInvalid, ErrCondition))
+	assert.True(t, RelatesTo(fmt.Sprint(fmt.Errorf("%w: %v", ErrInvalid, faker.Sentence())), ErrInvalid))
+	assert.True(t, RelatesTo(fmt.Sprint(fmt.Errorf("%w: %v", ErrInvalid, faker.Sentence())), ErrInvalid, ErrCondition))
+	assert.False(t, RelatesTo(fmt.Sprint(fmt.Errorf("%w: %v", ErrUnauthorised, faker.Sentence())), ErrInvalid))
+	assert.False(t, RelatesTo(fmt.Sprint(fmt.Errorf("%w: %v", ErrUnauthorised, faker.Sentence())), ErrInvalid, ErrCondition))
+	assert.True(t, RelatesTo(fmt.Sprintf("%v: %v", ErrInvalid.Error(), faker.Sentence()), ErrInvalid))
+	assert.True(t, RelatesTo(fmt.Sprintf("%v: %v", ErrInvalid.Error(), faker.Sentence()), ErrInvalid, ErrCondition))
+	assert.False(t, RelatesTo(fmt.Sprintf("%v: %v", ErrUnauthorised.Error(), faker.Sentence()), ErrInvalid))
+	assert.False(t, RelatesTo(fmt.Sprintf("%v: %v", ErrUnauthorised.Error(), faker.Sentence()), ErrInvalid, ErrCondition))
+}
