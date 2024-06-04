@@ -101,11 +101,9 @@ func CorrespondTo(target error, description ...string) bool {
 	return false
 }
 
-// ErrorDescriptionIs determines whether a srting matches a commonerror that is being represented as a
-// string. For example through fmt.Sprint(err) or err.Error().
-//
-// This assumes that the common convention we follow where we put the common error at the beginning of the error holds.
-func ErrorDescriptionIs(target string, errors ...error) bool {
+// RelatesTo determines whether an error description string could relate to a particular set of common errors
+// This assumes that the error description follows the convention of placing the type of errors at the start of the string.
+func RelatesTo(target string, errors ...error) bool {
 	for i := range errors {
 		if strings.HasPrefix(target, errors[i].Error()) {
 			return true
