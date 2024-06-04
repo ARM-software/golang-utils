@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.66.0" (2024-06-04)
+=====================
+
+Features
+--------
+
+- :sparkles: `commonerrors` Add support for determining commonerror from a string (#20240604150742)
+
+
 "1.65.0" (2024-06-03)
 =====================
 
