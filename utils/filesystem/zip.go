@@ -163,18 +163,21 @@ func (fs *VFS) ZipWithContextAndLimitsAndExclusionPatterns(ctx context.Context, 
 	return
 }
 
-// Prevents any ZipSlip (files outside extraction dirPath) https://snyk.io/research/zip-slip-vulnerability#go
+// Prevents any ZipSlip ([CWE-22](https://cwe.mitre.org/data/definitions/22.html)) (files outside extraction dirPath) https://snyk.io/research/zip-slip-vulnerability#go
 func sanitiseZipExtractPath(fs FS, filePath string, destination string) (destPath string, err error) {
 	destPath = filepath.Join(destination, filePath) // join cleans the destpath so we can check for ZipSlip
 	if destPath == destination {
 		return
 	}
-	if strings.HasPrefix(destPath, fmt.Sprintf("%v%v", destination, string(fs.PathSeparator()))) {
-		return
+	if !strings.Contains(destPath, "..") {
+		if strings.HasPrefix(destPath, fmt.Sprintf("%v%v", destination, string(fs.PathSeparator()))) {
+			return
+		}
+		if strings.HasPrefix(destPath, fmt.Sprintf("%v/", destination)) {
+			return
+		}
 	}
-	if strings.HasPrefix(destPath, fmt.Sprintf("%v/", destination)) {
-		return
-	}
+
 	err = fmt.Errorf("%w: zipslip security breach detected, file dirPath '%s' not in destination directory '%s'", commonerrors.ErrMalicious, filePath, destination)
 	return
 }
@@ -276,12 +279,18 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 
 	// For each file in the zip file
 	for i := range zipReader.File {
-		zippedFile := zipReader.File[i]
 		subErr := parallelisation.DetermineContextError(ctx)
 		if subErr != nil {
 			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
 		}
-
+		zippedFile := zipReader.File[i]
+		// Detection of Zip slip https://cwe.mitre.org/data/definitions/22.html (CodeQL)
+		if strings.Contains(zippedFile.Name, "..") {
+			_, subErr := sanitiseZipExtractPath(fs, zippedFile.Name, destination)
+			if subErr != nil {
+				return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
+			}
+		}
 		// Calculate file dirPath
 		filePath, subErr := sanitiseZipExtractPath(fs, zippedFile.Name, destination)
 		if subErr != nil {

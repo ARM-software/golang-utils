@@ -11,7 +11,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/bxcodec/faker/v3"
+	"github.com/go-faker/faker/v4"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"

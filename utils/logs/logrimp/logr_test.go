@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bxcodec/faker/v3"
+	"github.com/go-faker/faker/v4"
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/go-hclog"
 	"github.com/sirupsen/logrus"

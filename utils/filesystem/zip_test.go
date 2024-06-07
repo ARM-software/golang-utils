@@ -6,13 +6,16 @@ import (
 	"math"
 	"path/filepath"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/hashing"
 	"github.com/ARM-software/golang-utils/utils/units/multiplication"
 	"github.com/ARM-software/golang-utils/utils/units/size"
@@ -729,4 +732,24 @@ func TestUnzipFileCountLimit(t *testing.T) {
 		_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
 		assert.NoError(t, err)
 	})
+}
+
+func testSanitiseZipExtractPath(t *testing.T, filePath string) {
+	fs := NewStandardFileSystem()
+	dst := filepath.Join(faker.Word(), faker.Name(), faker.UUIDHyphenated(), faker.Name())
+	rootDepth, err := FileTreeDepth(fs, "", dst)
+	require.NoError(t, err)
+	dest, subErr := sanitiseZipExtractPath(fs, filePath, dst)
+	require.NotEmpty(t, dest)
+	destDepth, err := FileTreeDepth(fs, "", dest)
+	if rootDepth > destDepth || !strings.Contains(dest, dst) {
+		errortest.RequireError(t, subErr, commonerrors.ErrMalicious)
+	} else {
+		require.NoError(t, err)
+	}
+}
+
+func FuzzSanitiseZipExtractPath(f *testing.F) {
+	f.Add("..")
+	f.Fuzz(testSanitiseZipExtractPath)
 }
