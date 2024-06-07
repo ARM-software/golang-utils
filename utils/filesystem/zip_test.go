@@ -3,9 +3,12 @@ package filesystem
 import (
 	"context"
 	"fmt"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/bxcodec/faker/v3"
 	"math"
 	"path/filepath"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -729,4 +732,24 @@ func TestUnzipFileCountLimit(t *testing.T) {
 		_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
 		assert.NoError(t, err)
 	})
+}
+
+func testSanitiseZipExtractPath(t *testing.T, filePath string) {
+	fs := NewStandardFileSystem()
+	dst := filepath.Join(faker.Word(), faker.Name(), faker.UUIDHyphenated(), faker.Name())
+	rootDepth, err := FileTreeDepth(fs, "", dst)
+	require.NoError(t, err)
+	dest, subErr := sanitiseZipExtractPath(fs, filePath, dst)
+	require.NotEmpty(t, dest)
+	destDepth, err := FileTreeDepth(fs, "", dest)
+	if rootDepth > destDepth || !strings.Contains(dest, dst) {
+		errortest.RequireError(t, subErr, commonerrors.ErrMalicious)
+	} else {
+		require.NoError(t, err)
+	}
+}
+
+func FuzzSanitiseZipExtractPath(f *testing.F) {
+	f.Add("..")
+	f.Fuzz(testSanitiseZipExtractPath)
 }
