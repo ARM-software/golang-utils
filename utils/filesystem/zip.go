@@ -169,11 +169,13 @@ func sanitiseZipExtractPath(fs FS, filePath string, destination string) (destPat
 	if destPath == destination {
 		return
 	}
-	if strings.HasPrefix(destPath, fmt.Sprintf("%v%v", destination, string(fs.PathSeparator()))) {
-		return
-	}
-	if strings.HasPrefix(destPath, fmt.Sprintf("%v/", destination)) {
-		return
+	if !strings.Contains(destPath, "..") {
+		if strings.HasPrefix(destPath, fmt.Sprintf("%v%v", destination, string(fs.PathSeparator()))) {
+			return
+		}
+		if strings.HasPrefix(destPath, fmt.Sprintf("%v/", destination)) {
+			return
+		}
 	}
 
 	err = fmt.Errorf("%w: zipslip security breach detected, file dirPath '%s' not in destination directory '%s'", commonerrors.ErrMalicious, filePath, destination)
@@ -303,7 +305,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		}
 
 		// record unzipped files (except zip files if they get unzipped later)
-		if !(limits.ApplyRecursively() && fs.isZipWithContext(ctx, zippedFile.Name)) {
+		if !(limits.ApplyRecursively() && fs.isZipWithContext(ctx, filePath)) {
 			fileCounter.Inc()
 			fileList = append(fileList, filePath)
 		}
@@ -343,7 +345,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 				fileCounter.Add(filesOnDiskCount)
 				fileList = append(fileList, nestedUnzippedFiles...)
 			} else {
-				if fs.isZipWithContext(ctx, zippedFile.Name) { // If not an actual zip file but with a zip name.
+				if fs.isZipWithContext(ctx, filePath) { // If not an actual zip file but with a zip name.
 					fileCounter.Inc()
 					fileList = append(fileList, filePath)
 				}
