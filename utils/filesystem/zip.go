@@ -284,7 +284,13 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
 		}
 		zippedFile := zipReader.File[i]
-
+		// Detection of Zip slip https://cwe.mitre.org/data/definitions/22.html (CodeQL)
+		if strings.Contains(zippedFile.Name, "..") {
+			_, subErr := sanitiseZipExtractPath(fs, zippedFile.Name, destination)
+			if subErr != nil {
+				return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
+			}
+		}
 		// Calculate file dirPath
 		filePath, subErr := sanitiseZipExtractPath(fs, zippedFile.Name, destination)
 		if subErr != nil {
@@ -305,7 +311,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		}
 
 		// record unzipped files (except zip files if they get unzipped later)
-		if !(limits.ApplyRecursively() && fs.isZipWithContext(ctx, filePath)) {
+		if !(limits.ApplyRecursively() && fs.isZipWithContext(ctx, zippedFile.Name)) {
 			fileCounter.Inc()
 			fileList = append(fileList, filePath)
 		}
@@ -345,7 +351,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 				fileCounter.Add(filesOnDiskCount)
 				fileList = append(fileList, nestedUnzippedFiles...)
 			} else {
-				if fs.isZipWithContext(ctx, filePath) { // If not an actual zip file but with a zip name.
+				if fs.isZipWithContext(ctx, zippedFile.Name) { // If not an actual zip file but with a zip name.
 					fileCounter.Inc()
 					fileList = append(fileList, filePath)
 				}
