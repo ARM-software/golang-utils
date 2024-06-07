@@ -3,7 +3,7 @@ package sharedcache
 import (
 	"testing"
 
-	"github.com/bxcodec/faker/v3"
+	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/require"
 )
 

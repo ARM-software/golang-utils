@@ -3,8 +3,6 @@ package filesystem
 import (
 	"context"
 	"fmt"
-	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
-	"github.com/bxcodec/faker/v3"
 	"math"
 	"path/filepath"
 	"sort"
@@ -12,10 +10,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/hashing"
 	"github.com/ARM-software/golang-utils/utils/units/multiplication"
 	"github.com/ARM-software/golang-utils/utils/units/size"

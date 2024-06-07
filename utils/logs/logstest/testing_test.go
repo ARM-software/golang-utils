@@ -3,7 +3,7 @@ package logstest
 import (
 	"testing"
 
-	"github.com/bxcodec/faker/v3"
+	"github.com/go-faker/faker/v4"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
