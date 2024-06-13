@@ -83,7 +83,12 @@ func NewLogrLoggerWithClose(logrImpl logr.Logger, loggerSource string, closeFunc
 
 // NewLogrLoggerFromLoggers converts loggers into a logr.Logger
 func NewLogrLoggerFromLoggers(loggers Loggers) logr.Logger {
-	return stdr.New(newGolangStdLoggerFromLoggers(loggers))
+	return logr.New(NewLoggersLogSink(loggers))
+}
+
+// NewPlainLogrLoggerFromLoggers converts loggers into a logr.Logger but do not print any data other than the messages
+func NewPlainLogrLoggerFromLoggers(loggers Loggers) logr.Logger {
+	return logr.New(NewPlainLoggersSink(loggers))
 }
 
 // GetLogrLoggerFromContext gets a logger from a context, unless it does not exist then it returns an ErrNoLogger
@@ -97,4 +102,99 @@ func GetLogrLoggerFromContext(ctx context.Context) (logger logr.Logger, err erro
 		err = commonerrors.ErrNoLogger
 	}
 	return
+}
+
+type plainLoggersSinkAdapter struct {
+	underlying Loggers
+}
+
+func (s *plainLoggersSinkAdapter) Init(_ logr.RuntimeInfo) {
+}
+
+func (s *plainLoggersSinkAdapter) Enabled(_ int) bool {
+	return true
+}
+
+func (s *plainLoggersSinkAdapter) Info(level int, msg string, keysAndValues ...any) {
+	if s.underlying != nil {
+		s.underlying.Log(msg)
+	}
+}
+
+func (s *plainLoggersSinkAdapter) Error(err error, msg string, keysAndValues ...any) {
+	if s.underlying != nil {
+		if err == nil {
+			s.underlying.LogError(msg)
+		} else {
+			s.underlying.LogError(fmt.Sprintf("%v: %v", msg, err.Error()))
+		}
+	}
+}
+
+func (s *plainLoggersSinkAdapter) WithValues(keysAndValues ...any) logr.LogSink {
+	return &plainLoggersSinkAdapter{underlying: s.underlying}
+}
+
+func (s *plainLoggersSinkAdapter) WithName(name string) logr.LogSink {
+	if s.underlying != nil {
+		_ = s.underlying.SetLogSource(name)
+	}
+	return &plainLoggersSinkAdapter{underlying: s.underlying}
+}
+
+func NewPlainLoggersSink(logger Loggers) logr.LogSink {
+	return &plainLoggersSinkAdapter{
+		underlying: logger,
+	}
+}
+
+type loggersLogSinkAdapter struct {
+	stdOut     logr.LogSink
+	stdErr     logr.LogSink
+	underlying Loggers
+}
+
+func (l *loggersLogSinkAdapter) Init(info logr.RuntimeInfo) {
+	l.stdOut.Init(info)
+	l.stdErr.Init(info)
+}
+
+func (l *loggersLogSinkAdapter) Enabled(level int) bool {
+	return l.stdOut.Enabled(level) &&
+		l.stdErr.Enabled(level)
+}
+
+func (l *loggersLogSinkAdapter) Info(level int, msg string, keysAndValues ...any) {
+	l.stdOut.Info(level, msg, keysAndValues...)
+}
+
+func (l *loggersLogSinkAdapter) Error(err error, msg string, keysAndValues ...any) {
+	l.stdErr.Error(err, msg, keysAndValues...)
+}
+
+func (l *loggersLogSinkAdapter) WithValues(keysAndValues ...any) logr.LogSink {
+	return &loggersLogSinkAdapter{
+		stdOut:     l.stdOut.WithValues(keysAndValues...),
+		stdErr:     l.stdErr.WithValues(keysAndValues...),
+		underlying: l.underlying,
+	}
+}
+
+func (l *loggersLogSinkAdapter) WithName(name string) logr.LogSink {
+	if l.underlying != nil {
+		_ = l.underlying.SetLogSource(name)
+	}
+	return &loggersLogSinkAdapter{
+		stdOut:     l.stdOut.WithName(name),
+		stdErr:     l.stdErr.WithName(name),
+		underlying: l.underlying,
+	}
+}
+
+func NewLoggersLogSink(logger Loggers) logr.LogSink {
+	return &loggersLogSinkAdapter{
+		stdOut:     stdr.New(NewGolangStdLoggerFromLoggers(logger, false)).GetSink(),
+		stdErr:     stdr.New(NewGolangStdLoggerFromLoggers(logger, true)).GetSink(),
+		underlying: logger,
+	}
 }

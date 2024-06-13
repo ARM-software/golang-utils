@@ -2,6 +2,7 @@
  * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
+
 package logs
 
 import (
@@ -10,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
@@ -66,17 +68,27 @@ func NewAsynchronousStdLogger(loggerSource string, ringBufferSize int, pollInter
 	return NewAsynchronousLoggers(&StdWriter{}, &StdErrWriter{}, ringBufferSize, pollInterval, loggerSource, source, nil)
 }
 
-func newGolangStdLoggerFromLoggers(loggers Loggers) StdLogger {
+func NewGolangStdLoggerFromLoggers(loggers Loggers, toStdErr bool) StdLogger {
 	return &stdAdaptor{
-		loggers: loggers,
+		loggers:  loggers,
+		toStdErr: toStdErr,
 	}
 }
 
 type stdAdaptor struct {
-	loggers Loggers
+	loggers  Loggers
+	toStdErr bool
+	log.Logger
 }
 
 func (s *stdAdaptor) Output(_ int, logline string) error {
-	s.loggers.Log(logline)
+	if s.loggers == nil {
+		return commonerrors.ErrNoLogger
+	}
+	if s.toStdErr {
+		s.loggers.LogError(logline)
+	} else {
+		s.loggers.Log(logline)
+	}
 	return nil
 }
