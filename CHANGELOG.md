@@ -14,6 +14,16 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.68.0" (2024-06-14)
+=====================
+
+Features
+--------
+
+- :sparkles: `[logs]` Add a way to use a `Loggers` as a plain `logr.Logger` (#20240613181738)
+- :sparkles: `[logs]` Add a file logger which only logs to a file (#20240614163145)
+
+
 "1.67.0" (2024-06-14)
 =====================
 
