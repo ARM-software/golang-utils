@@ -5,6 +5,7 @@
 package logs
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,27 +15,44 @@ import (
 )
 
 func TestFileLogger(t *testing.T) {
-	file, err := filesystem.TempFileInTempDir("test-filelog-*.log")
-	require.NoError(t, err)
+	var tests = []struct {
+		loggerCreationFunc func(path string) (Loggers, error)
+	}{
+		{
+			loggerCreationFunc: func(path string) (Loggers, error) { return NewFileLogger(path, "Test") },
+		},
+		{
+			loggerCreationFunc: func(path string) (Loggers, error) { return NewFileOnlyLogger(path, "Test") },
+		},
+	}
+	for i := range tests {
+		test := tests[i]
+		t.Run(fmt.Sprintf("logger %v", i), func(t *testing.T) {
+			file, err := filesystem.TouchTempFileInTempDir("test-filelog-*.log")
+			require.NoError(t, err)
 
-	err = file.Close()
-	require.NoError(t, err)
+			defer func() { _ = filesystem.Rm(file) }()
 
-	defer func() { _ = filesystem.Rm(file.Name()) }()
+			empty, err := filesystem.IsEmpty(file)
+			require.NoError(t, err)
+			assert.True(t, empty)
 
-	empty, err := filesystem.IsEmpty(file.Name())
-	require.NoError(t, err)
-	assert.True(t, empty)
+			loggers, err := test.loggerCreationFunc(file)
+			require.NoError(t, err)
 
-	loggers, err := NewFileLogger(file.Name(), "Test")
-	require.NoError(t, err)
+			testLog(t, loggers)
 
-	testLog(t, loggers)
+			empty, err = filesystem.IsEmpty(file)
+			require.NoError(t, err)
+			assert.False(t, empty)
 
-	empty, err = filesystem.IsEmpty(file.Name())
-	require.NoError(t, err)
-	assert.False(t, empty)
+			content, err := filesystem.ReadFile(file)
+			require.NoError(t, err)
+			fmt.Println(string(content))
 
-	err = filesystem.Rm(file.Name())
-	require.NoError(t, err)
+			err = filesystem.Rm(file)
+			require.NoError(t, err)
+		})
+	}
+
 }
