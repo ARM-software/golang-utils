@@ -33,6 +33,15 @@ func TestLogrLoggerConversion(t *testing.T) {
 	require.NoError(t, err)
 	converted := NewLogrLoggerFromLoggers(loggers)
 	converted.WithName(faker.Name()).WithValues(faker.Word(), faker.Name()).Error(commonerrors.ErrUnexpected, faker.Sentence())
+	converted.Info(faker.Sentence(), faker.Word(), faker.Name())
+}
+
+func TestLogrLoggerConversionPlain(t *testing.T) {
+	loggers, err := NewPipeLogger()
+	require.NoError(t, err)
+	converted := NewPlainLogrLoggerFromLoggers(loggers)
+	converted.WithName(faker.Name()).WithValues(faker.Word(), faker.Name()).Error(commonerrors.ErrUnexpected, faker.Sentence())
+	converted.Info(faker.Sentence(), faker.Word(), faker.Name())
 }
 
 func TestGetLogrFromEmptyContext(t *testing.T) {
