@@ -5,12 +5,22 @@
 
 package logs
 
-import "github.com/sirupsen/logrus"
+import (
+	"io"
 
-// NewFileLogger creates a logger to a file
+	"github.com/sirupsen/logrus"
+)
+
+// NewFileLogger creates a logger to a file.
 func NewFileLogger(logFile string, loggerSource string) (loggers Loggers, err error) {
 	return NewLogrusLoggerWithFileHook(logrus.New(), loggerSource, logFile)
+}
 
+// NewFileOnlyLogger creates a logger to a file such as NewFileLogger but logs are only sent to a file and will not be printed to StdErr or StdOut.
+func NewFileOnlyLogger(logFile string, loggerSource string) (loggers Loggers, err error) {
+	underlying := logrus.New()
+	underlying.SetOutput(io.Discard)
+	return NewLogrusLoggerWithFileHook(underlying, loggerSource, logFile)
 }
 
 // CreateFileLogger creates a logger to a file
