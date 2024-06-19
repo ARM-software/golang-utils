@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-http-utils/headers"
+	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
@@ -87,6 +88,14 @@ func TestClient_Delete_Backoff(t *testing.T) {
 			token:           field.ToOptionalString("test-token"),
 			retryableClient: NewConfigurableRetryableOauthClientWithToken(DefaultRobustHTTPClientConfigurationWithRetryAfter(), &oauth2.Token{AccessToken: "test-token"}),
 			clientName:      "custom oauth client with retry after but no backoff using oauth2.Token",
+		},
+		{
+			retryableClient: NewConfigurableRetryableOauthClientWithLoggerAndCustomClient(DefaultRobustHTTPClientConfigurationWithRetryAfter(), nil, logr.Discard(), "test-token"),
+			clientName:      "custom oauth client with retry after but no backoff using oauth2.Token (using custom client function with client == nil)",
+		},
+		{
+			retryableClient: NewConfigurableRetryableOauthClientWithLoggerAndCustomClient(DefaultRobustHTTPClientConfigurationWithRetryAfter(), NewPlainHTTPClient().StandardClient(), logr.Discard(), "test-token"),
+			clientName:      "custom oauth client with retry after but no backoff using oauth2.Token (using custom client function with client == NewPlainHTTPClient())",
 		},
 	}
 	for i := range tests {
@@ -189,6 +198,14 @@ func TestClient_Get_Fail_Timeout(t *testing.T) {
 			retryableClient: NewConfigurableRetryableOauthClientWithToken(DefaultRobustHTTPClientConfigurationWithRetryAfter(), &oauth2.Token{AccessToken: "test-token"}),
 			clientName:      "custom oauth client with retry after but no backoff using oauth2.Token",
 		},
+		{
+			retryableClient: NewConfigurableRetryableOauthClientWithLoggerAndCustomClient(DefaultRobustHTTPClientConfigurationWithRetryAfter(), nil, logr.Discard(), "test-token"),
+			clientName:      "custom oauth client with retry after but no backoff using oauth2.Token (using custom client function with client == nil)",
+		},
+		{
+			retryableClient: NewConfigurableRetryableOauthClientWithLoggerAndCustomClient(DefaultRobustHTTPClientConfigurationWithRetryAfter(), NewPlainHTTPClient().StandardClient(), logr.Discard(), "test-token"),
+			clientName:      "custom oauth client with retry after but no backoff using oauth2.Token (using custom client function with client == NewPlainHTTPClient())",
+		},
 	}
 	for i := range tests {
 		test := tests[i]
@@ -279,6 +296,14 @@ func TestUnderlyingClient(t *testing.T) {
 		{
 			retryableClient: NewConfigurableRetryableOauthClientWithToken(DefaultRobustHTTPClientConfigurationWithRetryAfter(), &oauth2.Token{AccessToken: "test-token"}),
 			clientName:      "custom oauth client with retry after but no backoff using oauth2.Token",
+		},
+		{
+			retryableClient: NewConfigurableRetryableOauthClientWithLoggerAndCustomClient(DefaultRobustHTTPClientConfigurationWithRetryAfter(), nil, logr.Discard(), "test-token"),
+			clientName:      "custom oauth client with retry after but no backoff using oauth2.Token (using custom client function with client == nil)",
+		},
+		{
+			retryableClient: NewConfigurableRetryableOauthClientWithLoggerAndCustomClient(DefaultRobustHTTPClientConfigurationWithRetryAfter(), NewPlainHTTPClient().StandardClient(), logr.Discard(), "test-token"),
+			clientName:      "custom oauth client with retry after but no backoff using oauth2.Token (using custom client function with client == NewPlainHTTPClient())",
 		},
 	}
 

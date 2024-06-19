@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
 
@@ -65,6 +66,18 @@ func TestClientHappy(t *testing.T) {
 			clientName: "client with linear backoff",
 			client: func() IClient {
 				return NewConfigurableRetryableClient(DefaultRobustHTTPClientConfigurationWithLinearBackOff())
+			},
+		},
+		{
+			clientName: "custom oauth client with retry after but no backoff using oauth2.Token (using custom client function with client == nil)",
+			client: func() IClient {
+				return NewConfigurableRetryableOauthClientWithLoggerAndCustomClient(DefaultRobustHTTPClientConfigurationWithRetryAfter(), nil, logr.Discard(), "test-token")
+			},
+		},
+		{
+			clientName: "custom oauth client with retry after but no backoff using oauth2.Token (using custom client function with client == NewPlainHTTPClient())",
+			client: func() IClient {
+				return NewConfigurableRetryableOauthClientWithLoggerAndCustomClient(DefaultRobustHTTPClientConfigurationWithRetryAfter(), NewPlainHTTPClient().StandardClient(), logr.Discard(), "test-token")
 			},
 		},
 	}
@@ -210,6 +223,18 @@ func TestClientWithDifferentBodies(t *testing.T) {
 			clientName: "client with linear backoff",
 			client: func() IClient {
 				return NewConfigurableRetryableClient(DefaultRobustHTTPClientConfigurationWithLinearBackOff())
+			},
+		},
+		{
+			clientName: "custom oauth client with retry after but no backoff using oauth2.Token (using custom client function with client == nil)",
+			client: func() IClient {
+				return NewConfigurableRetryableOauthClientWithLoggerAndCustomClient(DefaultRobustHTTPClientConfigurationWithRetryAfter(), nil, logr.Discard(), "test-token")
+			},
+		},
+		{
+			clientName: "custom oauth client with retry after but no backoff using oauth2.Token (using custom client function with client == NewPlainHTTPClient())",
+			client: func() IClient {
+				return NewConfigurableRetryableOauthClientWithLoggerAndCustomClient(DefaultRobustHTTPClientConfigurationWithRetryAfter(), NewPlainHTTPClient().StandardClient(), logr.Discard(), "test-token")
 			},
 		},
 	}
