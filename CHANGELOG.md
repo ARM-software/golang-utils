@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.69.0" (2024-06-20)
+=====================
+
+Features
+--------
+
+- :sparkles: `http` Add support for overriding the default client used by the oath retryable clients (#20240619131209)
+
+
 "1.68.0" (2024-06-14)
 =====================
 
