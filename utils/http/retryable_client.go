@@ -71,11 +71,11 @@ func NewConfigurableRetryableOauthClientWithLoggerAndCustomClient(cfg *HTTPClien
 		&oauth2.Token{AccessToken: token},
 	)
 
-	oauthClientCtx := context.Background()
-	if client != nil {
-		oauthClientCtx = context.WithValue(oauthClientCtx, oauth2.HTTPClient, client)
+	if client == nil {
+		client = cleanhttp.DefaultPooledClient()
 	}
 
+	oauthClientCtx := context.WithValue(context.Background(), oauth2.HTTPClient, client)
 	tc := oauth2.NewClient(oauthClientCtx, ts)
 
 	return NewConfigurableRetryableClientWithLoggerFromClient(cfg, logger, tc)
