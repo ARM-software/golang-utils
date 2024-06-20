@@ -60,10 +60,23 @@ func NewConfigurableRetryableOauthClient(cfg *HTTPClientConfiguration, token str
 // NewConfigurableRetryableOauthClientWithLogger creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff) with the authorisation header set to token
 // It is also possible to supply a logger for debug purposes
 func NewConfigurableRetryableOauthClientWithLogger(cfg *HTTPClientConfiguration, logger logr.Logger, token string) IRetryableClient {
+	return NewConfigurableRetryableOauthClientWithLoggerAndCustomClient(cfg, nil, logger, token)
+}
+
+// NewConfigurableRetryableOauthClientWithLogger creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff) with the authorisation header set to token
+// The underlying client used by the oauth client can be optionally supplied via client
+// It is also possible to supply a logger for debug purposes
+func NewConfigurableRetryableOauthClientWithLoggerAndCustomClient(cfg *HTTPClientConfiguration, client *http.Client, logger logr.Logger, token string) IRetryableClient {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
-	tc := oauth2.NewClient(context.Background(), ts)
+
+	if client == nil {
+		client = cleanhttp.DefaultPooledClient()
+	}
+
+	oauthClientCtx := context.WithValue(context.Background(), oauth2.HTTPClient, client)
+	tc := oauth2.NewClient(oauthClientCtx, ts)
 
 	return NewConfigurableRetryableClientWithLoggerFromClient(cfg, logger, tc)
 }
