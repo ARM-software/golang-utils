@@ -7,9 +7,11 @@ package logs
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/stdr"
+	"go.uber.org/atomic"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
@@ -23,6 +25,8 @@ const (
 type logrLogger struct {
 	logger    logr.Logger
 	closeFunc func() error
+	source    *atomic.String
+	logSource *atomic.String
 }
 
 func (l *logrLogger) Close() error {
@@ -40,6 +44,10 @@ func (l *logrLogger) SetLogSource(source string) error {
 	if reflection.IsEmpty(source) {
 		return commonerrors.ErrNoLogSource
 	}
+	if strings.EqualFold(source, l.logSource.Load()) {
+		return nil
+	}
+	l.logSource.Store(source)
 	l.logger = l.logger.WithValues(KeyLogSource, source)
 	return nil
 }
@@ -48,6 +56,10 @@ func (l *logrLogger) SetLoggerSource(source string) error {
 	if reflection.IsEmpty(source) {
 		return commonerrors.ErrNoLoggerSource
 	}
+	if strings.EqualFold(source, l.source.Load()) {
+		return nil
+	}
+	l.source.Store(source)
 	l.logger = l.logger.WithName(source).WithValues(KeyLoggerSource, source)
 	return nil
 }
@@ -76,7 +88,12 @@ func NewLogrLogger(logrImpl logr.Logger, loggerSource string) (Loggers, error) {
 
 // NewLogrLoggerWithClose creates loggers based on a logr implementation (https://github.com/go-logr/logr)
 func NewLogrLoggerWithClose(logrImpl logr.Logger, loggerSource string, closeFunc func() error) (loggers Loggers, err error) {
-	loggers = &logrLogger{logger: logrImpl, closeFunc: closeFunc}
+	loggers = &logrLogger{
+		logger:    logrImpl,
+		closeFunc: closeFunc,
+		source:    atomic.NewString(""),
+		logSource: atomic.NewString(""),
+	}
 	err = loggers.SetLoggerSource(loggerSource)
 	return
 }
