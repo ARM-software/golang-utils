@@ -9,7 +9,10 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"os"
 	"reflect"
+	"runtime"
+	"syscall"
 	"testing"
 	"time"
 
@@ -23,7 +26,7 @@ import (
 )
 
 var (
-	random = rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for
+	random = rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for tests
 )
 
 func TestParallelisationWithResults(t *testing.T) {
@@ -410,4 +413,133 @@ func runActionWithParallelCheckFailAtRandom(t *testing.T, ctx context.Context) {
 	err := RunActionWithParallelCheck(ctx, action, checkAction, 10*time.Millisecond)
 	require.Error(t, err)
 	errortest.AssertError(t, err, commonerrors.ErrCancelled)
+}
+
+func TestRunActionWithGracefulShutdown(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		// Sending Interrupt on Windows is not implemented - https://golang.org/pkg/os/#Process.Signal
+		t.Skip("Skipping test on Windows as sending interrupt is not implemented on [this platform](https://golang.org/pkg/os/#Process.Signal)")
+	}
+	ctx := context.Background()
+
+	defer goleak.VerifyNone(t)
+	tests := []struct {
+		name   string
+		signal os.Signal
+	}{
+		{
+			name:   "SIGTERM",
+			signal: syscall.SIGTERM,
+		},
+		{
+			name:   "SIGINT",
+			signal: syscall.SIGINT,
+		},
+		// {
+		// 	name:   "SIGHUP",
+		// 	signal: syscall.SIGHUP,
+		// },
+		// {
+		// 	name:   "SIGQUIT",
+		// 	signal: syscall.SIGQUIT,
+		// },
+		// {
+		// 	name:   "SIGABRT",
+		// 	signal: syscall.SIGABRT,
+		// },
+		{
+			name:   "Interrupt",
+			signal: os.Interrupt,
+		},
+	}
+
+	process := os.Process{Pid: os.Getpid()}
+	longAction := func(ctx context.Context) error {
+		SleepWithContext(ctx, 150*time.Millisecond)
+		return ctx.Err()
+	}
+	shortAction := func(ctx context.Context) error {
+		return ctx.Err()
+	}
+	shortActionWithError := func(_ context.Context) error {
+		return commonerrors.ErrUnexpected
+	}
+
+	t.Run("cancelled context", func(t *testing.T) {
+		defer goleak.VerifyNone(t)
+		cctx, cancel := context.WithCancel(ctx)
+		cancel()
+		err := RunActionWithGracefulShutdown(cctx, longAction, func(ctx context.Context) error {
+			return nil
+		})
+		require.Error(t, err)
+		errortest.AssertError(t, err, commonerrors.ErrTimeout, commonerrors.ErrCancelled)
+	})
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(fmt.Sprintf("interrupt [%v] before longAction completion", test.name), func(t *testing.T) {
+			defer goleak.VerifyNone(t)
+			called := atomic.NewBool(false)
+			shutdownAction := func(ctx2 context.Context) error {
+				err := DetermineContextError(ctx2)
+				if err == nil {
+					called.Store(true)
+				}
+				return err
+			}
+			require.False(t, called.Load())
+			ScheduleAfter(ctx, time.Duration(random.Intn(100))*time.Millisecond, func(ti time.Time) { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for tests
+				if err := process.Signal(test.signal); err != nil {
+					t.Error("failed sending interrupt signal")
+				}
+			})
+			err := RunActionWithGracefulShutdown(ctx, longAction, shutdownAction)
+			require.Error(t, err)
+			errortest.AssertError(t, err, commonerrors.ErrTimeout, commonerrors.ErrCancelled)
+			require.True(t, called.Load())
+		})
+		t.Run(fmt.Sprintf("interrupt [%v] after shortAction completion", test.name), func(t *testing.T) {
+			defer goleak.VerifyNone(t)
+			called := atomic.NewBool(false)
+			shutdownAction := func(ctx2 context.Context) error {
+				err := DetermineContextError(ctx2)
+				if err == nil {
+					called.Store(true)
+				}
+				return err
+			}
+			require.False(t, called.Load())
+			ScheduleAfter(ctx, time.Duration(50+random.Intn(100))*time.Millisecond, func(ti time.Time) { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for tests
+				if err := process.Signal(test.signal); err != nil {
+					t.Error("failed sending interrupt signal")
+				}
+			})
+			err := RunActionWithGracefulShutdown(ctx, shortAction, shutdownAction)
+			require.NoError(t, err)
+			require.False(t, called.Load())
+		})
+		t.Run(fmt.Sprintf("interrupt [%v] after shortActionWithError completion", test.name), func(t *testing.T) {
+			defer goleak.VerifyNone(t)
+			called := atomic.NewBool(false)
+			shutdownAction := func(ctx2 context.Context) error {
+				err := DetermineContextError(ctx2)
+				if err == nil {
+					called.Store(true)
+				}
+				return err
+			}
+			require.False(t, called.Load())
+			ScheduleAfter(ctx, time.Duration(50+random.Intn(100))*time.Millisecond, func(ti time.Time) { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for tests
+				if err := process.Signal(test.signal); err != nil {
+					t.Error("failed sending interrupt signal")
+				}
+			})
+			err := RunActionWithGracefulShutdown(ctx, shortActionWithError, shutdownAction)
+			require.Error(t, err)
+			errortest.AssertError(t, err, commonerrors.ErrUnexpected)
+			require.False(t, called.Load())
+		})
+	}
+
 }
