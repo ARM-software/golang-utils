@@ -38,7 +38,7 @@ func (k *Ed25519Signer) GetPrivateKey() string {
 
 func (k *Ed25519Signer) Sign(message []byte) (signature []byte, err error) {
 	if len(k.private) == 0 {
-		err = fmt.Errorf("%w: missing private key", commonerrors.ErrInvalid)
+		err = fmt.Errorf("%w: missing private key", commonerrors.ErrUndefined)
 		return
 	}
 	if len(k.private) != ed25519.PrivateKeySize {
@@ -55,9 +55,18 @@ func (k *Ed25519Signer) Sign(message []byte) (signature []byte, err error) {
 	return
 }
 
+func (k *Ed25519Signer) GenerateSignature(message []byte) (signatureBase64 string, err error) {
+	signature, err := k.Sign(message)
+	if err != nil {
+		return
+	}
+	signatureBase64 = base64.StdEncoding.EncodeToString(signature)
+	return
+}
+
 func (k *Ed25519Signer) Verify(message, signature []byte) (ok bool, err error) {
 	if len(k.Public) == 0 {
-		err = fmt.Errorf("%w: missing public key", commonerrors.ErrInvalid)
+		err = fmt.Errorf("%w: missing public key", commonerrors.ErrUndefined)
 		return
 	}
 	if len(k.Public) != ed25519.PublicKeySize {
@@ -69,8 +78,22 @@ func (k *Ed25519Signer) Verify(message, signature []byte) (ok bool, err error) {
 	return
 }
 
+func (k *Ed25519Signer) VerifySignature(message []byte, signatureBase64 string) (ok bool, err error) {
+	signature, err := base64.StdEncoding.DecodeString(signatureBase64)
+	if err != nil {
+		return
+	}
+
+	ok, err = k.Verify(message, signature)
+	return
+}
+
 // NewEd25519Signer will create a Ed25519Signer that can both sign new messages as well as verify them
 func NewEd25519Signer(privateKey ed25519.PrivateKey) (signer *Ed25519Signer, err error) {
+	if privateKey == nil {
+		err = fmt.Errorf("%w: privateKey must be defined", commonerrors.ErrUndefined)
+		return
+	}
 	if len(privateKey) != ed25519.PrivateKeySize {
 		err = fmt.Errorf("%w: private key must have length %v, it has length %v", commonerrors.ErrInvalid, ed25519.PrivateKeySize, len(privateKey))
 		return
@@ -93,6 +116,10 @@ func NewEd25519Signer(privateKey ed25519.PrivateKey) (signer *Ed25519Signer, err
 
 // NewEd25519Verifier will create a Ed25519Signer with only a public key meaning it can only verify messages
 func NewEd25519Verifier(publicKey ed25519.PublicKey) (signer *Ed25519Signer, err error) {
+	if publicKey == nil {
+		err = fmt.Errorf("%w: publicKey must be defined", commonerrors.ErrUndefined)
+		return
+	}
 	if len(publicKey) != ed25519.PublicKeySize {
 		err = fmt.Errorf("%w: public key must have length %v, it has length %v", commonerrors.ErrInvalid, ed25519.PrivateKeySize, len(publicKey))
 		return
@@ -130,6 +157,7 @@ func NewEd25519VerifierFromBase64(publicKeyB64 string) (signer *Ed25519Signer, e
 }
 
 // NewEd25519SignerFromSeed will create an Ed25519Signer based on a seed. It will automatically pad the seed to the correct length
+// A seed for Ed25519 should be 32 characters long. Anything shorter will be padded with zeros and anything longer will be truncated
 func NewEd25519SignerFromSeed(inputSeed string) (pair *Ed25519Signer, err error) {
 	seed := make([]byte, ed25519.SeedSize)
 	if inputSeed == "" {

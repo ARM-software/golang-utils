@@ -124,7 +124,22 @@ func TestSign(t *testing.T) {
 		require.NoError(t, err)
 		testKey.private = ed25519.PrivateKey{}
 		_, err = testKey.Sign([]byte(faker.Sentence()))
-		errortest.AssertError(t, err, commonerrors.ErrInvalid)
+		errortest.AssertError(t, err, commonerrors.ErrUndefined)
+	})
+
+	t.Run("test base64", func(t *testing.T) {
+		testKey, err := NewEd25519SignerFromSeed("1234")
+		require.NoError(t, err)
+
+		testMessage := []byte(faker.Sentence())
+
+		sigNormal, err := testKey.Sign(testMessage)
+		require.NoError(t, err)
+
+		sigBase64, err := testKey.GenerateSignature(testMessage)
+		require.NoError(t, err)
+
+		assert.Equal(t, sigBase64, base64.StdEncoding.EncodeToString(sigNormal))
 	})
 }
 
@@ -136,6 +151,7 @@ func TestVerify(t *testing.T) {
 	message := []byte(faker.Sentence())
 	signature, err := testKey.Sign(message)
 	require.NoError(t, err)
+	signatureBase64 := base64.StdEncoding.EncodeToString(signature)
 
 	t.Run("test valid private key", func(t *testing.T) {
 		testKey, err := NewEd25519Verifier(publicKey)
@@ -150,7 +166,7 @@ func TestVerify(t *testing.T) {
 		require.NoError(t, err)
 		testKey.Public = ed25519.PublicKey{}
 		ok, err := testKey.Verify(message, signature)
-		errortest.AssertError(t, err, commonerrors.ErrInvalid)
+		errortest.AssertError(t, err, commonerrors.ErrUndefined)
 		assert.False(t, ok)
 	})
 
@@ -159,6 +175,32 @@ func TestVerify(t *testing.T) {
 		require.NoError(t, err)
 		testKey.Public = testKey.Public[2:18]
 		ok, err := testKey.Verify(message, signature)
+		errortest.AssertError(t, err, commonerrors.ErrInvalid)
+		assert.False(t, ok)
+	})
+
+	t.Run("test valid private key (using base64)", func(t *testing.T) {
+		testKey, err := NewEd25519Verifier(publicKey)
+		require.NoError(t, err)
+		ok, err := testKey.VerifySignature(message, signatureBase64)
+		assert.NoError(t, err)
+		assert.True(t, ok)
+	})
+
+	t.Run("test missing public key (using base64)", func(t *testing.T) {
+		testKey, err := NewEd25519Verifier(publicKey)
+		require.NoError(t, err)
+		testKey.Public = ed25519.PublicKey{}
+		ok, err := testKey.VerifySignature(message, signatureBase64)
+		errortest.AssertError(t, err, commonerrors.ErrUndefined)
+		assert.False(t, ok)
+	})
+
+	t.Run("test invalid length public key (using base64)", func(t *testing.T) {
+		testKey, err := NewEd25519Verifier(publicKey)
+		require.NoError(t, err)
+		testKey.Public = testKey.Public[2:18]
+		ok, err := testKey.VerifySignature(message, signatureBase64)
 		errortest.AssertError(t, err, commonerrors.ErrInvalid)
 		assert.False(t, ok)
 	})
