@@ -6,6 +6,8 @@ package logs
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/go-faker/faker/v4"
@@ -34,6 +36,41 @@ func TestLogrLoggerConversion(t *testing.T) {
 	converted := NewLogrLoggerFromLoggers(loggers)
 	converted.WithName(faker.Name()).WithValues(faker.Word(), faker.Name()).Error(commonerrors.ErrUnexpected, faker.Sentence())
 	converted.Info(faker.Sentence(), faker.Word(), faker.Name())
+}
+
+func TestLogrFromLoggersWithMultipleName(t *testing.T) {
+	loggerSource := "src-" + faker.Name()
+	strLogger, err := NewStringLogger(loggerSource)
+	require.NoError(t, err)
+	converted := NewLogrLoggerFromLoggers(strLogger)
+	converted.WithName(loggerSource).WithName(faker.Name()).WithName(faker.Name()).WithName(faker.Name()).WithName(faker.Name()).WithName(faker.Name()).WithName(loggerSource).WithName(faker.Name()).Error(commonerrors.ErrUnexpected, faker.Sentence())
+	assert.Contains(t, strLogger.GetLogContent(), loggerSource)
+	assert.Equal(t, 2, strings.Count(strLogger.GetLogContent(), loggerSource))
+	converted.WithName(loggerSource).Info(faker.Sentence(), faker.Word(), faker.Name())
+	assert.Equal(t, 4, strings.Count(strLogger.GetLogContent(), loggerSource))
+	fmt.Println(strLogger.GetLogContent())
+}
+
+func TestLoggersFromLoggerWithMultipleSource(t *testing.T) {
+	loggerSource := "src-" + faker.Name()
+	strLogger, err := NewStringLogger(loggerSource)
+	require.NoError(t, err)
+	logrl := NewLogrLoggerFromLoggers(strLogger)
+	logger, err := NewLogrLogger(logrl, loggerSource)
+	require.NoError(t, err)
+	require.NoError(t, logger.SetLogSource("logsrc-"+faker.Name()))
+	require.NoError(t, logger.SetLoggerSource(loggerSource))
+	require.NoError(t, logger.SetLoggerSource(loggerSource))
+	require.NoError(t, logger.SetLoggerSource(faker.Name()))
+	require.NoError(t, logger.SetLoggerSource(loggerSource))
+	logger.Log(faker.Sentence())
+	assert.Contains(t, strLogger.GetLogContent(), loggerSource)
+	assert.Equal(t, 2, strings.Count(strLogger.GetLogContent(), loggerSource))
+	require.NoError(t, logger.SetLoggerSource(loggerSource))
+	require.NoError(t, logger.SetLoggerSource(faker.Name()))
+	logger.Log(faker.Sentence())
+	assert.Contains(t, strLogger.GetLogContent(), loggerSource)
+	assert.Equal(t, 4, strings.Count(strLogger.GetLogContent(), loggerSource))
 }
 
 func TestLogrLoggerConversionPlain(t *testing.T) {
