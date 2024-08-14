@@ -2,13 +2,15 @@ package signing
 
 import (
 	"crypto/ed25519"
+	"encoding/base64"
 	"testing"
 
-	"github.com/ARM-software/golang-utils/utils/commonerrors"
-	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
 
 func TestSigning(t *testing.T) {
@@ -71,6 +73,7 @@ func TestNewSigner(t *testing.T) {
 		k, err := NewEd25519Signer(testValidKey.private)
 		assert.NoError(t, err)
 		assert.Equal(t, testValidKey, k)
+		assert.Equal(t, "MTIyMzQ3NzgwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAODBfpjfvG3GlkUsrmSBcFnmUSSh63RXhczGbdd9oUfQ==", k.GetPrivateKey())
 	})
 
 	t.Run("Test NewEd25519Signer (not valid)", func(t *testing.T) {
@@ -83,6 +86,20 @@ func TestNewSigner(t *testing.T) {
 		k, err := NewEd25519Signer([]byte{})
 		errortest.AssertError(t, err, commonerrors.ErrInvalid)
 		assert.Nil(t, k)
+	})
+
+	t.Run("test base64 private key", func(t *testing.T) {
+		testKey, err := NewEd25519SignerFromSeed("1234")
+		require.NoError(t, err)
+
+		_, err = NewEd25519SignerFromBase64(base64.StdEncoding.EncodeToString(testKey.private))
+		require.NoError(t, err)
+	})
+
+	t.Run("test invalid base64 public key", func(t *testing.T) {
+		testKey, err := NewEd25519SignerFromBase64("i am not base64 8907987_^?%+")
+		errortest.AssertError(t, err, commonerrors.ErrInvalid)
+		assert.Nil(t, testKey)
 	})
 }
 
@@ -153,8 +170,6 @@ func TestNewVerifier(t *testing.T) {
 		require.NoError(t, err)
 
 		publicKey := testKey.Public
-		require.NoError(t, err)
-
 		_, err = NewEd25519Verifier(publicKey)
 		require.NoError(t, err)
 	})
@@ -170,9 +185,22 @@ func TestNewVerifier(t *testing.T) {
 		require.NoError(t, err)
 
 		publicKey := testKey.Public
-		require.NoError(t, err)
 
 		testKey, err = NewEd25519Verifier(publicKey[2:18])
+		errortest.AssertError(t, err, commonerrors.ErrInvalid)
+		assert.Nil(t, testKey)
+	})
+
+	t.Run("test base64 public key", func(t *testing.T) {
+		testKey, err := NewEd25519SignerFromSeed("1234")
+		require.NoError(t, err)
+
+		_, err = NewEd25519VerifierFromBase64(base64.StdEncoding.EncodeToString(testKey.Public))
+		require.NoError(t, err)
+	})
+
+	t.Run("test invalid base64 public key", func(t *testing.T) {
+		testKey, err := NewEd25519VerifierFromBase64("i am not base64 8907987_^?%+")
 		errortest.AssertError(t, err, commonerrors.ErrInvalid)
 		assert.Nil(t, testKey)
 	})

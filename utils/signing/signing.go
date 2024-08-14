@@ -105,6 +105,30 @@ func NewEd25519Verifier(publicKey ed25519.PublicKey) (signer *Ed25519Signer, err
 	return
 }
 
+// NewEd25519SignerFromBase64 will create a Ed25519Signer that can both sign new messages as well as verify them
+// It will take a private key encoded as base64
+func NewEd25519SignerFromBase64(privateKeyB64 string) (signer *Ed25519Signer, err error) {
+	privateKey, err := base64.StdEncoding.DecodeString(privateKeyB64)
+	if err != nil {
+		err = fmt.Errorf("%w: could not decode private key from base64: %v", commonerrors.ErrInvalid, err.Error())
+		return
+	}
+
+	return NewEd25519Signer(privateKey)
+}
+
+// NewEd25519VerifierFromBase64 will create a Ed25519Signer with only a public key meaning it can only verify messages
+// It will take a public key encoded as base64
+func NewEd25519VerifierFromBase64(publicKeyB64 string) (signer *Ed25519Signer, err error) {
+	publicKey, err := base64.StdEncoding.DecodeString(publicKeyB64)
+	if err != nil {
+		err = fmt.Errorf("%w: could not decode public key from base64: %v", commonerrors.ErrInvalid, err.Error())
+		return
+	}
+
+	return NewEd25519Verifier(publicKey)
+}
+
 // NewEd25519SignerFromSeed will create an Ed25519Signer based on a seed. It will automatically pad the seed to the correct length
 func NewEd25519SignerFromSeed(inputSeed string) (pair *Ed25519Signer, err error) {
 	seed := make([]byte, ed25519.SeedSize)
