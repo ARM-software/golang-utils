@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -33,8 +34,7 @@ var (
 	validTreeEntries []object.TreeEntry
 )
 
-// Clone the repository once and use it and the valid trees/blobs/entries in all the tests
-func TestMain(m *testing.M) {
+func run(m *testing.M) (code int) {
 	fs := filesystem.NewFs(filesystem.StandardFS)
 	destBase, err := fs.TempDirInTempDir("git-test")
 	if err != nil {
@@ -110,7 +110,14 @@ func TestMain(m *testing.M) {
 	validTag = tag
 
 	// Run the tests
-	_ = m.Run()
+	code = m.Run()
+	return
+}
+
+// Clone the repository once and use it and the valid trees/blobs/entries in all the tests
+func TestMain(m *testing.M) {
+	code := run(m) // extract into function so that defers are called before os.Exit
+	os.Exit(code)
 }
 
 func TestHandleTreeEntry(t *testing.T) {
