@@ -116,7 +116,7 @@ func run(m *testing.M) (code int) {
 
 // Clone the repository once and use it and the valid trees/blobs/entries in all the tests
 func TestMain(m *testing.M) {
-	code := run(m)
+	code := run(m) // extract into function so that defers are called before os.Exit
 	os.Exit(code)
 }
 
