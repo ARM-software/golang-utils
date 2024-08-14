@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -110,7 +111,8 @@ func TestMain(m *testing.M) {
 	validTag = tag
 
 	// Run the tests
-	_ = m.Run()
+	code := m.Run()
+	defer os.Exit(code)
 }
 
 func TestHandleTreeEntry(t *testing.T) {
