@@ -14,6 +14,29 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.70.0" (2024-08-14)
+=====================
+
+Features
+--------
+
+- :sparkles: Add support for signing and verifying messages using ed25519 (#20240814105842)
+
+
+Bugfixes
+--------
+
+- :bug: `[logs]` resolve problem with the logger source being set for a logr.Logger (#20240627132421)
+- Dependency upgrade: sys-0.24.0 (#20240809130140)
+- Dependency upgrade: go-deadlock-0.3.3 (#20240814100629, #20240814100634, #20240814100700, #20240814100706, #20240814100735, #20240814100738, #20240814100804, #20240814100808, #20240814100835, #20240814100837)
+
+
+Misc
+----
+
+- #202408141345
+
+
 "1.69.2" (2024-08-08)
 =====================
 
