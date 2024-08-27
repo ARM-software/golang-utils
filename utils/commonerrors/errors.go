@@ -44,6 +44,7 @@ var (
 	ErrCondition          = errors.New("failed condition")
 	ErrEOF                = errors.New("end of file")
 	ErrMalicious          = errors.New("suspected malicious intent")
+	ErrOutOfRange         = errors.New("out of range")
 	// ErrWarning is a generic error that can be used when an error should be raised but it shouldn't necessary be
 	// passed up the chain, for example in cases where an error should be logged but the program should continue. In
 	// these situations it should be handled immediately and then ignored/set to nil.

@@ -109,6 +109,10 @@ func UpTime() (uptime time.Duration, err error) {
 	if err != nil {
 		return
 	}
+	if _uptime > (1<<63 - 1) { // The upper limit for time as defined by the standard library https://cs.opensource.google/go/go/+/master:src/time/time.go;l=915
+		err = fmt.Errorf("%w: could not convert uptime '%v' to duration as it exceeds the upper limit for time.Duration", commonerrors.ErrOutOfRange, _uptime)
+		return
+	}
 	uptime = time.Duration(_uptime) * time.Second
 	return
 }
@@ -231,13 +235,13 @@ func SubstituteParameter(parameter ...string) string {
 // - the first element is the parameter to substitute
 // - if find and replace is also wanted, pass the pattern and the replacement as following arguments in that order.
 func SubstituteParameterUnix(parameter ...string) string {
-	if len(parameter) < 1 || !isUnixVarName(parameter[0]) {
+	if len(parameter) < 1 || !isUnixVarName(parameter[0]) { //nolint:gosec // golang order of evaluation means that this won't be out of range
 		return "${}"
 	}
 	if len(parameter) < 3 || parameter[1] == "" {
 		return fmt.Sprintf("${%v}", parameter[0])
 	}
-	return fmt.Sprintf("${%v//%v/%v}", parameter[0], parameter[1], parameter[2])
+	return fmt.Sprintf("${%v//%v/%v}", parameter[0], parameter[1], parameter[2]) //nolint:gosec // by this point in the code parameter is verified to have at least 3 elements
 }
 
 // SubstituteParameterWindows performs Windows parameter substitution:
