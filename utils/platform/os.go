@@ -113,7 +113,7 @@ func UpTime() (uptime time.Duration, err error) {
 		err = fmt.Errorf("%w: could not convert uptime '%v' to duration as it exceeds the upper limit for time.Duration", commonerrors.ErrOutOfRange, _uptime)
 		return
 	}
-	uptime = time.Duration(_uptime) * time.Second
+	uptime = time.Duration(_uptime) * time.Second //nolint:gosec // we have verified the value of _uptime is whithin the upper limit for time.Duration in the above check
 	return
 }
 
@@ -123,7 +123,11 @@ func BootTime() (bootime time.Time, err error) {
 	if err != nil {
 		return
 	}
-	bootime = time.Unix(int64(_bootime), 0)
+	if _bootime > (1<<63 - 1) { // The upper limit for time as defined by the standard library https://cs.opensource.google/go/go/+/master:src/time/time.go;l=915
+		err = fmt.Errorf("%w: could not convert uptime '%v' to duration as it exceeds the upper limit for time.Duration", commonerrors.ErrOutOfRange, _bootime)
+		return
+	}
+	bootime = time.Unix(int64(_bootime), 0) //nolint:gosec // we have verified the value of _bootime is whithin the upper limit for time.Duration in the above check
 	return
 
 }
@@ -249,13 +253,13 @@ func SubstituteParameterUnix(parameter ...string) string {
 // - the first element is the parameter to substitute
 // - if find and replace is also wanted, pass the pattern and the replacement as following arguments in that order.
 func SubstituteParameterWindows(parameter ...string) string {
-	if len(parameter) < 1 || !isWindowsVarName(parameter[0]) {
+	if len(parameter) < 1 || !isWindowsVarName(parameter[0]) { //nolint:gosec // golang order of evaluation means that this won't be out of range
 		return "%%"
 	}
 	if len(parameter) < 3 || parameter[1] == "" {
 		return "%" + parameter[0] + "%"
 	}
-	return "%" + fmt.Sprintf("%v:%v=%v", parameter[0], parameter[1], parameter[2]) + "%"
+	return "%" + fmt.Sprintf("%v:%v=%v", parameter[0], parameter[1], parameter[2]) + "%" //nolint:gosec // by this point in the code parameter is verified to have at least 3 elements
 }
 
 // ExpandParameter expands a variable expressed in a string `s` with its value returned by the mapping function.

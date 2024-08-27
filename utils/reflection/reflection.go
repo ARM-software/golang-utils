@@ -20,7 +20,9 @@ func GetStructureField(field reflect.Value) interface{} {
 	if !field.IsValid() {
 		return nil
 	}
-	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Interface() //nolint:gosec // this conversion is is between types recommended by Go https://cs.opensource.google/go/go/+/master:src/reflect/value.go;l=2445
+	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())). //nolint:gosec // this conversion is is between types recommended by Go https://cs.opensource.google/go/go/+/master:src/reflect/value.go;l=2445
+										Elem().
+										Interface()
 }
 func SetUnexportedStructureField(structure interface{}, fieldName string, value interface{}) {
 	SetStructureField(fetchStructureField(structure, fieldName), value)
@@ -29,9 +31,9 @@ func SetStructureField(field reflect.Value, value interface{}) {
 	if !field.IsValid() {
 		return
 	}
-	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).
-		Elem().
-		Set(reflect.ValueOf(value))
+	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())). //nolint:gosec // this conversion is is between types recommended by Go https://cs.opensource.google/go/go/+/master:src/reflect/value.go;l=2445
+										Elem().
+										Set(reflect.ValueOf(value))
 }
 
 func fetchStructureField(structure interface{}, fieldName string) reflect.Value {
