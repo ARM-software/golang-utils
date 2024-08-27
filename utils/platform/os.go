@@ -7,6 +7,7 @@ package platform
 import (
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"regexp"
 	"runtime"
@@ -109,7 +110,7 @@ func UpTime() (uptime time.Duration, err error) {
 	if err != nil {
 		return
 	}
-	if _uptime > (1<<63 - 1) { // The upper limit for time as defined by the standard library https://cs.opensource.google/go/go/+/master:src/time/time.go;l=915
+	if _uptime > math.MaxInt64 { // The upper limit for time as defined by the standard library https://cs.opensource.google/go/go/+/master:src/time/time.go;l=915 is the same as math.MaxInt64
 		err = fmt.Errorf("%w: could not convert uptime '%v' to duration as it exceeds the upper limit for time.Duration", commonerrors.ErrOutOfRange, _uptime)
 		return
 	}
@@ -123,7 +124,7 @@ func BootTime() (bootime time.Time, err error) {
 	if err != nil {
 		return
 	}
-	if _bootime > (1<<63 - 1) { // The upper limit for time as defined by the standard library https://cs.opensource.google/go/go/+/master:src/time/time.go;l=915
+	if _bootime > math.MaxInt64 { // The upper limit for time as defined by the standard library https://cs.opensource.google/go/go/+/master:src/time/time.go;l=915 is the same as math.MaxInt64
 		err = fmt.Errorf("%w: could not convert uptime '%v' to duration as it exceeds the upper limit for time.Duration", commonerrors.ErrOutOfRange, _bootime)
 		return
 	}
