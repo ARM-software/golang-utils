@@ -9,8 +9,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/go-faker/faker/v4"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/exp/maps"
 )
 
 var (
@@ -86,4 +90,37 @@ func TestParseCommaSeparatedListWithSpacesBetweenWordsKeepBlanks(t *testing.T) {
 
 	finalList2 := ParseListWithCleanupKeepBlankLines(stringList, ",")
 	require.Equal(t, stringArray, finalList2)
+}
+
+func TestParseCommaSeparatedListToMap(t *testing.T) {
+	for _, test := range []struct {
+		Name     string
+		Input    string
+		Expected map[string]string
+		Err      error
+	}{
+		{"Normal 1", "hello,world", map[string]string{"hello": "world"}, nil},
+		{"Normal 2", "hello,world,adrien,cabarbaye", map[string]string{"hello": "world", "adrien": "cabarbaye"}, nil},
+		{"Normal 2.5", "hello, world, adrien, cabarbaye", map[string]string{"hello": "world", "adrien": "cabarbaye"}, nil},
+		{"Normal 3", "hello,world,adrien,cabarbaye,", map[string]string{"hello": "world", "adrien": "cabarbaye"}, nil},
+		{"Normal 4", "hello,,world,adrien,,,cabarbaye,,,", map[string]string{"hello": "world", "adrien": "cabarbaye"}, nil},
+		{"Normal 5", "hello,world,this,value has spaces", map[string]string{"hello": "world", "this": "value has spaces"}, nil},
+		{"Normal 6", "hello,,world,this,,,value has spaces,,,", map[string]string{"hello": "world", "this": "value has spaces"}, nil},
+		{"Normal 7", "", map[string]string{}, nil},
+		{"Normal 8", ",", map[string]string{}, nil},
+		{"Normal 9", ",,,,,", map[string]string{}, nil},
+		{"Normal 10", ",, ,,  ,", map[string]string{}, nil},
+		{"Bad 1", "one", nil, commonerrors.ErrInvalid},
+		{"Bad 1", "one, two, three", nil, commonerrors.ErrInvalid},
+		{"Bad 2", "one element with spaces", nil, commonerrors.ErrInvalid},
+		{"Bad 3", "one element with spaces and end comma,", nil, commonerrors.ErrInvalid},
+		{"Bad 4", "one element with spaces and multiple end commas,,,", nil, commonerrors.ErrInvalid},
+		{"Bad 5", ",,,one element with spaces and multiple end/beginning commas,,,", nil, commonerrors.ErrInvalid},
+	} {
+		t.Run(test.Name, func(t *testing.T) {
+			pairs, err := ParseCommaSeparatedListToMap(test.Input)
+			errortest.AssertError(t, err, test.Err)
+			assert.True(t, maps.Equal(test.Expected, pairs))
+		})
+	}
 }

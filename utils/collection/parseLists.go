@@ -5,8 +5,11 @@
 package collection
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 func lineIsOnlyWhitespace(line string) bool {
@@ -51,4 +54,23 @@ func ParseListWithCleanupKeepBlankLines(input string, sep string) (newS []string
 // ParseCommaSeparatedList returns the list of string separated by a comma
 func ParseCommaSeparatedList(input string) []string {
 	return ParseListWithCleanup(input, ",")
+}
+
+// ParseCommaSeparatedListToMap returns a map of key value pairs from a string containing a comma separated list
+func ParseCommaSeparatedListToMap(input string) (pairs map[string]string, err error) {
+	inputSplit := ParseCommaSeparatedList(input)
+	numElements := len(inputSplit)
+
+	if numElements%2 != 0 {
+		err = fmt.Errorf("%w: could not parse comma separated list '%v' into map as it did not have an even number of elements", commonerrors.ErrInvalid, input)
+		return
+	}
+
+	pairs = make(map[string]string, numElements/2)
+
+	for i := 0; i < numElements; i += 2 {
+		pairs[inputSplit[i]] = inputSplit[i+1]
+	}
+
+	return
 }
