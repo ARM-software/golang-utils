@@ -52,7 +52,7 @@ func TestOptionalField(t *testing.T) {
 		},
 		{
 			fieldType:    "Int32",
-			value:        int32(time.Now().Second()),
+			value:        int32(time.Now().Second()), //nolint:gosec // this should be okay until 2038
 			defaultValue: int32(97894),
 			setFunction: func(a any) any {
 				return ToOptionalInt32(a.(int32))
@@ -67,7 +67,7 @@ func TestOptionalField(t *testing.T) {
 		},
 		{
 			fieldType:    "UInt32",
-			value:        uint32(time.Now().Second()),
+			value:        uint32(time.Now().Second()), //nolint:gosec // this should be okay until 2038
 			defaultValue: uint32(97894),
 			setFunction: func(a any) any {
 				return ToOptionalUint32(a.(uint32))
