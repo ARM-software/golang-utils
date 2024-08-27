@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"context"
 	"fmt"
+	"math"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -364,8 +365,8 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		if limits.Apply() && totalSizeOnDisk.Load() > limits.GetMaxTotalSize() {
 			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), fmt.Errorf("%w: more than %v B of disk space was used while unzipping %v (%v B used already)", commonerrors.ErrTooLarge, limits.GetMaxTotalSize(), source, totalSizeOnDisk.Load())
 		}
-		if limits.Apply() && int64(fileCounter.Load()) > limits.GetMaxFileCount() {
-			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), fmt.Errorf("%w: more than %v files were created while unzipping %v (%v files created already)", commonerrors.ErrTooLarge, limits.GetMaxFileCount(), source, fileCounter.Load())
+		if filecount := fileCounter.Load(); limits.Apply() && filecount <= math.MaxInt64 && int64(filecount) > limits.GetMaxFileCount() { //nolint:gosec // if filecount of uint64 is greater than the max value of int64 then it must be greater than GetMaxFileCount as that is an int64
+			return fileList, filecount, totalSizeOnDisk.Load(), fmt.Errorf("%w: more than %v files were created while unzipping %v (%v files created already)", commonerrors.ErrTooLarge, limits.GetMaxFileCount(), source, filecount)
 		}
 	}
 
