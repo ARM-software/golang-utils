@@ -57,7 +57,7 @@ var warningStrPrepend = fmt.Sprintf("%v: ", warningStr)
 
 // IsCommonError returns whether an error is a commonerror
 func IsCommonError(target error) bool {
-	return Any(target, ErrNotImplemented, ErrNoExtension, ErrNoLogger, ErrNoLoggerSource, ErrNoLogSource, ErrUndefined, ErrInvalidDestination, ErrTimeout, ErrLocked, ErrStaleLock, ErrExists, ErrNotFound, ErrUnsupported, ErrUnavailable, ErrWrongUser, ErrUnauthorised, ErrUnknown, ErrInvalid, ErrConflict, ErrMarshalling, ErrCancelled, ErrEmpty, ErrUnexpected, ErrTooLarge, ErrForbidden, ErrCondition, ErrEOF, ErrMalicious, ErrWarning)
+	return Any(target, ErrNotImplemented, ErrNoExtension, ErrNoLogger, ErrNoLoggerSource, ErrNoLogSource, ErrUndefined, ErrInvalidDestination, ErrTimeout, ErrLocked, ErrStaleLock, ErrExists, ErrNotFound, ErrUnsupported, ErrUnavailable, ErrWrongUser, ErrUnauthorised, ErrUnknown, ErrInvalid, ErrConflict, ErrMarshalling, ErrCancelled, ErrEmpty, ErrUnexpected, ErrTooLarge, ErrForbidden, ErrCondition, ErrEOF, ErrMalicious, ErrWarning, ErrOutOfRange)
 }
 
 // Any determines whether the target error is of the same type as any of the errors `err`
@@ -181,6 +181,8 @@ func deserialiseCommonError(errStr string) (bool, error) {
 		return true, ErrMalicious
 	case CorrespondTo(ErrWarning, errStr):
 		return true, ErrWarning
+	case CorrespondTo(ErrOutOfRange, errStr):
+		return true, ErrOutOfRange
 	}
 	return false, ErrUnknown
 }
