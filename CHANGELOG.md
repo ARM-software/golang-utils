@@ -14,6 +14,29 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.71.0" (2024-08-27)
+=====================
+
+Features
+--------
+
+- :sparkles: Add support for parsing a comma separated string list as a map of key-value pairs (#20240827111953)
+- :sparkles: Add out of range error to commonerrors (#20240827131009)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: go-deadlock-0.3.5 (#20240815103537, #20240815103543, #20240815103610, #20240815103612)
+- Dependency upgrade: v4-4.5.0 (#20240826102616, #20240826102620, #20240826102645, #20240826102650, #20240826102718)
+
+
+Misc
+----
+
+- #20240827131050
+
+
 "1.70.0" (2024-08-14)
 =====================
 
