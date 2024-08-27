@@ -67,7 +67,7 @@ func ParseCommaSeparatedListToMap(input string) (pairs map[string]string, err er
 	}
 
 	pairs = make(map[string]string, numElements/2)
-// TODO use slices.Chunk introduced in go 23 when library is upgraded
+	// TODO use slices.Chunk introduced in go 23 when library is upgraded
 	for i := 0; i < numElements; i += 2 {
 		pairs[inputSplit[i]] = inputSplit[i+1]
 	}
