@@ -245,7 +245,7 @@ func isProcessRunning(p *process.Process) (running bool) {
 // to get more information about the process. An error will be returned
 // if the process does not exist.
 func NewProcess(ctx context.Context, pid int) (pr IProcess, err error) {
-	p, err := process.NewProcessWithContext(ctx, int32(pid))
+	p, err := process.NewProcessWithContext(ctx, int32(pid)) //nolint:gosec // Max PID is 2^22 which is within int32 range https://stackoverflow.com/a/6294196
 	err = ConvertProcessError(err)
 	if err != nil {
 		return

@@ -76,7 +76,7 @@ func TestOpen(t *testing.T) {
 			// According to documentation, if the file does not exist, and the O_CREATE flag
 			//// is passed, it is created with mode perm (before umask)
 			mode := 0600
-			file, err := fs.OpenFile(filePath, os.O_RDWR|os.O_CREATE, os.FileMode(mode))
+			file, err := fs.OpenFile(filePath, os.O_RDWR|os.O_CREATE, os.FileMode(mode)) //nolint:gosec // this is a test and mode is 0600
 			require.NoError(t, err)
 			defer func() { _ = file.Close() }()
 
@@ -90,7 +90,7 @@ func TestOpen(t *testing.T) {
 			testFileMode(t, fs, filePath, mode)
 
 			ignoredMode := 0322
-			file, err = fs.OpenFile(filePath, os.O_WRONLY|os.O_APPEND, os.FileMode(ignoredMode))
+			file, err = fs.OpenFile(filePath, os.O_WRONLY|os.O_APPEND, os.FileMode(ignoredMode)) //nolint:gosec // this is a test and mode is 0322
 			require.NoError(t, err)
 			defer func() { _ = file.Close() }()
 
@@ -101,7 +101,7 @@ func TestOpen(t *testing.T) {
 			testFileMode(t, fs, filePath, mode)
 
 			ignoredMode = 0400
-			file, err = fs.OpenFile(filePath, os.O_RDONLY, os.FileMode(ignoredMode))
+			file, err = fs.OpenFile(filePath, os.O_RDONLY, os.FileMode(ignoredMode)) //nolint:gosec // this is a test and mode is 0400
 			require.NoError(t, err)
 			defer func() { _ = file.Close() }()
 
@@ -114,7 +114,7 @@ func TestOpen(t *testing.T) {
 			testFileMode(t, fs, filePath, mode)
 
 			ignoredMode = 0664
-			file, err = fs.OpenFile(filePath, os.O_RDWR|os.O_TRUNC, os.FileMode(ignoredMode))
+			file, err = fs.OpenFile(filePath, os.O_RDWR|os.O_TRUNC, os.FileMode(ignoredMode)) //nolint:gosec // this is a test and mode is 0664
 			require.NoError(t, err)
 			defer func() { _ = file.Close() }()
 
@@ -319,9 +319,9 @@ func TestChmod(t *testing.T) {
 			require.True(t, fs.Exists(tmpFile))
 			for _, mode := range []int{0666, 0777, 0555, 0766, 0444, 0644} {
 				t.Run(fmt.Sprintf("%v", mode), func(t *testing.T) {
-					err = fs.Chmod(tmpFile, os.FileMode(mode))
+					err = fs.Chmod(tmpFile, os.FileMode(mode)) //nolint:gosec // this is a test and mode can be seen above to abide by the conversion rules
 					if err != nil {
-						_ = fs.Chmod(tmpFile, os.FileMode(mode))
+						_ = fs.Chmod(tmpFile, os.FileMode(mode)) //nolint:gosec // this is a test and mode can be seen above to abide by the conversion rules
 					}
 					require.NoError(t, err)
 					testFileMode(t, fs, tmpFile, mode)
@@ -351,12 +351,12 @@ func TestChmodRecursive(t *testing.T) {
 			require.True(t, fs.Exists(tmpFile))
 			for _, mode := range []int{0666, 0777, 0555, 0766, 0444, 0644} {
 				t.Run(fmt.Sprintf("%v", mode), func(t *testing.T) {
-					err = fs.ChmodRecursively(context.TODO(), tmpFile2, os.FileMode(mode))
+					err = fs.ChmodRecursively(context.TODO(), tmpFile2, os.FileMode(mode)) //nolint:gosec // this is a test and mode can be seen above to abide by the conversion rules
 					if err == nil {
 						require.NoError(t, err)
 						testFileMode(t, fs, tmpFile2, mode)
 
-						err = fs.ChmodRecursively(context.TODO(), tmpDir, os.FileMode(mode))
+						err = fs.ChmodRecursively(context.TODO(), tmpDir, os.FileMode(mode)) //nolint:gosec // this is a test and mode can be seen above to abide by the conversion rules
 						if err == nil {
 							require.NoError(t, err)
 							testFileMode(t, fs, tmpFile, mode)
