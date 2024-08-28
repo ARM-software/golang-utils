@@ -2030,3 +2030,261 @@ func TestConvertToOSFile(t *testing.T) {
 	require.NoError(t, osFile.Close())
 	require.Error(t, rFile.Close(), "file must already be closed")
 }
+
+func createTestFileStructure(vfs afero.Fs, rootDir string) error {
+	dirs := []string{
+		filepath.Join(rootDir, "dir2", "dir3", "dir4"),
+		filepath.Join(rootDir, "dir2", "dir5"),
+	}
+	files := []string{
+		filepath.Join(rootDir, "dir2", "dir3", "dir4", "test1.txt"),
+		filepath.Join(rootDir, "dir2", "dir3", "dir4", "test2.o"),
+		filepath.Join(rootDir, "dir2", "dir3", "dir4", "test3.h"),
+		filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+		filepath.Join(rootDir, "dir2", "dir5", "test5.jar"),
+	}
+
+	for _, dir := range dirs {
+		if err := vfs.MkdirAll(dir, 0755); err != nil {
+			return err
+		}
+	}
+	for _, file := range files {
+		err := afero.WriteFile(vfs, file, []byte("test content"), 0644)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func TestVFS_LsRecursive(t *testing.T) {
+	fs := globalFileSystem
+
+	vfs := afero.NewOsFs()
+
+	rootDir, err := afero.TempDir(vfs, "", "testdata")
+	if err != nil {
+		t.Fatalf("Failed to create temp directory: %v", err)
+	}
+	defer func() { _ = vfs.RemoveAll(rootDir) }()
+
+	if err := createTestFileStructure(vfs, rootDir); err != nil {
+		t.Fatalf("Failed to create test file structure: %v", err)
+	}
+
+	type fields struct {
+		vfs afero.Fs
+	}
+	type args struct {
+		ctx context.Context
+		dir string
+	}
+	tests := []struct {
+		name           string
+		f              func(tree string) ([]string, error)
+		fields         fields
+		args           args
+		wantFiles      []string
+		wantErr        assert.ErrorAssertionFunc
+		wantFilesCount int
+	}{
+		{
+			name: "Test LsRecursive with no limits",
+			f: func(tree string) ([]string, error) {
+				return fs.LsRecursive(context.Background(), tree)
+			},
+			fields: fields{
+				vfs: vfs,
+			},
+			args: args{
+				ctx: context.Background(),
+				dir: rootDir,
+			},
+			wantFiles: []string{
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test1.txt"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test2.o"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test3.h"),
+				filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+				filepath.Join(rootDir, "dir2", "dir5", "test5.jar"),
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "Test LsRecursiveFromOpenedDirectory",
+			f: func(tree string) ([]string, error) {
+				f, err := fs.GenericOpen(rootDir)
+				if err != nil {
+					return nil, err
+				}
+				defer func() { _ = f.Close() }()
+				return fs.LsRecursiveFromOpenedDirectory(context.Background(), f)
+			},
+			fields: fields{
+				vfs: vfs,
+			},
+			args: args{
+				ctx: context.Background(),
+				dir: rootDir,
+			},
+			wantFiles: []string{
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test1.txt"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test2.o"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test3.h"),
+				filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+				filepath.Join(rootDir, "dir2", "dir5", "test5.jar"),
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "Test LsRecursiveWithExtensionPatterns with exclusion patterns",
+			f: func(tree string) ([]string, error) {
+				// Convert glob patterns to regex
+				exclusionPatterns := []string{
+					globToRegex("*.o"),
+					globToRegex("*.jar"),
+				}
+				return fs.LsRecursiveWithExtensionPatterns(context.Background(), tree, exclusionPatterns...)
+			},
+			fields: fields{
+				vfs: vfs,
+			},
+			args: args{
+				ctx: context.Background(),
+				dir: rootDir,
+			},
+			wantFiles: []string{
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test1.txt"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test3.h"),
+				filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "Test LsRecursiveWithExtensionPatternsAndLimits with enough max depth and enough max file count",
+			f: func(tree string) ([]string, error) {
+				limits := &Limits{MaxDepth: 4, MaxFileCount: 5, Recursive: true}
+				return fs.LsRecursiveWithExtensionPatternsAndLimits(context.Background(), tree, limits)
+			},
+			fields: fields{
+				vfs: vfs,
+			},
+			args: args{
+				ctx: context.Background(),
+				dir: rootDir,
+			},
+			wantFiles: []string{
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test1.txt"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test2.o"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test3.h"),
+				filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+				filepath.Join(rootDir, "dir2", "dir5", "test5.jar"),
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "Test LsRecursiveWithExtensionPatternsAndLimits with enough max depth and enough max file count and exclusion patterns",
+			f: func(tree string) ([]string, error) {
+				limits := &Limits{MaxDepth: 4, MaxFileCount: 5, Recursive: true}
+				exclusionPatterns := []string{
+					globToRegex("*.o"),
+					globToRegex("*.h"),
+				}
+				return fs.LsRecursiveWithExtensionPatternsAndLimits(context.Background(), tree, limits, exclusionPatterns...)
+			},
+			fields: fields{
+				vfs: vfs,
+			},
+			args: args{
+				ctx: context.Background(),
+				dir: rootDir,
+			},
+			wantFiles: []string{
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test1.txt"),
+				filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+				filepath.Join(rootDir, "dir2", "dir5", "test5.jar"),
+			},
+			wantErr: assert.NoError,
+		},
+		{
+			name: "Test LsRecursiveWithExtensionPatternsAndLimits with NOT enough max depth and enough max file count",
+			f: func(tree string) ([]string, error) {
+				limits := &Limits{MaxDepth: 3, MaxFileCount: 5, Recursive: true}
+				return fs.LsRecursiveWithExtensionPatternsAndLimits(context.Background(), tree, limits)
+			},
+			fields: fields{
+				vfs: vfs,
+			},
+			args: args{
+				ctx: context.Background(),
+				dir: rootDir,
+			},
+			wantFiles: []string{
+				filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+				filepath.Join(rootDir, "dir2", "dir5", "test5.jar"),
+			},
+			wantErr: func(t assert.TestingT, err error, msgAndArgs ...interface{}) bool {
+				if errors.Is(err, filepath.SkipDir) {
+					return true
+				}
+				return assert.NoError(t, err, msgAndArgs...)
+			},
+		},
+		{
+			name: "Test LsRecursiveWithExtensionPatternsAndLimits with enough max depth and NOT enough max file count",
+			f: func(tree string) ([]string, error) {
+				limits := &Limits{MaxDepth: 4, MaxFileCount: 1, Recursive: true}
+				return fs.LsRecursiveWithExtensionPatternsAndLimits(context.Background(), tree, limits)
+			},
+			fields: fields{
+				vfs: vfs,
+			},
+			args: args{
+				ctx: context.Background(),
+				dir: rootDir,
+			},
+			wantFilesCount: 1,
+			wantErr: func(t assert.TestingT, err error, msgAndArgs ...interface{}) bool {
+				if errors.Is(err, filepath.SkipAll) {
+					return true
+				}
+				return assert.NoError(t, err, msgAndArgs...)
+			},
+		},
+		{
+			name: "Test LsRecursiveWithExtensionPatternsAndLimits with nil limits",
+			f: func(tree string) ([]string, error) {
+				return fs.LsRecursiveWithExtensionPatternsAndLimits(context.Background(), tree, nil)
+			},
+			fields: fields{
+				vfs: vfs,
+			},
+			args: args{
+				ctx: context.Background(),
+				dir: rootDir,
+			},
+			wantErr: assert.Error,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotFiles, err := tt.f(tt.args.dir)
+			if !tt.wantErr(t, err) {
+				return
+			}
+			if tt.wantFilesCount != 0 {
+				assert.Equal(t, tt.wantFilesCount, len(gotFiles))
+			} else {
+				// Ensure that the paths are normalized and compared correctly
+				assert.ElementsMatch(t, tt.wantFiles, gotFiles)
+			}
+		})
+	}
+}
+
+func globToRegex(glob string) string {
+	glob = strings.ReplaceAll(glob, ".", "\\.")
+	glob = strings.ReplaceAll(glob, "*", ".*")
+	return "^" + glob + "$"
+}
