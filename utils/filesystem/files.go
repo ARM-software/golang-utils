@@ -1129,13 +1129,11 @@ func (fs *VFS) LsWithExclusionPatterns(dir string, exclusionPatterns ...string) 
 }
 
 func (fs *VFS) LsRecursive(ctx context.Context, dir string) (files []string, err error) {
-	limits := NoLimits()
-	return fs.LsRecursiveWithExtensionPatternsAndLimits(ctx, dir, limits)
+	return fs.LsRecursiveWithExtensionPatternsAndLimits(ctx, dir, NoLimits())
 }
 
 func (fs *VFS) LsRecursiveWithExtensionPatterns(ctx context.Context, dir string, exclusionPatterns ...string) (files []string, err error) {
-	limits := NoLimits()
-	return fs.LsRecursiveWithExtensionPatternsAndLimits(ctx, dir, limits, exclusionPatterns...)
+	return fs.LsRecursiveWithExtensionPatternsAndLimits(ctx, dir, NoLimits(), exclusionPatterns...)
 }
 
 func (fs *VFS) LsRecursiveWithExtensionPatternsAndLimits(ctx context.Context, dir string, limits ILimits, exclusionPatterns ...string) (files []string, err error) {
@@ -1144,15 +1142,7 @@ func (fs *VFS) LsRecursiveWithExtensionPatternsAndLimits(ctx context.Context, di
 		return
 	}
 	if limits == nil {
-		err = fmt.Errorf("%w: missing file system limits definition", commonerrors.ErrUndefined)
-		return
-	}
-	exclusionRegex, err := NewExclusionRegexList(fs.PathSeparator(), exclusionPatterns...)
-	if err != nil {
-		return
-	}
-	if IsPathExcluded(dir, exclusionRegex...) {
-		// In this case, the whole tree is excluded and so, we can stop here
+		err = fmt.Errorf("%w: missing file system limits", commonerrors.ErrUndefined)
 		return
 	}
 
@@ -1161,20 +1151,23 @@ func (fs *VFS) LsRecursiveWithExtensionPatternsAndLimits(ctx context.Context, di
 			return err
 		}
 
-		relativePath := strings.TrimPrefix(path, dir)
-		currentDepth := int64(strings.Count(relativePath, string(fs.PathSeparator())))
+		currentDepth, err := FileTreeDepth(fs, dir, path)
+		if err != nil {
+			return err
+		}
 
-		if limits.Apply() && currentDepth > limits.GetMaxDepth() {
+		if limits.Apply() && currentDepth >= limits.GetMaxDepth() {
 			return filepath.SkipDir
 		}
 
 		if limits.Apply() && int64(len(files)) >= limits.GetMaxFileCount() {
-			return filepath.SkipAll
+			return fmt.Errorf("number of files exceeds the limit of %d: %w", limits.GetMaxFileCount(), commonerrors.ErrTooLarge)
 		}
 
 		if !info.IsDir() {
 			files = append(files, path)
 		}
+
 		return nil
 	}
 
@@ -1225,7 +1218,6 @@ func (fs *VFS) LsRecursiveFromOpenedDirectory(ctx context.Context, dir File) (fi
 		return nil, fmt.Errorf("%w: nil directory", commonerrors.ErrUndefined)
 	}
 
-	// Get the root directory's path
 	rootDirPath := dir.Name()
 	return fs.LsRecursive(ctx, rootDirPath)
 }
