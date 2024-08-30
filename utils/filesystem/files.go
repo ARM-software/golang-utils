@@ -200,7 +200,6 @@ func (fs *VFS) walk(ctx context.Context, path string, info os.FileInfo, exclusio
 		}
 	}
 	return nil
-
 }
 
 func (fs *VFS) GetType() FilesystemType {
@@ -1129,6 +1128,53 @@ func (fs *VFS) LsWithExclusionPatterns(dir string, exclusionPatterns ...string) 
 	return
 }
 
+func (fs *VFS) LsRecursive(ctx context.Context, dir string, includeDirectories bool) (files []string, err error) {
+	return fs.LsRecursiveWithExtensionPatternsAndLimits(ctx, dir, NoLimits(), includeDirectories)
+}
+
+func (fs *VFS) LsRecursiveWithExtensionPatterns(ctx context.Context, dir string, includeDirectories bool, exclusionPatterns ...string) (files []string, err error) {
+	return fs.LsRecursiveWithExtensionPatternsAndLimits(ctx, dir, NoLimits(), includeDirectories, exclusionPatterns...)
+}
+
+func (fs *VFS) LsRecursiveWithExtensionPatternsAndLimits(ctx context.Context, dir string, limits ILimits, includeDirectories bool, exclusionPatterns ...string) (files []string, err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+	if limits == nil {
+		err = fmt.Errorf("%w: missing file system limits", commonerrors.ErrUndefined)
+		return
+	}
+
+	fn := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		currentDepth, err := FileTreeDepth(fs, dir, path)
+		if err != nil {
+			return err
+		}
+
+		if limits.Apply() && currentDepth >= limits.GetMaxDepth() {
+			return filepath.SkipDir
+		}
+
+		if limits.Apply() && int64(len(files)) >= limits.GetMaxFileCount() {
+			return fmt.Errorf("number of files exceeds the limit of %d: %w", limits.GetMaxFileCount(), commonerrors.ErrTooLarge)
+		}
+
+		if includeDirectories || !info.IsDir() {
+			files = append(files, path)
+		}
+
+		return nil
+	}
+
+	err = fs.WalkWithContextAndExclusionPatterns(ctx, dir, fn, exclusionPatterns...)
+	return
+}
+
 func LsWithExclusionPatterns(fs FS, dir string, regexes []*regexp.Regexp) (names []string, err error) {
 	if isDir, subErr := fs.IsDir(dir); !isDir || subErr != nil {
 		err = fmt.Errorf("path [%v] is not a directory: %w", dir, commonerrors.ErrInvalid)
@@ -1146,7 +1192,6 @@ func LsWithExclusionPatterns(fs FS, dir string, regexes []*regexp.Regexp) (names
 	}
 	names, err = ExcludeFiles(AllNames, regexes)
 	return
-
 }
 
 func (fs *VFS) LsFromOpenedDirectory(dir File) ([]string, error) {
@@ -1158,6 +1203,22 @@ func (fs *VFS) LsFromOpenedDirectory(dir File) ([]string, error) {
 		return nil, fmt.Errorf("%w: nil directory", commonerrors.ErrUndefined)
 	}
 	return dir.Readdirnames(-1)
+}
+
+func (fs *VFS) LsRecursiveFromOpenedDirectory(ctx context.Context, dir File, includeDirectories bool) (files []string, err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+	if dir == nil {
+		return nil, fmt.Errorf("%w: supplied directory was undefined", commonerrors.ErrUndefined)
+	}
+	err = fs.checkWhetherUnderlyingResourceIsClosed()
+	if err != nil {
+		return nil, fmt.Errorf("%w: underlying resource is closed", commonerrors.ErrUndefined)
+	}
+
+	return fs.LsRecursive(ctx, dir.Name(), includeDirectories)
 }
 
 func (fs *VFS) Lls(dir string) (files []os.FileInfo, err error) {

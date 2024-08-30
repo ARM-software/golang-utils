@@ -2030,3 +2030,426 @@ func TestConvertToOSFile(t *testing.T) {
 	require.NoError(t, osFile.Close())
 	require.Error(t, rFile.Close(), "file must already be closed")
 }
+
+func TestLsRecursive(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run("Test LsRecursive includes directories with available files and directories", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			rootDir := t.TempDir()
+			err := generateTestTree(fs, rootDir)
+			require.NoError(t, err)
+
+			result, err := fs.LsRecursive(context.Background(), rootDir, true)
+			require.NoError(t, err)
+
+			expectedFiles := []string{
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test1.txt"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test2.o"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test3.h"),
+				filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+				filepath.Join(rootDir, "dir2", "dir5", "test5.jar"),
+
+				rootDir,
+				filepath.Join(rootDir, "dir2"),
+				filepath.Join(rootDir, "dir2", "dir3"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4"),
+				filepath.Join(rootDir, "dir2", "dir5"),
+			}
+
+			assert.ElementsMatch(t, expectedFiles, result)
+		})
+
+		t.Run("Test LsRecursive without including directories with available files and directories", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			rootDir := t.TempDir()
+			err := generateTestTree(fs, rootDir)
+			require.NoError(t, err)
+
+			result, err := fs.LsRecursive(context.Background(), rootDir, false)
+			require.NoError(t, err)
+
+			expectedFiles := []string{
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test1.txt"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test2.o"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test3.h"),
+				filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+				filepath.Join(rootDir, "dir2", "dir5", "test5.jar"),
+			}
+
+			assert.ElementsMatch(t, expectedFiles, result)
+		})
+
+		t.Run("Test LsRecursive with canceled context", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			rootDir := t.TempDir()
+			err := generateTestTree(fs, rootDir)
+			require.NoError(t, err)
+
+			ctx, cancel := context.WithCancel(context.Background())
+			cancel()
+
+			result, err := fs.LsRecursive(ctx, rootDir, true)
+			errortest.AssertError(t, err, commonerrors.ErrCancelled, commonerrors.ErrTimeout)
+			assert.Empty(t, result, "Expected no results when context is canceled")
+		})
+
+		t.Run("Test LsRecursive with non-existent directory", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			nonExistentDir := filepath.Join(t.TempDir(), "non_existent_dir")
+
+			result, err := fs.LsRecursive(context.Background(), nonExistentDir, true)
+			errortest.AssertError(t, err, os.ErrNotExist)
+			assert.Empty(t, result, "Expected no results when directory does not exist")
+		})
+	}
+}
+
+func TestLsRecursiveWithExtensionPatterns(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run("Test LsRecursiveWithExtensionPatterns includes directories with exclusion patterns", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			rootDir := t.TempDir()
+			err := generateTestTree(fs, rootDir)
+			require.NoError(t, err)
+
+			exclusionPatterns := []string{
+				globToRegex("*.o"),
+				globToRegex("*.jar"),
+			}
+
+			result, err := fs.LsRecursiveWithExtensionPatterns(context.Background(), rootDir, true, exclusionPatterns...)
+			require.NoError(t, err)
+			expectedFiles := []string{
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test1.txt"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test3.h"),
+				filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+
+				rootDir,
+				filepath.Join(rootDir, "dir2"),
+				filepath.Join(rootDir, "dir2", "dir3"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4"),
+				filepath.Join(rootDir, "dir2", "dir5"),
+			}
+
+			assert.ElementsMatch(t, expectedFiles, result)
+		})
+
+		t.Run("Test LsRecursiveWithExtensionPatterns without including directories with exclusion patterns", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			rootDir := t.TempDir()
+			err := generateTestTree(fs, rootDir)
+			require.NoError(t, err)
+
+			exclusionPatterns := []string{
+				globToRegex("*.o"),
+				globToRegex("*.jar"),
+			}
+
+			result, err := fs.LsRecursiveWithExtensionPatterns(context.Background(), rootDir, false, exclusionPatterns...)
+			require.NoError(t, err)
+			expectedFiles := []string{
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test1.txt"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test3.h"),
+				filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+			}
+
+			assert.ElementsMatch(t, expectedFiles, result)
+		})
+
+		t.Run("Test LsRecursiveWithExtensionPatterns with canceled context", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			rootDir := t.TempDir()
+			err := generateTestTree(fs, rootDir)
+			require.NoError(t, err)
+
+			ctx, cancel := context.WithCancel(context.Background())
+			cancel()
+
+			result, err := fs.LsRecursiveWithExtensionPatterns(ctx, rootDir, true)
+			errortest.AssertError(t, err, commonerrors.ErrCancelled, commonerrors.ErrTimeout)
+			assert.Empty(t, result, "Expected no results when context is canceled")
+		})
+
+		t.Run("Test LsRecursiveWithExtensionPatterns with non-existent directory", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			nonExistentDir := filepath.Join(t.TempDir(), "non_existent_dir")
+
+			result, err := fs.LsRecursiveWithExtensionPatterns(context.Background(), nonExistentDir, true)
+			errortest.AssertError(t, err, os.ErrNotExist)
+			assert.Empty(t, result, "Expected no results when directory does not exist")
+		})
+	}
+}
+
+func TestLsRecursiveWithExtensionPatternsAndLimits(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run("Test LsRecursiveWithExtensionPatternsAndLimits includes directories with enough max depth and enough max file count", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			rootDir := t.TempDir()
+			err := generateTestTree(fs, rootDir)
+			require.NoError(t, err)
+
+			limits := &Limits{MaxDepth: 4, MaxFileCount: 10, Recursive: true}
+			results, err := fs.LsRecursiveWithExtensionPatternsAndLimits(context.Background(), rootDir, limits, true)
+			require.NoError(t, err)
+			expectedFiles := []string{
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test1.txt"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test2.o"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test3.h"),
+				filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+				filepath.Join(rootDir, "dir2", "dir5", "test5.jar"),
+
+				rootDir,
+				filepath.Join(rootDir, "dir2"),
+				filepath.Join(rootDir, "dir2", "dir3"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4"),
+				filepath.Join(rootDir, "dir2", "dir5"),
+			}
+
+			assert.ElementsMatch(t, expectedFiles, results)
+		})
+
+		t.Run("Test LsRecursiveWithExtensionPatternsAndLimits without including directories with enough max depth and enough max file count", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			rootDir := t.TempDir()
+			err := generateTestTree(fs, rootDir)
+			require.NoError(t, err)
+
+			limits := &Limits{MaxDepth: 4, MaxFileCount: 10, Recursive: true}
+			results, err := fs.LsRecursiveWithExtensionPatternsAndLimits(context.Background(), rootDir, limits, false)
+			require.NoError(t, err)
+			expectedFiles := []string{
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test1.txt"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test2.o"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test3.h"),
+				filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+				filepath.Join(rootDir, "dir2", "dir5", "test5.jar"),
+			}
+
+			assert.ElementsMatch(t, expectedFiles, results)
+		})
+
+		t.Run("Test LsRecursiveWithExtensionPatternsAndLimits without including directories with enough max depth and enough max file count and exclusion patterns", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			rootDir := t.TempDir()
+			err := generateTestTree(fs, rootDir)
+			require.NoError(t, err)
+
+			exclusionPatterns := []string{
+				globToRegex("*.o"),
+				globToRegex("*.jar"),
+			}
+
+			limits := &Limits{MaxDepth: 4, MaxFileCount: 5, Recursive: true}
+			results, err := fs.LsRecursiveWithExtensionPatternsAndLimits(context.Background(), rootDir, limits, false, exclusionPatterns...)
+			require.NoError(t, err)
+			expectedFiles := []string{
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test1.txt"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test3.h"),
+				filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+			}
+
+			assert.ElementsMatch(t, expectedFiles, results)
+		})
+
+		t.Run("Test LsRecursiveWithExtensionPatternsAndLimits without including directories with NOT enough max depth and enough max file count", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			rootDir := t.TempDir()
+			err := generateTestTree(fs, rootDir)
+			require.NoError(t, err)
+
+			limits := &Limits{MaxDepth: 3, MaxFileCount: 5, Recursive: true}
+			results, err := fs.LsRecursiveWithExtensionPatternsAndLimits(context.Background(), rootDir, limits, false)
+			expectedFiles := []string{
+				filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+				filepath.Join(rootDir, "dir2", "dir5", "test5.jar"),
+			}
+
+			assert.ElementsMatch(t, expectedFiles, results)
+			assert.NoError(t, err)
+		})
+
+		t.Run("Test LsRecursiveWithExtensionPatternsAndLimits without including directories with enough max depth and NOT enough max file count", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			rootDir := t.TempDir()
+			err := generateTestTree(fs, rootDir)
+			require.NoError(t, err)
+
+			limits := &Limits{MaxDepth: 4, MaxFileCount: 2, Recursive: true}
+			results, err := fs.LsRecursiveWithExtensionPatternsAndLimits(context.Background(), rootDir, limits, false)
+			expectedFilesSize := 2
+
+			assert.Equal(t, expectedFilesSize, len(results))
+			errortest.AssertError(t, err, commonerrors.ErrTooLarge)
+		})
+
+		t.Run("Test LsRecursiveWithExtensionPatternsAndLimits with nil limits", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			rootDir := t.TempDir()
+			err := generateTestTree(fs, rootDir)
+			require.NoError(t, err)
+
+			results, err := fs.LsRecursiveWithExtensionPatternsAndLimits(context.Background(), rootDir, nil, true)
+
+			errortest.AssertError(t, err, commonerrors.ErrUndefined)
+			assert.Empty(t, results)
+		})
+
+		t.Run("Test LsRecursiveWithExtensionPatternsAndLimits with canceled context", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			rootDir := t.TempDir()
+			err := generateTestTree(fs, rootDir)
+			require.NoError(t, err)
+
+			ctx, cancel := context.WithCancel(context.Background())
+			cancel()
+
+			limits := &Limits{MaxDepth: 4, MaxFileCount: 5, Recursive: true}
+			result, err := fs.LsRecursiveWithExtensionPatternsAndLimits(ctx, rootDir, limits, true)
+			errortest.AssertError(t, err, commonerrors.ErrCancelled, commonerrors.ErrTimeout)
+			assert.Empty(t, result, "Expected no results when context is canceled")
+		})
+
+		t.Run("Test LsRecursiveWithExtensionPatternsAndLimits with non-existent directory", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			nonExistentDir := filepath.Join(t.TempDir(), "non_existent_dir")
+
+			limits := &Limits{MaxDepth: 4, MaxFileCount: 5, Recursive: true}
+			result, err := fs.LsRecursiveWithExtensionPatternsAndLimits(context.Background(), nonExistentDir, limits, true)
+			errortest.AssertError(t, err, os.ErrNotExist)
+			assert.Empty(t, result, "Expected no results when directory does not exist")
+		})
+	}
+}
+
+func TestLsRecursiveFromOpenedDirectory(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run("Test LsRecursiveFromOpenedDirectory includes directories with available files and directories", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			rootDir := t.TempDir()
+			err := generateTestTree(fs, rootDir)
+			require.NoError(t, err)
+
+			f, err := fs.GenericOpen(rootDir)
+			require.NoError(t, err)
+			defer func() { _ = f.Close() }()
+
+			results, err := fs.LsRecursiveFromOpenedDirectory(context.Background(), f, true)
+			assert.NoError(t, err)
+			expectedFiles := []string{
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test1.txt"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test2.o"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test3.h"),
+				filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+				filepath.Join(rootDir, "dir2", "dir5", "test5.jar"),
+
+				rootDir,
+				filepath.Join(rootDir, "dir2"),
+				filepath.Join(rootDir, "dir2", "dir3"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4"),
+				filepath.Join(rootDir, "dir2", "dir5"),
+			}
+			assert.ElementsMatch(t, expectedFiles, results)
+		})
+
+		t.Run("Test LsRecursiveFromOpenedDirectory without including directories with available files and directories", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			rootDir := t.TempDir()
+			err := generateTestTree(fs, rootDir)
+			require.NoError(t, err)
+
+			f, err := fs.GenericOpen(rootDir)
+			require.NoError(t, err)
+			defer func() { _ = f.Close() }()
+
+			results, err := fs.LsRecursiveFromOpenedDirectory(context.Background(), f, false)
+			assert.NoError(t, err)
+			expectedFiles := []string{
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test1.txt"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test2.o"),
+				filepath.Join(rootDir, "dir2", "dir3", "dir4", "test3.h"),
+				filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+				filepath.Join(rootDir, "dir2", "dir5", "test5.jar"),
+			}
+			assert.ElementsMatch(t, expectedFiles, results)
+		})
+
+		t.Run("Test LsRecursiveFromOpenedDirectory with canceled context", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			rootDir := t.TempDir()
+			err := generateTestTree(fs, rootDir)
+			require.NoError(t, err)
+
+			ctx, cancel := context.WithCancel(context.Background())
+			cancel()
+
+			f, err := fs.GenericOpen(rootDir)
+			require.NoError(t, err)
+			defer func() { _ = f.Close() }()
+
+			result, err := fs.LsRecursiveFromOpenedDirectory(ctx, f, true)
+			errortest.AssertError(t, err, commonerrors.ErrCancelled, commonerrors.ErrTimeout)
+			assert.Empty(t, result, "Expected no results when context is canceled")
+		})
+
+		t.Run("Test LsRecursiveFromOpenedDirectory with non-existent directory", func(t *testing.T) {
+			fs := NewFs(fsType)
+
+			result, err := fs.LsRecursiveFromOpenedDirectory(context.Background(), nil, true)
+			errortest.AssertError(t, err, commonerrors.ErrUndefined)
+			assert.Empty(t, result, "Expected no results when directory does not exist")
+		})
+	}
+}
+
+func generateTestTree(fs FS, rootDir string) error {
+	dirs := []string{
+		filepath.Join(rootDir, "dir2", "dir3", "dir4"),
+		filepath.Join(rootDir, "dir2", "dir5"),
+	}
+	files := []string{
+		filepath.Join(rootDir, "dir2", "dir3", "dir4", "test1.txt"),
+		filepath.Join(rootDir, "dir2", "dir3", "dir4", "test2.o"),
+		filepath.Join(rootDir, "dir2", "dir3", "dir4", "test3.h"),
+		filepath.Join(rootDir, "dir2", "dir5", "test4.txt"),
+		filepath.Join(rootDir, "dir2", "dir5", "test5.jar"),
+	}
+
+	for _, dir := range dirs {
+		if err := fs.MkDirAll(dir, 0755); err != nil {
+			return err
+		}
+	}
+	for _, file := range files {
+		err := fs.WriteFile(file, []byte("test content"), 0644)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func globToRegex(glob string) string {
+	glob = strings.ReplaceAll(glob, ".", "\\.")
+	glob = strings.ReplaceAll(glob, "*", ".*")
+	return "^" + glob + "$"
+}
