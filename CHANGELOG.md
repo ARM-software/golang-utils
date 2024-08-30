@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.72.0" (2024-08-30)
+=====================
+
+Features
+--------
+
+- ✨  `[filesystem]` Added `LsRecursive` to browse file system trees and list their content (#20240828133012)
+
+
 "1.71.0" (2024-08-27)
 =====================
 
