@@ -201,17 +201,17 @@ type FS interface {
 	// Ls lists all files and directory (equivalent to ls)
 	Ls(dir string) (files []string, err error)
 	// LsRecursive lists all files recursively, including subdirectories
-	LsRecursive(ctx context.Context, dir string) (files []string, err error)
+	LsRecursive(ctx context.Context, dir string, includeDirectories bool) (files []string, err error)
 	// LsWithExclusionPatterns lists all files and directory (equivalent to ls) but exclude the ones matching the exclusion patterns.
 	LsWithExclusionPatterns(dir string, exclusionPatterns ...string) (files []string, err error)
 	// LsRecursiveWithExtensionPatterns lists all files recursively, including subdirectories but exclude the ones matching the exclusion patterns.
-	LsRecursiveWithExtensionPatterns(ctx context.Context, dir string, exclusionPatterns ...string) (files []string, err error)
+	LsRecursiveWithExtensionPatterns(ctx context.Context, dir string, includeDirectories bool, exclusionPatterns ...string) (files []string, err error)
 	// LsRecursiveWithExtensionPatternsAndLimits lists all files recursively, including subdirectories but exclude the ones matching the exclusion patterns and add some limits for recursion
-	LsRecursiveWithExtensionPatternsAndLimits(ctx context.Context, dir string, limit ILimits, exclusionPatterns ...string) (files []string, err error)
-	// LsFromOpenedDirectory lists all files and directory (equivalent to ls)
+	LsRecursiveWithExtensionPatternsAndLimits(ctx context.Context, dir string, limit ILimits, includeDirectories bool, exclusionPatterns ...string) (files []string, err error)
+	// LsFromOpenedDirectory lists all files and directories (equivalent to ls)
 	LsFromOpenedDirectory(dir File) (files []string, err error)
 	// LsRecursiveFromOpenedDirectory lists all files recursively
-	LsRecursiveFromOpenedDirectory(ctx context.Context, dir File) (files []string, err error)
+	LsRecursiveFromOpenedDirectory(ctx context.Context, dir File, includeDirectories bool) (files []string, err error)
 	// Lls lists all files and directory (equivalent to ls -l)
 	Lls(dir string) (files []os.FileInfo, err error)
 	// LlsFromOpenedDirectory lists all files and directory (equivalent to ls -l)

@@ -1128,15 +1128,15 @@ func (fs *VFS) LsWithExclusionPatterns(dir string, exclusionPatterns ...string) 
 	return
 }
 
-func (fs *VFS) LsRecursive(ctx context.Context, dir string) (files []string, err error) {
-	return fs.LsRecursiveWithExtensionPatternsAndLimits(ctx, dir, NoLimits())
+func (fs *VFS) LsRecursive(ctx context.Context, dir string, includeDirectories bool) (files []string, err error) {
+	return fs.LsRecursiveWithExtensionPatternsAndLimits(ctx, dir, NoLimits(), includeDirectories)
 }
 
-func (fs *VFS) LsRecursiveWithExtensionPatterns(ctx context.Context, dir string, exclusionPatterns ...string) (files []string, err error) {
-	return fs.LsRecursiveWithExtensionPatternsAndLimits(ctx, dir, NoLimits(), exclusionPatterns...)
+func (fs *VFS) LsRecursiveWithExtensionPatterns(ctx context.Context, dir string, includeDirectories bool, exclusionPatterns ...string) (files []string, err error) {
+	return fs.LsRecursiveWithExtensionPatternsAndLimits(ctx, dir, NoLimits(), includeDirectories, exclusionPatterns...)
 }
 
-func (fs *VFS) LsRecursiveWithExtensionPatternsAndLimits(ctx context.Context, dir string, limits ILimits, exclusionPatterns ...string) (files []string, err error) {
+func (fs *VFS) LsRecursiveWithExtensionPatternsAndLimits(ctx context.Context, dir string, limits ILimits, includeDirectories bool, exclusionPatterns ...string) (files []string, err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -1164,7 +1164,7 @@ func (fs *VFS) LsRecursiveWithExtensionPatternsAndLimits(ctx context.Context, di
 			return fmt.Errorf("number of files exceeds the limit of %d: %w", limits.GetMaxFileCount(), commonerrors.ErrTooLarge)
 		}
 
-		if !info.IsDir() {
+		if includeDirectories || !info.IsDir() {
 			files = append(files, path)
 		}
 
@@ -1205,21 +1205,20 @@ func (fs *VFS) LsFromOpenedDirectory(dir File) ([]string, error) {
 	return dir.Readdirnames(-1)
 }
 
-func (fs *VFS) LsRecursiveFromOpenedDirectory(ctx context.Context, dir File) (files []string, err error) {
+func (fs *VFS) LsRecursiveFromOpenedDirectory(ctx context.Context, dir File, includeDirectories bool) (files []string, err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
+	}
+	if dir == nil {
+		return nil, fmt.Errorf("%w: supplied directory was undefined", commonerrors.ErrUndefined)
 	}
 	err = fs.checkWhetherUnderlyingResourceIsClosed()
 	if err != nil {
 		return nil, fmt.Errorf("%w: underlying resource is closed", commonerrors.ErrUndefined)
 	}
-	if dir == nil {
-		return nil, fmt.Errorf("%w: nil directory", commonerrors.ErrUndefined)
-	}
 
-	rootDirPath := dir.Name()
-	return fs.LsRecursive(ctx, rootDirPath)
+	return fs.LsRecursive(ctx, dir.Name(), includeDirectories)
 }
 
 func (fs *VFS) Lls(dir string) (files []os.FileInfo, err error) {
