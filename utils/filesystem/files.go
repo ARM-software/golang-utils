@@ -1128,15 +1128,25 @@ func (fs *VFS) LsWithExclusionPatterns(dir string, exclusionPatterns ...string) 
 	return
 }
 
+// LsRecursive lists all files recursively, including subdirectories
+func LsRecursive(ctx context.Context, dir string, includeDirectories bool) (files []string, err error) {
+	return GetGlobalFileSystem().LsRecursive(ctx, dir, includeDirectories)
+}
+
+// LsRecursiveWithExclusionPatterns lists all files and directory (equivalent to ls) but exclude the ones matching the exclusion patterns.
+func LsRecursiveWithExclusionPatterns(ctx context.Context, dir string, includeDirectories bool, exclusionPatterns ...string) (files []string, err error) {
+	return GetGlobalFileSystem().LsRecursiveWithExclusionPatterns(ctx, dir, includeDirectories, exclusionPatterns...)
+}
+
 func (fs *VFS) LsRecursive(ctx context.Context, dir string, includeDirectories bool) (files []string, err error) {
-	return fs.LsRecursiveWithExtensionPatternsAndLimits(ctx, dir, NoLimits(), includeDirectories)
+	return fs.LsRecursiveWithExclusionPatternsAndLimits(ctx, dir, NoLimits(), includeDirectories)
 }
 
-func (fs *VFS) LsRecursiveWithExtensionPatterns(ctx context.Context, dir string, includeDirectories bool, exclusionPatterns ...string) (files []string, err error) {
-	return fs.LsRecursiveWithExtensionPatternsAndLimits(ctx, dir, NoLimits(), includeDirectories, exclusionPatterns...)
+func (fs *VFS) LsRecursiveWithExclusionPatterns(ctx context.Context, dir string, includeDirectories bool, exclusionPatterns ...string) (files []string, err error) {
+	return fs.LsRecursiveWithExclusionPatternsAndLimits(ctx, dir, NoLimits(), includeDirectories, exclusionPatterns...)
 }
 
-func (fs *VFS) LsRecursiveWithExtensionPatternsAndLimits(ctx context.Context, dir string, limits ILimits, includeDirectories bool, exclusionPatterns ...string) (files []string, err error) {
+func (fs *VFS) LsRecursiveWithExclusionPatternsAndLimits(ctx context.Context, dir string, limits ILimits, includeDirectories bool, exclusionPatterns ...string) (files []string, err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return

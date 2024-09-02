@@ -1732,44 +1732,44 @@ func (mr *MockFSMockRecorder) LsRecursiveFromOpenedDirectory(arg0, arg1, arg2 an
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LsRecursiveFromOpenedDirectory", reflect.TypeOf((*MockFS)(nil).LsRecursiveFromOpenedDirectory), arg0, arg1, arg2)
 }
 
-// LsRecursiveWithExtensionPatterns mocks base method.
-func (m *MockFS) LsRecursiveWithExtensionPatterns(arg0 context.Context, arg1 string, arg2 bool, arg3 ...string) ([]string, error) {
+// LsRecursiveWithExclusionPatterns mocks base method.
+func (m *MockFS) LsRecursiveWithExclusionPatterns(arg0 context.Context, arg1 string, arg2 bool, arg3 ...string) ([]string, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{arg0, arg1, arg2}
 	for _, a := range arg3 {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "LsRecursiveWithExtensionPatterns", varargs...)
+	ret := m.ctrl.Call(m, "LsRecursiveWithExclusionPatterns", varargs...)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// LsRecursiveWithExtensionPatterns indicates an expected call of LsRecursiveWithExtensionPatterns.
-func (mr *MockFSMockRecorder) LsRecursiveWithExtensionPatterns(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+// LsRecursiveWithExclusionPatterns indicates an expected call of LsRecursiveWithExclusionPatterns.
+func (mr *MockFSMockRecorder) LsRecursiveWithExclusionPatterns(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{arg0, arg1, arg2}, arg3...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LsRecursiveWithExtensionPatterns", reflect.TypeOf((*MockFS)(nil).LsRecursiveWithExtensionPatterns), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LsRecursiveWithExclusionPatterns", reflect.TypeOf((*MockFS)(nil).LsRecursiveWithExclusionPatterns), varargs...)
 }
 
-// LsRecursiveWithExtensionPatternsAndLimits mocks base method.
-func (m *MockFS) LsRecursiveWithExtensionPatternsAndLimits(arg0 context.Context, arg1 string, arg2 filesystem.ILimits, arg3 bool, arg4 ...string) ([]string, error) {
+// LsRecursiveWithExclusionPatternsAndLimits mocks base method.
+func (m *MockFS) LsRecursiveWithExclusionPatternsAndLimits(arg0 context.Context, arg1 string, arg2 filesystem.ILimits, arg3 bool, arg4 ...string) ([]string, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{arg0, arg1, arg2, arg3}
 	for _, a := range arg4 {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "LsRecursiveWithExtensionPatternsAndLimits", varargs...)
+	ret := m.ctrl.Call(m, "LsRecursiveWithExclusionPatternsAndLimits", varargs...)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// LsRecursiveWithExtensionPatternsAndLimits indicates an expected call of LsRecursiveWithExtensionPatternsAndLimits.
-func (mr *MockFSMockRecorder) LsRecursiveWithExtensionPatternsAndLimits(arg0, arg1, arg2, arg3 any, arg4 ...any) *gomock.Call {
+// LsRecursiveWithExclusionPatternsAndLimits indicates an expected call of LsRecursiveWithExclusionPatternsAndLimits.
+func (mr *MockFSMockRecorder) LsRecursiveWithExclusionPatternsAndLimits(arg0, arg1, arg2, arg3 any, arg4 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{arg0, arg1, arg2, arg3}, arg4...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LsRecursiveWithExtensionPatternsAndLimits", reflect.TypeOf((*MockFS)(nil).LsRecursiveWithExtensionPatternsAndLimits), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LsRecursiveWithExclusionPatternsAndLimits", reflect.TypeOf((*MockFS)(nil).LsRecursiveWithExclusionPatternsAndLimits), varargs...)
 }
 
 // LsWithExclusionPatterns mocks base method.
@@ -3306,44 +3306,44 @@ func (mr *MockICloseableFSMockRecorder) LsRecursiveFromOpenedDirectory(arg0, arg
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LsRecursiveFromOpenedDirectory", reflect.TypeOf((*MockICloseableFS)(nil).LsRecursiveFromOpenedDirectory), arg0, arg1, arg2)
 }
 
-// LsRecursiveWithExtensionPatterns mocks base method.
-func (m *MockICloseableFS) LsRecursiveWithExtensionPatterns(arg0 context.Context, arg1 string, arg2 bool, arg3 ...string) ([]string, error) {
+// LsRecursiveWithExclusionPatterns mocks base method.
+func (m *MockICloseableFS) LsRecursiveWithExclusionPatterns(arg0 context.Context, arg1 string, arg2 bool, arg3 ...string) ([]string, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{arg0, arg1, arg2}
 	for _, a := range arg3 {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "LsRecursiveWithExtensionPatterns", varargs...)
+	ret := m.ctrl.Call(m, "LsRecursiveWithExclusionPatterns", varargs...)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// LsRecursiveWithExtensionPatterns indicates an expected call of LsRecursiveWithExtensionPatterns.
-func (mr *MockICloseableFSMockRecorder) LsRecursiveWithExtensionPatterns(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
+// LsRecursiveWithExclusionPatterns indicates an expected call of LsRecursiveWithExclusionPatterns.
+func (mr *MockICloseableFSMockRecorder) LsRecursiveWithExclusionPatterns(arg0, arg1, arg2 any, arg3 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{arg0, arg1, arg2}, arg3...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LsRecursiveWithExtensionPatterns", reflect.TypeOf((*MockICloseableFS)(nil).LsRecursiveWithExtensionPatterns), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LsRecursiveWithExclusionPatterns", reflect.TypeOf((*MockICloseableFS)(nil).LsRecursiveWithExclusionPatterns), varargs...)
 }
 
-// LsRecursiveWithExtensionPatternsAndLimits mocks base method.
-func (m *MockICloseableFS) LsRecursiveWithExtensionPatternsAndLimits(arg0 context.Context, arg1 string, arg2 filesystem.ILimits, arg3 bool, arg4 ...string) ([]string, error) {
+// LsRecursiveWithExclusionPatternsAndLimits mocks base method.
+func (m *MockICloseableFS) LsRecursiveWithExclusionPatternsAndLimits(arg0 context.Context, arg1 string, arg2 filesystem.ILimits, arg3 bool, arg4 ...string) ([]string, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{arg0, arg1, arg2, arg3}
 	for _, a := range arg4 {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "LsRecursiveWithExtensionPatternsAndLimits", varargs...)
+	ret := m.ctrl.Call(m, "LsRecursiveWithExclusionPatternsAndLimits", varargs...)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// LsRecursiveWithExtensionPatternsAndLimits indicates an expected call of LsRecursiveWithExtensionPatternsAndLimits.
-func (mr *MockICloseableFSMockRecorder) LsRecursiveWithExtensionPatternsAndLimits(arg0, arg1, arg2, arg3 any, arg4 ...any) *gomock.Call {
+// LsRecursiveWithExclusionPatternsAndLimits indicates an expected call of LsRecursiveWithExclusionPatternsAndLimits.
+func (mr *MockICloseableFSMockRecorder) LsRecursiveWithExclusionPatternsAndLimits(arg0, arg1, arg2, arg3 any, arg4 ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{arg0, arg1, arg2, arg3}, arg4...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LsRecursiveWithExtensionPatternsAndLimits", reflect.TypeOf((*MockICloseableFS)(nil).LsRecursiveWithExtensionPatternsAndLimits), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LsRecursiveWithExclusionPatternsAndLimits", reflect.TypeOf((*MockICloseableFS)(nil).LsRecursiveWithExclusionPatternsAndLimits), varargs...)
 }
 
 // LsWithExclusionPatterns mocks base method.
