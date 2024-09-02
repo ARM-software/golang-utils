@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.72.1" (2024-09-02)
+=====================
+
+Bugfixes
+--------
+
+- :bug:  `[filesystem]` Made LsRecursive global and changed some function names to avoid confusion (#20240902105601)
+
+
 "1.72.0" (2024-08-30)
 =====================
 
