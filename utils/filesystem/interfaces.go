@@ -204,10 +204,10 @@ type FS interface {
 	LsRecursive(ctx context.Context, dir string, includeDirectories bool) (files []string, err error)
 	// LsWithExclusionPatterns lists all files and directory (equivalent to ls) but exclude the ones matching the exclusion patterns.
 	LsWithExclusionPatterns(dir string, exclusionPatterns ...string) (files []string, err error)
-	// LsRecursiveWithExtensionPatterns lists all files recursively, including subdirectories but exclude the ones matching the exclusion patterns.
-	LsRecursiveWithExtensionPatterns(ctx context.Context, dir string, includeDirectories bool, exclusionPatterns ...string) (files []string, err error)
-	// LsRecursiveWithExtensionPatternsAndLimits lists all files recursively, including subdirectories but exclude the ones matching the exclusion patterns and add some limits for recursion
-	LsRecursiveWithExtensionPatternsAndLimits(ctx context.Context, dir string, limit ILimits, includeDirectories bool, exclusionPatterns ...string) (files []string, err error)
+	// LsRecursiveWithExclusionPatterns lists all files recursively, including subdirectories but exclude the ones matching the exclusion patterns.
+	LsRecursiveWithExclusionPatterns(ctx context.Context, dir string, includeDirectories bool, exclusionPatterns ...string) (files []string, err error)
+	// LsRecursiveWithExclusionPatternsAndLimits lists all files recursively, including subdirectories but exclude the ones matching the exclusion patterns and add some limits for recursion
+	LsRecursiveWithExclusionPatternsAndLimits(ctx context.Context, dir string, limit ILimits, includeDirectories bool, exclusionPatterns ...string) (files []string, err error)
 	// LsFromOpenedDirectory lists all files and directories (equivalent to ls)
 	LsFromOpenedDirectory(dir File) (files []string, err error)
 	// LsRecursiveFromOpenedDirectory lists all files recursively
