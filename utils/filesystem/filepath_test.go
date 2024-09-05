@@ -12,6 +12,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
 func TestFilepathStem(t *testing.T) {
@@ -27,6 +28,61 @@ func TestFilepathStem(t *testing.T) {
 		fp = filepath.Join("nice", "file", "path")
 		assert.Equal(t, "path", FilepathStem(fp))
 	})
+}
+
+func TestFilepathParents(t *testing.T) {
+	type PathTest struct {
+		path            string
+		expectedParents []string
+	}
+	tests := []PathTest{
+		{},
+		{
+			path:            "                             ",
+			expectedParents: nil,
+		},
+		{
+			path:            "/",
+			expectedParents: nil,
+		},
+		{
+			path:            ".",
+			expectedParents: nil,
+		},
+		{
+			path:            "./",
+			expectedParents: nil,
+		},
+		{
+			path:            "./blah",
+			expectedParents: nil,
+		},
+		{
+			path:            filepath.Join("a", "great", "fake", "path", "blah"),
+			expectedParents: []string{"a", filepath.Join("a", "great"), filepath.Join("a", "great", "fake"), filepath.Join("a", "great", "fake", "path")},
+		},
+		{
+			path:            "/foo/bar/setup.py",
+			expectedParents: []string{`foo`, filepath.Join(`foo`, `bar`)},
+		},
+	}
+
+	if platform.IsWindows() {
+		tests = append(tests, PathTest{
+			path:            "C:/foo/bar/setup.py",
+			expectedParents: []string{"C:", filepath.Join(`C:`, `\foo`), filepath.Join(`C:`, `\foo`, `bar`)},
+		})
+	} else {
+		tests = append(tests, PathTest{
+			path:            "C:/foo/bar/setup.py",
+			expectedParents: []string{"C:", filepath.Join(`C:`, `foo`), filepath.Join(`C:`, `foo`, `bar`)},
+		})
+	}
+	for _, tt := range tests {
+		t.Run(tt.path, func(t *testing.T) {
+			assert.ElementsMatch(t, tt.expectedParents, FilepathParents(tt.path))
+		})
+	}
 }
 
 func TestFileTreeDepth(t *testing.T) {
