@@ -12,6 +12,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
 func TestFilepathStem(t *testing.T) {
@@ -30,14 +31,30 @@ func TestFilepathStem(t *testing.T) {
 }
 
 func TestFilepathParents(t *testing.T) {
-
-	tests := []struct {
+	type PathTest struct {
 		path            string
 		expectedParents []string
-	}{
+	}
+	tests := []PathTest{
 		{},
 		{
 			path:            "                             ",
+			expectedParents: nil,
+		},
+		{
+			path:            "/",
+			expectedParents: nil,
+		},
+		{
+			path:            ".",
+			expectedParents: nil,
+		},
+		{
+			path:            "./",
+			expectedParents: nil,
+		},
+		{
+			path:            "./blah",
 			expectedParents: nil,
 		},
 		{
@@ -45,9 +62,21 @@ func TestFilepathParents(t *testing.T) {
 			expectedParents: []string{"a", filepath.Join("a", "great"), filepath.Join("a", "great", "fake"), filepath.Join("a", "great", "fake", "path")},
 		},
 		{
+			path:            "/foo/bar/setup.py",
+			expectedParents: []string{`foo`, filepath.Join(`foo`, `bar`)},
+		},
+	}
+
+	if platform.IsWindows() {
+		tests = append(tests, PathTest{
 			path:            "C:/foo/bar/setup.py",
 			expectedParents: []string{"C:", filepath.Join(`C:`, `\foo`), filepath.Join(`C:`, `\foo`, `bar`)},
-		},
+		})
+	} else {
+		tests = append(tests, PathTest{
+			path:            "C:/foo/bar/setup.py",
+			expectedParents: []string{"C:", filepath.Join(`C:`, `foo`), filepath.Join(`C:`, `foo`, `bar`)},
+		})
 	}
 	for _, tt := range tests {
 		t.Run(tt.path, func(t *testing.T) {

@@ -31,6 +31,13 @@ func FilePathParentsOnFilesystem(fs FS, fp string) (parents []string) {
 		return
 	}
 	path := elements[0]
+	if path == "" {
+		elements = elements[1:]
+		if len(elements) <= 1 {
+			return
+		}
+		path = elements[0]
+	}
 	parents = append(parents, path)
 	for i := 1; i < len(elements)-1; i++ {
 		path = strings.Join([]string{path, elements[i]}, string(fs.PathSeparator()))
