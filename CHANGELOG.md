@@ -14,6 +14,23 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.73.0" (2024-09-05)
+=====================
+
+Features
+--------
+
+- :sparkles: [filesystem] Add a way to determine all parents of a path similar to python's [pathlib](https://docs.python.org/3/library/pathlib.html#pathlib.PurePath.parents) (#20240905230606)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: sys-0.25.0 (#20240905100733, #20240905100734)
+- Dependency upgrade: text-0.18.0 (#20240905173516, #20240905173522, #20240905173550, #20240905173554)
+- Dependency upgrade: oauth2-0.23.0 (#20240905221449)
+
+
 "1.72.2" (2024-09-05)
 =====================
 
