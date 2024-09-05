@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.72.2" (2024-09-05)
+=====================
+
+Bugfixes
+--------
+
+- :bug: fix dependency breaking change introduced when generating mocks (#20240905012352)
+
+
 "1.72.1" (2024-09-02)
 =====================
 
