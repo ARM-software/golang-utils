@@ -29,6 +29,33 @@ func TestFilepathStem(t *testing.T) {
 	})
 }
 
+func TestFilepathParents(t *testing.T) {
+
+	tests := []struct {
+		path            string
+		expectedParents []string
+	}{
+		{},
+		{
+			path:            "                             ",
+			expectedParents: nil,
+		},
+		{
+			path:            filepath.Join("a", "great", "fake", "path", "blah"),
+			expectedParents: []string{"a", filepath.Join("a", "great"), filepath.Join("a", "great", "fake"), filepath.Join("a", "great", "fake", "path")},
+		},
+		{
+			path:            "C:/foo/bar/setup.py",
+			expectedParents: []string{"C:", filepath.Join(`C:`, `\foo`), filepath.Join(`C:`, `\foo`, `bar`)},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.path, func(t *testing.T) {
+			assert.ElementsMatch(t, tt.expectedParents, FilepathParents(tt.path))
+		})
+	}
+}
+
 func TestFileTreeDepth(t *testing.T) {
 	random := fmt.Sprintf("%v %v %v", faker.Name(), faker.Name(), faker.Name())
 	complexRandom := fmt.Sprintf("%v&#~@£*-_()^+!%v %v", faker.Name(), faker.Name(), faker.Name())

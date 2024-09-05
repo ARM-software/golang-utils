@@ -13,9 +13,30 @@ import (
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
-// FilepathStem returns  the final path component, without its suffix.
+// FilepathStem returns  the final path component, without its suffix. It's similar to `stem` in python's [pathlib](https://docs.python.org/3/library/pathlib.html#pathlib.PurePath.stem)
 func FilepathStem(fp string) string {
 	return strings.TrimSuffix(filepath.Base(fp), filepath.Ext(fp))
+}
+
+// FilepathParents returns a list of to the logical ancestors of the path and it's similar to `parents` in python's [pathlib](https://docs.python.org/3/library/pathlib.html#pathlib.PurePath.parents)
+func FilepathParents(fp string) []string {
+	return FilePathParentsOnFilesystem(GetGlobalFileSystem(), fp)
+}
+
+// FilePathParentsOnFilesystem is similar to FilepathParents but with the ability to be applied to a particular filesystem.
+func FilePathParentsOnFilesystem(fs FS, fp string) (parents []string) {
+	cleanFp := filepath.Clean(fp)
+	elements := strings.Split(cleanFp, string(fs.PathSeparator()))
+	if len(elements) <= 1 {
+		return
+	}
+	path := elements[0]
+	parents = append(parents, path)
+	for i := 1; i < len(elements)-1; i++ {
+		path = strings.Join([]string{path, elements[i]}, string(fs.PathSeparator()))
+		parents = append(parents, path)
+	}
+	return
 }
 
 // FileTreeDepth returns the depth of a file in a tree starting from root
