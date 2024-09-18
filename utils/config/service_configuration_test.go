@@ -564,6 +564,30 @@ func TestServiceConfigurationLoadFromFile(t *testing.T) {
 	assert.Equal(t, "test string", value)
 }
 
+type testCfg struct {
+	Field1 string `mapstructure:"f1"`
+	Field2 string `mapstructure:"dummy_string"`
+}
+
+func (cfg *testCfg) Validate() error {
+	return validation.ValidateStruct(cfg,
+		validation.Field(&cfg.Field1, validation.Required),
+	)
+}
+
+func TestServiceConfigurationLoadFromFileWithDefaults(t *testing.T) {
+	os.Clearenv()
+	session := viper.New()
+	test := testCfg{}
+	err := LoadFromEnvironment(session, "", &test, &testCfg{
+		Field1: "test",
+	}, filepath.Join(".", "fixtures", "config-test.json"))
+	require.NoError(t, err)
+	assert.NotEmpty(t, test.Field1)
+	assert.Equal(t, "test", test.Field1)
+	assert.Equal(t, "test string", test.Field2)
+}
+
 func TestServiceConfigurationLoadFromEnvironment(t *testing.T) {
 	os.Clearenv()
 	session := viper.New()
