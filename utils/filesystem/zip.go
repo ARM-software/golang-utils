@@ -356,10 +356,10 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 					fileCounter.Inc()
 					fileList = append(fileList, filePath)
 				}
-				totalSizeOnDisk.Add(uint64(fileSizeOnDisk))
+				totalSizeOnDisk.Add(uint64(fileSizeOnDisk)) //nolint:gosec // file size is positive and uint64 has more bits than int64 so no overflow
 			}
 		} else {
-			totalSizeOnDisk.Add(uint64(fileSizeOnDisk))
+			totalSizeOnDisk.Add(uint64(fileSizeOnDisk)) //nolint:gosec // file size is positive and uint64 has more bits than int64 so no overflow
 		}
 
 		if limits.Apply() && totalSizeOnDisk.Load() > limits.GetMaxTotalSize() {

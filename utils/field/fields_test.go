@@ -37,7 +37,7 @@ func TestOptionalField(t *testing.T) {
 		},
 		{
 			fieldType:    "UInt",
-			value:        uint(time.Now().Second()),
+			value:        uint(time.Now().Second()), //nolint:gosec // time is positive and uint has more bits than int so no overflow
 			defaultValue: uint(76),
 			setFunction: func(a any) any {
 				return ToOptionalUint(a.(uint))
@@ -97,7 +97,7 @@ func TestOptionalField(t *testing.T) {
 		},
 		{
 			fieldType:    "UInt64",
-			value:        uint64(time.Now().Unix()),
+			value:        uint64(time.Now().Unix()), //nolint:gosec // time is positive and uint64 has more bits than int64 so no overflow
 			defaultValue: uint64(97894),
 			setFunction: func(a any) any {
 				return ToOptionalUint64(a.(uint64))

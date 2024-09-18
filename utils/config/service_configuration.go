@@ -103,7 +103,7 @@ func LoadFromConfigurationFile(viperSession *viper.Viper, configFile string) (er
 		return
 	}
 	viperSession.SetConfigFile(configFile)
-	err = convertViperError(viperSession.ReadInConfig())
+	err = convertViperError(viperSession.MergeInConfig())
 	return
 }
 
