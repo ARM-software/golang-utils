@@ -585,6 +585,7 @@ func TestServiceConfigurationLoadFromFileWithDefaults(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotEmpty(t, test.Field1)
 	assert.Equal(t, "test", test.Field1)
+	assert.NotEmpty(t, test.Field2)
 	assert.Equal(t, "test string", test.Field2)
 }
 
