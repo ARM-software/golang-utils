@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.74.0" (2024-11-07)
+=====================
+
+Features
+--------
+
+- :sparkles: `[safecast]` Introduced utilities to perform casting safely and protect against [CWE-190](https://cwe.mitre.org/data/definitions/190.html) (#20241107160700)
+
+
 "1.73.2" (2024-10-15)
 =====================
 
