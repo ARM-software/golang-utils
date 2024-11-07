@@ -4,13 +4,19 @@
  */
 package idgen
 
-import "github.com/gofrs/uuid"
+import (
+	"fmt"
+
+	"github.com/gofrs/uuid"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+)
 
 // Generates a UUID.
 func GenerateUUID4() (string, error) {
 	uuid, err := uuid.NewV4()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%w: failed generating uuid: %v", commonerrors.ErrUnexpected, err.Error())
 	}
 	return uuid.String(), nil
 }

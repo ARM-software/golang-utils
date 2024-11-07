@@ -19,6 +19,7 @@ import (
 	"github.com/shirou/gopsutil/v3/mem"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
 var (
@@ -114,7 +115,7 @@ func UpTime() (uptime time.Duration, err error) {
 		err = fmt.Errorf("%w: could not convert uptime '%v' to duration as it exceeds the upper limit for time.Duration", commonerrors.ErrOutOfRange, _uptime)
 		return
 	}
-	uptime = time.Duration(_uptime) * time.Second //nolint:gosec // we have verified the value of _uptime is whithin the upper limit for time.Duration in the above check
+	uptime = time.Duration(safecast.ToInt64(_uptime)) * time.Second
 	return
 }
 
@@ -128,7 +129,7 @@ func BootTime() (bootime time.Time, err error) {
 		err = fmt.Errorf("%w: could not convert uptime '%v' to duration as it exceeds the upper limit for time.Duration", commonerrors.ErrOutOfRange, _bootime)
 		return
 	}
-	bootime = time.Unix(int64(_bootime), 0) //nolint:gosec // we have verified the value of _bootime is whithin the upper limit for time.Duration in the above check
+	bootime = time.Unix(safecast.ToInt64(_bootime), 0)
 	return
 
 }
