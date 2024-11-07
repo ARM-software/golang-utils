@@ -18,6 +18,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
+	"github.com/ARM-software/golang-utils/utils/safecast"
 	"github.com/ARM-software/golang-utils/utils/safeio"
 )
 
@@ -356,16 +357,16 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 					fileCounter.Inc()
 					fileList = append(fileList, filePath)
 				}
-				totalSizeOnDisk.Add(uint64(fileSizeOnDisk)) //nolint:gosec // file size is positive and uint64 has more bits than int64 so no overflow
+				totalSizeOnDisk.Add(safecast.ToUint64(fileSizeOnDisk))
 			}
 		} else {
-			totalSizeOnDisk.Add(uint64(fileSizeOnDisk)) //nolint:gosec // file size is positive and uint64 has more bits than int64 so no overflow
+			totalSizeOnDisk.Add(safecast.ToUint64(fileSizeOnDisk))
 		}
 
 		if limits.Apply() && totalSizeOnDisk.Load() > limits.GetMaxTotalSize() {
 			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), fmt.Errorf("%w: more than %v B of disk space was used while unzipping %v (%v B used already)", commonerrors.ErrTooLarge, limits.GetMaxTotalSize(), source, totalSizeOnDisk.Load())
 		}
-		if filecount := fileCounter.Load(); limits.Apply() && filecount <= math.MaxInt64 && int64(filecount) > limits.GetMaxFileCount() { //nolint:gosec // if filecount of uint64 is greater than the max value of int64 then it must be greater than GetMaxFileCount as that is an int64
+		if filecount := fileCounter.Load(); limits.Apply() && filecount <= math.MaxInt64 && safecast.ToInt64(filecount) > limits.GetMaxFileCount() {
 			return fileList, filecount, totalSizeOnDisk.Load(), fmt.Errorf("%w: more than %v files were created while unzipping %v (%v files created already)", commonerrors.ErrTooLarge, limits.GetMaxFileCount(), source, filecount)
 		}
 	}

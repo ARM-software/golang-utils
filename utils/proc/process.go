@@ -14,6 +14,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
+	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
 const (
@@ -245,7 +246,7 @@ func isProcessRunning(p *process.Process) (running bool) {
 // to get more information about the process. An error will be returned
 // if the process does not exist.
 func NewProcess(ctx context.Context, pid int) (pr IProcess, err error) {
-	p, err := process.NewProcessWithContext(ctx, int32(pid)) //nolint:gosec // Max PID is 2^22 which is within int32 range https://stackoverflow.com/a/6294196
+	p, err := process.NewProcessWithContext(ctx, safecast.ToInt32(pid))
 	err = ConvertProcessError(err)
 	if err != nil {
 		return

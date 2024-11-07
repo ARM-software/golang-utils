@@ -9,6 +9,7 @@ import (
 	"github.com/go-logr/logr"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
 // RetryIf will retry fn when the value returned from retryConditionFn is true
@@ -39,7 +40,7 @@ func RetryIf(ctx context.Context, logger logr.Logger, retryPolicy *RetryPolicyCo
 			retry.MaxDelay(retryPolicy.RetryWaitMax),
 			retry.MaxJitter(25*time.Millisecond),
 			retry.DelayType(retryType),
-			retry.Attempts(uint(retryPolicy.RetryMax)), //nolint:gosec // in normal use this will have had Validate() called which enforces that the minimum number of RetryMax is 0 so it won't overflow
+			retry.Attempts(safecast.ToUint(retryPolicy.RetryMax)),
 			retry.RetryIf(retryConditionFn),
 			retry.LastErrorOnly(true),
 			retry.Context(ctx),

@@ -10,6 +10,8 @@ import (
 
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
 func TestOptionalField(t *testing.T) {
@@ -22,7 +24,7 @@ func TestOptionalField(t *testing.T) {
 	}{
 		{
 			fieldType:    "Int",
-			value:        time.Now().Second(),
+			value:        safecast.ToInt(time.Now().Second()),
 			defaultValue: 76,
 			setFunction: func(a any) any {
 				return ToOptionalInt(a.(int))
@@ -37,8 +39,8 @@ func TestOptionalField(t *testing.T) {
 		},
 		{
 			fieldType:    "UInt",
-			value:        uint(time.Now().Second()), //nolint:gosec // time is positive and uint has more bits than int so no overflow
-			defaultValue: uint(76),
+			value:        safecast.ToUint(time.Now().Second()),
+			defaultValue: safecast.ToUint(76),
 			setFunction: func(a any) any {
 				return ToOptionalUint(a.(uint))
 			},
@@ -52,8 +54,8 @@ func TestOptionalField(t *testing.T) {
 		},
 		{
 			fieldType:    "Int32",
-			value:        int32(time.Now().Second()), //nolint:gosec // this should be okay until 2038
-			defaultValue: int32(97894),
+			value:        safecast.ToInt32(time.Now().Second()),
+			defaultValue: safecast.ToInt32(97894),
 			setFunction: func(a any) any {
 				return ToOptionalInt32(a.(int32))
 			},
@@ -67,8 +69,8 @@ func TestOptionalField(t *testing.T) {
 		},
 		{
 			fieldType:    "UInt32",
-			value:        uint32(time.Now().Second()), //nolint:gosec // this should be okay until 2038
-			defaultValue: uint32(97894),
+			value:        safecast.ToUint32(time.Now().Second()),
+			defaultValue: safecast.ToUint32(97894),
 			setFunction: func(a any) any {
 				return ToOptionalUint32(a.(uint32))
 			},
@@ -83,7 +85,7 @@ func TestOptionalField(t *testing.T) {
 		{
 			fieldType:    "Int64",
 			value:        time.Now().Unix(),
-			defaultValue: int64(97894),
+			defaultValue: safecast.ToInt64(97894),
 			setFunction: func(a any) any {
 				return ToOptionalInt64(a.(int64))
 			},
@@ -97,8 +99,8 @@ func TestOptionalField(t *testing.T) {
 		},
 		{
 			fieldType:    "UInt64",
-			value:        uint64(time.Now().Unix()), //nolint:gosec // time is positive and uint64 has more bits than int64 so no overflow
-			defaultValue: uint64(97894),
+			value:        safecast.ToUint64(time.Now().Unix()),
+			defaultValue: safecast.ToUint64(97894),
 			setFunction: func(a any) any {
 				return ToOptionalUint64(a.(uint64))
 			},

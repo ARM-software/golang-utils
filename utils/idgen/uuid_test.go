@@ -13,17 +13,17 @@ import (
 
 func TestUuidUniqueness(t *testing.T) {
 	uuid1, err := GenerateUUID4()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	uuid2, err := GenerateUUID4()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.NotEqual(t, uuid1, uuid2)
 }
 
 func TestUuidLength(t *testing.T) {
 	uuid, err := GenerateUUID4()
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, 36, len(uuid))
 }
