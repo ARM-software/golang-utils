@@ -22,7 +22,7 @@ type IIterator interface {
 	GetNext() (interface{}, error)
 }
 
-// IStaticPage defines a generic page for a collection.
+// IStaticPage defines a generic page for a collection. A page is marked as static when it cannot retrieve next pages on its own.
 type IStaticPage interface {
 	// HasNext states whether more pages are accessible.
 	HasNext() bool
@@ -78,7 +78,7 @@ type IPaginatorAndPageFetcher interface {
 	FetchNextPage(ctx context.Context, currentPage IStaticPage) (IStaticPage, error)
 }
 
-// IGenericStreamPaginator is an iterator over a stream. A stream is a collection without any know ending.
+// IGenericStreamPaginator is an iterator over a stream. A stream is a collection without any known ending.
 type IGenericStreamPaginator interface {
 	IGenericPaginator
 	// DryUp indicates to the stream that it will soon run out.
