@@ -8,13 +8,12 @@ package pagination
 import (
 	"context"
 	"fmt"
-	"math/rand"
-	"time"
 
 	"github.com/go-faker/faker/v4"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
+	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
 type MockItem struct {
@@ -131,7 +130,7 @@ func (m *MockPage) SetIndexes(firstIndex int) {
 }
 
 func (m *MockPage) GetItemCount() (int64, error) {
-	return int64(len(m.elements)), nil
+	return safecast.ToInt64(len(m.elements)), nil
 }
 
 func (m *MockPage) HasFuture() bool {
@@ -154,25 +153,31 @@ func GenerateEmptyPage() IStream {
 	return &MockPage{}
 }
 
-func GenerateMockPage() (IStream, error) {
-	random := rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for testing
+func GenerateMockPage() (IStream, int64, error) {
+	randoms, err := faker.RandomInt(0, 50)
+	if err != nil {
+		return nil, 0, err
+	}
+	n := randoms[2]
 	page := GenerateEmptyPage().(*MockPage)
-	n := random.Intn(50) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for testing
 	for i := 0; i < n; i++ {
-		err := page.AppendItem(GenerateMockItem())
-		if err != nil {
-			return nil, err
+		subErr := page.AppendItem(GenerateMockItem())
+		if subErr != nil {
+			return nil, 0, subErr
 		}
 	}
-	return page, nil
+	return page, safecast.ToInt64(n), nil
 }
 
 func GenerateMockCollection() (firstPage IStream, itemTotal int64, err error) {
-	random := rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for testing
-	n := random.Intn(50)                                  //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for testing
+	randoms, err := faker.RandomInt(0, 50)
+	if err != nil {
+		return
+	}
+	n := randoms[1]
 	var next IStream
 	for i := 0; i < n; i++ {
-		currentPage, subErr := GenerateMockPage()
+		currentPage, _, subErr := GenerateMockPage()
 		if subErr != nil {
 			err = subErr
 			return
@@ -197,19 +202,23 @@ func GenerateMockCollection() (firstPage IStream, itemTotal int64, err error) {
 		next = firstPage
 	}
 	if firstPage == nil {
-		return
+		firstPage = GenerateEmptyPage()
 	}
 	mockP := firstPage.(*MockPage)
 	mockP.SetIndexes(0)
 	return
 }
 
+// GenerateMockStream creates a mock stream which could never end (as in, a future link will be always present)
 func GenerateMockStream() (firstPage IStream, itemTotal int64, err error) {
-	random := rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for testing
-	n := random.Intn(50)                                  //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for testing
+	randoms, err := faker.RandomInt(1, 3)
+	if err != nil {
+		return
+	}
+	n := randoms[0]
 	var future IStream
 	for i := 0; i < n; i++ {
-		currentPage, subErr := GenerateMockPage()
+		currentPage, _, subErr := GenerateMockPage()
 		if subErr != nil {
 			err = subErr
 			return
@@ -236,7 +245,89 @@ func GenerateMockStream() (firstPage IStream, itemTotal int64, err error) {
 		future = firstPage
 	}
 	if firstPage == nil {
+		firstPage = GenerateEmptyPage()
+	}
+	mockP := firstPage.(*MockPage)
+	mockP.SetIndexes(0)
+	return
+}
+
+// GenerateMockStreamWithEnding generates a stream which will end itself (as in the future link will disappear).
+func GenerateMockStreamWithEnding() (firstPage IStream, itemTotal int64, err error) {
+	randoms, err := faker.RandomInt(1, 50)
+	if err != nil {
 		return
+	}
+	n := randoms[0]
+	var future IStream
+	for i := 0; i < n; i++ {
+		currentPage, _, subErr := GenerateMockPage()
+		if subErr != nil {
+			err = subErr
+			return
+		}
+		currentCount, subErr := currentPage.GetItemCount()
+		if subErr != nil {
+			err = subErr
+			return
+		}
+		itemTotal += currentCount
+
+		mockP := currentPage.(*MockPage)
+		if future == nil {
+			subErr = mockP.SetNext(GenerateEmptyPage())
+		} else {
+			subErr = mockP.SetFuture(future)
+		}
+		if subErr != nil {
+			err = subErr
+			return
+		}
+
+		firstPage = currentPage
+		future = firstPage
+	}
+	if firstPage == nil {
+		firstPage = GenerateEmptyPage()
+	}
+	mockP := firstPage.(*MockPage)
+	mockP.SetIndexes(0)
+	return
+}
+
+// GenerateMockEmptyStream generates an empty stream (as in stream of pages with no element).
+func GenerateMockEmptyStream() (firstPage IStream, itemTotal int64, err error) {
+	randoms, err := faker.RandomInt(1, 50)
+	if err != nil {
+		return
+	}
+	n := randoms[0]
+	var future IStream
+	for i := 0; i < n; i++ {
+		currentPage := GenerateEmptyPage()
+		currentCount, subErr := currentPage.GetItemCount()
+		if subErr != nil {
+			err = subErr
+			return
+		}
+		itemTotal += currentCount
+
+		mockP := currentPage.(*MockPage)
+		if future == nil {
+			subErr = mockP.SetNext(GenerateEmptyPage())
+		} else {
+			subErr = mockP.SetFuture(future)
+		}
+		if subErr != nil {
+			err = subErr
+			return
+		}
+
+		firstPage = currentPage
+		future = firstPage
+	}
+	if firstPage == nil {
+		firstPage = GenerateEmptyPage()
 	}
 	mockP := firstPage.(*MockPage)
 	mockP.SetIndexes(0)

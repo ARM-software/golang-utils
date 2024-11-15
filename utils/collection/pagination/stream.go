@@ -34,24 +34,28 @@ func (s *AbstractStreamPaginator) Close() error {
 }
 
 func (s *AbstractStreamPaginator) HasNext() bool {
-	if s.AbstractPaginator.HasNext() {
-		s.timeReachLast.Store(time.Now())
-		return true
-	}
-	page, err := s.AbstractPaginator.FetchCurrentPage()
-	if err != nil {
-		return false
-	}
-	stream, ok := page.(IStaticPageStream)
-	if !ok {
-		return false
-	}
-	if !stream.HasFuture() {
-		return false
-	}
-	if s.IsRunningDry() {
-		if time.Since(s.timeReachLast.Load()) >= s.timeOut {
+	for {
+		if s.AbstractPaginator.HasNext() {
+			s.timeReachLast.Store(time.Now())
+			return true
+		}
+		page, err := s.AbstractPaginator.FetchCurrentPage()
+		if err != nil {
 			return false
+		}
+		stream, ok := page.(IStaticPageStream)
+		if !ok {
+			return false
+		}
+		if !stream.HasFuture() {
+			return false
+		}
+		if s.IsRunningDry() {
+			if time.Since(s.timeReachLast.Load()) >= s.timeOut {
+				return false
+			}
+		} else {
+			s.timeReachLast.Store(time.Now())
 		}
 		future, err := s.FetchFuturePage(s.GetContext(), stream)
 		if err != nil {
@@ -61,10 +65,9 @@ func (s *AbstractStreamPaginator) HasNext() bool {
 		if err != nil {
 			return false
 		}
-	} else {
-		s.timeReachLast.Store(time.Now())
+
+		parallelisation.SleepWithContext(s.GetContext(), s.backoff)
 	}
-	return s.AbstractPaginator.HasNext()
 }
 
 func (s *AbstractStreamPaginator) GetNext() (interface{}, error) {
@@ -78,9 +81,7 @@ func (s *AbstractStreamPaginator) GetNext() (interface{}, error) {
 			err = fmt.Errorf("%w: there is not any next item", commonerrors.ErrNotFound)
 			return nil, err
 		}
-
 		parallelisation.SleepWithContext(s.GetContext(), s.backoff)
-
 	}
 }
 
