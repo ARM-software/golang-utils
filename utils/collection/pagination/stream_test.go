@@ -39,10 +39,8 @@ func TestStreamPaginator(t *testing.T) {
 				})
 				return paginator, err
 			},
-			generateFunc: func() (IStream, int64, error) {
-				return GenerateMockStreamWithEnding()
-			},
-			name: "stream paginator over a stream of static pages with known ending",
+			generateFunc: GenerateMockStreamWithEnding,
+			name:         "stream paginator over a stream of static pages with known ending",
 		},
 		{
 			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericStreamPaginator, error) {
@@ -51,10 +49,8 @@ func TestStreamPaginator(t *testing.T) {
 				})
 				return paginator, err
 			},
-			generateFunc: func() (IStream, int64, error) {
-				return GenerateMockStreamWithEnding()
-			},
-			name: "stream paginator over a stream of dynamic pages but with a known ending",
+			generateFunc: GenerateMockStreamWithEnding,
+			name:         "stream paginator over a stream of dynamic pages but with a known ending",
 		},
 		{
 			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericStreamPaginator, error) {
@@ -63,11 +59,9 @@ func TestStreamPaginator(t *testing.T) {
 				})
 				return paginator, err
 			},
-			name: "stream paginator over a running dry stream of dynamic pages",
-			generateFunc: func() (IStream, int64, error) {
-				return GenerateMockStream()
-			},
-			dryOut: true,
+			name:         "stream paginator over a running dry stream of dynamic pages",
+			generateFunc: GenerateMockStream,
+			dryOut:       true,
 		},
 		{
 			paginator: func(ctx context.Context, collection IStaticPageStream) (IGenericStreamPaginator, error) {
@@ -92,11 +86,9 @@ func TestStreamPaginator(t *testing.T) {
 				}
 				return paginator, err
 			},
-			name: "stream paginator over a running dry stream of static pages",
-			generateFunc: func() (IStream, int64, error) {
-				return GenerateMockStream()
-			},
-			dryOut: true,
+			name:         "stream paginator over a running dry stream of static pages",
+			generateFunc: GenerateMockStream,
+			dryOut:       true,
 		},
 	}
 

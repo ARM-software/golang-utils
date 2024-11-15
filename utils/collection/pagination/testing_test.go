@@ -77,7 +77,7 @@ func TestGenerateMockStream(t *testing.T) {
 			require.NoError(t, err)
 			assert.True(t, cCount <= count)
 			size := safecast.ToInt64(cCount)
-			page := firstPage.(IStream)
+			page := firstPage
 			for {
 				if !page.HasNext() && !page.HasFuture() {
 					break
