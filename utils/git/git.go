@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	mapset "github.com/deckarep/golang-set"
+	mapset "github.com/deckarep/golang-set/v2"
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -44,7 +44,7 @@ type CloneObject struct {
 	repo       *git.Repository
 	allEntries chan Entry
 
-	seen mapset.Set
+	seen mapset.Set[plumbing.Hash]
 
 	totalSize      *atomic.Int64
 	trueSize       *atomic.Int64
@@ -255,7 +255,7 @@ func NewCloneObject() *CloneObject {
 		processNonTreeOnly: atomic.NewBool(false),
 		treeSeenIdentifier: atomic.NewString(""),
 		nonTreeOnlyMutex:   make(chan int, 1),
-		seen:               mapset.NewSet(),
+		seen:               mapset.NewSet[plumbing.Hash](),
 	}
 	cloneObject.nonTreeOnlyMutex <- 1
 	return cloneObject

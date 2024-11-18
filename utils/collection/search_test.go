@@ -90,3 +90,16 @@ func TestAllNotEmpty(t *testing.T) {
 	assert.False(t, AllNotEmpty(false, []string{faker.Username(), "", faker.Name(), "", faker.Sentence()}))
 	assert.True(t, AllNotEmpty(false, []string{faker.Username(), faker.Name(), faker.Sentence()}))
 }
+
+func TestUniqueEntries(t *testing.T) {
+	assert.Len(t, UniqueEntries([]string{faker.Username(), faker.Name(), faker.Sentence(), faker.Name()}), 4)
+	values := UniqueEntries([]string{"test1", "test12", "test1", "test1", "test12", "test12"})
+	assert.Len(t, values, 2)
+	_, found := FindInSlice(true, values, "test1")
+	assert.True(t, found)
+	_, found = FindInSlice(true, values, "test12")
+	assert.True(t, found)
+
+	intValues := UniqueEntries([]int{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4})
+	assert.Len(t, intValues, 4)
+}

@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
@@ -134,6 +135,108 @@ func BindFlagToEnv(viperSession *viper.Viper, envVarPrefix string, envVar string
 	}
 	err = viperSession.BindEnv(shortKey, cleansedEnvVar)
 	return
+}
+
+// BindFlagsToEnv binds a set of pflags to an environment variable.
+// Envvar is the environment variable string with or without the prefix envVarPrefix
+// It is similar to BindFlagToEnv but can be applied to multiple flags.
+// Note: all the flags will have to be of the same type. If more than one flags is changed, the system will pick one at random.
+func BindFlagsToEnv(viperSession *viper.Viper, envVarPrefix string, envVar string, flags ...*pflag.Flag) (err error) {
+
+	setEnvOptions(viperSession, envVarPrefix)
+	shortKey, cleansedEnvVar := generateEnvVarConfigKeys(envVar, envVarPrefix)
+
+	flagset, err := newMultiFlags(shortKey, flags...)
+	if err != nil {
+		return
+	}
+	err = viperSession.BindFlagValue(shortKey, flagset)
+	if err != nil {
+		return
+	}
+
+	err = viperSession.BindEnv(shortKey, cleansedEnvVar)
+	return
+}
+
+func newMultiFlags(name string, flags ...*pflag.Flag) (f viper.FlagValue, err error) {
+	if name == "" {
+		err = fmt.Errorf("%w: flag set must be associated with a name", commonerrors.ErrUndefined)
+		return
+	}
+	if flags == nil || len(flags) == 0 {
+		err = fmt.Errorf("%w: flags must be specified", commonerrors.ErrUndefined)
+		return
+	}
+	var fTypes []string
+	for i := range flags {
+		if flags[i] != nil {
+			fTypes = append(fTypes, flags[i].Value.Type())
+		}
+	}
+	fTypes = collection.UniqueEntries(fTypes)
+	if len(fTypes) != 1 {
+		err = fmt.Errorf("%w: flags in a set can only be of the same type: %v", commonerrors.ErrInvalid, fTypes)
+		return
+	}
+
+	f = &multiFlags{
+		commonName: name,
+		flags:      flags,
+	}
+	return
+}
+
+type multiFlags struct {
+	commonName string
+	flags      []*pflag.Flag
+}
+
+func (m *multiFlags) HasChanged() bool {
+	for i := range m.flags {
+		flag := m.flags[i]
+		if flag != nil && flag.Changed {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *multiFlags) Name() string {
+	return m.commonName
+}
+
+func (m *multiFlags) ValueString() string {
+	var values []string
+	var firstValue string
+	for i := range m.flags {
+		flag := m.flags[i]
+		if flag != nil {
+			firstValue = flag.Value.String()
+			if flag.Changed {
+				values = append(values, flag.Value.String())
+			}
+		}
+	}
+	values = collection.UniqueEntries(values)
+	if len(values) >= 1 {
+		return values[0]
+	} else {
+		return firstValue
+	}
+}
+
+func (m *multiFlags) ValueType() string {
+	for i := range m.flags {
+		flag := m.flags[i]
+		if flag != nil {
+			vType := flag.Value.Type()
+			if vType != "" {
+				return vType
+			}
+		}
+	}
+	return ""
 }
 
 func generateEnvVarConfigKeys(envVar, envVarPrefix string) (shortKey string, cleansedEnvVar string) {

@@ -4,7 +4,11 @@
  */
 package collection
 
-import "strings"
+import (
+	"strings"
+
+	mapset "github.com/deckarep/golang-set/v2"
+)
 
 // Find looks for an element in a slice. If found it will
 // return its index and true; otherwise it will return -1 and false.
@@ -16,7 +20,7 @@ func Find(slice *[]string, val string) (int, bool) {
 }
 
 // FindInSlice finds if any values val are present in the slice and if so returns the first index.
-// if strict, it check of an exact match; otherwise discard whitespaces and case.
+// if strict, it checks for an exact match; otherwise it discards whitespaces and case.
 func FindInSlice(strict bool, slice []string, val ...string) (int, bool) {
 	if len(val) == 0 || len(slice) == 0 {
 		return -1, false
@@ -44,6 +48,13 @@ func FindInSlice(strict bool, slice []string, val ...string) (int, bool) {
 	}
 
 	return -1, false
+}
+
+// UniqueEntries returns all the unique values contained in a slice.
+func UniqueEntries[T comparable](slice []T) []T {
+	subSet := mapset.NewSet[T]()
+	_ = subSet.Append(slice...)
+	return subSet.ToSlice()
 }
 
 // Any returns true if there is at least one element of the slice which is true.
