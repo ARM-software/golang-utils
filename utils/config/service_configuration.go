@@ -164,7 +164,7 @@ func newMultiFlags(name string, flags ...*pflag.Flag) (f viper.FlagValue, err er
 		err = fmt.Errorf("%w: flag set must be associated with a name", commonerrors.ErrUndefined)
 		return
 	}
-	if flags == nil || len(flags) == 0 {
+	if len(flags) == 0 {
 		err = fmt.Errorf("%w: flags must be specified", commonerrors.ErrUndefined)
 		return
 	}
