@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.75.0" (2024-11-18)
+=====================
+
+Features
+--------
+
+- :sparkles: `[collection]` Added a way to determine unique values in a slice: `UniqueEntries` (#20241118165828)
+- :sparkles: `[config]` Added a way to bind mutiple flag to a same environment input: `BindFlagsToEnv` (#20241118171703)
+
+
+Bugfixes
+--------
+
+- :arrow_up: Upgrade dependency `https://github.com/deckarep/golang-set` (#20241118172847)
+
+
 "1.74.1" (2024-11-15)
 =====================
 
