@@ -21,6 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
 
 var (
@@ -291,6 +292,117 @@ func TestFlagBinding(t *testing.T) {
 	assert.False(t, configTest.TestConfig2.Flag)
 }
 
+func TestFlagsBinding(t *testing.T) {
+	os.Clearenv()
+	configTest := &ConfigurationTest{}
+	defaults := DefaultConfiguration()
+	session := viper.New()
+	var err error
+	flagSet := pflag.FlagSet{}
+	prefix := "test"
+	flagSet.String("host1", "a host", "dummy host")
+	flagSet.String("host2", "a host", "dummy host")
+	flagSet.String("password1", "a password1", "dummy password1")
+	flagSet.String("password2", "a password2", "dummy password2")
+	flagSet.String("password3", "a password3", "dummy password3")
+	flagSet.String("user", "a user", "dummy user")
+	flagSet.String("user1", "a user", "dummy user 1")
+	flagSet.String("user2", "a user", "dummy user 2")
+	flagSet.String("db", "a db", "dummy db")
+	flagSet.String("db2", "a db", "dummy db")
+	flagSet.Int("int", 0, "dummy int")
+	flagSet.Duration("time", time.Second, "dummy time")
+	flagSet.Bool("flag", false, "dummy flag")
+	err = BindFlagsToEnv(session, prefix, "TEST_DUMMYCONFIG_DUMMY_HOST", flagSet.Lookup("host2"), flagSet.Lookup("host2"))
+	require.NoError(t, err)
+	err = BindFlagsToEnv(session, prefix, "TEST_DUMMY_CONFIG_DUMMY_HOST", flagSet.Lookup("host1"), flagSet.Lookup("host2"))
+	require.NoError(t, err)
+	err = BindFlagsToEnv(session, prefix, "DUMMYCONFIG_PASSWORD", flagSet.Lookup("password2"), flagSet.Lookup("password3"))
+	require.NoError(t, err)
+	err = BindFlagsToEnv(session, prefix, "DUMMY_CONFIG_PASSWORD", flagSet.Lookup("password1"), flagSet.Lookup("password2"))
+	require.NoError(t, err)
+	err = BindFlagsToEnv(session, prefix, "DUMMYCONFIG_USER", flagSet.Lookup("user"), flagSet.Lookup("user1"), flagSet.Lookup("user2"))
+	require.NoError(t, err)
+	err = BindFlagsToEnv(session, prefix, "DUMMY_CONFIG_USER", flagSet.Lookup("user1"), flagSet.Lookup("user2"))
+	require.NoError(t, err)
+	err = BindFlagsToEnv(session, prefix, "TEST_DUMMYCONFIG_DB", flagSet.Lookup("db"))
+	require.NoError(t, err)
+	err = BindFlagsToEnv(session, prefix, "DUMMY_CONFIG_DB", flagSet.Lookup("db2"), flagSet.Lookup("db2"), flagSet.Lookup("db2"), flagSet.Lookup("db2"))
+	require.NoError(t, err)
+	err = BindFlagsToEnv(session, prefix, "DUMMY_CONFIG_FLAG", flagSet.Lookup("flag"), flagSet.Lookup("flag"), flagSet.Lookup("flag"))
+	require.NoError(t, err)
+	err = BindFlagsToEnv(session, prefix, "DUMMY_INT", flagSet.Lookup("int"), flagSet.Lookup("int"), flagSet.Lookup("int"), flagSet.Lookup("int"))
+	require.NoError(t, err)
+	err = BindFlagsToEnv(session, prefix, "DUMMY_Time", flagSet.Lookup("time"), flagSet.Lookup("time"), flagSet.Lookup("time"))
+	require.NoError(t, err)
+	err = flagSet.Set("host2", expectedHost)
+	require.NoError(t, err)
+	fvalue, err := flagSet.GetString("host2")
+	require.NoError(t, err)
+	assert.Equal(t, expectedHost, fvalue)
+	fvalue, err = flagSet.GetString("host1")
+	require.NoError(t, err)
+	assert.NotEqual(t, expectedHost, fvalue)
+	err = flagSet.Set("password2", expectedPassword)
+	require.NoError(t, err)
+	user1V := faker.Name()
+	err = flagSet.Set("user1", user1V)
+	require.NoError(t, err)
+	user2V := faker.Name()
+	err = flagSet.Set("user2", user2V)
+	require.NoError(t, err)
+	assert.NotEqual(t, user1V, user2V)
+	err = flagSet.Set("db", expectedDB) // Should take precedence over environment
+	require.NoError(t, err)
+	aDifferentDB := "another test db"
+	assert.NotEqual(t, expectedDB, aDifferentDB)
+	err = os.Setenv("TEST_DUMMY_CONFIG_DB", aDifferentDB)
+	require.NoError(t, err)
+	err = os.Setenv("TEST_DUMMYCONFIG_DB", aDifferentDB)
+	require.NoError(t, err)
+	err = flagSet.Set("int", fmt.Sprintf("%v", expectedInt))
+	require.NoError(t, err)
+	err = flagSet.Set("time", expectedDuration.String())
+	require.NoError(t, err)
+	err = flagSet.Set("flag", fmt.Sprintf("%v", false))
+	require.NoError(t, err)
+	flag, err := flagSet.GetBool("flag")
+	require.NoError(t, err)
+	assert.False(t, flag)
+	assert.False(t, session.GetBool("dummy.config.flag"))
+	err = LoadFromViper(session, prefix, configTest, defaults)
+	require.NoError(t, err)
+	require.NoError(t, configTest.Validate())
+	assert.Equal(t, expectedString, configTest.TestString)
+	assert.Equal(t, expectedInt, configTest.TestInt)
+	assert.Equal(t, expectedDuration, configTest.TestTime)
+	assert.Equal(t, defaults.TestConfig.Port, configTest.TestConfig.Port)
+	assert.Contains(t, []string{user1V, user2V}, configTest.TestConfig2.User)
+	assert.Equal(t, expectedHost, configTest.TestConfig.Host)
+	assert.Equal(t, expectedHost, configTest.TestConfig2.Host)
+	assert.Equal(t, expectedPassword, configTest.TestConfig.Password)
+	assert.Equal(t, expectedPassword, configTest.TestConfig2.Password)
+	assert.Equal(t, expectedDB, configTest.TestConfig.DB)
+	assert.Equal(t, aDifferentDB, configTest.TestConfig2.DB)
+	assert.NotEqual(t, expectedDB, configTest.TestConfig2.DB)
+	assert.True(t, configTest.TestConfig.Flag)
+	assert.False(t, configTest.TestConfig2.Flag)
+}
+
+func TestFlagsBindingErrors(t *testing.T) {
+	os.Clearenv()
+	session := viper.New()
+	flagSet := pflag.FlagSet{}
+	prefix := "test"
+	flagSet.String("db2", "a db", "dummy db")
+	flagSet.Int("int", 0, "dummy int")
+	err := BindFlagsToEnv(session, prefix, "TEST_DUMMYCONFIG_DUMMY_HOST")
+	errortest.AssertError(t, err, commonerrors.ErrUndefined)
+	err = BindFlagsToEnv(session, prefix, "TEST_DUMMYCONFIG_DUMMY_HOST", flagSet.Lookup("db2"), flagSet.Lookup("int"))
+	errortest.AssertError(t, err, commonerrors.ErrInvalid)
+
+}
+
 func TestFlagBindingDefaults(t *testing.T) {
 	os.Clearenv()
 	configTest := &ConfigurationTest{}
@@ -545,7 +657,7 @@ func Test_convertViperError(t *testing.T) {
 	for i := range tests {
 		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
 			test := tests[i]
-			require.True(t, commonerrors.Any(convertViperError(test.viperErr), test.expectedError))
+			errortest.RequireError(t, convertViperError(test.viperErr), test.expectedError)
 		})
 	}
 }

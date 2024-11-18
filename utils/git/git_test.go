@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	mapset "github.com/deckarep/golang-set"
+	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -189,7 +189,7 @@ func TestHandleBlobEntry(t *testing.T) {
 		err = c.SetupLimits(limits)
 		require.NoError(t, err)
 
-		c.seen = mapset.NewSet()
+		c.seen = mapset.NewSet[plumbing.Hash]()
 		totalSize = atomic.NewInt64(0)
 		totalFileCount = atomic.NewInt64(0)
 		totalTrueSize = atomic.NewInt64(0)
@@ -211,7 +211,7 @@ func TestHandleBlobEntry(t *testing.T) {
 		err = c.SetupLimits(limits)
 		require.NoError(t, err)
 
-		c.seen = mapset.NewSet()
+		c.seen = mapset.NewSet[plumbing.Hash]()
 		totalSize = atomic.NewInt64(0)
 		totalFileCount = atomic.NewInt64(0)
 		totalTrueSize = atomic.NewInt64(0)
@@ -233,7 +233,7 @@ func TestHandleBlobEntry(t *testing.T) {
 		err = c.SetupLimits(limits)
 		require.NoError(t, err)
 
-		c.seen = mapset.NewSet()
+		c.seen = mapset.NewSet[plumbing.Hash]()
 		totalSize = atomic.NewInt64(0)
 		totalFileCount = atomic.NewInt64(0)
 		totalTrueSize = atomic.NewInt64(0)
@@ -255,7 +255,7 @@ func TestHandleBlobEntry(t *testing.T) {
 		err = c.SetupLimits(limits)
 		require.NoError(t, err)
 
-		c.seen = mapset.NewSet()
+		c.seen = mapset.NewSet[plumbing.Hash]()
 		totalSize = atomic.NewInt64(0)
 		totalFileCount = atomic.NewInt64(0)
 		totalTrueSize = atomic.NewInt64(0)
