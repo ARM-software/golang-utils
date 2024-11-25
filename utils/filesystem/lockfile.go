@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	retry "github.com/avast/retry-go"
+	retry "github.com/avast/retry-go/v4"
 
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
