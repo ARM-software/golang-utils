@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/bmatcuk/doublestar/v3"
-	"github.com/shirou/gopsutil/v3/disk"
+	"github.com/shirou/gopsutil/v4/disk"
 	"github.com/spf13/afero"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"

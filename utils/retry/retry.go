@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/avast/retry-go"
+	"github.com/avast/retry-go/v4"
 	"github.com/go-logr/logr"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"

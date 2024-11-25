@@ -7,7 +7,7 @@ package idgen
 import (
 	"fmt"
 
-	"github.com/gofrs/uuid"
+	"github.com/gofrs/uuid/v5"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
