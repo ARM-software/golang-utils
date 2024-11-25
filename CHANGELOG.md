@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.75.1" (2024-11-25)
+=====================
+
+Bugfixes
+--------
+
+- :arrow_up: dependencies major updates (#20241125111544)
+
+
 "1.75.0" (2024-11-18)
 =====================
 
