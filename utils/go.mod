@@ -37,7 +37,7 @@ require (
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/zailic/slogr v0.0.2-alpha
 	go.uber.org/atomic v1.11.0
 	go.uber.org/goleak v1.3.0
