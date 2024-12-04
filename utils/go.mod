@@ -7,7 +7,7 @@ require (
 	github.com/avast/retry-go/v4 v4.6.0
 	github.com/bmatcuk/doublestar/v3 v3.0.0
 	github.com/bombsimon/logrusr/v4 v4.1.0
-	github.com/deckarep/golang-set/v2 v2.6.0
+	github.com/deckarep/golang-set/v2 v2.7.0
 	github.com/djherbis/times v1.6.0
 	github.com/dolmen-go/contextio v1.0.0
 	github.com/evanphx/hclogr v0.2.0
