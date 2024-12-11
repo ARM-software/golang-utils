@@ -40,12 +40,12 @@ func Canonical(v string) (canonical string, err error) {
 		return
 	}
 
-	canonical = TrimPrefix(canonical)
+	canonical = TrimGoPrefix(canonical)
 	return
 }
 
-// TrimPrefix will trim the 'v' prefix from a string
-func TrimPrefix(v string) string {
+// TrimGoPrefix will trim the 'v' prefix from a string
+func TrimGoPrefix(v string) string {
 	if v == "" || v[0] != 'v' {
 		return v
 	}

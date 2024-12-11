@@ -11,7 +11,7 @@ func SanitiseVersionMajorMinor(version string) (majorMinor string, err error) {
 		return
 	}
 
-	majorMinor = TrimPrefix(semver.MajorMinor(version))
+	majorMinor = TrimGoPrefix(semver.MajorMinor(version))
 	return
 }
 
@@ -22,6 +22,6 @@ func SanitiseVersionMajor(version string) (majorMinor string, err error) {
 		return
 	}
 
-	majorMinor = TrimPrefix(semver.Major(version))
+	majorMinor = TrimGoPrefix(semver.Major(version))
 	return
 }
