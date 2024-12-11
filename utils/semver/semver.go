@@ -33,11 +33,6 @@ func CanonicalPrefix(v string) (canonical string, err error) {
 // It will return an error if the version is not valid semver (unlike Canonical() in golang.org/x/mod/semver)
 // Use CanonicalPrefix() if you want the 'v' prefix for compatibility with golang.org/x/mod/semver
 func Canonical(v string) (canonical string, err error) {
-	if v == "" {
-		err = fmt.Errorf("%w: no version was supplied", commonerrors.ErrUndefined)
-		return
-	}
-
 	canonical, err = CanonicalPrefix(v)
 	if err != nil {
 		return
