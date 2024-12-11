@@ -3,8 +3,9 @@ package semver
 import (
 	"testing"
 
-	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 func TestCanonical(t *testing.T) {

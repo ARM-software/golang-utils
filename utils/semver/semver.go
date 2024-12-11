@@ -3,8 +3,9 @@ package semver
 import (
 	"fmt"
 
-	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"golang.org/x/mod/semver"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 // CanonicalPrefix will return the canonical form of the version with the .MAJOR .MINOR and .PATCH whilst discarding build information
