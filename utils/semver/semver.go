@@ -2,16 +2,18 @@ package semver
 
 import (
 	"fmt"
+	"strings"
 
 	"golang.org/x/mod/semver"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
-// CanonicalPrefix will return the canonical form of the version with the .MAJOR .MINOR and .PATCH whilst discarding build information
+// CanonicalWithGoPrefix will return the canonical form of the version with the .MAJOR .MINOR and .PATCH whilst discarding build information
 // It will return an error if the version is not valid semver (unlike Canonical() in golang.org/x/mod/semver)
 // It will prepend 'v' if necessary for compatibility with 'golang.org/x/mod/semver'. Use Canonical() if you don't want the 'v' prefix
-func CanonicalPrefix(v string) (canonical string, err error) {
+func CanonicalWithGoPrefix(v string) (canonical string, err error) {
+	v = strings.TrimSpace(v)
 	if v == "" {
 		err = fmt.Errorf("%w: no version was supplied", commonerrors.ErrUndefined)
 		return
@@ -31,9 +33,9 @@ func CanonicalPrefix(v string) (canonical string, err error) {
 
 // Canonical will return the canonical form of the version with the .MAJOR .MINOR and .PATCH whilst discarding build information
 // It will return an error if the version is not valid semver (unlike Canonical() in golang.org/x/mod/semver)
-// Use CanonicalPrefix() if you want the 'v' prefix for compatibility with golang.org/x/mod/semver
+// Use CanonicalWithGoPrefix() if you want the 'v' prefix for compatibility with golang.org/x/mod/semver
 func Canonical(v string) (canonical string, err error) {
-	canonical, err = CanonicalPrefix(v)
+	canonical, err = CanonicalWithGoPrefix(v)
 	if err != nil {
 		return
 	}

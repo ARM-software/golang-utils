@@ -169,7 +169,7 @@ func TestCanonicalPrefix(t *testing.T) {
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
-			expected, err := CanonicalPrefix(test.Input)
+			expected, err := CanonicalWithGoPrefix(test.Input)
 			if test.Error == nil {
 				assert.NoError(t, err)
 			} else {
