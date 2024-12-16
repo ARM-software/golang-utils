@@ -14,6 +14,27 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.77.0" (2024-12-16)
+=====================
+
+Features
+--------
+
+- :sparkles: [fields] Extends utilities with regards to optional fields (#20241216151002)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: crypto-0.31.0 (#20241212165035, #20241212165038)
+
+
+Misc
+----
+
+- #202412161019
+
+
 "1.76.0" (2024-12-11)
 =====================
 
