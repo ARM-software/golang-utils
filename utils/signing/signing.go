@@ -48,7 +48,7 @@ func (k *Ed25519Signer) Sign(message []byte) (signature []byte, err error) {
 
 	signature, err = k.private.Sign(nil, message, &ed25519.Options{})
 	if err != nil {
-		err = fmt.Errorf("%w: error occured whilst signing: %v", commonerrors.ErrUnexpected, err.Error())
+		err = fmt.Errorf("%w: error occurred whilst signing: %v", commonerrors.ErrUnexpected, err.Error())
 		return
 	}
 
