@@ -18,7 +18,7 @@ type GitActionConfig struct {
 	Depth int `mapstructure:"depth"`
 	// Regerence can be a hash, a branch, or a tag
 	Reference string `mapstructure:"ref"`
-	// RecurseSubmodules after the clone is created, initialize all submodules
+	// RecurseSubmodules after the clone is created, initialise all submodules
 	// within, using their default settings. This option is ignored if the
 	// cloned repository does not have a worktree.
 	RecurseSubmodules bool `mapstructure:"recursive_submodules"`

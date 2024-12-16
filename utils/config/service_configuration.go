@@ -115,7 +115,7 @@ func convertViperError(vErr error) (err error) {
 		err = fmt.Errorf("%w: %v", commonerrors.ErrUnsupported, vErr.Error())
 	case commonerrors.CorrespondTo(vErr, "not found"):
 		err = fmt.Errorf("%w: %v", commonerrors.ErrNotFound, vErr.Error())
-	case commonerrors.CorrespondTo(vErr, "parsing", "marshaling", "decoding"):
+	case commonerrors.CorrespondTo(vErr, "parsing", "marshaling", "decoding"): //nolint: misspell // errors are written in American English
 		err = fmt.Errorf("%w: %v", commonerrors.ErrMarshalling, vErr.Error())
 	default:
 		err = fmt.Errorf("%w: %v", commonerrors.ErrUnexpected, vErr.Error())
@@ -335,9 +335,6 @@ func DetermineConfigurationEnvironmentVariables(appName string, configurationToD
 		return
 	}
 	withoutPrefix = flattenDefaultsMap(withoutPrefix)
-	if err != nil {
-		return
-	}
 
 	defaults = make(map[string]interface{})
 	for key, value := range withoutPrefix {

@@ -495,7 +495,7 @@ func TestGenerateEnvFile_Defaults(t *testing.T) {
 
 // Test that you can load the struct with viper then generate the env file
 func TestGenerateEnvFile_Populated(t *testing.T) {
-	// Load configuartion using viper
+	// Load configuration using viper
 	os.Clearenv()
 	configTest := &DummyConfiguration{}
 	defaults := DefaultDummyConfiguration()

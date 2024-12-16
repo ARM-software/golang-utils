@@ -141,7 +141,7 @@ type FS interface {
 	// See os.Open()
 	GenericOpen(name string) (File, error)
 	// OpenFile opens a file using the given flags and the given mode.
-	// OpenFile is the generalized open call
+	// OpenFile is the generalised open call
 	// most users will use GenericOpen or Create instead.
 	// See os.OpenFile
 	OpenFile(name string, flag int, perm os.FileMode) (File, error)

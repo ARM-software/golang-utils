@@ -14,12 +14,12 @@ import (
 )
 
 // HTTPClientConfiguration defines the client configuration. It can be used to tweak low level transport
-// parameters in order to adapt the client to your usecase.
+// parameters in order to adapt the client to your use case.
 // If unsure about the values to set, use the DefaultHTTPClientConfiguration or FastHTTPClientConfiguration depending on
 // what flow you are dealing with.
 type HTTPClientConfiguration struct {
 	// MaxConnsPerHost optionally limits the total number of
-	// connections per host, including connections in the dialing,
+	// connections per host, including connections in the dialling,
 	// active, and idle states. On limit violation, dials will block.
 	//
 	// Zero means no limit.
