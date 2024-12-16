@@ -214,7 +214,7 @@ func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Durati
 }
 
 // RunActionWithParallelCheck runs an action with a check in parallel
-// The function performing the check should return true if the check was favorable; false otherwise. If the check did not have the expected result and the whole function would be cancelled.
+// The function performing the check should return true if the check was favourable; false otherwise. If the check did not have the expected result and the whole function would be cancelled.
 func RunActionWithParallelCheck(ctx context.Context, action func(ctx context.Context) error, checkAction func(ctx context.Context) bool, checkPeriod time.Duration) error {
 	err := DetermineContextError(ctx)
 	if err != nil {
