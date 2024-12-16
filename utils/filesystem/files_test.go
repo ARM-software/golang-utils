@@ -595,7 +595,7 @@ func TestStatTimes(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			fs := NewFs(fsType)
-			tmpFile, err := fs.TouchTempFileInTempDir("test-filetimes-*.txt")
+			tmpFile, err := fs.TouchTempFileInTempDir("test-file-times-*.txt")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpFile) }()
 
