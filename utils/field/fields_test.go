@@ -228,3 +228,24 @@ func TestOptionalField(t *testing.T) {
 		})
 	}
 }
+
+func TestEqual(t *testing.T) {
+	type T int
+	assert.True(t, Equal[T](nil, nil))
+	assert.False(t, Equal(ToOptionalInt(1), nil))
+	assert.False(t, Equal(nil, ToOptionalInt(1)))
+	assert.True(t, Equal(ToOptionalInt(1), ToOptionalInt(1)))
+	str := faker.Sentence()
+	assert.True(t, Equal(ToOptionalString(str), ToOptionalString(str)))
+	assert.False(t, Equal(ToOptionalString(str), ToOptionalString("")))
+}
+
+func TestEqualValue(t *testing.T) {
+	type T any
+	assert.False(t, EqualValue[T](nil, nil))
+	assert.False(t, EqualValue(nil, 1))
+	assert.True(t, EqualValue(ToOptionalInt(1), 1))
+	str := faker.Sentence()
+	assert.True(t, EqualValue(ToOptionalString(str), str))
+	assert.False(t, EqualValue(ToOptionalString(str), ""))
+}
