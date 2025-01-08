@@ -58,17 +58,34 @@ func TestFindInSlice(t *testing.T) {
 }
 
 func TestAny(t *testing.T) {
+	assert.True(t, Any([]bool{}))
 	assert.True(t, Any([]bool{false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false}))
 	assert.False(t, Any([]bool{false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false}))
 	assert.True(t, Any([]bool{true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true}))
 	assert.True(t, Any([]bool{true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true, true}))
 }
 
+func TestAnyTrue(t *testing.T) {
+	assert.False(t, AnyTrue())
+	assert.True(t, AnyTrue(false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false))
+	assert.False(t, AnyTrue(false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false))
+	assert.True(t, AnyTrue(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true))
+	assert.True(t, AnyTrue(true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true, true))
+}
+
 func TestAll(t *testing.T) {
+	assert.False(t, All([]bool{}))
 	assert.False(t, All([]bool{false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false}))
 	assert.False(t, All([]bool{false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false}))
 	assert.True(t, All([]bool{true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true}))
 	assert.False(t, All([]bool{true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true, true}))
+}
+
+func TestAllTrue(t *testing.T) {
+	assert.False(t, AllTrue(false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false))
+	assert.False(t, AllTrue(false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false))
+	assert.True(t, AllTrue(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true))
+	assert.False(t, AllTrue(true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true, true))
 }
 
 func TestAnyEmpty(t *testing.T) {

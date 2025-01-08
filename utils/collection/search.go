@@ -5,6 +5,7 @@
 package collection
 
 import (
+	"slices"
 	"strings"
 
 	mapset "github.com/deckarep/golang-set/v2"
@@ -24,6 +25,10 @@ func Find(slice *[]string, val string) (int, bool) {
 func FindInSlice(strict bool, slice []string, val ...string) (int, bool) {
 	if len(val) == 0 || len(slice) == 0 {
 		return -1, false
+	}
+	if !strict && len(val) == 1 {
+		idx := slices.Index(slice, val[0])
+		return idx, idx >= 0
 	}
 
 	inSlice := make(map[string]int, len(slice))
@@ -59,12 +64,20 @@ func UniqueEntries[T comparable](slice []T) []T {
 
 // Any returns true if there is at least one element of the slice which is true.
 func Any(slice []bool) bool {
+	if len(slice) == 0 {
+		return false
+	}
 	for i := range slice {
 		if slice[i] {
 			return true
 		}
 	}
 	return false
+}
+
+// AnyTrue returns whether there is a value set to true
+func AnyTrue(values ...bool) bool {
+	return Any(values)
 }
 
 // AnyEmpty returns whether there is one entry in the slice which is empty.
@@ -76,12 +89,20 @@ func AnyEmpty(strict bool, slice []string) bool {
 
 // All returns true if all items of the slice are true.
 func All(slice []bool) bool {
+	if len(slice) == 0 {
+		return false
+	}
 	for i := range slice {
 		if !slice[i] {
 			return false
 		}
 	}
 	return true
+}
+
+// AllTrue returns whether all values are true.
+func AllTrue(values ...bool) bool {
+	return All(values)
 }
 
 // AllNotEmpty returns whether all elements of the slice are not empty.
