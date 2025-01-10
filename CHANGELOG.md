@@ -14,6 +14,28 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.78.0" (2025-01-10)
+=====================
+
+Features
+--------
+
+- :sparkles: `[collection]` add helpers easier to use with slices (#20250108150125)
+- :sparkles: `[filesystem]` Support for `tarfs` (#20250110140409)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: afero-1.12.0 (#20250110110725, #20250110110731, #20250110110757, #20250110110805)
+
+
+Misc
+----
+
+- #20250110141400
+
+
 "1.77.1" (2025-01-10)
 =====================
 
