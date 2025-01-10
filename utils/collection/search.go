@@ -5,6 +5,7 @@
 package collection
 
 import (
+	"slices"
 	"strings"
 
 	mapset "github.com/deckarep/golang-set/v2"
@@ -24,6 +25,10 @@ func Find(slice *[]string, val string) (int, bool) {
 func FindInSlice(strict bool, slice []string, val ...string) (int, bool) {
 	if len(val) == 0 || len(slice) == 0 {
 		return -1, false
+	}
+	if strict && len(val) == 1 {
+		idx := slices.Index(slice, val[0])
+		return idx, idx >= 0
 	}
 
 	inSlice := make(map[string]int, len(slice))
