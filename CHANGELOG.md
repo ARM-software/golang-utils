@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.79.0" (2025-01-10)
+=====================
+
+Features
+--------
+
+- :boom: Move to golang 1.21 so dependencies can be upgraded (#20250110143542)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v5-5.13.1 (#20250110145840)
+
+
 "1.78.0" (2025-01-10)
 =====================
 
