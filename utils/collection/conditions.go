@@ -180,7 +180,7 @@ func Or(values ...bool) bool {
 
 // Xor performs a `xor` on an array of booleans. This behaves like an XOR gate; it returns true if the number of true values is odd, and false if the number of true values is zero or even.
 func Xor(values ...bool) bool {
-	if len(values) <= 0 {
+	if len(values) == 0 {
 		return false
 	}
 	// false if the neutral element of the xor operator
