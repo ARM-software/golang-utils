@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.80.0" (2025-01-13)
+=====================
+
+Features
+--------
+
+- :sparkles: [collections] Added Conditions type to provide a helper to deal with flags or boolean slices (#20250113134619)
+
+
 "1.79.0" (2025-01-10)
 =====================
 
