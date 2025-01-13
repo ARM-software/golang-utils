@@ -158,8 +158,11 @@ func AllTrue(values ...bool) bool {
 
 // Negate returns the slice with contrary values.
 func Negate(values ...bool) []bool {
-	if len(values) == 0 {
+	if values == nil {
 		return nil
+	}
+	if len(values) == 0 {
+		return []bool{}
 	}
 	negatedValues := make([]bool, len(values))
 	for i := range values {
