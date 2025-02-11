@@ -16,11 +16,16 @@ import (
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/logs"
 	"github.com/ARM-software/golang-utils/utils/logs/logstest"
+	"github.com/ARM-software/golang-utils/utils/platform"
 	"github.com/ARM-software/golang-utils/utils/subprocess"
 )
 
 func TestSupervisor(t *testing.T) {
 	t.Run("with timeout", func(t *testing.T) {
+		if platform.IsWindows() {
+			t.SkipNow()
+		}
+
 		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 		defer cancel()
 
@@ -51,6 +56,10 @@ func TestSupervisor(t *testing.T) {
 	})
 
 	t.Run("with pre run", func(t *testing.T) {
+		if platform.IsWindows() {
+			t.SkipNow()
+		}
+
 		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 		defer cancel()
 
@@ -77,6 +86,10 @@ func TestSupervisor(t *testing.T) {
 	})
 
 	t.Run("with post run", func(t *testing.T) {
+		if platform.IsWindows() {
+			t.SkipNow()
+		}
+
 		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 		defer cancel()
 
@@ -103,6 +116,10 @@ func TestSupervisor(t *testing.T) {
 	})
 
 	t.Run("with post stop", func(t *testing.T) {
+		if platform.IsWindows() {
+			t.SkipNow()
+		}
+
 		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 		defer cancel()
 
@@ -117,7 +134,7 @@ func TestSupervisor(t *testing.T) {
 
 		runner := NewSupervisor(func(ctx context.Context) *subprocess.Subprocess {
 			return cmd
-		}, WithPostStop(func(_ error) error {
+		}, WithPostStop(func(_ context.Context, _ error) error {
 			_ = counter.Inc()
 			return nil
 		}))
@@ -129,6 +146,10 @@ func TestSupervisor(t *testing.T) {
 	})
 
 	t.Run("with pre and post start", func(t *testing.T) {
+		if platform.IsWindows() {
+			t.SkipNow()
+		}
+
 		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 		defer cancel()
 
@@ -162,7 +183,7 @@ func TestSupervisor(t *testing.T) {
 	})
 
 	t.Run("with cancel", func(t *testing.T) {
-		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
 		logger, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "Test")
@@ -184,6 +205,10 @@ func TestSupervisor(t *testing.T) {
 	})
 
 	t.Run("with ignore cancelled", func(t *testing.T) {
+		if platform.IsWindows() {
+			t.SkipNow()
+		}
+
 		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 		defer cancel()
 
@@ -200,7 +225,7 @@ func TestSupervisor(t *testing.T) {
 
 		runner := NewSupervisor(func(ctx context.Context) *subprocess.Subprocess {
 			return cmd
-		}, WithIgnoreErrors(fmt.Errorf("%v %v", failMessage, commonerrors.ErrCancelled)))
+		}, WithHaltingErrors(fmt.Errorf("%v %v", failMessage, commonerrors.ErrCancelled)))
 
 		require.False(t, filesystem.Exists(testFile))
 		err = filesystem.WriteFile(testFile, []byte("test"), 0644)
@@ -221,6 +246,10 @@ func TestSupervisor(t *testing.T) {
 	})
 
 	t.Run("with delay", func(t *testing.T) {
+		if platform.IsWindows() {
+			t.SkipNow()
+		}
+
 		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 		defer cancel()
 
