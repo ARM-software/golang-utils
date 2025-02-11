@@ -75,7 +75,7 @@ func WithRestartDelay(delay time.Duration) SupervisorOption {
 	}
 }
 
-// Run will run the supervisor and execute any of the command hooks. If it recieves a halting error or the context is cancelled then it will exit
+// Run will run the supervisor and execute any of the command hooks. If it receives a halting error or the context is cancelled then it will exit
 func (s *Supervisor) Run(ctx context.Context) (err error) {
 	for {
 		err = parallelisation.DetermineContextError(ctx)
