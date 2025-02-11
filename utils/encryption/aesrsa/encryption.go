@@ -41,10 +41,10 @@ func ParsePEMBlock(path string) (block *pem.Block, err error) {
 	return
 }
 
-// DecryptHybridAESRSAEncryptedPayload takes a path to an RSA private key and uses it to decode the AES key in a
-// hybrid encoded payload. This AES key is then used to decode the actual payload contents. Information of the use
-// of hybrid AES RSA encryption can be found here https://www.ijrar.org/papers/IJRAR23B1852.pdf
-func DecryptHybridAESRSAEncryptedPayload(privateKeyPath string, payload *HybridAESRSAEncryptedPayload) (decrypted []byte, err error) {
+// DecryptHybridAESRSAEncryptedPayloadFromPrivateKey takes a path to an RSA private key and uses it to decode the AES
+// key in a hybrid encoded payload. This AES key is then used to decode the actual payload contents. Information of
+// the use of hybrid AES RSA encryption can be found here https://www.ijrar.org/papers/IJRAR23B1852.pdf
+func DecryptHybridAESRSAEncryptedPayloadFromPrivateKey(privateKeyPath string, payload *HybridAESRSAEncryptedPayload) (decrypted []byte, err error) {
 	block, err := ParsePEMBlock(privateKeyPath)
 	if err != nil {
 		err = fmt.Errorf("%w: could not parse PEM block from '%v': %v", commonerrors.ErrUnexpected, privateKeyPath, err.Error())
@@ -56,9 +56,21 @@ func DecryptHybridAESRSAEncryptedPayload(privateKeyPath string, payload *HybridA
 		return
 	}
 
-	priv, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	return DecryptHybridAESRSAEncryptedPayloadFromBytes(block.Bytes, payload)
+}
+
+// DecryptHybridAESRSAEncryptedPayloadFromPrivateKeyPath takes a path to an RSA private key PEM file and uses it to
+// decode the AES key in a hybrid encoded payload. This AES key is then used to decode the actual payload contents.
+// Information of the use of hybrid AES RSA encryption can be found here https://www.ijrar.org/papers/IJRAR23B1852.pdf
+func DecryptHybridAESRSAEncryptedPayloadFromBytes(block []byte, payload *HybridAESRSAEncryptedPayload) (decrypted []byte, err error) {
+	if payload == nil {
+		err = fmt.Errorf("%w: payload must not be nil", commonerrors.ErrUndefined)
+		return
+	}
+
+	priv, err := x509.ParsePKCS1PrivateKey(block)
 	if err != nil {
-		err = fmt.Errorf("%w: could not parse private key at '%v' %v", commonerrors.ErrUnexpected, privateKeyPath, err.Error())
+		err = fmt.Errorf("%w: could not parse private key %v", commonerrors.ErrUnexpected, err.Error())
 		return
 	}
 
@@ -68,7 +80,7 @@ func DecryptHybridAESRSAEncryptedPayload(privateKeyPath string, payload *HybridA
 		return
 	}
 
-	aesKey, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, priv, encryptedKey, []byte(""))
+	aesKey, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, priv, encryptedKey, []byte{})
 	if err != nil {
 		err = fmt.Errorf("%w: could not decrypt private key %v", commonerrors.ErrUnexpected, err.Error())
 		return
@@ -95,24 +107,13 @@ func DecryptHybridAESRSAEncryptedPayload(privateKeyPath string, payload *HybridA
 	return
 }
 
-// EncryptHybridAESRSAEncryptedPayload takes a path to a valid x509 certificate for key encypherment and uses it to
+// EncryptHybridAESRSAEncryptedPayloadFromBytes takes an x509 certificate for key encypherment and uses it to
 // encode a payload using hybrid RSA AES encryption where an AES key is used to encrypt the content in payload and the
 // AES key is encrypted using RSA encryption. AES encryption is used to encode the payload itself as it is faster than
 // RSA for larger payloads. RSA is used to encrypt the relatively small AES key and allows asymmetric encryption
 // whilst also being fast. More information can be found at https://www.ijrar.org/papers/IJRAR23B1852.pdf
-func EncryptHybridAESRSAEncryptedPayload(certPath string, payload []byte) (encrypted *HybridAESRSAEncryptedPayload, err error) {
-	block, err := ParsePEMBlock(certPath)
-	if err != nil {
-		err = fmt.Errorf("%w: could not parse PEM block from '%v': %v", commonerrors.ErrUnexpected, certPath, err.Error())
-		return
-	}
-
-	if block == nil {
-		err = fmt.Errorf("%w: block was empty", commonerrors.ErrEmpty)
-		return
-	}
-
-	cert, err := x509.ParseCertificate(block.Bytes)
+func EncryptHybridAESRSAEncryptedPayloadFromBytes(block []byte, payload []byte) (encrypted *HybridAESRSAEncryptedPayload, err error) {
+	cert, err := x509.ParseCertificate(block)
 	if err != nil {
 		err = fmt.Errorf("%w: failed parsing certificate: %v", commonerrors.ErrUnexpected, err.Error())
 		return
@@ -159,4 +160,24 @@ func EncryptHybridAESRSAEncryptedPayload(certPath string, payload []byte) (encry
 
 	encrypted = EncodeHybridAESRSAEncryptedPayload(ciphertext, encryptedAESKey, nonce)
 	return
+}
+
+// EncryptHybridAESRSAEncryptedPayloadFromCertificate takes a path to a valid x509 certificate for key encypherment
+// and uses it to encode a payload using hybrid RSA AES encryption where an AES key is used to encrypt the content in
+// payload and the AES key is encrypted using RSA encryption. AES encryption is used to encode the payload itself as
+// it is faster than RSA for larger payloads. RSA is used to encrypt the relatively small AES key and allows asymmetric
+// encryption whilst also being fast. More information can be found at https://www.ijrar.org/papers/IJRAR23B1852.pdf
+func EncryptHybridAESRSAEncryptedPayloadFromCertificate(certPath string, payload []byte) (encrypted *HybridAESRSAEncryptedPayload, err error) {
+	block, err := ParsePEMBlock(certPath)
+	if err != nil {
+		err = fmt.Errorf("%w: could not parse PEM block from '%v': %v", commonerrors.ErrUnexpected, certPath, err.Error())
+		return
+	}
+
+	if block == nil {
+		err = fmt.Errorf("%w: block was empty", commonerrors.ErrEmpty)
+		return
+	}
+
+	return EncryptHybridAESRSAEncryptedPayloadFromBytes(block.Bytes, payload)
 }

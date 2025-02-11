@@ -22,11 +22,11 @@ func TestEncryption(t *testing.T) {
 
 		content := []byte(faker.Sentence())
 
-		encrypted, err := EncryptHybridAESRSAEncryptedPayload(testCertPath, content)
+		encrypted, err := EncryptHybridAESRSAEncryptedPayloadFromCertificate(testCertPath, content)
 		require.NoError(t, err)
 		require.NotEmpty(t, encrypted)
 
-		decoded, err := DecryptHybridAESRSAEncryptedPayload(testKeyPath, encrypted)
+		decoded, err := DecryptHybridAESRSAEncryptedPayloadFromPrivateKey(testKeyPath, encrypted)
 		assert.NoError(t, err)
 		assert.Equal(t, content, decoded)
 	})
@@ -39,11 +39,11 @@ func TestEncryption(t *testing.T) {
 
 		content := []byte(faker.Sentence())
 
-		encrypted, err := EncryptHybridAESRSAEncryptedPayload(testCertPath, content)
+		encrypted, err := EncryptHybridAESRSAEncryptedPayloadFromCertificate(testCertPath, content)
 		require.NoError(t, err)
 		require.NotEmpty(t, encrypted)
 
-		decoded, err := DecryptHybridAESRSAEncryptedPayload(testKeyPath, encrypted)
+		decoded, err := DecryptHybridAESRSAEncryptedPayloadFromPrivateKey(testKeyPath, encrypted)
 		errortest.AssertErrorDescription(t, err, "could not find certificate")
 		assert.Empty(t, decoded)
 	})
@@ -57,11 +57,11 @@ func TestEncryption(t *testing.T) {
 
 		content := []byte(faker.Sentence())
 
-		encrypted, err := EncryptHybridAESRSAEncryptedPayload(testCertPath, content)
+		encrypted, err := EncryptHybridAESRSAEncryptedPayloadFromCertificate(testCertPath, content)
 		require.NoError(t, err)
 		require.NotEmpty(t, encrypted)
 
-		decoded, err := DecryptHybridAESRSAEncryptedPayload(testKeyPath, encrypted)
+		decoded, err := DecryptHybridAESRSAEncryptedPayloadFromPrivateKey(testKeyPath, encrypted)
 		errortest.AssertErrorDescription(t, err, "decryption error")
 		assert.Empty(t, decoded)
 	})
@@ -77,11 +77,11 @@ func TestEncryption(t *testing.T) {
 
 		content := []byte(faker.Sentence())
 
-		encrypted, err := EncryptHybridAESRSAEncryptedPayload(testCertPath, content)
+		encrypted, err := EncryptHybridAESRSAEncryptedPayloadFromCertificate(testCertPath, content)
 		require.NoError(t, err)
 		require.NotEmpty(t, encrypted)
 
-		decoded, err := DecryptHybridAESRSAEncryptedPayload(testKeyPath, encrypted)
+		decoded, err := DecryptHybridAESRSAEncryptedPayloadFromPrivateKey(testKeyPath, encrypted)
 		errortest.AssertErrorDescription(t, err, "failed to decode PEM block from certificate")
 		assert.Empty(t, decoded)
 	})
@@ -91,7 +91,7 @@ func TestEncryption(t *testing.T) {
 		content := []byte(faker.Sentence())
 		require.NoFileExists(t, testCertPath)
 
-		encrypted, err := EncryptHybridAESRSAEncryptedPayload(testCertPath, content)
+		encrypted, err := EncryptHybridAESRSAEncryptedPayloadFromCertificate(testCertPath, content)
 		errortest.AssertErrorDescription(t, err, "could not find certificate")
 		assert.Nil(t, encrypted)
 	})
@@ -104,7 +104,7 @@ func TestEncryption(t *testing.T) {
 
 		content := []byte(faker.Sentence())
 
-		encrypted, err := EncryptHybridAESRSAEncryptedPayload(testCertPath, content)
+		encrypted, err := EncryptHybridAESRSAEncryptedPayloadFromCertificate(testCertPath, content)
 		errortest.AssertErrorDescription(t, err, "failed to decode PEM block from certificate")
 		assert.Nil(t, encrypted)
 	})
