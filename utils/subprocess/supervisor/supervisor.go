@@ -2,10 +2,13 @@ package supervisor
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/parallelisation"
 	"github.com/ARM-software/golang-utils/utils/subprocess"
+	"golang.org/x/sync/errgroup"
 )
 
 type ISupervisor interface {
@@ -66,41 +69,37 @@ func WithRestartDelay(delay time.Duration) SupervisorOption {
 
 func (s *Supervisor) Run(ctx context.Context) (err error) {
 	for {
+		err = parallelisation.DetermineContextError(ctx)
+		if err != nil {
+			return
+		}
+
 		if s.preStart != nil {
 			err = s.preStart(ctx)
 			if err != nil {
+				err = fmt.Errorf("%w: error running pre-start hook: %v", commonerrors.ErrUnexpected, err.Error())
 				return
 			}
 		}
 
+		g, _ := errgroup.WithContext(ctx)
 		cmd := s.newCommand(ctx)
-
-		done := make(chan error, 1)
-		go func() {
-			done <- cmd.Execute()
-		}()
+		g.Go(cmd.Execute)
 
 		if s.postStart != nil {
 			err = s.postStart(ctx)
 			if err != nil {
+				err = fmt.Errorf("%w: error running post-start hook: %v", commonerrors.ErrUnexpected, err.Error())
 				return err
 			}
 		}
 
-		var processErr error
-		select {
-		case <-ctx.Done():
-			if cmd.IsOn() {
-				cmd.Cancel()
-			}
-			return commonerrors.ConvertContextError(ctx.Err())
-		case processErr = <-done:
-			// done
-		}
+		processErr := g.Wait()
 
 		if s.postStop != nil {
 			err = s.postStop(processErr)
 			if err != nil {
+				err = fmt.Errorf("%w: error running post-stop hook: %v", commonerrors.ErrUnexpected, err.Error())
 				return err
 			}
 		}
@@ -113,11 +112,7 @@ func (s *Supervisor) Run(ctx context.Context) (err error) {
 		}
 
 		if s.restartDelay > 0 {
-			select {
-			case <-time.After(s.restartDelay):
-			case <-ctx.Done():
-				return commonerrors.ConvertContextError(ctx.Err())
-			}
+			parallelisation.SleepWithContext(ctx, s.restartDelay)
 		}
 
 		// restart process
