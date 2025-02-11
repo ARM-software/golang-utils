@@ -56,19 +56,39 @@ func TestFindInSlice(t *testing.T) {
 	assert.True(t, found)
 	assert.Equal(t, 1, index)
 }
+func TestUniqueEntries(t *testing.T) {
+	assert.Len(t, UniqueEntries([]string{faker.Username(), faker.Name(), faker.Sentence(), faker.Name()}), 4)
+	values := UniqueEntries([]string{"test1", "test12", "test1", "test1", "test12", "test12"})
+	assert.Len(t, values, 2)
+	_, found := FindInSlice(true, values, "test1")
+	assert.True(t, found)
+	_, found = FindInSlice(true, values, "test12")
+	assert.True(t, found)
 
-func TestAny(t *testing.T) {
-	assert.True(t, Any([]bool{false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false}))
-	assert.False(t, Any([]bool{false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false}))
-	assert.True(t, Any([]bool{true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true}))
-	assert.True(t, Any([]bool{true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true, true}))
+	intValues := UniqueEntries([]int{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4})
+	assert.Len(t, intValues, 4)
 }
 
-func TestAll(t *testing.T) {
-	assert.False(t, All([]bool{false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false}))
-	assert.False(t, All([]bool{false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false}))
-	assert.True(t, All([]bool{true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true}))
-	assert.False(t, All([]bool{true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true, true}))
+func TestAnyFunc(t *testing.T) {
+	f := func(v bool) bool {
+		return v
+	}
+	assert.False(t, AnyFunc([]bool{}, f))
+	assert.True(t, AnyFunc([]bool{false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false}, f))
+	assert.False(t, AnyFunc([]bool{false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false}, f))
+	assert.True(t, AnyFunc([]bool{true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true}, f))
+	assert.True(t, AnyFunc([]bool{true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true, true}, f))
+}
+
+func TestAllFunc(t *testing.T) {
+	f := func(v bool) bool {
+		return v
+	}
+	assert.False(t, AllFunc([]bool{}, f))
+	assert.False(t, AllFunc([]bool{false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false}, f))
+	assert.False(t, AllFunc([]bool{false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false}, f))
+	assert.True(t, AllFunc([]bool{true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true}, f))
+	assert.False(t, AllFunc([]bool{true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true, true}, f))
 }
 
 func TestAnyEmpty(t *testing.T) {
@@ -89,17 +109,4 @@ func TestAllNotEmpty(t *testing.T) {
 	assert.False(t, AllNotEmpty(true, []string{faker.Username(), "      ", faker.Name(), faker.Sentence()}))
 	assert.False(t, AllNotEmpty(false, []string{faker.Username(), "", faker.Name(), "", faker.Sentence()}))
 	assert.True(t, AllNotEmpty(false, []string{faker.Username(), faker.Name(), faker.Sentence()}))
-}
-
-func TestUniqueEntries(t *testing.T) {
-	assert.Len(t, UniqueEntries([]string{faker.Username(), faker.Name(), faker.Sentence(), faker.Name()}), 4)
-	values := UniqueEntries([]string{"test1", "test12", "test1", "test1", "test12", "test12"})
-	assert.Len(t, values, 2)
-	_, found := FindInSlice(true, values, "test1")
-	assert.True(t, found)
-	_, found = FindInSlice(true, values, "test12")
-	assert.True(t, found)
-
-	intValues := UniqueEntries([]int{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4})
-	assert.Len(t, intValues, 4)
 }

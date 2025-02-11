@@ -4,6 +4,8 @@
  */
 package collection
 
+import "slices"
+
 // Remove looks for elements in a slice. If they're found, it will
 // remove them.
 func Remove(slice []string, val ...string) []string {
@@ -15,6 +17,9 @@ func Remove(slice []string, val ...string) []string {
 func GenericRemove(equal func(string, string) bool, slice []string, val ...string) []string {
 	if len(val) == 0 {
 		return slice
+	}
+	if len(val) == 1 {
+		return slices.DeleteFunc(slice, func(v string) bool { return equal(v, val[0]) })
 	}
 	list := make([]string, 0, len(slice))
 	found := make([]bool, len(val))

@@ -5,6 +5,7 @@
 package collection
 
 import (
+	"slices"
 	"strings"
 
 	mapset "github.com/deckarep/golang-set/v2"
@@ -24,6 +25,10 @@ func Find(slice *[]string, val string) (int, bool) {
 func FindInSlice(strict bool, slice []string, val ...string) (int, bool) {
 	if len(val) == 0 || len(slice) == 0 {
 		return -1, false
+	}
+	if strict && len(val) == 1 {
+		idx := slices.Index(slice, val[0])
+		return idx, idx >= 0
 	}
 
 	inSlice := make(map[string]int, len(slice))
@@ -57,14 +62,13 @@ func UniqueEntries[T comparable](slice []T) []T {
 	return subSet.ToSlice()
 }
 
-// Any returns true if there is at least one element of the slice which is true.
-func Any(slice []bool) bool {
-	for i := range slice {
-		if slice[i] {
-			return true
-		}
+// AnyFunc returns whether there is at least one element of slice s for which f() returns true.
+func AnyFunc[S ~[]E, E any](s S, f func(E) bool) bool {
+	conditions := NewConditions(len(s))
+	for i := range s {
+		conditions.Add(f(s[i]))
 	}
-	return false
+	return conditions.Any()
 }
 
 // AnyEmpty returns whether there is one entry in the slice which is empty.
@@ -74,14 +78,13 @@ func AnyEmpty(strict bool, slice []string) bool {
 	return found
 }
 
-// All returns true if all items of the slice are true.
-func All(slice []bool) bool {
-	for i := range slice {
-		if !slice[i] {
-			return false
-		}
+// AllFunc returns whether f returns true for all the elements of slice s.
+func AllFunc[S ~[]E, E any](s S, f func(E) bool) bool {
+	conditions := NewConditions(len(s))
+	for i := range s {
+		conditions.Add(f(s[i]))
 	}
-	return true
+	return conditions.All()
 }
 
 // AllNotEmpty returns whether all elements of the slice are not empty.
