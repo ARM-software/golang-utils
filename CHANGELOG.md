@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.82.0" (2025-02-11)
+=====================
+
+Features
+--------
+
+- :sparkles: `encryption` Add support for encrypting content using hybrid [RSA/AES encryption](https://www.ijrar.org/papers/IJRAR23B1852.pdf) (#20250211153712)
+
+
 "1.81.0" (2025-02-11)
 =====================
 
