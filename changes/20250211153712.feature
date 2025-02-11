@@ -1,1 +1,1 @@
-:sparkles: `encryption` Add support for encyrpting conent using hybrid RSA/AES encryption
+:sparkles: `encryption` Add support for encrypting content using hybrid RSA/AES encryption
