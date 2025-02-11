@@ -53,6 +53,8 @@ func WithPostStart(function func(context.Context) error) SupervisorOption {
 }
 
 // WithPostStop will run 'function' after the supervised command has stopped
+// It's context will ignore cancellations so any timeouts should be added within
+// the function body itself
 func WithPostStop(function func(context.Context, error) error) SupervisorOption {
 	return func(s *Supervisor) {
 		s.postStop = function
