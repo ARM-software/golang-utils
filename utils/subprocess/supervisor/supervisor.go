@@ -61,7 +61,7 @@ func WithPostStop(function func(context.Context, error) error) SupervisorOption 
 	}
 }
 
-// WithHaltingErrors are errors that won't trigger the supervisor to restart
+// WithHaltingErrors are errors that won't trigger the supervisor to restart and on which, the subprocess will just halt.
 func WithHaltingErrors(errs ...error) SupervisorOption {
 	return func(s *Supervisor) {
 		s.haltingErrors = errs
