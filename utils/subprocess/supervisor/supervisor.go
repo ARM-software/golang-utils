@@ -15,7 +15,7 @@ import (
 // A Supervisor will run a command and automatically restart it if it exits. Hooks can be used to execute code at
 // different points in the execution lifecyle. Restarts can be delayed
 type Supervisor struct {
-	newCommand    func(ctx context.Context) *subprocess.Subprocess
+	newCommand    func(ctx context.Context) (*subprocess.Subprocess, error)
 	preStart      func(context.Context) error
 	postStart     func(context.Context) error
 	postStop      func(context.Context, error) error
@@ -27,7 +27,7 @@ type SupervisorOption func(*Supervisor)
 
 // NewSupervisor will take a function 'newCommand' that creates a command and run it every time the command exits.
 // Options can be supplied by the 'opts' variadic argument that control the lifecyle of the supervisor
-func NewSupervisor(newCommand func(ctx context.Context) *subprocess.Subprocess, opts ...SupervisorOption) *Supervisor {
+func NewSupervisor(newCommand func(ctx context.Context) (*subprocess.Subprocess, error), opts ...SupervisorOption) *Supervisor {
 	supervisor := &Supervisor{
 		newCommand:   newCommand,
 		restartDelay: 0,
@@ -86,20 +86,33 @@ func (s *Supervisor) Run(ctx context.Context) (err error) {
 		if s.preStart != nil {
 			err = s.preStart(ctx)
 			if err != nil {
-				err = fmt.Errorf("%w: error running pre-start hook: %v", commonerrors.ErrUnexpected, err.Error())
-				return
+				if commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
+					return err
+				}
+				return fmt.Errorf("%w: error running pre-start hook: %v", commonerrors.ErrUnexpected, err.Error())
 			}
 		}
 
 		g, _ := errgroup.WithContext(ctx)
-		cmd := s.newCommand(ctx)
+		cmd, err := s.newCommand(ctx)
+		if err != nil {
+			if commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
+				return err
+			}
+			return fmt.Errorf("%w: error occurred when creating new command: %v", commonerrors.ErrUnexpected, err.Error())
+		}
+		if cmd == nil {
+			return fmt.Errorf("%w: command was undefined", commonerrors.ErrUndefined)
+		}
 		g.Go(cmd.Execute)
 
 		if s.postStart != nil {
 			err = s.postStart(ctx)
 			if err != nil {
-				err = fmt.Errorf("%w: error running post-start hook: %v", commonerrors.ErrUnexpected, err.Error())
-				return err
+				if commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
+					return err
+				}
+				return fmt.Errorf("%w: error running post-start hook: %v", commonerrors.ErrUnexpected, err.Error())
 			}
 		}
 
@@ -108,8 +121,10 @@ func (s *Supervisor) Run(ctx context.Context) (err error) {
 		if s.postStop != nil {
 			err = s.postStop(context.WithoutCancel(ctx), processErr)
 			if err != nil {
-				err = fmt.Errorf("%w: error running post-stop hook: %v", commonerrors.ErrUnexpected, err.Error())
-				return err
+				if commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
+					return err
+				}
+				return fmt.Errorf("%w: error running post-stop hook: %v", commonerrors.ErrUnexpected, err.Error())
 			}
 		}
 
