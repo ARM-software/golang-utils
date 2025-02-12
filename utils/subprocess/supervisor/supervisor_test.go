@@ -207,6 +207,81 @@ func TestSupervisor(t *testing.T) {
 		assert.Equal(t, counter1.Load(), counter2.Load())
 	})
 
+	t.Run("with pre run (timeout)", func(t *testing.T) {
+		if platform.IsWindows() {
+			t.SkipNow()
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+		defer cancel()
+
+		logger, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "Test")
+		require.NoError(t, err)
+
+		cmd, err := subprocess.New(ctx, logger, "starting", "success", "failed", "echo", "123")
+		require.NoError(t, err)
+
+		runner := NewSupervisor(func(ctx context.Context) (*subprocess.Subprocess, error) {
+			return cmd, nil
+		}, WithPreStart(func(_ context.Context) error {
+			return commonerrors.ErrTimeout
+		}))
+
+		err = runner.Run(ctx)
+		errortest.AssertError(t, err, commonerrors.ErrTimeout)
+		assert.NotContains(t, err.Error(), "error running pre-start hook")
+	})
+
+	t.Run("with post run (timeout)", func(t *testing.T) {
+		if platform.IsWindows() {
+			t.SkipNow()
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+		defer cancel()
+
+		logger, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "Test")
+		require.NoError(t, err)
+
+		cmd, err := subprocess.New(ctx, logger, "starting", "success", "failed", "echo", "123")
+		require.NoError(t, err)
+
+		runner := NewSupervisor(func(ctx context.Context) (*subprocess.Subprocess, error) {
+			return cmd, nil
+		}, WithPostStart(func(_ context.Context) error {
+			return commonerrors.ErrTimeout
+		}))
+
+		err = runner.Run(ctx)
+		errortest.AssertError(t, err, commonerrors.ErrTimeout)
+		assert.NotContains(t, err.Error(), "error running post-start hook")
+	})
+
+	t.Run("with post stop (timeout)", func(t *testing.T) {
+		if platform.IsWindows() {
+			t.SkipNow()
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+		defer cancel()
+
+		logger, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "Test")
+		require.NoError(t, err)
+
+		cmd, err := subprocess.New(ctx, logger, "starting", "success", "failed", "echo", "123")
+		require.NoError(t, err)
+
+		runner := NewSupervisor(func(ctx context.Context) (*subprocess.Subprocess, error) {
+			return cmd, nil
+		}, WithPostStop(func(_ context.Context, _ error) error {
+			return commonerrors.ErrTimeout
+		}))
+
+		err = runner.Run(ctx)
+		errortest.AssertError(t, err, commonerrors.ErrTimeout)
+		assert.NotContains(t, err.Error(), "error running post-stop hook")
+	})
+
 	t.Run("with cancel", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()

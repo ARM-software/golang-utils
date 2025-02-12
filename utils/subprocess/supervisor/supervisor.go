@@ -86,6 +86,9 @@ func (s *Supervisor) Run(ctx context.Context) (err error) {
 		if s.preStart != nil {
 			err = s.preStart(ctx)
 			if err != nil {
+				if commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
+					return err
+				}
 				return fmt.Errorf("%w: error running pre-start hook: %v", commonerrors.ErrUnexpected, err.Error())
 			}
 		}
@@ -93,6 +96,9 @@ func (s *Supervisor) Run(ctx context.Context) (err error) {
 		g, _ := errgroup.WithContext(ctx)
 		cmd, err := s.newCommand(ctx)
 		if err != nil {
+			if commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
+				return err
+			}
 			return fmt.Errorf("%w: error occurred when creating new command: %v", commonerrors.ErrUnexpected, err.Error())
 		}
 		if cmd == nil {
@@ -103,6 +109,9 @@ func (s *Supervisor) Run(ctx context.Context) (err error) {
 		if s.postStart != nil {
 			err = s.postStart(ctx)
 			if err != nil {
+				if commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
+					return err
+				}
 				return fmt.Errorf("%w: error running post-start hook: %v", commonerrors.ErrUnexpected, err.Error())
 			}
 		}
@@ -112,6 +121,9 @@ func (s *Supervisor) Run(ctx context.Context) (err error) {
 		if s.postStop != nil {
 			err = s.postStop(context.WithoutCancel(ctx), processErr)
 			if err != nil {
+				if commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
+					return err
+				}
 				return fmt.Errorf("%w: error running post-stop hook: %v", commonerrors.ErrUnexpected, err.Error())
 			}
 		}
