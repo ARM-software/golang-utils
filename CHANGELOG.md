@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.82.1" (2025-02-12)
+=====================
+
+Bugfixes
+--------
+
+- :bug: `subprocess` Make process supervisor more robust by handling errors and undefined commands (#20250212110908)
+
+
 "1.82.0" (2025-02-11)
 =====================
 
