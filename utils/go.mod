@@ -6,7 +6,7 @@ toolchain go1.23.4
 
 require (
 	github.com/OneOfOne/xxhash v1.2.8
-	github.com/avast/retry-go/v4 v4.6.0
+	github.com/avast/retry-go/v4 v4.6.1
 	github.com/bmatcuk/doublestar/v3 v3.0.0
 	github.com/bombsimon/logrusr/v4 v4.1.0
 	github.com/deckarep/golang-set/v2 v2.7.0
