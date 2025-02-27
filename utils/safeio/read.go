@@ -3,7 +3,6 @@ package safeio
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 
 	"github.com/dolmen-go/contextio"
@@ -42,7 +41,7 @@ func ReadAtMost(ctx context.Context, src io.Reader, max int64, bufferCapacity in
 			return
 		}
 		if panicErr, ok := e.(error); ok && (panicErr == bytes.ErrTooLarge || commonerrors.Any(panicErr, commonerrors.ErrTooLarge, bytes.ErrTooLarge)) {
-			err = fmt.Errorf("%w: %v", commonerrors.ErrTooLarge, panicErr.Error())
+			err = commonerrors.WrapError(commonerrors.ErrTooLarge, panicErr, "")
 		} else {
 			panic(e)
 		}
@@ -60,7 +59,7 @@ func ReadAtMost(ctx context.Context, src io.Reader, max int64, bufferCapacity in
 		return
 	}
 	if read == int64(0) {
-		err = fmt.Errorf("%w: no bytes were read", commonerrors.ErrEmpty)
+		err = commonerrors.New(commonerrors.ErrEmpty, "no bytes were read")
 	}
 	content = buf.Bytes()
 	return

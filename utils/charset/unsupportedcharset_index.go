@@ -5,7 +5,6 @@
 package charset
 
 import (
-	"fmt"
 	"strings"
 
 	"golang.org/x/text/encoding"
@@ -24,5 +23,5 @@ func GetUnsupported(name string) (encoding.Encoding, error) {
 			return nil, nil
 		}
 	}
-	return nil, fmt.Errorf("%w encoding name", commonerrors.ErrInvalid)
+	return nil, commonerrors.New(commonerrors.ErrInvalid, "invalid encoding name")
 }
