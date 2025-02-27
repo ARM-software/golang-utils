@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.83.0" (2025-02-27)
+=====================
+
+Features
+--------
+
+- :sparkles: [commonerrors] Provide utilities to wrap or format errors following the convention errorType: reason (#20250227155909)
+
+
 "1.82.2" (2025-02-27)
 =====================
 

@@ -62,7 +62,7 @@ func (e *marshallingError) ConvertToError() error {
 	if e.Reason == "" {
 		return e.ErrorType
 	}
-	return fmt.Errorf("%w%v %v", e.ErrorType, string(TypeReasonErrorSeparator), e.Reason)
+	return New(e.ErrorType, e.Reason)
 }
 
 func (e *marshallingError) SetWrappedError(err error) {
@@ -77,7 +77,7 @@ func (m *multiplemarshallingError) MarshalText() (text []byte, err error) {
 	for i := range m.subErrs {
 		subtext, suberr := m.subErrs[i].MarshalText()
 		if suberr != nil {
-			err = fmt.Errorf("%w%v an error item could not be marshalled%v %v", ErrMarshalling, string(TypeReasonErrorSeparator), string(TypeReasonErrorSeparator), suberr.Error())
+			err = WrapError(ErrMarshalling, suberr, "an error item could not be marshalled")
 			return
 		}
 		text = append(text, subtext...)
@@ -162,7 +162,7 @@ func processError(err error) (mErr iMarshallingError) {
 	mErr = processErrorStr(err.Error())
 	if IsEmpty(mErr) {
 		mErr = &marshallingError{
-			ErrorType: fmt.Errorf("%w%v error `%T` with no description returned", ErrUnknown, string(TypeReasonErrorSeparator), err),
+			ErrorType: Newf(ErrUnknown, "error `%T` with no description returned", err),
 		}
 		return
 	}

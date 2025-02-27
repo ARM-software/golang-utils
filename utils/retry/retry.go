@@ -15,7 +15,7 @@ import (
 // RetryIf will retry fn when the value returned from retryConditionFn is true
 func RetryIf(ctx context.Context, logger logr.Logger, retryPolicy *RetryPolicyConfiguration, fn func() error, msgOnRetry string, retryConditionFn func(err error) bool) error {
 	if retryPolicy == nil {
-		return fmt.Errorf("%w: missing retry policy configuration", commonerrors.ErrUndefined)
+		return commonerrors.New(commonerrors.ErrUndefined, "missing retry policy configuration")
 	}
 	if !retryPolicy.Enabled {
 		return fn()

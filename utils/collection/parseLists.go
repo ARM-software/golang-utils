@@ -5,7 +5,6 @@
 package collection
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 
@@ -62,7 +61,7 @@ func ParseCommaSeparatedListToMap(input string) (pairs map[string]string, err er
 	numElements := len(inputSplit)
 
 	if numElements%2 != 0 {
-		err = fmt.Errorf("%w: could not parse comma separated list '%v' into map as it did not have an even number of elements", commonerrors.ErrInvalid, input)
+		err = commonerrors.Newf(commonerrors.ErrInvalid, "could not parse comma separated list '%v' into map as it did not have an even number of elements", input)
 		return
 	}
 

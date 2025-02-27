@@ -5,7 +5,6 @@
 package charset
 
 import (
-	"fmt"
 	"strings"
 	"sync"
 
@@ -28,7 +27,7 @@ type charsetEncodingMapping struct {
 func (m *charsetEncodingMapping) GetCanonicalName(alias string) (name string, err error) {
 	name, found := m.mapping[strings.ToLower(strings.TrimSpace(alias))]
 	if !found {
-		err = fmt.Errorf("%w: charset alias [%v] was not found in the list of supported Charsets", commonerrors.ErrNotFound, alias)
+		err = commonerrors.Newf(commonerrors.ErrNotFound, "charset alias [%v] was not found in the list of supported Charsets", alias)
 	}
 	return
 }
