@@ -38,17 +38,17 @@ func (k *Ed25519Signer) GetPrivateKey() string {
 
 func (k *Ed25519Signer) Sign(message []byte) (signature []byte, err error) {
 	if len(k.private) == 0 {
-		err = fmt.Errorf("%w: missing private key", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "missing private key")
 		return
 	}
 	if len(k.private) != ed25519.PrivateKeySize {
-		err = fmt.Errorf("%w: invalid private key length %v", commonerrors.ErrInvalid, len(k.private))
+		err = commonerrors.Newf(commonerrors.ErrInvalid, "invalid private key length %v", len(k.private))
 		return
 	}
 
 	signature, err = k.private.Sign(nil, message, &ed25519.Options{})
 	if err != nil {
-		err = fmt.Errorf("%w: error occurred whilst signing: %v", commonerrors.ErrUnexpected, err.Error())
+		err = commonerrors.WrapError(commonerrors.ErrUnexpected, err, "error occurred whilst signing")
 		return
 	}
 
@@ -66,11 +66,11 @@ func (k *Ed25519Signer) GenerateSignature(message []byte) (signatureBase64 strin
 
 func (k *Ed25519Signer) Verify(message, signature []byte) (ok bool, err error) {
 	if len(k.Public) == 0 {
-		err = fmt.Errorf("%w: missing public key", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "missing public key")
 		return
 	}
 	if len(k.Public) != ed25519.PublicKeySize {
-		err = fmt.Errorf("%w: invalid public key length %v", commonerrors.ErrInvalid, len(k.Public))
+		err = commonerrors.Newf(commonerrors.ErrInvalid, "invalid public key length %v", len(k.Public))
 		return
 	}
 
@@ -91,17 +91,17 @@ func (k *Ed25519Signer) VerifySignature(message []byte, signatureBase64 string) 
 // NewEd25519Signer will create a Ed25519Signer that can both sign new messages as well as verify them
 func NewEd25519Signer(privateKey ed25519.PrivateKey) (signer *Ed25519Signer, err error) {
 	if privateKey == nil {
-		err = fmt.Errorf("%w: privateKey must be defined", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "privateKey must be defined")
 		return
 	}
 	if len(privateKey) != ed25519.PrivateKeySize {
-		err = fmt.Errorf("%w: private key must have length %v, it has length %v", commonerrors.ErrInvalid, ed25519.PrivateKeySize, len(privateKey))
+		err = commonerrors.Newf(commonerrors.ErrInvalid, "private key must have length %v, it has length %v", ed25519.PrivateKeySize, len(privateKey))
 		return
 	}
 
 	publicKey, ok := privateKey.Public().(ed25519.PublicKey)
 	if !ok {
-		err = fmt.Errorf("%w: could not extract public key from private key", commonerrors.ErrUnexpected)
+		err = commonerrors.New(commonerrors.ErrUnexpected, "could not extract public key from private key")
 		return
 	}
 
@@ -117,11 +117,11 @@ func NewEd25519Signer(privateKey ed25519.PrivateKey) (signer *Ed25519Signer, err
 // NewEd25519Verifier will create a Ed25519Signer with only a public key meaning it can only verify messages
 func NewEd25519Verifier(publicKey ed25519.PublicKey) (signer *Ed25519Signer, err error) {
 	if publicKey == nil {
-		err = fmt.Errorf("%w: publicKey must be defined", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "publicKey must be defined")
 		return
 	}
 	if len(publicKey) != ed25519.PublicKeySize {
-		err = fmt.Errorf("%w: public key must have length %v, it has length %v", commonerrors.ErrInvalid, ed25519.PrivateKeySize, len(publicKey))
+		err = commonerrors.Newf(commonerrors.ErrInvalid, "public key must have length %v, it has length %v", ed25519.PrivateKeySize, len(publicKey))
 		return
 	}
 
@@ -137,7 +137,7 @@ func NewEd25519Verifier(publicKey ed25519.PublicKey) (signer *Ed25519Signer, err
 func NewEd25519SignerFromBase64(privateKeyB64 string) (signer *Ed25519Signer, err error) {
 	privateKey, err := base64.StdEncoding.DecodeString(privateKeyB64)
 	if err != nil {
-		err = fmt.Errorf("%w: could not decode private key from base64: %v", commonerrors.ErrInvalid, err.Error())
+		err = commonerrors.WrapError(commonerrors.ErrInvalid, err, "could not decode private key from base64")
 		return
 	}
 
@@ -149,7 +149,7 @@ func NewEd25519SignerFromBase64(privateKeyB64 string) (signer *Ed25519Signer, er
 func NewEd25519VerifierFromBase64(publicKeyB64 string) (signer *Ed25519Signer, err error) {
 	publicKey, err := base64.StdEncoding.DecodeString(publicKeyB64)
 	if err != nil {
-		err = fmt.Errorf("%w: could not decode public key from base64: %v", commonerrors.ErrInvalid, err.Error())
+		err = commonerrors.WrapError(commonerrors.ErrInvalid, err, "could not decode public key from base64")
 		return
 	}
 

@@ -1,8 +1,6 @@
 package collection
 
 import (
-	"fmt"
-
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
@@ -32,7 +30,7 @@ func (c *Conditions) Add(conditions ...bool) Conditions {
 // ForEach will execute function each() on every condition unless an error is returned and will end add this point.
 func (c *Conditions) ForEach(each func(bool) error) error {
 	if c == nil || len(*c) == 0 {
-		return fmt.Errorf("%w: the collection of conditions is empty", commonerrors.ErrUndefined)
+		return commonerrors.New(commonerrors.ErrUndefined, "the collection of conditions is empty")
 	}
 	for i := range *c {
 		subErr := each((*c)[i])
