@@ -4,7 +4,7 @@ import (
 	"golang.org/x/mod/semver"
 )
 
-// SanitiseVersionMajor will return the major and minor parts of the version with the 'v' prefix
+// SanitiseVersionMajorMinor will return the major and minor parts of the version with the 'v' prefix
 func SanitiseVersionMajorMinor(version string) (majorMinor string, err error) {
 	version, err = CanonicalWithGoPrefix(version)
 	if err != nil {

@@ -2,7 +2,6 @@ package filesystem
 
 import (
 	"embed"
-	"fmt"
 
 	"github.com/spf13/afero"
 
@@ -11,7 +10,7 @@ import (
 
 func newEmbedFSAdapter(fs *embed.FS) (afero.Fs, error) {
 	if fs == nil {
-		return nil, fmt.Errorf("%w: missing filesystem", commonerrors.ErrUndefined)
+		return nil, commonerrors.UndefinedVariable("embedded file system", "")
 	}
 	return afero.NewReadOnlyFs(afero.FromIOFS{
 		FS: *fs,
