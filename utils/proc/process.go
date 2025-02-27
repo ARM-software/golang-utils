@@ -7,6 +7,7 @@ package proc
 
 import (
 	"context"
+
 	"github.com/shirou/gopsutil/v4/process"
 
 	"github.com/ARM-software/golang-utils/utils/collection"
