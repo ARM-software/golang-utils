@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
 
 func TestCopyDataWithContext(t *testing.T) {
@@ -36,7 +37,7 @@ func TestCopyDataWithContext(t *testing.T) {
 	cancel()
 	n2, err = CopyDataWithContext(ctx, &buf1, &buf2)
 	require.Error(t, err)
-	assert.True(t, commonerrors.Any(err, commonerrors.ErrCancelled))
+	errortest.AssertError(t, err, commonerrors.ErrCancelled)
 	assert.Zero(t, n2)
 	assert.Empty(t, buf2.String())
 }
@@ -65,7 +66,7 @@ func TestCopyNWithContext(t *testing.T) {
 	cancel()
 	n2, err = CopyNWithContext(ctx, &buf1, &buf2, int64(len(text)))
 	require.Error(t, err)
-	assert.True(t, commonerrors.Any(err, commonerrors.ErrCancelled))
+	errortest.AssertError(t, err, commonerrors.ErrCancelled)
 	assert.Zero(t, n2)
 	assert.Empty(t, buf2.String())
 

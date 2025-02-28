@@ -277,7 +277,7 @@ func TestUnzip_Limits(t *testing.T) {
 	defer cancel()
 	_, err = fs.UnzipWithContext(contextWithTimeOut, srcPath, destPath)
 	assert.Error(t, err)
-	assert.True(t, commonerrors.Any(err, commonerrors.ErrTimeout))
+	errortest.AssertError(t, err, commonerrors.ErrTimeout)
 
 	err = fs.CleanDirWithContext(context.Background(), destPath)
 	require.NoError(t, err)
@@ -287,7 +287,7 @@ func TestUnzip_Limits(t *testing.T) {
 
 	_, err = fs.UnzipWithContextAndLimits(context.Background(), srcPath, destPath, limits)
 	assert.Error(t, err)
-	assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
+	errortest.AssertError(t, err, commonerrors.ErrTooLarge)
 }
 
 func TestUnzip_ZipBomb(t *testing.T) {
@@ -331,7 +331,7 @@ func TestUnzip_ZipBomb(t *testing.T) {
 
 			_, err = fs.UnzipWithContextAndLimits(context.Background(), srcPath, destPath, limits)
 			assert.Error(t, err)
-			assert.True(t, commonerrors.Any(err, commonerrors.ErrUnsupported, commonerrors.ErrTooLarge))
+			errortest.AssertError(t, err, commonerrors.ErrUnsupported, commonerrors.ErrTooLarge)
 		})
 	}
 
@@ -534,7 +534,7 @@ func TestUnzip_Recursive(t *testing.T) {
 				assert.Equal(t, expectedfileList, fileList)
 			} else {
 				require.Error(t, err)
-				assert.True(t, commonerrors.Any(err, test.expectedError))
+				errortest.AssertError(t, err, test.expectedError)
 			}
 			require.NoError(t, fs.CleanDir(destPath))
 		})
@@ -579,7 +579,7 @@ func TestUnzip_Failures(t *testing.T) {
 		t.Run(fmt.Sprintf("#%v", i), func(t *testing.T) {
 			_, err = fs.Unzip(test.zipFile, destPath)
 			require.Error(t, err)
-			assert.True(t, commonerrors.Any(err, test.expectedError))
+			errortest.AssertError(t, err, test.expectedError)
 		})
 	}
 }
@@ -618,11 +618,11 @@ func TestUnzip_DepthLimit(t *testing.T) {
 			require.NoError(t, fs.CleanDir(destPath))
 			_, err = fs.UnzipWithContextAndLimits(context.TODO(), test.zipFile, destPath, RecursiveZipLimits(test.expectedDepth-1))
 			assert.Error(t, err)
-			assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
+			errortest.AssertError(t, err, commonerrors.ErrTooLarge)
 			require.NoError(t, fs.CleanDir(destPath))
 			_, err = fs.UnzipWithContextAndLimits(context.TODO(), test.zipFile, destPath, RecursiveZipLimits(0))
 			assert.Error(t, err)
-			assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
+			errortest.AssertError(t, err, commonerrors.ErrTooLarge)
 			require.NoError(t, fs.CleanDir(destPath))
 		})
 	}
@@ -675,7 +675,7 @@ func TestUnzipWithNonUTF8Filenames(t *testing.T) {
 			fileList, err := fs.Unzip(srcPath, destPath)
 			if test.expectedError != nil {
 				require.Error(t, err)
-				assert.True(t, commonerrors.Any(err, test.expectedError))
+				errortest.AssertError(t, err, test.expectedError)
 				assert.Empty(t, fileList)
 			} else {
 				require.NoError(t, err)
@@ -713,7 +713,7 @@ func TestUnzipFileCountLimit(t *testing.T) {
 		}()
 
 		_, err = fs.UnzipWithContextAndLimits(context.TODO(), srcPath, destPath, limits)
-		assert.True(t, commonerrors.Any(err, commonerrors.ErrTooLarge))
+		errortest.AssertError(t, err, commonerrors.ErrTooLarge)
 	})
 
 	t.Run("unzip file below file count limit", func(t *testing.T) {
