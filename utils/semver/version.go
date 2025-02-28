@@ -38,12 +38,12 @@ func DetermineVersionFromFile(ctx context.Context, fs filesystem.FS, versionFile
 		return
 	}
 	if fs == nil {
-		err = commonerrors.UndefinedVariable("file system", "")
+		err = commonerrors.UndefinedVariable("file system")
 		return
 	}
-	versionFilePath := strings.TrimSpace(versionFilePath)
+	versionFilePath = strings.TrimSpace(versionFilePath)
 	if versionFilePath == "" {
-		err = commonerrors.UndefinedVariable("version file path", "")
+		err = commonerrors.UndefinedVariable("version file path")
 		return
 	}
 	if !fs.Exists(versionFilePath) {

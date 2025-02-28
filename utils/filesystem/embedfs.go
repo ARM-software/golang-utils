@@ -10,7 +10,7 @@ import (
 
 func newEmbedFSAdapter(fs *embed.FS) (afero.Fs, error) {
 	if fs == nil {
-		return nil, commonerrors.UndefinedVariable("embedded file system", "")
+		return nil, commonerrors.UndefinedVariable("embedded file system")
 	}
 	return afero.NewReadOnlyFs(afero.FromIOFS{
 		FS: *fs,
