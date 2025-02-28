@@ -215,4 +215,9 @@ func TestWrapError(t *testing.T) {
 	assert.True(t, Any(WrapError(context.Canceled, ErrConflict, faker.Sentence()), ErrCancelled))
 	assert.True(t, Any(WrapErrorf(context.DeadlineExceeded, nil, "%v this is a test %v", faker.Name(), faker.Word()), ErrTimeout))
 	assert.True(t, Any(Newf(context.DeadlineExceeded, "%v this is a test %v", faker.Name(), faker.Word()), ErrTimeout))
+	assert.True(t, Any(WrapIfNotCommonError(context.Canceled, ErrConflict, faker.Sentence()), ErrCancelled))
+	assert.True(t, Any(WrapIfNotCommonError(ErrUndefined, ErrConflict, faker.Sentence()), ErrConflict))
+	assert.True(t, Any(WrapIfNotCommonErrorf(ErrUndefined, ErrConflict, faker.Sentence()), ErrConflict))
+	assert.True(t, Any(WrapIfNotCommonError(ErrUndefined, errors.New(faker.Sentence()), faker.Sentence()), ErrUndefined))
+	assert.True(t, Any(WrapIfNotCommonErrorf(ErrUndefined, errors.New(faker.Sentence()), faker.Sentence()), ErrUndefinedf))
 }

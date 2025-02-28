@@ -429,11 +429,7 @@ func (fs *VFS) unzipZippedFile(ctx context.Context, dest string, zippedFile *zip
 	destinationFile, err := fs.OpenFile(destinationPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, zippedFile.Mode())
 	err = convertZipError(err)
 	if err != nil {
-		if commonerrors.IsCommonError(err) {
-			err = commonerrors.Newf(err, "unable to open file '%s'", destinationPath)
-		} else {
-			err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "unable to open file '%s'", destinationPath)
-		}
+		err = commonerrors.WrapIfNotCommonErrorf(commonerrors.ErrUnexpected, err, "unable to open file '%s'", destinationPath)
 		return
 	}
 	defer func() { _ = destinationFile.Close() }()
@@ -441,11 +437,7 @@ func (fs *VFS) unzipZippedFile(ctx context.Context, dest string, zippedFile *zip
 	sourceFile, err := zippedFile.Open()
 	err = convertZipError(err)
 	if err != nil {
-		if commonerrors.IsCommonError(err) {
-			err = commonerrors.Newf(err, "unable to open zipped file '%s'", zippedFile.Name)
-		} else {
-			err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "unable to open zipped file '%s'", destinationPath)
-		}
+		err = commonerrors.WrapIfNotCommonErrorf(commonerrors.ErrUnexpected, err, "unable to open zipped file '%s'", destinationPath)
 		return
 	}
 	defer func() { _ = sourceFile.Close() }()
