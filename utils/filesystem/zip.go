@@ -71,7 +71,7 @@ func (fs *VFS) ZipWithContextAndLimits(ctx context.Context, source, destination 
 
 func (fs *VFS) ZipWithContextAndLimitsAndExclusionPatterns(ctx context.Context, source string, destination string, limits ILimits, exclusionPatterns ...string) (err error) {
 	if limits == nil {
-		err = fmt.Errorf("%w: missing file system limits", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "missing file system limits")
 		return
 	}
 
@@ -95,7 +95,7 @@ func (fs *VFS) ZipWithContextAndLimitsAndExclusionPatterns(ctx context.Context, 
 			return err
 		}
 		if limits.Apply() && info.Size() > limits.GetMaxFileSize() {
-			err = fmt.Errorf("%w: file [%v] is too big (%v B) and beyond limits (max: %v B)", commonerrors.ErrTooLarge, path, info.Size(), limits.GetMaxFileSize())
+			err = commonerrors.Newf(commonerrors.ErrTooLarge, "file [%v] is too big (%v B) and beyond limits (max: %v B)", path, info.Size(), limits.GetMaxFileSize())
 			return err
 		}
 
@@ -146,7 +146,7 @@ func (fs *VFS) ZipWithContextAndLimitsAndExclusionPatterns(ctx context.Context, 
 		}
 
 		if info.Size() != n && !IsSymLink(info) {
-			return fmt.Errorf("could not write the full file [%v] content (wrote %v/%v bytes)", relPath, n, info.Size())
+			return commonerrors.Newf(commonerrors.ErrUnexpected, "could not write the full file [%v] content (wrote %v/%v bytes)", relPath, n, info.Size())
 		}
 		return nil
 	}
@@ -158,7 +158,7 @@ func (fs *VFS) ZipWithContextAndLimitsAndExclusionPatterns(ctx context.Context, 
 			return subErr
 		}
 		if stat.Size() > limits.GetMaxFileSize() {
-			subErr = fmt.Errorf("%w: file [%v] is too big (%v B) and beyond limits (max: %v B)", commonerrors.ErrTooLarge, destination, stat.Size(), limits.GetMaxFileSize())
+			subErr = commonerrors.Newf(commonerrors.ErrTooLarge, "file [%v] is too big (%v B) and beyond limits (max: %v B)", destination, stat.Size(), limits.GetMaxFileSize())
 			return subErr
 		}
 	}
@@ -180,7 +180,7 @@ func sanitiseZipExtractPath(fs FS, filePath string, destination string) (destPat
 		}
 	}
 
-	err = fmt.Errorf("%w: zipslip security breach detected, file dirPath '%s' not in destination directory '%s'", commonerrors.ErrMalicious, filePath, destination)
+	err = commonerrors.Newf(commonerrors.ErrMalicious, "zip slip security breach detected, file dirPath '%s' not in destination directory '%s'", filePath, destination)
 	return
 }
 
@@ -210,20 +210,20 @@ func (fs *VFS) UnzipWithContextAndLimits(ctx context.Context, source string, des
 
 func newZipReader(fs FS, source string, limits ILimits, currentDepth int64) (zipReader *zip.Reader, file File, err error) {
 	if fs == nil {
-		err = fmt.Errorf("%w: missing file system", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "missing file system")
 		return
 	}
 	if limits == nil {
-		err = fmt.Errorf("%w: missing file system limits", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "missing file system limits")
 		return
 	}
 	if limits.Apply() && limits.GetMaxDepth() >= 0 && currentDepth > limits.GetMaxDepth() {
-		err = fmt.Errorf("%w: depth [%v] of zip file [%v] is beyond allowed limits (max: %v)", commonerrors.ErrTooLarge, currentDepth, source, limits.GetMaxDepth())
+		err = commonerrors.Newf(commonerrors.ErrTooLarge, "depth [%v] of zip file [%v] is beyond allowed limits (max: %v)", currentDepth, source, limits.GetMaxDepth())
 		return
 	}
 
 	if !fs.Exists(source) {
-		err = fmt.Errorf("%w: could not find archive [%v]", commonerrors.ErrNotFound, source)
+		err = commonerrors.Newf(commonerrors.ErrNotFound, "could not find archive [%v]", source)
 		return
 	}
 
@@ -239,7 +239,7 @@ func newZipReader(fs FS, source string, limits ILimits, currentDepth int64) (zip
 	zipFileSize := info.Size()
 
 	if limits.Apply() && zipFileSize > limits.GetMaxFileSize() {
-		err = fmt.Errorf("%w: zip file [%v] is too big (%v B) and beyond limits (max: %v B)", commonerrors.ErrTooLarge, source, zipFileSize, limits.GetMaxFileSize())
+		err = commonerrors.Newf(commonerrors.ErrTooLarge, "zip file [%v] is too big (%v B) and beyond limits (max: %v B)", source, zipFileSize, limits.GetMaxFileSize())
 		return
 	}
 
@@ -307,7 +307,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 				return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
 			}
 			if fileDepth > limits.GetMaxDepth() {
-				subErr = fmt.Errorf("%w: depth [%v] of file [%v] within zip [%v] is beyond allowed limits (max: %v)", commonerrors.ErrTooLarge, fileDepth, filepath.Base(filePath), filepath.Base(source), limits.GetMaxDepth())
+				subErr = commonerrors.Newf(commonerrors.ErrTooLarge, "depth [%v] of file [%v] within zip [%v] is beyond allowed limits (max: %v)", fileDepth, filepath.Base(filePath), filepath.Base(source), limits.GetMaxDepth())
 				return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
 			}
 		}
@@ -322,7 +322,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 			// Create directory
 			subErr = fs.MkDir(filePath)
 			if subErr != nil {
-				return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), fmt.Errorf("unable to create directory [%s]: %w", filePath, subErr)
+				return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), commonerrors.Newf(subErr, "unable to create directory [%s]", filePath)
 			}
 			// recording directory dirInfo to preserve timestamps
 			directoryInfo[filePath] = zippedFile.FileInfo()
@@ -334,7 +334,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		directoryPath := filepath.Dir(filePath)
 		subErr = fs.MkDir(directoryPath)
 		if subErr != nil {
-			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), fmt.Errorf("unable to create directory '%s': %w", directoryPath, subErr)
+			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), commonerrors.Newf(subErr, "unable to create directory '%s'", directoryPath)
 		}
 
 		fileSizeOnDisk, subErr := fs.unzipZippedFile(ctx, filePath, zippedFile, limits, fileDepth)
@@ -364,10 +364,10 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		}
 
 		if limits.Apply() && totalSizeOnDisk.Load() > limits.GetMaxTotalSize() {
-			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), fmt.Errorf("%w: more than %v B of disk space was used while unzipping %v (%v B used already)", commonerrors.ErrTooLarge, limits.GetMaxTotalSize(), source, totalSizeOnDisk.Load())
+			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), commonerrors.Newf(commonerrors.ErrTooLarge, "more than %v B of disk space was used while unzipping %v (%v B used already)", limits.GetMaxTotalSize(), source, totalSizeOnDisk.Load())
 		}
 		if filecount := fileCounter.Load(); limits.Apply() && filecount <= math.MaxInt64 && safecast.ToInt64(filecount) > limits.GetMaxFileCount() {
-			return fileList, filecount, totalSizeOnDisk.Load(), fmt.Errorf("%w: more than %v files were created while unzipping %v (%v files created already)", commonerrors.ErrTooLarge, limits.GetMaxFileCount(), source, filecount)
+			return fileList, filecount, totalSizeOnDisk.Load(), commonerrors.Newf(commonerrors.ErrTooLarge, "more than %v files were created while unzipping %v (%v files created already)", limits.GetMaxFileCount(), source, filecount)
 		}
 	}
 
@@ -384,12 +384,12 @@ func (fs *VFS) unzipNestedZipFiles(ctx context.Context, nestedZipFile string, li
 	destination := filepath.Join(filepath.Dir(nestedZipFile), FilepathStem(nestedZipFile))
 	nestedUnzippedFiles, fileOnDiskCount, filesSizeOnDisk, subErr := fs.unzip(ctx, nestedZipFile, destination, limits, currentDepth+1)
 	if subErr != nil {
-		err = fmt.Errorf("unable to unzip nested zip [%s] present at depth (%d) to [%s] : %w", filepath.Base(nestedZipFile), currentDepth, destination, subErr)
+		err = commonerrors.Newf(subErr, "unable to unzip nested zip [%s] present at depth (%d) to [%s]", filepath.Base(nestedZipFile), currentDepth, destination)
 		return
 	}
 	subErr = fs.Rm(nestedZipFile)
 	if subErr != nil {
-		err = fmt.Errorf("unable to remove nested zip [%s] : %w", nestedZipFile, subErr)
+		err = commonerrors.Newf(subErr, "unable to remove nested zip [%s] ", nestedZipFile)
 	}
 	return
 }
@@ -403,7 +403,7 @@ func preserveDirectoriesTimestamps(ctx context.Context, fs FS, directoryInfo map
 		times := newDefaultTimeInfo(dirInfo)
 		subErr = fs.Chtimes(dirPath, times.AccessTime(), times.ModTime())
 		if subErr != nil {
-			return fmt.Errorf("unable to set directory timestamp [%s]: %w", dirPath, subErr)
+			return commonerrors.Newf(subErr, "unable to set directory timestamp [%s]", dirPath)
 		}
 	}
 	return nil
@@ -417,7 +417,7 @@ func (fs *VFS) unzipZippedFile(ctx context.Context, dest string, zippedFile *zip
 	}
 
 	if limits.Apply() && limits.GetMaxDepth() > 0 && currentDepth > limits.GetMaxDepth() {
-		err = fmt.Errorf("%w: depth [%v] of zipped file [%v] is beyond allowed limits (max: %v)", commonerrors.ErrTooLarge, currentDepth, zippedFile.Name, limits.GetMaxDepth())
+		err = commonerrors.Newf(commonerrors.ErrTooLarge, "depth [%v] of zipped file [%v] is beyond allowed limits (max: %v)", currentDepth, zippedFile.Name, limits.GetMaxDepth())
 		return
 	}
 
@@ -428,14 +428,14 @@ func (fs *VFS) unzipZippedFile(ctx context.Context, dest string, zippedFile *zip
 
 	destinationFile, err := fs.OpenFile(destinationPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, zippedFile.Mode())
 	if err != nil {
-		err = fmt.Errorf("%w: unable to open file '%s': %v", commonerrors.ErrUnexpected, destinationPath, err.Error())
+		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "unable to open file '%s'", destinationPath)
 		return
 	}
 	defer func() { _ = destinationFile.Close() }()
 
 	sourceFile, err := zippedFile.Open()
 	if err != nil {
-		err = fmt.Errorf("%w: unable to open zipped file '%s': %v", commonerrors.ErrUnsupported, zippedFile.Name, err.Error())
+		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "unable to open zipped file '%s'", zippedFile.Name)
 		return
 	}
 	defer func() { _ = sourceFile.Close() }()
@@ -444,14 +444,14 @@ func (fs *VFS) unzipZippedFile(ctx context.Context, dest string, zippedFile *zip
 	fileSizeOnDisk = info.Size()
 	if limits.Apply() {
 		if fileSizeOnDisk > limits.GetMaxFileSize() {
-			err = fmt.Errorf("%w: zipped file [%v] is too big (%v B) and above max size (%v B)", commonerrors.ErrTooLarge, info.Name(), info.Size(), limits.GetMaxFileSize())
+			err = commonerrors.Newf(commonerrors.ErrTooLarge, "zipped file [%v] is too big (%v B) and above max size (%v B)", info.Name(), info.Size(), limits.GetMaxFileSize())
 			return
 		}
 	}
 
 	_, err = safeio.CopyNWithContext(ctx, sourceFile, destinationFile, fileSizeOnDisk)
 	if err != nil {
-		err = fmt.Errorf("copy of zipped file to '%s' failed: %w", destinationPath, err)
+		err = commonerrors.Newf(err, "copy of zipped file to '%s' failed", destinationPath)
 		return
 	}
 	err = destinationFile.Close()
@@ -481,11 +481,11 @@ func determineUnzippedFilepath(destinationPath string) (string, error) {
 	// we try to guess the encoding and then, convert the string to UTF-8.
 	encoding, charsetName, err := charset.DetectTextEncoding([]byte(destinationPath))
 	if err != nil {
-		return "", fmt.Errorf("%w: file path [%s] is not a valid utf-8 string and charset could not be detected: %v", commonerrors.ErrInvalid, destinationPath, err.Error())
+		return "", commonerrors.WrapErrorf(commonerrors.ErrInvalid, err, "file path [%s] is not a valid utf-8 string and charset could not be detected", destinationPath)
 	}
 	convertedDestinationPath, err := charset.IconvString(destinationPath, encoding, unicode.UTF8)
 	if err != nil {
-		return "", fmt.Errorf("%w: file path [%s] is encoded using charset [%v] but could not be converted to valid utf-8: %v", commonerrors.ErrUnexpected, destinationPath, charsetName, err.Error())
+		return "", commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "file path [%s] is encoded using charset [%v] but could not be converted to valid utf-8", destinationPath, charsetName)
 		// If zip file paths must be accepted even when their encoding is unknown, or conversion to utf-8 failed, then the following can be done.
 		// destinationPath = strings.ToValidUTF8(dest, charset.InvalidUTF8CharacterReplacement)
 	}
@@ -503,7 +503,7 @@ func (fs *VFS) isZipWithContext(ctx context.Context, path string) bool {
 
 func (fs *VFS) IsZipWithContext(ctx context.Context, path string) (ok bool, err error) {
 	if path == "" {
-		err = fmt.Errorf("%w: missing path", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "missing path")
 		return
 	}
 	err = parallelisation.DetermineContextError(ctx)
@@ -537,11 +537,15 @@ func convertZipError(err error) error {
 		return nil
 	}
 	err = commonerrors.ConvertContextError(err)
-	if commonerrors.Any(err, zip.ErrFormat, zip.ErrChecksum) {
-		return fmt.Errorf("%w: %v", commonerrors.ErrInvalid, err.Error())
+	switch {
+	case err == nil:
+		return nil
+	case commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout):
+		return err
+	case commonerrors.Any(err, zip.ErrFormat, zip.ErrChecksum):
+		return commonerrors.WrapError(commonerrors.ErrInvalid, err, "")
+	case commonerrors.Any(err, zip.ErrFormat, zip.ErrAlgorithm):
+		return commonerrors.WrapError(commonerrors.ErrUnsupported, err, "")
 	}
-	if commonerrors.Any(err, zip.ErrFormat, zip.ErrAlgorithm) {
-		return fmt.Errorf("%w: %v", commonerrors.ErrUnsupported, err.Error())
-	}
-	return err
+	return ConvertFileSystemError(err)
 }

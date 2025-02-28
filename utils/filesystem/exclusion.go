@@ -32,7 +32,7 @@ func NewExclusionRegexList(pathSeparator rune, exclusionPatterns ...string) ([]*
 	for i := range patternsExtendedList {
 		r, err := regexp.Compile(patternsExtendedList[i])
 		if err != nil {
-			return nil, fmt.Errorf("%w: could not compile pattern [%v]: %v", commonerrors.ErrInvalid, patternsExtendedList[i], err.Error())
+			return nil, commonerrors.WrapErrorf(commonerrors.ErrInvalid, err, "could not compile pattern [%v]", patternsExtendedList[i])
 		}
 		regexes = append(regexes, r)
 	}

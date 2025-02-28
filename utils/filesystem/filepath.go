@@ -1,7 +1,6 @@
 package filesystem
 
 import (
-	"fmt"
 	"io/fs"
 	"path/filepath"
 	"strings"
@@ -91,14 +90,14 @@ type pathValidationRule struct {
 func (r *pathValidationRule) Validate(value interface{}) error {
 	err := validation.Required.When(r.condition).Validate(value)
 	if err != nil {
-		return fmt.Errorf("%w: path [%v] is required: %v", commonerrors.ErrUndefined, value, err.Error())
+		return commonerrors.WrapErrorf(commonerrors.ErrUndefined, err, "path [%v] is required", value)
 	}
 	if !r.condition {
 		return nil
 	}
 	pathString, err := validation.EnsureString(value)
 	if err != nil {
-		return fmt.Errorf("%w: path [%v] must be a string: %v", commonerrors.ErrInvalid, value, err.Error())
+		return commonerrors.WrapErrorf(commonerrors.ErrInvalid, err, "path [%v] must be a string", value)
 	}
 	pathString = strings.TrimSpace(pathString)
 	// This check is here because it validates the path on any platform (it is a cross-platform check)
@@ -109,14 +108,14 @@ func (r *pathValidationRule) Validate(value interface{}) error {
 
 	// Inspired from https://github.com/go-playground/validator/blob/84254aeb5a59e615ec0b66ab53b988bc0677f55e/baked_in.go#L1604 and https://stackoverflow.com/questions/35231846/golang-check-if-string-is-valid-path
 	if pathString == "" {
-		return fmt.Errorf("%w: the path [%v] is empty", commonerrors.ErrUndefined, value)
+		return commonerrors.Newf(commonerrors.ErrUndefined, "the path [%v] is empty", value)
 	}
 	// This check is to catch errors on Linux. It does not work as well on Windows.
 	if _, err := r.filesystem.Stat(pathString); err != nil {
 		switch t := err.(type) {
 		case *fs.PathError:
 			if t.Err == syscall.EINVAL {
-				return fmt.Errorf("%w: the path [%v] has invalid characters: %v", commonerrors.ErrInvalid, value, err.Error())
+				return commonerrors.WrapErrorf(commonerrors.ErrInvalid, err, "the path [%v] has invalid characters", value)
 			}
 		default:
 			// make the linter happy
@@ -124,7 +123,7 @@ func (r *pathValidationRule) Validate(value interface{}) error {
 	}
 	// The following case is not caught on Windows by the check above.
 	if strings.Contains(pathString, "\n") {
-		return fmt.Errorf("%w: the path [%v] has carriage returns characters", commonerrors.ErrInvalid, value)
+		return commonerrors.Newf(commonerrors.ErrInvalid, "the path [%v] has carriage returns characters", value)
 	}
 
 	// TODO add platform validation checks: e.g. https://learn.microsoft.com/en-gb/windows/win32/fileio/naming-a-file?redirectedfrom=MSDN on windows
@@ -161,10 +160,10 @@ func (r *pathExistValidationRule) Validate(value interface{}) error {
 	}
 	path, err := validation.EnsureString(value)
 	if err != nil {
-		return fmt.Errorf("%w: path [%v] must be a string: %v", commonerrors.ErrInvalid, value, err.Error())
+		return commonerrors.WrapErrorf(commonerrors.ErrInvalid, err, "path [%v] must be a string", value)
 	}
 	if !r.filesystem.Exists(path) {
-		err = fmt.Errorf("%w: path [%v] does not exist", commonerrors.ErrNotFound, path)
+		err = commonerrors.Newf(commonerrors.ErrNotFound, "path [%v] does not exist", path)
 	}
 	return err
 }
