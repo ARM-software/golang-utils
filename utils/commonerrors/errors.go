@@ -316,3 +316,28 @@ func New(targetError error, msg string) error {
 func Newf(targetError error, msgFormat string, args ...any) error {
 	return WrapErrorf(targetError, nil, msgFormat, args...)
 }
+
+// UndefinedVariable returns an undefined error related to a variable.
+func UndefinedVariable(variableName string) error {
+	return undefinedVariable(variableName, "")
+}
+
+// UndefinedVariableWithMessage returns an undefined error with a message.
+func UndefinedVariableWithMessage(variableName string, msg string) error {
+	return undefinedVariable(variableName, msg)
+}
+
+// UndefinedParameter returns an undefined error with a message
+func UndefinedParameter(msg string) error {
+	return undefinedVariable("", msg)
+}
+
+func undefinedVariable(variableName, msg string) error {
+	if msg == "" {
+		return Newf(ErrUndefined, "missing %v", variableName)
+	}
+	if variableName == "" {
+		return New(ErrUndefined, msg)
+	}
+	return Newf(ErrUndefined, "missing %v: %v", variableName, msg)
+}
