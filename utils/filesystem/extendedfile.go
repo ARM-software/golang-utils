@@ -4,6 +4,8 @@ import (
 	"os"
 
 	"github.com/spf13/afero"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 type extendedFile struct {
@@ -31,12 +33,18 @@ func (f *extendedFile) Seek(offset int64, whence int) (n int64, err error) {
 
 func (f *extendedFile) Write(p []byte) (n int, err error) {
 	n, err = f.File.Write(p)
+	if err == nil && n < len(p) {
+		err = commonerrors.New(commonerrors.ErrUnexpected, "failed writing bytes")
+	}
 	err = ConvertFileSystemError(err)
 	return
 }
 
 func (f *extendedFile) WriteAt(p []byte, off int64) (n int, err error) {
 	n, err = f.File.WriteAt(p, off)
+	if err == nil && n < len(p) {
+		err = commonerrors.New(commonerrors.ErrUnexpected, "failed writing bytes")
+	}
 	err = ConvertFileSystemError(err)
 	return
 }
@@ -73,6 +81,9 @@ func (f *extendedFile) Truncate(size int64) error {
 
 func (f *extendedFile) WriteString(s string) (ret int, err error) {
 	ret, err = f.File.WriteString(s)
+	if err == nil && ret <= 0 {
+		err = commonerrors.New(commonerrors.ErrUnexpected, "failed writing string")
+	}
 	err = ConvertFileSystemError(err)
 	return
 }
