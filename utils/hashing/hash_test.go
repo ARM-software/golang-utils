@@ -6,10 +6,8 @@ package hashing
 
 import (
 	"fmt"
-	"math/rand"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
@@ -127,8 +125,9 @@ func TestIsLikelyHexHashString(t *testing.T) {
 }
 
 func TestBespokeHash(t *testing.T) {
-	random := rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for
-	size := random.Intn(64)                               //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as only for testing purposes
+	random, err := faker.RandomInt(1, 64, 1)
+	require.NoError(t, err)
+	size := random[0]
 	algo, err := blake2b.New(size, nil)
 	require.NoError(t, err)
 	hashing, err := NewBespokeHashingAlgorithm(algo)
