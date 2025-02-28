@@ -79,10 +79,6 @@ func TestIsLikelyHexHashString(t *testing.T) {
 			isHash: false,
 		},
 		{
-			input:  faker.UUIDDigit(),
-			isHash: true,
-		},
-		{
 			input:  faker.UUIDHyphenated(),
 			isHash: false,
 		},

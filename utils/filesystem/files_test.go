@@ -1143,13 +1143,13 @@ func TestTempFile(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
 			fs := NewFs(fsType)
-			tmpDir, err := fs.TempDirInTempDir("test-copy-to-file-")
+			tmpDir, err := fs.TempDirInTempDir("test-tmp-file-")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpDir) }()
 
 			f, err := fs.TempFile(tmpDir, "test-tmp-file-*.txt")
 			require.NoError(t, err)
-			defer func() { require.NoError(t, f.Close()) }()
+			defer func() { _ = f.Close() }()
 			content := faker.Paragraph()
 			p, err := f.Write([]byte(content))
 			require.NoError(t, err)

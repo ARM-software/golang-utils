@@ -505,11 +505,11 @@ func (fs *VFS) TempFile(dir string, prefix string) (f File, err error) {
 		return
 	}
 	// Changing permissions so that it is aligned with os.CreateFile permissions
-	f, err = fs.changeFilePermissions(f, 0o666)
+	f, err = fs.changeFilePermissionsToWritable(f)
 	return
 }
 
-func (fs *VFS) changeFilePermissions(f File, mode os.FileMode) (openF File, err error) {
+func (fs *VFS) changeFilePermissionsToWritable(f File) (openF File, err error) {
 	if f == nil {
 		err = commonerrors.New(commonerrors.ErrUndefined, "missing file")
 		return
@@ -518,7 +518,7 @@ func (fs *VFS) changeFilePermissions(f File, mode os.FileMode) (openF File, err 
 	if err != nil {
 		return
 	}
-	err = fs.Chmod(f.Name(), mode)
+	err = fs.Chmod(f.Name(), 0o666)
 	if err != nil {
 		return
 	}

@@ -219,5 +219,5 @@ func TestWrapError(t *testing.T) {
 	assert.True(t, Any(WrapIfNotCommonError(ErrUndefined, ErrConflict, faker.Sentence()), ErrConflict))
 	assert.True(t, Any(WrapIfNotCommonErrorf(ErrUndefined, ErrConflict, faker.Sentence()), ErrConflict))
 	assert.True(t, Any(WrapIfNotCommonError(ErrUndefined, errors.New(faker.Sentence()), faker.Sentence()), ErrUndefined))
-	assert.True(t, Any(WrapIfNotCommonErrorf(ErrUndefined, errors.New(faker.Sentence()), faker.Sentence()), ErrUndefinedf))
+	assert.True(t, Any(WrapIfNotCommonErrorf(ErrUndefined, errors.New(faker.Sentence()), faker.Sentence()), ErrUndefined))
 }
