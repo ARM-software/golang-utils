@@ -210,11 +210,11 @@ func (fs *VFS) UnzipWithContextAndLimits(ctx context.Context, source string, des
 
 func newZipReader(fs FS, source string, limits ILimits, currentDepth int64) (zipReader *zip.Reader, file File, err error) {
 	if fs == nil {
-		err = commonerrors.New(commonerrors.ErrUndefined, "missing file system")
+		err = commonerrors.UndefinedVariable("file system")
 		return
 	}
 	if limits == nil {
-		err = commonerrors.New(commonerrors.ErrUndefined, "missing file system limits")
+		err = commonerrors.UndefinedVariable("file system limits")
 		return
 	}
 	if limits.Apply() && limits.GetMaxDepth() >= 0 && currentDepth > limits.GetMaxDepth() {
@@ -427,15 +427,25 @@ func (fs *VFS) unzipZippedFile(ctx context.Context, dest string, zippedFile *zip
 	}
 
 	destinationFile, err := fs.OpenFile(destinationPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, zippedFile.Mode())
+	err = convertZipError(err)
 	if err != nil {
-		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "unable to open file '%s'", destinationPath)
+		if commonerrors.IsCommonError(err) {
+			err = commonerrors.Newf(err, "unable to open file '%s'", destinationPath)
+		} else {
+			err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "unable to open file '%s'", destinationPath)
+		}
 		return
 	}
 	defer func() { _ = destinationFile.Close() }()
 
 	sourceFile, err := zippedFile.Open()
+	err = convertZipError(err)
 	if err != nil {
-		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "unable to open zipped file '%s'", zippedFile.Name)
+		if commonerrors.IsCommonError(err) {
+			err = commonerrors.Newf(err, "unable to open zipped file '%s'", zippedFile.Name)
+		} else {
+			err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "unable to open zipped file '%s'", destinationPath)
+		}
 		return
 	}
 	defer func() { _ = sourceFile.Close() }()
