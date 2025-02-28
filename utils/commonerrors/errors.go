@@ -299,12 +299,34 @@ func WrapError(targetError, originalError error, msg string) error {
 	}
 }
 
+// WrapIfNotCommonError is similar to WrapError but only wraps an error if it is not a common error.
+func WrapIfNotCommonError(targetError, originalError error, msg string) error {
+	if Any(ConvertContextError(targetError), ErrTimeout, ErrCancelled) {
+		return WrapError(targetError, originalError, msg)
+	}
+	if IsCommonError(originalError) {
+		return New(originalError, msg)
+	}
+	return WrapError(targetError, originalError, msg)
+}
+
 // WrapErrorf is similar to WrapError but uses a format for the message
 func WrapErrorf(targetError, originalError error, msgFormat string, args ...any) error {
 	if len(args) == 0 {
 		return WrapError(targetError, originalError, msgFormat)
 	}
 	return WrapError(targetError, originalError, fmt.Sprintf(msgFormat, args...))
+}
+
+// WrapIfNotCommonErrorf is similar to WrapError but only wraps an error if it is not a common error.
+func WrapIfNotCommonErrorf(targetError, originalError error, msgFormat string, args ...any) error {
+	if Any(ConvertContextError(targetError), ErrTimeout, ErrCancelled) {
+		return WrapErrorf(targetError, originalError, msgFormat, args...)
+	}
+	if IsCommonError(originalError) {
+		return Newf(originalError, msgFormat, args...)
+	}
+	return WrapErrorf(targetError, originalError, msgFormat, args...)
 }
 
 // New is similar to errors.New or fmt.Errorf but creates an error of type targetError

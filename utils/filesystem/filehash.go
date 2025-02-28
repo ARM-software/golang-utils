@@ -6,7 +6,6 @@ package filesystem
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/hashing"
@@ -48,7 +47,7 @@ func (h *fileHashing) calculateFile(fs FS, path string, hashFunc func(h *fileHas
 		if err != nil {
 			return "", err
 		}
-		err = fmt.Errorf("not a file [%v]: %w", path, commonerrors.ErrInvalid)
+		err = commonerrors.Newf(commonerrors.ErrInvalid, "not a file [%v]", path)
 		return "", err
 	}
 	f, err := fs.GenericOpen(path)

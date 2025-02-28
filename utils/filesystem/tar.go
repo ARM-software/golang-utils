@@ -2,27 +2,26 @@ package filesystem
 
 import (
 	"archive/tar"
-	"fmt"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 func newTarReader(fs FS, source string, limits ILimits, currentDepth int64) (tarReader *tar.Reader, file File, err error) {
 	if fs == nil {
-		err = fmt.Errorf("%w: missing file system", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "missing file system")
 		return
 	}
 	if limits == nil {
-		err = fmt.Errorf("%w: missing file system limits", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "missing file system limits")
 		return
 	}
 	if limits.Apply() && limits.GetMaxDepth() >= 0 && currentDepth > limits.GetMaxDepth() {
-		err = fmt.Errorf("%w: depth [%v] of tar file [%v] is beyond allowed limits (max: %v)", commonerrors.ErrTooLarge, currentDepth, source, limits.GetMaxDepth())
+		err = commonerrors.Newf(commonerrors.ErrTooLarge, "depth [%v] of tar file [%v] is beyond allowed limits (max: %v)", currentDepth, source, limits.GetMaxDepth())
 		return
 	}
 
 	if !fs.Exists(source) {
-		err = fmt.Errorf("%w: could not find archive [%v]", commonerrors.ErrNotFound, source)
+		err = commonerrors.Newf(commonerrors.ErrNotFound, "could not find archive [%v]", source)
 		return
 	}
 
@@ -38,7 +37,7 @@ func newTarReader(fs FS, source string, limits ILimits, currentDepth int64) (tar
 	tarFileSize := info.Size()
 
 	if limits.Apply() && tarFileSize > limits.GetMaxFileSize() {
-		err = fmt.Errorf("%w: tar file [%v] is too big (%v B) and beyond limits (max: %v B)", commonerrors.ErrTooLarge, source, tarFileSize, limits.GetMaxFileSize())
+		err = commonerrors.Newf(commonerrors.ErrTooLarge, "tar file [%v] is too big (%v B) and beyond limits (max: %v B)", source, tarFileSize, limits.GetMaxFileSize())
 		return
 	}
 

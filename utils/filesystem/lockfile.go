@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	retry "github.com/avast/retry-go/v4"
+	"github.com/avast/retry-go/v4"
 
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -203,10 +203,10 @@ func (l *RemoteLockFile) Unlock(ctx context.Context) error {
 		func() error {
 			err := l.fs.Rm(l.lockPath())
 			if err != nil {
-				return fmt.Errorf("cannot unlock lock [%v]: %w", l.id, err)
+				return commonerrors.Newf(err, "cannot unlock lock [%v]", l.id)
 			}
 			if l.fs.Exists(l.lockPath()) {
-				return fmt.Errorf("cannot unlock lock [%v]: %w", l.id, commonerrors.ErrLocked)
+				return commonerrors.Newf(commonerrors.ErrLocked, "cannot unlock lock [%v]", l.id)
 			}
 			return nil
 		},
@@ -235,7 +235,7 @@ func (l *RemoteLockFile) MakeStale(ctx context.Context) error {
 				_ = l.fs.Chtimes(lockPath, newTime, newTime)
 			}
 			if !l.IsStale() {
-				return fmt.Errorf("cannot make lock [%v] stale", l.id)
+				return commonerrors.Newf(commonerrors.ErrConflict, "cannot make lock [%v] stale", l.id)
 			}
 			return nil
 		},

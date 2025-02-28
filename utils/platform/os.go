@@ -70,12 +70,14 @@ func ConvertError(err error) error {
 	switch {
 	case err == nil:
 		return err
+	case commonerrors.Any(err, commonerrors.ErrTimeout, commonerrors.ErrCancelled):
+		return err
 	case commonerrors.Any(err, commonerrors.ErrNotImplemented, commonerrors.ErrUnsupported):
 		return err
 	case IsWindows() && commonerrors.Any(err, errNotSupportedByWindows):
-		return fmt.Errorf("%w: %v", commonerrors.ErrUnsupported, err.Error())
+		return commonerrors.WrapError(commonerrors.ErrUnsupported, err, "")
 	case commonerrors.CorrespondTo(err, "not supported"):
-		return fmt.Errorf("%w: %v", commonerrors.ErrUnsupported, err.Error())
+		return commonerrors.WrapError(commonerrors.ErrUnsupported, err, "")
 	default:
 		return err
 		// TODO extend with more platform specific errors
@@ -112,7 +114,7 @@ func UpTime() (uptime time.Duration, err error) {
 		return
 	}
 	if _uptime > math.MaxInt64 { // The upper limit for time as defined by the standard library https://cs.opensource.google/go/go/+/master:src/time/time.go;l=915 is the same as math.MaxInt64
-		err = fmt.Errorf("%w: could not convert uptime '%v' to duration as it exceeds the upper limit for time.Duration", commonerrors.ErrOutOfRange, _uptime)
+		err = commonerrors.Newf(commonerrors.ErrOutOfRange, "could not convert uptime '%v' to duration as it exceeds the upper limit for time.Duration", _uptime)
 		return
 	}
 	uptime = time.Duration(safecast.ToInt64(_uptime)) * time.Second
@@ -126,7 +128,7 @@ func BootTime() (bootime time.Time, err error) {
 		return
 	}
 	if _bootime > math.MaxInt64 { // The upper limit for time as defined by the standard library https://cs.opensource.google/go/go/+/master:src/time/time.go;l=915 is the same as math.MaxInt64
-		err = fmt.Errorf("%w: could not convert uptime '%v' to duration as it exceeds the upper limit for time.Duration", commonerrors.ErrOutOfRange, _bootime)
+		err = commonerrors.Newf(commonerrors.ErrOutOfRange, "could not convert uptime '%v' to duration as it exceeds the upper limit for time.Duration", _bootime)
 		return
 	}
 	bootime = time.Unix(safecast.ToInt64(_bootime), 0)
