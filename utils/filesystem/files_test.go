@@ -1154,10 +1154,11 @@ func TestTempFile(t *testing.T) {
 			p, err := f.Write([]byte(content))
 			require.NoError(t, err)
 			assert.Equal(t, p, len(content))
-			actual, err := fs.ReadFileContent(context.Background(), f, NoLimits())
+			require.NoError(t, f.Close())
+
+			actual, err := fs.ReadFile(f.Name())
 			require.NoError(t, err)
 			assert.Equal(t, content, string(actual))
-			require.NoError(t, f.Close())
 		})
 	}
 }
