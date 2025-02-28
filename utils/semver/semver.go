@@ -15,7 +15,7 @@ import (
 func CanonicalWithGoPrefix(v string) (canonical string, err error) {
 	v = strings.TrimSpace(v)
 	if v == "" {
-		err = commonerrors.New(commonerrors.ErrUndefined, "no version was supplied")
+		err = commonerrors.UndefinedParameter("no version was supplied")
 		return
 	}
 
