@@ -1942,33 +1942,6 @@ func (fs *VFS) Close() error {
 	return ConvertFileSystemError(fs.resourceInUse.Close())
 }
 
-type extendedFile struct {
-	afero.File
-	onCloseCallBack func() error
-}
-
-func (f *extendedFile) Close() (err error) {
-	err = f.File.Close()
-	err = ConvertFileSystemError(err)
-	if err != nil {
-		return
-	}
-	if f.onCloseCallBack != nil {
-		err = f.onCloseCallBack()
-	}
-	return
-}
-
-func (f *extendedFile) Fd() (fd uintptr) {
-	if correctFile, ok := retrieveSubFile(f.File).(interface {
-		Fd() uintptr
-	}); ok {
-		fd = correctFile.Fd()
-	} else {
-		fd = uintptr(UnsetFileHandle)
-	}
-	return
-}
 func IsFileHandleUnset(fh uintptr) bool {
 	return uint64(fh) == UnsetFileHandle
 }
@@ -1983,30 +1956,4 @@ func retrieveSubFile(top interface{}) interface{} {
 		actualfile = subFile
 	}
 	return actualfile
-}
-func convertFile(getFile func() (afero.File, error), onCloseCallBack func() error) (f File, err error) {
-	file, err := getFile()
-	err = ConvertFileSystemError(err)
-	if err != nil {
-		return
-	}
-	return convertToExtendedFile(file, onCloseCallBack)
-}
-
-func convertToExtendedFile(file afero.File, onCloseCallBack func() error) (File, error) {
-	return &extendedFile{
-		File: file,
-		onCloseCallBack: func() error {
-			return ConvertFileSystemError(onCloseCallBack())
-		},
-	}, nil
-}
-
-// ConvertToOSFile converts a file to a `os` implementation of a file for certain use-cases where functions have not moved to using `fs.File`.
-func ConvertToOSFile(f File) (osFile *os.File) {
-	if f == nil {
-		return
-	}
-	osFile = os.NewFile(f.Fd(), f.Name())
-	return
 }

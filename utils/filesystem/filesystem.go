@@ -122,7 +122,8 @@ func ConvertFileSystemError(err error) error {
 		return commonerrors.WrapError(commonerrors.ErrTooLarge, err, "")
 	case commonerrors.Any(err, ErrChownNotImplemented, ErrLinkNotImplemented):
 		return commonerrors.WrapError(commonerrors.ErrNotImplemented, err, "")
-	case commonerrors.Any(err, io.EOF, io.ErrUnexpectedEOF):
+	case commonerrors.Any(err, io.ErrUnexpectedEOF):
+		// Do not add io.EOF as it is used to read files
 		return commonerrors.WrapError(commonerrors.ErrEOF, err, "")
 	}
 
