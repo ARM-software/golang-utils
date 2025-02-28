@@ -497,7 +497,30 @@ func (fs *VFS) TempFile(dir string, prefix string) (f File, err error) {
 	if err != nil {
 		return
 	}
-	return convertToExtendedFile(file, func() error { return nil })
+	f, err = convertToExtendedFile(file, func() error { return nil })
+	if err != nil {
+		return
+	}
+	// Changing permissions so that it is aligned with os.CreateFile permissions
+	f, err = fs.changeFilePermissions(f, 0o666)
+	return
+}
+
+func (fs *VFS) changeFilePermissions(f File, mode os.FileMode) (openF File, err error) {
+	if f == nil {
+		err = commonerrors.New(commonerrors.ErrUndefined, "missing file")
+		return
+	}
+	err = ConvertFileSystemError(f.Close())
+	if err != nil {
+		return
+	}
+	err = fs.Chmod(f.Name(), mode)
+	if err != nil {
+		return
+	}
+	openF, err = fs.GenericOpen(f.Name())
+	return
 }
 
 // TouchTempFile creates an empty file in `dir` and returns it filename
@@ -956,7 +979,7 @@ func (fs *VFS) Touch(path string) (err error) {
 		return
 	}
 	if strings.TrimSpace(path) == "" {
-		err = fmt.Errorf("%w: empty path", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "empty path")
 		return
 	}
 	if EndsWithPathSeparator(fs, path) {

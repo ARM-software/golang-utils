@@ -2126,7 +2126,7 @@ func TestLsRecursive(t *testing.T) {
 			nonExistentDir := filepath.Join(t.TempDir(), "non_existent_dir")
 
 			result, err := fs.LsRecursive(context.Background(), nonExistentDir, true)
-			errortest.AssertError(t, err, os.ErrNotExist)
+			errortest.AssertError(t, err, os.ErrNotExist, commonerrors.ErrNotFound)
 			assert.Empty(t, result, "Expected no results when directory does not exist")
 		})
 	}
@@ -2207,7 +2207,7 @@ func TestLsRecursiveWithExclusionPatterns(t *testing.T) {
 			nonExistentDir := filepath.Join(t.TempDir(), "non_existent_dir")
 
 			result, err := fs.LsRecursiveWithExclusionPatterns(context.Background(), nonExistentDir, true)
-			errortest.AssertError(t, err, os.ErrNotExist)
+			errortest.AssertError(t, err, os.ErrNotExist, commonerrors.ErrNotFound)
 			assert.Empty(t, result, "Expected no results when directory does not exist")
 		})
 	}
@@ -2356,7 +2356,7 @@ func TestLsRecursiveWithExclusionPatternsAndLimits(t *testing.T) {
 
 			limits := &Limits{MaxDepth: 4, MaxFileCount: 5, Recursive: true}
 			result, err := fs.LsRecursiveWithExclusionPatternsAndLimits(context.Background(), nonExistentDir, limits, true)
-			errortest.AssertError(t, err, os.ErrNotExist)
+			errortest.AssertError(t, err, os.ErrNotExist, commonerrors.ErrNotFound)
 			assert.Empty(t, result, "Expected no results when directory does not exist")
 		})
 	}
