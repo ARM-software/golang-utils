@@ -252,9 +252,12 @@ func (fs *VFS) Open(name string) (doublestar.File, error) {
 	return fs.GenericOpen(name)
 }
 
+// GenericOpen opens a file for reading only.
 func GenericOpen(name string) (File, error) {
 	return globalFileSystem.GenericOpen(name)
 }
+
+// GenericOpen opens a file for reading only.
 func (fs *VFS) GenericOpen(name string) (File, error) {
 	err := fs.checkWhetherUnderlyingResourceIsClosed()
 	if err != nil {
@@ -519,7 +522,7 @@ func (fs *VFS) changeFilePermissions(f File, mode os.FileMode) (openF File, err 
 	if err != nil {
 		return
 	}
-	openF, err = fs.GenericOpen(f.Name())
+	openF, err = fs.CreateFile(f.Name())
 	return
 }
 

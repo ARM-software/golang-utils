@@ -1139,6 +1139,28 @@ func TestFindAll(t *testing.T) {
 	}
 }
 
+func TestTempFile(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-copy-to-file-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+
+			f, err := fs.TempFile(tmpDir, "test-tmp-file-*.txt")
+			require.NoError(t, err)
+			defer func() { require.NoError(t, f.Close()) }()
+			content := faker.Paragraph()
+			_, err = f.Write([]byte(content))
+			require.NoError(t, err)
+			actual, err := fs.ReadFileContent(context.Background(), f, NoLimits())
+			require.NoError(t, err)
+			assert.Equal(t, content, string(actual))
+			require.NoError(t, f.Close())
+		})
+	}
+}
+
 func TestCopyToFile(t *testing.T) {
 	for _, fsType := range FileSystemTypes {
 		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
