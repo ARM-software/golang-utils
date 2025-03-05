@@ -1,7 +1,6 @@
 module github.com/ARM-software/golang-utils/utils
 
 go 1.21
-
 toolchain go1.23.4
 
 require (
@@ -48,7 +47,7 @@ require (
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 	golang.org/x/mod v0.19.0
 	golang.org/x/net v0.35.0
-	golang.org/x/oauth2 v0.26.0
+	golang.org/x/oauth2 v0.27.0
 	golang.org/x/sync v0.11.0
 	golang.org/x/sys v0.30.0
 	golang.org/x/text v0.22.0
