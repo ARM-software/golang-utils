@@ -1,7 +1,8 @@
 module github.com/ARM-software/golang-utils/utils
 
-go 1.22
-toolchain go1.23.4
+go 1.23.0
+
+toolchain go1.24.0
 
 require (
 	github.com/OneOfOne/xxhash v1.2.8
@@ -45,7 +46,7 @@ require (
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.35.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
-	golang.org/x/mod v0.19.0
+	golang.org/x/mod v0.21.0
 	golang.org/x/net v0.35.0
 	golang.org/x/oauth2 v0.26.0
 	golang.org/x/sync v0.11.0

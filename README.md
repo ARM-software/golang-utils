@@ -4,7 +4,7 @@ SPDX-License-Identifier: Apache-2.0
 -->
 # Golang utilities
 
-[![Go Badge](https://img.shields.io/badge/go-v1.22-blue)](https://golang.org/)
+[![Go Badge](https://img.shields.io/badge/go-v1.23-blue)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CI](https://github.com/ARM-software/golang-utils/actions/workflows/ci.yml/badge.svg)](https://github.com/ARM-software/golang-utils/actions/workflows/ci.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/ARM-software/golang-utils/utils.svg)](https://pkg.go.dev/github.com/ARM-software/golang-utils/utils)
