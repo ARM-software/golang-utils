@@ -24,6 +24,7 @@ func newZipFSAdapterFromFilePath(fs FS, zipFilePath string, limits ILimits) (zip
 	}
 	zipReader, zipFile, err := newZipReader(fs, zipFilePath, limits, 0)
 	if err != nil && zipFile != nil {
+		err = ConvertFileSystemError(err)
 		subErr := zipFile.Close()
 		if subErr == nil {
 			zipFile = nil

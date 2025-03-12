@@ -187,7 +187,31 @@ func TestTouch(t *testing.T) {
 				require.NoError(t, err)
 				assert.True(t, isDir)
 			})
-
+			t.Run("permissions-temp", func(t *testing.T) {
+				tmpOpenFile, err := fs.TouchTempFile(tmpDir, "test-touch-perm*.test")
+				require.NoError(t, err)
+				assert.True(t, fs.Exists(tmpOpenFile))
+				f, err := fs.GenericOpen(tmpOpenFile)
+				require.NoError(t, err)
+				require.NoError(t, f.Close())
+				_, err = fs.ReadFile(tmpOpenFile)
+				errortest.AssertError(t, err, nil, commonerrors.ErrEmpty)
+				err = fs.WriteFile(tmpOpenFile, []byte(faker.Sentence()), 0644)
+				require.NoError(t, err)
+			})
+			t.Run("permissions", func(t *testing.T) {
+				tmpOpenFile := filepath.Join(tmpDir, "test-touch-perm-direct.test")
+				err := fs.Touch(tmpOpenFile)
+				require.NoError(t, err)
+				assert.True(t, fs.Exists(tmpOpenFile))
+				f, err := fs.GenericOpen(tmpOpenFile)
+				require.NoError(t, err)
+				require.NoError(t, f.Close())
+				_, err = fs.ReadFile(tmpOpenFile)
+				errortest.AssertError(t, err, nil, commonerrors.ErrEmpty)
+				err = fs.WriteFile(tmpOpenFile, []byte(faker.Sentence()), 0644)
+				require.NoError(t, err)
+			})
 			_ = fs.Rm(tmpDir)
 		})
 	}
@@ -1111,6 +1135,30 @@ func TestFindAll(t *testing.T) {
 			}
 			err = fs.Rm(tmpDir)
 			require.NoError(t, err)
+		})
+	}
+}
+
+func TestTempFile(t *testing.T) {
+	for _, fsType := range FileSystemTypes {
+		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
+			fs := NewFs(fsType)
+			tmpDir, err := fs.TempDirInTempDir("test-tmp-file-")
+			require.NoError(t, err)
+			defer func() { _ = fs.Rm(tmpDir) }()
+
+			f, err := fs.TempFile(tmpDir, "test-tmp-file-*.txt")
+			require.NoError(t, err)
+			defer func() { _ = f.Close() }()
+			content := faker.Paragraph()
+			p, err := f.Write([]byte(content))
+			require.NoError(t, err)
+			assert.Equal(t, p, len(content))
+			require.NoError(t, f.Close())
+
+			actual, err := fs.ReadFile(f.Name())
+			require.NoError(t, err)
+			assert.Equal(t, content, string(actual))
 		})
 	}
 }
@@ -2102,7 +2150,7 @@ func TestLsRecursive(t *testing.T) {
 			nonExistentDir := filepath.Join(t.TempDir(), "non_existent_dir")
 
 			result, err := fs.LsRecursive(context.Background(), nonExistentDir, true)
-			errortest.AssertError(t, err, os.ErrNotExist)
+			errortest.AssertError(t, err, os.ErrNotExist, commonerrors.ErrNotFound)
 			assert.Empty(t, result, "Expected no results when directory does not exist")
 		})
 	}
@@ -2183,7 +2231,7 @@ func TestLsRecursiveWithExclusionPatterns(t *testing.T) {
 			nonExistentDir := filepath.Join(t.TempDir(), "non_existent_dir")
 
 			result, err := fs.LsRecursiveWithExclusionPatterns(context.Background(), nonExistentDir, true)
-			errortest.AssertError(t, err, os.ErrNotExist)
+			errortest.AssertError(t, err, os.ErrNotExist, commonerrors.ErrNotFound)
 			assert.Empty(t, result, "Expected no results when directory does not exist")
 		})
 	}
@@ -2332,7 +2380,7 @@ func TestLsRecursiveWithExclusionPatternsAndLimits(t *testing.T) {
 
 			limits := &Limits{MaxDepth: 4, MaxFileCount: 5, Recursive: true}
 			result, err := fs.LsRecursiveWithExclusionPatternsAndLimits(context.Background(), nonExistentDir, limits, true)
-			errortest.AssertError(t, err, os.ErrNotExist)
+			errortest.AssertError(t, err, os.ErrNotExist, commonerrors.ErrNotFound)
 			assert.Empty(t, result, "Expected no results when directory does not exist")
 		})
 	}

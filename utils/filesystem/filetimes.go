@@ -5,7 +5,6 @@
 package filesystem
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -16,7 +15,7 @@ import (
 
 func DetermineFileTimes(info os.FileInfo) (times FileTimeInfo, err error) {
 	if info == nil {
-		err = fmt.Errorf("no file information defined: %w", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "no file information defined")
 		return
 	}
 	if info.Sys() == nil {

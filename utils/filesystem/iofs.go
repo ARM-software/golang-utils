@@ -1,7 +1,6 @@
 package filesystem
 
 import (
-	"fmt"
 	"io/fs"
 
 	"github.com/spf13/afero"
@@ -20,7 +19,7 @@ func (w *wrappedFS) Open(name string) (fs.File, error) {
 // ConvertToIOFilesystem converts a filesystem FS to a io/fs FS
 func ConvertToIOFilesystem(filesystem FS) (fs.FS, error) {
 	if filesystem == nil {
-		return nil, fmt.Errorf("%w: missing filesystem", commonerrors.ErrUndefined)
+		return nil, commonerrors.New(commonerrors.ErrUndefined, "missing filesystem")
 	}
 	return &wrappedFS{filesystem: filesystem}, nil
 }
@@ -28,7 +27,7 @@ func ConvertToIOFilesystem(filesystem FS) (fs.FS, error) {
 // ConvertFromIOFilesystem converts an io/fs FS into a FS
 func ConvertFromIOFilesystem(filesystem fs.FS) (FS, error) {
 	if filesystem == nil {
-		return nil, fmt.Errorf("%w: missing filesystem", commonerrors.ErrUndefined)
+		return nil, commonerrors.New(commonerrors.ErrUndefined, "missing filesystem")
 	}
 	return NewVirtualFileSystem(afero.FromIOFS{FS: filesystem}, Custom, IdentityPathConverterFunc), nil
 }

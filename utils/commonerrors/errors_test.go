@@ -202,3 +202,22 @@ func TestErrorRelatesTo(t *testing.T) {
 	assert.False(t, RelatesTo(fmt.Sprintf("%v: %v", ErrUnauthorised.Error(), faker.Sentence()), ErrInvalid))
 	assert.False(t, RelatesTo(fmt.Sprintf("%v: %v", ErrUnauthorised.Error(), faker.Sentence()), ErrInvalid, ErrCondition))
 }
+
+func TestWrapError(t *testing.T) {
+	assert.True(t, Any(WrapError(ErrUndefined, nil, faker.Sentence()), ErrUndefined))
+	assert.True(t, Any(WrapError(ErrUndefined, ErrNotFound, faker.Sentence()), ErrUndefined))
+	assert.True(t, Any(WrapError(nil, ErrNotFound, faker.Sentence()), ErrUnknown))
+	assert.True(t, Any(WrapError(ErrUndefined, context.DeadlineExceeded, faker.Sentence()), ErrTimeout))
+	assert.True(t, Any(WrapError(ErrUndefined, context.Canceled, faker.Sentence()), ErrCancelled))
+	assert.True(t, Any(WrapError(ErrUndefined, ErrTimeout, faker.Sentence()), ErrTimeout))
+	assert.True(t, Any(WrapError(ErrUndefined, ErrCancelled, faker.Sentence()), ErrCancelled))
+	assert.True(t, Any(WrapErrorf(context.DeadlineExceeded, nil, faker.Sentence()), ErrTimeout))
+	assert.True(t, Any(WrapError(context.Canceled, ErrConflict, faker.Sentence()), ErrCancelled))
+	assert.True(t, Any(WrapErrorf(context.DeadlineExceeded, nil, "%v this is a test %v", faker.Name(), faker.Word()), ErrTimeout))
+	assert.True(t, Any(Newf(context.DeadlineExceeded, "%v this is a test %v", faker.Name(), faker.Word()), ErrTimeout))
+	assert.True(t, Any(WrapIfNotCommonError(context.Canceled, ErrConflict, faker.Sentence()), ErrCancelled))
+	assert.True(t, Any(WrapIfNotCommonError(ErrUndefined, ErrConflict, faker.Sentence()), ErrConflict))
+	assert.True(t, Any(WrapIfNotCommonErrorf(ErrUndefined, ErrConflict, faker.Sentence()), ErrConflict))
+	assert.True(t, Any(WrapIfNotCommonError(ErrUndefined, errors.New(faker.Sentence()), faker.Sentence()), ErrUndefined))
+	assert.True(t, Any(WrapIfNotCommonErrorf(ErrUndefined, errors.New(faker.Sentence()), faker.Sentence()), ErrUndefined))
+}

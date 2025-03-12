@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
 
 func TestReadAll(t *testing.T) {
@@ -37,7 +38,7 @@ func TestReadAll(t *testing.T) {
 	cancel()
 	rbytes, err = ReadAll(ctx, &buf)
 	require.Error(t, err)
-	assert.True(t, commonerrors.Any(err, commonerrors.ErrCancelled))
+	errortest.AssertError(t, err, commonerrors.ErrCancelled)
 	assert.Empty(t, rbytes)
 }
 
@@ -45,7 +46,7 @@ func TestReadAllEmpty(t *testing.T) {
 	var buf bytes.Buffer
 	rbytes, err := ReadAll(context.Background(), &buf)
 	require.Error(t, err)
-	assert.True(t, commonerrors.Any(err, commonerrors.ErrEmpty))
+	errortest.AssertError(t, err, commonerrors.ErrEmpty)
 	assert.Empty(t, rbytes)
 }
 
@@ -85,7 +86,7 @@ func TestReadAtMost(t *testing.T) {
 	cancel()
 	rbytes, err = ReadAtMost(ctx, &buf, int64(len(text)), -1)
 	require.Error(t, err)
-	assert.True(t, commonerrors.Any(err, commonerrors.ErrCancelled))
+	errortest.AssertError(t, err, commonerrors.ErrCancelled)
 	assert.Empty(t, rbytes)
 }
 
@@ -99,6 +100,6 @@ func TestNewByteReader(t *testing.T) {
 	cancel()
 	result, err = ReadAll(context.TODO(), NewByteReader(ctx, []byte(text)))
 	require.Error(t, err)
-	assert.True(t, commonerrors.Any(err, commonerrors.ErrCancelled))
+	errortest.AssertError(t, err, commonerrors.ErrCancelled)
 	assert.Empty(t, result)
 }

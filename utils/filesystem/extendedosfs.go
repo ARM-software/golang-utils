@@ -20,15 +20,15 @@ type ExtendedOsFs struct {
 }
 
 func (c *ExtendedOsFs) ChownIfPossible(name string, uid int, gid int) error {
-	return platform.ConvertError(c.OsFs.Chown(name, uid, gid))
+	return ConvertFileSystemError(c.OsFs.Chown(name, uid, gid))
 }
 
 func (c *ExtendedOsFs) LinkIfPossible(oldname, newname string) (err error) {
-	return platform.ConvertError(os.Link(oldname, newname))
+	return ConvertFileSystemError(os.Link(oldname, newname))
 }
 
 func (c *ExtendedOsFs) ForceRemoveIfPossible(path string) error {
-	return platform.RemoveWithPrivileges(context.Background(), path)
+	return ConvertFileSystemError(platform.RemoveWithPrivileges(context.Background(), path))
 }
 
 func NewExtendedOsFs() afero.Fs {

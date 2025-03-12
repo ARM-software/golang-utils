@@ -266,3 +266,100 @@ func IsEmpty(err error) bool {
 	}
 	return false
 }
+
+// Errorf is similar to fmt.Errorf although it will try to follow the error convention we use i.e. `errortype: message` but differs in that the wrapped error will be the targetErr
+func Errorf(targetErr error, format string, args ...any) error {
+	tErr := ConvertContextError(targetErr)
+	if tErr == nil {
+		tErr = ErrUnknown
+	}
+	msg := format
+	if len(args) > 0 {
+		msg = fmt.Sprintf(format, args...)
+	}
+	return fmt.Errorf("%w%v %v", tErr, string(TypeReasonErrorSeparator), msg)
+}
+
+// WrapError wraps an error into a particular targetError. However, if the original error has to do with a contextual error (i.e. ErrCancelled or ErrTimeout), it will be passed through without having is type changed.
+// This method should be used to safely wrap errors without losing information about context control information.
+// If the target error is not set, the wrapped error will be of type ErrUnknown.
+func WrapError(targetError, originalError error, msg string) error {
+	tErr := targetError
+	if tErr == nil {
+		tErr = ErrUnknown
+	}
+	origErr := ConvertContextError(originalError)
+	if Any(origErr, ErrTimeout, ErrCancelled) {
+		tErr = origErr
+	}
+	if originalError == nil {
+		return New(tErr, msg)
+	} else {
+		return Errorf(tErr, "%v%v %v", msg, string(TypeReasonErrorSeparator), originalError.Error())
+	}
+}
+
+// WrapIfNotCommonError is similar to WrapError but only wraps an error if it is not a common error.
+func WrapIfNotCommonError(targetError, originalError error, msg string) error {
+	if Any(ConvertContextError(targetError), ErrTimeout, ErrCancelled) {
+		return WrapError(targetError, originalError, msg)
+	}
+	if IsCommonError(originalError) {
+		return New(originalError, msg)
+	}
+	return WrapError(targetError, originalError, msg)
+}
+
+// WrapErrorf is similar to WrapError but uses a format for the message
+func WrapErrorf(targetError, originalError error, msgFormat string, args ...any) error {
+	if len(args) == 0 {
+		return WrapError(targetError, originalError, msgFormat)
+	}
+	return WrapError(targetError, originalError, fmt.Sprintf(msgFormat, args...))
+}
+
+// WrapIfNotCommonErrorf is similar to WrapError but only wraps an error if it is not a common error.
+func WrapIfNotCommonErrorf(targetError, originalError error, msgFormat string, args ...any) error {
+	if Any(ConvertContextError(targetError), ErrTimeout, ErrCancelled) {
+		return WrapErrorf(targetError, originalError, msgFormat, args...)
+	}
+	if IsCommonError(originalError) {
+		return Newf(originalError, msgFormat, args...)
+	}
+	return WrapErrorf(targetError, originalError, msgFormat, args...)
+}
+
+// New is similar to errors.New or fmt.Errorf but creates an error of type targetError
+func New(targetError error, msg string) error {
+	return Errorf(targetError, msg)
+}
+
+// Newf is similar to New but allows to format the message
+func Newf(targetError error, msgFormat string, args ...any) error {
+	return WrapErrorf(targetError, nil, msgFormat, args...)
+}
+
+// UndefinedVariable returns an undefined error related to a variable.
+func UndefinedVariable(variableName string) error {
+	return undefinedVariable(variableName, "")
+}
+
+// UndefinedVariableWithMessage returns an undefined error with a message.
+func UndefinedVariableWithMessage(variableName string, msg string) error {
+	return undefinedVariable(variableName, msg)
+}
+
+// UndefinedParameter returns an undefined error with a message
+func UndefinedParameter(msg string) error {
+	return undefinedVariable("", msg)
+}
+
+func undefinedVariable(variableName, msg string) error {
+	if msg == "" {
+		return Newf(ErrUndefined, "missing %v", variableName)
+	}
+	if variableName == "" {
+		return New(ErrUndefined, msg)
+	}
+	return Newf(ErrUndefined, "missing %v: %v", variableName, msg)
+}

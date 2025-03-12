@@ -6,7 +6,6 @@ package charset
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"unicode/utf8"
 
@@ -27,7 +26,7 @@ func DetectTextEncoding(content []byte) (encoding.Encoding, string, error) {
 
 	result, err := chardet.NewTextDetector().DetectBest(content)
 	if err != nil {
-		return nil, "", fmt.Errorf("%w: %v", commonerrors.ErrNotFound, err)
+		return nil, "", commonerrors.WrapError(commonerrors.ErrNotFound, err, "")
 	}
 
 	return LookupCharset(result.Charset)
@@ -49,9 +48,9 @@ func LookupCharset(charsetLabel string) (charsetEnc encoding.Encoding, charsetNa
 	charsetEnc, err = findCharsetEncoding(charsetLabel)
 	if err != nil {
 		if commonerrors.Any(err, commonerrors.ErrUnsupported) {
-			err = fmt.Errorf("%w: charset [%v] is not supported by go: %v", commonerrors.ErrUnsupported, charsetLabel, err.Error())
+			err = commonerrors.WrapErrorf(commonerrors.ErrUnsupported, err, "charset [%v] is not supported by go", charsetLabel)
 		} else {
-			err = fmt.Errorf("%w: charset [%v] is invalid: %v", commonerrors.ErrInvalid, charsetLabel, err.Error())
+			err = commonerrors.WrapErrorf(commonerrors.ErrInvalid, err, "charset [%v] is invalid", charsetLabel)
 		}
 		return
 	}
@@ -97,7 +96,7 @@ func checkEncodingSupport(charsetEnc encoding.Encoding, err error) (encoding.Enc
 	newErr := err
 	if err == nil {
 		if charsetEnc == nil {
-			newErr = fmt.Errorf("%w charset encoding", commonerrors.ErrUnsupported)
+			newErr = commonerrors.New(commonerrors.ErrUnsupported, "unsupported charset encoding")
 		}
 	}
 	return charsetEnc, newErr

@@ -109,8 +109,11 @@ func LoadFromConfigurationFile(viperSession *viper.Viper, configFile string) (er
 }
 
 func convertViperError(vErr error) (err error) {
+	vErr = commonerrors.ConvertContextError(vErr)
 	switch {
 	case vErr == nil:
+	case commonerrors.Any(vErr, commonerrors.ErrTimeout, commonerrors.ErrCancelled):
+		err = vErr
 	case commonerrors.CorrespondTo(vErr, "unsupported"):
 		err = fmt.Errorf("%w: %v", commonerrors.ErrUnsupported, vErr.Error())
 	case commonerrors.CorrespondTo(vErr, "not found"):

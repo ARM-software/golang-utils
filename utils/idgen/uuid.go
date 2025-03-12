@@ -5,8 +5,6 @@
 package idgen
 
 import (
-	"fmt"
-
 	"github.com/gofrs/uuid/v5"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -16,7 +14,7 @@ import (
 func GenerateUUID4() (string, error) {
 	uuid, err := uuid.NewV4()
 	if err != nil {
-		return "", fmt.Errorf("%w: failed generating uuid: %v", commonerrors.ErrUnexpected, err.Error())
+		return "", commonerrors.WrapError(commonerrors.ErrUnexpected, err, "failed generating uuid")
 	}
 	return uuid.String(), nil
 }

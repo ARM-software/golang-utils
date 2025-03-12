@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
 
 func Test_convertIOError(t *testing.T) {
@@ -15,6 +16,6 @@ func Test_convertIOError(t *testing.T) {
 	err := errors.New("test")
 	assert.ErrorIs(t, err, ConvertIOError(err))
 
-	assert.True(t, commonerrors.Any(ConvertIOError(commonerrors.ErrEOF), commonerrors.ErrEOF))
-	assert.True(t, commonerrors.Any(ConvertIOError(io.EOF), commonerrors.ErrEOF))
+	errortest.AssertError(t, ConvertIOError(commonerrors.ErrEOF), commonerrors.ErrEOF)
+	errortest.AssertError(t, ConvertIOError(io.EOF), commonerrors.ErrEOF)
 }

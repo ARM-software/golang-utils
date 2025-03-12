@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
 
 func TestWriteString(t *testing.T) {
@@ -27,7 +28,7 @@ func TestWriteString(t *testing.T) {
 	cancel()
 	n, err = WriteString(ctx, &buf, text)
 	require.Error(t, err)
-	assert.True(t, commonerrors.Any(err, commonerrors.ErrCancelled))
+	errortest.AssertError(t, err, commonerrors.ErrCancelled)
 	assert.Zero(t, n)
 	assert.Empty(t, buf.String())
 }

@@ -7,7 +7,6 @@ package proc
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/shirou/gopsutil/v4/process"
 
@@ -50,7 +49,7 @@ func FindProcess(ctx context.Context, pid int) (p IProcess, err error) {
 	if commonerrors.Any(err, nil, commonerrors.ErrTimeout, commonerrors.ErrCancelled) {
 		return
 	}
-	err = fmt.Errorf("%w: process (#%v) could not be found: %v", commonerrors.ErrNotFound, pid, err.Error())
+	err = commonerrors.WrapErrorf(commonerrors.ErrNotFound, err, "process (#%v) could not be found", pid)
 	return
 }
 

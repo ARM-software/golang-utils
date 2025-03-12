@@ -25,6 +25,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/charset/charsetaliases"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/safeio"
 )
 
@@ -147,7 +148,7 @@ func TestLookUp(t *testing.T) {
 				} else {
 					if commonerrors.Any(err, commonerrors.ErrUnsupported) {
 						assert.Error(t, err)
-						assert.True(t, commonerrors.Any(err, commonerrors.ErrUnsupported))
+						errortest.AssertError(t, err, commonerrors.ErrUnsupported)
 						assert.Empty(t, name)
 						assert.Nil(t, encoding)
 					} else {
@@ -214,7 +215,7 @@ func TestDetectEncodingError(t *testing.T) {
 	input := "\x80" // Input is too small for detecting its charset.
 	encoding, charsetName, err := DetectTextEncoding([]byte(input))
 	require.Error(t, err)
-	assert.True(t, commonerrors.Any(err, commonerrors.ErrNotFound))
+	errortest.AssertError(t, err, commonerrors.ErrNotFound)
 	assert.Empty(t, charsetName)
 	assert.Empty(t, encoding)
 }

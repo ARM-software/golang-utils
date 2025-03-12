@@ -8,8 +8,8 @@ import (
 )
 
 func TestNewLimits(t *testing.T) {
-	require.NoError(t, NoLimits().Validate())
-	require.NoError(t, DefaultLimits().Validate())
+	require.NoError(t, NoLimits().Validate())      //nolint:typecheck
+	require.NoError(t, DefaultLimits().Validate()) //nolint:typecheck
 	assert.True(t, DefaultLimits().Apply())
 	assert.False(t, NoLimits().Apply())
 }
