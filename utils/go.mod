@@ -1,6 +1,6 @@
 module github.com/ARM-software/golang-utils/utils
 
-go 1.21
+go 1.22
 
 toolchain go1.23.4
 
