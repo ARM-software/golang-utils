@@ -7,7 +7,6 @@ package pagination
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
@@ -77,7 +76,7 @@ func (a *AbstractPaginator) GetNext() (item interface{}, err error) {
 		return
 	}
 	if !a.HasNext() {
-		err = fmt.Errorf("%w: there is not any next item", commonerrors.ErrNotFound)
+		err = commonerrors.New(commonerrors.ErrNotFound, "there is not any next item")
 		return
 	}
 	currentIt, err := a.FetchCurrentPageIterator()
@@ -103,7 +102,7 @@ func (a *AbstractPaginator) setCurrentPage(page IStaticPage) (err error) {
 
 func (a *AbstractPaginator) SetCurrentPage(page IStaticPage) (err error) {
 	if page == nil {
-		err = fmt.Errorf("%w: missing page", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "missing page")
 		return
 	}
 	err = a.setCurrentPage(page)
@@ -113,7 +112,7 @@ func (a *AbstractPaginator) SetCurrentPage(page IStaticPage) (err error) {
 func (a *AbstractPaginator) FetchCurrentPage() (page IStaticPage, err error) {
 	page = a.currentPage
 	if page == nil {
-		err = fmt.Errorf("%w: missing page", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "missing page")
 	}
 	return
 }
@@ -121,7 +120,7 @@ func (a *AbstractPaginator) FetchCurrentPage() (page IStaticPage, err error) {
 func (a *AbstractPaginator) FetchCurrentPageIterator() (it IIterator, err error) {
 	it = a.currentPageIterator
 	if it == nil {
-		err = fmt.Errorf("%w: missing page iterator", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "missing page iterator")
 	}
 	return
 }
@@ -164,7 +163,7 @@ func toDynamicPage(page IStaticPage) (dynamicPage IPage, err error) {
 	}
 	dynamicPage, ok := page.(IPage)
 	if !ok {
-		err = fmt.Errorf("%w: current page is not dynamic i.e. it is not possible to fetch next pages from it", commonerrors.ErrInvalid)
+		err = commonerrors.New(commonerrors.ErrInvalid, "current page is not dynamic i.e. it is not possible to fetch next pages from it")
 	}
 	return
 }

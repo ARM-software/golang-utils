@@ -7,7 +7,6 @@ package pagination
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"go.uber.org/atomic"
@@ -78,7 +77,7 @@ func (s *AbstractStreamPaginator) GetNext() (interface{}, error) {
 		}
 
 		if !s.HasNext() {
-			err = fmt.Errorf("%w: there is not any next item", commonerrors.ErrNotFound)
+			err = commonerrors.New(commonerrors.ErrNotFound, "there is not any next item")
 			return nil, err
 		}
 		parallelisation.SleepWithContext(s.GetContext(), s.backoff)
@@ -127,7 +126,7 @@ func toDynamicStream(stream IStaticPageStream) (dynamicStream IStream, err error
 	}
 	dynamicStream, ok := stream.(IStream)
 	if !ok {
-		err = fmt.Errorf("%w: current stream is not dynamic i.e. it is not possible to fetch next pages from it", commonerrors.ErrInvalid)
+		err = commonerrors.New(commonerrors.ErrInvalid, "current stream is not dynamic i.e. it is not possible to fetch next pages from it")
 	}
 	return
 }

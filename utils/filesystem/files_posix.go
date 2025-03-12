@@ -4,7 +4,6 @@
 package filesystem
 
 import (
-	"fmt"
 	"os"
 	"syscall"
 
@@ -16,7 +15,7 @@ func determineFileOwners(info os.FileInfo) (uid, gid int, err error) {
 		gid = int(raw.Gid)
 		uid = int(raw.Uid)
 	} else {
-		err = fmt.Errorf("%w: file info [%v] is not of type Stat_t", commonerrors.ErrUnsupported, info.Sys())
+		err = commonerrors.Newf(commonerrors.ErrUnsupported, "file info [%v] is not of type Stat_t", info.Sys())
 	}
 	return
 }

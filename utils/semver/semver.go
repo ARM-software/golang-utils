@@ -15,7 +15,7 @@ import (
 func CanonicalWithGoPrefix(v string) (canonical string, err error) {
 	v = strings.TrimSpace(v)
 	if v == "" {
-		err = fmt.Errorf("%w: no version was supplied", commonerrors.ErrUndefined)
+		err = commonerrors.UndefinedParameter("no version was supplied")
 		return
 	}
 
@@ -25,7 +25,7 @@ func CanonicalWithGoPrefix(v string) (canonical string, err error) {
 
 	canonical = semver.Canonical(v)
 	if canonical == "" {
-		err = fmt.Errorf("%w: could not parse '%v' as a semantic version", commonerrors.ErrInvalid, v)
+		err = commonerrors.Newf(commonerrors.ErrInvalid, "could not parse '%v' as a semantic version", v)
 	}
 
 	return

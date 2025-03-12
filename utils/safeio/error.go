@@ -1,7 +1,6 @@
 package safeio
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -16,7 +15,7 @@ func ConvertIOError(err error) (newErr error) {
 	switch {
 	case commonerrors.Any(newErr, commonerrors.ErrEOF):
 	case commonerrors.Any(newErr, io.EOF, io.ErrUnexpectedEOF):
-		newErr = fmt.Errorf("%w: %v", commonerrors.ErrEOF, newErr.Error())
+		newErr = commonerrors.WrapError(commonerrors.ErrEOF, newErr, "")
 	}
 	return
 }

@@ -8,11 +8,13 @@ package filesystem
 import (
 	"embed"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/spf13/afero"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
 type FilesystemType int
@@ -40,6 +42,7 @@ func NewStandardFileSystem() FS {
 
 func NewEmbedFileSystem(fs *embed.FS) (FS, error) {
 	wrapped, err := newEmbedFSAdapter(fs)
+	err = ConvertFileSystemError(err)
 	if err != nil {
 		return nil, err
 	}
@@ -51,6 +54,7 @@ func NewEmbedFileSystem(fs *embed.FS) (FS, error) {
 // fs corresponds to the filesystem to use to find the zip file.
 func NewZipFileSystem(fs FS, source string, limits ILimits) (zipFs ICloseableFS, zipFile File, err error) {
 	wrapped, zipFile, err := newZipFSAdapterFromFilePath(fs, source, limits)
+	err = ConvertFileSystemError(err)
 	if err != nil {
 		return
 	}
@@ -68,6 +72,7 @@ func NewZipFileSystemFromStandardFileSystem(source string, limits ILimits) (IClo
 // fs corresponds to the filesystem to use to find the tar file.
 func NewTarFileSystem(fs FS, source string, limits ILimits) (squashFS ICloseableFS, tarFile File, err error) {
 	wrapped, tarFile, err := newTarFSAdapterFromFilePath(fs, source, limits)
+	err = ConvertFileSystemError(err)
 	if err != nil {
 		return
 	}
@@ -86,17 +91,41 @@ func NewFs(fsType FilesystemType) FS {
 		return NewStandardFileSystem()
 	case InMemoryFS:
 		return NewInMemoryFileSystem()
+	default:
+		return NewStandardFileSystem()
 	}
-	return NewStandardFileSystem()
 }
 
 // ConvertFileSystemError converts file system error into common errors
 func ConvertFileSystemError(err error) error {
-	if err == nil {
+	err = commonerrors.ConvertContextError(platform.ConvertError(err))
+	switch {
+	case err == nil:
 		return nil
+	case commonerrors.Any(err, commonerrors.ErrTimeout, commonerrors.ErrCancelled):
+		return err
+	case os.IsTimeout(err) || commonerrors.Any(err, os.ErrDeadlineExceeded) || commonerrors.CorrespondTo(err, "i/o timeout"):
+		return commonerrors.WrapError(commonerrors.ErrTimeout, err, "")
+	case commonerrors.Any(err, os.ErrExist, afero.ErrFileExists, afero.ErrDestinationExists) || os.IsExist(err) || commonerrors.CorrespondTo(err, "file exists", "file already exists"):
+		return commonerrors.WrapError(commonerrors.ErrExists, err, "")
+	case commonerrors.CorrespondTo(err, "bad file descriptor") || os.IsPermission(err) || commonerrors.Any(err, os.ErrPermission, os.ErrClosed, afero.ErrFileClosed, ErrPathNotExist, io.ErrClosedPipe):
+		return commonerrors.WrapError(commonerrors.ErrConflict, err, "")
+	case os.IsNotExist(err) || commonerrors.Any(err, os.ErrNotExist, afero.ErrFileNotFound):
+		return commonerrors.WrapError(commonerrors.ErrNotFound, err, "")
+	case commonerrors.Any(err, os.ErrNoDeadline):
+		return commonerrors.WrapError(commonerrors.ErrUnsupported, err, "file type does not support deadline")
+	case commonerrors.Any(err, os.ErrInvalid):
+		return commonerrors.WrapError(commonerrors.ErrInvalid, err, "")
+	case commonerrors.Any(err, afero.ErrOutOfRange):
+		return commonerrors.WrapError(commonerrors.ErrOutOfRange, err, "")
+	case commonerrors.Any(err, afero.ErrTooLarge):
+		return commonerrors.WrapError(commonerrors.ErrTooLarge, err, "")
+	case commonerrors.Any(err, ErrChownNotImplemented, ErrLinkNotImplemented):
+		return commonerrors.WrapError(commonerrors.ErrNotImplemented, err, "")
+	case commonerrors.Any(err, io.ErrUnexpectedEOF):
+		// Do not add io.EOF as it is used to read files
+		return commonerrors.WrapError(commonerrors.ErrEOF, err, "")
 	}
-	if commonerrors.Any(err, os.ErrExist) || commonerrors.CorrespondTo(err, "file exists", "file already exists") {
-		return commonerrors.ErrExists
-	}
+
 	return err
 }

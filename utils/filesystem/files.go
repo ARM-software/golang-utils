@@ -32,8 +32,8 @@ import (
 )
 
 var (
-	ErrLinkNotImplemented  = fmt.Errorf("link not implemented: %w", commonerrors.ErrNotImplemented)
-	ErrChownNotImplemented = fmt.Errorf("chown not implemented: %w", commonerrors.ErrNotImplemented)
+	ErrLinkNotImplemented  = commonerrors.New(commonerrors.ErrNotImplemented, "link not implemented")
+	ErrChownNotImplemented = commonerrors.New(commonerrors.ErrNotImplemented, "chown not implemented")
 	ErrPathNotExist        = errors.New("readdirent: no such file or directory")
 	globalFileSystem       = NewFs(StandardFS)
 )
@@ -106,7 +106,7 @@ func GetType() FilesystemType {
 // checkWhetherUnderlyingResourceIsClosed checks whether the filesystem is in a working state when relying on a ICloseableResource.
 func (fs *VFS) checkWhetherUnderlyingResourceIsClosed() error {
 	if fs.resourceInUse.IsClosed() {
-		return fmt.Errorf("%w: the resource this filesystem is based on [%v] has been closed", commonerrors.ErrCondition, fs.resourceInUse.String())
+		return commonerrors.Newf(commonerrors.ErrCondition, "the resource this filesystem is based on [%v] has been closed", fs.resourceInUse.String())
 	}
 	return nil
 }
@@ -140,6 +140,7 @@ func (fs *VFS) WalkWithContextAndExclusionPatterns(ctx context.Context, root str
 	} else {
 		err = fs.walk(ctx, root, info, exclusionRegex, fn)
 	}
+	err = ConvertFileSystemError(err)
 	if commonerrors.Any(err, filepath.SkipDir) {
 		return nil
 	}
@@ -222,6 +223,7 @@ func CurrentDirectory() (string, error) {
 }
 func (fs *VFS) CurrentDirectory() (string, error) {
 	current, err := os.Getwd()
+	err = ConvertFileSystemError(err)
 	return fs.ConvertFilePath(current), err
 }
 
@@ -236,11 +238,12 @@ func (fs *VFS) Lstat(name string) (fileInfo os.FileInfo, err error) {
 	}
 	if correctobj, ok := fs.vfs.(IStater); ok {
 		fileInfo, _, err = correctobj.LstatIfPossible(name)
+		err = ConvertFileSystemError(err)
 		return
 	}
 	fileInfo, err = fs.Stat(name)
 	if err != nil {
-		err = commonerrors.ErrNotImplemented
+		err = commonerrors.WrapError(commonerrors.ErrNotImplemented, err, "")
 	}
 	return
 }
@@ -249,9 +252,12 @@ func (fs *VFS) Open(name string) (doublestar.File, error) {
 	return fs.GenericOpen(name)
 }
 
+// GenericOpen opens a file for reading only.
 func GenericOpen(name string) (File, error) {
 	return globalFileSystem.GenericOpen(name)
 }
+
+// GenericOpen opens a file for reading only.
 func (fs *VFS) GenericOpen(name string) (File, error) {
 	err := fs.checkWhetherUnderlyingResourceIsClosed()
 	if err != nil {
@@ -321,7 +327,7 @@ func (fs *VFS) readFileWithContextAndLimits(ctx context.Context, filename string
 		return
 	}
 	if limits == nil {
-		err = fmt.Errorf("%w: missing file system limits definition", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "missing file system limits definition")
 		return
 	}
 	// Really similar to afero ioutils Read file but using our utilities instead.
@@ -447,7 +453,9 @@ func (fs *VFS) Stat(name string) (os.FileInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	return fs.vfs.Stat(name)
+	info, err := fs.vfs.Stat(name)
+	err = ConvertFileSystemError(err)
+	return info, err
 }
 
 func (fs *VFS) StatTimes(name string) (info FileTimeInfo, err error) {
@@ -467,7 +475,9 @@ func (fs *VFS) TempDir(dir string, prefix string) (name string, err error) {
 	if err != nil {
 		return
 	}
-	return afero.TempDir(fs.vfs, dir, prefix)
+	name, err = afero.TempDir(fs.vfs, dir, prefix)
+	err = ConvertFileSystemError(err)
+	return
 }
 
 func TempDirInTempDir(prefix string) (name string, err error) {
@@ -486,10 +496,34 @@ func (fs *VFS) TempFile(dir string, prefix string) (f File, err error) {
 		return
 	}
 	file, err := afero.TempFile(fs.vfs, dir, prefix)
+	err = ConvertFileSystemError(err)
 	if err != nil {
 		return
 	}
-	return convertToExtendedFile(file, func() error { return nil })
+	f, err = convertToExtendedFile(file, func() error { return nil })
+	if err != nil {
+		return
+	}
+	// Changing permissions so that it is aligned with os.CreateFile permissions
+	f, err = fs.changeFilePermissionsToWritable(f)
+	return
+}
+
+func (fs *VFS) changeFilePermissionsToWritable(f File) (openF File, err error) {
+	if f == nil {
+		err = commonerrors.New(commonerrors.ErrUndefined, "missing file")
+		return
+	}
+	err = ConvertFileSystemError(f.Close())
+	if err != nil {
+		return
+	}
+	err = fs.Chmod(f.Name(), 0o666)
+	if err != nil {
+		return
+	}
+	openF, err = fs.CreateFile(f.Name())
+	return
 }
 
 // TouchTempFile creates an empty file in `dir` and returns it filename
@@ -601,6 +635,7 @@ func (fs *VFS) Exists(path string) bool {
 func (fs *VFS) checkDirExists(path string) (exist bool) {
 	exist = false
 	f, err := fs.vfs.Open(path)
+	err = ConvertFileSystemError(err)
 	if err != nil {
 		return
 	}
@@ -646,7 +681,7 @@ func (fs *VFS) RemoveWithPrivileges(ctx context.Context, dir string) (err error)
 		}
 	}
 	if correctobj, ok := fs.vfs.(IForceRemover); ok {
-		err = correctobj.ForceRemoveIfPossible(dir)
+		err = ConvertFileSystemError(correctobj.ForceRemoveIfPossible(dir))
 	}
 	return
 }
@@ -693,7 +728,8 @@ func (fs *VFS) RemoveWithContextAndExclusionPatterns(ctx context.Context, dir st
 	if IsPathExcludedFromPatterns(dir, fs.PathSeparator(), exclusionPatterns...) {
 		return
 	}
-	return fs.vfs.Remove(dir)
+	err = ConvertFileSystemError(fs.vfs.Remove(dir))
+	return
 }
 
 // IsFile states whether it is a file or not
@@ -812,6 +848,7 @@ func (fs *VFS) isDirEmpty(name string) (empty bool, err error) {
 		return
 	}
 	f, err := fs.vfs.Open(name)
+	err = ConvertFileSystemError(err)
 	if err != nil {
 		return
 	}
@@ -849,7 +886,7 @@ func (fs *VFS) MkDirAll(dir string, perm os.FileMode) (err error) {
 	if fs.Exists(dir) {
 		return
 	}
-	err = fs.vfs.MkdirAll(dir, perm)
+	err = ConvertFileSystemError(fs.vfs.MkdirAll(dir, perm))
 	// Directory was maybe created by a different process/thread
 	if err != nil && fs.Exists(dir) {
 		err = nil
@@ -912,7 +949,7 @@ func (fs *VFS) Chmod(name string, mode os.FileMode) (err error) {
 	if err != nil {
 		return
 	}
-	err = fs.vfs.Chmod(name, mode)
+	err = ConvertFileSystemError(fs.vfs.Chmod(name, mode))
 	return
 }
 
@@ -945,7 +982,7 @@ func (fs *VFS) Touch(path string) (err error) {
 		return
 	}
 	if strings.TrimSpace(path) == "" {
-		err = fmt.Errorf("%w: empty path", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "empty path")
 		return
 	}
 	if EndsWithPathSeparator(fs, path) {
@@ -965,7 +1002,7 @@ func (fs *VFS) Chtimes(name string, atime time.Time, mtime time.Time) (err error
 	if err != nil {
 		return
 	}
-	err = fs.vfs.Chtimes(name, atime, mtime)
+	err = ConvertFileSystemError(fs.vfs.Chtimes(name, atime, mtime))
 	return
 }
 
@@ -1029,10 +1066,10 @@ func (fs *VFS) Chown(name string, uid, gid int) (err error) {
 		return
 	}
 	if correctobj, ok := fs.vfs.(IChowner); ok {
-		err = correctobj.ChownIfPossible(name, uid, gid)
+		err = ConvertFileSystemError(correctobj.ChownIfPossible(name, uid, gid))
 		return
 	}
-	err = fs.vfs.Chown(name, uid, gid)
+	err = ConvertFileSystemError(fs.vfs.Chown(name, uid, gid))
 	return
 }
 
@@ -1075,10 +1112,10 @@ func (fs *VFS) Link(oldname, newname string) (err error) {
 		return
 	}
 	if correctobj, ok := fs.vfs.(ILinker); ok {
-		err = correctobj.LinkIfPossible(oldname, newname)
+		err = ConvertFileSystemError(correctobj.LinkIfPossible(oldname, newname))
 		return
 	}
-	err = commonerrors.ErrNotImplemented
+	err = commonerrors.Newf(commonerrors.ErrNotImplemented, "cannot link `%v` to `%v`", oldname, newname)
 	return
 }
 
@@ -1089,9 +1126,10 @@ func (fs *VFS) Readlink(name string) (value string, err error) {
 	}
 	if correctobj, ok := fs.vfs.(ILinkReader); ok {
 		value, err = correctobj.ReadlinkIfPossible(name)
+		err = ConvertFileSystemError(err)
 		return
 	}
-	err = commonerrors.ErrNotImplemented
+	err = commonerrors.Newf(commonerrors.ErrNotImplemented, "cannot read link `%v`", name)
 	return
 }
 
@@ -1101,10 +1139,10 @@ func (fs *VFS) Symlink(oldname string, newname string) (err error) {
 		return
 	}
 	if correctobj, ok := fs.vfs.(ISymLinker); ok {
-		err = correctobj.SymlinkIfPossible(oldname, newname)
+		err = ConvertFileSystemError(correctobj.SymlinkIfPossible(oldname, newname))
 		return
 	}
-	err = commonerrors.ErrNotImplemented
+	err = commonerrors.Newf(commonerrors.ErrNotImplemented, "cannot symlink `%v` to `%v`", oldname, newname)
 	return
 }
 
@@ -1326,7 +1364,7 @@ func (fs *VFS) MoveWithContext(ctx context.Context, src string, dest string) (er
 	if err != nil {
 		return
 	}
-	err = fs.vfs.Rename(src, dest)
+	err = ConvertFileSystemError(fs.vfs.Rename(src, dest))
 	if err == nil {
 		return
 	}
@@ -1403,7 +1441,7 @@ func (fs *VFS) moveFile(ctx context.Context, src string, dest string) (err error
 	if err != nil {
 		return
 	}
-	err = fs.vfs.Remove(src)
+	err = ConvertFileSystemError(fs.vfs.Remove(src))
 	if err != nil {
 		return
 	}
@@ -1729,6 +1767,7 @@ func (fs *VFS) SubDirectoriesWithContextAndExclusionPatterns(ctx context.Context
 		return
 	}
 	files, err := afero.ReadDir(fs.vfs, directory)
+	err = ConvertFileSystemError(err)
 	if err != nil {
 		return
 	}
@@ -1900,35 +1939,9 @@ func (fs *VFS) garbageCollectDir(ctx context.Context, durationSinceLastAccess ti
 }
 
 func (fs *VFS) Close() error {
-	return fs.resourceInUse.Close()
+	return ConvertFileSystemError(fs.resourceInUse.Close())
 }
 
-type extendedFile struct {
-	afero.File
-	onCloseCallBack func() error
-}
-
-func (f *extendedFile) Close() (err error) {
-	err = f.File.Close()
-	if err != nil {
-		return
-	}
-	if f.onCloseCallBack != nil {
-		err = f.onCloseCallBack()
-	}
-	return
-}
-
-func (f *extendedFile) Fd() (fd uintptr) {
-	if correctFile, ok := retrieveSubFile(f.File).(interface {
-		Fd() uintptr
-	}); ok {
-		fd = correctFile.Fd()
-	} else {
-		fd = uintptr(UnsetFileHandle)
-	}
-	return
-}
 func IsFileHandleUnset(fh uintptr) bool {
 	return uint64(fh) == UnsetFileHandle
 }
@@ -1943,27 +1956,4 @@ func retrieveSubFile(top interface{}) interface{} {
 		actualfile = subFile
 	}
 	return actualfile
-}
-func convertFile(getFile func() (afero.File, error), onCloseCallBack func() error) (f File, err error) {
-	file, err := getFile()
-	if err != nil {
-		return
-	}
-	return convertToExtendedFile(file, onCloseCallBack)
-}
-
-func convertToExtendedFile(file afero.File, onCloseCallBack func() error) (File, error) {
-	return &extendedFile{
-		File:            file,
-		onCloseCallBack: onCloseCallBack,
-	}, nil
-}
-
-// ConvertToOSFile converts a file to a `os` implementation of a file for certain use-cases where functions have not moved to using `fs.File`.
-func ConvertToOSFile(f File) (osFile *os.File) {
-	if f == nil {
-		return
-	}
-	osFile = os.NewFile(f.Fd(), f.Name())
-	return
 }
