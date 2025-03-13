@@ -1,1 +1,0 @@
-:boom: Upgrade `go` version to `1.23`

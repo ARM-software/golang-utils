@@ -14,6 +14,27 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.86.0" (2025-03-13)
+=====================
+
+Features
+--------
+
+- :boom: Upgrade `go` version to `1.23` (#20250312094629)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: crypto-0.35.0 (#20250227100008, #20250227100013)
+- Dependency upgrade: text-0.23.0 (#20250306111315)
+- Dependency upgrade: v5-5.14.0 (#20250312093322, #20250312093326, #20250312093353, #20250312093355)
+- Dependency upgrade: mod-0.24.0 (#20250312112324)
+- Dependency upgrade: sys-0.31.0 (#20250313095516, #20250313095518)
+- Dependency upgrade: oauth2-0.27.0 (#20250313095535, #20250313095540)
+- Dependency upgrade: net-0.36.0 (#20250313125938, #20250313125939)
+
+
 "1.85.0" (2025-03-12)
 =====================
 
