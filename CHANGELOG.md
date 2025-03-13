@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.85.0" (2025-03-12)
+=====================
+
+Features
+--------
+
+- :boom: Upgrade `go` version (#20250312092207)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: mod-0.22.0 (#20250110145851, #20250110145857, #20250110145917, #20250110150017)
+- Dependency upgrade: v4-4.25.2 (#20250303121220, #20250303121225, #20250303121346)
+
+
 "1.84.0" (2025-02-28)
 =====================
 
