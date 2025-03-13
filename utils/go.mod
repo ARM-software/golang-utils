@@ -48,7 +48,7 @@ require (
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 	golang.org/x/mod v0.24.0
 	golang.org/x/net v0.35.0
-	golang.org/x/oauth2 v0.26.0
+	golang.org/x/oauth2 v0.28.0
 	golang.org/x/sync v0.12.0
 	golang.org/x/sys v0.31.0
 	golang.org/x/text v0.23.0
