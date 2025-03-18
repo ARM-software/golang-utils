@@ -75,24 +75,24 @@ type Auth struct {
 }
 
 const (
-    missingScheme      = "!!MISSING_SCHEME!!"
-    missingAccessToken = "!!MISSING_ACCESS_TOKEN!!"
+	missingScheme      = "!!MISSING_SCHEME!!"
+	missingAccessToken = "!!MISSING_ACCESS_TOKEN!!"
 )
 
 func (cfg *Auth) GetAuthorizationHeader() string {
 	if !cfg.Enforced {
-	    return ""
+		return ""
 	}
-	
+
 	scheme, accessToken := cfg.Scheme, cfg.AccessToken
 	if scheme == "" {
-	    scheme = missingScheme
+		scheme = missingScheme
 	}
 	if accessToken == "" {
-	    accessToken = missingAccessToken
+		accessToken = missingAccessToken
 	}
-	    
-    return fmt.Sprintf("%v %v", cfg.Scheme, cfg.AccessToken)
+
+	return fmt.Sprintf("%v %v", scheme, accessToken)
 }
 
 func (cfg *Auth) Validate() (err error) {
