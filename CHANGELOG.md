@@ -14,6 +14,16 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.87.1" (2025-03-27)
+=====================
+
+Bugfixes
+--------
+
+- Dependency upgrade: zerolog-1.34.0 (#20250324120425)
+- Dependency upgrade: viper-1.20.1 (#20250327143228)
+
+
 "1.87.0" (2025-03-18)
 =====================
 
