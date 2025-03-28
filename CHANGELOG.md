@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.89.0" (2025-03-28)
+=====================
+
+Features
+--------
+
+- :bug: `[reflection]` Fix panic in `IsEmpty` when dealing with nil pointer (#20250328152658)
+
+
 "1.88.0" (2025-03-28)
 =====================
 
