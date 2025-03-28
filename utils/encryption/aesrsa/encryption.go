@@ -150,7 +150,7 @@ func encryptWithRSAKey(rsaPub *rsa.PublicKey, payload []byte) (encrypted *Hybrid
 	return
 }
 
-// EncryptHybridAESRSAEncryptedPayloadFromPublickKeyBytes takes a bublic key for key encypherment and uses it to
+// EncryptHybridAESRSAEncryptedPayloadFromPublickKeyBytes takes a public key for key encypherment and uses it to
 // encode a payload using hybrid RSA AES encryption where an AES key is used to encrypt the content in payload and the
 // AES key is encrypted using RSA encryption. AES encryption is used to encode the payload itself as it is faster than
 // RSA for larger payloads. RSA is used to encrypt the relatively small AES key and allows asymmetric encryption
