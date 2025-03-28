@@ -42,7 +42,7 @@ func TestDeserialise(t *testing.T) {
 			expectedError:  errors.New(errStr),
 		},
 		{
-			text:           fmt.Errorf("%w: %v", errors.New(errStr), sentence).Error(),
+			text:           New(errors.New(errStr), sentence).Error(),
 			expectedReason: sentence,
 			expectedError:  errors.New(errStr),
 		},
@@ -144,7 +144,7 @@ func (m multiErr) Error() string   { return errors.Join(m...).Error() }
 func (m multiErr) Unwrap() []error { return []error(m) }
 
 func TestMultipleError(t *testing.T) {
-	expectedErr := multiErr([]error{fmt.Errorf("%w: %v", ErrInvalid, strings.ReplaceAll(faker.Sentence(), string(MultipleErrorSeparator), "sep")), errors.New(""), fmt.Errorf("%w: %v", ErrUnexpected, strings.ReplaceAll(faker.Sentence(), string(MultipleErrorSeparator), ";"))})
+	expectedErr := multiErr([]error{New(ErrInvalid, strings.ReplaceAll(faker.Sentence(), string(MultipleErrorSeparator), "sep")), errors.New(""), New(ErrUnexpected, strings.ReplaceAll(faker.Sentence(), string(MultipleErrorSeparator), ";"))})
 	text, err := SerialiseError(expectedErr)
 	require.NoError(t, err)
 	assert.NotEmpty(t, text)
@@ -191,6 +191,31 @@ func TestGenericSerialisation(t *testing.T) {
 		assert.NoError(t, deserialisedErr)
 	})
 
+	t.Run("error Reason", func(t *testing.T) {
+		reason := faker.Sentence()
+		dErr := New(errors.New(faker.Word()), reason)
+		dReason, err := GetCommonErrorReason(dErr)
+		require.NoError(t, err)
+		assert.Equal(t, dErr.Error(), dReason)
+		dReason, err = GetErrorReason(dErr)
+		require.NoError(t, err)
+		assert.Equal(t, reason, dReason)
+		reason = faker.Sentence()
+		dErr = New(ErrNotFound, reason)
+		dReason, err = GetCommonErrorReason(dErr)
+		require.NoError(t, err)
+		assert.Equal(t, reason, dReason)
+		dReason, err = GetErrorReason(dErr)
+		require.NoError(t, err)
+		assert.Equal(t, reason, dReason)
+		dReason, err = GetCommonErrorReason(nil)
+		assert.True(t, Any(err, ErrUndefined))
+		assert.Empty(t, dReason)
+		dReason, err = GetErrorReason(nil)
+		assert.True(t, Any(err, ErrUndefined))
+		assert.Empty(t, dReason)
+	})
+
 	tests := []struct {
 		commonError error
 	}{
@@ -227,12 +252,21 @@ func TestGenericSerialisation(t *testing.T) {
 		test := tests[i]
 		t.Run(test.commonError.Error(), func(t *testing.T) {
 			reason := strings.ReplaceAll(faker.Sentence(), "\n", ";")
-			text, err := SerialiseError(fmt.Errorf("%w : %v", test.commonError, reason))
+			text, err := SerialiseError(New(test.commonError, reason))
 			require.NoError(t, err)
 			dErr, err := DeserialiseError(text)
 			require.NoError(t, err)
 			assert.True(t, Any(dErr, test.commonError))
 			assert.True(t, strings.Contains(dErr.Error(), reason))
+			underlyingErr, err := GetUnderlyingErrorType(dErr)
+			require.NoError(t, err)
+			assert.True(t, Any(underlyingErr, test.commonError))
+			dReason, err := GetErrorReason(dErr)
+			require.NoError(t, err)
+			assert.Equal(t, reason, dReason)
+			dReason, err = GetCommonErrorReason(dErr)
+			require.NoError(t, err)
+			assert.Equal(t, reason, dReason)
 		})
 	}
 }

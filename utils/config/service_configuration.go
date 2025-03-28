@@ -16,6 +16,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
@@ -87,11 +88,11 @@ func LoadFromEnvironment(viperSession *viper.Viper, envVarPrefix string, configu
 	// Merge together all the sources and unmarshal into struct
 	err = viperSession.Unmarshal(configurationToSet)
 	if err != nil {
-		err = fmt.Errorf("%w: unable to fill configuration structure from the configuration session: %v", commonerrors.ErrMarshalling, err.Error())
+		err = commonerrors.WrapError(commonerrors.ErrMarshalling, err, "unable to fill configuration structure from the configuration session")
 		return
 	}
 	// Run validation
-	err = configurationToSet.Validate()
+	err = WrapValidationError(field.ToOptionalString(envVarPrefix), configurationToSet.Validate())
 	return
 }
 
@@ -100,7 +101,7 @@ func LoadFromEnvironment(viperSession *viper.Viper, envVarPrefix string, configu
 // Supported formats are the same as what [viper](https://github.com/spf13/viper#what-is-viper) supports
 func LoadFromConfigurationFile(viperSession *viper.Viper, configFile string) (err error) {
 	if configFile == "" {
-		err = fmt.Errorf("%w: missing configuration file", commonerrors.ErrUndefined)
+		err = commonerrors.UndefinedVariable("configuration file")
 		return
 	}
 	viperSession.SetConfigFile(configFile)
@@ -115,13 +116,13 @@ func convertViperError(vErr error) (err error) {
 	case commonerrors.Any(vErr, commonerrors.ErrTimeout, commonerrors.ErrCancelled):
 		err = vErr
 	case commonerrors.CorrespondTo(vErr, "unsupported"):
-		err = fmt.Errorf("%w: %v", commonerrors.ErrUnsupported, vErr.Error())
+		err = commonerrors.WrapError(commonerrors.ErrUnsupported, vErr, "")
 	case commonerrors.CorrespondTo(vErr, "not found"):
-		err = fmt.Errorf("%w: %v", commonerrors.ErrNotFound, vErr.Error())
+		err = commonerrors.WrapError(commonerrors.ErrNotFound, vErr, "")
 	case commonerrors.CorrespondTo(vErr, "parsing", "marshaling", "decoding"): //nolint: misspell // errors are written in American English
-		err = fmt.Errorf("%w: %v", commonerrors.ErrMarshalling, vErr.Error())
+		err = commonerrors.WrapError(commonerrors.ErrMarshalling, vErr, "")
 	default:
-		err = fmt.Errorf("%w: %v", commonerrors.ErrUnexpected, vErr.Error())
+		err = commonerrors.WrapError(commonerrors.ErrUnexpected, vErr, "")
 	}
 	return
 }
@@ -164,11 +165,11 @@ func BindFlagsToEnv(viperSession *viper.Viper, envVarPrefix string, envVar strin
 
 func newMultiFlags(name string, flags ...*pflag.Flag) (f viper.FlagValue, err error) {
 	if name == "" {
-		err = fmt.Errorf("%w: flag set must be associated with a name", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "flag set must be associated with a name")
 		return
 	}
 	if len(flags) == 0 {
-		err = fmt.Errorf("%w: flags must be specified", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "flags must be specified")
 		return
 	}
 	var fTypes []string
@@ -179,7 +180,7 @@ func newMultiFlags(name string, flags ...*pflag.Flag) (f viper.FlagValue, err er
 	}
 	fTypes = collection.UniqueEntries(fTypes)
 	if len(fTypes) != 1 {
-		err = fmt.Errorf("%w: flags in a set can only be of the same type: %v", commonerrors.ErrInvalid, fTypes)
+		err = commonerrors.Newf(commonerrors.ErrInvalid, "flags in a set can only be of the same type: %v", fTypes)
 		return
 	}
 
@@ -329,7 +330,7 @@ func flattenDefaultsMap(m map[string]interface{}) map[string]interface{} {
 func DetermineConfigurationEnvironmentVariables(appName string, configurationToDecode IServiceConfiguration) (defaults map[string]interface{}, err error) {
 	withoutPrefix := make(map[string]interface{})
 	if reflection.IsEmpty(configurationToDecode) {
-		err = fmt.Errorf("%w: configurationToDecode isn't defined", commonerrors.ErrUndefined)
+		err = commonerrors.UndefinedVariable("configuration to decode")
 		return
 	}
 

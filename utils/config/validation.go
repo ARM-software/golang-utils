@@ -4,7 +4,9 @@
  */
 package config
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // ValidateEmbedded uses reflection to find embedded structs and validate them
 func ValidateEmbedded(cfg Validator) error {
@@ -17,10 +19,23 @@ func ValidateEmbedded(cfg Validator) error {
 				continue
 			}
 			err := validator.Validate()
+			field := r.Type().Field(i)
+
+			err = wrapFieldValidationError(field, err)
 			if err != nil {
 				return err
 			}
 		}
 	}
 	return nil
+}
+
+func wrapFieldValidationError(field reflect.StructField, err error) error {
+	mapStructureStr, hasTag := field.Tag.Lookup("mapstructure")
+	mapStructure := &mapStructureStr
+	if !hasTag {
+		mapStructure = nil
+	}
+	err = WrapFieldValidationError(field.Name, mapStructure, nil, err)
+	return err
 }
