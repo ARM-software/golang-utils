@@ -14,6 +14,26 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.88.0" (2025-03-28)
+=====================
+
+Features
+--------
+
+- :sparkles: `[http]` Extend the client constructors to use `RequestConfiguration` (#20250328113659)
+- :sparkles: `[useragent]` Added a `useragent` module to help generate `User-Agent` (#20250328120920)
+- :sparkles: `encryption` Add utility to encrypt payloads using public RSA key directly instead of using the certificate (#20250328135041)
+
+
+Bugfixes
+--------
+
+- :recycle: [config] Improve error formatting to ease understanding configuration validation errors (#20250328102314)
+- Dependency upgrade: net-0.38.0 (#20250328113417, #20250328113422, #20250328113444, #20250328113451, #20250328113514, #20250328113518, #20250328113541, #20250328113553, #20250328113648, #20250328113655, #20250328113722, #20250328113740, #20250328113809, #20250328113831, #20250328113838, #20250328113901, #20250328113906)
+- Dependency upgrade: v5-5.3.2 (#20250328113426)
+- :recycle: [reflection] Modified IsEmpty behaviour with regards to strings to consider strings with only whitespaces as empty (#20250328120125)
+
+
 "1.87.1" (2025-03-27)
 =====================
 
