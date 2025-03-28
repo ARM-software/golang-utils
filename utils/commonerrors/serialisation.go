@@ -19,11 +19,21 @@ type iMarshallingError interface {
 	error
 	ConvertToError() error
 	SetWrappedError(err error)
+	GetReason() string
+	GetErrorType() error
 }
 
 type marshallingError struct {
 	Reason    string
 	ErrorType error
+}
+
+func (e *marshallingError) GetReason() string {
+	return e.Reason
+}
+
+func (e *marshallingError) GetErrorType() error {
+	return e.ErrorType
 }
 
 func (e *marshallingError) MarshalText() (text []byte, err error) {
@@ -73,6 +83,22 @@ type multiplemarshallingError struct {
 	subErrs []iMarshallingError
 }
 
+func (m *multiplemarshallingError) GetReason() string {
+	reasons := make([]string, 0, len(m.subErrs))
+	for i := range m.subErrs {
+		reasons = append(reasons, m.subErrs[i].GetReason())
+	}
+	return strings.Join(reasons, string(MultipleErrorSeparator))
+}
+
+func (m *multiplemarshallingError) GetErrorType() error {
+	errs := make([]error, 0, len(m.subErrs))
+	for i := range m.subErrs {
+		errs = append(errs, m.subErrs[i].GetErrorType())
+	}
+	return errors.Join(errs...)
+}
+
 func (m *multiplemarshallingError) MarshalText() (text []byte, err error) {
 	for i := range m.subErrs {
 		subtext, suberr := m.subErrs[i].MarshalText()
@@ -112,7 +138,7 @@ func (m *multiplemarshallingError) UnmarshalText(text []byte) error {
 }
 
 func (m *multiplemarshallingError) ConvertToError() error {
-	var errs []error
+	errs := make([]error, 0, len(m.subErrs))
 	for i := range m.subErrs {
 		errs = append(errs, m.subErrs[i].ConvertToError())
 	}
@@ -227,20 +253,62 @@ func SerialiseError(err error) ([]byte, error) {
 
 // DeserialiseError unmarshals text into an error. It tries to determine the error type.
 func DeserialiseError(text []byte) (deserialisedError, err error) {
-	if len(text) == 0 {
-		return
-	}
-	var mErr iMarshallingError
-
-	if strings.Contains(string(text), string(MultipleErrorSeparator)) {
-		mErr = &multiplemarshallingError{}
-	} else {
-		mErr = &marshallingError{}
-	}
-	err = mErr.UnmarshalText(text)
-	if err != nil {
+	mErr, err := deserialiseError(text)
+	if err != nil || mErr == nil {
 		return
 	}
 	deserialisedError = mErr.ConvertToError()
+	return
+}
+
+func deserialiseError(text []byte) (deserialisedError iMarshallingError, err error) {
+	if len(text) == 0 {
+		return
+	}
+	if strings.Contains(string(text), string(MultipleErrorSeparator)) {
+		deserialisedError = &multiplemarshallingError{}
+	} else {
+		deserialisedError = &marshallingError{}
+	}
+	err = deserialisedError.UnmarshalText(text)
+	return
+}
+
+func GetErrorReason(srcErr error) (reason string, err error) {
+	if srcErr == nil {
+		err = UndefinedVariable("source error")
+		return
+	}
+	mErr, err := deserialiseError([]byte(srcErr.Error()))
+	if err != nil || mErr == nil {
+		return
+	}
+	reason = mErr.GetReason()
+	return
+}
+
+func GetCommonErrorReason(srcErr error) (reason string, err error) {
+	if srcErr == nil {
+		err = UndefinedVariable("source error")
+		return
+	}
+	if !IsCommonError(srcErr) {
+		reason = srcErr.Error()
+		return
+	}
+	reason, err = GetErrorReason(srcErr)
+	return
+}
+
+func GetUnderlyingErrorType(srcErr error) (commonerrorType, err error) {
+	if srcErr == nil {
+		err = UndefinedVariable("source error")
+		return
+	}
+	mErr, err := deserialiseError([]byte(srcErr.Error()))
+	if err != nil || mErr == nil {
+		return
+	}
+	commonerrorType = mErr.GetErrorType()
 	return
 }
