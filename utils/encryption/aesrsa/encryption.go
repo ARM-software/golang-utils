@@ -125,23 +125,27 @@ func encrypteWithRSAKey(rsaPub *rsa.PublicKey, payload []byte) (encrypted *Hybri
 		err = fmt.Errorf("%w: failed to create cipher: %v", commonerrors.ErrUnexpected, err.Error())
 		return
 	}
+
 	aesGCM, err := cipher.NewGCM(blockCipher)
 	if err != nil {
 		err = fmt.Errorf("%w: failed creating GCM: %v", commonerrors.ErrUnexpected, err.Error())
 		return
 	}
+
 	nonce := make([]byte, aesGCM.NonceSize())
 	_, err = rand.Read(nonce)
 	if err != nil {
 		err = fmt.Errorf("%w: failed to generate nonce: %v", commonerrors.ErrUnexpected, err.Error())
 		return
 	}
+
 	ciphertext := aesGCM.Seal(nil, nonce, payload, nil)
 	encryptedAESKey, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, rsaPub, aesKey, []byte{})
 	if err != nil {
 		err = fmt.Errorf("%w: could not complete RSA encryption: %v", commonerrors.ErrUnexpected, err.Error())
 		return
 	}
+
 	encrypted = EncodeHybridAESRSAEncryptedPayload(ciphertext, encryptedAESKey, nonce)
 	return
 }
