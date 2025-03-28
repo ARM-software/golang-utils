@@ -16,6 +16,7 @@ import (
 	"golang.org/x/oauth2"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
 // RetryableClient is an http client which will retry failed requests according to the retry configuration.
@@ -45,7 +46,7 @@ func NewConfigurableRetryableOauthClientWithToken(cfg *HTTPClientConfiguration, 
 	return NewConfigurableRetryableOauthClientWithTokenAndLogger(cfg, logr.Logger{}, t)
 }
 
-// NewConfigurableRetryableOauthClientWithToken creates a new http client with an authorisation token which will retry based on the configuration.
+// NewConfigurableRetryableOauthClientWithTokenAndLogger creates a new http client with an authorisation token which will retry based on the configuration.
 // It takes a logger to allow for debugging. It takes a full oauth2.Token to give more configuration for the token
 func NewConfigurableRetryableOauthClientWithTokenAndLogger(cfg *HTTPClientConfiguration, logger logr.Logger, t *oauth2.Token) IRetryableClient {
 	tc := oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(t))
@@ -63,7 +64,7 @@ func NewConfigurableRetryableOauthClientWithLogger(cfg *HTTPClientConfiguration,
 	return NewConfigurableRetryableOauthClientWithLoggerAndCustomClient(cfg, nil, logger, token)
 }
 
-// NewConfigurableRetryableOauthClientWithLogger creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff) with the authorisation header set to token
+// NewConfigurableRetryableOauthClientWithLoggerAndCustomClient creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff) with the authorisation header set to token
 // The underlying client used by the oauth client can be optionally supplied via client
 // It is also possible to supply a logger for debug purposes
 func NewConfigurableRetryableOauthClientWithLoggerAndCustomClient(cfg *HTTPClientConfiguration, client *http.Client, logger logr.Logger, token string) IRetryableClient {
@@ -77,6 +78,49 @@ func NewConfigurableRetryableOauthClientWithLoggerAndCustomClient(cfg *HTTPClien
 
 	oauthClientCtx := context.WithValue(context.Background(), oauth2.HTTPClient, client)
 	tc := oauth2.NewClient(oauthClientCtx, ts)
+
+	return NewConfigurableRetryableClientWithLoggerFromClient(cfg, logger, tc)
+}
+
+// NewClientWithAuthorisation creates a new http client with the authorisation header set according to the configuration
+func NewClientWithAuthorisation(requestCfg *RequestConfiguration) IRetryableClient {
+	return NewRetryableClientWithLogger(DefaultRobustHTTPClientConfigurationWithExponentialBackOff(), requestCfg, logr.Logger{})
+}
+
+// NewRetryableClientWithAuthorisation creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff) with the authorisation header set to token
+func NewRetryableClientWithAuthorisation(cfg *HTTPClientConfiguration, requestCfg *RequestConfiguration) IRetryableClient {
+	return NewRetryableClientWithLogger(cfg, requestCfg, logr.Logger{})
+}
+
+// NewRetryableClientWithLogger creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff) with the authorisation header set if enforced in configuration
+// It is also possible to supply a logger for debug purposes
+func NewRetryableClientWithLogger(cfg *HTTPClientConfiguration, requestCfg *RequestConfiguration, logger logr.Logger) IRetryableClient {
+	return NewConfigurableRetryableClientWithLoggerAndCustomClient(cfg, requestCfg, logger, nil)
+}
+
+// NewConfigurableRetryableClientWithLoggerAndCustomClient creates a new http client which will retry failed requests according to the retry configuration (e.g. no retry, basic retry policy, exponential backoff)
+// with the authorisation header set to what the request configuration specifies.
+// The underlying client used can be optionally supplied via client
+// It is also possible to supply a logger for debug purposes
+func NewConfigurableRetryableClientWithLoggerAndCustomClient(cfg *HTTPClientConfiguration, requestCfg *RequestConfiguration, logger logr.Logger, client *http.Client) IRetryableClient {
+	if client == nil {
+		client = cleanhttp.DefaultPooledClient()
+	}
+
+	tc := client
+	if requestCfg != nil && requestCfg.Authorisation.Enforced {
+		ts := oauth2.StaticTokenSource(
+			&oauth2.Token{
+				AccessToken: requestCfg.Authorisation.AccessToken,
+				TokenType:   requestCfg.Authorisation.Scheme,
+			},
+		)
+		oauthClientCtx := context.WithValue(context.Background(), oauth2.HTTPClient, client)
+		tc = oauth2.NewClient(oauthClientCtx, ts)
+	}
+	if requestCfg != nil && !reflection.IsEmpty(requestCfg.Retries) {
+		cfg.RetryPolicy = requestCfg.Retries
+	}
 
 	return NewConfigurableRetryableClientWithLoggerFromClient(cfg, logger, tc)
 }

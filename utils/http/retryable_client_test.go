@@ -7,6 +7,7 @@ package http
 import (
 	"context"
 	"fmt"
+	"github.com/go-faker/faker/v4"
 	"net/http"
 	"testing"
 	"time"
@@ -73,6 +74,15 @@ func TestClient_Delete_Backoff(t *testing.T) {
 			token:           field.ToOptionalString("test-token"),
 			retryableClient: NewRetryableOauthClient("test-token"),
 			clientName:      "default client with oath",
+		},
+		{
+			token: field.ToOptionalString("test-token"),
+			retryableClient: NewClientWithAuthorisation(&RequestConfiguration{Authorisation: Auth{
+				Enforced:    true,
+				Scheme:      AuthorisationSchemeBearer,
+				AccessToken: "test-token",
+			}}),
+			clientName: "default client with Authorisation",
 		},
 		{
 			token:           field.ToOptionalString("test-token"),
@@ -184,6 +194,15 @@ func TestClient_Get_Fail_Timeout(t *testing.T) {
 			clientName:      "custom oauth retryablehttp default client with oath",
 		},
 		{
+			token: field.ToOptionalString("test-token"),
+			retryableClient: NewClientWithAuthorisation(&RequestConfiguration{Authorisation: Auth{
+				Enforced:    true,
+				Scheme:      AuthorisationSchemeBearer,
+				AccessToken: "test-token",
+			}}),
+			clientName: "client with Authorisation",
+		},
+		{
 			token:           field.ToOptionalString("test-token"),
 			retryableClient: NewConfigurableRetryableOauthClient(DefaultRobustHTTPClientConfiguration(), "test-token"),
 			clientName:      "custom oauth client with retry but no backoff",
@@ -280,6 +299,24 @@ func TestUnderlyingClient(t *testing.T) {
 		{
 			retryableClient: NewConfigurableRetryableClient(DefaultRobustHTTPClientConfigurationWithLinearBackOff()),
 			clientName:      "client with linear backoff",
+		},
+		{
+			retryableClient: NewClientWithAuthorisation(&RequestConfiguration{
+				Authorisation: Auth{
+					Enforced:    true,
+					Scheme:      AuthorisationSchemeBearer,
+					AccessToken: faker.Password(),
+				},
+			}),
+			clientName: "client with Authorisation",
+		},
+		{
+			retryableClient: NewClientWithAuthorisation(&RequestConfiguration{}),
+			clientName:      "client without Authorisation",
+		},
+		{
+			retryableClient: NewClientWithAuthorisation(nil),
+			clientName:      "default client",
 		},
 		{
 			retryableClient: NewRetryableOauthClient("test-token"),
