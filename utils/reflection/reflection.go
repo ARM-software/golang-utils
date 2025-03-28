@@ -205,6 +205,9 @@ func IsEmpty(value any) bool {
 		return len(strings.TrimSpace(valueStr)) == 0
 	}
 	if valueStrPtr, ok := value.(*string); ok {
+		if valueStrPtr == nil {
+			return true
+		}
 		return len(strings.TrimSpace(*valueStrPtr)) == 0
 	}
 	if valueBool, ok := value.(bool); ok {
