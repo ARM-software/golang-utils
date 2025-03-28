@@ -7,6 +7,7 @@ package reflection
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"unsafe"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -195,9 +196,20 @@ func InheritsFrom(object interface{}, parentType reflect.Type) bool {
 }
 
 // IsEmpty checks whether a value is empty i.e. "", nil, 0, [], {}, false, etc.
-func IsEmpty(value interface{}) bool {
+// For Strings, a string is considered empty if it is "" or if it only contains whitespaces
+func IsEmpty(value any) bool {
 	if value == nil {
 		return true
+	}
+	if valueStr, ok := value.(string); ok {
+		return len(strings.TrimSpace(valueStr)) == 0
+	}
+	if valueStrPtr, ok := value.(*string); ok {
+		return len(strings.TrimSpace(*valueStrPtr)) == 0
+	}
+	if valueBool, ok := value.(bool); ok {
+		// if set to true, then value is not empty
+		return !valueBool
 	}
 	objValue := reflect.ValueOf(value)
 	switch objValue.Kind() {
