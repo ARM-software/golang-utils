@@ -7,11 +7,11 @@ package http
 import (
 	"context"
 	"fmt"
-	"github.com/go-faker/faker/v4"
 	"net/http"
 	"testing"
 	"time"
 
+	"github.com/go-faker/faker/v4"
 	"github.com/go-http-utils/headers"
 	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
