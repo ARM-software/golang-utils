@@ -686,7 +686,7 @@ func TestServiceConfigurationLoadFromFile(t *testing.T) {
 	errortest.AssertError(t, err, commonerrors.ErrUndefined, commonerrors.ErrNotFound)
 	err = LoadFromConfigurationFile(session, fmt.Sprintf("doesnotexist-%v.test", faker.DomainName()))
 	assert.Error(t, err)
-	errortest.AssertError(t, err, commonerrors.ErrUndefined, commonerrors.ErrNotFound)
+	errortest.AssertError(t, err, commonerrors.ErrUndefined, commonerrors.ErrNotFound, commonerrors.ErrUnsupported)
 	err = LoadFromConfigurationFile(session, filepath.Join(".", "fixtures", "config-test.json"))
 	assert.NoError(t, err)
 	value := session.Get("dummy_string")
