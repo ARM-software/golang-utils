@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -176,6 +177,7 @@ func newValidationErrorFromOzzoValidationErrors(oes validation.Errors) *validati
 	}
 	// Only store the one parameter
 	params := maps.Keys(oes)
+	slices.Sort(params)
 	param := params[0]
 	veo := &validationError{
 		reason: oes[param].Error(),
@@ -190,6 +192,7 @@ func newValidationErrorFromOzzoValidation(oe validation.Error) *validationError 
 	}
 	// Only store the one parameter
 	params := maps.Keys(oe.Params())
+	slices.Sort(params)
 	if len(params) > 0 {
 		veo.RecordField(params[0], nil, nil)
 	}
