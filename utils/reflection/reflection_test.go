@@ -429,6 +429,14 @@ func TestIsEmpty(t *testing.T) {
 			differsFromAssertEmpty: true,
 		},
 		{
+			value:   (*string)(nil),
+			isEmpty: true,
+		},
+		{
+			value:   field.ToOptionalString(""),
+			isEmpty: true,
+		},
+		{
 			value:                  field.ToOptionalString("                                   "),
 			isEmpty:                true,
 			differsFromAssertEmpty: true,
