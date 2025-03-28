@@ -113,6 +113,14 @@ func DefaultConfiguration() *ConfigurationTest {
 	}
 }
 
+func TestErrorFormatting(t *testing.T) {
+	cfg := DefaultConfiguration()
+	err := cfg.Validate()
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrInvalid)
+	assert.Contains(t, err.Error(), "invalid: structure failed validation: (TestConfig->db) [DUMMYCONFIG] cannot be blank")
+}
+
 func TestServiceConfigurationLoad(t *testing.T) {
 	os.Clearenv()
 	configTest := &ConfigurationTest{}
@@ -120,7 +128,9 @@ func TestServiceConfigurationLoad(t *testing.T) {
 	err := Load("test", configTest, defaults)
 	// Some required values are missing.
 	require.Error(t, err)
-	require.NotNil(t, configTest.Validate())
+	errortest.RequireError(t, err, commonerrors.ErrInvalid)
+	errortest.RequireError(t, configTest.Validate(), commonerrors.ErrInvalid)
+
 	// Setting required entries in the environment.
 	err = os.Setenv("TEST_DUMMYCONFIG_DUMMY_HOST", expectedHost)
 	require.NoError(t, err)
@@ -142,6 +152,8 @@ func TestServiceConfigurationLoad(t *testing.T) {
 	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMY_TIME", expectedDuration.String())
 	require.NoError(t, err)
+	err = Load("test", configTest, defaults)
+	errortest.RequireError(t, err, commonerrors.ErrInvalid)
 	err = os.Setenv("TEST_DUMMY_INT", fmt.Sprintf("%v", expectedInt))
 	require.NoError(t, err)
 	err = Load("test", configTest, defaults)
@@ -167,11 +179,15 @@ func TestServiceConfigurationLoad_Errors(t *testing.T) {
 	err := Load("test", configTest, DefaultConfiguration())
 	// Some required values are missing.
 	require.Error(t, err)
-	require.NotNil(t, configTest.Validate())
+	errortest.AssertError(t, err, commonerrors.ErrInvalid)
+
+	errortest.AssertError(t, configTest.Validate(), commonerrors.ErrInvalid)
 
 	err = Load("test", nil, DefaultDummyConfiguration())
 	// Incorrect  structure provided.
 	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrInvalid, commonerrors.ErrMarshalling)
+
 }
 
 func TestSimpleFlagBinding(t *testing.T) {
@@ -602,13 +618,13 @@ func TestGenerateEnvFile_Nested(t *testing.T) {
 func TestGenerateEnvFile_Undefined(t *testing.T) {
 	prefix := "test"
 	_, err := DetermineConfigurationEnvironmentVariables(prefix, nil)
-	require.ErrorIs(t, err, commonerrors.ErrUndefined)
+	errortest.RequireError(t, err, commonerrors.ErrUndefined)
 }
 
 func TestGenerateEnvFile_Empty(t *testing.T) {
 	prefix := "test"
 	_, err := DetermineConfigurationEnvironmentVariables(prefix, struct{ IServiceConfiguration }{})
-	require.ErrorIs(t, err, commonerrors.ErrUndefined)
+	errortest.RequireError(t, err, commonerrors.ErrUndefined)
 }
 
 func Test_convertViperError(t *testing.T) {
@@ -667,8 +683,10 @@ func TestServiceConfigurationLoadFromFile(t *testing.T) {
 	session := viper.New()
 	err := LoadFromConfigurationFile(session, "")
 	assert.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrUndefined, commonerrors.ErrNotFound)
 	err = LoadFromConfigurationFile(session, fmt.Sprintf("doesnotexist-%v.test", faker.DomainName()))
 	assert.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrUndefined, commonerrors.ErrNotFound)
 	err = LoadFromConfigurationFile(session, filepath.Join(".", "fixtures", "config-test.json"))
 	assert.NoError(t, err)
 	value := session.Get("dummy_string")
