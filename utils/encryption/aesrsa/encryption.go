@@ -107,7 +107,7 @@ func DecryptHybridAESRSAEncryptedPayloadFromBytes(block []byte, payload *HybridA
 	return
 }
 
-func encrypteWithRSAKey(rsaPub *rsa.PublicKey, payload []byte) (encrypted *HybridAESRSAEncryptedPayload, err error) {
+func encryptWithRSAKey(rsaPub *rsa.PublicKey, payload []byte) (encrypted *HybridAESRSAEncryptedPayload, err error) {
 	if rsaPub == nil {
 		err = fmt.Errorf("%w: rsa public key is undefined", commonerrors.ErrUndefined)
 		return
@@ -175,7 +175,7 @@ func EncryptHybridAESRSAEncryptedPayloadFromPublickKeyBytes(publicKeyBytes []byt
 			return
 		}
 
-		return encrypteWithRSAKey(pkcs1PublicKey, payload)
+		return encryptWithRSAKey(pkcs1PublicKey, payload)
 	}
 
 	rsaPub, ok := pub.(*rsa.PublicKey)
@@ -184,7 +184,7 @@ func EncryptHybridAESRSAEncryptedPayloadFromPublickKeyBytes(publicKeyBytes []byt
 		return
 	}
 
-	return encrypteWithRSAKey(rsaPub, payload)
+	return encryptWithRSAKey(rsaPub, payload)
 }
 
 // EncryptHybridAESRSAEncryptedPayloadFromBytes takes an x509 certificate for key encypherment and uses it to
@@ -205,7 +205,7 @@ func EncryptHybridAESRSAEncryptedPayloadFromBytes(block []byte, payload []byte) 
 		return
 	}
 
-	return encrypteWithRSAKey(rsaPub, payload)
+	return encryptWithRSAKey(rsaPub, payload)
 }
 
 // EncryptHybridAESRSAEncryptedPayloadFromCertificate takes a path to a valid x509 certificate for key encypherment
