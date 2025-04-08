@@ -70,6 +70,7 @@ type VFS struct {
 	resourceInUse resource.ICloseableResource
 	vfs           afero.Fs
 	fsType        FilesystemType
+	pathSeparator rune
 	pathConverter func(path string) string
 }
 
@@ -78,9 +79,22 @@ func NewVirtualFileSystem(vfs afero.Fs, fsType FilesystemType, pathConverter fun
 	return NewCloseableVirtualFileSystem(vfs, fsType, nil, "", pathConverter)
 }
 
+// NewVirtualFileSystemWithPathSeparator returns a virtual filesystem similarly to NewCloseableVirtualFileSystem.
+// This constructor also gives the possibility to set the path separator when it is different from the platform.PathSeparator
+func NewVirtualFileSystemWithPathSeparator(vfs afero.Fs, fsType FilesystemType, pathConverter func(path string) string, pathSeparator rune) FS {
+	return NewCloseableVirtualFileSystemWithPathSeparator(vfs, fsType, nil, "", pathConverter, pathSeparator)
+}
+
 // NewCloseableVirtualFileSystem returns a virtual filesystem which requires closing after use.
 // It is a wrapper over afero.FS virtual filesystem and tends to define common filesystem utilities as the ones available in posix.
 func NewCloseableVirtualFileSystem(vfs afero.Fs, fsType FilesystemType, resourceInUse io.Closer, resourceInUseDescription string, pathConverter func(path string) string) ICloseableFS {
+	return NewCloseableVirtualFileSystemWithPathSeparator(vfs, fsType, resourceInUse, resourceInUseDescription, pathConverter, platform.PathSeparator)
+}
+
+// NewCloseableVirtualFileSystemWithPathSeparator returns a virtual filesystem which requires closing after use.
+// It is a wrapper over afero.FS virtual filesystem and tends to define common filesystem utilities as the ones available in posix.
+// This constructor also gives the possibility to set the path separator when it is different from the platform.PathSeparator
+func NewCloseableVirtualFileSystemWithPathSeparator(vfs afero.Fs, fsType FilesystemType, resourceInUse io.Closer, resourceInUseDescription string, pathConverter func(path string) string, pathSeparator rune) ICloseableFS {
 	var resourceInUseByFs resource.ICloseableResource
 	if resourceInUse == nil {
 		resourceInUseByFs = resource.NewNonCloseableResource()
@@ -91,6 +105,7 @@ func NewCloseableVirtualFileSystem(vfs afero.Fs, fsType FilesystemType, resource
 		resourceInUse: resourceInUseByFs,
 		vfs:           vfs,
 		fsType:        fsType,
+		pathSeparator: pathSeparator,
 		pathConverter: pathConverter,
 	}
 }
@@ -441,7 +456,7 @@ func PathSeparator() rune {
 }
 
 func (fs *VFS) PathSeparator() rune {
-	return os.PathSeparator
+	return fs.pathSeparator
 }
 
 func Stat(name string) (os.FileInfo, error) {

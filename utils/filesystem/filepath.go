@@ -9,6 +9,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/platform"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
@@ -43,6 +44,17 @@ func FilePathParentsOnFilesystem(fs FS, fp string) (parents []string) {
 		parents = append(parents, path)
 	}
 	return
+}
+
+// FilePathJoin joins any number of path elements into a single path,
+// separating them with the filesystem path separator.
+// Its behaviour is similar to filepath.Join
+func FilePathJoin(fs FS, element ...string) string {
+	if fs == nil {
+		return ""
+	}
+
+	return strings.ReplaceAll(filepath.Join(element...), string(platform.PathSeparator), string(fs.PathSeparator()))
 }
 
 // FileTreeDepth returns the depth of a file in a tree starting from root

@@ -17,6 +17,8 @@ import (
 	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
+//go:generate go run github.com/dmarkham/enumer -type=FilesystemType -text -json -yaml
+
 type FilesystemType int
 
 const (
@@ -46,7 +48,8 @@ func NewEmbedFileSystem(fs *embed.FS) (FS, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewVirtualFileSystem(wrapped, Embed, IdentityPathConverterFunc), nil
+	// https://pkg.go.dev/embed#hdr-Directives The path separator is a forward slash, even on Windows systems.
+	return NewVirtualFileSystemWithPathSeparator(wrapped, Embed, IdentityPathConverterFunc, '/'), nil
 }
 
 // NewZipFileSystem returns a filesystem over the contents of a .zip file.
