@@ -1,1 +1,1 @@
-:gear: `[filesystem]` Add filesytem aware `Base()` and `Clean()` to filepath Utils
+:sparkles: `[filesystem]` Add filesytem aware `Base()` and `Clean()` to filepath Utils
