@@ -67,7 +67,7 @@ func FilePathJoin(fs FS, element ...string) string {
 	return joinedPath
 }
 
-// Same behaviour as filepath.Base, but can handle different filesystems.
+// FilePathBase has the same behaviour as filepath.Base, but can handle different filesystems.
 func FilePathBase(fs FS, fp string) string {
 	if fs == nil {
 		return ""
@@ -84,7 +84,7 @@ func FilePathBase(fs FS, fp string) string {
 	return filepath.Base(fp)
 }
 
-// Same behaviour as filepath.Clean, but can handle different filesystems.
+// FilePathClean has the same behaviour as filepath.Clean, but can handle different filesystems.
 func FilePathClean(fs FS, fp string) string {
 	if fs == nil {
 		return ""
