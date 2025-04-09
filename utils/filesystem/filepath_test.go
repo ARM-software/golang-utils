@@ -324,3 +324,63 @@ func TestFilePathJoin(t *testing.T) {
 		})
 	}
 }
+
+func TestBase(t *testing.T) {
+	embedFS, err := NewEmbedFileSystem(&testContent)
+	require.NoError(t, err)
+	tests := []struct {
+		fs           FS
+		pathLinux    string
+		pathWindows  string
+		expectedBase string
+	}{
+		{
+			fs:           nil,
+			pathLinux:    "test1/test2",
+			pathWindows:  "test1\\test2",
+			expectedBase: "",
+		},
+		{
+			fs:           NewStandardFileSystem(),
+			pathLinux:    "",
+			pathWindows:  "",
+			expectedBase: ".",
+		},
+		{
+			fs:           embedFS,
+			pathLinux:    "",
+			pathWindows:  ".",
+			expectedBase: ".",
+		},
+		{
+			fs:           NewStandardFileSystem(),
+			pathLinux:    "/test1/test2/file.ext",
+			pathWindows:  "C:\\test1\\test2\\file.ext",
+			expectedBase: "file.ext",
+		},
+		{
+			fs:           embedFS,
+			pathLinux:    "./test1/test2/",
+			pathWindows:  ".\\test1\\test2\\",
+			expectedBase: "test2",
+		},
+	}
+	for i := range tests {
+		test := tests[i]
+		fsType := ""
+		if test.fs != nil {
+			fsType = fmt.Sprintf("%v", test.fs.GetType())
+		}
+
+		var testPath string
+		if platform.IsWindows() {
+			testPath = test.pathWindows
+		} else {
+			testPath = test.pathLinux
+		}
+
+		t.Run(fmt.Sprintf("%v %v", fsType, testPath), func(t *testing.T) {
+			assert.Equal(t, test.expectedBase, Base(test.fs, testPath))
+		})
+	}
+}

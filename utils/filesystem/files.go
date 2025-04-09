@@ -456,6 +456,10 @@ func PathSeparator() rune {
 }
 
 func (fs *VFS) PathSeparator() rune {
+	if fs.pathSeparator == 0 {
+		return os.PathSeparator
+	}
+
 	return fs.pathSeparator
 }
 

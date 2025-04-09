@@ -2,6 +2,7 @@ package filesystem
 
 import (
 	"io/fs"
+	"path"
 	"path/filepath"
 	"strings"
 	"syscall"
@@ -9,7 +10,6 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
-	"github.com/ARM-software/golang-utils/utils/platform"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
@@ -25,7 +25,12 @@ func FilepathParents(fp string) []string {
 
 // FilePathParentsOnFilesystem is similar to FilepathParents but with the ability to be applied to a particular filesystem.
 func FilePathParentsOnFilesystem(fs FS, fp string) (parents []string) {
-	cleanFp := filepath.Clean(fp)
+	var cleanFp string
+	if fs.GetType() == Embed {
+		cleanFp = path.Clean(fp)
+	} else {
+		cleanFp = filepath.Clean(fp)
+	}
 	elements := strings.Split(cleanFp, string(fs.PathSeparator()))
 	if len(elements) <= 1 {
 		return
@@ -54,7 +59,24 @@ func FilePathJoin(fs FS, element ...string) string {
 		return ""
 	}
 
-	return strings.ReplaceAll(filepath.Join(element...), string(platform.PathSeparator), string(fs.PathSeparator()))
+	if fs.GetType() == Embed {
+		return path.Join(element...)
+	}
+
+	return filepath.Join(element...)
+}
+
+// Same behaviour as filepath.Base, but can handle different filesystems.
+func Base(fs FS, fp string) string {
+	if fs == nil {
+		return ""
+	}
+
+	if fs.GetType() == Embed {
+		return path.Base(fp)
+	}
+
+	return filepath.Base(fp)
 }
 
 // FileTreeDepth returns the depth of a file in a tree starting from root
