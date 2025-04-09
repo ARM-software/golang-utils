@@ -22,7 +22,6 @@ require (
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f
-	github.com/golang/mock v1.6.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-retryablehttp v0.7.7
@@ -43,6 +42,7 @@ require (
 	github.com/zailic/slogr v0.0.2-alpha
 	go.uber.org/atomic v1.11.0
 	go.uber.org/goleak v1.3.0
+	go.uber.org/mock v0.5.1
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.37.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
