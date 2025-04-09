@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.91.0" (2025-04-09)
+=====================
+
+Features
+--------
+
+- :sparkles: `[filesystem]` Add filesytem aware `Base()` and `Clean()` to filepath Utils (#20250409132457)
+
+
 "1.90.0" (2025-04-09)
 =====================
 
