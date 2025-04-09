@@ -42,6 +42,16 @@ var (
 	IsVariableName = validation.NewStringRuleWithError(isVarName, errVariableNameInvalid)
 )
 
+const (
+	// PathListSeparator corresponds to the platform separator used to separate element in PATH environment variable
+	// i.e. this character is used to separate filenames in a sequence of files given as a path list.
+	// On UNIX systems, this character is ':'; on Microsoft Windows systems it is ';'.
+	PathListSeparator rune = os.PathListSeparator
+	// PathSeparator corresponds to the platform path separator as in the system-dependent default name-separator character.
+	// On UNIX systems the value of this field is '/'; on Microsoft Windows systems it is '\\'.
+	PathSeparator rune = os.PathSeparator
+)
+
 func isWindowsVarName(value string) bool {
 	if validation.Required.Validate(value) != nil {
 		return false

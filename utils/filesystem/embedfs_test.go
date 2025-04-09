@@ -151,5 +151,4 @@ func Test_embed_not_supported(t *testing.T) {
 	err = efs.Chmod("testdata/embed/test.txt", os.FileMode(0600))
 	require.Error(t, err)
 	errortest.AssertErrorDescription(t, err, "operation not permitted")
-
 }

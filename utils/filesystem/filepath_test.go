@@ -243,3 +243,84 @@ func TestNewPathExistRule(t *testing.T) {
 	})
 
 }
+
+func TestFilePathJoin(t *testing.T) {
+	embedFS, err := NewEmbedFileSystem(&testContent)
+	require.NoError(t, err)
+	tests := []struct {
+		fs              FS
+		elements        []string
+		expectedWindows string
+		expectedLinux   string
+	}{
+		{
+			fs:              nil,
+			elements:        []string{"test1", "test2", "..", "c"},
+			expectedWindows: "",
+			expectedLinux:   "",
+		},
+		{
+			fs:              NewStandardFileSystem(),
+			elements:        []string{"test1", "c"},
+			expectedWindows: "test1\\c",
+			expectedLinux:   "test1/c",
+		},
+		{
+			fs:              embedFS,
+			elements:        []string{"test1", "c"},
+			expectedWindows: "test1/c",
+			expectedLinux:   "test1/c",
+		},
+		{
+			fs:              NewStandardFileSystem(),
+			elements:        []string{"test1", "test2", "..", "c"},
+			expectedWindows: "test1\\c",
+			expectedLinux:   "test1/c",
+		},
+		{
+			fs:              NewStandardFileSystem(),
+			elements:        []string{"test1", "test2", "..", "\\c"},
+			expectedWindows: "test1\\c",
+			expectedLinux:   "test1/\\c",
+		},
+		{
+			fs:              NewStandardFileSystem(),
+			elements:        []string{"test1", "test2", "..", "/c"},
+			expectedWindows: "test1\\c",
+			expectedLinux:   "test1/c",
+		},
+		{
+			fs:              embedFS,
+			elements:        []string{"test1", "test2", "..", "c"},
+			expectedWindows: "test1/c",
+			expectedLinux:   "test1/c",
+		},
+		{
+			fs:              embedFS,
+			elements:        []string{"test1", "test2", "..", "/c"},
+			expectedWindows: "test1/c",
+			expectedLinux:   "test1/c",
+		},
+		{
+			fs:              embedFS,
+			elements:        []string{"test1", "test2", "..", "\\c"},
+			expectedWindows: "test1/c",
+			expectedLinux:   "test1/\\c",
+		},
+	}
+	for i := range tests {
+		test := tests[i]
+		fsType := ""
+		if test.fs != nil {
+			fsType = fmt.Sprintf("%v", test.fs.GetType())
+		}
+		t.Run(fmt.Sprintf("%v %v", fsType, test.elements), func(t *testing.T) {
+			join := FilePathJoin(test.fs, test.elements...)
+			if platform.IsWindows() {
+				assert.Equal(t, test.expectedWindows, join)
+			} else {
+				assert.Equal(t, test.expectedLinux, join)
+			}
+		})
+	}
+}
