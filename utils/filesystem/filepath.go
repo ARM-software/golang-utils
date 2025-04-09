@@ -10,6 +10,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/platform"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
@@ -25,12 +26,7 @@ func FilepathParents(fp string) []string {
 
 // FilePathParentsOnFilesystem is similar to FilepathParents but with the ability to be applied to a particular filesystem.
 func FilePathParentsOnFilesystem(fs FS, fp string) (parents []string) {
-	var cleanFp string
-	if fs.GetType() == Embed {
-		cleanFp = path.Clean(fp)
-	} else {
-		cleanFp = filepath.Clean(fp)
-	}
+	cleanFp := FilePathClean(fs, fp)
 	elements := strings.Split(cleanFp, string(fs.PathSeparator()))
 	if len(elements) <= 1 {
 		return
@@ -59,24 +55,46 @@ func FilePathJoin(fs FS, element ...string) string {
 		return ""
 	}
 
-	if fs.GetType() == Embed {
+	if fs.PathSeparator() == '/' {
 		return path.Join(element...)
 	}
 
-	return filepath.Join(element...)
+	joinedPath := filepath.Join(element...)
+	if fs.PathSeparator() != platform.PathListSeparator {
+		joinedPath = strings.ReplaceAll(joinedPath, string(platform.PathListSeparator), string(fs.PathSeparator()))
+	}
+
+	return joinedPath
 }
 
 // Same behaviour as filepath.Base, but can handle different filesystems.
-func Base(fs FS, fp string) string {
+func FilePathBase(fs FS, fp string) string {
 	if fs == nil {
 		return ""
 	}
 
-	if fs.GetType() == Embed {
+	if fs.PathSeparator() == '/' {
 		return path.Base(fp)
 	}
 
+	if fs.PathSeparator() != platform.PathListSeparator {
+		fp = strings.ReplaceAll(fp, string(fs.PathSeparator()), string(platform.PathListSeparator))
+	}
+
 	return filepath.Base(fp)
+}
+
+// Same behaviour as filepath.Clean, but can handle different filesystems.
+func FilePathClean(fs FS, fp string) string {
+	if fs == nil {
+		return ""
+	}
+
+	if fs.PathSeparator() == '/' {
+		return path.Clean(fp)
+	}
+
+	return filepath.Clean(fp)
 }
 
 // FileTreeDepth returns the depth of a file in a tree starting from root

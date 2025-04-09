@@ -325,7 +325,7 @@ func TestFilePathJoin(t *testing.T) {
 	}
 }
 
-func TestBase(t *testing.T) {
+func TestFilePathBase(t *testing.T) {
 	embedFS, err := NewEmbedFileSystem(&testContent)
 	require.NoError(t, err)
 	tests := []struct {
@@ -380,7 +380,7 @@ func TestBase(t *testing.T) {
 		}
 
 		t.Run(fmt.Sprintf("%v %v", fsType, testPath), func(t *testing.T) {
-			assert.Equal(t, test.expectedBase, Base(test.fs, testPath))
+			assert.Equal(t, test.expectedBase, FilePathBase(test.fs, testPath))
 		})
 	}
 }
