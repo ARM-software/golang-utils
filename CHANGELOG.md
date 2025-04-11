@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.92.0" (2025-04-11)
+=====================
+
+Features
+--------
+
+- :boom: `[mocks]` Move from [golang mock](https://github.com/golang/mock) to [uber mock](go.uber.org/mock/gomock). :warning: Potential breaking changes" (#20250409092040)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v5-5.15.0 (#20250411104622, #20250411104624)
+
+
 "1.91.0" (2025-04-09)
 =====================
 
