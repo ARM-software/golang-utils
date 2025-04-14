@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.93.0" (2025-04-14)
+=====================
+
+Features
+--------
+
+- :sparkles: `[unit]` Add helpers to format memory values and parse strings (#20250414165452)
+
+
 "1.92.0" (2025-04-11)
 =====================
 
