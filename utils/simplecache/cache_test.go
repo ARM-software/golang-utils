@@ -6,13 +6,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-faker/faker/v4"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
+
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/internal/testutils"
-	"github.com/go-faker/faker/v4"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/goleak"
 )
 
 func TestCache_Add(t *testing.T) {
