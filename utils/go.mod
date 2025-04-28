@@ -4,8 +4,6 @@ go 1.23.0
 
 toolchain go1.24.1
 
-replace github.com/ARM-software/golang-utils/utils/internal/testutils => ./internal/testutils
-
 require (
 	github.com/OneOfOne/xxhash v1.2.8
 	github.com/avast/retry-go/v4 v4.6.1

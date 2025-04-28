@@ -1,22 +1,25 @@
-package testutils
+package filesystemtest
 
 import (
 	"fmt"
 	"math/rand"
 	"path/filepath"
+	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/idgen"
 )
 
-func CreateTestFileTree(fs filesystem.FS, testDir string, fileModTime time.Time, fileAccessTime time.Time) ([]string, error) {
+func CreateTestFileTree(t *testing.T, fs filesystem.FS, testDir string, fileModTime time.Time, fileAccessTime time.Time) []string {
+	t.Helper()
 	// This can be fixed for testing.
 	random := rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for
 	err := fs.MkDir(testDir)
-	if err != nil {
-		return nil, err
-	}
+	require.NoError(t, err)
+
 	randI := random.Intn(5) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 	if randI == 0 {
 		randI = 1
@@ -26,9 +29,8 @@ func CreateTestFileTree(fs filesystem.FS, testDir string, fileModTime time.Time,
 		path := filepath.Join(testDir, c)
 
 		err = fs.MkDir(path)
-		if err != nil {
-			return nil, err
-		}
+		require.NoError(t, err)
+
 		for j := 0; j < random.Intn(5); j++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 			uuid, err := idgen.GenerateUUID4()
 			if err != nil {
@@ -38,9 +40,8 @@ func CreateTestFileTree(fs filesystem.FS, testDir string, fileModTime time.Time,
 			path := filepath.Join(path, c)
 
 			err = fs.MkDir(path)
-			if err != nil {
-				return nil, err
-			}
+			require.NoError(t, err)
+
 			for k := 0; k < random.Intn(5); k++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
 				uuid, err = idgen.GenerateUUID4()
 				if err != nil {
@@ -51,25 +52,19 @@ func CreateTestFileTree(fs filesystem.FS, testDir string, fileModTime time.Time,
 
 				s := fmt.Sprintf("file-%v-%v%v%v ", uuid, i+1, j+1, k+1)
 				err = fs.WriteFile(finalPath, []byte(s), 0755)
-				if err != nil {
-					return nil, err
-				}
+				require.NoError(t, err)
 			}
 		}
 	}
 	var tree []string
 	err = fs.ListDirTree(testDir, &tree)
-	if err != nil {
-		return nil, err
-	}
+	require.NoError(t, err)
 
 	// unifying timestamps
 	for _, path := range tree {
 		err = fs.Chtimes(path, fileAccessTime, fileModTime)
-		if err != nil {
-			return nil, err
-		}
+		require.NoError(t, err)
 	}
 
-	return tree, nil
+	return tree
 }

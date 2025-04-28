@@ -13,7 +13,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
-	"github.com/ARM-software/golang-utils/utils/internal/testutils"
+	"github.com/ARM-software/golang-utils/utils/filesystem/filesystemtest"
 )
 
 func TestNothingInCacheWorkflow(t *testing.T) { // Single fetch with no file previously cached
@@ -84,8 +84,7 @@ func TestSimpleCacheWorkflow(t *testing.T) { // Simple store, followed by fetch
 				require.NoError(t, err)
 				require.Empty(t, items)
 
-				tree, err := testutils.CreateTestFileTree(fs, tmpSrcDir, time.Now(), time.Now())
-				require.NoError(t, err)
+				tree := filesystemtest.CreateTestFileTree(t, fs, tmpSrcDir, time.Now(), time.Now())
 				expectedTree, err := fs.ConvertToRelativePath(tmpSrcDir, tree...)
 				require.NoError(t, err)
 
@@ -172,8 +171,7 @@ func TestSimpleCacheWorkflow_WithExcludedFilesystemItems(t *testing.T) { // Simp
 				require.NoError(t, err)
 				require.Empty(t, items)
 
-				tree, err := testutils.CreateTestFileTree(fs, tmpSrcDir, time.Now(), time.Now())
-				require.NoError(t, err)
+				tree := filesystemtest.CreateTestFileTree(t, fs, tmpSrcDir, time.Now(), time.Now())
 				expectedTree, err := fs.ConvertToRelativePath(tmpSrcDir, tree...)
 				require.NoError(t, err)
 
@@ -262,8 +260,7 @@ func TestComplexCacheWorkflow(t *testing.T) { // Multiple Store action. The fetc
 				for i := 0; i < 10; i++ {
 					err = fs.CleanDir(tmpSrcDir)
 					require.NoError(t, err)
-					tree, err := testutils.CreateTestFileTree(fs, tmpSrcDir, time.Now(), time.Now())
-					require.NoError(t, err)
+					tree := filesystemtest.CreateTestFileTree(t, fs, tmpSrcDir, time.Now(), time.Now())
 					expectedTree, err = fs.ConvertToRelativePath(tmpSrcDir, tree...)
 					require.NoError(t, err)
 					err = remoteCache.Store(ctx, key, tmpSrcDir)
@@ -340,8 +337,7 @@ func TestComplexCacheWorkflowWithCleanCache(t *testing.T) { // Multiple Store ac
 				for i := 0; i < 10; i++ {
 					err = fs.CleanDir(tmpSrcDir)
 					require.NoError(t, err)
-					tree, err := testutils.CreateTestFileTree(fs, tmpSrcDir, time.Now(), time.Now())
-					require.NoError(t, err)
+					tree := filesystemtest.CreateTestFileTree(t, fs, tmpSrcDir, time.Now(), time.Now())
 					expectedTree, err = fs.ConvertToRelativePath(tmpSrcDir, tree...)
 					require.NoError(t, err)
 					err = remoteCache.Store(ctx, key, tmpSrcDir)
@@ -411,8 +407,7 @@ func TestRemoveEntry(t *testing.T) { // A store followed by a remove entry follo
 
 				key := remoteCache.GenerateKey("test", "cache", fmt.Sprintf("%v", cacheType))
 
-				_, err = testutils.CreateTestFileTree(fs, tmpSrcDir, time.Now(), time.Now())
-				require.NoError(t, err)
+				_ = filesystemtest.CreateTestFileTree(t, fs, tmpSrcDir, time.Now(), time.Now())
 				err = remoteCache.Store(ctx, key, tmpSrcDir)
 				require.NoError(t, err)
 
@@ -473,8 +468,7 @@ func TestEntryAge(t *testing.T) { // A store followed by a remove entry followed
 
 				key := remoteCache.GenerateKey("test", "cache", fmt.Sprintf("%v", cacheType))
 
-				_, err = testutils.CreateTestFileTree(fs, tmpSrcDir, time.Now(), time.Now())
-				require.NoError(t, err)
+				_ = filesystemtest.CreateTestFileTree(t, fs, tmpSrcDir, time.Now(), time.Now())
 				err = remoteCache.Store(ctx, key, tmpSrcDir)
 				require.NoError(t, err)
 

@@ -1,4 +1,4 @@
-package simplecache
+package filecache
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
-	"github.com/ARM-software/golang-utils/utils/internal/testutils"
+	"github.com/ARM-software/golang-utils/utils/filesystem/filesystemtest"
 )
 
 func TestCache_Add(t *testing.T) {
@@ -43,8 +43,7 @@ func TestCache_Add(t *testing.T) {
 			require.NoError(t, err)
 			defer func() { _ = srcFs.Rm(tmpSrcDir) }()
 
-			_, err = testutils.CreateTestFileTree(srcFs, tmpSrcDir, time.Now(), time.Now())
-			require.NoError(t, err)
+			_ = filesystemtest.CreateTestFileTree(t, srcFs, tmpSrcDir, time.Now(), time.Now())
 			srcContent, err := srcFs.Ls(tmpSrcDir)
 			require.NoError(t, err)
 
@@ -54,12 +53,14 @@ func TestCache_Add(t *testing.T) {
 			defer func() { _ = cacheFs.Rm(tmpCacheDir) }()
 
 			ctx := context.Background()
-			cache, err := NewDefaultSimpleCache(ctx, cacheFs, tmpCacheDir)
+			config := DefaultFileCacheConfig()
+			config.CachePath = tmpCacheDir
+			cache, err := NewFileCache(ctx, cacheFs, config)
 			require.NoError(t, err)
 
 			for _, path := range srcContent {
 				absoluteSrcPath := filesystem.FilePathJoin(srcFs, tmpSrcDir, path)
-				err := cache.Add(ctx, faker.UUIDDigit(), srcFs, absoluteSrcPath)
+				err := cache.Store(ctx, faker.UUIDDigit(), srcFs, absoluteSrcPath)
 				require.NoError(t, err)
 			}
 
@@ -83,7 +84,7 @@ func TestCache_Add(t *testing.T) {
 			slices.Sort(cacheRelTree)
 			require.Equal(t, srcRelTree, cacheRelTree, "Cache Dir and Src Dir have differnet contents")
 
-			err = cache.Close(ctx)
+			err = cache.Close()
 			require.NoError(t, err)
 		})
 	}
@@ -97,13 +98,15 @@ func TestCache_Add(t *testing.T) {
 		defer func() { _ = fs.Rm(tmpCacheDir) }()
 
 		ctx := context.Background()
-		cache, err := NewDefaultSimpleCache(ctx, fs, tmpCacheDir)
+		config := DefaultFileCacheConfig()
+		config.CachePath = tmpCacheDir
+		cache, err := NewFileCache(ctx, fs, config)
 		require.NoError(t, err)
 
-		err = cache.Add(ctx, faker.UUIDDigit(), fs, "/does/not/exist")
+		err = cache.Store(ctx, faker.UUIDDigit(), fs, "/does/not/exist")
 		errortest.AssertError(t, err, commonerrors.ErrNotFound)
 
-		err = cache.Close(ctx)
+		err = cache.Close()
 		require.NoError(t, err)
 	})
 
@@ -116,20 +119,22 @@ func TestCache_Add(t *testing.T) {
 		defer func() { _ = fs.Rm(tmpCacheDir) }()
 
 		ctx := context.Background()
-		cache, err := NewDefaultSimpleCache(ctx, fs, tmpCacheDir)
+		config := DefaultFileCacheConfig()
+		config.CachePath = tmpCacheDir
+		cache, err := NewFileCache(ctx, fs, config)
 		require.NoError(t, err)
 
 		tmpTestPath, err := fs.TouchTempFileInTempDir(faker.Word())
 		require.NoError(t, err)
 
 		id := faker.UUIDDigit()
-		err = cache.Add(ctx, id, fs, tmpTestPath)
+		err = cache.Store(ctx, id, fs, tmpTestPath)
 		require.NoError(t, err)
 
-		err = cache.Add(ctx, id, fs, tmpTestPath)
+		err = cache.Store(ctx, id, fs, tmpTestPath)
 		errortest.AssertError(t, err, commonerrors.ErrExists)
 
-		err = cache.Close(ctx)
+		err = cache.Close()
 		require.NoError(t, err)
 	})
 }
@@ -144,14 +149,16 @@ func TestCache_Restore(t *testing.T) {
 		defer func() { _ = fs.Rm(tmpCacheDir) }()
 
 		ctx := context.Background()
-		cache, err := NewDefaultSimpleCache(ctx, fs, tmpCacheDir)
+		config := DefaultFileCacheConfig()
+		config.CachePath = tmpCacheDir
+		cache, err := NewFileCache(ctx, fs, config)
 		require.NoError(t, err)
 
 		tmpfilePath, err := fs.TouchTempFileInTempDir(faker.Word())
 		require.NoError(t, err)
 
 		id := faker.UUIDDigit()
-		err = cache.Add(ctx, id, fs, tmpfilePath)
+		err = cache.Store(ctx, id, fs, tmpfilePath)
 		require.NoError(t, err)
 
 		err = fs.Rm(tmpfilePath)
@@ -161,7 +168,7 @@ func TestCache_Restore(t *testing.T) {
 		require.NoError(t, err)
 
 		require.True(t, filesystem.Exists(tmpfilePath), "cache did not restore the file")
-		err = cache.Close(ctx)
+		err = cache.Close()
 		require.NoError(t, err)
 	})
 
@@ -174,13 +181,15 @@ func TestCache_Restore(t *testing.T) {
 		defer func() { _ = fs.Rm(tmpCacheDir) }()
 
 		ctx := context.Background()
-		cache, err := NewDefaultSimpleCache(ctx, fs, tmpCacheDir)
+		config := DefaultFileCacheConfig()
+		config.CachePath = tmpCacheDir
+		cache, err := NewFileCache(ctx, fs, config)
 		require.NoError(t, err)
 
 		err = cache.Restore(ctx, faker.UUIDDigit())
 		errortest.AssertError(t, err, commonerrors.ErrNotFound)
 
-		err = cache.Close(ctx)
+		err = cache.Close()
 		require.NoError(t, err)
 	})
 
@@ -193,7 +202,9 @@ func TestCache_Restore(t *testing.T) {
 		defer func() { _ = fs.Rm(tmpCacheDir) }()
 
 		ctx := context.Background()
-		cache, err := NewDefaultSimpleCache(ctx, fs, tmpCacheDir)
+		config := DefaultFileCacheConfig()
+		config.CachePath = tmpCacheDir
+		cache, err := NewFileCache(ctx, fs, config)
 		require.NoError(t, err)
 
 		tmpFile, err := fs.TempFileInTempDir(faker.Word())
@@ -206,7 +217,7 @@ func TestCache_Restore(t *testing.T) {
 		require.NoError(t, err)
 
 		id := faker.UUIDDigit()
-		err = cache.Add(ctx, id, fs, tmpfilePath)
+		err = cache.Store(ctx, id, fs, tmpfilePath)
 		require.NoError(t, err)
 
 		NewFileContent := []byte("New")
@@ -220,7 +231,7 @@ func TestCache_Restore(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, originalFileContent, cacheFileContent)
 
-		err = cache.Close(ctx)
+		err = cache.Close()
 		require.NoError(t, err)
 	})
 }
@@ -235,7 +246,9 @@ func TestCache_Remove(t *testing.T) {
 		defer func() { _ = fs.Rm(tmpCacheDir) }()
 
 		ctx := context.Background()
-		cache, err := NewDefaultSimpleCache(ctx, fs, tmpCacheDir)
+		config := DefaultFileCacheConfig()
+		config.CachePath = tmpCacheDir
+		cache, err := NewFileCache(ctx, fs, config)
 		require.NoError(t, err)
 
 		tmpfilePath, err := fs.TouchTempFileInTempDir(faker.Word())
@@ -243,20 +256,20 @@ func TestCache_Remove(t *testing.T) {
 		defer func() { _ = fs.Rm(tmpfilePath) }()
 
 		id := faker.UUIDDigit()
-		err = cache.Add(ctx, id, fs, tmpfilePath)
+		err = cache.Store(ctx, id, fs, tmpfilePath)
 		require.NoError(t, err)
 
-		err = cache.Remove(ctx, id)
+		err = cache.Evict(ctx, id)
 		require.NoError(t, err)
 
-		cacheExists, err := cache.Contains(ctx, id)
+		cacheExists, err := cache.Has(ctx, id)
 		require.NoError(t, err)
 		require.False(t, cacheExists, "cache still has an entry after removing")
 
 		cacheFilePath := filesystem.FilePathJoin(fs, tmpCacheDir, filesystem.FilePathBase(fs, tmpfilePath))
 		require.False(t, filesystem.Exists(cacheFilePath), "cache still has the file after removing")
 
-		err = cache.Close(ctx)
+		err = cache.Close()
 		require.NoError(t, err)
 	})
 
@@ -269,13 +282,15 @@ func TestCache_Remove(t *testing.T) {
 		defer func() { _ = fs.Rm(tmpCacheDir) }()
 
 		ctx := context.Background()
-		cache, err := NewDefaultSimpleCache(ctx, fs, tmpCacheDir)
+		config := DefaultFileCacheConfig()
+		config.CachePath = tmpCacheDir
+		cache, err := NewFileCache(ctx, fs, config)
 		require.NoError(t, err)
 
-		err = cache.Remove(ctx, faker.UUIDDigit())
+		err = cache.Evict(ctx, faker.UUIDDigit())
 		errortest.AssertError(t, err, commonerrors.ErrNotFound)
 
-		err = cache.Close(ctx)
+		err = cache.Close()
 		require.NoError(t, err)
 	})
 }
@@ -288,8 +303,7 @@ func TestCache_Close(t *testing.T) {
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(tmpSrcDir) }()
 
-	_, err = testutils.CreateTestFileTree(fs, tmpSrcDir, time.Now(), time.Now())
-	require.NoError(t, err)
+	_ = filesystemtest.CreateTestFileTree(t, fs, tmpSrcDir, time.Now(), time.Now())
 	srcContent, err := fs.Ls(tmpSrcDir)
 	require.NoError(t, err)
 
@@ -298,16 +312,18 @@ func TestCache_Close(t *testing.T) {
 	defer func() { _ = fs.Rm(tmpCacheDir) }()
 
 	ctx := context.Background()
-	cache, err := NewDefaultSimpleCache(ctx, fs, tmpCacheDir)
+	config := DefaultFileCacheConfig()
+	config.CachePath = tmpCacheDir
+	cache, err := NewFileCache(ctx, fs, config)
 	require.NoError(t, err)
 
 	for _, path := range srcContent {
 		absoluteSrcPath := filesystem.FilePathJoin(fs, tmpSrcDir, path)
-		err := cache.Add(ctx, faker.UUIDDigit(), fs, absoluteSrcPath)
+		err := cache.Store(ctx, faker.UUIDDigit(), fs, absoluteSrcPath)
 		require.NoError(t, err)
 	}
 
-	err = cache.Close(ctx)
+	err = cache.Close()
 	require.NoError(t, err)
 
 	var srcTree []string
@@ -321,20 +337,20 @@ func TestCache_Close(t *testing.T) {
 		require.False(t, filesystem.Exists(absoluteCachePath), "cache did not delete all files after closing")
 	}
 
-	err = cache.Add(ctx, faker.UUIDDigit(), fs, faker.Word())
-	errortest.AssertError(t, err, commonerrors.ErrForbidden)
+	err = cache.Store(ctx, faker.UUIDDigit(), fs, faker.Word())
+	errortest.AssertError(t, err, commonerrors.ErrConflict)
 
-	err = cache.Remove(ctx, faker.UUIDDigit())
-	errortest.AssertError(t, err, commonerrors.ErrForbidden)
+	err = cache.Evict(ctx, faker.UUIDDigit())
+	errortest.AssertError(t, err, commonerrors.ErrConflict)
 
-	_, err = cache.Contains(ctx, faker.UUIDDigit())
-	errortest.AssertError(t, err, commonerrors.ErrForbidden)
+	_, err = cache.Has(ctx, faker.UUIDDigit())
+	errortest.AssertError(t, err, commonerrors.ErrConflict)
 
 	err = cache.Restore(ctx, faker.UUIDDigit())
-	errortest.AssertError(t, err, commonerrors.ErrForbidden)
+	errortest.AssertError(t, err, commonerrors.ErrConflict)
 
-	err = cache.Close(ctx)
-	errortest.AssertError(t, err, commonerrors.ErrForbidden)
+	err = cache.Close()
+	errortest.AssertError(t, err, commonerrors.ErrConflict)
 }
 
 func TestCache_GarbageCollection(t *testing.T) {
@@ -346,32 +362,31 @@ func TestCache_GarbageCollection(t *testing.T) {
 	defer func() { _ = fs.Rm(tmpCacheDir) }()
 
 	ctx := context.Background()
-	config := &Config{
-		cachefs:                 fs,
-		cachePath:               tmpCacheDir,
-		garbageCollectionPeriod: 1 * time.Second,
-		ttl:                     2 * time.Second,
+	config := &FileCacheConfig{
+		CachePath:               tmpCacheDir,
+		GarbageCollectionPeriod: 1 * time.Second,
+		TTL:                     2 * time.Second,
 	}
 
-	cache, err := NewSimpleCache(ctx, config)
+	cache, err := NewFileCache(ctx, fs, config)
 	require.NoError(t, err)
 
 	tmpfilePath, err := fs.TouchTempFileInTempDir(faker.Word())
 	require.NoError(t, err)
 
 	id := faker.UUIDDigit()
-	err = cache.Add(ctx, id, fs, tmpfilePath)
+	err = cache.Store(ctx, id, fs, tmpfilePath)
 	require.NoError(t, err)
 
 	time.Sleep(3 * time.Second)
 
-	cacheExists, err := cache.Contains(ctx, id)
+	cacheExists, err := cache.Has(ctx, id)
 	require.NoError(t, err)
 	require.False(t, cacheExists, "cache still has an entry after removing")
 
 	cacheFilePath := filesystem.FilePathJoin(fs, tmpCacheDir, filesystem.FilePathBase(fs, tmpfilePath))
 	require.False(t, filesystem.Exists(cacheFilePath), "cache still has the file after removing")
 
-	err = cache.Close(ctx)
+	err = cache.Close()
 	require.NoError(t, err)
 }

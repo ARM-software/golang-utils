@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/filesystem"
-	"github.com/ARM-software/golang-utils/utils/internal/testutils"
+	"github.com/ARM-software/golang-utils/utils/filesystem/filesystemtest"
 )
 
 // listCompleteFilesByModTime returns a slice of filenames in a directory sorted by modification time
@@ -85,8 +85,7 @@ func TestStoreImmutableCache(t *testing.T) {
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpSrcDir) }()
 
-			_, err = testutils.CreateTestFileTree(fs, tmpSrcDir, time.Now(), time.Now())
-			require.NoError(t, err)
+			_ = filesystemtest.CreateTestFileTree(t, fs, tmpSrcDir, time.Now(), time.Now())
 
 			remoteCache, err := NewSharedImmutableCacheRepository(&Configuration{
 				RemoteStoragePath: tmpRemoteDir,
@@ -137,8 +136,7 @@ func TestCleanEntryImmutableCache(t *testing.T) {
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(tmpSrcDir) }()
 
-			_, err = testutils.CreateTestFileTree(fs, tmpSrcDir, time.Now(), time.Now())
-			require.NoError(t, err)
+			_ = filesystemtest.CreateTestFileTree(t, fs, tmpSrcDir, time.Now(), time.Now())
 
 			remoteCache, err := NewSharedImmutableCacheRepository(&Configuration{
 				RemoteStoragePath: tmpRemoteDir,
