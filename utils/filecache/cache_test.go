@@ -296,8 +296,10 @@ func TestCache_Remove(t *testing.T) {
 		cache, err := NewFsFileCache(ctx, fs, fs, tmpCacheDir, config)
 		require.NoError(t, err)
 
-		err = cache.Evict(ctx, faker.UUIDDigit())
-		errortest.AssertError(t, err, commonerrors.ErrNotFound)
+		id := faker.UUIDDigit()
+		err = cache.Evict(ctx, id)
+		require.NoError(t, err)
+		require.False(t, filesystem.Exists(id), "cache still has the file after removing")
 
 		err = cache.Close()
 		require.NoError(t, err)
@@ -358,7 +360,7 @@ func TestCache_Close(t *testing.T) {
 	errortest.AssertError(t, err, commonerrors.ErrConflict)
 
 	err = cache.Close()
-	errortest.AssertError(t, err, commonerrors.ErrConflict)
+	require.NoError(t, err)
 }
 
 func TestCache_GarbageCollection(t *testing.T) {

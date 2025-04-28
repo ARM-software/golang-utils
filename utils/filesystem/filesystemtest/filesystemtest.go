@@ -13,6 +13,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/idgen"
 )
 
+// CreateTestFileTree generates a randomised tree of directories and files under the specified `testDir` in the provided filesystem and returns a slice of all created paths.
 func CreateTestFileTree(t *testing.T, fs filesystem.FS, testDir string, fileModTime time.Time, fileAccessTime time.Time) []string {
 	t.Helper()
 	// This can be fixed for testing.

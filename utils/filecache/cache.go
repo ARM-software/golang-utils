@@ -2,6 +2,7 @@ package filecache
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 type CacheEntry struct {
 	path       string
 	expiration time.Time
+	ttl        time.Duration
 }
 
 type Cache struct {
@@ -39,7 +41,7 @@ func (c *Cache) gc(ctx context.Context, _ time.Time) {
 	}
 }
 
-func (c *Cache) isClosed() error {
+func (c *Cache) checkIfClosed() error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -54,7 +56,7 @@ func (c *Cache) Has(ctx context.Context, key string) (bool, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	if err := c.isClosed(); err != nil {
+	if err := c.checkIfClosed(); err != nil {
 		return false, err
 	}
 
@@ -63,8 +65,16 @@ func (c *Cache) Has(ctx context.Context, key string) (bool, error) {
 }
 
 func (c *Cache) Store(ctx context.Context, key string) error {
-	if err := c.isClosed(); err != nil {
+	return c.StoreWithTTL(ctx, key, c.cfg.TTL)
+}
+
+func (c *Cache) StoreWithTTL(ctx context.Context, key string, ttl time.Duration) error {
+	if err := c.checkIfClosed(); err != nil {
 		return err
+	}
+
+	if ttl == 0 {
+		return commonerrors.New(commonerrors.ErrInvalid, "TTL for an entry can't be zero")
 	}
 
 	c.mu.Lock()
@@ -74,21 +84,22 @@ func (c *Cache) Store(ctx context.Context, key string) error {
 		return commonerrors.Newf(commonerrors.ErrExists, "cache entry %s already exists", key)
 	}
 
-	entryPath, err := c.entryProvider.StoreEntry(ctx, key, c.fs, c.cfg.CachePath)
+	entryPath, err := c.entryProvider.FetchEntry(ctx, key, c.fs, c.cfg.CachePath)
 	if err != nil {
 		return err
 	}
 
 	c.entries[key] = &CacheEntry{
 		path:       entryPath,
-		expiration: time.Now().Add(c.cfg.TTL),
+		expiration: time.Now().Add(ttl),
+		ttl:        ttl,
 	}
 
 	return nil
 }
 
 func (c *Cache) Restore(ctx context.Context, key string, restoreFilesystem fs.FS, restorePath string) error {
-	if err := c.isClosed(); err != nil {
+	if err := c.checkIfClosed(); err != nil {
 		return err
 	}
 
@@ -119,53 +130,63 @@ func (c *Cache) Restore(ctx context.Context, key string, restoreFilesystem fs.FS
 	}
 
 	// Sliding window approach, which means frequently used items will stay cached
-	entry.expiration = time.Now().Add(c.cfg.TTL)
+	entry.expiration = time.Now().Add(entry.ttl)
 
 	return nil
 }
 
 func (c *Cache) Evict(ctx context.Context, key string) error {
-	if err := c.isClosed(); err != nil {
+	if err := c.checkIfClosed(); err != nil {
 		return err
 	}
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	entry, exists := c.entries[key]
-	if !exists {
-		return commonerrors.Newf(commonerrors.ErrNotFound, "cache entry for %s not found", key)
+	if entry, exists := c.entries[key]; exists {
+
+		err := c.fs.RemoveWithContext(ctx, entry.path)
+		if err != nil {
+			return err
+		}
+
+		delete(c.entries, key)
 	}
 
-	err := c.fs.RemoveWithContext(ctx, entry.path)
-	if err != nil {
-		return err
-	}
-
-	delete(c.entries, key)
 	return nil
 }
 
 func (c *Cache) Close() error {
-	if err := c.isClosed(); err != nil {
-		return err
+	if err := c.checkIfClosed(); err != nil {
+		return nil
 	}
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
+	c.closed = true
 	c.gcCancelStore.Cancel()
 
+	ctx := context.Background()
+	var removalErrors []error
 	for id, entry := range c.entries {
-		if err := c.fs.RemoveWithContext(context.Background(), entry.path); err != nil {
-			c.closed = true
-			return commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not delete %s", id)
+		if err := c.fs.RemoveWithContext(ctx, entry.path); err != nil {
+			removalErrors = append(removalErrors, commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not delete %s", id))
+			continue
 		}
 
 		delete(c.entries, id)
 	}
 
-	c.closed = true
+	if len(removalErrors) > 0 {
+		err := c.fs.RemoveWithPrivileges(ctx, c.cfg.CachePath)
+		if err != nil {
+			removalErrors = append(removalErrors, commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not delete %s", c.cfg.CachePath))
+			return errors.Join(removalErrors...)
+		}
+
+		clear(c.entries)
+	}
 
 	return nil
 }

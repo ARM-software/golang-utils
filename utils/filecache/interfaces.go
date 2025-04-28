@@ -3,6 +3,7 @@ package filecache
 import (
 	"context"
 	"io"
+	"time"
 
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 )
@@ -15,16 +16,21 @@ type IFileCache interface {
 
 	// Calls the entry provider to store an entry into the cache under the provided `key`, and starts the expiration
 	// timer based on the configured TTL.
-	// Returns an error if the path doesn't exist, the key already exists in the cache, the copy process fails or
-	// the cache is closed.
+	// Returns an error if the key already exists in the cache, the action of fetching an entry fails or the cache is closed.
 	Store(ctx context.Context, key string) error
 
+	// StoreWithTTL calls the entry provider to store an entry into the cache under the provided `key`, and starts the expiration
+	// timer using the specified `ttl` (overriding the default if non-zero).
+	// Returns an error if the key already exists in the cache, the action of fetching an entry fails or the cache is closed.
+	StoreWithTTL(ctx context.Context, key string, ttl time.Duration) error
+
 	// Evicts the cache entry identified by `key`, removing the stored cached entry immediately.
-	// Returns an error if the key does not exist in the cache, the deleting process fails or the cache is closed.
+	// Returns an error if the deleting process fails or the cache is closed.
 	Evict(ctx context.Context, key string) error
 
 	// Checks whether a cache entry with the provided `key` currently exists in the cache
-	// Returns true if the entry exists, or false if it doesn't and an error if the cache is closed.
+	// Returns true if the entry exists, or false if it doesn't.
+	// Returns an error if the action of looking up the entry resulted in an error or the cache is closed.
 	Has(ctx context.Context, key string) (bool, error)
 
 	// Restore copies the cached data for the provided `key` back to `restorePath` in `restoreFilesystem`.
@@ -36,7 +42,7 @@ type IFileCache interface {
 // IEntryProvider defines how to store a file or a directory into the cache.
 // Implementations might copy from a local filesystem, download over HTTP, generate a file, etc.
 type IEntryProvider interface {
-	// StoreEntry stores the entry for the given `key`` and writes it to `cacheDir` using `cacheFilesystem`.
+	// FetchEntry fetches the entry for the given `key` and writes it to `cacheDir` using `cacheFilesystem`.
 	// Returns the absolute path to the newly stored entry, or an error if the operation fails.
-	StoreEntry(ctx context.Context, key string, cacheFilesystem filesystem.FS, cacheDir string) (string, error)
+	FetchEntry(ctx context.Context, key string, cacheFilesystem filesystem.FS, cacheDir string) (string, error)
 }
