@@ -33,16 +33,20 @@ type IFileCache interface {
 	// Returns an error if the action of looking up the entry resulted in an error or the cache is closed.
 	Has(ctx context.Context, key string) (bool, error)
 
-	// Restore copies the cached data for the provided `key` back to `restorePath` in `restoreFilesystem`.
+	// Fetch copies the cached data for the provided `key` back to `destPath` in `destFilesystem`.
 	// It also resets the entry's TTL, so that the most frequently accessed files remain cached.
 	// Returns an error if the key does not exist in the cache, the copying process fails or the cache is closed.
-	Restore(ctx context.Context, key string, restoreFilesystem filesystem.FS, restorePath string) error
+	Fetch(ctx context.Context, key string, destFilesystem filesystem.FS, destPath string) error
 }
 
 // IEntryProvider defines how to store a file or a directory into the cache.
 // Implementations might copy from a local filesystem, download over HTTP, generate a file, etc.
 type IEntryProvider interface {
+	// SetCacheFilesystem sets the cache filesystem for the entry provider
+	SetCacheFilesystem(fs filesystem.FS) error
+	// SetCacheDir sets the base cache directory for the entry provider
+	SetCacheDir(dir string) error
 	// FetchEntry fetches the entry for the given `key` and writes it to `cacheDir` using `cacheFilesystem`.
 	// Returns the absolute path to the newly stored entry, or an error if the operation fails.
-	FetchEntry(ctx context.Context, key string, cacheFilesystem filesystem.FS, cacheDir string) (string, error)
+	FetchEntry(ctx context.Context, key string) (string, error)
 }

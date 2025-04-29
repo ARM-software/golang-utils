@@ -84,7 +84,7 @@ func (c *Cache) StoreWithTTL(ctx context.Context, key string, ttl time.Duration)
 		return commonerrors.Newf(commonerrors.ErrExists, "cache entry %s already exists", key)
 	}
 
-	entryPath, err := c.entryProvider.FetchEntry(ctx, key, c.fs, c.cfg.CachePath)
+	entryPath, err := c.entryProvider.FetchEntry(ctx, key)
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func (c *Cache) StoreWithTTL(ctx context.Context, key string, ttl time.Duration)
 	return nil
 }
 
-func (c *Cache) Restore(ctx context.Context, key string, restoreFilesystem fs.FS, restorePath string) error {
+func (c *Cache) Fetch(ctx context.Context, key string, destFilesystem fs.FS, destPath string) error {
 	if err := c.checkIfClosed(); err != nil {
 		return err
 	}
@@ -113,18 +113,18 @@ func (c *Cache) Restore(ctx context.Context, key string, restoreFilesystem fs.FS
 
 	// Copying to a temp location first, then move to the original location.
 	// This prevents the cache to present a transient file/dir that is still in the copying process.
-	tmpDir, err := restoreFilesystem.TempDirInTempDir("filecache-tmp")
+	tmpDir, err := destFilesystem.TempDirInTempDir("filecache-tmp")
 	if err != nil {
 		return err
 	}
 
-	dstPath := fs.FilePathJoin(restoreFilesystem, tmpDir, fs.FilePathBase(c.fs, entry.path))
-	err = fs.CopyBetweenFS(ctx, c.fs, entry.path, restoreFilesystem, dstPath)
+	dstPath := fs.FilePathJoin(destFilesystem, tmpDir, fs.FilePathBase(c.fs, entry.path))
+	err = fs.CopyBetweenFS(ctx, c.fs, entry.path, destFilesystem, dstPath)
 	if err != nil {
 		return err
 	}
 
-	err = restoreFilesystem.Move(dstPath, restorePath)
+	err = destFilesystem.Move(dstPath, destPath)
 	if err != nil {
 		return err
 	}
@@ -210,6 +210,14 @@ func NewGenericFileCache(ctx context.Context, cacheFilesystem fs.FS, entryProvid
 	cancelStore.RegisterCancelFunction(stop)
 
 	if err := cacheFilesystem.MkDirAll(config.CachePath, 0755); err != nil {
+		return nil, err
+	}
+
+	if err := entryProvider.SetCacheFilesystem(cacheFilesystem); err != nil {
+		return nil, err
+	}
+
+	if err := entryProvider.SetCacheDir(config.CachePath); err != nil {
 		return nil, err
 	}
 

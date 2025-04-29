@@ -141,8 +141,8 @@ func TestCache_Add(t *testing.T) {
 	})
 }
 
-func TestCache_Restore(t *testing.T) {
-	t.Run("Restore_file", func(t *testing.T) {
+func TestCache_Fetch(t *testing.T) {
+	t.Run("Fetch_file", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
 		fs := filesystem.NewFs(filesystem.StandardFS)
@@ -167,15 +167,15 @@ func TestCache_Restore(t *testing.T) {
 		err = fs.Rm(tmpfilePath)
 		require.NoError(t, err)
 
-		err = cache.Restore(ctx, tmpfileBase, fs, tmpfilePath)
+		err = cache.Fetch(ctx, tmpfileBase, fs, tmpfilePath)
 		require.NoError(t, err)
 
-		require.True(t, filesystem.Exists(tmpfilePath), "cache did not restore the file")
+		require.True(t, filesystem.Exists(tmpfilePath), "cache did not fetch the file")
 		err = cache.Close()
 		require.NoError(t, err)
 	})
 
-	t.Run("Restore_file_non_existent", func(t *testing.T) {
+	t.Run("Fetch_file_non_existent", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
 		fs := filesystem.NewFs(filesystem.StandardFS)
@@ -193,14 +193,14 @@ func TestCache_Restore(t *testing.T) {
 		cache, err := NewFsFileCache(ctx, fs, fs, tmpSrcDir, config)
 		require.NoError(t, err)
 
-		err = cache.Restore(ctx, faker.UUIDDigit(), fs, tmpSrcDir)
+		err = cache.Fetch(ctx, faker.UUIDDigit(), fs, tmpSrcDir)
 		errortest.AssertError(t, err, commonerrors.ErrNotFound)
 
 		err = cache.Close()
 		require.NoError(t, err)
 	})
 
-	t.Run("Restore_file_overwrite", func(t *testing.T) {
+	t.Run("Fetch_file_overwrite", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
 		fs := filesystem.NewFs(filesystem.StandardFS)
@@ -232,7 +232,7 @@ func TestCache_Restore(t *testing.T) {
 		_, err = tmpFile.Write(NewFileContent)
 		require.NoError(t, err)
 
-		err = cache.Restore(ctx, tmpfileBase, fs, tmpfilePath)
+		err = cache.Fetch(ctx, tmpfileBase, fs, tmpfilePath)
 		require.NoError(t, err)
 
 		cacheFileContent, err := fs.ReadFile(tmpfilePath)
@@ -356,7 +356,7 @@ func TestCache_Close(t *testing.T) {
 	_, err = cache.Has(ctx, faker.UUIDDigit())
 	errortest.AssertError(t, err, commonerrors.ErrConflict)
 
-	err = cache.Restore(ctx, faker.UUIDDigit(), fs, tmpSrcDir)
+	err = cache.Fetch(ctx, faker.UUIDDigit(), fs, tmpSrcDir)
 	errortest.AssertError(t, err, commonerrors.ErrConflict)
 
 	err = cache.Close()
