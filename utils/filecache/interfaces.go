@@ -50,3 +50,10 @@ type IEntryProvider interface {
 	// Returns the absolute path to the newly stored entry, or an error if the operation fails.
 	FetchEntry(ctx context.Context, key string) (string, error)
 }
+
+type ICacheEntry interface {
+	Copy(ctx context.Context, cacheFs filesystem.FS, destFs filesystem.FS, destPath string) error
+	Delete(ctx context.Context, fs filesystem.FS) error
+	IsExpired() bool
+	ExtendLifetime()
+}
