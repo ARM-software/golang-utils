@@ -2,7 +2,32 @@ package filecache
 
 import "sync"
 
+type iLockMap interface {
+	Lock(key string)
+	TryLock(key string) bool
+	Unlock(key string)
+	Store(key string)
+	Range(f func(key string, mu *sync.Mutex) bool)
+	Delete(key string)
+	Clear()
+}
+
 type lockMap struct {
+	// locks holds a map of per-key mutexes.
+	//
+	// We use sync.Map instead of a plain map + RWMutex to optimise for:
+	//
+	// 1. **Write-once, read-many**
+	//    Each key’s mutex is created exactly once (when a cache entry is created),
+	//    then read repeatedly for the rest of the cache operations.
+	//
+	// 2. **Disjoint key access**
+	//    Goroutines operate on different keys independently most of time,
+	//    as they work on differenct resources.
+	//    sync.Map will significantly reduce global lock contention
+	//    when multiple goroutines run concurrent cache operations on different files.
+	//
+	// See https://pkg.go.dev/sync#Map for details on these optimisations.
 	locks sync.Map
 }
 

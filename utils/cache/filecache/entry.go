@@ -8,22 +8,22 @@ import (
 )
 
 type CacheEntry struct {
-	path       string
+	cachePath  string
+	cacheFs    filesystem.FS
 	ttl        time.Duration
 	expiration time.Time
 }
 
-func (e *CacheEntry) Copy(ctx context.Context, cacheFs filesystem.FS, destFs filesystem.FS, destPath string) error {
+func (e *CacheEntry) Copy(ctx context.Context, destFs filesystem.FS, destPath string) error {
 	// Copying to a temp location first, then move to the original location.
 	// This prevents the cache to present a transient file/dir that is still in the copying process.
-
 	tmpDir, err := destFs.TempDirInTempDir("filecache-tmp")
 	if err != nil {
 		return err
 	}
 
-	tmpPath := filesystem.FilePathJoin(destFs, tmpDir, filesystem.FilePathBase(cacheFs, e.path))
-	if err := filesystem.CopyBetweenFS(ctx, cacheFs, e.path, destFs, tmpPath); err != nil {
+	tmpPath := filesystem.FilePathJoin(destFs, tmpDir, filesystem.FilePathBase(e.cacheFs, e.cachePath))
+	if err := filesystem.CopyBetweenFS(ctx, e.cacheFs, e.cachePath, destFs, tmpPath); err != nil {
 		return err
 	}
 
@@ -35,8 +35,8 @@ func (e *CacheEntry) Copy(ctx context.Context, cacheFs filesystem.FS, destFs fil
 	return nil
 }
 
-func (e *CacheEntry) Delete(ctx context.Context, fs filesystem.FS) error {
-	if err := fs.RemoveWithContext(ctx, e.path); err != nil {
+func (e *CacheEntry) Delete(ctx context.Context) error {
+	if err := e.cacheFs.RemoveWithContext(ctx, e.cachePath); err != nil {
 		return err
 	}
 
@@ -51,9 +51,10 @@ func (e *CacheEntry) ExtendLifetime() {
 	e.expiration = time.Now().Add(e.ttl)
 }
 
-func NewCacheEntry(path string, ttl time.Duration) ICacheEntry {
+func NewCacheEntry(cacheFilesystem filesystem.FS, path string, ttl time.Duration) ICacheEntry {
 	return &CacheEntry{
-		path:       path,
+		cachePath:  path,
+		cacheFs:    cacheFilesystem,
 		ttl:        ttl,
 		expiration: time.Now().Add(ttl),
 	}

@@ -83,7 +83,7 @@ func TestCache_Add(t *testing.T) {
 			slices.Sort(cacheRelTree)
 			require.Equal(t, srcRelTree, cacheRelTree, "Cache Dir and Src Dir have differnet contents")
 
-			err = cache.Close()
+			err = cache.Close(ctx)
 			require.NoError(t, err)
 		})
 	}
@@ -105,7 +105,7 @@ func TestCache_Add(t *testing.T) {
 		err = cache.Store(ctx, faker.UUIDDigit())
 		errortest.AssertError(t, err, commonerrors.ErrNotFound)
 
-		err = cache.Close()
+		err = cache.Close(ctx)
 		require.NoError(t, err)
 	})
 
@@ -136,7 +136,7 @@ func TestCache_Add(t *testing.T) {
 		err = cache.Store(ctx, tmpTestBase)
 		errortest.AssertError(t, err, commonerrors.ErrExists)
 
-		err = cache.Close()
+		err = cache.Close(ctx)
 		require.NoError(t, err)
 	})
 }
@@ -171,7 +171,7 @@ func TestCache_Fetch(t *testing.T) {
 		require.NoError(t, err)
 
 		require.True(t, filesystem.Exists(tmpfilePath), "cache did not fetch the file")
-		err = cache.Close()
+		err = cache.Close(ctx)
 		require.NoError(t, err)
 	})
 
@@ -196,7 +196,7 @@ func TestCache_Fetch(t *testing.T) {
 		err = cache.Fetch(ctx, faker.UUIDDigit(), fs, tmpSrcDir)
 		errortest.AssertError(t, err, commonerrors.ErrNotFound)
 
-		err = cache.Close()
+		err = cache.Close(ctx)
 		require.NoError(t, err)
 	})
 
@@ -239,7 +239,7 @@ func TestCache_Fetch(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, originalFileContent, cacheFileContent)
 
-		err = cache.Close()
+		err = cache.Close(ctx)
 		require.NoError(t, err)
 	})
 }
@@ -278,7 +278,7 @@ func TestCache_Remove(t *testing.T) {
 		cacheFilePath := filesystem.FilePathJoin(fs, tmpCacheDir, filesystem.FilePathBase(fs, tmpfilePath))
 		require.False(t, filesystem.Exists(cacheFilePath), "cache still has the file after removing")
 
-		err = cache.Close()
+		err = cache.Close(ctx)
 		require.NoError(t, err)
 	})
 
@@ -301,7 +301,7 @@ func TestCache_Remove(t *testing.T) {
 		require.NoError(t, err)
 		require.False(t, filesystem.Exists(id), "cache still has the file after removing")
 
-		err = cache.Close()
+		err = cache.Close(ctx)
 		require.NoError(t, err)
 	})
 }
@@ -333,7 +333,7 @@ func TestCache_Close(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	err = cache.Close()
+	err = cache.Close(ctx)
 	require.NoError(t, err)
 
 	var srcTree []string
@@ -359,7 +359,7 @@ func TestCache_Close(t *testing.T) {
 	err = cache.Fetch(ctx, faker.UUIDDigit(), fs, tmpSrcDir)
 	errortest.AssertError(t, err, commonerrors.ErrConflict)
 
-	err = cache.Close()
+	err = cache.Close(ctx)
 	require.NoError(t, err)
 }
 
@@ -399,6 +399,6 @@ func TestCache_GarbageCollection(t *testing.T) {
 	cacheFilePath := filesystem.FilePathJoin(fs, tmpCacheDir, filesystem.FilePathBase(fs, tmpfilePath))
 	require.False(t, filesystem.Exists(cacheFilePath), "cache still has the file after removing")
 
-	err = cache.Close()
+	err = cache.Close(ctx)
 	require.NoError(t, err)
 }

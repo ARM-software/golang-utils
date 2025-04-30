@@ -7,26 +7,33 @@ import (
 	"time"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
-	fs "github.com/ARM-software/golang-utils/utils/filesystem"
+	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
 type Cache struct {
-	entries       *entryMap
-	entriesLM     *lockMap
-	entryProvider IEntryProvider
-	fs            fs.FS
+	entries       iEntryMap
+	entriesLM     iLockMap
+	entryProvider IEntryRetriever
+	fs            filesystem.FS
 	cfg           *FileCacheConfig
 	cancelStore   *parallelisation.CancelFunctionStore
 	closed        atomic.Bool
 }
 
 func (c *Cache) gc(ctx context.Context, _ time.Time) {
+	if err := parallelisation.DetermineContextError(ctx); err != nil {
+		return
+	}
+
 	c.entries.Range(func(key string, entry ICacheEntry) {
 		if entry.IsExpired() && c.entriesLM.TryLock(key) {
-			if err := entry.Delete(ctx, c.fs); err == nil {
+			if err := entry.Delete(ctx); err == nil {
 				c.entries.Delete(key)
-				c.entriesLM.Unlock(key)
+				defer func() {
+					c.entriesLM.Unlock(key)
+					c.entriesLM.Delete(key)
+				}()
 			}
 		}
 	})
@@ -70,13 +77,13 @@ func (c *Cache) StoreWithTTL(ctx context.Context, key string, ttl time.Duration)
 		return err
 	}
 
-	c.entries.Store(key, NewCacheEntry(entryPath, ttl))
+	c.entries.Store(key, NewCacheEntry(c.fs, entryPath, ttl))
 	c.entriesLM.Store(key)
 
 	return nil
 }
 
-func (c *Cache) Fetch(ctx context.Context, key string, destFilesystem fs.FS, destPath string) error {
+func (c *Cache) Fetch(ctx context.Context, key string, destFilesystem filesystem.FS, destPath string) error {
 	if err := c.checkIfClosed(); err != nil {
 		return err
 	}
@@ -92,7 +99,11 @@ func (c *Cache) Fetch(ctx context.Context, key string, destFilesystem fs.FS, des
 	c.cancelStore.RegisterCancelFunction(stop)
 
 	entry := c.entries.Load(key)
-	if err := entry.Copy(cpCtx, c.fs, destFilesystem, destPath); err != nil {
+	if entry == nil {
+		return commonerrors.Newf(commonerrors.ErrUnexpected, "cache entry for %s could not be loaded", key)
+	}
+
+	if err := entry.Copy(cpCtx, destFilesystem, destPath); err != nil {
 		return err
 	}
 
@@ -112,7 +123,11 @@ func (c *Cache) Evict(ctx context.Context, key string) error {
 	if c.entries.Exists(key) {
 
 		entry := c.entries.Load(key)
-		if err := entry.Delete(ctx, c.fs); err != nil {
+		if entry == nil {
+			return commonerrors.Newf(commonerrors.ErrUnexpected, "cache entry for %s could not be loaded", key)
+		}
+
+		if err := entry.Delete(ctx); err != nil {
 			return err
 		}
 
@@ -122,7 +137,7 @@ func (c *Cache) Evict(ctx context.Context, key string) error {
 	return nil
 }
 
-func (c *Cache) Close() error {
+func (c *Cache) Close(ctx context.Context) error {
 	if err := c.checkIfClosed(); err != nil {
 		return nil
 	}
@@ -131,10 +146,9 @@ func (c *Cache) Close() error {
 	c.entriesLM.Clear()
 	c.cancelStore.Cancel()
 
-	ctx := context.Background()
 	var removalErrors []error
 	c.entries.Range(func(key string, entry ICacheEntry) {
-		if err := entry.Delete(ctx, c.fs); err != nil {
+		if err := entry.Delete(ctx); err != nil {
 			removalErrors = append(removalErrors, commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not delete %s", key))
 			return
 		}
@@ -155,13 +169,13 @@ func (c *Cache) Close() error {
 	return nil
 }
 
-func NewGenericFileCache(ctx context.Context, cacheFilesystem fs.FS, entryProvider IEntryProvider, config *FileCacheConfig) (IFileCache, error) {
+func NewGenericFileCache(ctx context.Context, cacheFilesystem filesystem.FS, entryRetriever IEntryRetriever, config *FileCacheConfig) (IFileCache, error) {
 	if err := config.Validate(); err != nil {
 		return nil, commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid configuration")
 
 	}
 
-	if entryProvider == nil {
+	if entryRetriever == nil {
 		return nil, commonerrors.New(commonerrors.ErrInvalid, "the entry provider cannot be nil")
 	}
 
@@ -177,18 +191,14 @@ func NewGenericFileCache(ctx context.Context, cacheFilesystem fs.FS, entryProvid
 		return nil, err
 	}
 
-	if err := entryProvider.SetCacheFilesystem(cacheFilesystem); err != nil {
-		return nil, err
-	}
-
-	if err := entryProvider.SetCacheDir(config.CachePath); err != nil {
+	if err := entryRetriever.SetCacheDir(cacheFilesystem, config.CachePath); err != nil {
 		return nil, err
 	}
 
 	cache := &Cache{
 		entries:       newEntryMap(),
 		entriesLM:     newLockMap(),
-		entryProvider: entryProvider,
+		entryProvider: entryRetriever,
 		fs:            cacheFilesystem,
 		cfg:           config,
 		cancelStore:   cancelStore,
