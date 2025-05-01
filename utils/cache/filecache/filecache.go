@@ -8,8 +8,12 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
+	"github.com/ARM-software/golang-utils/utils/logs/logrimp"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
+	"github.com/ARM-software/golang-utils/utils/retry"
 )
+
+var closedErr = commonerrors.New(commonerrors.ErrConflict, "cache is closed")
 
 type Cache struct {
 	entries       iEntryMap
@@ -30,26 +34,16 @@ func (c *Cache) gc(ctx context.Context, _ time.Time) {
 		if entry.IsExpired() && c.entriesLM.TryLock(key) {
 			if err := entry.Delete(ctx); err == nil {
 				c.entries.Delete(key)
-				defer func() {
-					c.entriesLM.Unlock(key)
-					c.entriesLM.Delete(key)
-				}()
+				defer c.entriesLM.Delete(key)
 			}
+			defer c.entriesLM.Unlock(key)
 		}
 	})
 }
 
-func (c *Cache) checkIfClosed() error {
-	if c.closed.Load() {
-		return commonerrors.New(commonerrors.ErrConflict, "cache is closed")
-	}
-
-	return nil
-}
-
 func (c *Cache) Has(ctx context.Context, key string) (bool, error) {
-	if err := c.checkIfClosed(); err != nil {
-		return false, err
+	if c.closed.Load() {
+		return false, closedErr
 	}
 
 	return c.entries.Exists(key), nil
@@ -60,8 +54,8 @@ func (c *Cache) Store(ctx context.Context, key string) error {
 }
 
 func (c *Cache) StoreWithTTL(ctx context.Context, key string, ttl time.Duration) error {
-	if err := c.checkIfClosed(); err != nil {
-		return err
+	if c.closed.Load() {
+		return closedErr
 	}
 
 	if ttl == 0 {
@@ -69,7 +63,7 @@ func (c *Cache) StoreWithTTL(ctx context.Context, key string, ttl time.Duration)
 	}
 
 	if c.entries.Exists(key) {
-		return commonerrors.Newf(commonerrors.ErrExists, "cache entry %s already exists", key)
+		return commonerrors.Newf(commonerrors.ErrExists, "cache entry '%s' already exists", key)
 	}
 
 	entryPath, err := c.entryProvider.FetchEntry(ctx, key)
@@ -84,15 +78,15 @@ func (c *Cache) StoreWithTTL(ctx context.Context, key string, ttl time.Duration)
 }
 
 func (c *Cache) Fetch(ctx context.Context, key string, destFilesystem filesystem.FS, destPath string) error {
-	if err := c.checkIfClosed(); err != nil {
-		return err
+	if c.closed.Load() {
+		return closedErr
 	}
 
 	c.entriesLM.Lock(key)
 	defer c.entriesLM.Unlock(key)
 
 	if !c.entries.Exists(key) {
-		return commonerrors.Newf(commonerrors.ErrNotFound, "cache entry for %s not found", key)
+		return commonerrors.Newf(commonerrors.ErrNotFound, "cache entry for '%s' not found", key)
 	}
 
 	cpCtx, stop := context.WithCancel(ctx)
@@ -100,7 +94,7 @@ func (c *Cache) Fetch(ctx context.Context, key string, destFilesystem filesystem
 
 	entry := c.entries.Load(key)
 	if entry == nil {
-		return commonerrors.Newf(commonerrors.ErrUnexpected, "cache entry for %s could not be loaded", key)
+		return commonerrors.Newf(commonerrors.ErrUnexpected, "cache entry for '%s' could not be loaded", key)
 	}
 
 	if err := entry.Copy(cpCtx, destFilesystem, destPath); err != nil {
@@ -113,8 +107,8 @@ func (c *Cache) Fetch(ctx context.Context, key string, destFilesystem filesystem
 }
 
 func (c *Cache) Evict(ctx context.Context, key string) error {
-	if err := c.checkIfClosed(); err != nil {
-		return err
+	if c.closed.Load() {
+		return closedErr
 	}
 
 	c.entriesLM.Lock(key)
@@ -124,7 +118,7 @@ func (c *Cache) Evict(ctx context.Context, key string) error {
 
 		entry := c.entries.Load(key)
 		if entry == nil {
-			return commonerrors.Newf(commonerrors.ErrUnexpected, "cache entry for %s could not be loaded", key)
+			return commonerrors.Newf(commonerrors.ErrUnexpected, "cache entry for '%s' could not be loaded", key)
 		}
 
 		if err := entry.Delete(ctx); err != nil {
@@ -138,7 +132,7 @@ func (c *Cache) Evict(ctx context.Context, key string) error {
 }
 
 func (c *Cache) Close(ctx context.Context) error {
-	if err := c.checkIfClosed(); err != nil {
+	if c.closed.Load() {
 		return nil
 	}
 
@@ -146,24 +140,28 @@ func (c *Cache) Close(ctx context.Context) error {
 	c.entriesLM.Clear()
 	c.cancelStore.Cancel()
 
+	retryPolicy := retry.DefaultExponentialBackoffRetryPolicyConfiguration()
+	logger := logrimp.NewNoopLogger()
+
 	var removalErrors []error
 	c.entries.Range(func(key string, entry ICacheEntry) {
-		if err := entry.Delete(ctx); err != nil {
-			removalErrors = append(removalErrors, commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not delete %s", key))
-			return
+		deleteFunc := func() error {
+			if err := entry.Delete(ctx); err != nil {
+				return commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not delete '%s'", key)
+			}
+
+			c.entries.Delete(key)
+			return nil
 		}
 
-		c.entries.Delete(key)
+		err := retry.RetryOnError(ctx, logger, retryPolicy, deleteFunc, "", commonerrors.ErrUnexpected)
+		if err != nil {
+			removalErrors = append(removalErrors, err)
+		}
 	})
 
 	if len(removalErrors) > 0 {
-		err := c.fs.RemoveWithPrivileges(ctx, c.cfg.CachePath)
-		if err != nil {
-			removalErrors = append(removalErrors, commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not delete %s", c.cfg.CachePath))
-			return errors.Join(removalErrors...)
-		}
-
-		c.entries.Clear()
+		return errors.Join(removalErrors...)
 	}
 
 	return nil

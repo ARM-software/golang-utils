@@ -27,12 +27,12 @@ func TestFileCache_Add(t *testing.T) {
 		cacheFs filesystem.FilesystemType
 	}{
 		{
-			name:    "Add_content_to_cache_same_filesystem",
+			name:    "Add content to cache same filesystem",
 			srcFs:   filesystem.StandardFS,
 			cacheFs: filesystem.StandardFS,
 		},
 		{
-			name:    "Add_content_to_cache_different_filesystem",
+			name:    "Add content to cache different filesystem",
 			srcFs:   filesystem.StandardFS,
 			cacheFs: filesystem.InMemoryFS,
 		},
@@ -43,18 +43,16 @@ func TestFileCache_Add(t *testing.T) {
 			defer goleak.VerifyNone(t)
 
 			srcFs := filesystem.NewFs(test.srcFs)
-			tmpSrcDir, err := srcFs.TempDirInTempDir("test-cache-src")
-			require.NoError(t, err)
-			defer func() { _ = srcFs.Rm(tmpSrcDir) }()
+			tmpSrcDir := filesystem.FilePathJoin(srcFs, t.TempDir(), "test-cache-src")
+			require.NoError(t, srcFs.MkDir(tmpSrcDir))
 
 			_ = filesystemtest.CreateTestFileTree(t, srcFs, tmpSrcDir, time.Now(), time.Now())
 			srcContent, err := srcFs.Ls(tmpSrcDir)
 			require.NoError(t, err)
 
 			cacheFs := filesystem.NewFs(test.cacheFs)
-			tmpCacheDir, err := cacheFs.TempDirInTempDir("test-cache")
-			require.NoError(t, err)
-			defer func() { _ = cacheFs.Rm(tmpCacheDir) }()
+			tmpCacheDir := filesystem.FilePathJoin(cacheFs, t.TempDir(), "test-cache")
+			require.NoError(t, cacheFs.MkDir(tmpCacheDir))
 
 			ctx := context.Background()
 			config := DefaultFileCacheConfig()
@@ -80,7 +78,7 @@ func TestFileCache_Add(t *testing.T) {
 			err = srcFs.ListDirTree(tmpSrcDir, &srcTree)
 			require.NoError(t, err)
 
-			require.Equal(t, len(srcTree), len(cacheTree), "Cache Dir and Src Dir have differnet number of content")
+			require.Equal(t, len(srcTree), len(cacheTree), "Cache Dir and Src Dir have a different number of content")
 
 			srcRelTree, err := srcFs.ConvertToRelativePath(tmpSrcDir, srcTree...)
 			require.NoError(t, err)
@@ -90,17 +88,16 @@ func TestFileCache_Add(t *testing.T) {
 
 			slices.Sort(srcRelTree)
 			slices.Sort(cacheRelTree)
-			require.Equal(t, srcRelTree, cacheRelTree, "Cache Dir and Src Dir have differnet contents")
+			require.Equal(t, srcRelTree, cacheRelTree, "Cache Dir and Src Dir have different contents")
 		})
 	}
 
-	t.Run("Add_invalid_path", func(t *testing.T) {
+	t.Run("Add invalid path", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
-		fs := filesystem.NewFs(filesystem.StandardFS)
-		tmpCacheDir, err := fs.TempDirInTempDir("test-cache")
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpCacheDir) }()
+		fs := filesystem.GetGlobalFileSystem()
+		tmpCacheDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache")
+		require.NoError(t, fs.MkDir(tmpCacheDir))
 
 		ctx := context.Background()
 		config := DefaultFileCacheConfig()
@@ -117,13 +114,12 @@ func TestFileCache_Add(t *testing.T) {
 		errortest.AssertError(t, err, commonerrors.ErrNotFound)
 	})
 
-	t.Run("Add_duplicate_entry", func(t *testing.T) {
+	t.Run("Add duplicate entry", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
-		fs := filesystem.NewFs(filesystem.StandardFS)
-		tmpCacheDir, err := fs.TempDirInTempDir("test-cache")
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpCacheDir) }()
+		fs := filesystem.GetGlobalFileSystem()
+		tmpCacheDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache")
+		require.NoError(t, fs.MkDir(tmpCacheDir))
 
 		tmpTestPath, err := fs.TouchTempFileInTempDir(faker.Word())
 		require.NoError(t, err)
@@ -150,13 +146,12 @@ func TestFileCache_Add(t *testing.T) {
 }
 
 func TestFileCache_Fetch(t *testing.T) {
-	t.Run("Fetch_file", func(t *testing.T) {
+	t.Run("Fetch file", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
-		fs := filesystem.NewFs(filesystem.StandardFS)
-		tmpCacheDir, err := fs.TempDirInTempDir("test-cache")
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpCacheDir) }()
+		fs := filesystem.GetGlobalFileSystem()
+		tmpCacheDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache")
+		require.NoError(t, fs.MkDir(tmpCacheDir))
 
 		tmpfilePath, err := fs.TouchTempFileInTempDir(faker.Word())
 		require.NoError(t, err)
@@ -187,17 +182,15 @@ func TestFileCache_Fetch(t *testing.T) {
 		require.True(t, filesystem.Exists(tmpfilePath), "cache did not fetch the file")
 	})
 
-	t.Run("Fetch_file_non_existent", func(t *testing.T) {
+	t.Run("Fetch file non-existent", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
-		fs := filesystem.NewFs(filesystem.StandardFS)
-		tmpCacheDir, err := fs.TempDirInTempDir("test-cache")
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpCacheDir) }()
+		fs := filesystem.GetGlobalFileSystem()
+		tmpCacheDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache")
+		require.NoError(t, fs.MkDir(tmpCacheDir))
 
-		tmpSrcDir, err := fs.TempDirInTempDir("test-src")
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpSrcDir) }()
+		tmpSrcDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-src")
+		require.NoError(t, fs.MkDir(tmpSrcDir))
 
 		ctx := context.Background()
 		config := DefaultFileCacheConfig()
@@ -214,25 +207,23 @@ func TestFileCache_Fetch(t *testing.T) {
 		errortest.AssertError(t, err, commonerrors.ErrNotFound)
 	})
 
-	t.Run("Fetch_file_overwrite", func(t *testing.T) {
+	t.Run("Fetch file overwrite", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
-		fs := filesystem.NewFs(filesystem.StandardFS)
-		tmpCacheDir, err := fs.TempDirInTempDir("test-cache")
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpCacheDir) }()
+		fs := filesystem.GetGlobalFileSystem()
+		tmpDir := t.TempDir()
+		tmpCacheDir := filesystem.FilePathJoin(fs, tmpDir, "test-cache")
+		require.NoError(t, fs.MkDir(tmpCacheDir))
 
-		tmpFile, err := fs.TempFileInTempDir(faker.Word())
+		tmpfilePath := filesystem.FilePathJoin(fs, tmpDir, faker.Word())
+		tmpFile, err := fs.CreateFile(tmpfilePath)
 		require.NoError(t, err)
-		tmpfilePath := tmpFile.Name()
-		tmpfileDir := fs.TempDirectory()
 		tmpfileBase := filesystem.FilePathBase(fs, tmpfilePath)
-		defer func() { _ = fs.Rm(tmpfilePath) }()
 
 		ctx := context.Background()
 		config := DefaultFileCacheConfig()
 		config.CachePath = tmpCacheDir
-		cache, err := NewFsFileCache(ctx, fs, fs, tmpfileDir, config)
+		cache, err := NewFsFileCache(ctx, fs, fs, tmpDir, config)
 		require.NoError(t, err)
 
 		defer func() {
@@ -261,24 +252,22 @@ func TestFileCache_Fetch(t *testing.T) {
 }
 
 func TestFileCache_Remove(t *testing.T) {
-	t.Run("Remove_file", func(t *testing.T) {
+	t.Run("Remove file", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
-		fs := filesystem.NewFs(filesystem.StandardFS)
-		tmpCacheDir, err := fs.TempDirInTempDir("test-cache")
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpCacheDir) }()
+		fs := filesystem.GetGlobalFileSystem()
+		tmpDir := t.TempDir()
+		tmpCacheDir := filesystem.FilePathJoin(fs, tmpDir, "test-cache")
+		require.NoError(t, fs.MkDir(tmpCacheDir))
 
-		tmpfilePath, err := fs.TouchTempFileInTempDir(faker.Word())
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpfilePath) }()
-		tmpTestDir := fs.TempDirectory()
+		tmpfilePath := filesystem.FilePathJoin(fs, tmpDir, faker.Word())
+		require.NoError(t, fs.Touch(tmpfilePath))
 		tmpTestBase := filesystem.FilePathBase(fs, tmpfilePath)
 
 		ctx := context.Background()
 		config := DefaultFileCacheConfig()
 		config.CachePath = tmpCacheDir
-		cache, err := NewFsFileCache(ctx, fs, fs, tmpTestDir, config)
+		cache, err := NewFsFileCache(ctx, fs, fs, tmpDir, config)
 		require.NoError(t, err)
 
 		defer func() {
@@ -300,13 +289,12 @@ func TestFileCache_Remove(t *testing.T) {
 		require.False(t, filesystem.Exists(cacheFilePath), "cache still has the file after removing")
 	})
 
-	t.Run("Remove_file_non_existent", func(t *testing.T) {
+	t.Run("Remove file non-existent", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
-		fs := filesystem.NewFs(filesystem.StandardFS)
-		tmpCacheDir, err := fs.TempDirInTempDir("test-cache")
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpCacheDir) }()
+		fs := filesystem.GetGlobalFileSystem()
+		tmpCacheDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache")
+		require.NoError(t, fs.MkDir(tmpCacheDir))
 
 		ctx := context.Background()
 		config := DefaultFileCacheConfig()
@@ -329,18 +317,16 @@ func TestFileCache_Remove(t *testing.T) {
 func TestFileCache_Close(t *testing.T) {
 	defer goleak.VerifyNone(t)
 
-	fs := filesystem.NewFs(filesystem.StandardFS)
-	tmpSrcDir, err := fs.TempDirInTempDir("test-cache-src")
-	require.NoError(t, err)
-	defer func() { _ = fs.Rm(tmpSrcDir) }()
+	fs := filesystem.GetGlobalFileSystem()
+	tmpSrcDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache-src")
+	require.NoError(t, fs.MkDir(tmpSrcDir))
 
 	_ = filesystemtest.CreateTestFileTree(t, fs, tmpSrcDir, time.Now(), time.Now())
 	srcContent, err := fs.Ls(tmpSrcDir)
 	require.NoError(t, err)
 
-	tmpCacheDir, err := fs.TempDirInTempDir("test-cache")
-	require.NoError(t, err)
-	defer func() { _ = fs.Rm(tmpCacheDir) }()
+	tmpCacheDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache")
+	require.NoError(t, fs.MkDir(tmpCacheDir))
 
 	ctx := context.Background()
 	config := DefaultFileCacheConfig()
@@ -386,10 +372,9 @@ func TestFileCache_Close(t *testing.T) {
 func TestFileCache_GarbageCollection(t *testing.T) {
 	defer goleak.VerifyNone(t)
 
-	fs := filesystem.NewFs(filesystem.StandardFS)
-	tmpCacheDir, err := fs.TempDirInTempDir("test-cache")
-	require.NoError(t, err)
-	defer func() { _ = fs.Rm(tmpCacheDir) }()
+	fs := filesystem.GetGlobalFileSystem()
+	tmpCacheDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache")
+	require.NoError(t, fs.MkDir(tmpCacheDir))
 
 	tmpfilePath, err := fs.TouchTempFileInTempDir(faker.Word())
 	require.NoError(t, err)
@@ -426,44 +411,39 @@ func TestFileCache_GarbageCollection(t *testing.T) {
 }
 
 func TestFileCache_Cancel(t *testing.T) {
-	t.Run("Cancel_after_cache_creation", func(t *testing.T) {
+	t.Run("Cancel after cache creation", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
-		fs := filesystem.NewFs(filesystem.StandardFS)
-		tmpCacheDir, err := fs.TempDirInTempDir("test-cache")
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpCacheDir) }()
+		fs := filesystem.GetGlobalFileSystem()
+		tmpCacheDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache")
+		require.NoError(t, fs.MkDir(tmpCacheDir))
 
-		tmpfilePath, err := fs.TouchTempFileInTempDir(faker.Word())
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpfilePath) }()
-		tmpTestDir := fs.TempDirectory()
+		tmpfilePath := filesystem.FilePathJoin(fs, t.TempDir(), faker.Word())
+		require.NoError(t, fs.Touch(tmpfilePath))
 
 		ctx, cancel := context.WithCancel(context.Background())
 		config := DefaultFileCacheConfig()
 		config.CachePath = tmpCacheDir
-		_, err = NewFsFileCache(ctx, fs, fs, tmpTestDir, config)
+		_, err := NewFsFileCache(ctx, fs, fs, t.TempDir(), config)
 		require.NoError(t, err)
 
 		cancel()
 		errortest.AssertError(t, ctx.Err(), context.Canceled)
 	})
 
-	t.Run("Cancel_during_add", func(t *testing.T) {
+	t.Run("Cancel during add", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
-		fs := filesystem.NewFs(filesystem.StandardFS)
-		tmpSrcDir, err := fs.TempDirInTempDir("test-cache-src")
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpSrcDir) }()
+		fs := filesystem.GetGlobalFileSystem()
+		tmpSrcDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache-src")
+		require.NoError(t, fs.MkDir(tmpSrcDir))
 
 		_ = filesystemtest.CreateTestFileTree(t, fs, tmpSrcDir, time.Now(), time.Now())
 		srcContent, err := fs.Ls(tmpSrcDir)
 		require.NoError(t, err)
 
-		tmpCacheDir, err := fs.TempDirInTempDir("test-cache")
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpCacheDir) }()
+		tmpCacheDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache")
+		require.NoError(t, fs.MkDir(tmpCacheDir))
 
 		ctx, cancel := context.WithCancel(context.Background())
 		config := DefaultFileCacheConfig()
@@ -481,21 +461,19 @@ func TestFileCache_Cancel(t *testing.T) {
 		errortest.AssertError(t, ctx.Err(), context.Canceled)
 	})
 
-	t.Run("Cancel_during_close", func(t *testing.T) {
+	t.Run("Cancel during close", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
-		fs := filesystem.NewFs(filesystem.StandardFS)
-		tmpSrcDir, err := fs.TempDirInTempDir("test-cache-src")
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpSrcDir) }()
+		fs := filesystem.GetGlobalFileSystem()
+		tmpSrcDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache-src")
+		require.NoError(t, fs.MkDir(tmpSrcDir))
 
 		_ = filesystemtest.CreateTestFileTree(t, fs, tmpSrcDir, time.Now(), time.Now())
 		srcContent, err := fs.Ls(tmpSrcDir)
 		require.NoError(t, err)
 
-		tmpCacheDir, err := fs.TempDirInTempDir("test-cache")
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpCacheDir) }()
+		tmpCacheDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache")
+		require.NoError(t, fs.MkDir(tmpCacheDir))
 
 		ctx, cancel := context.WithCancel(context.Background())
 		config := DefaultFileCacheConfig()
@@ -527,18 +505,16 @@ func TestFileCache_Concurent_Caches(t *testing.T) {
 			go func() {
 				defer wg.Done()
 
-				fs := filesystem.NewFs(filesystem.StandardFS)
-				tmpSrcDir, err := fs.TempDirInTempDir("test-cache-src")
-				require.NoError(t, err)
-				defer func() { _ = fs.Rm(tmpSrcDir) }()
+				fs := filesystem.GetGlobalFileSystem()
+				tmpSrcDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache-src")
+				require.NoError(t, fs.MkDir(tmpSrcDir))
 
 				_ = filesystemtest.CreateTestFileTree(t, fs, tmpSrcDir, time.Now(), time.Now())
 				srcContent, err := fs.Ls(tmpSrcDir)
 				require.NoError(t, err)
 
-				tmpCacheDir, err := fs.TempDirInTempDir("test-cache")
-				require.NoError(t, err)
-				defer func() { _ = fs.Rm(tmpCacheDir) }()
+				tmpCacheDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache")
+				require.NoError(t, fs.MkDir(tmpCacheDir))
 
 				ctx := context.Background()
 				config := DefaultFileCacheConfig()
@@ -564,7 +540,7 @@ func TestFileCache_Concurent_Caches(t *testing.T) {
 				err = fs.ListDirTree(tmpSrcDir, &srcTree)
 				require.NoError(t, err)
 
-				require.Equal(t, len(srcTree), len(cacheTree), "Cache Dir and Src Dir have differnet number of content")
+				require.Equal(t, len(srcTree), len(cacheTree), "Cache Dir and Src Dir have a different number of content")
 
 				srcRelTree, err := fs.ConvertToRelativePath(tmpSrcDir, srcTree...)
 				require.NoError(t, err)
@@ -574,19 +550,18 @@ func TestFileCache_Concurent_Caches(t *testing.T) {
 
 				slices.Sort(srcRelTree)
 				slices.Sort(cacheRelTree)
-				require.Equal(t, srcRelTree, cacheRelTree, "Cache Dir and Src Dir have differnet contents")
+				require.Equal(t, srcRelTree, cacheRelTree, "Cache Dir and Src Dir have different contents")
 			}()
 		}
 
 		wg.Wait()
 	})
-	t.Run("Cache_Operations", func(t *testing.T) {
+	t.Run("Cache operations", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
-		fs := filesystem.NewFs(filesystem.StandardFS)
-		tmpSrcDir, err := fs.TempDirInTempDir("test-cache-src")
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpSrcDir) }()
+		fs := filesystem.GetGlobalFileSystem()
+		tmpSrcDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache-src")
+		require.NoError(t, fs.MkDir(tmpSrcDir))
 
 		_ = filesystemtest.CreateTestFileTree(t, fs, tmpSrcDir, time.Now(), time.Now())
 		evictSrcContent, err := fs.Ls(tmpSrcDir)
@@ -606,9 +581,8 @@ func TestFileCache_Concurent_Caches(t *testing.T) {
 		storeSrcContent, err := fs.LsWithExclusionPatterns(tmpSrcDir, fmt.Sprintf(".*%s", evictSuffix))
 		require.NoError(t, err)
 
-		tmpCacheDir, err := fs.TempDirInTempDir("test-cache")
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpCacheDir) }()
+		tmpCacheDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache")
+		require.NoError(t, fs.MkDir(tmpCacheDir))
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		config := DefaultFileCacheConfig()
@@ -659,7 +633,7 @@ func TestFileCache_Concurent_Caches(t *testing.T) {
 		err = fs.ListDirTreeWithContextAndExclusionPatterns(ctx, tmpSrcDir, &srcTree, fmt.Sprintf(".*%s", evictSuffix))
 		require.NoError(t, err)
 
-		require.Equal(t, len(srcTree), len(cacheTree), "Cache Dir and Src Dir have differnet number of content")
+		require.Equal(t, len(srcTree), len(cacheTree), "Cache Dir and Src Dir have a different number of content")
 
 		srcRelTree, err := fs.ConvertToRelativePath(tmpSrcDir, srcTree...)
 		require.NoError(t, err)
@@ -669,21 +643,19 @@ func TestFileCache_Concurent_Caches(t *testing.T) {
 
 		slices.Sort(srcRelTree)
 		slices.Sort(cacheRelTree)
-		require.Equal(t, srcRelTree, cacheRelTree, "Cache Dir and Src Dir have differnet contents")
+		require.Equal(t, srcRelTree, cacheRelTree, "Cache Dir and Src Dir have different contents")
 
 	})
 
-	t.Run("Restore_Evict", func(t *testing.T) {
+	t.Run("Restore Evict", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
-		fs := filesystem.NewFs(filesystem.StandardFS)
-		tmpCacheDir, err := fs.TempDirInTempDir("test-cache")
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpCacheDir) }()
+		fs := filesystem.GetGlobalFileSystem()
+		tmpCacheDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache")
+		require.NoError(t, fs.MkDir(tmpCacheDir))
 
-		tmpSrcDir, err := fs.TempDirInTempDir("test-cache-src")
-		require.NoError(t, err)
-		defer func() { _ = fs.Rm(tmpSrcDir) }()
+		tmpSrcDir := filesystem.FilePathJoin(fs, t.TempDir(), "test-cache-src")
+		require.NoError(t, fs.MkDir(tmpSrcDir))
 
 		testFileName := "500MB.bin"
 		tmpTestFilePath := filesystem.FilePathJoin(fs, tmpSrcDir, testFileName)

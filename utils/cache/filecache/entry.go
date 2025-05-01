@@ -36,7 +36,7 @@ func (e *CacheEntry) Copy(ctx context.Context, destFs filesystem.FS, destPath st
 }
 
 func (e *CacheEntry) Delete(ctx context.Context) error {
-	if err := e.cacheFs.RemoveWithContext(ctx, e.cachePath); err != nil {
+	if err := e.cacheFs.RemoveWithPrivileges(ctx, e.cachePath); err != nil {
 		return err
 	}
 
