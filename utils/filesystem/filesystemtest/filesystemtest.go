@@ -69,3 +69,25 @@ func CreateTestFileTree(t *testing.T, fs filesystem.FS, testDir string, fileModT
 
 	return tree
 }
+
+// GenerateTestFile generates a file and writes zero-filled blocks until it reaches desiredSizeInBytes.
+func GenerateTestFile(t *testing.T, fs filesystem.FS, filePath string, desiredSizeInBytes int, blockSizeInBytes int) {
+	t.Helper()
+
+	file, err := fs.CreateFile(filePath)
+	require.NoError(t, err)
+
+	defer func() {
+		err = file.Close()
+		require.NoError(t, err)
+	}()
+
+	data := make([]byte, blockSizeInBytes)
+	var cureentSize int
+	for cureentSize < desiredSizeInBytes {
+		size, err := file.Write(data)
+		require.NoError(t, err)
+
+		cureentSize += size
+	}
+}
