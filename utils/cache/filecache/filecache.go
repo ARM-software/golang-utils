@@ -36,6 +36,7 @@ func (c *Cache) gc(ctx context.Context, _ time.Time) {
 				c.entries.Delete(key)
 				defer c.entriesLM.Delete(key)
 			}
+			// defer Unlock after defer Delete so that Unlock() runs first, then Delete()
 			defer c.entriesLM.Unlock(key)
 		}
 	})
@@ -174,11 +175,11 @@ func NewGenericFileCache(ctx context.Context, cacheFilesystem filesystem.FS, ent
 	}
 
 	if entryRetriever == nil {
-		return nil, commonerrors.New(commonerrors.ErrInvalid, "the entry provider cannot be nil")
+		return nil, commonerrors.New(commonerrors.ErrUndefined, "the entry provider cannot be nil")
 	}
 
 	if cacheFilesystem == nil {
-		return nil, commonerrors.New(commonerrors.ErrInvalid, "the cache filesystem cannot be nil")
+		return nil, commonerrors.New(commonerrors.ErrUndefined, "the cache filesystem cannot be nil")
 	}
 
 	cancelStore := parallelisation.NewCancelFunctionsStore()

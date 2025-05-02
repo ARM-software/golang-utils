@@ -42,7 +42,7 @@ func (p *FsEntryRetriever) FetchEntry(ctx context.Context, key string) (string, 
 
 func (p *FsEntryRetriever) SetCacheDir(cacheFs filesystem.FS, cacheDir string) error {
 	if cacheFs == nil {
-		return commonerrors.New(commonerrors.ErrInvalid, "the cache filesystem cannot be nil")
+		return commonerrors.New(commonerrors.ErrUndefined, "the cache filesystem cannot be nil")
 	}
 
 	p.cachefs = cacheFs
