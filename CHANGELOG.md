@@ -14,6 +14,24 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.94.0" (2025-05-02)
+=====================
+
+Features
+--------
+
+- :sparkles: Add a cache utility for files and directories (#20250425164240)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v5-5.16.0 (#20250416101706)
+- Dependency upgrade: v4-4.6.1 (#20250428120711, #20250428120716, #20250428120746)
+- Dependency upgrade: mock-0.5.2 (#20250429104314, #20250429104316)
+- Dependency upgrade: v4-4.25.4 (#20250501100956, #20250501101012, #20250501101030, #20250501101038, #20250501101056, #20250501101107, #20250501101131)
+
+
 "1.93.0" (2025-04-14)
 =====================
 
