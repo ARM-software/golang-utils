@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.95.1" (2025-05-12)
+=====================
+
+Bugfixes
+--------
+
+- Dependency upgrade: net-0.40.0 (#20250512163515, #20250512163518)
+
+
 "1.95.0" (2025-05-12)
 =====================
 
