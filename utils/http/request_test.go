@@ -40,6 +40,7 @@ func TestAuth(t *testing.T) {
 	require.NoError(t, cfg.Validate())
 	cfg2, err := NewAuthConfiguration(field.ToOptionalString(faker.Password()))
 	require.Error(t, err)
+	assert.Empty(t, cfg2)
 	cfg2, err = NewAuthConfiguration(field.ToOptionalString(cfg.GetAuthorizationHeader()))
 	require.NoError(t, err)
 	require.NoError(t, cfg2.Validate())
