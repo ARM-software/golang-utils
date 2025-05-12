@@ -2,12 +2,15 @@ package http
 
 import (
 	"fmt"
+
 	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	configUtils "github.com/ARM-software/golang-utils/utils/config"
+	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
 const (
@@ -104,6 +107,26 @@ func (cfg *Auth) Validate() (err error) {
 		validation.Field(&cfg.Scheme, validation.When(cfg.Enforced, validation.Required, validation.In(inAuthSchemes...))),
 		validation.Field(&cfg.AccessToken, validation.Required.When(cfg.Enforced)),
 	)
+}
+
+// NewAuthConfiguration returns a configuration based on an authorization header
+func NewAuthConfiguration(authorizationHeader *string) (cfg *Auth, err error) {
+	if reflection.IsEmpty(authorizationHeader) {
+		cfg = &Auth{}
+		return
+	}
+	elem := strings.Split(*authorizationHeader, " ")
+	if len(elem) < 2 {
+		err = commonerrors.New(commonerrors.ErrInvalid, "authorization header does not comply with the header syntax (https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Authorization)")
+		return
+	}
+	cfg = &Auth{
+		Enforced:    true,
+		Scheme:      elem[0],
+		AccessToken: elem[1],
+	}
+	err = cfg.Validate()
+	return
 }
 
 type Target struct {
