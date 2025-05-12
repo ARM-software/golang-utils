@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.95.0" (2025-05-12)
+=====================
+
+Features
+--------
+
+- :sparkles: `[http]` Add a way to retrieve an http.Auth configuration from `Authorization` header values (#20250512175917)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: crypto-0.38.0 (#20250506102815, #20250506102908, #20250506102959, #20250506103102)
+- Dependency upgrade: oauth2-0.30.0 (#20250512151044, #20250512151050, #20250512151116, #20250512151118)
+
+
 "1.94.0" (2025-05-02)
 =====================
 
