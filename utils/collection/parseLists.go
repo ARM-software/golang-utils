@@ -58,18 +58,26 @@ func ParseCommaSeparatedList(input string) []string {
 
 // ParseCommaSeparatedListToMap returns a map of key value pairs from a string containing a comma separated list
 func ParseCommaSeparatedListToMap(input string) (pairs map[string]string, err error) {
-	inputSplit := ParseCommaSeparatedList(input)
-	numElements := len(inputSplit)
+	pairs, err = ConvertSliceToMap[string](ParseCommaSeparatedList(input))
+	return
+}
+
+// ConvertSliceToMap converts a slice of elements into a map e.g. [key1, value1, key2, values2] -> {key1: value1, key2: value2}
+func ConvertSliceToMap[T comparable](input []T) (pairs map[T]T, err error) {
+	if len(input) == 0 {
+		return
+	}
+	numElements := len(input)
 
 	if numElements%2 != 0 {
-		err = commonerrors.Newf(commonerrors.ErrInvalid, "could not parse comma separated list '%v' into map as it did not have an even number of elements", input)
+		err = commonerrors.Newf(commonerrors.ErrInvalid, "could not convert the list into a map as it does not have an even number of elements")
 		return
 	}
 
-	pairs = make(map[string]string, numElements/2)
+	pairs = make(map[T]T, numElements/2)
 	// TODO use slices.Chunk introduced in go 23 when library is upgraded
 	for i := 0; i < numElements; i += 2 {
-		pairs[inputSplit[i]] = inputSplit[i+1]
+		pairs[input[i]] = input[i+1]
 	}
 
 	return
@@ -81,17 +89,24 @@ func ParseCommaSeparatedListOfPairsToMap(input, pairSeparator string) (pairs map
 		pairs, err = ParseCommaSeparatedListToMap(input)
 		return
 	}
-	inputSplit := ParseCommaSeparatedList(input)
-	pairs = make(map[string]string, len(inputSplit))
-	for i := range inputSplit {
-		pair := ParseListWithCleanup(inputSplit[i], pairSeparator)
+	pairs, err = ConvertListOfPairsToMap(ParseCommaSeparatedList(input), pairSeparator)
+	return
+}
+
+func ConvertListOfPairsToMap(input []string, pairSeparator string) (pairs map[string]string, err error) {
+	if len(input) == 0 {
+		return
+	}
+	pairs = make(map[string]string, len(input))
+	for i := range input {
+		pair := ParseListWithCleanup(input[i], pairSeparator)
 		switch len(pair) {
 		case 0:
 			continue
 		case 2:
 			pairs[pair[0]] = pair[1]
 		default:
-			err = commonerrors.Newf(commonerrors.ErrInvalid, "could not parse key value pair '%v'", inputSplit[i])
+			err = commonerrors.Newf(commonerrors.ErrInvalid, "could not parse key value pair '%v'", input[i])
 			return
 		}
 	}
