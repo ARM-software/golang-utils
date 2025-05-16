@@ -77,6 +77,10 @@ func ParseCommaSeparatedListToMap(input string) (pairs map[string]string, err er
 
 // ParseCommaSeparatedListOfPairsToMap returns a map of key value pairs from a string containing a comma separated list of pairs using pairSeparator to separate between keys and values e.g. key1=value1,key2=value2
 func ParseCommaSeparatedListOfPairsToMap(input, pairSeparator string) (pairs map[string]string, err error) {
+	if pairSeparator == "," {
+		pairs, err = ParseCommaSeparatedListToMap(input)
+		return
+	}
 	inputSplit := ParseCommaSeparatedList(input)
 	pairs = make(map[string]string, len(inputSplit))
 	for i := range inputSplit {
@@ -95,7 +99,7 @@ func ParseCommaSeparatedListOfPairsToMap(input, pairSeparator string) (pairs map
 }
 
 // ConvertSliceToCommaSeparatedList converts a slice into a string containing a coma separated list
-func ConvertSliceToCommaSeparatedList[T comparable](slice []T) string {
+func ConvertSliceToCommaSeparatedList[T any](slice []T) string {
 	if len(slice) == 0 {
 		return ""
 	}
@@ -108,7 +112,7 @@ func ConvertSliceToCommaSeparatedList[T comparable](slice []T) string {
 }
 
 // ConvertMapToSlice converts a map to list of keys and values listed sequentially e.g. [key1, value1, key2, value2]
-func ConvertMapToSlice[K, V comparable](pairs map[K]V) []string {
+func ConvertMapToSlice[K comparable, V any](pairs map[K]V) []string {
 	if len(pairs) == 0 {
 		return nil
 	}
@@ -120,7 +124,7 @@ func ConvertMapToSlice[K, V comparable](pairs map[K]V) []string {
 }
 
 // ConvertMapToPairSlice converts a map to list of key value pairs e.g. ["key1=value1", "key2=value2"]
-func ConvertMapToPairSlice[K, V comparable](pairs map[K]V, pairSeparator string) []string {
+func ConvertMapToPairSlice[K comparable, V any](pairs map[K]V, pairSeparator string) []string {
 	if len(pairs) == 0 {
 		return nil
 	}
@@ -132,11 +136,11 @@ func ConvertMapToPairSlice[K, V comparable](pairs map[K]V, pairSeparator string)
 }
 
 // ConvertMapToCommaSeparatedList converts a map to a string of comma separated list of keys and values defined sequentially
-func ConvertMapToCommaSeparatedList[K, V comparable](pairs map[K]V) string {
+func ConvertMapToCommaSeparatedList[K comparable, V any](pairs map[K]V) string {
 	return ConvertSliceToCommaSeparatedList[string](ConvertMapToSlice[K, V](pairs))
 }
 
 // ConvertMapToCommaSeparatedPairsList converts a map to a string of comma separated list of key, value pairs.
-func ConvertMapToCommaSeparatedPairsList[K, V comparable](pairs map[K]V, pairSeparator string) string {
+func ConvertMapToCommaSeparatedPairsList[K comparable, V any](pairs map[K]V, pairSeparator string) string {
 	return ConvertSliceToCommaSeparatedList[string](ConvertMapToPairSlice[K, V](pairs, pairSeparator))
 }

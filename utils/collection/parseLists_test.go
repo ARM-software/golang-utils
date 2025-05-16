@@ -29,7 +29,7 @@ func TestParseCommaSeparatedListWordsOnly(t *testing.T) {
 	})
 	t.Run("with whitespaces", func(t *testing.T) {
 		stringList := ""
-		stringArray := []string{}
+		var stringArray []string
 		// we don't need cryptographically secure random numbers for generating a number of elements in a list
 		lengthOfList := random.Intn(10) //nolint:gosec
 		for i := 0; i < lengthOfList; i++ {
@@ -55,7 +55,7 @@ func TestParseCommaSeparatedListWithSpacesBetweenWords(t *testing.T) {
 	})
 	t.Run("with whitespaces", func(t *testing.T) {
 		stringList := ""
-		stringArray := []string{}
+		var stringArray []string
 		// we don't need cryptographically secure random numbers for generating a number of elements in a list
 		lengthOfList := random.Intn(10) //nolint:gosec
 		for i := 0; i < lengthOfList; i++ {
@@ -75,7 +75,7 @@ func TestParseCommaSeparatedListWithSpacesBetweenWords(t *testing.T) {
 
 func TestParseCommaSeparatedListWithSpacesBetweenWordsKeepBlanks(t *testing.T) {
 	stringList := ""
-	stringArray := []string{}
+	var stringArray []string
 	// we don't need cryptographically secure random numbers for generating a number of elements in a list
 	lengthOfList := random.Intn(10) + 8 //nolint:gosec
 	for i := 0; i < lengthOfList; i++ {
@@ -171,6 +171,7 @@ func TestParseCommaSeparatedPairListToMap(t *testing.T) {
 	}{
 		{"Normal 1", "hello=world", map[string]string{"hello": "world"}, nil, "="},
 		{"Normal 2", "hello+world,adrien+cabarbaye", map[string]string{"hello": "world", "adrien": "cabarbaye"}, nil, "+"},
+		{"Normal 2", "hello, world, adrien, cabarbaye", map[string]string{"hello": "world", "adrien": "cabarbaye"}, nil, ","},
 		{"Normal 2.5", "hello= world, adrien = cabarbaye", map[string]string{"hello": "world", "adrien": "cabarbaye"}, nil, "="},
 		{"Normal 3", "hello&world,adrien&cabarbaye,", map[string]string{"hello": "world", "adrien": "cabarbaye"}, nil, "&"},
 		{"Normal 4", "hello%%world,,,,adrien%%cabarbaye,,,", map[string]string{"hello": "world", "adrien": "cabarbaye"}, nil, "%%"},
