@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.96.0" (2025-05-16)
+=====================
+
+Features
+--------
+
+- :sparkles: `[collection]` Add utilities to serialising maps into comma separated strings (#20250516124618)
+
+
 "1.95.1" (2025-05-12)
 =====================
 
