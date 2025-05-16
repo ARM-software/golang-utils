@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.97.0" (2025-05-16)
+=====================
+
+Features
+--------
+
+- :sparkles: `[collection]` Expose utilities to convert slices into maps (#20250516152950)
+
+
 "1.96.0" (2025-05-16)
 =====================
 
