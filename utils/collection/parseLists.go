@@ -5,6 +5,7 @@
 package collection
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
 
@@ -72,4 +73,74 @@ func ParseCommaSeparatedListToMap(input string) (pairs map[string]string, err er
 	}
 
 	return
+}
+
+// ParseCommaSeparatedListOfPairsToMap returns a map of key value pairs from a string containing a comma separated list of pairs using pairSeparator to separate between keys and values e.g. key1=value1,key2=value2
+func ParseCommaSeparatedListOfPairsToMap(input, pairSeparator string) (pairs map[string]string, err error) {
+	if pairSeparator == "," {
+		pairs, err = ParseCommaSeparatedListToMap(input)
+		return
+	}
+	inputSplit := ParseCommaSeparatedList(input)
+	pairs = make(map[string]string, len(inputSplit))
+	for i := range inputSplit {
+		pair := ParseListWithCleanup(inputSplit[i], pairSeparator)
+		switch len(pair) {
+		case 0:
+			continue
+		case 2:
+			pairs[pair[0]] = pair[1]
+		default:
+			err = commonerrors.Newf(commonerrors.ErrInvalid, "could not parse key value pair '%v'", inputSplit[i])
+			return
+		}
+	}
+	return
+}
+
+// ConvertSliceToCommaSeparatedList converts a slice into a string containing a coma separated list
+func ConvertSliceToCommaSeparatedList[T any](slice []T) string {
+	if len(slice) == 0 {
+		return ""
+	}
+	sliceOfStrings := make([]string, 0, len(slice))
+	for i := range slice {
+		sliceOfStrings = append(sliceOfStrings, fmt.Sprintf("%v", slice[i]))
+	}
+
+	return strings.Join(sliceOfStrings, ",")
+}
+
+// ConvertMapToSlice converts a map to list of keys and values listed sequentially e.g. [key1, value1, key2, value2]
+func ConvertMapToSlice[K comparable, V any](pairs map[K]V) []string {
+	if len(pairs) == 0 {
+		return nil
+	}
+	slice := make([]string, 0, len(pairs)*2)
+	for key, value := range pairs {
+		slice = append(slice, fmt.Sprintf("%v", key), fmt.Sprintf("%v", value))
+	}
+	return slice
+}
+
+// ConvertMapToPairSlice converts a map to list of key value pairs e.g. ["key1=value1", "key2=value2"]
+func ConvertMapToPairSlice[K comparable, V any](pairs map[K]V, pairSeparator string) []string {
+	if len(pairs) == 0 {
+		return nil
+	}
+	slice := make([]string, 0, len(pairs)*2)
+	for key, value := range pairs {
+		slice = append(slice, fmt.Sprintf("%v%v%v", key, pairSeparator, value))
+	}
+	return slice
+}
+
+// ConvertMapToCommaSeparatedList converts a map to a string of comma separated list of keys and values defined sequentially
+func ConvertMapToCommaSeparatedList[K comparable, V any](pairs map[K]V) string {
+	return ConvertSliceToCommaSeparatedList[string](ConvertMapToSlice[K, V](pairs))
+}
+
+// ConvertMapToCommaSeparatedPairsList converts a map to a string of comma separated list of key, value pairs.
+func ConvertMapToCommaSeparatedPairsList[K comparable, V any](pairs map[K]V, pairSeparator string) string {
+	return ConvertSliceToCommaSeparatedList[string](ConvertMapToPairSlice[K, V](pairs, pairSeparator))
 }
