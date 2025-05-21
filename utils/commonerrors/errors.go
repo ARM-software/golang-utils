@@ -277,7 +277,12 @@ func Errorf(targetErr error, format string, args ...any) error {
 	if len(args) > 0 {
 		msg = fmt.Sprintf(format, args...)
 	}
-	return fmt.Errorf("%w%v %v", tErr, string(TypeReasonErrorSeparator), msg)
+	cleansedMsg := strings.TrimSpace(msg)
+	if cleansedMsg == "" {
+		return tErr
+	} else {
+		return fmt.Errorf("%w%v %v", tErr, string(TypeReasonErrorSeparator), cleansedMsg)
+	}
 }
 
 // WrapError wraps an error into a particular targetError. However, if the original error has to do with a contextual error (i.e. ErrCancelled or ErrTimeout), it will be passed through without having is type changed.
@@ -295,7 +300,12 @@ func WrapError(targetError, originalError error, msg string) error {
 	if originalError == nil {
 		return New(tErr, msg)
 	} else {
-		return Errorf(tErr, "%v%v %v", msg, string(TypeReasonErrorSeparator), originalError.Error())
+		cleansedMsg := strings.TrimSpace(msg)
+		if cleansedMsg == "" {
+			return New(tErr, originalError.Error())
+		} else {
+			return Errorf(tErr, "%v%v %v", cleansedMsg, string(TypeReasonErrorSeparator), originalError.Error())
+		}
 	}
 }
 
