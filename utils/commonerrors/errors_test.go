@@ -221,3 +221,21 @@ func TestWrapError(t *testing.T) {
 	assert.True(t, Any(WrapIfNotCommonError(ErrUndefined, errors.New(faker.Sentence()), faker.Sentence()), ErrUndefined))
 	assert.True(t, Any(WrapIfNotCommonErrorf(ErrUndefined, errors.New(faker.Sentence()), faker.Sentence()), ErrUndefined))
 }
+
+func TestString(t *testing.T) {
+	assert.Equal(t, "unknown", New(nil, "").Error())
+	assert.Equal(t, "unknown", Newf(nil, "").Error())
+	assert.Equal(t, "unknown", WrapError(nil, nil, "").Error())
+	assert.Equal(t, "unknown", WrapErrorf(nil, nil, "").Error())
+	assert.Equal(t, "unsupported", New(ErrUnsupported, "").Error())
+	assert.Equal(t, "unsupported", Newf(ErrUnsupported, "").Error())
+	assert.Equal(t, "unsupported", WrapError(ErrUnsupported, nil, "").Error())
+	assert.Equal(t, "unsupported", WrapErrorf(ErrUnsupported, nil, "").Error())
+	assert.Equal(t, "unsupported: test", New(ErrUnsupported, "test").Error())
+	assert.Equal(t, "unknown: test", New(nil, "test").Error())
+	assert.Equal(t, "unsupported: test 56", Newf(ErrUnsupported, "test %v", 56).Error())
+	assert.Equal(t, "unsupported: test", WrapError(ErrUnsupported, nil, "test").Error())
+	assert.Equal(t, "unsupported: not found", WrapError(ErrUnsupported, ErrNotFound, "").Error())
+	assert.Equal(t, "unknown: test: unsupported", WrapError(nil, ErrUnsupported, "test").Error())
+	assert.Equal(t, "unsupported: test 56: not found", WrapErrorf(ErrUnsupported, ErrNotFound, "test %v", 56).Error())
+}
