@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.97.1" (2025-05-21)
+=====================
+
+Bugfixes
+--------
+
+- :bug: `[commonerrors]` fix string representation (#20250521081848)
+
+
 "1.97.0" (2025-05-16)
 =====================
 
