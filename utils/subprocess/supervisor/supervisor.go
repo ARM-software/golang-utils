@@ -9,6 +9,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
+	"github.com/ARM-software/golang-utils/utils/safecast"
 	"github.com/ARM-software/golang-utils/utils/subprocess"
 )
 
@@ -21,6 +22,7 @@ type Supervisor struct {
 	postStop      func(context.Context, error) error
 	haltingErrors []error
 	restartDelay  time.Duration
+	count         uint
 }
 
 type SupervisorOption func(*Supervisor)
@@ -75,9 +77,16 @@ func WithRestartDelay(delay time.Duration) SupervisorOption {
 	}
 }
 
+// WithCount will run cause the supervisor to exit after 'count' executions
+func WithCount[I safecast.INumber](count I) SupervisorOption {
+	return func(s *Supervisor) {
+		s.count = safecast.ToUint(count)
+	}
+}
+
 // Run will run the supervisor and execute any of the command hooks. If it receives a halting error or the context is cancelled then it will exit
 func (s *Supervisor) Run(ctx context.Context) (err error) {
-	for {
+	for i := uint(0); s.count == 0 || i < s.count; i++ {
 		err = parallelisation.DetermineContextError(ctx)
 		if err != nil {
 			return
@@ -141,4 +150,6 @@ func (s *Supervisor) Run(ctx context.Context) (err error) {
 
 		// restart process
 	}
+
+	return
 }
