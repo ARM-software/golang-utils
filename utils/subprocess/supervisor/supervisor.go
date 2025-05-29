@@ -20,6 +20,7 @@ type Supervisor struct {
 	preStart      func(context.Context) error
 	postStart     func(context.Context) error
 	postStop      func(context.Context, error) error
+	postEnd       func()
 	haltingErrors []error
 	restartDelay  time.Duration
 	count         uint
@@ -77,15 +78,28 @@ func WithRestartDelay(delay time.Duration) SupervisorOption {
 	}
 }
 
-// WithCount will run cause the supervisor to exit after 'count' executions
+// WithCount will run cause the supervisor to exit after 'count' executions.
 func WithCount[I safecast.INumber](count I) SupervisorOption {
 	return func(s *Supervisor) {
 		s.count = safecast.ToUint(count)
 	}
 }
 
+// WithPostEnd will run 'function' after the supervisor has stopped.
+// It does not take a context to ensure that it runs after a context has been cancelled.
+// It does not return an error as this could cause confusion with the other returned errors.
+func WithPostEnd(function func()) SupervisorOption {
+	return func(s *Supervisor) {
+		s.postEnd = function
+	}
+}
+
 // Run will run the supervisor and execute any of the command hooks. If it receives a halting error or the context is cancelled then it will exit
 func (s *Supervisor) Run(ctx context.Context) (err error) {
+	if s.postEnd != nil {
+		defer s.postEnd()
+	}
+
 	for i := uint(0); s.count == 0 || i < s.count; i++ {
 		err = parallelisation.DetermineContextError(ctx)
 		if err != nil {

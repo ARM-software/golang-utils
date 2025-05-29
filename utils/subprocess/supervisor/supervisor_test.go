@@ -407,4 +407,32 @@ func TestSupervisor(t *testing.T) {
 		assert.NoError(t, err)
 		assert.EqualValues(t, 3, counter.Load())
 	})
+
+	t.Run("with post end", func(t *testing.T) {
+		if platform.IsWindows() {
+			t.SkipNow()
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+		defer cancel()
+
+		logger, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "Test")
+		require.NoError(t, err)
+
+		counter := atomic.Uint64{}
+		assert.Zero(t, counter.Load())
+
+		cmd, err := subprocess.New(ctx, logger, "starting", "success", "failed", "echo", "123")
+		require.NoError(t, err)
+
+		runner := NewSupervisor(func(ctx context.Context) (*subprocess.Subprocess, error) {
+			return cmd, nil
+		}, WithPostEnd(func() {
+			_ = counter.Inc()
+		}), WithCount(1))
+
+		err = runner.Run(ctx)
+		assert.NoError(t, err)
+		assert.EqualValues(t, 1, counter.Load())
+	})
 }
