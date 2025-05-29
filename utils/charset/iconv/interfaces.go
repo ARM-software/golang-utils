@@ -11,7 +11,7 @@ import (
 	"io"
 )
 
-//go:generate mockgen -destination=../../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/charset/$GOPACKAGE ICharsetConverter
+//go:generate go tool mockgen -destination=../../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/charset/$GOPACKAGE ICharsetConverter
 
 type ICharsetConverter interface {
 	// ConvertString converts the charset of an input string

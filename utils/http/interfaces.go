@@ -26,7 +26,7 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 )
 
-//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IClient,IRetryWaitPolicy
+//go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IClient,IRetryWaitPolicy
 
 // IClient defines an HTTP client similar to http.Client but without shared state with other clients used in the same program.
 // See https://github.com/hashicorp/go-cleanhttp for more details.
