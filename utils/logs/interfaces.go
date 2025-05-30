@@ -12,7 +12,7 @@ import (
 	"github.com/go-logr/logr"
 )
 
-//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE Loggers,IMultipleLoggers,WriterWithSource,StdLogger
+//go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE Loggers,IMultipleLoggers,WriterWithSource,StdLogger
 
 // Loggers defines generic loggers which separate common logging messages from errors.
 // This is to use in cases where it is necessary to separate the two streams e.g. remote procedure call (RPC)

@@ -12,7 +12,7 @@ import (
 	"io"
 )
 
-//go:generate mockgen -destination=../../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/collection/$GOPACKAGE IStaticPage,IPage,IStaticPageStream,IStream,IIterator,IPaginator,IPaginatorAndPageFetcher,IStreamPaginator,IStreamPaginatorAndPageFetcher
+//go:generate go tool mockgen -destination=../../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/collection/$GOPACKAGE IStaticPage,IPage,IStaticPageStream,IStream,IIterator,IPaginator,IPaginatorAndPageFetcher,IStreamPaginator,IStreamPaginatorAndPageFetcher
 
 // IIterator defines an iterator over a collection of items.
 type IIterator interface {
