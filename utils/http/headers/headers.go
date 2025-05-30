@@ -38,6 +38,7 @@ const (
 	HeaderTusMaxSize          = "Tus-Max-Size"
 	HeaderXHTTPMethodOverride = "X-HTTP-Method-Override"
 	HeaderXWWWFormURLEncoded  = "application/x-www-form-urlencoded"
+	HeaderContentType         = "Content-Type"
 )
 
 var (

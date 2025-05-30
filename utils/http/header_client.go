@@ -76,7 +76,7 @@ func (c *ClientWithHeaders) Post(url, contentType string, rawBody interface{}) (
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", contentType) // make sure to overrwrite any in the headers
+	req.Header.Set(headers.HeaderContentType, contentType) // make sure to overrwrite any in the headers
 	return c.client.Do(req)
 }
 
