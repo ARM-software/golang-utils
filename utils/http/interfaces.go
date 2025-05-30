@@ -65,3 +65,11 @@ type IRetryableClient interface {
 	IClient
 	UnderlyingClient() *retryablehttp.Client
 }
+
+// IClientWithHeaders is a normal client that can have headers attached to it. These headers will be used in all requests
+type IClientWithHeaders interface {
+	IClient
+	AppendHeader(key, value string)
+	RemoveHeader(key string)
+	ClearHeaders()
+}
