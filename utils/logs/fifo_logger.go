@@ -2,10 +2,15 @@ package logs
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
+	"iter"
 	"log"
 	"sync"
+	"time"
+
+	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
 type FIFOWriter struct {
@@ -39,6 +44,68 @@ func (w *FIFOWriter) Read() string {
 	return string(bytes)
 }
 
+func (w *FIFOWriter) ReadLines(ctx context.Context) iter.Seq[string] {
+	return func(yield func(string) bool) {
+		var partial []byte
+		for {
+			if err := parallelisation.DetermineContextError(ctx); err != nil {
+				return
+			}
+
+			buf := func() []byte {
+				w.mu.Lock()
+				defer w.mu.Unlock()
+				defer w.Logs.Reset()
+				tmp := w.Logs.Bytes()
+				buf := make([]byte, len(tmp))
+				copy(buf, tmp)
+				return buf
+			}()
+
+			if len(buf) == 0 {
+				if err := parallelisation.DetermineContextError(ctx); err != nil {
+					if len(partial) > 0 {
+						yield(string(partial))
+					}
+					return
+				}
+
+				parallelisation.SleepWithContext(ctx, 50*time.Millisecond)
+				continue
+			}
+
+			if len(partial) > 0 {
+				buf = append(partial, buf...)
+				partial = nil
+			}
+
+			for {
+				idx := bytes.IndexByte(buf, '\n')
+				if idx < 0 {
+					break
+				}
+				line := buf[:idx]
+
+				if len(line) > 0 && line[len(line)-1] == '\r' {
+					line = line[:len(line)-1]
+				}
+				buf = buf[idx+1:]
+				if len(line) == 0 {
+					continue
+				}
+
+				if !yield(string(line)) {
+					return
+				}
+			}
+
+			if len(buf) > 0 {
+				partial = buf
+			}
+		}
+	}
+}
+
 type FIFOLoggers struct {
 	GenericLoggers
 	LogWriter FIFOWriter
@@ -50,6 +117,10 @@ func (l *FIFOLoggers) Check() error {
 
 func (l *FIFOLoggers) Read() string {
 	return l.LogWriter.Read()
+}
+
+func (l *FIFOLoggers) ReadLines(ctx context.Context) iter.Seq[string] {
+	return l.LogWriter.ReadLines(ctx)
 }
 
 // Close closes the logger
