@@ -118,7 +118,7 @@ func TestToSlice(t *testing.T) {
 		require.NoError(t, err)
 		newStruct := TestStruct1{}
 		require.NoError(t, FromSlice[TestStruct1](structSlice, &newStruct))
-		assert.Equal(t, structSlice, newStruct)
+		assert.Equal(t, testStruct, newStruct)
 	})
 	t.Run("with time", func(t *testing.T) {
 		random, err := faker.RandomInt(0, 1000, 2)
