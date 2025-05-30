@@ -8,6 +8,7 @@ import (
 	"iter"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
@@ -69,6 +70,7 @@ func (w *FIFOWriter) ReadLines(ctx context.Context) iter.Seq[string] {
 					return
 				}
 
+				parallelisation.SleepWithContext(ctx, 50*time.Millisecond)
 				continue
 			}
 
