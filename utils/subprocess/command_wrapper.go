@@ -63,7 +63,7 @@ type interruptType int
 
 const (
 	kill interruptType = 9
-	term               = 15
+	term interruptType = 15
 )
 
 func (c *cmdWrapper) interrupt(interrupt interruptType) error {
