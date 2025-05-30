@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"iter"
 	"log"
 	"sync"
 
@@ -42,7 +43,7 @@ func (w *FIFOWriter) Read() string {
 	return string(bytes)
 }
 
-func (w *FIFOWriter) ReadLines(ctx context.Context) func(yield func(string) bool) {
+func (w *FIFOWriter) ReadLines(ctx context.Context) iter.Seq[string] {
 	return func(yield func(string) bool) {
 		var partial []byte
 		for {
@@ -116,7 +117,7 @@ func (l *FIFOLoggers) Read() string {
 	return l.LogWriter.Read()
 }
 
-func (l *FIFOLoggers) ReadLines(ctx context.Context) func(yield func(string) bool) {
+func (l *FIFOLoggers) ReadLines(ctx context.Context) iter.Seq[string] {
 	return l.LogWriter.ReadLines(ctx)
 }
 
