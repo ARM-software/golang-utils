@@ -9,63 +9,31 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	configUtils "github.com/ARM-software/golang-utils/utils/config"
+	"github.com/ARM-software/golang-utils/utils/http/schemes"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
 const (
-	AuthorisationSchemeToken        = "Token"
-	AuthorisationSchemeBasic        = "Basic"
-	AuthorisationSchemeBearer       = "Bearer"
-	AuthorisationSchemeConcealed    = "Concealed"
-	AuthorisationSchemeDigest       = "Digest"
-	AuthorisationSchemeDPoP         = "DPoP"
-	AuthorisationSchemeGNAP         = "GNAP"
-	AuthorisationSchemeHOBA         = "HOBA"
-	AuthorisationSchemeMutual       = "Mutual"
-	AuthorisationSchemeNegotiate    = "Negotiate"
-	AuthorisationSchemeOAuth        = "OAuth"
-	AuthorisationSchemePrivateToken = "PrivateToken"
-	AuthorisationSchemeSCRAMSSHA1   = "SCRAM-SHA-1"
-	AuthorisationSchemeSCRAMSHA256  = "SCRAM-SHA-256"
-	AuthorisationSchemeVapid        = "vapid"
+	AuthorisationSchemeToken        = schemes.AuthorisationSchemeToken
+	AuthorisationSchemeBasic        = schemes.AuthorisationSchemeBasic
+	AuthorisationSchemeBearer       = schemes.AuthorisationSchemeBearer
+	AuthorisationSchemeConcealed    = schemes.AuthorisationSchemeConcealed
+	AuthorisationSchemeDigest       = schemes.AuthorisationSchemeDigest
+	AuthorisationSchemeDPoP         = schemes.AuthorisationSchemeDPoP
+	AuthorisationSchemeGNAP         = schemes.AuthorisationSchemeGNAP
+	AuthorisationSchemeHOBA         = schemes.AuthorisationSchemeHOBA
+	AuthorisationSchemeMutual       = schemes.AuthorisationSchemeMutual
+	AuthorisationSchemeNegotiate    = schemes.AuthorisationSchemeNegotiate
+	AuthorisationSchemeOAuth        = schemes.AuthorisationSchemeOAuth
+	AuthorisationSchemePrivateToken = schemes.AuthorisationSchemePrivateToken
+	AuthorisationSchemeSCRAMSSHA1   = schemes.AuthorisationSchemeSCRAMSHA1
+	AuthorisationSchemeSCRAMSHA256  = schemes.AuthorisationSchemeSCRAMSHA256
+	AuthorisationSchemeVapid        = schemes.AuthorisationSchemeVapid
 )
 
 var (
-	// HTTPAuthorisationSchemes lists all supported authorisation schemes. See https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
-	HTTPAuthorisationSchemes = []string{
-		AuthorisationSchemeToken,
-		AuthorisationSchemeBasic,
-		AuthorisationSchemeBearer,
-		AuthorisationSchemeConcealed,
-		AuthorisationSchemeDigest,
-		AuthorisationSchemeDPoP,
-		AuthorisationSchemeGNAP,
-		AuthorisationSchemeHOBA,
-		AuthorisationSchemeMutual,
-		AuthorisationSchemeNegotiate,
-		AuthorisationSchemeOAuth,
-		AuthorisationSchemePrivateToken,
-		AuthorisationSchemeSCRAMSSHA1,
-		AuthorisationSchemeSCRAMSHA256,
-		AuthorisationSchemeVapid,
-	}
-	inAuthSchemes = []any{
-		AuthorisationSchemeToken,
-		AuthorisationSchemeBasic,
-		AuthorisationSchemeBearer,
-		AuthorisationSchemeConcealed,
-		AuthorisationSchemeDigest,
-		AuthorisationSchemeDPoP,
-		AuthorisationSchemeGNAP,
-		AuthorisationSchemeHOBA,
-		AuthorisationSchemeMutual,
-		AuthorisationSchemeNegotiate,
-		AuthorisationSchemeOAuth,
-		AuthorisationSchemePrivateToken,
-		AuthorisationSchemeSCRAMSSHA1,
-		AuthorisationSchemeSCRAMSHA256,
-		AuthorisationSchemeVapid,
-	}
+	HTTPAuthorisationSchemes = schemes.HTTPAuthorisationSchemes
+	inAuthSchemes            = schemes.InAuthSchemes
 )
 
 // Auth defines a typical HTTP client authentication/authorisation configuration

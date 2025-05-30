@@ -26,7 +26,7 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 )
 
-//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IClient,IRetryWaitPolicy
+//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IClient,IRetryWaitPolicy,IClientWithHeaders
 
 // IClient defines an HTTP client similar to http.Client but without shared state with other clients used in the same program.
 // See https://github.com/hashicorp/go-cleanhttp for more details.
@@ -64,4 +64,12 @@ type IRetryWaitPolicy interface {
 type IRetryableClient interface {
 	IClient
 	UnderlyingClient() *retryablehttp.Client
+}
+
+// IClientWithHeaders is a normal client that can have headers attached to it. These headers will be used in all requests
+type IClientWithHeaders interface {
+	IClient
+	AppendHeader(key, value string)
+	RemoveHeader(key string)
+	ClearHeaders()
 }
