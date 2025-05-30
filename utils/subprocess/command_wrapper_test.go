@@ -162,6 +162,10 @@ func TestCmdStartStop(t *testing.T) {
 			require.Error(t, err)
 			err = wrapper.Stop()
 			require.NoError(t, err)
+			err = wrapper.Start()
+			require.Error(t, err)
+			err = wrapper.Interrupt()
+			require.NoError(t, err)
 		})
 	}
 }

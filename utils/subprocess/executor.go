@@ -268,6 +268,13 @@ func (s *Subprocess) Stop() (err error) {
 	return s.stop(true)
 }
 
+// Interrupt stops the process via the TERM signal.
+// This method should be used in combination with `Start`.
+// This method is idempotent
+func (s *Subprocess) Interrupt() (err error) {
+	return s.interrupt()
+}
+
 // Restart restarts a process. It will stop the process if currently running.
 func (s *Subprocess) Restart() (err error) {
 	err = s.stop(false)
@@ -309,6 +316,28 @@ func (s *Subprocess) stop(cancel bool) (err error) {
 	}
 	s.messaging.LogStopping()
 	err = s.getCmd().Stop()
+	s.command.Reset()
+	s.isRunning.Store(false)
+	s.messaging.LogEnd(nil)
+	return
+}
+
+func (s *Subprocess) interrupt() (err error) {
+	if !s.IsOn() {
+		return
+	}
+	err = s.Check()
+	if err != nil {
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	defer s.Cancel()
+	if !s.IsOn() {
+		return
+	}
+	s.messaging.LogStopping()
+	err = s.getCmd().Interrupt()
 	s.command.Reset()
 	s.isRunning.Store(false)
 	s.messaging.LogEnd(nil)

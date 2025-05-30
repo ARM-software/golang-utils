@@ -178,6 +178,74 @@ func TestStartStop(t *testing.T) {
 	}
 }
 
+func TestStartInterrupt(t *testing.T) {
+	currentDir, err := os.Getwd()
+	require.NoError(t, err)
+	tests := []struct {
+		name       string
+		cmdWindows string
+		argWindows []string
+		cmdOther   string
+		argOther   []string
+	}{
+		{
+			name:       "ShortProcess",
+			cmdWindows: "cmd",
+			argWindows: []string{"dir", currentDir},
+			cmdOther:   "ls",
+			argOther:   []string{"-l", currentDir},
+		},
+		{
+			name:       "LongProcess",
+			cmdWindows: "cmd",
+			argWindows: []string{"SLEEP 1"},
+			cmdOther:   "sleep",
+			argOther:   []string{"1"},
+		},
+	}
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			defer goleak.VerifyNone(t)
+			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
+			require.NoError(t, err)
+
+			var p *Subprocess
+			if platform.IsWindows() {
+				p, err = New(context.Background(), loggers, "", "", "", test.cmdWindows, test.argWindows...)
+			} else {
+				p, err = New(context.Background(), loggers, "", "", "", test.cmdOther, test.argOther...)
+			}
+			require.NoError(t, err)
+			require.NotNil(t, p)
+			assert.False(t, p.IsOn())
+			err = p.Start()
+			require.NoError(t, err)
+			assert.True(t, p.IsOn())
+
+			// Checking idempotence
+			err = p.Start()
+			require.NoError(t, err)
+			err = p.Check()
+			require.NoError(t, err)
+
+			time.Sleep(200 * time.Millisecond)
+			err = p.Restart()
+			require.NoError(t, err)
+			assert.True(t, p.IsOn())
+			err = p.Interrupt()
+			require.NoError(t, err)
+			assert.False(t, p.IsOn())
+			// Checking idempotence
+			err = p.Interrupt()
+			require.NoError(t, err)
+			time.Sleep(100 * time.Millisecond)
+			err = p.Execute()
+			require.NoError(t, err)
+		})
+	}
+}
 func TestExecute(t *testing.T) {
 	currentDir, err := os.Getwd()
 	require.NoError(t, err)
