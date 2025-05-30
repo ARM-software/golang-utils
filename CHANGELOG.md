@@ -14,6 +14,29 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.98.0" (2025-05-30)
+=====================
+
+Features
+--------
+
+- :sparkles: `supervisor` Add option to run supervisor a fixed number of times (#20250529160336)
+- :sparkles: `supervisor` Add option to run a function after the supervisor stops (#20250529161638)
+- :sparkles: `logs` Add support for a FIFO logger that discards logs ater reading them (#20250529175329)
+- :sparkles: [serialization] Added ways to serialise structs into maps or slice (#20250530114133)
+- :sparkles: [maps] Added ways to expand and flatten maps in a similar fashion to https://github.com/krakend/flatmap and no longer available  https://pkg.go.dev/github.com/hashicorp/terraform/flatmap (#20250530114405)
+- :sparkles: `http` Add support for HTTP client with headers (#20250530152641)
+- :sparkles: `http` Add utilities for headers (#20250530153502)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: logr-1.4.3 (#20250529101702)
+- :camel: Upgrade dependencies (#20250530113842)
+- :gear: Move dependency on mapstructure to use https://github.com/go-viper/mapstructure as https://github.com/mitchellh/mapstructure is [no longer maintained](https://github.com/go-viper/mapstructure?tab=readme-ov-file#migrating-from-githubcommitchellhmapstructure) (#20250530114030)
+
+
 "1.97.1" (2025-05-21)
 =====================
 
