@@ -102,4 +102,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-tool github.com/dmarkham/enumer
+tool (
+	github.com/dmarkham/enumer
+	go.uber.org/mock/mockgen
+)
