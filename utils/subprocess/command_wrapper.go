@@ -59,15 +59,23 @@ func (c *cmdWrapper) Run() error {
 	return ConvertCommandError(c.cmd.Run())
 }
 
-func (c *cmdWrapper) Stop() error {
+type interruptType int
+
+const (
+	kill interruptType = 9
+	term               = 15
+)
+
+func (c *cmdWrapper) interrupt(interrupt interruptType) error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	if c.cmd == nil {
-		return fmt.Errorf("%w:undefined command", commonerrors.ErrUndefined)
+		return commonerrors.New(commonerrors.ErrUndefined, "undefined command")
 	}
 	subprocess := c.cmd.Process
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+	var stopErr error
 	if subprocess != nil {
 		pid := subprocess.Pid
 		parallelisation.ScheduleAfter(ctx, 10*time.Millisecond, func(time.Time) {
@@ -75,11 +83,26 @@ func (c *cmdWrapper) Stop() error {
 			if process == nil || err != nil {
 				return
 			}
-			_ = process.KillWithChildren(ctx)
+			switch interrupt {
+			case kill:
+				_ = process.KillWithChildren(ctx)
+			case term:
+				_ = process.Terminate(ctx)
+			default:
+				stopErr = commonerrors.New(commonerrors.ErrInvalid, "unknown interrupt type for process")
+			}
 		})
 	}
 	_ = c.cmd.Wait()
-	return nil
+	return stopErr
+}
+
+func (c *cmdWrapper) Stop() error {
+	return c.interrupt(kill)
+}
+
+func (c *cmdWrapper) Interrupt() error {
+	return c.interrupt(term)
 }
 
 func (c *cmdWrapper) Pid() (pid int, err error) {
