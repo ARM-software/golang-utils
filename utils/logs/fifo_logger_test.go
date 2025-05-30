@@ -62,7 +62,7 @@ func TestFIFOLoggerReadlines(t *testing.T) {
 	defer cancel()
 
 	var b strings.Builder
-	for line := range loggers.ReadLines(ctx, '\n') {
+	for line := range loggers.ReadLines(ctx) {
 		_, err := b.WriteString(line + "\n")
 		require.NoError(t, err)
 		count++
@@ -93,7 +93,7 @@ func TestPlainFIFOLoggerReadlines(t *testing.T) {
 	defer cancel()
 
 	var b strings.Builder
-	for line := range loggers.ReadLines(ctx, '\n') {
+	for line := range loggers.ReadLines(ctx) {
 		_, err := b.WriteString(line + "\n")
 		require.NoError(t, err)
 		count++

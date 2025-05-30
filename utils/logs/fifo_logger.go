@@ -42,7 +42,7 @@ func (w *FIFOWriter) Read() string {
 	return string(bytes)
 }
 
-func (w *FIFOWriter) ReadLines(ctx context.Context, delim byte) func(yield func(string) bool) {
+func (w *FIFOWriter) ReadLines(ctx context.Context) func(yield func(string) bool) {
 	return func(yield func(string) bool) {
 		var partial []byte
 		for {
@@ -77,7 +77,7 @@ func (w *FIFOWriter) ReadLines(ctx context.Context, delim byte) func(yield func(
 			}
 
 			for {
-				idx := bytes.IndexByte(buf, delim)
+				idx := bytes.IndexByte(buf, '\n')
 				if idx < 0 {
 					break
 				}
@@ -116,8 +116,8 @@ func (l *FIFOLoggers) Read() string {
 	return l.LogWriter.Read()
 }
 
-func (l *FIFOLoggers) ReadLines(ctx context.Context, delim byte) func(yield func(string) bool) {
-	return l.LogWriter.ReadLines(ctx, delim)
+func (l *FIFOLoggers) ReadLines(ctx context.Context) func(yield func(string) bool) {
+	return l.LogWriter.ReadLines(ctx)
 }
 
 // Close closes the logger
