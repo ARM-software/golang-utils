@@ -40,7 +40,7 @@ func newClientWithHeaders(underlyingClient IClient, headerValues ...string) (c *
 }
 
 func NewHTTPClientWithHeaders(headers ...string) (clientWithHeaders IClientWithHeaders, err error) {
-	return newClientWithHeaders(nil)
+	return newClientWithHeaders(nil, headers...)
 }
 
 func NewHTTPClientWithEmptyHeaders() (c IClientWithHeaders, err error) {
