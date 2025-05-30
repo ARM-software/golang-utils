@@ -121,7 +121,7 @@ func flattenMap(result Map, prefix string, v reflect.Value) (err error) {
 }
 
 func flattenSlice(result Map, prefix string, v reflect.Value) (err error) {
-	prefix = prefix + separator
+	prefix += separator
 
 	for i := 0; i < v.Len(); i++ {
 		subErr := flatten(result, fmt.Sprintf("%s%d", prefix, i), v.Index(i))
@@ -134,7 +134,7 @@ func flattenSlice(result Map, prefix string, v reflect.Value) (err error) {
 }
 
 func flattenStruct(result Map, prefix string, v reflect.Value) (err error) {
-	prefix = prefix + separator
+	prefix += separator
 	ty := v.Type()
 	for i := 0; i < ty.NumField(); i++ {
 		subErr := flatten(result, fmt.Sprintf("%s%s", prefix, ty.Field(i).Name), v.Field(i))

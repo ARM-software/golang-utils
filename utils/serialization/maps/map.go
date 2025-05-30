@@ -112,21 +112,6 @@ func toTime(f reflect.Type, t reflect.Type, data any) (any, error) {
 	}
 }
 
-func fromTimeDurationHookFunc() mapstructure.DecodeHookFunc {
-	return func(
-		f reflect.Type,
-		t reflect.Type,
-		data any,
-	) (any, error) {
-		switch f {
-		case reflect.TypeOf(time.Duration(5)):
-			return convertTo(f.String(), data, t)
-		default:
-			return data, nil
-		}
-	}
-}
-
 func mapstructureDecoder(input, result any) error {
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		WeaklyTypedInput: true,

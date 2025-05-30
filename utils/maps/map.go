@@ -31,7 +31,7 @@ func (m Map) AsMap() map[string]string {
 
 // Delete deletes a key out of the maps with the given prefix.
 func (m Map) Delete(prefix string) {
-	for k, _ := range m {
+	for k := range m {
 		match := k == prefix
 		if !match {
 			if !strings.HasPrefix(k, prefix) {
@@ -50,7 +50,7 @@ func (m Map) Delete(prefix string) {
 // Keys returns all the top-level keys in this maps
 func (m Map) Keys() []string {
 	ks := make(map[string]struct{})
-	for k, _ := range m {
+	for k := range m {
 		idx := strings.Index(k, separator)
 		if idx == -1 {
 			idx = len(k)
@@ -60,7 +60,7 @@ func (m Map) Keys() []string {
 	}
 
 	result := make([]string, 0, len(ks))
-	for k, _ := range ks {
+	for k := range ks {
 		result = append(result, k)
 	}
 

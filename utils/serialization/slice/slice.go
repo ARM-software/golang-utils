@@ -3,7 +3,7 @@ package slice
 import (
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
-	"github.com/ARM-software/golang-utils/utils/serialization/maps"
+	"github.com/ARM-software/golang-utils/utils/serialization/maps" //nolint:misspell
 )
 
 // ToSlice converts a struct to a list of key values.

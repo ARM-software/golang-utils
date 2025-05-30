@@ -204,7 +204,7 @@ func TestFlatten2(t *testing.T) {
 				},
 			},
 			Output: map[string]string{
-				"foo.SomeDuration": time.Duration(56 * time.Minute).String(),
+				"foo.SomeDuration": (56 * time.Minute).String(),
 			},
 		},
 	}
