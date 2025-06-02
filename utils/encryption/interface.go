@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IKeyPair
+//go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IKeyPair
 
 // IKeyPair defines an asymmetric key pair for cryptography.
 type IKeyPair interface {

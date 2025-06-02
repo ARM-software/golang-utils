@@ -6,7 +6,7 @@ package proc
 
 import "context"
 
-//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IProcess
+//go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IProcess
 
 // IProcess is the generic interface that is implemented on every platform
 // and provides common operations for processes.

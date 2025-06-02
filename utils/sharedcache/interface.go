@@ -7,7 +7,7 @@ import (
 
 // Mocks are generated using `go generate ./...`
 // Add interfaces to the following command for a mock to be generated
-//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE ISharedCacheRepository
+//go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE ISharedCacheRepository
 
 // ISharedCacheRepository defines a cache stored on a remote location and shared by separate processes.
 type ISharedCacheRepository interface {

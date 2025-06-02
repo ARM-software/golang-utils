@@ -6,7 +6,7 @@
 // Package config provides utilities to load configuration from an environment and perform validation at load time.
 package config
 
-//go:generate mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IServiceConfiguration,Validator
+//go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IServiceConfiguration,Validator
 
 // IServiceConfiguration defines a typical service configuration.
 type IServiceConfiguration interface {
