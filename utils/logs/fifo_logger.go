@@ -13,6 +13,8 @@ import (
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
+var _ Loggers = &FIFOLoggers{}
+
 type FIFOWriter struct {
 	io.WriteCloser
 	mu   sync.RWMutex

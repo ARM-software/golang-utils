@@ -6,6 +6,7 @@ package collection
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"unicode"
 
@@ -75,11 +76,9 @@ func ConvertSliceToMap[T comparable](input []T) (pairs map[T]T, err error) {
 	}
 
 	pairs = make(map[T]T, numElements/2)
-	// TODO use slices.Chunk introduced in go 23 when library is upgraded
-	for i := 0; i < numElements; i += 2 {
-		pairs[input[i]] = input[i+1]
+	for pair := range slices.Chunk(input, 2) {
+		pairs[pair[0]] = pair[1]
 	}
-
 	return
 }
 
