@@ -6,19 +6,25 @@ import (
 	"fmt"
 	"io"
 	"iter"
-	"log"
 	"sync"
 	"time"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
-var _ Loggers = &FIFOLoggers{}
-
 type FIFOWriter struct {
 	io.WriteCloser
-	mu   sync.RWMutex
-	Logs bytes.Buffer
+	source string
+	mu     sync.RWMutex
+	Logs   bytes.Buffer
+}
+
+func (w *FIFOWriter) SetSource(source string) (err error) {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	w.source = source
+	return
 }
 
 func (w *FIFOWriter) Write(p []byte) (n int, err error) {
@@ -109,20 +115,47 @@ func (w *FIFOWriter) ReadLines(ctx context.Context) iter.Seq[string] {
 }
 
 type FIFOLoggers struct {
-	GenericLoggers
-	LogWriter FIFOWriter
+	Output    WriterWithSource
+	Error     WriterWithSource
+	LogWriter *FIFOWriter
+	newline   bool
+}
+
+func (l *FIFOLoggers) SetLogSource(source string) error {
+	err := l.Check()
+	if err != nil {
+		return err
+	}
+	return l.Output.SetSource(source)
+}
+
+func (l *FIFOLoggers) SetLoggerSource(source string) error {
+	err := l.Check()
+	if err != nil {
+		return err
+	}
+	return l.Output.SetSource(source)
 }
 
 func (l *FIFOLoggers) Log(output ...interface{}) {
-	l.Output.Print(output...)
+	_, _ = l.Output.Write([]byte(fmt.Sprint(output...)))
+	if l.newline {
+		_, _ = l.Output.Write([]byte("\n"))
+	}
 }
 
 func (l *FIFOLoggers) LogError(err ...interface{}) {
-	l.Error.Print(err...)
+	_, _ = l.Error.Write([]byte(fmt.Sprint(err...)))
+	if l.newline {
+		_, _ = l.Output.Write([]byte("\n"))
+	}
 }
 
 func (l *FIFOLoggers) Check() error {
-	return l.GenericLoggers.Check()
+	if l.Error == nil || l.Output == nil {
+		return commonerrors.ErrNoLogger
+	}
+	return nil
 }
 
 func (l *FIFOLoggers) Read() string {
@@ -135,24 +168,24 @@ func (l *FIFOLoggers) ReadLines(ctx context.Context) iter.Seq[string] {
 
 // Close closes the logger
 func (l *FIFOLoggers) Close() (err error) {
-	err = l.LogWriter.Close()
-	if err != nil {
-		return
-	}
-	err = l.GenericLoggers.Close()
-	return
+	return l.LogWriter.Close()
 }
 
 // NewFIFOLogger creates a logger to a bytes buffer.
 // All messages (whether they are output or error) are merged together.
 // Once messages have been accessed they are gone
-func NewFIFOLogger(loggerSource string) (loggers *FIFOLoggers, err error) {
-	loggers = &FIFOLoggers{
-		LogWriter: FIFOWriter{},
+func NewFIFOLogger() (loggers *FIFOLoggers, err error) {
+	l, err := NewNoopLogger("Noop Logger")
+	if err != nil {
+		return
 	}
-	loggers.GenericLoggers = GenericLoggers{
-		Output: log.New(&loggers.LogWriter, fmt.Sprintf("[%v] Output: ", loggerSource), log.LstdFlags),
-		Error:  log.New(&loggers.LogWriter, fmt.Sprintf("[%v] Error: ", loggerSource), log.LstdFlags),
+	logWriter := &FIFOWriter{}
+
+	loggers = &FIFOLoggers{
+		LogWriter: logWriter,
+		newline:   true,
+		Output:    NewDiodeWriterForSlowWriter(logWriter, 10000, 50*time.Millisecond, l),
+		Error:     NewDiodeWriterForSlowWriter(logWriter, 10000, 50*time.Millisecond, l),
 	}
 	return
 }
@@ -161,12 +194,16 @@ func NewFIFOLogger(loggerSource string) (loggers *FIFOLoggers, err error) {
 // All messages (whether they are output or error) are merged together.
 // Once messages have been accessed they are gone
 func NewPlainFIFOLogger() (loggers *FIFOLoggers, err error) {
-	loggers = &FIFOLoggers{
-		LogWriter: FIFOWriter{},
+	l, err := NewNoopLogger("Noop Logger")
+	if err != nil {
+		return
 	}
-	loggers.GenericLoggers = GenericLoggers{
-		Output: log.New(&loggers.LogWriter, "", 0),
-		Error:  log.New(&loggers.LogWriter, "", 0),
+
+	logWriter := &FIFOWriter{}
+	loggers = &FIFOLoggers{
+		LogWriter: logWriter,
+		Output:    NewDiodeWriterForSlowWriter(logWriter, 10000, 50*time.Millisecond, l),
+		Error:     NewDiodeWriterForSlowWriter(logWriter, 10000, 50*time.Millisecond, l),
 	}
 	return
 }

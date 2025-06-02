@@ -12,13 +12,14 @@ import (
 )
 
 func TestFIFOLoggerRead(t *testing.T) {
-	loggers, err := NewFIFOLogger("Test")
+	loggers, err := NewFIFOLogger()
 	require.NoError(t, err)
 	testLog(t, loggers)
 	loggers.LogError("Test err")
 	loggers.Log("Test1")
 	contents := loggers.Read()
 	require.NotEmpty(t, contents)
+	time.Sleep(200 * time.Millisecond) // account for slow polling
 	require.True(t, strings.Contains(contents, "Test err"))
 	require.True(t, strings.Contains(contents, "Test1"))
 	loggers.Log("Test2")
@@ -37,6 +38,7 @@ func TestPlainFIFOLoggerRead(t *testing.T) {
 	testLog(t, loggers)
 	loggers.LogError("Test err")
 	loggers.Log("Test1")
+	time.Sleep(200 * time.Millisecond) // account for slow polling
 	contents := loggers.Read()
 	require.NotEmpty(t, contents)
 	require.True(t, strings.Contains(contents, "Test err"))
@@ -52,7 +54,7 @@ func TestPlainFIFOLoggerRead(t *testing.T) {
 }
 
 func TestFIFOLoggerReadlines(t *testing.T) {
-	loggers, err := NewFIFOLogger("Test")
+	loggers, err := NewFIFOLogger()
 	require.NoError(t, err)
 	testLog(t, loggers)
 	loggers.LogError("Test err\n")
@@ -85,7 +87,7 @@ func TestPlainFIFOLoggerReadlines(t *testing.T) {
 		loggers.Log("Test1")
 		loggers.Log("\n\n\n")
 		time.Sleep(200 * time.Millisecond)
-		loggers.Log("Test2")
+		loggers.Log("Test2\n")
 	}()
 
 	count := 0
@@ -99,6 +101,6 @@ func TestPlainFIFOLoggerReadlines(t *testing.T) {
 		count++
 	}
 
-	assert.Equal(t, "Test err\nTest1\nTest2\n", b.String())
+	assert.Equal(t, "Test errTest1\nTest2\n", b.String())
 	assert.Equal(t, 3, count)
 }
