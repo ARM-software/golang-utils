@@ -129,21 +129,7 @@ func (s *Supervisor) Run(ctx context.Context) (err error) {
 			return fmt.Errorf("%w: command was undefined", commonerrors.ErrUndefined)
 		}
 
-		g.Go(s.cmd.Start)
-		for !s.cmd.IsOn() { // wait for job to start
-			if err := parallelisation.DetermineContextError(ctx); err != nil {
-				break
-			}
-			parallelisation.SleepWithContext(ctx, 200*time.Millisecond)
-		}
-		for s.cmd.IsOn() { // wait for job to end
-			if err := parallelisation.DetermineContextError(ctx); err != nil {
-				break
-			}
-			parallelisation.SleepWithContext(ctx, 200*time.Millisecond)
-		}
-
-		fmt.Println(1234456)
+		g.Go(s.cmd.Execute)
 
 		if s.postStart != nil {
 			err = s.postStart(ctx)
@@ -182,11 +168,4 @@ func (s *Supervisor) Run(ctx context.Context) (err error) {
 	}
 
 	return
-}
-
-func (s *Supervisor) Stop() error {
-	if s.cmd == nil {
-		return nil
-	}
-	return s.cmd.Interrupt()
 }
