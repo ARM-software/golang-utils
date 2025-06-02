@@ -24,6 +24,7 @@ type Supervisor struct {
 	haltingErrors []error
 	restartDelay  time.Duration
 	count         uint
+	cmd           *subprocess.Subprocess
 }
 
 type SupervisorOption func(*Supervisor)
@@ -117,17 +118,32 @@ func (s *Supervisor) Run(ctx context.Context) (err error) {
 		}
 
 		g, _ := errgroup.WithContext(ctx)
-		cmd, err := s.newCommand(ctx)
+		s.cmd, err = s.newCommand(ctx)
 		if err != nil {
 			if commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
 				return err
 			}
 			return fmt.Errorf("%w: error occurred when creating new command: %v", commonerrors.ErrUnexpected, err.Error())
 		}
-		if cmd == nil {
+		if s.cmd == nil {
 			return fmt.Errorf("%w: command was undefined", commonerrors.ErrUndefined)
 		}
-		g.Go(cmd.Execute)
+
+		g.Go(s.cmd.Start)
+		for !s.cmd.IsOn() { // wait for job to start
+			if err := parallelisation.DetermineContextError(ctx); err != nil {
+				break
+			}
+			parallelisation.SleepWithContext(ctx, 200*time.Millisecond)
+		}
+		for s.cmd.IsOn() { // wait for job to end
+			if err := parallelisation.DetermineContextError(ctx); err != nil {
+				break
+			}
+			parallelisation.SleepWithContext(ctx, 200*time.Millisecond)
+		}
+
+		fmt.Println(1234456)
 
 		if s.postStart != nil {
 			err = s.postStart(ctx)
@@ -166,4 +182,11 @@ func (s *Supervisor) Run(ctx context.Context) (err error) {
 	}
 
 	return
+}
+
+func (s *Supervisor) Stop() error {
+	if s.cmd == nil {
+		return nil
+	}
+	return s.cmd.Interrupt()
 }

@@ -9,4 +9,5 @@ import "context"
 type ISupervisor interface {
 	// Run will run the supervisor and execute any of the command hooks. If it receives a halting error or the context is cancelled then it will exit
 	Run(ctx context.Context) error
+	Stop() error
 }
