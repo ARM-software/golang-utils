@@ -111,6 +111,14 @@ type FIFOLoggers struct {
 	LogWriter FIFOWriter
 }
 
+func (l *FIFOLoggers) Log(output ...interface{}) {
+	l.Output.Print(output...)
+}
+
+func (l *FIFOLoggers) LogError(err ...interface{}) {
+	l.Error.Print(err...)
+}
+
 func (l *FIFOLoggers) Check() error {
 	return l.GenericLoggers.Check()
 }
