@@ -268,7 +268,7 @@ func (s *Subprocess) Stop() (err error) {
 	return s.stop(true)
 }
 
-// Interrupt stops the process via the TERM signal.
+// Interrupt terminates the process
 // This method should be used in combination with `Start`.
 // This method is idempotent
 func (s *Subprocess) Interrupt() (err error) {
