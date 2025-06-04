@@ -4,189 +4,191 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"iter"
-	"sync"
+	"strings"
 	"time"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/diodes"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
-type FIFOWriter struct {
-	io.WriteCloser
-	source string
-	mu     sync.RWMutex
-	Logs   bytes.Buffer
+const (
+	newLine    = '\n'
+	bufferSize = 10000
+)
+
+type loggerAlerter struct {
+	log Loggers
 }
 
-func (w *FIFOWriter) SetSource(source string) (err error) {
-	w.mu.RLock()
-	defer w.mu.RUnlock()
-	w.source = source
-	return
-}
-
-func (w *FIFOWriter) Write(p []byte) (n int, err error) {
-	w.mu.RLock()
-	defer w.mu.RUnlock()
-	w.Logs.Write(p)
-	return
-}
-
-func (w *FIFOWriter) Close() (err error) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	w.Logs.Reset()
-	return
-}
-
-func (w *FIFOWriter) Read() string {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	n := w.Logs.Len()
-	if n == 0 {
-		return ""
+func (l *loggerAlerter) Alert(missed int) {
+	if l.log != nil {
+		l.log.LogError(fmt.Sprintf("Logger dropped %d messages", missed))
 	}
-	bytes := w.Logs.Next(n)
-	return string(bytes)
 }
 
-func (w *FIFOWriter) ReadLines(ctx context.Context) iter.Seq[string] {
+func newLoggerAlerter(logs Loggers) diodes.Alerter {
+	return &loggerAlerter{log: logs}
+}
+
+func newFIFODiode(ctx context.Context, ringBufferSize int, pollingPeriod time.Duration, droppedMessagesLogger Loggers) *fifoDiode {
+	dCtx, cancel := context.WithCancel(ctx)
+	cancelStore := parallelisation.NewCancelFunctionsStore()
+	cancelStore.RegisterCancelFunction(cancel)
+	return &fifoDiode{
+		d:           diodes.NewPoller(diodes.NewManyToOne(ringBufferSize, newLoggerAlerter(droppedMessagesLogger)), diodes.WithPollingInterval(pollingPeriod), diodes.WithPollingContext(dCtx)),
+		cancelStore: cancelStore,
+	}
+}
+
+type fifoDiode struct {
+	d           *diodes.Poller
+	cancelStore *parallelisation.CancelFunctionStore
+}
+
+func (d *fifoDiode) Set(data []byte) {
+	d.d.Set(diodes.GenericDataType(&data))
+}
+
+func (d *fifoDiode) Close() error {
+	d.cancelStore.Cancel()
+	return nil
+}
+
+// LineIterator returns an iterator over lines. It should only be called within the context of the same goroutine.
+func (d *fifoDiode) LineIterator(ctx context.Context) iter.Seq[string] {
 	return func(yield func(string) bool) {
-		var partial []byte
-		for {
-			if err := parallelisation.DetermineContextError(ctx); err != nil {
+		err := IterateOverLines(ctx, func(fCtx context.Context) (b []byte, err error) {
+			err = parallelisation.DetermineContextError(fCtx)
+			if err != nil {
 				return
 			}
-
-			buf := func() []byte {
-				w.mu.Lock()
-				defer w.mu.Unlock()
-				defer w.Logs.Reset()
-				tmp := w.Logs.Bytes()
-				buf := make([]byte, len(tmp))
-				copy(buf, tmp)
-				return buf
-			}()
-
-			if len(buf) == 0 {
-				if err := parallelisation.DetermineContextError(ctx); err != nil {
-					if len(partial) > 0 {
-						yield(string(partial))
-					}
-					return
-				}
-
-				parallelisation.SleepWithContext(ctx, 50*time.Millisecond)
-				continue
+			data, has := d.d.TryNext()
+			if has {
+				b = *(*[]byte)(data)
 			}
+			return
+		}, yield)
+		if err != nil {
+			return
+		}
+	}
+}
 
-			if len(partial) > 0 {
-				buf = append(partial, buf...)
-				partial = nil
+func cleanseLine(line string) string {
+	return strings.TrimSuffix(strings.ReplaceAll(line, "\r", ""), string(newLine))
+}
+
+func iterateOverLines(ctx context.Context, b *bytes.Buffer, yield func(string) bool) (err error) {
+	for {
+		subErr := parallelisation.DetermineContextError(ctx)
+		if subErr != nil {
+			err = subErr
+			return
+		}
+		line, foundErr := b.ReadString(newLine)
+		if foundErr == nil {
+			if !yield(line) {
+				err = commonerrors.ErrEOF
+				return
 			}
-
-			for {
-				idx := bytes.IndexByte(buf, '\n')
-				if idx < 0 {
-					break
-				}
-				line := buf[:idx]
-
-				if len(line) > 0 && line[len(line)-1] == '\r' {
-					line = line[:len(line)-1]
-				}
-				buf = buf[idx+1:]
-				if len(line) == 0 {
-					continue
-				}
-
-				if !yield(string(line)) {
-					return
-				}
+		} else {
+			b.Reset()
+			_, subErr = b.Write([]byte(line))
+			if subErr != nil {
+				err = subErr
+				return
 			}
+			return
+		}
+	}
+}
 
-			if len(buf) > 0 {
-				partial = buf
-			}
+func IterateOverLines(ctx context.Context, fetchNext func(fCtx context.Context) ([]byte, error), yield func(string) bool) (err error) {
+	extendedYield := func(s string) bool {
+		return yield(cleanseLine(s))
+	}
+	b := bytes.NewBuffer(make([]byte, 0, 512))
+	for {
+		subErr := parallelisation.DetermineContextError(ctx)
+		if subErr != nil {
+			err = subErr
+			return
+		}
+		nextBuf, subErr := fetchNext(ctx)
+		if subErr != nil {
+			err = subErr
+			return
+		}
+		if len(nextBuf) == 0 {
+			parallelisation.SleepWithContext(ctx, 10*time.Millisecond)
+			continue
+		}
+		_, subErr = b.Write(nextBuf)
+		if subErr != nil {
+			err = subErr
+			return
+		}
+		subErr = iterateOverLines(ctx, b, extendedYield)
+		if subErr != nil {
+			err = subErr
+			return
 		}
 	}
 }
 
 type FIFOLoggers struct {
-	Output    WriterWithSource
-	Error     WriterWithSource
-	LogWriter *FIFOWriter
-	newline   bool
+	d       *fifoDiode
+	newline bool
 }
 
-func (l *FIFOLoggers) SetLogSource(source string) error {
-	err := l.Check()
-	if err != nil {
-		return err
-	}
-	return l.Output.SetSource(source)
+func (l *FIFOLoggers) SetLogSource(_ string) error {
+	return nil
 }
 
-func (l *FIFOLoggers) SetLoggerSource(source string) error {
-	err := l.Check()
-	if err != nil {
-		return err
-	}
-	return l.Output.SetSource(source)
+func (l *FIFOLoggers) SetLoggerSource(_ string) error {
+	return nil
 }
 
-func (l *FIFOLoggers) Log(output ...interface{}) {
-	_, _ = l.Output.Write([]byte(fmt.Sprint(output...)))
+func (l *FIFOLoggers) Log(output ...any) {
+	l.log(output...)
+}
+
+func (l *FIFOLoggers) LogError(err ...any) {
+	l.log(err...)
+}
+
+func (l *FIFOLoggers) log(args ...any) {
+	b := bytes.NewBufferString(fmt.Sprint(args...))
 	if l.newline {
-		_, _ = l.Output.Write([]byte("\n"))
+		_, _ = b.Write([]byte{newLine})
 	}
-}
-
-func (l *FIFOLoggers) LogError(err ...interface{}) {
-	_, _ = l.Error.Write([]byte(fmt.Sprint(err...)))
-	if l.newline {
-		_, _ = l.Output.Write([]byte("\n"))
-	}
+	l.d.Set(b.Bytes())
 }
 
 func (l *FIFOLoggers) Check() error {
-	if l.Error == nil || l.Output == nil {
-		return commonerrors.ErrNoLogger
+	if l.d == nil {
+		return commonerrors.UndefinedVariable("FIFO diode")
 	}
 	return nil
 }
 
-func (l *FIFOLoggers) Read() string {
-	return l.LogWriter.Read()
-}
-
-func (l *FIFOLoggers) ReadLines(ctx context.Context) iter.Seq[string] {
-	return l.LogWriter.ReadLines(ctx)
+// LineIterator returns an iterator over lines. It should only be called within the context of the same goroutine.
+func (l *FIFOLoggers) LineIterator(ctx context.Context) iter.Seq[string] {
+	return l.d.LineIterator(ctx)
 }
 
 // Close closes the logger
 func (l *FIFOLoggers) Close() (err error) {
-	return l.LogWriter.Close()
+	return l.d.Close()
 }
 
 // NewFIFOLogger creates a logger to a bytes buffer.
 // All messages (whether they are output or error) are merged together.
 // Once messages have been accessed they are gone
 func NewFIFOLogger() (loggers *FIFOLoggers, err error) {
-	l, err := NewNoopLogger("Noop Logger")
-	if err != nil {
-		return
-	}
-	logWriter := &FIFOWriter{}
-
-	loggers = &FIFOLoggers{
-		LogWriter: logWriter,
-		newline:   true,
-		Output:    NewDiodeWriterForSlowWriter(logWriter, 10000, 50*time.Millisecond, l),
-		Error:     NewDiodeWriterForSlowWriter(logWriter, 10000, 50*time.Millisecond, l),
-	}
+	loggers, err = newDefaultFIFOLogger(true)
 	return
 }
 
@@ -194,16 +196,22 @@ func NewFIFOLogger() (loggers *FIFOLoggers, err error) {
 // All messages (whether they are output or error) are merged together.
 // Once messages have been accessed they are gone
 func NewPlainFIFOLogger() (loggers *FIFOLoggers, err error) {
-	l, err := NewNoopLogger("Noop Logger")
+	loggers, err = newDefaultFIFOLogger(false)
+	return
+}
+
+func newDefaultFIFOLogger(addNewLine bool) (loggers *FIFOLoggers, err error) {
+	l, err := NewNoopLogger("FIFO")
 	if err != nil {
 		return
 	}
+	return NewFIFOLoggerWithBuffer(addNewLine, bufferSize, 50*time.Millisecond, l)
+}
 
-	logWriter := &FIFOWriter{}
+func NewFIFOLoggerWithBuffer(addNewLine bool, ringBufferSize int, pollingPeriod time.Duration, droppedMessageLogger Loggers) (loggers *FIFOLoggers, err error) {
 	loggers = &FIFOLoggers{
-		LogWriter: logWriter,
-		Output:    NewDiodeWriterForSlowWriter(logWriter, 10000, 50*time.Millisecond, l),
-		Error:     NewDiodeWriterForSlowWriter(logWriter, 10000, 50*time.Millisecond, l),
+		d:       newFIFODiode(context.Background(), ringBufferSize, pollingPeriod, droppedMessageLogger),
+		newline: addNewLine,
 	}
 	return
 }
