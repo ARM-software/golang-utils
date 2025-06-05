@@ -6,6 +6,7 @@ import (
 
 	"github.com/joho/godotenv"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/platform"
 )
@@ -26,6 +27,18 @@ func (c *currentEnv) GetEnvironmentVariables(dotEnvFiles ...string) (variables [
 	}
 
 	variables = ParseEnvironmentVariables(os.Environ()...)
+	return
+}
+
+// FindEnvironmentVariableInEnvironment returns a list of environment variables set in the environment env (and optionally those in the supplied in `dotEnvFiles`)
+// `dotEnvFiles` corresponds to `.env` files present on the machine and follows the mechanism described by https://github.com/bkeepers/dotenv
+// If no environment variable is found in env, an error is returned.
+func FindEnvironmentVariableInEnvironment(env IEnvironment, dotEnvFiles []string, envvars ...string) (variables []IEnvironmentVariable, err error) {
+	if env == nil {
+		err = commonerrors.UndefinedVariable("environment")
+		return
+	}
+	variables, err = FindEnvironmentVariables(env.GetEnvironmentVariables(dotEnvFiles...), envvars...)
 	return
 }
 
