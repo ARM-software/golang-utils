@@ -69,13 +69,13 @@ func (e *EnvVar) String() string {
 func (e *EnvVar) Validate() (err error) {
 	err = validation.Validate(e.GetKey(), validation.Required, IsEnvironmentVariableKey)
 	if err != nil {
-		err = fmt.Errorf("%w: environment variable name `%v` is not valid: %v", commonerrors.ErrInvalid, e.GetKey(), err.Error())
+		err = commonerrors.WrapErrorf(commonerrors.ErrInvalid, err, "environment variable name `%v` is not valid", e.GetKey())
 		return
 	}
 	if len(e.validationRules) > 0 {
 		err = validation.Validate(e.GetValue(), e.validationRules...)
 		if err != nil {
-			err = fmt.Errorf("%w: environment variable `%v` value is not valid: %v", commonerrors.ErrInvalid, e.GetKey(), err.Error())
+			err = commonerrors.WrapErrorf(commonerrors.ErrInvalid, err, "environment variable `%v` value is not valid", e.GetKey())
 		}
 	}
 	return
@@ -90,7 +90,7 @@ func isEnvVarKey(value string) bool {
 func ParseEnvironmentVariable(variable string) (IEnvironmentVariable, error) {
 	elements := strings.Split(strings.TrimSpace(variable), "=")
 	if len(elements) < 2 {
-		return nil, fmt.Errorf("%w: invalid environment variable entry as not following key=value", commonerrors.ErrInvalid)
+		return nil, commonerrors.New(commonerrors.ErrInvalid, "invalid environment variable entry as not following key=value")
 	}
 	value := elements[1]
 	if len(elements) > 2 {
@@ -158,7 +158,22 @@ func FindEnvironmentVariable(envvar string, envvars ...IEnvironmentVariable) (IE
 			return envvars[i], nil
 		}
 	}
-	return nil, fmt.Errorf("%w: environment variable '%v' not set", commonerrors.ErrNotFound, envvar)
+	return nil, commonerrors.Newf(commonerrors.ErrNotFound, "environment variable '%v' not set", envvar)
+}
+
+// FindEnvironmentVariables looks for environment variables in a list. if no environment variable matches, an error is returned
+func FindEnvironmentVariables(environment []IEnvironmentVariable, envvarToSearchFor ...string) ([]IEnvironmentVariable, error) {
+	envs := make([]IEnvironmentVariable, 0, len(envvarToSearchFor))
+	for i := range envvarToSearchFor {
+		found, err := FindEnvironmentVariable(envvarToSearchFor[i], environment...)
+		if err == nil && found != nil {
+			envs = append(envs, found)
+		}
+	}
+	if len(envs) == 0 {
+		return nil, commonerrors.Newf(commonerrors.ErrNotFound, "could not find any environment variables %v set", envvarToSearchFor)
+	}
+	return envs, nil
 }
 
 // FindFoldEnvironmentVariable looks for an environment variable in a list similarly to FindEnvironmentVariable but without case-sensitivity.
@@ -168,7 +183,22 @@ func FindFoldEnvironmentVariable(envvar string, envvars ...IEnvironmentVariable)
 			return envvars[i], nil
 		}
 	}
-	return nil, fmt.Errorf("%w: environment variable '%v' not set", commonerrors.ErrNotFound, envvar)
+	return nil, commonerrors.Newf(commonerrors.ErrNotFound, "environment variable '%v' not set", envvar)
+}
+
+// FindFoldEnvironmentVariables looks for environment variables in a list with no case-sensitivity. if no environment variable matches, an error is returned
+func FindFoldEnvironmentVariables(environment []IEnvironmentVariable, envvarToSearchFor ...string) ([]IEnvironmentVariable, error) {
+	envs := make([]IEnvironmentVariable, 0, len(envvarToSearchFor))
+	for i := range envvarToSearchFor {
+		found, err := FindFoldEnvironmentVariable(envvarToSearchFor[i], environment...)
+		if err == nil && found != nil {
+			envs = append(envs, found)
+		}
+	}
+	if len(envs) == 0 {
+		return nil, commonerrors.Newf(commonerrors.ErrNotFound, "could not find any environment variables %v set", envvarToSearchFor)
+	}
+	return envs, nil
 }
 
 // ExpandEnvironmentVariables returns a list of environment variables with their value being expanded.

@@ -5,6 +5,7 @@
 package hashing
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -30,10 +31,26 @@ func TestHasher(t *testing.T) {
 		Hash:  "c61d595888f85f6d30e99ef6cacfcb7d",
 	}}
 	for _, testCase := range testCases {
-		hash, err := hasher.Calculate(strings.NewReader(testCase.Input))
-		require.Nil(t, err)
-		assert.Equal(t, testCase.Hash, hash)
+		t.Run(testCase.Input, func(t *testing.T) {
+			hash, err := hasher.Calculate(strings.NewReader(testCase.Input))
+			require.Nil(t, err)
+			assert.Equal(t, testCase.Hash, hash)
+		})
+		t.Run(testCase.Input+" with context", func(t *testing.T) {
+			hash, err := hasher.CalculateWithContext(context.Background(), strings.NewReader(testCase.Input))
+			require.Nil(t, err)
+			assert.Equal(t, testCase.Hash, hash)
+		})
 	}
+	t.Run("hashing list of strings", func(t *testing.T) {
+		require.NotEmpty(t, CalculateHashOfListOfStrings(context.Background(), HashMd5, strings.Split(faker.Sentence(), " ")...))
+		require.NotEmpty(t, CalculateHashOfListOfStrings(context.Background(), HashMd5))
+		assert.Equal(t, "d41d8cd98f00b204e9800998ecf8427e", CalculateHashOfListOfStrings(context.Background(), HashMd5))
+		assert.Equal(t, "c61d595888f85f6d30e99ef6cacfcb7d", CalculateHashOfListOfStrings(context.Background(), HashMd5, "CMSIS"))
+		hash1 := CalculateHashOfListOfStrings(context.Background(), HashMd5, "CMSIS", "test")
+		hash2 := CalculateHashOfListOfStrings(context.Background(), HashMd5, "test", "CMSIS")
+		assert.Equal(t, hash1, hash2)
+	})
 }
 
 func TestMd5(t *testing.T) {
@@ -108,6 +125,10 @@ func TestIsLikelyHexHashString(t *testing.T) {
 			isHash: true,
 		},
 		{
+			input:  CalculateHashWithContext(context.Background(), faker.Paragraph(), HashSha256),
+			isHash: true,
+		},
+		{
 			input:  "85817ddeed66c3e3805c73dbc7082de2674e349c",
 			isHash: true,
 		},
@@ -128,7 +149,21 @@ func TestBespokeHash(t *testing.T) {
 	require.NoError(t, err)
 	hashing, err := NewBespokeHashingAlgorithm(algo)
 	require.NoError(t, err)
-	hash := CalculateStringHash(hashing, faker.Paragraph())
-	require.NotEmpty(t, hash)
-	assert.Equal(t, size*2, len(hash))
+	t.Run("hash", func(t *testing.T) {
+		hash := CalculateStringHash(hashing, faker.Paragraph())
+		require.NotEmpty(t, hash)
+		assert.Equal(t, size*2, len(hash))
+	})
+	t.Run("with context", func(t *testing.T) {
+		hash := CalculateStringHashWithContext(context.Background(), hashing, faker.Paragraph())
+		require.NotEmpty(t, hash)
+		assert.Equal(t, size*2, len(hash))
+	})
+	t.Run("with cancelled context", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		hash := CalculateStringHashWithContext(ctx, hashing, faker.Paragraph())
+		require.Empty(t, hash)
+	})
+
 }
