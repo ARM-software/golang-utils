@@ -15,6 +15,7 @@ import (
 	"hash"
 	"io"
 	"math"
+	"slices"
 	"strings"
 
 	"github.com/OneOfOne/xxhash"
@@ -118,6 +119,30 @@ func CalculateStringHash(hashingAlgo IHash, text string) string {
 	return hash
 }
 
+// CalculateStringHashWithContext returns the hash of some text using a particular hashing algorithm
+func CalculateStringHashWithContext(ctx context.Context, hashingAlgo IHash, text string) string {
+	if hashingAlgo == nil {
+		return ""
+	}
+	hash, err := hashingAlgo.CalculateWithContext(ctx, strings.NewReader(text))
+	if err != nil {
+		return ""
+	}
+	return hash
+}
+
+// CalculateStringHashList returns the hash of a list of strings using a particular hashing algorithm
+func CalculateStringHashList(ctx context.Context, hashingAlgo IHash, text ...string) string {
+	if hashingAlgo == nil {
+		return ""
+	}
+	if len(text) == 0 {
+		return CalculateStringHashWithContext(ctx, hashingAlgo, "")
+	}
+	slices.Sort(text)
+	return CalculateStringHashWithContext(ctx, hashingAlgo, strings.Join(text, " "))
+}
+
 // CalculateHash calculates the hash of some text using the requested htype hashing algorithm.
 func CalculateHash(text, htype string) string {
 	hashing, err := NewHashingAlgorithm(htype)
@@ -125,6 +150,24 @@ func CalculateHash(text, htype string) string {
 		return ""
 	}
 	return CalculateStringHash(hashing, text)
+}
+
+// CalculateHashWithContext calculates the hash of some text using the requested htype hashing algorithm.
+func CalculateHashWithContext(ctx context.Context, text, htype string) string {
+	hashing, err := NewHashingAlgorithm(htype)
+	if err != nil {
+		return ""
+	}
+	return CalculateStringHashWithContext(ctx, hashing, text)
+}
+
+// CalculateHashOfListOfStrings calculates the hash of some text using the requested htype hashing algorithm.
+func CalculateHashOfListOfStrings(ctx context.Context, htype string, text ...string) string {
+	hashing, err := NewHashingAlgorithm(htype)
+	if err != nil {
+		return ""
+	}
+	return CalculateStringHashList(ctx, hashing, text...)
 }
 
 // HasLikelyHexHashStringEntropy states whether a string has an entropy which may entail it is a hexadecimal hash
