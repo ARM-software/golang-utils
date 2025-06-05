@@ -192,6 +192,14 @@ func (s *Subprocess) IsOn() bool {
 	return s.isRunning.Load() && s.processMonitoring.IsOn()
 }
 
+// Wait waits for the command to exit and waits for any copying to
+// stdin or copying from stdout or stderr to complete.
+//
+// The command must have been started by Start.
+func (s *Subprocess) Wait() error {
+	return s.command.cmdWrapper.cmd.Wait()
+}
+
 // Start starts the process if not already started.
 // This method is idempotent.
 func (s *Subprocess) Start() (err error) {

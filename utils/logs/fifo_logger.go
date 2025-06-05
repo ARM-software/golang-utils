@@ -67,6 +67,11 @@ func (d *fifoDiode) LineIterator(ctx context.Context) iter.Seq[string] {
 			data, has := d.d.TryNext()
 			if has {
 				b = *(*[]byte)(data)
+				return
+			}
+			if d.d.IsDone() {
+				err = commonerrors.ErrEOF
+				return
 			}
 			return
 		}, yield)

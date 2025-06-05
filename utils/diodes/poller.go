@@ -59,7 +59,7 @@ func (p *Poller) Next() GenericDataType {
 	for {
 		data, ok := p.Diode.TryNext() // nolint:staticcheck
 		if !ok {
-			if p.isDone() {
+			if p.IsDone() {
 				return nil
 			}
 
@@ -70,7 +70,7 @@ func (p *Poller) Next() GenericDataType {
 	}
 }
 
-func (p *Poller) isDone() bool {
+func (p *Poller) IsDone() bool {
 	select {
 	case <-p.ctx.Done():
 		return true
