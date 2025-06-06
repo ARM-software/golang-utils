@@ -411,3 +411,55 @@ func runActionWithParallelCheckFailAtRandom(t *testing.T, ctx context.Context) {
 	require.Error(t, err)
 	errortest.AssertError(t, err, commonerrors.ErrCancelled)
 }
+
+func TestWaitUntil(t *testing.T) {
+	verifiedCondition := func(ctx context.Context) (bool, error) {
+		SleepWithContext(ctx, 50*time.Millisecond)
+		return true, nil
+	}
+
+	t.Run("cancelled", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		err := WaitUntil(ctx, verifiedCondition, 10*time.Millisecond)
+		require.Error(t, err)
+		errortest.AssertError(t, err, commonerrors.ErrCancelled)
+	})
+	t.Run("verified", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		err := WaitUntil(ctx, verifiedCondition, 10*time.Millisecond)
+		require.NoError(t, err)
+	})
+	t.Run("verified after multiple attempts", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		counter := atomic.NewInt32(0)
+		verifiedConditionAfterAttempts := func(ctx context.Context) (bool, error) {
+			SleepWithContext(ctx, time.Millisecond)
+			if counter.Load() > 10 {
+				return true, nil
+			}
+			counter.Inc()
+			return false, nil
+		}
+		err := WaitUntil(ctx, verifiedConditionAfterAttempts, 10*time.Millisecond)
+		require.NoError(t, err)
+	})
+	t.Run("verified with condition evaluation failure", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		counter := atomic.NewInt32(0)
+		verifiedConditionAfterAttempts := func(ctx context.Context) (bool, error) {
+			SleepWithContext(ctx, time.Millisecond)
+			if counter.Load() > 10 {
+				return false, commonerrors.ErrUnexpected
+			}
+			counter.Inc()
+			return false, nil
+		}
+		err := WaitUntil(ctx, verifiedConditionAfterAttempts, 10*time.Millisecond)
+		require.Error(t, err)
+		errortest.AssertError(t, err, commonerrors.ErrUnexpected)
+	})
+}
