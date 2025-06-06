@@ -246,3 +246,24 @@ func RunActionWithParallelCheck(ctx context.Context, action func(ctx context.Con
 	}
 	return err
 }
+
+// WaitUntil waits for a condition evaluated by evalCondition to be verified
+func WaitUntil(ctx context.Context, evalCondition func(ctx2 context.Context) (bool, error), pauseBetweenEvaluations time.Duration) error {
+	cancellableCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	for {
+		err := DetermineContextError(ctx)
+		if err != nil {
+			return err
+		}
+
+		done, err := evalCondition(cancellableCtx)
+		if err != nil {
+			return err
+		}
+		if done {
+			return nil
+		}
+		SleepWithContext(ctx, pauseBetweenEvaluations)
+	}
+}
