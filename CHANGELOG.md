@@ -14,6 +14,17 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.100.0" (2025-06-06)
+======================
+
+Features
+--------
+
+- :sparkles: `subprocess` Add support for terminating processes instead of killing them (#20250530171020)
+- :sparkles: Introducing [diodes] module which is a copy of [cloud foundary's](https://github.com/cloudfoundry/go-diodes) library. (#20250604202816)
+- :sparkles: `[parallelisation]` Added a `WaitUntil` utility (#20250606090227)
+
+
 "1.99.0" (2025-06-05)
 =====================
 
