@@ -9,12 +9,16 @@ package subprocess
 import (
 	"context"
 	"fmt"
+	"syscall"
+	"time"
 
 	"github.com/sasha-s/go-deadlock"
 	"go.uber.org/atomic"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/logs"
+	"github.com/ARM-software/golang-utils/utils/parallelisation"
+	"github.com/ARM-software/golang-utils/utils/proc"
 	commandUtils "github.com/ARM-software/golang-utils/utils/subprocess/command"
 )
 
@@ -192,12 +196,24 @@ func (s *Subprocess) IsOn() bool {
 	return s.isRunning.Load() && s.processMonitoring.IsOn()
 }
 
-// Wait waits for the command to exit and waits for any copying to
-// stdin or copying from stdout or stderr to complete.
-//
-// The command must have been started by Start.
-func (s *Subprocess) Wait() error {
-	return s.command.cmdWrapper.cmd.Wait()
+// Wait waits for the command to stop existing on the system.
+// This allows check to work if the underlying process was stopped.
+func (s *Subprocess) Wait(ctx context.Context) (err error) {
+	pid := s.command.cmdWrapper.cmd.Process.Pid
+	pgid, err := syscall.Getpgid(pid)
+	if err != nil {
+		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not get group PID for '%v'", pid)
+		return
+	}
+	for p, _ := proc.FindProcess(ctx, pgid); p.IsRunning(); {
+		if err = parallelisation.DetermineContextError(ctx); err != nil {
+			return
+		}
+
+		parallelisation.SleepWithContext(ctx, 1000*time.Millisecond)
+	}
+
+	return nil
 }
 
 // Start starts the process if not already started.
@@ -279,8 +295,8 @@ func (s *Subprocess) Stop() (err error) {
 // Interrupt terminates the process
 // This method should be used in combination with `Start`.
 // This method is idempotent
-func (s *Subprocess) Interrupt() (err error) {
-	return s.interrupt()
+func (s *Subprocess) Interrupt(ctx context.Context) (err error) {
+	return s.interrupt(ctx)
 }
 
 // Restart restarts a process. It will stop the process if currently running.
@@ -330,7 +346,7 @@ func (s *Subprocess) stop(cancel bool) (err error) {
 	return
 }
 
-func (s *Subprocess) interrupt() (err error) {
+func (s *Subprocess) interrupt(ctx context.Context) (err error) {
 	if !s.IsOn() {
 		return
 	}
@@ -345,7 +361,7 @@ func (s *Subprocess) interrupt() (err error) {
 		return
 	}
 	s.messaging.LogStopping()
-	err = s.getCmd().Interrupt()
+	err = s.getCmd().Interrupt(ctx)
 	s.command.Reset()
 	s.isRunning.Store(false)
 	s.messaging.LogEnd(nil)

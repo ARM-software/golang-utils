@@ -164,7 +164,7 @@ func TestCmdStartStop(t *testing.T) {
 			require.NoError(t, err)
 			err = wrapper.Start()
 			require.Error(t, err)
-			err = wrapper.Interrupt()
+			err = wrapper.Interrupt(context.Background())
 			require.NoError(t, err)
 		})
 	}
