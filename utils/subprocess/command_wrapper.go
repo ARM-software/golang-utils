@@ -67,20 +67,6 @@ const (
 	sigterm interruptType = 15
 )
 
-func (c *cmdWrapper) waitWithContext(ctx context.Context) error {
-	done := make(chan struct{})
-	go func() {
-		_ = c.cmd.Wait()
-		close(done)
-	}()
-	select {
-	case <-ctx.Done():
-		return parallelisation.DetermineContextError(ctx)
-	case <-done:
-		return nil
-	}
-}
-
 func (c *cmdWrapper) interruptWithContext(ctx context.Context, interrupt interruptType) error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -110,7 +96,7 @@ func (c *cmdWrapper) interruptWithContext(ctx context.Context, interrupt interru
 			}
 		})
 	}
-	if err := c.waitWithContext(ctx); err != nil {
+	if err := parallelisation.WaitWithContext(ctx, c.cmd); err != nil {
 		return err
 	}
 

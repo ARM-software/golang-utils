@@ -46,6 +46,9 @@ type IProcess interface {
 	// Terminate sends SIGTERM to the process.
 	Terminate(context.Context) error
 
+	// Interrupt sends SIGINT to the process.
+	Interrupt(context.Context) error
+
 	// KillWithChildren sends SIGKILL to the process but also ensures any children of the process are also killed.
 	// see https://medium.com/@felixge/killing-a-child-process-and-all-of-its-children-in-go-54079af94773
 	// This method was introduced to avoid getting the following due to a poor cleanup:

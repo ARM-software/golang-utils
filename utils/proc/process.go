@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/shirou/gopsutil/v4/process"
+	"golang.org/x/sys/unix"
 
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -138,6 +139,12 @@ func (p *ps) Executable() string {
 
 func (p *ps) Terminate(ctx context.Context) error {
 	err := ConvertProcessError(p.imp.TerminateWithContext(ctx))
+	err = commonerrors.Ignore(err, commonerrors.ErrNotFound)
+	return err
+}
+
+func (p *ps) Interrupt(ctx context.Context) error {
+	err := ConvertProcessError(p.imp.SendSignalWithContext(ctx, unix.SIGINT))
 	err = commonerrors.Ignore(err, commonerrors.ErrNotFound)
 	return err
 }
