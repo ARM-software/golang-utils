@@ -24,6 +24,7 @@ type Supervisor struct {
 	haltingErrors []error
 	restartDelay  time.Duration
 	count         uint
+	cmd           *subprocess.Subprocess
 }
 
 type SupervisorOption func(*Supervisor)
@@ -117,17 +118,18 @@ func (s *Supervisor) Run(ctx context.Context) (err error) {
 		}
 
 		g, _ := errgroup.WithContext(ctx)
-		cmd, err := s.newCommand(ctx)
+		s.cmd, err = s.newCommand(ctx)
 		if err != nil {
 			if commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
 				return err
 			}
 			return fmt.Errorf("%w: error occurred when creating new command: %v", commonerrors.ErrUnexpected, err.Error())
 		}
-		if cmd == nil {
+		if s.cmd == nil {
 			return fmt.Errorf("%w: command was undefined", commonerrors.ErrUndefined)
 		}
-		g.Go(cmd.Execute)
+
+		g.Go(s.cmd.Execute)
 
 		if s.postStart != nil {
 			err = s.postStart(ctx)

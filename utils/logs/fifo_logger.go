@@ -4,148 +4,196 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"iter"
-	"log"
-	"sync"
+	"strings"
 	"time"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/diodes"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
-var _ Loggers = &FIFOLoggers{}
+const (
+	newLine    = '\n'
+	bufferSize = 10000
+)
 
-type FIFOWriter struct {
-	io.WriteCloser
-	mu   sync.RWMutex
-	Logs bytes.Buffer
+type loggerAlerter struct {
+	log Loggers
 }
 
-func (w *FIFOWriter) Write(p []byte) (n int, err error) {
-	w.mu.RLock()
-	defer w.mu.RUnlock()
-	w.Logs.Write(p)
-	return
-}
-
-func (w *FIFOWriter) Close() (err error) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	w.Logs.Reset()
-	return
-}
-
-func (w *FIFOWriter) Read() string {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	n := w.Logs.Len()
-	if n == 0 {
-		return ""
+func (l *loggerAlerter) Alert(missed int) {
+	if l.log != nil {
+		l.log.LogError(fmt.Sprintf("Logger dropped %d messages", missed))
 	}
-	bytes := w.Logs.Next(n)
-	return string(bytes)
 }
 
-func (w *FIFOWriter) ReadLines(ctx context.Context) iter.Seq[string] {
+func newLoggerAlerter(logs Loggers) diodes.Alerter {
+	return &loggerAlerter{log: logs}
+}
+
+func newFIFODiode(ctx context.Context, ringBufferSize int, pollingPeriod time.Duration, droppedMessagesLogger Loggers) *fifoDiode {
+	dCtx, cancel := context.WithCancel(ctx)
+	cancelStore := parallelisation.NewCancelFunctionsStore()
+	cancelStore.RegisterCancelFunction(cancel)
+	return &fifoDiode{
+		d:           diodes.NewPoller(diodes.NewManyToOne(ringBufferSize, newLoggerAlerter(droppedMessagesLogger)), diodes.WithPollingInterval(pollingPeriod), diodes.WithPollingContext(dCtx)),
+		cancelStore: cancelStore,
+	}
+}
+
+type fifoDiode struct {
+	d           *diodes.Poller
+	cancelStore *parallelisation.CancelFunctionStore
+}
+
+func (d *fifoDiode) Set(data []byte) {
+	d.d.Set(diodes.GenericDataType(&data))
+}
+
+func (d *fifoDiode) Close() error {
+	d.cancelStore.Cancel()
+	return nil
+}
+
+// LineIterator returns an iterator over lines. It should only be called within the context of the same goroutine.
+func (d *fifoDiode) LineIterator(ctx context.Context) iter.Seq[string] {
 	return func(yield func(string) bool) {
-		var partial []byte
-		for {
-			if err := parallelisation.DetermineContextError(ctx); err != nil {
+		err := IterateOverLines(ctx, func(fCtx context.Context) (b []byte, err error) {
+			err = parallelisation.DetermineContextError(fCtx)
+			if err != nil {
 				return
 			}
-
-			buf := func() []byte {
-				w.mu.Lock()
-				defer w.mu.Unlock()
-				defer w.Logs.Reset()
-				tmp := w.Logs.Bytes()
-				buf := make([]byte, len(tmp))
-				copy(buf, tmp)
-				return buf
-			}()
-
-			if len(buf) == 0 {
-				if err := parallelisation.DetermineContextError(ctx); err != nil {
-					if len(partial) > 0 {
-						yield(string(partial))
-					}
-					return
-				}
-
-				parallelisation.SleepWithContext(ctx, 50*time.Millisecond)
-				continue
+			data, has := d.d.TryNext()
+			if has {
+				b = *(*[]byte)(data)
+				return
 			}
-
-			if len(partial) > 0 {
-				buf = append(partial, buf...)
-				partial = nil
+			if d.d.IsDone() {
+				err = commonerrors.ErrEOF
+				return
 			}
+			return
+		}, yield)
+		if err != nil {
+			return
+		}
+	}
+}
 
-			for {
-				idx := bytes.IndexByte(buf, '\n')
-				if idx < 0 {
-					break
-				}
-				line := buf[:idx]
+func cleanseLine(line string) string {
+	return strings.TrimSuffix(strings.ReplaceAll(line, "\r", ""), string(newLine))
+}
 
-				if len(line) > 0 && line[len(line)-1] == '\r' {
-					line = line[:len(line)-1]
-				}
-				buf = buf[idx+1:]
-				if len(line) == 0 {
-					continue
-				}
-
-				if !yield(string(line)) {
-					return
-				}
+func iterateOverLines(ctx context.Context, b *bytes.Buffer, yield func(string) bool) (err error) {
+	for {
+		subErr := parallelisation.DetermineContextError(ctx)
+		if subErr != nil {
+			err = subErr
+			return
+		}
+		line, foundErr := b.ReadString(newLine)
+		if foundErr == nil {
+			if !yield(line) {
+				err = commonerrors.ErrEOF
+				return
 			}
-
-			if len(buf) > 0 {
-				partial = buf
+		} else {
+			b.Reset()
+			_, subErr = b.Write([]byte(line))
+			if subErr != nil {
+				err = subErr
+				return
 			}
+			return
+		}
+	}
+}
+
+func IterateOverLines(ctx context.Context, fetchNext func(fCtx context.Context) ([]byte, error), yield func(string) bool) (err error) {
+	extendedYield := func(s string) bool {
+		return yield(cleanseLine(s))
+	}
+	b := bytes.NewBuffer(make([]byte, 0, 512))
+	for {
+		subErr := parallelisation.DetermineContextError(ctx)
+		if subErr != nil {
+			err = subErr
+			return
+		}
+		nextBuf, subErr := fetchNext(ctx)
+		if subErr != nil {
+			err = subErr
+			return
+		}
+		if len(nextBuf) == 0 {
+			parallelisation.SleepWithContext(ctx, 10*time.Millisecond)
+			continue
+		}
+		_, subErr = b.Write(nextBuf)
+		if subErr != nil {
+			err = subErr
+			return
+		}
+		subErr = iterateOverLines(ctx, b, extendedYield)
+		if subErr != nil {
+			err = subErr
+			return
 		}
 	}
 }
 
 type FIFOLoggers struct {
-	GenericLoggers
-	LogWriter FIFOWriter
+	d       *fifoDiode
+	newline bool
+}
+
+func (l *FIFOLoggers) SetLogSource(_ string) error {
+	return nil
+}
+
+func (l *FIFOLoggers) SetLoggerSource(_ string) error {
+	return nil
+}
+
+func (l *FIFOLoggers) Log(output ...any) {
+	l.log(output...)
+}
+
+func (l *FIFOLoggers) LogError(err ...any) {
+	l.log(err...)
+}
+
+func (l *FIFOLoggers) log(args ...any) {
+	b := bytes.NewBufferString(fmt.Sprint(args...))
+	if l.newline {
+		_, _ = b.Write([]byte{newLine})
+	}
+	l.d.Set(b.Bytes())
 }
 
 func (l *FIFOLoggers) Check() error {
-	return l.GenericLoggers.Check()
+	if l.d == nil {
+		return commonerrors.UndefinedVariable("FIFO diode")
+	}
+	return nil
 }
 
-func (l *FIFOLoggers) Read() string {
-	return l.LogWriter.Read()
-}
-
-func (l *FIFOLoggers) ReadLines(ctx context.Context) iter.Seq[string] {
-	return l.LogWriter.ReadLines(ctx)
+// LineIterator returns an iterator over lines. It should only be called within the context of the same goroutine.
+func (l *FIFOLoggers) LineIterator(ctx context.Context) iter.Seq[string] {
+	return l.d.LineIterator(ctx)
 }
 
 // Close closes the logger
 func (l *FIFOLoggers) Close() (err error) {
-	err = l.LogWriter.Close()
-	if err != nil {
-		return
-	}
-	err = l.GenericLoggers.Close()
-	return
+	return l.d.Close()
 }
 
 // NewFIFOLogger creates a logger to a bytes buffer.
 // All messages (whether they are output or error) are merged together.
 // Once messages have been accessed they are gone
-func NewFIFOLogger(loggerSource string) (loggers *FIFOLoggers, err error) {
-	loggers = &FIFOLoggers{
-		LogWriter: FIFOWriter{},
-	}
-	loggers.GenericLoggers = GenericLoggers{
-		Output: log.New(&loggers.LogWriter, fmt.Sprintf("[%v] Output: ", loggerSource), log.LstdFlags),
-		Error:  log.New(&loggers.LogWriter, fmt.Sprintf("[%v] Error: ", loggerSource), log.LstdFlags),
-	}
+func NewFIFOLogger() (loggers *FIFOLoggers, err error) {
+	loggers, err = newDefaultFIFOLogger(true)
 	return
 }
 
@@ -153,12 +201,22 @@ func NewFIFOLogger(loggerSource string) (loggers *FIFOLoggers, err error) {
 // All messages (whether they are output or error) are merged together.
 // Once messages have been accessed they are gone
 func NewPlainFIFOLogger() (loggers *FIFOLoggers, err error) {
-	loggers = &FIFOLoggers{
-		LogWriter: FIFOWriter{},
+	loggers, err = newDefaultFIFOLogger(false)
+	return
+}
+
+func newDefaultFIFOLogger(addNewLine bool) (loggers *FIFOLoggers, err error) {
+	l, err := NewNoopLogger("FIFO")
+	if err != nil {
+		return
 	}
-	loggers.GenericLoggers = GenericLoggers{
-		Output: log.New(&loggers.LogWriter, "", 0),
-		Error:  log.New(&loggers.LogWriter, "", 0),
+	return NewFIFOLoggerWithBuffer(addNewLine, bufferSize, 50*time.Millisecond, l)
+}
+
+func NewFIFOLoggerWithBuffer(addNewLine bool, ringBufferSize int, pollingPeriod time.Duration, droppedMessageLogger Loggers) (loggers *FIFOLoggers, err error) {
+	loggers = &FIFOLoggers{
+		d:       newFIFODiode(context.Background(), ringBufferSize, pollingPeriod, droppedMessageLogger),
+		newline: addNewLine,
 	}
 	return
 }

@@ -192,6 +192,14 @@ func (s *Subprocess) IsOn() bool {
 	return s.isRunning.Load() && s.processMonitoring.IsOn()
 }
 
+// Wait waits for the command to exit and waits for any copying to
+// stdin or copying from stdout or stderr to complete.
+//
+// The command must have been started by Start.
+func (s *Subprocess) Wait() error {
+	return s.command.cmdWrapper.cmd.Wait()
+}
+
 // Start starts the process if not already started.
 // This method is idempotent.
 func (s *Subprocess) Start() (err error) {
@@ -268,6 +276,13 @@ func (s *Subprocess) Stop() (err error) {
 	return s.stop(true)
 }
 
+// Interrupt terminates the process
+// This method should be used in combination with `Start`.
+// This method is idempotent
+func (s *Subprocess) Interrupt() (err error) {
+	return s.interrupt()
+}
+
 // Restart restarts a process. It will stop the process if currently running.
 func (s *Subprocess) Restart() (err error) {
 	err = s.stop(false)
@@ -309,6 +324,28 @@ func (s *Subprocess) stop(cancel bool) (err error) {
 	}
 	s.messaging.LogStopping()
 	err = s.getCmd().Stop()
+	s.command.Reset()
+	s.isRunning.Store(false)
+	s.messaging.LogEnd(nil)
+	return
+}
+
+func (s *Subprocess) interrupt() (err error) {
+	if !s.IsOn() {
+		return
+	}
+	err = s.Check()
+	if err != nil {
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	defer s.Cancel()
+	if !s.IsOn() {
+		return
+	}
+	s.messaging.LogStopping()
+	err = s.getCmd().Interrupt()
 	s.command.Reset()
 	s.isRunning.Store(false)
 	s.messaging.LogEnd(nil)
