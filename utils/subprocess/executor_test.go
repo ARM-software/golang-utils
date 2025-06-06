@@ -234,11 +234,11 @@ func TestStartInterrupt(t *testing.T) {
 			err = p.Restart()
 			require.NoError(t, err)
 			assert.True(t, p.IsOn())
-			err = p.Interrupt()
+			err = p.Interrupt(context.Background())
 			require.NoError(t, err)
 			assert.False(t, p.IsOn())
 			// Checking idempotence
-			err = p.Interrupt()
+			err = p.Interrupt(context.Background())
 			require.NoError(t, err)
 			time.Sleep(100 * time.Millisecond)
 			err = p.Execute()
