@@ -113,7 +113,6 @@ func (c *cmdWrapper) Stop() error {
 
 func (c *cmdWrapper) Interrupt(ctx context.Context) error {
 	return c.interruptWithContext(ctx, sigint)
-}
 
 func (c *cmdWrapper) Pid() (pid int, err error) {
 	c.mu.RLock()

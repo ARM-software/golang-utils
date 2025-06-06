@@ -14,6 +14,35 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.100.0" (2025-06-06)
+======================
+
+Features
+--------
+
+- :sparkles: `subprocess` Add support for terminating processes instead of killing them (#20250530171020)
+- :sparkles: Introducing [diodes] module which is a copy of [cloud foundary's](https://github.com/cloudfoundry/go-diodes) library. (#20250604202816)
+- :sparkles: `[parallelisation]` Added a `WaitUntil` utility (#20250606090227)
+
+
+"1.99.0" (2025-06-05)
+=====================
+
+Features
+--------
+
+- :sparkles: `logs` Add support for reading line by line in FIFO reader (#20250530105438)
+- :sparkles: [hashing] adding some utilities to incorporate context protection (#20250605081112)
+- :sparkles: [environment] adding utilities to ease the search of multiple environment variables set in an environment (#20250605083650)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v4-4.25.5 (#20250602112707)
+- Dependency upgrade: v5-5.16.1 (#20250604102320)
+
+
 "1.98.0" (2025-05-30)
 =====================
 
