@@ -6,11 +6,11 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type IWaiter interface {
+type IErrorWaiter interface {
 	Wait() error
 }
 
-func WaitWithContext(ctx context.Context, wg IWaiter) (err error) {
+func WaitWithContextAndError(ctx context.Context, wg IErrorWaiter) (err error) {
 	done := make(chan struct{})
 	var g errgroup.Group
 	g.SetLimit(1)
@@ -23,5 +23,25 @@ func WaitWithContext(ctx context.Context, wg IWaiter) (err error) {
 		return DetermineContextError(ctx)
 	case <-done:
 		return g.Wait() // since there is only one this will return when wg does
+	}
+}
+
+type IWaiter interface {
+	Wait()
+}
+
+func WaitWithContext(ctx context.Context, wg IWaiter) (err error) {
+	done := make(chan struct{})
+	var g errgroup.Group
+	g.SetLimit(1)
+	go func() {
+		defer close(done)
+		wg.Wait()
+	}()
+	select {
+	case <-ctx.Done():
+		return DetermineContextError(ctx)
+	case <-done:
+		return nil
 	}
 }
