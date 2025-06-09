@@ -18,13 +18,23 @@ import (
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
+func getpgid(pid int) (gpid int, err error) {
+	gpid, err = syscall.Getpgid(pid)
+	if err != nil {
+		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not get pgid of '%v'", pid)
+		return
+	}
+
+	return
+}
+
 func killGroup(ctx context.Context, pid int32) (err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
 	}
 	// see https://varunksaini.com/posts/kiling-processes-in-go/
-	pgid, err := syscall.Getpgid(int(pid))
+	pgid, err := getpgid(int(pid))
 	if err != nil {
 		return
 	}
@@ -41,7 +51,7 @@ func killGroup(ctx context.Context, pid int32) (err error) {
 // WaitForCompletion will wait for a given process to complete.
 // This allows check to work if the underlying process was stopped without needing the os.Process that started it.
 func WaitForCompletion(ctx context.Context, pid int) (err error) {
-	pgid, err := syscall.Getpgid(pid)
+	pgid, err := getpgid(pid)
 	if err != nil {
 		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not get group PID for '%v'", pid)
 		return
