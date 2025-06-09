@@ -576,7 +576,7 @@ func TestWait(t *testing.T) {
 		err := p.Wait(context.Background())
 
 		require.Error(t, err)
-		errortest.AssertError(t, err, commonerrors.ErrInvalid)
+		errortest.AssertError(t, err, commonerrors.ErrCondition)
 	})
 
 	t.Run("Cancelled context returns error", func(t *testing.T) {

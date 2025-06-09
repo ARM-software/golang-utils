@@ -200,7 +200,7 @@ func (s *Subprocess) Wait(ctx context.Context) (err error) {
 	if s.command != nil && s.command.cmdWrapper.cmd != nil && s.command.cmdWrapper.cmd.Process != nil {
 		pid = s.command.cmdWrapper.cmd.Process.Pid
 	} else {
-		return commonerrors.New(commonerrors.ErrInvalid, "expected a fully formed subprocess with initialised command")
+		return commonerrors.New(commonerrors.ErrCondition, "command not started")
 	}
 
 	return proc.WaitForCompletion(ctx, pid)
