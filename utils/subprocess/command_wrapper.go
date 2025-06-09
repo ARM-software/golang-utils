@@ -96,7 +96,9 @@ func (c *cmdWrapper) interruptWithContext(ctx context.Context, interrupt interru
 			}
 		})
 	}
-	if err := parallelisation.WaitWithContextAndError(ctx, c.cmd); err != nil {
+
+	err := parallelisation.WaitWithContextAndError(ctx, c.cmd)
+	if commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
 		return err
 	}
 
