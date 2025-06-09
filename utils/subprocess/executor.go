@@ -15,6 +15,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/logs"
+	"github.com/ARM-software/golang-utils/utils/platform"
 	"github.com/ARM-software/golang-utils/utils/proc"
 	commandUtils "github.com/ARM-software/golang-utils/utils/subprocess/command"
 )
@@ -200,7 +201,12 @@ func (s *Subprocess) Wait(ctx context.Context) (err error) {
 	if s.command != nil && s.command.cmdWrapper.cmd != nil && s.command.cmdWrapper.cmd.Process != nil {
 		pid = s.command.cmdWrapper.cmd.Process.Pid
 	} else {
-		return commonerrors.New(commonerrors.ErrCondition, "command not started")
+		return commonerrors.New(commonerrors.ErrConflict, "command not started")
+	}
+
+	// FIXME: verify proc.WaitForCompletion works on windows. Remove this platform check once this is verified.
+	if platform.IsWindows() {
+		return s.command.cmdWrapper.cmd.Wait()
 	}
 
 	return proc.WaitForCompletion(ctx, pid)
