@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 	"testing"
@@ -19,6 +20,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/logs"
 	"github.com/ARM-software/golang-utils/utils/logs/logstest"
 	"github.com/ARM-software/golang-utils/utils/platform"
@@ -234,11 +237,11 @@ func TestStartInterrupt(t *testing.T) {
 			err = p.Restart()
 			require.NoError(t, err)
 			assert.True(t, p.IsOn())
-			err = p.Interrupt()
+			err = p.Interrupt(context.Background())
 			require.NoError(t, err)
 			assert.False(t, p.IsOn())
 			// Checking idempotence
-			err = p.Interrupt()
+			err = p.Interrupt(context.Background())
 			require.NoError(t, err)
 			time.Sleep(100 * time.Millisecond)
 			err = p.Execute()
@@ -546,5 +549,52 @@ func TestOutputWithEnvironment(t *testing.T) {
 		require.NoError(t, err)
 		assert.NotEmpty(t, output)
 		assert.Equal(t, testString, strings.TrimSpace(output))
+	})
+}
+
+func TestWait(t *testing.T) {
+	t.Run("Valid subprocess returns no error", func(t *testing.T) {
+		cmd := exec.Command("sleep", "1")
+		require.NoError(t, cmd.Start())
+		defer func() { _ = cmd.Process.Kill() }()
+
+		p := &Subprocess{
+			command: &command{
+				cmdWrapper: cmdWrapper{
+					cmd: cmd,
+				},
+			},
+		}
+
+		ctx := context.Background()
+		err := p.Wait(ctx)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Invalid subprocess returns expected error", func(t *testing.T) {
+		p := &Subprocess{command: nil}
+		err := p.Wait(context.Background())
+
+		require.Error(t, err)
+		errortest.AssertError(t, err, commonerrors.ErrConflict)
+	})
+
+	t.Run("Cancelled context returns error", func(t *testing.T) {
+		cmd := exec.Command("sleep", "3")
+		require.NoError(t, cmd.Start())
+		defer func() { _ = cmd.Process.Kill() }()
+
+		p := &Subprocess{
+			command: &command{
+				cmdWrapper: cmdWrapper{
+					cmd: cmd,
+				},
+			},
+		}
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		err := p.Wait(ctx)
+		assert.Error(t, err)
 	})
 }
