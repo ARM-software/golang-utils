@@ -9,15 +9,12 @@ package subprocess
 import (
 	"context"
 	"fmt"
-	"syscall"
-	"time"
 
 	"github.com/sasha-s/go-deadlock"
 	"go.uber.org/atomic"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/logs"
-	"github.com/ARM-software/golang-utils/utils/parallelisation"
 	"github.com/ARM-software/golang-utils/utils/proc"
 	commandUtils "github.com/ARM-software/golang-utils/utils/subprocess/command"
 )
@@ -199,21 +196,14 @@ func (s *Subprocess) IsOn() bool {
 // Wait waits for the command to stop existing on the system.
 // This allows check to work if the underlying process was stopped.
 func (s *Subprocess) Wait(ctx context.Context) (err error) {
-	pid := s.command.cmdWrapper.cmd.Process.Pid
-	pgid, err := syscall.Getpgid(pid)
-	if err != nil {
-		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not get group PID for '%v'", pid)
-		return
-	}
-	for p, _ := proc.FindProcess(ctx, pgid); p.IsRunning(); {
-		if err = parallelisation.DetermineContextError(ctx); err != nil {
-			return
-		}
-
-		parallelisation.SleepWithContext(ctx, 1000*time.Millisecond)
+	var pid int
+	if s.command != nil && s.command.cmdWrapper.cmd != nil && s.command.cmdWrapper.cmd.Process != nil {
+		pid = s.command.cmdWrapper.cmd.Process.Pid
+	} else {
+		return commonerrors.New(commonerrors.ErrInvalid, "expected a fully formed subprocess with initialised command")
 	}
 
-	return nil
+	return proc.WaitForCompletion(ctx, pid)
 }
 
 // Start starts the process if not already started.

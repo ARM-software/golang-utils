@@ -9,7 +9,6 @@ import (
 	"context"
 
 	"github.com/shirou/gopsutil/v4/process"
-	"golang.org/x/sys/unix"
 
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -68,6 +67,18 @@ func IsProcessRunning(ctx context.Context, pid int) (running bool, err error) {
 		err = SubErr
 	default:
 		running = false
+	}
+	return
+}
+
+// WaitForCompletionWithKill will wait for a process to complete and if the context elapses then it will kill it and its children
+func WaitForCompletionWithKill(ctx context.Context, pid int) (err error) {
+	err = WaitForCompletion(ctx, pid)
+	if err != nil && commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
+		p, err := FindProcess(context.Background(), pid)
+		if err == nil {
+			return p.KillWithChildren(context.Background())
+		}
 	}
 	return
 }
@@ -143,9 +154,13 @@ func (p *ps) Terminate(ctx context.Context) error {
 	return err
 }
 
+// Interrupt will send a SIGNINT to the underlying process
+// Warning: there is no concept of a SIGINT on windows so this will do nothing,
+// the choice to do nothing instead of sending another signal is deliberate so as to not misdirect consumers of the library.
+// https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/signal?view=msvc-170#remarks
 func (p *ps) Interrupt(ctx context.Context) error {
-	err := ConvertProcessError(p.imp.SendSignalWithContext(ctx, unix.SIGINT))
-	err = commonerrors.Ignore(err, commonerrors.ErrNotFound)
+	err := ConvertProcessError(p.imp.SendSignalWithContext(ctx, 2)) // 2 == SIGINT
+	err = commonerrors.Ignore(err, commonerrors.ErrNotFound, commonerrors.ErrNotImplemented)
 	return err
 }
 

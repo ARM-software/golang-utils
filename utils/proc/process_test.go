@@ -142,3 +142,33 @@ func TestPs_KillWithChildren(t *testing.T) {
 		assert.Empty(t, p)
 	}
 }
+
+func TestWaitForCompletion(t *testing.T) {
+	t.Run("Wait for existing process (completes normally)", func(t *testing.T) {
+		cmd := exec.Command("sleep", "1")
+		require.NoError(t, cmd.Start())
+		defer func() { _ = cmd.Process.Kill() }()
+
+		err := WaitForCompletion(context.Background(), cmd.Process.Pid)
+		assert.NoError(t, err)
+	})
+
+	t.Run("Non-existent process returns error", func(t *testing.T) {
+		nonExistent := 999999
+		err := WaitForCompletion(context.Background(), nonExistent)
+		assert.Error(t, err)
+	})
+
+	t.Run("Cancelled context returns error", func(t *testing.T) {
+		cmd := exec.Command("sleep", "2")
+		require.NoError(t, cmd.Start())
+		defer func() { _ = cmd.Process.Kill() }()
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		err := WaitForCompletion(ctx, cmd.Process.Pid)
+		assert.Error(t, err)
+		errortest.AssertError(t, err, commonerrors.ErrTimeout, commonerrors.ErrCancelled)
+	})
+}
