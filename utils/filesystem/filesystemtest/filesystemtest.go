@@ -83,11 +83,11 @@ func GenerateTestFile(t *testing.T, fs filesystem.FS, filePath string, desiredSi
 	}()
 
 	data := make([]byte, blockSizeInBytes)
-	var cureentSize int
-	for cureentSize < desiredSizeInBytes {
+	var currentSize int
+	for currentSize < desiredSizeInBytes {
 		size, err := file.Write(data)
 		require.NoError(t, err)
 
-		cureentSize += size
+		currentSize += size
 	}
 }

@@ -7,7 +7,6 @@ import (
 	"math"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"unicode/utf8"
 
@@ -100,7 +99,7 @@ func (fs *VFS) ZipWithContextAndLimitsAndExclusionPatterns(ctx context.Context, 
 		}
 
 		// Get the relative path
-		relPath, err := filepath.Rel(source, path)
+		relPath, err := FilePathRel(fs, source, path)
 		if err != nil {
 			return err
 		}
@@ -111,7 +110,7 @@ func (fs *VFS) ZipWithContextAndLimitsAndExclusionPatterns(ctx context.Context, 
 				return nil
 			}
 			header := &zip.FileHeader{
-				Name:     relPath + "/",
+				Name:     FilePathToSlash(fs, relPath+"/"),
 				Method:   zip.Deflate,
 				Modified: info.ModTime(),
 			}
@@ -127,12 +126,12 @@ func (fs *VFS) ZipWithContextAndLimitsAndExclusionPatterns(ctx context.Context, 
 		defer func() { _ = src.Close() }()
 
 		// create file in archive
-		relPath, err = filepath.Rel(source, path)
+		relPath, err = FilePathRel(fs, source, path)
 		if err != nil {
 			return err
 		}
 		header := &zip.FileHeader{
-			Name:     relPath,
+			Name:     FilePathToSlash(fs, relPath),
 			Method:   zip.Deflate,
 			Modified: info.ModTime(),
 		}
@@ -167,7 +166,7 @@ func (fs *VFS) ZipWithContextAndLimitsAndExclusionPatterns(ctx context.Context, 
 
 // Prevents any ZipSlip ([CWE-22](https://cwe.mitre.org/data/definitions/22.html)) (files outside extraction dirPath) https://snyk.io/research/zip-slip-vulnerability#go
 func sanitiseZipExtractPath(fs FS, filePath string, destination string) (destPath string, err error) {
-	destPath = filepath.Join(destination, filePath) // join cleans the destpath so we can check for ZipSlip
+	destPath = FilePathJoin(fs, destination, filePath) // join cleans the destpath so we can check for ZipSlip
 	if destPath == destination {
 		return
 	}
@@ -272,7 +271,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 	}
 
 	// Clean the destination to find shortest dirPath
-	destination = filepath.Clean(destination)
+	destination = FilePathClean(fs, destination)
 	err = fs.MkDir(destination)
 	if err != nil {
 		return
@@ -307,7 +306,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 				return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
 			}
 			if fileDepth > limits.GetMaxDepth() {
-				subErr = commonerrors.Newf(commonerrors.ErrTooLarge, "depth [%v] of file [%v] within zip [%v] is beyond allowed limits (max: %v)", fileDepth, filepath.Base(filePath), filepath.Base(source), limits.GetMaxDepth())
+				subErr = commonerrors.Newf(commonerrors.ErrTooLarge, "depth [%v] of file [%v] within zip [%v] is beyond allowed limits (max: %v)", fileDepth, FilePathBase(fs, filePath), FilePathBase(fs, source), limits.GetMaxDepth())
 				return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), subErr
 			}
 		}
@@ -331,7 +330,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		}
 
 		// If a file create the dirPath into which to write the file
-		directoryPath := filepath.Dir(filePath)
+		directoryPath := FilePathDir(fs, filePath)
 		subErr = fs.MkDir(directoryPath)
 		if subErr != nil {
 			return fileList, fileCounter.Load(), totalSizeOnDisk.Load(), commonerrors.Newf(subErr, "unable to create directory '%s'", directoryPath)
@@ -381,10 +380,10 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 }
 
 func (fs *VFS) unzipNestedZipFiles(ctx context.Context, nestedZipFile string, limits ILimits, currentDepth int64) (nestedUnzippedFiles []string, fileOnDiskCount uint64, filesSizeOnDisk uint64, err error) {
-	destination := filepath.Join(filepath.Dir(nestedZipFile), FilepathStem(nestedZipFile))
+	destination := FilePathJoin(fs, FilePathDir(fs, nestedZipFile), FilepathStem(nestedZipFile))
 	nestedUnzippedFiles, fileOnDiskCount, filesSizeOnDisk, subErr := fs.unzip(ctx, nestedZipFile, destination, limits, currentDepth+1)
 	if subErr != nil {
-		err = commonerrors.Newf(subErr, "unable to unzip nested zip [%s] present at depth (%d) to [%s]", filepath.Base(nestedZipFile), currentDepth, destination)
+		err = commonerrors.Newf(subErr, "unable to unzip nested zip [%s] present at depth (%d) to [%s]", FilePathBase(fs, nestedZipFile), currentDepth, destination)
 		return
 	}
 	subErr = fs.Rm(nestedZipFile)
@@ -512,7 +511,7 @@ func (fs *VFS) IsZipWithContext(ctx context.Context, path string) (ok bool, err 
 	if err != nil {
 		return
 	}
-	_, found := collection.Find(&ZipFileExtensions, strings.ToLower(filepath.Ext(path)))
+	_, found := collection.Find(&ZipFileExtensions, strings.ToLower(FilePathExt(fs, path)))
 	if !found || err != nil {
 		return
 	}

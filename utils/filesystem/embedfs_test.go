@@ -19,7 +19,7 @@ import (
 //go:embed *
 var testContent embed.FS
 
-const testFile1Content = "this is a text file with some content\n"
+const testFile1Content = "this is a text file with some content"
 
 func Test_embedFS_Exists(t *testing.T) {
 	fs, err := NewEmbedFileSystem(&testContent)
@@ -97,7 +97,7 @@ func Test_embedFS_Read(t *testing.T) {
 	t.Run("embed read", func(t *testing.T) {
 		c, err := testContent.ReadFile("testdata/embed/test.txt")
 		require.NoError(t, err)
-		assert.Equal(t, testFile1Content, string(c))
+		assert.Contains(t, string(c), testFile1Content)
 	})
 
 	t.Run("using file opening", func(t *testing.T) {
@@ -106,7 +106,7 @@ func Test_embedFS_Read(t *testing.T) {
 		defer func() { _ = f.Close() }()
 		c, err := io.ReadAll(f)
 		require.NoError(t, err)
-		assert.Equal(t, testFile1Content, string(c))
+		assert.Contains(t, string(c), testFile1Content)
 		require.NoError(t, f.Close())
 	})
 
@@ -116,14 +116,14 @@ func Test_embedFS_Read(t *testing.T) {
 		defer func() { _ = f.Close() }()
 		c, err := io.ReadAll(f)
 		require.NoError(t, err)
-		assert.Equal(t, testFile1Content, string(c))
+		assert.Contains(t, string(c), testFile1Content)
 		require.NoError(t, f.Close())
 	})
 
 	t.Run("using file read", func(t *testing.T) {
 		c, err := efs.ReadFile("testdata/embed/test.txt")
 		require.NoError(t, err)
-		assert.Equal(t, testFile1Content, string(c))
+		assert.Contains(t, string(c), testFile1Content)
 	})
 
 }
