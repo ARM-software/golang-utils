@@ -17,6 +17,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/hashing"
+	"github.com/ARM-software/golang-utils/utils/platform"
 	"github.com/ARM-software/golang-utils/utils/units/multiplication"
 	"github.com/ARM-software/golang-utils/utils/units/size"
 )
@@ -754,18 +755,31 @@ func FuzzSanitiseZipExtractPath(f *testing.F) {
 	f.Fuzz(testSanitiseZipExtractPath)
 }
 
+type betweenFS struct {
+	fsSrc  FS
+	fsDest FS
+}
+
 func TestZipBetweenFilesystemWithDifferentFilePathSeparators(t *testing.T) {
-	fs1 := NewTestOSFilesystem(t, '\\')
-	fs2 := NewTestOSFilesystem(t, '/')
+	fs1 := NewTestFilesystem(t, '\\')
+	fs2 := NewTestFilesystem(t, '/')
+	fs3 := NewTestOSFilesystem(t)
 	ctx := context.Background()
-	tests := []struct {
-		fsSrc  FS
-		fsDest FS
-	}{
-		{fs1, fs1},
+	tests := []betweenFS{
 		{fs2, fs2},
-		{fs1, fs2},
 		{fs2, fs1},
+		{fs2, fs3},
+		{fs3, fs3},
+		{fs3, fs1},
+		{fs3, fs2},
+	}
+	if platform.IsWindows() {
+		// The following test cases are only possible on Windows https://github.com/spf13/afero/issues/514
+		tests = append(tests,
+			betweenFS{fs1, fs1},
+			betweenFS{fs1, fs2},
+			betweenFS{fs1, fs3},
+		)
 	}
 	for k := range tests {
 		fsSrc := tests[k].fsSrc
@@ -820,7 +834,7 @@ func TestZipBetweenFilesystemWithDifferentFilePathSeparators(t *testing.T) {
 							continue
 						}
 						srcFilePath := FilePathJoin(fsSrc, testDirSrc, FilePathFromSlash(fsSrc, path))
-						require.True(t, fsDest.Exists(srcFilePath))
+						require.True(t, fsSrc.Exists(srcFilePath))
 						fileinfoSrc, err := fsSrc.Lstat(srcFilePath)
 						require.NoError(t, err)
 						resultFilePath := FilePathJoin(fsDest, outDir, FilePathFromSlash(fsDest, path))
@@ -831,8 +845,10 @@ func TestZipBetweenFilesystemWithDifferentFilePathSeparators(t *testing.T) {
 						if IsSymLink(fileinfoSrc) {
 							continue
 						}
-						// Check sizes
-						assert.Equal(t, fileinfoSrc.Size(), fileinfoResult.Size())
+						// Check sizes only if we are dealing with similar filesystems. Otherwise, size changes greatly.
+						if fsSrc.GetType() == fsDest.GetType() {
+							assert.Equal(t, fileinfoSrc.Size(), fileinfoResult.Size())
+						}
 
 						// perform hash comparison
 						if IsRegularFile(fileinfoSrc) {

@@ -6,9 +6,7 @@ package collection
 
 import (
 	"maps"
-	"math/rand"
 	"testing"
-	"time"
 
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
@@ -16,10 +14,6 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
-)
-
-var (
-	random = rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for
 )
 
 func TestParseCommaSeparatedListWordsOnly(t *testing.T) {
@@ -57,14 +51,15 @@ func TestParseCommaSeparatedListWithSpacesBetweenWords(t *testing.T) {
 	t.Run("with whitespaces", func(t *testing.T) {
 		stringList := ""
 		var stringArray []string
-		// we don't need cryptographically secure random numbers for generating a number of elements in a list
-		lengthOfList := random.Intn(10) //nolint:gosec
-		for i := 0; i < lengthOfList; i++ {
+		lengthOfList, err := faker.RandomInt(1, 10, 1)
+		require.NoError(t, err)
+		for i := 0; i < lengthOfList[0]; i++ {
 			word := faker.Sentence()
 			stringList += word
 			stringArray = append(stringArray, word)
-			numSpacesToAdd := random.Intn(5) //nolint:gosec
-			for j := 0; j < numSpacesToAdd; j++ {
+			numSpacesToAdd, err := faker.RandomInt(0, 5, 1)
+			require.NoError(t, err)
+			for j := 0; j < numSpacesToAdd[0]; j++ {
 				stringList += " "
 			}
 			stringList += ","
@@ -77,20 +72,22 @@ func TestParseCommaSeparatedListWithSpacesBetweenWords(t *testing.T) {
 func TestParseCommaSeparatedListWithSpacesBetweenWordsKeepBlanks(t *testing.T) {
 	stringList := ""
 	var stringArray []string
-	// we don't need cryptographically secure random numbers for generating a number of elements in a list
-	lengthOfList := random.Intn(10) + 8 //nolint:gosec
-	for i := 0; i < lengthOfList; i++ {
+	lengthOfList, err := faker.RandomInt(8, 18, 1)
+	require.NoError(t, err)
+	for i := 0; i < lengthOfList[0]; i++ {
 		word := faker.Sentence()
 		stringList += word
 		stringArray = append(stringArray, word)
-		numSpacesToAdd := random.Intn(5) //nolint:gosec
-		for j := 0; j < numSpacesToAdd; j++ {
+		numSpacesToAdd, err := faker.RandomInt(0, 5, 1)
+		require.NoError(t, err)
+		for j := 0; j < numSpacesToAdd[0]; j++ {
 			stringList += " "
 		}
 		stringList += ","
 		if i%3 == 2 {
-			numSpacesToAdd := random.Intn(5) //nolint:gosec
-			for j := 0; j < numSpacesToAdd; j++ {
+			numSpacesToAdd, err := faker.RandomInt(0, 5, 1)
+			require.NoError(t, err)
+			for j := 0; j < numSpacesToAdd[0]; j++ {
 				stringList += " "
 			}
 			stringArray = append(stringArray, "")

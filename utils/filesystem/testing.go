@@ -2,13 +2,14 @@ package filesystem
 
 import (
 	"fmt"
-	"math"
-	"math/rand"
 	"testing"
 	"time"
 
+	"github.com/go-faker/faker/v4"
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
 // GenerateTestFileTree generates a file tree for testing purposes and returns a list of all the files and filesystem items created.
@@ -21,15 +22,18 @@ func GenerateTestFileTree(t *testing.T, fs FS, testDir, basePath string, withLin
 	require.NoError(t, err)
 
 	var sLinks []string
-	random := rand.New(rand.NewSource(time.Now().Unix()))                      //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
-	for i := 0; i < int(math.Max(float64(1), float64(random.Intn(10)))); i++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+	iM, err := faker.RandomInt(1, 10, 1)
+	require.NoError(t, err)
+	for i := 0; i < iM[0]; i++ {
 		c := fmt.Sprint("test", i+1)
 		path := FilePathJoin(fs, testDir, c)
 
 		err := fs.MkDir(path)
 		require.NoError(t, err)
 
-		for j := 0; j < int(math.Max(float64(1), float64(random.Intn(10)))); j++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+		jM, err := faker.RandomInt(1, 10, 1)
+		require.NoError(t, err)
+		for j := 0; j < jM[0]; j++ {
 			c := fmt.Sprint("test", j+1)
 			path := FilePathJoin(fs, path, c)
 
@@ -49,14 +53,16 @@ func GenerateTestFileTree(t *testing.T, fs FS, testDir, basePath string, withLin
 					}
 				}
 			}
-
-			for k := 0; k < int(math.Max(float64(1), float64(random.Intn(10)))); k++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+			kM, err := faker.RandomInt(1, 10, 1)
+			require.NoError(t, err)
+			for k := 0; k < kM[0]; k++ {
 				c := fmt.Sprint("test", k+1, ".txt")
 				finalPath := FilePathJoin(fs, path, c)
 
 				// pick a couple of files to make symlinks (1 in 10)
-				r := random.Intn(10) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
-				if r == 4 {
+				r, err := faker.RandomInt(1, 10, 1)
+				require.NoError(t, err)
+				if r[0] == 4 {
 					fPath := FilePathJoin(fs, basePath, path, c)
 					sLinks = append(sLinks, fPath)
 				}
@@ -85,7 +91,7 @@ func NewTestFilesystem(t *testing.T, pathSeparator rune) FS {
 	return NewVirtualFileSystemWithPathSeparator(afero.NewMemMapFs(), InMemoryFS, IdentityPathConverterFunc, pathSeparator)
 }
 
-func NewTestOSFilesystem(t *testing.T, pathSeparator rune) FS {
+func NewTestOSFilesystem(t *testing.T) FS {
 	t.Helper()
-	return NewVirtualFileSystemWithPathSeparator(afero.NewOsFs(), StandardFS, IdentityPathConverterFunc, pathSeparator)
+	return NewVirtualFileSystemWithPathSeparator(afero.NewOsFs(), StandardFS, IdentityPathConverterFunc, platform.PathSeparator)
 }

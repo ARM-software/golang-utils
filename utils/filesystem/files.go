@@ -102,6 +102,10 @@ func NewCloseableVirtualFileSystemWithPathSeparator(vfs afero.Fs, fsType Filesys
 	} else {
 		resourceInUseByFs = resource.NewCloseableResource(resourceInUse, resourceInUseDescription)
 	}
+	// In the case of an OS filesystem, it may not be possible to change the path separator (e.g. `\` on linux) and therefore, it needs to be overridden.
+	if fsType == StandardFS {
+		pathSeparator = platform.PathSeparator
+	}
 	return &VFS{
 		resourceInUse: resourceInUseByFs,
 		vfs:           vfs,
