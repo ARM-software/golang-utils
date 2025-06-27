@@ -47,7 +47,7 @@ func FilePathParentsOnFilesystem(fs FS, fp string) (parents []string) {
 	return
 }
 
-// FilePathJoin joins any number of path path into a single path,
+// FilePathJoin joins any number of path elements into a single path,
 // separating them with the filesystem path separator.
 // Its behaviour is similar to filepath.Join
 func FilePathJoin(fs FS, element ...string) string {
