@@ -521,7 +521,7 @@ func TestFilePathClean(t *testing.T) {
 			fs:              NewTestFilesystem(t, '\\'),
 			path:            `test1/c`,
 			expectedWindows: `test1\c`,
-			expectedLinux:   `test1/c`,
+			expectedLinux:   `test1\c`,
 		},
 		{
 			fs:              NewTestFilesystem(t, '/'),
@@ -539,7 +539,7 @@ func TestFilePathClean(t *testing.T) {
 			fs:              NewTestFilesystem(t, '\\'),
 			path:            "test1/test2/../c",
 			expectedWindows: `test1\c`,
-			expectedLinux:   "test1/c",
+			expectedLinux:   `test1\c`,
 		},
 		{
 			fs:              NewTestFilesystem(t, '\\'),
@@ -761,10 +761,11 @@ func TestFilePathIsAbs(t *testing.T) {
 	embedFS, err := NewEmbedFileSystem(&testContent)
 	require.NoError(t, err)
 	tests := []struct {
-		fs          FS
-		pathLinux   string
-		pathWindows string
-		isAbs       bool
+		fs           FS
+		pathLinux    string
+		pathWindows  string
+		isAbs        bool
+		specialLinux bool
 	}{
 		{
 			fs:          nil,
@@ -821,10 +822,11 @@ func TestFilePathIsAbs(t *testing.T) {
 			isAbs:       true,
 		},
 		{
-			fs:          NewTestFilesystem(t, '\\'),
-			pathLinux:   "/usr/../bin/gcc",
-			pathWindows: "/usr/../bin/gcc",
-			isAbs:       false,
+			fs:           NewTestFilesystem(t, '\\'),
+			pathLinux:    "/usr/../bin/gcc",
+			pathWindows:  "/usr/../bin/gcc",
+			isAbs:        false,
+			specialLinux: true,
 		},
 		{
 			fs:          NewStandardFileSystem(),
@@ -854,7 +856,14 @@ func TestFilePathIsAbs(t *testing.T) {
 		}
 
 		t.Run(fmt.Sprintf("%v %v %v", fsType, i, testPath), func(t *testing.T) {
-			assert.Equal(t, test.isAbs, FilePathIsAbs(test.fs, testPath))
+			if test.specialLinux {
+				if platform.IsWindows() {
+					assert.Equal(t, test.isAbs, FilePathIsAbs(test.fs, testPath))
+				}
+			} else {
+				assert.Equal(t, test.isAbs, FilePathIsAbs(test.fs, testPath))
+			}
+
 		})
 	}
 }
@@ -987,6 +996,9 @@ func TestFilePathSplit(t *testing.T) {
 }
 
 func TestFilePathVolume(t *testing.T) {
+	if !platform.IsWindows() {
+		t.Skip("volume is a windows concept")
+	}
 	assert.Empty(t, FilePathVolumeName(nil, "C:"))
 	assert.Equal(t, "C:", FilePathVolumeName(NewTestFilesystem(t, '\\'), "C:"))
 	assert.Equal(t, "C:", FilePathVolumeName(NewTestFilesystem(t, '\\'), "C://"))

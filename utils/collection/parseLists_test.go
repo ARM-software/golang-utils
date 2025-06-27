@@ -30,14 +30,15 @@ func TestParseCommaSeparatedListWordsOnly(t *testing.T) {
 	t.Run("with whitespaces", func(t *testing.T) {
 		stringList := ""
 		var stringArray []string
-		// we don't need cryptographically secure random numbers for generating a number of elements in a list
-		lengthOfList := random.Intn(10) //nolint:gosec
-		for i := 0; i < lengthOfList; i++ {
+		lengthOfList, err := faker.RandomInt(1, 10, 1)
+		require.NoError(t, err)
+		for i := 0; i < lengthOfList[0]; i++ {
 			word := faker.Word()
 			stringList += word
 			stringArray = append(stringArray, word)
-			numSpacesToAdd := random.Intn(5) //nolint:gosec
-			for j := 0; j < numSpacesToAdd; j++ {
+			numSpacesToAdd, err := faker.RandomInt(0, 5, 1)
+			require.NoError(t, err)
+			for j := 0; j < numSpacesToAdd[0]; j++ {
 				stringList += " "
 			}
 			stringList += ","

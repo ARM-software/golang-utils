@@ -792,6 +792,7 @@ func TestZipBetweenFilesystemWithDifferentFilePathSeparators(t *testing.T) {
 					// zip the directory into the zipfile
 					err = fsSrc.Zip(testDirSrc, srcZipfile)
 					require.NoError(t, err)
+					require.True(t, fsSrc.Exists(srcZipfile))
 
 					require.NoError(t, CopyBetweenFS(ctx, fsSrc, srcZipfile, fsDest, destZipFile))
 
