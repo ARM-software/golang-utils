@@ -107,6 +107,11 @@ jobs:
         run: go build -v ./...
         working-directory: ${{ matrix.go-module }}
 
+      - if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        name: Test [${{ matrix.go-module }} on ${{ matrix.os }}]
+        run: go test -race -cover -v -tags integration -timeout 30m -coverprofile ${{ matrix.go-module }}_coverage.out ./...
+        working-directory: ${{ matrix.go-module }}
+
 # FIXME: Run tests on Mac and Windows
 #      - if: ${{ startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'macOS') }}
 #        run: go test -race -cover -v ./...
