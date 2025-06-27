@@ -2,6 +2,7 @@ package filesystem
 
 import (
 	"fmt"
+	"path"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -15,19 +16,59 @@ import (
 	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
+func TestFilePathFromTo(t *testing.T) {
+	t.Run("given a path, toSlash works as filepath", func(t *testing.T) {
+		fp := filepath.Join("super", "foo", "bar.baz")
+		assert.Equal(t, filepath.ToSlash(fp), FilePathToSlash(GetGlobalFileSystem(), fp))
+		assert.Equal(t, filepath.ToSlash(fp), FilePathToSlash(NewTestFilesystem(t, '/'), filepath.ToSlash(fp)))
+	})
+
+	t.Run("given a path with slashes, it is correctly converted", func(t *testing.T) {
+		fp := path.Join("super", "foo", "bar.baz")
+		assert.Equal(t, filepath.FromSlash(fp), FilePathFromSlash(GetGlobalFileSystem(), fp))
+		assert.Equal(t, fp, FilePathFromSlash(NewTestFilesystem(t, '/'), fp))
+	})
+
+	t.Run("given a path, FilePathToPlatformPathSeparator converts to platform path", func(t *testing.T) {
+		fp := filepath.Join("super", "foo", "bar.baz")
+		assert.Equal(t, fp, FilePathToPlatformPathSeparator(NewTestFilesystem(t, '/'), filepath.ToSlash(fp)))
+		fp2 := strings.ReplaceAll(filepath.ToSlash(fp), "/", `\`)
+		assert.Equal(t, fp, FilePathToPlatformPathSeparator(NewTestFilesystem(t, '\\'), fp2))
+		assert.Equal(t, fp2, FilePathToPlatformPathSeparator(NewTestFilesystem(t, '/'), fp2))
+	})
+
+	t.Run("given a path with slashes, it is correctly converted to filesystem separator", func(t *testing.T) {
+		fp := filepath.Join("super", "foo", "bar.baz")
+		assert.Equal(t, fp, FilePathFromPlatformPathSeparator(NewTestFilesystem(t, platform.PathSeparator), fp))
+		fp2 := path.Join("super", "foo", "bar.baz")
+		assert.Equal(t, fp2, FilePathFromPlatformPathSeparator(NewTestFilesystem(t, '/'), fp))
+		assert.Equal(t, filepath.ToSlash(fp2), FilePathFromPlatformPathSeparator(NewTestFilesystem(t, '/'), fp2))
+	})
+
+}
+
 func TestFilepathStem(t *testing.T) {
 	t.Run("given a filename with extension, it strips extension", func(t *testing.T) {
 		assert.Equal(t, "foo", FilepathStem("foo.bar"))
+		assert.Equal(t, "foo", FilePathStemOnFilesystem(NewTestFilesystem(t, platform.PathSeparator), "foo.bar"))
 		assert.Equal(t, "library.tar", FilepathStem("library.tar.gz"))
+		assert.Equal(t, "library.tar", FilePathStemOnFilesystem(NewTestFilesystem(t, '/'), "library.tar.gz"))
 		assert.Equal(t, "cool", FilepathStem("cool"))
+		assert.Equal(t, "cool", FilePathStemOnFilesystem(NewTestFilesystem(t, '\\'), "cool"))
 	})
 
 	t.Run("given a filepath, it returns only file name", func(t *testing.T) {
 		fp := filepath.Join("super", "foo", "bar.baz")
 		assert.Equal(t, "bar", FilepathStem(fp))
+		fp = path.Join("super", "foo", "bar.baz")
+		assert.Equal(t, "bar", FilePathStemOnFilesystem(NewTestFilesystem(t, '/'), fp))
 		fp = filepath.Join("nice", "file", "path")
 		assert.Equal(t, "path", FilepathStem(fp))
+		fp = path.Join("nice", "file", "path")
+		assert.Equal(t, "path", FilePathStemOnFilesystem(NewTestFilesystem(t, '/'), fp))
 	})
+	assert.Empty(t, FilePathStemOnFilesystem(nil, faker.Sentence()))
+
 }
 
 func TestFilepathParents(t *testing.T) {
@@ -266,16 +307,100 @@ func TestFilePathJoin(t *testing.T) {
 			expectedLinux:   "test1/c",
 		},
 		{
+			fs:              NewStandardFileSystem(),
+			elements:        []string{},
+			expectedWindows: "",
+			expectedLinux:   "",
+		},
+		{
 			fs:              embedFS,
 			elements:        []string{"test1", "c"},
 			expectedWindows: "test1/c",
 			expectedLinux:   "test1/c",
 		},
 		{
+			fs:              embedFS,
+			elements:        []string{""},
+			expectedWindows: "",
+			expectedLinux:   "",
+		},
+		{
+			fs:              NewStandardFileSystem(),
+			elements:        []string{""},
+			expectedWindows: "",
+			expectedLinux:   "",
+		},
+		{
+			fs:              NewStandardFileSystem(),
+			elements:        []string{"a"},
+			expectedWindows: "a",
+			expectedLinux:   "a",
+		},
+		{
+			fs:              NewStandardFileSystem(),
+			elements:        []string{"a", ""},
+			expectedWindows: "a",
+			expectedLinux:   "a",
+		},
+		{
+			fs:              embedFS,
+			elements:        []string{"a", ""},
+			expectedWindows: "a",
+			expectedLinux:   "a",
+		},
+		{
+			fs:              NewStandardFileSystem(),
+			elements:        []string{"", "a"},
+			expectedWindows: "a",
+			expectedLinux:   "a",
+		},
+		{
+			fs:              embedFS,
+			elements:        []string{"", "a"},
+			expectedWindows: "a",
+			expectedLinux:   "a",
+		},
+		{
+			fs:              NewStandardFileSystem(),
+			elements:        []string{"", ""},
+			expectedWindows: "",
+			expectedLinux:   "",
+		},
+		{
+			fs:              embedFS,
+			elements:        []string{"", ""},
+			expectedWindows: "",
+			expectedLinux:   "",
+		},
+		{
+			fs:              NewTestFilesystem(t, '/'),
+			elements:        []string{"test1", "c"},
+			expectedWindows: "test1/c",
+			expectedLinux:   "test1/c",
+		},
+		{
+			fs:              NewTestFilesystem(t, '\\'),
+			elements:        []string{"test1", "c"},
+			expectedWindows: `test1\c`,
+			expectedLinux:   `test1\c`,
+		},
+		{
 			fs:              NewStandardFileSystem(),
 			elements:        []string{"test1", "test2", "..", "c"},
-			expectedWindows: "test1\\c",
+			expectedWindows: `test1\c`,
 			expectedLinux:   "test1/c",
+		},
+		{
+			fs:              NewTestFilesystem(t, '/'),
+			elements:        []string{"test1", "test2", "..", "c"},
+			expectedWindows: "test1/c",
+			expectedLinux:   "test1/c",
+		},
+		{
+			fs:              NewTestFilesystem(t, '\\'),
+			elements:        []string{"test1", "test2", "..", "c"},
+			expectedWindows: `test1\c`,
+			expectedLinux:   `test1\c`,
 		},
 		{
 			fs:              NewStandardFileSystem(),
@@ -304,7 +429,7 @@ func TestFilePathJoin(t *testing.T) {
 		{
 			fs:              embedFS,
 			elements:        []string{"test1", "test2", "..", "\\c"},
-			expectedWindows: "test1/c",
+			expectedWindows: "test1/\\c",
 			expectedLinux:   "test1/\\c",
 		},
 	}
@@ -314,12 +439,127 @@ func TestFilePathJoin(t *testing.T) {
 		if test.fs != nil {
 			fsType = fmt.Sprintf("%v", test.fs.GetType())
 		}
-		t.Run(fmt.Sprintf("%v %v", fsType, test.elements), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%v %v %v", fsType, i, test.elements), func(t *testing.T) {
 			join := FilePathJoin(test.fs, test.elements...)
 			if platform.IsWindows() {
 				assert.Equal(t, test.expectedWindows, join)
 			} else {
 				assert.Equal(t, test.expectedLinux, join)
+			}
+		})
+	}
+}
+
+func TestFilePathClean(t *testing.T) {
+	tests := []struct {
+		fs              FS
+		path            string
+		expectedWindows string
+		expectedLinux   string
+	}{
+		{
+			fs:              nil,
+			path:            path.Join("test1", "c"),
+			expectedWindows: "",
+			expectedLinux:   "",
+		},
+		{
+			fs:              NewStandardFileSystem(),
+			path:            filepath.Join("."),
+			expectedWindows: ".",
+			expectedLinux:   ".",
+		},
+		{
+			fs:              NewTestFilesystem(t, '/'),
+			path:            filepath.Join("."),
+			expectedWindows: ".",
+			expectedLinux:   ".",
+		},
+		{
+			fs:              NewTestFilesystem(t, '/'),
+			path:            filepath.Join("a"),
+			expectedWindows: "a",
+			expectedLinux:   "a",
+		},
+		{
+			fs:              NewTestFilesystem(t, '\\'),
+			path:            filepath.Join("a"),
+			expectedWindows: "a",
+			expectedLinux:   "a",
+		},
+		{
+			fs:              NewStandardFileSystem(),
+			path:            filepath.Join("test1", "c"),
+			expectedWindows: "test1\\c",
+			expectedLinux:   "test1/c",
+		},
+		{
+			fs:              NewStandardFileSystem(),
+			path:            filepath.Join("test1", "test2", "..", "c"),
+			expectedWindows: "test1\\c",
+			expectedLinux:   "test1/c",
+		},
+		{
+			fs:              NewTestFilesystem(t, '/'),
+			path:            path.Join("test1", "c"),
+			expectedWindows: "test1/c",
+			expectedLinux:   "test1/c",
+		},
+		{
+			fs:              NewTestFilesystem(t, '/'),
+			path:            `test1\c`,
+			expectedWindows: `test1\c`,
+			expectedLinux:   `test1\c`,
+		},
+		{
+			fs:              NewTestFilesystem(t, '\\'),
+			path:            `test1\c`,
+			expectedWindows: `test1\c`,
+			expectedLinux:   `test1\c`,
+		},
+		{
+			fs:              NewTestFilesystem(t, '\\'),
+			path:            `test1/c`,
+			expectedWindows: `test1\c`,
+			expectedLinux:   `test1/c`,
+		},
+		{
+			fs:              NewTestFilesystem(t, '/'),
+			path:            "test1/test2/../c",
+			expectedWindows: "test1/c",
+			expectedLinux:   "test1/c",
+		},
+		{
+			fs:              NewTestFilesystem(t, '/'),
+			path:            `test1\test2\..\c`,
+			expectedWindows: `test1\test2\..\c`,
+			expectedLinux:   `test1\test2\..\c`,
+		},
+		{
+			fs:              NewTestFilesystem(t, '\\'),
+			path:            "test1/test2/../c",
+			expectedWindows: `test1\c`,
+			expectedLinux:   "test1/c",
+		},
+		{
+			fs:              NewTestFilesystem(t, '\\'),
+			path:            `test1\test2\..\c`,
+			expectedWindows: `test1\c`,
+			expectedLinux:   `test1\c`,
+		},
+	}
+	for i := range tests {
+		test := tests[i]
+		fsType := ""
+		if test.fs != nil {
+			fsType = fmt.Sprintf("%v", test.fs.GetType())
+		}
+		t.Run(fmt.Sprintf("%v %v %v", fsType, i, test.path), func(t *testing.T) {
+			cleaned := FilePathClean(test.fs, test.path)
+			if platform.IsWindows() {
+				assert.Equal(t, test.expectedWindows, cleaned)
+			} else {
+				assert.Equal(t, test.expectedLinux, cleaned)
 			}
 		})
 	}
@@ -359,10 +599,22 @@ func TestFilePathBase(t *testing.T) {
 			expectedBase: "file.ext",
 		},
 		{
-			fs:           embedFS,
+			fs:           NewStandardFileSystem(),
 			pathLinux:    "./test1/test2/",
 			pathWindows:  ".\\test1\\test2\\",
 			expectedBase: "test2",
+		},
+		{
+			fs:           embedFS,
+			pathLinux:    "./test1/test2/",
+			pathWindows:  "./test1/test2/",
+			expectedBase: "test2",
+		},
+		{
+			fs:           embedFS,
+			pathLinux:    ".\\test1\\test2\\",
+			pathWindows:  ".\\test1\\test2\\",
+			expectedBase: ".\\test1\\test2\\",
 		},
 	}
 	for i := range tests {
@@ -383,4 +635,360 @@ func TestFilePathBase(t *testing.T) {
 			assert.Equal(t, test.expectedBase, FilePathBase(test.fs, testPath))
 		})
 	}
+}
+
+func TestFilePathDir(t *testing.T) {
+	embedFS, err := NewEmbedFileSystem(&testContent)
+	require.NoError(t, err)
+	tests := []struct {
+		fs          FS
+		pathLinux   string
+		pathWindows string
+		expectedDir string
+	}{
+		{
+			fs:          nil,
+			pathLinux:   "test1/test2",
+			pathWindows: "test1\\test2",
+			expectedDir: "",
+		},
+		{
+			fs:          NewStandardFileSystem(),
+			pathLinux:   "",
+			pathWindows: "",
+			expectedDir: ".",
+		},
+		{
+			fs:          embedFS,
+			pathLinux:   "",
+			pathWindows: "",
+			expectedDir: ".",
+		},
+		{
+			fs:          NewStandardFileSystem(),
+			pathLinux:   ".",
+			pathWindows: ".",
+			expectedDir: ".",
+		},
+		{
+			fs:          embedFS,
+			pathLinux:   ".",
+			pathWindows: ".",
+			expectedDir: ".",
+		},
+		{
+			fs:          NewStandardFileSystem(),
+			pathLinux:   "abc",
+			pathWindows: "abc",
+			expectedDir: ".",
+		},
+		{
+			fs:          embedFS,
+			pathLinux:   "abc",
+			pathWindows: "abc",
+			expectedDir: ".",
+		},
+		{
+			fs:          embedFS,
+			pathLinux:   "./.",
+			pathWindows: `.\.`,
+			expectedDir: ".",
+		},
+		{
+			fs:          embedFS,
+			pathLinux:   "./test/test",
+			pathWindows: "./test/test",
+			expectedDir: "test",
+		},
+		{
+			fs:          embedFS,
+			pathLinux:   "./test/////test",
+			pathWindows: "./test/////test",
+			expectedDir: "test",
+		},
+		{
+			fs:          NewStandardFileSystem(),
+			pathLinux:   "./test/test",
+			pathWindows: "./test/test",
+			expectedDir: "test",
+		},
+		{
+			fs:          NewStandardFileSystem(),
+			pathLinux:   "./test////////////test",
+			pathWindows: "./test////////////test",
+			expectedDir: "test",
+		},
+		{
+			fs:          embedFS,
+			pathLinux:   `.\test\test`,
+			pathWindows: `.\test\test`,
+			expectedDir: ".",
+		},
+		{
+			fs:          NewTestFilesystem(t, '\\'),
+			pathLinux:   `.\test`,
+			pathWindows: `.\test`,
+			expectedDir: ".",
+		},
+		{
+			fs:          NewTestFilesystem(t, '\\'),
+			pathLinux:   `.\\\\\\\\test`,
+			pathWindows: `.\\\\\\\\test`,
+			expectedDir: ".",
+		},
+	}
+	for i := range tests {
+		test := tests[i]
+		fsType := ""
+		if test.fs != nil {
+			fsType = fmt.Sprintf("%v", test.fs.GetType())
+		}
+
+		var testPath string
+		if platform.IsWindows() {
+			testPath = test.pathWindows
+		} else {
+			testPath = test.pathLinux
+		}
+
+		t.Run(fmt.Sprintf("%v %v %v", fsType, i, testPath), func(t *testing.T) {
+			assert.Equal(t, test.expectedDir, FilePathDir(test.fs, testPath))
+		})
+	}
+}
+
+func TestFilePathIsAbs(t *testing.T) {
+	embedFS, err := NewEmbedFileSystem(&testContent)
+	require.NoError(t, err)
+	tests := []struct {
+		fs          FS
+		pathLinux   string
+		pathWindows string
+		isAbs       bool
+	}{
+		{
+			fs:          nil,
+			pathLinux:   "test1/test2",
+			pathWindows: "test1\\test2",
+			isAbs:       false,
+		},
+		{
+			fs:          NewStandardFileSystem(),
+			pathLinux:   "",
+			pathWindows: "",
+			isAbs:       false,
+		},
+		{
+			fs:          embedFS,
+			pathLinux:   "",
+			pathWindows: "",
+			isAbs:       false,
+		},
+		{
+			fs:          NewStandardFileSystem(),
+			pathLinux:   ".",
+			pathWindows: ".",
+			isAbs:       false,
+		},
+		{
+			fs:          NewStandardFileSystem(),
+			pathLinux:   "/",
+			pathWindows: `C:\\`,
+			isAbs:       true,
+		},
+		{
+			fs:          NewStandardFileSystem(),
+			pathLinux:   "/usr/bin/gcc",
+			pathWindows: `C:\\usr\bin\gcc`,
+			isAbs:       true,
+		},
+		{
+			fs:          NewStandardFileSystem(),
+			pathLinux:   "/usr/../bin/gcc",
+			pathWindows: `C:\\usr\..\bin\gcc`,
+			isAbs:       true,
+		},
+		{
+			fs:          embedFS,
+			pathLinux:   ".",
+			pathWindows: ".",
+			isAbs:       false,
+		},
+		{
+			fs:          embedFS,
+			pathLinux:   "/usr/../bin/gcc",
+			pathWindows: "/usr/../bin/gcc",
+			isAbs:       true,
+		},
+		{
+			fs:          NewTestFilesystem(t, '\\'),
+			pathLinux:   "/usr/../bin/gcc",
+			pathWindows: "/usr/../bin/gcc",
+			isAbs:       false,
+		},
+		{
+			fs:          NewStandardFileSystem(),
+			pathLinux:   "..",
+			pathWindows: "..",
+			isAbs:       false,
+		},
+		{
+			fs:          embedFS,
+			pathLinux:   "..",
+			pathWindows: "..",
+			isAbs:       false,
+		},
+	}
+	for i := range tests {
+		test := tests[i]
+		fsType := ""
+		if test.fs != nil {
+			fsType = fmt.Sprintf("%v", test.fs.GetType())
+		}
+
+		var testPath string
+		if platform.IsWindows() {
+			testPath = test.pathWindows
+		} else {
+			testPath = test.pathLinux
+		}
+
+		t.Run(fmt.Sprintf("%v %v %v", fsType, i, testPath), func(t *testing.T) {
+			assert.Equal(t, test.isAbs, FilePathIsAbs(test.fs, testPath))
+		})
+	}
+}
+
+func TestFilePathExt(t *testing.T) {
+	embedFS, err := NewEmbedFileSystem(&testContent)
+	require.NoError(t, err)
+	tests := []struct {
+		fs          FS
+		pathLinux   string
+		pathWindows string
+		ext         string
+	}{
+		{
+			fs:          nil,
+			pathLinux:   "test1/test2.test",
+			pathWindows: "test1\\test2.test",
+			ext:         "",
+		},
+		{
+			fs:          NewStandardFileSystem(),
+			pathLinux:   "test1/test2.test",
+			pathWindows: "test1\\test2.test",
+			ext:         ".test",
+		},
+		{
+			fs:          embedFS,
+			pathLinux:   "test1/test2.test",
+			pathWindows: "test1/test2.test",
+			ext:         ".test",
+		},
+		{
+			fs:          embedFS,
+			pathLinux:   `test1\test2.test`,
+			pathWindows: `test1\test2.test`,
+			ext:         ".test",
+		},
+		{
+			fs:          embedFS,
+			pathLinux:   "test1/test2",
+			pathWindows: "test1/test2",
+			ext:         "",
+		},
+		{
+			fs:          embedFS,
+			pathLinux:   `test1\test2`,
+			pathWindows: `test1\test2`,
+			ext:         "",
+		},
+	}
+	for i := range tests {
+		test := tests[i]
+		fsType := ""
+		if test.fs != nil {
+			fsType = fmt.Sprintf("%v", test.fs.GetType())
+		}
+
+		var testPath string
+		if platform.IsWindows() {
+			testPath = test.pathWindows
+		} else {
+			testPath = test.pathLinux
+		}
+
+		t.Run(fmt.Sprintf("%v %v %v", fsType, i, testPath), func(t *testing.T) {
+			assert.Equal(t, test.ext, FilePathExt(test.fs, testPath))
+		})
+	}
+}
+
+func TestFilePathSplit(t *testing.T) {
+	embedFS, err := NewEmbedFileSystem(&testContent)
+	require.NoError(t, err)
+	tests := []struct {
+		fs          FS
+		pathLinux   string
+		pathWindows string
+		dir         string
+		file        string
+	}{
+		{
+			fs:          nil,
+			pathLinux:   "test1/test2.test",
+			pathWindows: "test1\\test2.test",
+			dir:         "",
+			file:        "",
+		},
+		{
+			fs:          NewStandardFileSystem(),
+			pathLinux:   "test1/test2.test",
+			pathWindows: `test1\test2.test`,
+			dir:         FilePathToPlatformPathSeparator(NewTestFilesystem(t, '\\'), `test1\`),
+			file:        "test2.test",
+		},
+		{
+			fs:          embedFS,
+			pathLinux:   "test1/test2.test",
+			pathWindows: "test1/test2.test",
+			dir:         "test1/",
+			file:        "test2.test",
+		},
+		{
+			fs:          embedFS,
+			pathLinux:   `test1\test2.test`,
+			pathWindows: `test1\test2.test`,
+			dir:         "",
+			file:        `test1\test2.test`,
+		},
+	}
+	for i := range tests {
+		test := tests[i]
+		fsType := ""
+		if test.fs != nil {
+			fsType = fmt.Sprintf("%v", test.fs.GetType())
+		}
+
+		var testPath string
+		if platform.IsWindows() {
+			testPath = test.pathWindows
+		} else {
+			testPath = test.pathLinux
+		}
+
+		t.Run(fmt.Sprintf("%v %v %v", fsType, i, testPath), func(t *testing.T) {
+			dir, file := FilePathSplit(test.fs, testPath)
+			assert.Equal(t, test.dir, dir)
+			assert.Equal(t, test.file, file)
+		})
+	}
+}
+
+func TestFilePathVolume(t *testing.T) {
+	assert.Empty(t, FilePathVolumeName(nil, "C:"))
+	assert.Equal(t, "C:", FilePathVolumeName(NewTestFilesystem(t, '\\'), "C:"))
+	assert.Equal(t, "C:", FilePathVolumeName(NewTestFilesystem(t, '\\'), "C://"))
+	assert.Equal(t, "C:", FilePathVolumeName(NewTestFilesystem(t, '/'), "C://"))
 }

@@ -7,7 +7,6 @@ package filesystem
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -568,7 +567,7 @@ func TestLink(t *testing.T) {
 			hardlink := filepath.Join(tmpDir, "hardlink-tofile")
 
 			err = fs.Symlink(tmpFile, symlink)
-			if errors.Is(err, commonerrors.ErrNotImplemented) || errors.Is(err, afero.ErrNoSymlink) {
+			if commonerrors.Any(err, commonerrors.ErrNotImplemented, commonerrors.ErrForbidden, afero.ErrNoSymlink) {
 				return
 			}
 			require.NoError(t, err)

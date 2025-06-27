@@ -29,6 +29,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/reflection"
 	"github.com/ARM-software/golang-utils/utils/resource"
 	"github.com/ARM-software/golang-utils/utils/safeio"
+	"github.com/ARM-software/golang-utils/utils/units/size"
 )
 
 var (
@@ -140,7 +141,7 @@ func (fs *VFS) WalkWithContextAndExclusionPatterns(ctx context.Context, root str
 	if err != nil {
 		return
 	}
-	root = filepath.Join(root, string(fs.PathSeparator()))
+	root = FilePathJoin(fs, root, string(fs.PathSeparator()))
 	exclusionRegex, err := NewExclusionRegexList(fs.PathSeparator(), exclusionPatterns...)
 	if err != nil {
 		return
@@ -200,7 +201,7 @@ func (fs *VFS) walk(ctx context.Context, path string, info os.FileInfo, exclusio
 		if subErr != nil {
 			return subErr
 		}
-		filename := filepath.Join(path, itemName)
+		filename := FilePathJoin(fs, path, itemName)
 		fileInfo, subErr := fs.Lstat(filename)
 		if subErr != nil {
 			if err := fn(filename, fileInfo, subErr); err != nil && err != filepath.SkipDir {
@@ -371,11 +372,12 @@ func (fs *VFS) ReadFileContent(ctx context.Context, file File, limits ILimits) (
 		return
 	}
 	if file == nil {
-		err = fmt.Errorf("%w: missing file definition", commonerrors.ErrUndefined)
+		err = commonerrors.UndefinedVariable("file definition")
 		return
 	}
 	if limits == nil {
-		err = fmt.Errorf("%w: missing file system limits definition", commonerrors.ErrUndefined)
+		err = commonerrors.UndefinedVariable("file-system limits definition")
+
 		return
 	}
 	var bufferCapacity int64 = bytes.MinRead
@@ -391,7 +393,11 @@ func (fs *VFS) ReadFileContent(ctx context.Context, file File, limits ILimits) (
 			bufferCapacity += fileSize
 		}
 		if limits.Apply() && fileSize > max {
-			err = fmt.Errorf("%w: file [%v] is bigger than allowed size [%vB]", commonerrors.ErrTooLarge, file.Name(), max)
+			maxSize, e := size.FormatSizeAsBinarySI(float64(max), 2)
+			if e != nil {
+				maxSize = fmt.Sprintf("%vB", max)
+			}
+			err = commonerrors.Newf(commonerrors.ErrTooLarge, "file [%v] is bigger than allowed size [%v]", file.Name(), maxSize)
 			return
 		}
 	}
@@ -444,7 +450,7 @@ func (fs *VFS) WriteToFile(ctx context.Context, filename string, reader io.Reade
 		return
 	}
 	if written == 0 {
-		err = fmt.Errorf("%w: no bytes were written", commonerrors.ErrEmpty)
+		err = commonerrors.New(commonerrors.ErrEmpty, "no bytes were written")
 		return
 	}
 	err = f.Close()
@@ -626,7 +632,7 @@ func (fs *VFS) removeFileWithContext(ctx context.Context, dir, f string) (err er
 	if err != nil {
 		return
 	}
-	err = fs.RemoveWithContext(ctx, filepath.Join(dir, f))
+	err = fs.RemoveWithContext(ctx, FilePathJoin(fs, dir, f))
 	return
 }
 
@@ -689,7 +695,7 @@ func (fs *VFS) RemoveWithPrivileges(ctx context.Context, dir string) (err error)
 	}
 	currentUser, subErr := user.Current()
 	if subErr != nil {
-		err = fmt.Errorf("%w: cannot retrieve information about current user: %v", commonerrors.ErrUnexpected, subErr.Error())
+		err = commonerrors.WrapError(commonerrors.ErrUnexpected, subErr, "cannot retrieve information about current user")
 		return
 	}
 	subErr = fs.ChangeOwnership(dir, currentUser)
@@ -811,7 +817,7 @@ func (fs *VFS) IsDir(path string) (result bool, err error) {
 		return
 	}
 	if !fs.Exists(path) {
-		err = fmt.Errorf("%w: path [%v]", commonerrors.ErrNotFound, path)
+		err = commonerrors.Newf(commonerrors.ErrNotFound, "path [%v]", path)
 		return
 	}
 	fi, err := fs.Stat(path)
@@ -900,7 +906,7 @@ func (fs *VFS) MkDirAll(dir string, perm os.FileMode) (err error) {
 		return
 	}
 	if dir == "" {
-		return fmt.Errorf("missing path: %w", commonerrors.ErrUndefined)
+		return commonerrors.UndefinedVariable("path")
 	}
 	if fs.Exists(dir) {
 		return
@@ -936,7 +942,7 @@ func (fs *VFS) FindAll(dir string, extensions ...string) (files []string, err er
 	return
 }
 func (fs *VFS) findAllOfExtension(dir string, ext string) (files []string, err error) {
-	files, err = fs.Glob(filepath.Join(dir, "**", fmt.Sprintf("*.%v", strings.TrimPrefix(ext, "."))))
+	files, err = fs.Glob(FilePathJoin(fs, dir, "**", fmt.Sprintf("*.%v", strings.TrimPrefix(ext, "."))))
 	return
 }
 
@@ -953,7 +959,7 @@ func (fs *VFS) Glob(pattern string) (matches []string, err error) {
 	}
 	matches, err = doublestar.GlobOS(fs, pattern)
 	if commonerrors.Any(err, doublestar.ErrBadPattern) {
-		err = fmt.Errorf("%w: %v", commonerrors.ErrInvalid, err.Error())
+		err = commonerrors.WrapError(commonerrors.ErrInvalid, err, "")
 	}
 	return
 }
@@ -1027,15 +1033,15 @@ func (fs *VFS) Chtimes(name string, atime time.Time, mtime time.Time) (err error
 
 func (fs *VFS) ChangeOwnership(name string, owner *user.User) error {
 	if owner == nil {
-		return fmt.Errorf("%w: missing user definition", commonerrors.ErrUndefined)
+		return commonerrors.UndefinedVariable("user definition")
 	}
 	uid, err := strconv.Atoi(owner.Uid)
 	if err != nil {
-		return fmt.Errorf("%w: cannot parse owner uid", commonerrors.ErrUnexpected)
+		return commonerrors.New(commonerrors.ErrUnexpected, "cannot parse owner uid")
 	}
 	gid, err := strconv.Atoi(owner.Gid)
 	if err != nil {
-		return fmt.Errorf("%w: cannot parse owner gid", commonerrors.ErrUnexpected)
+		return commonerrors.New(commonerrors.ErrUnexpected, "cannot parse owner gid")
 	}
 	return fs.Chown(name, uid, gid)
 }
@@ -1050,7 +1056,7 @@ func (fs *VFS) ChangeOwnershipRecursively(ctx context.Context, path string, owne
 		return
 	}
 	if owner == nil {
-		return fmt.Errorf("%w: missing user definition", commonerrors.ErrUndefined)
+		return commonerrors.UndefinedVariable("user definition")
 	}
 	err = fs.WalkWithContext(ctx, path, func(subPath string, info os.FileInfo, subErr error) error {
 		if subErr != nil {
@@ -1102,7 +1108,7 @@ func (fs *VFS) FetchOwners(name string) (uid, gid int, err error) {
 		return
 	}
 	if stat == nil {
-		err = fmt.Errorf("%w: missing file info", commonerrors.ErrUndefined)
+		err = commonerrors.UndefinedVariable("file information")
 		return
 	}
 	if reflection.IsEmpty(stat.Sys()) {
@@ -1120,7 +1126,7 @@ func (fs *VFS) FetchFileOwner(name string) (owner *user.User, err error) {
 	}
 	owner, err = user.LookupId(strconv.Itoa(uid))
 	if err != nil {
-		err = fmt.Errorf("%w: user [`%v`] could not be found: %v", commonerrors.ErrNotFound, uid, err.Error())
+		err = commonerrors.WrapErrorf(commonerrors.ErrNotFound, err, "user [`%v`] could not be found", uid)
 	}
 	return
 }
@@ -1209,7 +1215,7 @@ func (fs *VFS) LsRecursiveWithExclusionPatternsAndLimits(ctx context.Context, di
 		return
 	}
 	if limits == nil {
-		err = fmt.Errorf("%w: missing file system limits", commonerrors.ErrUndefined)
+		err = commonerrors.UndefinedVariable("file-system limits")
 		return
 	}
 
@@ -1228,7 +1234,7 @@ func (fs *VFS) LsRecursiveWithExclusionPatternsAndLimits(ctx context.Context, di
 		}
 
 		if limits.Apply() && int64(len(files)) >= limits.GetMaxFileCount() {
-			return fmt.Errorf("number of files exceeds the limit of %d: %w", limits.GetMaxFileCount(), commonerrors.ErrTooLarge)
+			return commonerrors.Newf(commonerrors.ErrTooLarge, "number of files exceeds the limit of %d", limits.GetMaxFileCount())
 		}
 
 		if includeDirectories || !info.IsDir() {
@@ -1244,7 +1250,7 @@ func (fs *VFS) LsRecursiveWithExclusionPatternsAndLimits(ctx context.Context, di
 
 func LsWithExclusionPatterns(fs FS, dir string, regexes []*regexp.Regexp) (names []string, err error) {
 	if isDir, subErr := fs.IsDir(dir); !isDir || subErr != nil {
-		err = fmt.Errorf("path [%v] is not a directory: %w", dir, commonerrors.ErrInvalid)
+		err = commonerrors.Newf(commonerrors.ErrConflict, "path [%v] is not a directory", dir)
 		return
 	}
 	f, err := fs.GenericOpen(dir)
@@ -1267,7 +1273,7 @@ func (fs *VFS) LsFromOpenedDirectory(dir File) ([]string, error) {
 		return nil, err
 	}
 	if dir == nil {
-		return nil, fmt.Errorf("%w: nil directory", commonerrors.ErrUndefined)
+		return nil, commonerrors.UndefinedVariable("directory")
 	}
 	return dir.Readdirnames(-1)
 }
@@ -1278,11 +1284,11 @@ func (fs *VFS) LsRecursiveFromOpenedDirectory(ctx context.Context, dir File, inc
 		return
 	}
 	if dir == nil {
-		return nil, fmt.Errorf("%w: supplied directory was undefined", commonerrors.ErrUndefined)
+		return nil, commonerrors.UndefinedVariable("directory")
 	}
 	err = fs.checkWhetherUnderlyingResourceIsClosed()
 	if err != nil {
-		return nil, fmt.Errorf("%w: underlying resource is closed", commonerrors.ErrUndefined)
+		return nil, commonerrors.New(commonerrors.ErrUndefined, "underlying resource is closed")
 	}
 
 	return fs.LsRecursive(ctx, dir.Name(), includeDirectories)
@@ -1294,7 +1300,7 @@ func (fs *VFS) Lls(dir string) (files []os.FileInfo, err error) {
 		return
 	}
 	if isDir, err := fs.IsDir(dir); !isDir || err != nil {
-		err = fmt.Errorf("path [%v] is not a directory: %w", dir, commonerrors.ErrInvalid)
+		err = commonerrors.Newf(commonerrors.ErrConflict, "path [%v] is not a directory", dir)
 		return nil, err
 	}
 	f, err := fs.GenericOpen(dir)
@@ -1312,7 +1318,7 @@ func (fs *VFS) LlsFromOpenedDirectory(dir File) ([]os.FileInfo, error) {
 		return nil, err
 	}
 	if dir == nil {
-		return nil, fmt.Errorf("%w: nil directory", commonerrors.ErrUndefined)
+		return nil, commonerrors.UndefinedVariable("directory")
 	}
 	return dir.Readdir(-1)
 }
@@ -1327,10 +1333,10 @@ func (fs *VFS) ConvertToAbsolutePath(rootPath string, paths ...string) ([]string
 	for i := range paths {
 		path := paths[i]
 		var abs string
-		if filepath.IsAbs(path) {
+		if FilePathIsAbs(fs, path) {
 			abs = fs.ConvertFilePath(path)
 		} else {
-			abs = fs.ConvertFilePath(filepath.Join(basepath, path))
+			abs = fs.ConvertFilePath(FilePathJoin(fs, basepath, path))
 		}
 		converted = append(converted, abs)
 	}
@@ -1346,7 +1352,7 @@ func (fs *VFS) ConvertToRelativePath(rootPath string, paths ...string) ([]string
 	converted := make([]string, 0, len(paths))
 	for i := range paths {
 		path := paths[i]
-		relPath, err := filepath.Rel(basepath, fs.ConvertFilePath(path))
+		relPath, err := FilePathRel(fs, basepath, fs.ConvertFilePath(path))
 		if err != nil {
 			return nil, err
 		}
@@ -1376,10 +1382,10 @@ func (fs *VFS) MoveWithContext(ctx context.Context, src string, dest string) (er
 		return
 	}
 	if !fs.Exists(src) {
-		err = fmt.Errorf("path [%v] does not exist: %w", src, commonerrors.ErrNotFound)
+		err = commonerrors.Newf(commonerrors.ErrNotFound, "path [%v] does not exist", src)
 		return
 	}
-	err = fs.MkDir(filepath.Dir(dest))
+	err = fs.MkDir(FilePathDir(fs, dest))
 	if err != nil {
 		return
 	}
@@ -1427,7 +1433,7 @@ func (fs *VFS) moveFolder(ctx context.Context, src string, dest string) (err err
 		}
 		for i := range files {
 			f := files[i]
-			err = fs.MoveWithContext(ctx, filepath.Join(src, f), filepath.Join(dest, f))
+			err = fs.MoveWithContext(ctx, FilePathJoin(fs, src, f), FilePathJoin(fs, dest, f))
 			if err != nil {
 				return err
 			}
@@ -1515,7 +1521,7 @@ func (fs *VFS) CopyToFileWithContext(ctx context.Context, src string, dest strin
 		return
 	}
 	if !isFile {
-		err = fmt.Errorf("%w: the copy source [%v] must be a file", commonerrors.ErrInvalid, src)
+		err = commonerrors.Newf(commonerrors.ErrInvalid, "the copy source [%v] must be a file", src)
 		return
 	}
 	if fs.Exists(dest) {
@@ -1524,11 +1530,11 @@ func (fs *VFS) CopyToFileWithContext(ctx context.Context, src string, dest strin
 			return
 		}
 		if !isFile {
-			err = fmt.Errorf("%w: the copy destination [%v] must be a file", commonerrors.ErrInvalid, dest)
+			err = commonerrors.Newf(commonerrors.ErrInvalid, "the copy destination [%v] must be a file", dest)
 			return
 		}
 	} else if reflection.IsEmpty(dest) || EndsWithPathSeparator(fs, dest) {
-		err = fmt.Errorf("%w: the copy destination [%v] must be a valid filename", commonerrors.ErrInvalid, dest)
+		err = commonerrors.Newf(commonerrors.ErrInvalid, "the copy destination [%v] must be a valid filename", dest)
 		return
 	}
 
@@ -1617,7 +1623,7 @@ func CopyBetweenFSWithExclusionRegexes(ctx context.Context, srcFs FS, src string
 		return
 	}
 	if !srcFs.Exists(src) {
-		err = fmt.Errorf("path [%v] does not exist: %w", src, commonerrors.ErrNotFound)
+		err = commonerrors.Newf(commonerrors.ErrNotFound, "path [%v] does not exist", src)
 		return
 	}
 	isSrcDir, err := srcFs.IsDir(src)
@@ -1641,7 +1647,7 @@ func CopyBetweenFSWithExclusionRegexes(ctx context.Context, srcFs FS, src string
 				err = destFs.MkDir(dest)
 			} else {
 				isDestDir = false
-				err = destFs.MkDir(filepath.Dir(dest))
+				err = destFs.MkDir(FilePathDir(destFs, dest))
 			}
 		}
 		if err != nil {
@@ -1651,7 +1657,7 @@ func CopyBetweenFSWithExclusionRegexes(ctx context.Context, srcFs FS, src string
 
 	var dst string
 	if !(isSrcDir && !destExists) && isDestDir {
-		dst = filepath.Join(dest, filepath.Base(src))
+		dst = FilePathJoin(destFs, dest, FilePathBase(srcFs, src))
 	} else {
 		dst = dest
 	}
@@ -1685,7 +1691,7 @@ func copyFolderBetweenFSWithExclusionRegexes(ctx context.Context, srcFs FS, src 
 			return err
 		}
 		for i := range files {
-			srcPath := filepath.Join(src, files[i])
+			srcPath := FilePathJoin(srcFs, src, files[i])
 			err = CopyBetweenFSWithExclusionRegexes(ctx, srcFs, srcPath, destFs, dest, exclusionSrcFsRegexes, exclusionDestFsRegexes)
 			if err != nil {
 				return err
@@ -1844,7 +1850,7 @@ func ListDirTreeWithContextAndExclusionPatterns(ctx context.Context, fs FS, dirP
 		return
 	}
 	if list == nil {
-		err = fmt.Errorf("uninitialised input variable: %w", commonerrors.ErrInvalid)
+		err = commonerrors.New(commonerrors.ErrInvalid, "uninitialised input slice")
 		return
 	}
 
@@ -1859,7 +1865,7 @@ func ListDirTreeWithContextAndExclusionPatterns(ctx context.Context, fs FS, dirP
 			err = subErr
 			return
 		}
-		path := filepath.Join(dirPath, elements[i])
+		path := FilePathJoin(fs, dirPath, elements[i])
 		*list = append(*list, path)
 		if isDir, _ := fs.IsDir(path); isDir {
 			subErr = ListDirTreeWithContextAndExclusionPatterns(ctx, fs, path, list, regexes)
@@ -1944,7 +1950,7 @@ func (fs *VFS) garbageCollectDir(ctx context.Context, durationSinceLastAccess ti
 		return
 	}
 	_, _ = parallelisation.Parallelise(files, func(arg interface{}) (interface{}, error) {
-		file := filepath.Join(path, arg.(string))
+		file := FilePathJoin(fs, path, arg.(string))
 		return nil, fs.garbageCollect(ctx, durationSinceLastAccess, file, true)
 	}, nil)
 	err = parallelisation.DetermineContextError(ctx)

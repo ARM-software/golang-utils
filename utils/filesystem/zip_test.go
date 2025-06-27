@@ -33,9 +33,9 @@ func TestZip(t *testing.T) {
 					require.NoError(t, err)
 					defer func() { _ = fs.Rm(tmpDir) }()
 
-					testDir := filepath.Join(tmpDir, "test") // remember to read tmpdir at beginning
-					zipfile := filepath.Join(tmpDir, "test.zip")
-					outDir := filepath.Join(tmpDir, "output")
+					testDir := FilePathJoin(fs, tmpDir, "test") // remember to read tmpdir at beginning
+					zipfile := FilePathJoin(fs, tmpDir, "test.zip")
+					outDir := FilePathJoin(fs, tmpDir, "output")
 
 					// create a file tree for the test
 					// Regarding timestamp preservation, the following link should be read as it gives some insight about how zip tools work or behave
@@ -68,10 +68,10 @@ func TestZip(t *testing.T) {
 
 					// check for size, timestamp, hash preservation
 					for _, path := range relativeSrcTree {
-						srcFilePath := filepath.Join(testDir, path)
+						srcFilePath := FilePathJoin(fs, testDir, path)
 						fileinfoSrc, err := fs.Lstat(srcFilePath)
 						require.NoError(t, err)
-						resultFilePath := filepath.Join(outDir, path)
+						resultFilePath := FilePathJoin(fs, outDir, path)
 						fileinfoResult, err := fs.Lstat(resultFilePath)
 						require.NoError(t, err)
 						// TODO handle links separately
@@ -89,9 +89,9 @@ func TestZip(t *testing.T) {
 							// see comment above
 							assert.True(t, math.Abs(fileinfoSrc.ModTime().Sub(fileinfoResult.ModTime()).Seconds()) <= 2)
 
-							fileTimesSrc, err := fs.StatTimes(filepath.Join(testDir, path))
+							fileTimesSrc, err := fs.StatTimes(FilePathJoin(fs, testDir, path))
 							require.NoError(t, err)
-							fileTimeResult, err := fs.StatTimes(filepath.Join(outDir, path))
+							fileTimeResult, err := fs.StatTimes(FilePathJoin(fs, outDir, path))
 							require.NoError(t, err)
 							assert.True(t, math.Abs(fileTimesSrc.ModTime().Sub(fileTimeResult.ModTime()).Seconds()) <= 2)
 						}
@@ -125,9 +125,9 @@ func TestZipWithExclusion(t *testing.T) {
 					require.NoError(t, err)
 					defer func() { _ = fs.Rm(tmpDir) }()
 
-					testDir := filepath.Join(tmpDir, "test") // remember to read tmpdir at beginning
-					zipfile := filepath.Join(tmpDir, "test.zip")
-					outDir := filepath.Join(tmpDir, "output")
+					testDir := FilePathJoin(fs, tmpDir, "test") // remember to read tmpdir at beginning
+					zipfile := FilePathJoin(fs, tmpDir, "test.zip")
+					outDir := FilePathJoin(fs, tmpDir, "output")
 
 					// create a file tree for the test
 					tree := GenerateTestFileTree(t, fs, testDir, "", false, time.Now().Add(-3*time.Second), time.Now())
@@ -175,67 +175,67 @@ func Test_IsZip(t *testing.T) {
 			isZip:    false,
 		},
 		{
-			testFile: filepath.Join(testInDir, "5MB.zip"),
+			testFile: FilePathJoin(fs, testInDir, "5MB.zip"),
 			isZip:    false,
 		},
 		{
-			testFile: filepath.Join(testInDir, "1KB.bin"),
+			testFile: FilePathJoin(fs, testInDir, "1KB.bin"),
 			isZip:    false,
 		},
 		{
-			testFile: filepath.Join(testInDir, "1KB.gz"),
+			testFile: FilePathJoin(fs, testInDir, "1KB.gz"),
 			isZip:    false,
 		},
 		{
-			testFile: filepath.Join(testInDir, "unknownfile.zip"),
+			testFile: FilePathJoin(fs, testInDir, "unknownfile.zip"),
 			isZip:    true, // File does not exist but has a ZIP name
 		},
 		{
-			testFile: filepath.Join(testInDir, "unknownfile.zipx"),
+			testFile: FilePathJoin(fs, testInDir, "unknownfile.zipx"),
 			isZip:    true, // File does not exist but has a ZIP name
 		},
 		{
-			testFile: filepath.Join(testInDir, "invalidzipfile.zip"),
+			testFile: FilePathJoin(fs, testInDir, "invalidzipfile.zip"),
 			isZip:    false,
 		},
 		{
-			testFile: filepath.Join(testInDir, "testunzip2.7z"),
+			testFile: FilePathJoin(fs, testInDir, "testunzip2.7z"),
 			isZip:    false,
 		},
 		{
-			testFile: filepath.Join(testInDir, "testunzip.zip"),
+			testFile: FilePathJoin(fs, testInDir, "testunzip.zip"),
 			isZip:    true,
 		},
 		{
-			testFile: filepath.Join(testInDir, "42.zip"),
+			testFile: FilePathJoin(fs, testInDir, "42.zip"),
 			isZip:    true,
 		},
 		{
-			testFile: filepath.Join(testInDir, "zip-bomb.zip"),
+			testFile: FilePathJoin(fs, testInDir, "zip-bomb.zip"),
 			isZip:    true,
 		},
 		{
-			testFile: filepath.Join(testInDir, "zbsm.zip"),
+			testFile: FilePathJoin(fs, testInDir, "zbsm.zip"),
 			isZip:    true,
 		},
 		{
-			testFile: filepath.Join(testInDir, "zipwithnonutf8.zip"),
+			testFile: FilePathJoin(fs, testInDir, "zipwithnonutf8.zip"),
 			isZip:    true,
 		},
 		{
-			testFile: filepath.Join(testInDir, "zipwithnonutf8filenames2.zip"),
+			testFile: FilePathJoin(fs, testInDir, "zipwithnonutf8filenames2.zip"),
 			isZip:    true,
 		},
 		{
-			testFile: filepath.Join(testInDir, "k64f.pack"),
+			testFile: FilePathJoin(fs, testInDir, "k64f.pack"),
 			isZip:    true,
 		},
 		{
-			testFile: filepath.Join(testInDir, "10.zip"),
+			testFile: FilePathJoin(fs, testInDir, "10.zip"),
 			isZip:    true,
 		},
 		{
-			testFile: filepath.Join(testInDir, "child.zip"),
+			testFile: FilePathJoin(fs, testInDir, "child.zip"),
 			isZip:    true,
 		},
 	}
@@ -252,7 +252,7 @@ func TestUnzip_Limits(t *testing.T) {
 
 	testInDir := "testdata"
 	testFile := "validlargezipfile"
-	srcPath := filepath.Join(testInDir, testFile+".zip")
+	srcPath := FilePathJoin(fs, testInDir, testFile+".zip")
 	destPath, err := fs.TempDirInTempDir("unzip-limits-")
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
@@ -327,7 +327,7 @@ func TestUnzip_ZipBomb(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.testFile, func(t *testing.T) {
-			srcPath := filepath.Join(testInDir, test.testFile+".zip")
+			srcPath := FilePathJoin(fs, testInDir, test.testFile+".zip")
 
 			_, err = fs.UnzipWithContextAndLimits(context.Background(), srcPath, destPath, limits)
 			assert.Error(t, err)
@@ -342,18 +342,18 @@ func TestUnzip(t *testing.T) {
 
 	testInDir := "testdata"
 	testFile := "testunzip"
-	srcPath := filepath.Join(testInDir, testFile+".zip")
+	srcPath := FilePathJoin(fs, testInDir, testFile+".zip")
 	destPath, err := fs.TempDirInTempDir("unzip")
 	require.NoError(t, err)
 	defer func() { _ = fs.Rm(destPath) }()
-	outPath := filepath.Join(destPath, testFile)
+	outPath := FilePathJoin(fs, destPath, testFile)
 	expectedfileList := []string{
-		filepath.Join(outPath, "readme.txt"),
-		filepath.Join(outPath, "test.txt"),
-		filepath.Join(outPath, "todo.txt"),
-		filepath.Join(outPath, "child.zip"),
-		filepath.Join(outPath, "L'irrǸsolution est toujours une marque de faiblesse.txt"),
-		filepath.Join(outPath, "ไป ไหน มา.txt"),
+		FilePathJoin(fs, outPath, "readme.txt"),
+		FilePathJoin(fs, outPath, "test.txt"),
+		FilePathJoin(fs, outPath, "todo.txt"),
+		FilePathJoin(fs, outPath, "child.zip"),
+		FilePathJoin(fs, outPath, "L'irrǸsolution est toujours une marque de faiblesse.txt"),
+		FilePathJoin(fs, outPath, "ไป ไหน มา.txt"),
 	}
 	sort.Strings(expectedfileList)
 
@@ -381,7 +381,7 @@ func TestUnzip_NonRecursive(t *testing.T) {
 		expectedTopFolder bool
 	}{
 		{
-			zipFile: filepath.Join(testInDir, "testunzip.zip"),
+			zipFile: FilePathJoin(fs, testInDir, "testunzip.zip"),
 			expectedfileList: []string{
 				"readme.txt",
 				"test.txt",
@@ -393,7 +393,7 @@ func TestUnzip_NonRecursive(t *testing.T) {
 			expectedTopFolder: true,
 		},
 		{
-			zipFile: filepath.Join(testInDir, "testunzip2.zip"),
+			zipFile: FilePathJoin(fs, testInDir, "testunzip2.zip"),
 			expectedfileList: []string{
 				"test1.txt",
 				"test2.txt",
@@ -403,7 +403,7 @@ func TestUnzip_NonRecursive(t *testing.T) {
 			expectedTopFolder: false,
 		},
 		{
-			zipFile: filepath.Join(testInDir, "testunzip3.zip"),
+			zipFile: FilePathJoin(fs, testInDir, "testunzip3.zip"),
 			expectedfileList: []string{
 				"testunzip2.7z",
 				"testunzip2.zip",
@@ -419,7 +419,7 @@ func TestUnzip_NonRecursive(t *testing.T) {
 		t.Run(fmt.Sprintf("#%v %v", i, FilepathStem(test.zipFile)), func(t *testing.T) {
 			var outPath string
 			if test.expectedTopFolder {
-				outPath = filepath.Join(destPath, FilepathStem(test.zipFile))
+				outPath = FilePathJoin(fs, destPath, FilepathStem(test.zipFile))
 			} else {
 				outPath = destPath
 			}
@@ -452,63 +452,63 @@ func TestUnzip_Recursive(t *testing.T) {
 		expectedError     error
 	}{
 		{
-			zipFile: filepath.Join(testInDir, "testunzip.zip"),
+			zipFile: FilePathJoin(fs, testInDir, "testunzip.zip"),
 			expectedfileList: []string{
 				"readme.txt",
 				"test.txt",
 				"todo.txt",
 				"L'irrǸsolution est toujours une marque de faiblesse.txt",
 				"ไป ไหน มา.txt",
-				filepath.Join("child", "readme.txt"),
-				filepath.Join("child", "test.txt"),
-				filepath.Join("child", "todo.txt"),
+				FilePathJoin(fs, "child", "readme.txt"),
+				FilePathJoin(fs, "child", "test.txt"),
+				FilePathJoin(fs, "child", "todo.txt"),
 			},
 			expectedTopFolder: true,
 		},
 		{
-			zipFile: filepath.Join(testInDir, "testunzip2.zip"),
+			zipFile: FilePathJoin(fs, testInDir, "testunzip2.zip"),
 			expectedfileList: []string{
 				"test1.txt",
 				"test2.txt",
-				filepath.Join("child", "readme.txt"),
-				filepath.Join("child", "test.txt"),
-				filepath.Join("child", "todo.txt"),
-				filepath.Join("testunzip", "testunzip", "readme.txt"),
-				filepath.Join("testunzip", "testunzip", "test.txt"),
-				filepath.Join("testunzip", "testunzip", "todo.txt"),
-				filepath.Join("testunzip", "testunzip", "L'irrǸsolution est toujours une marque de faiblesse.txt"),
-				filepath.Join("testunzip", "testunzip", "ไป ไหน มา.txt"),
-				filepath.Join("testunzip", "testunzip", "child", "readme.txt"),
-				filepath.Join("testunzip", "testunzip", "child", "test.txt"),
-				filepath.Join("testunzip", "testunzip", "child", "todo.txt"),
+				FilePathJoin(fs, "child", "readme.txt"),
+				FilePathJoin(fs, "child", "test.txt"),
+				FilePathJoin(fs, "child", "todo.txt"),
+				FilePathJoin(fs, "testunzip", "testunzip", "readme.txt"),
+				FilePathJoin(fs, "testunzip", "testunzip", "test.txt"),
+				FilePathJoin(fs, "testunzip", "testunzip", "todo.txt"),
+				FilePathJoin(fs, "testunzip", "testunzip", "L'irrǸsolution est toujours une marque de faiblesse.txt"),
+				FilePathJoin(fs, "testunzip", "testunzip", "ไป ไหน มา.txt"),
+				FilePathJoin(fs, "testunzip", "testunzip", "child", "readme.txt"),
+				FilePathJoin(fs, "testunzip", "testunzip", "child", "test.txt"),
+				FilePathJoin(fs, "testunzip", "testunzip", "child", "todo.txt"),
 			},
 			expectedTopFolder: false,
 		},
 		{
-			zipFile: filepath.Join(testInDir, "testunzip3.zip"),
+			zipFile: FilePathJoin(fs, testInDir, "testunzip3.zip"),
 			expectedfileList: []string{
 				"test1.txt",
 				"test2.txt",
 				"testunzip2.7z",
-				filepath.Join("testunzip2", "testunzip2"),
-				filepath.Join("testunzip2", "testunzip2", "test1.txt"),
-				filepath.Join("testunzip2", "testunzip2", "test2.txt"),
-				filepath.Join("testunzip2", "testunzip2", "testunzip", "testunzip", "L'irrǸsolution est toujours une marque de faiblesse.txt"),
-				filepath.Join("testunzip2", "testunzip2", "testunzip", "testunzip", "child", "readme.txt"),
-				filepath.Join("testunzip2", "testunzip2", "testunzip", "testunzip", "child", "test.txt"),
-				filepath.Join("testunzip2", "testunzip2", "testunzip", "testunzip", "child", "todo.txt"),
-				filepath.Join("testunzip2", "testunzip2", "testunzip", "testunzip", "readme.txt"),
-				filepath.Join("testunzip2", "testunzip2", "testunzip", "testunzip", "test.txt"),
-				filepath.Join("testunzip2", "testunzip2", "testunzip", "testunzip", "todo.txt"),
-				filepath.Join("testunzip2", "testunzip2", "testunzip", "testunzip", "ไป ไหน มา.txt"),
-				filepath.Join("testunzip", "testunzip", "L'irrǸsolution est toujours une marque de faiblesse.txt"),
-				filepath.Join("testunzip", "testunzip", "child", "readme.txt"),
-				filepath.Join("testunzip", "testunzip", "child", "test.txt"),
-				filepath.Join("testunzip", "testunzip", "child", "todo.txt"),
-				filepath.Join("testunzip", "testunzip", "readme.txt"),
-				filepath.Join("testunzip", "testunzip", "test.txt"),
-				filepath.Join("testunzip", "testunzip", "todo.txt"),
-				filepath.Join("testunzip", "testunzip", "ไป ไหน มา.txt")},
+				FilePathJoin(fs, "testunzip2", "testunzip2"),
+				FilePathJoin(fs, "testunzip2", "testunzip2", "test1.txt"),
+				FilePathJoin(fs, "testunzip2", "testunzip2", "test2.txt"),
+				FilePathJoin(fs, "testunzip2", "testunzip2", "testunzip", "testunzip", "L'irrǸsolution est toujours une marque de faiblesse.txt"),
+				FilePathJoin(fs, "testunzip2", "testunzip2", "testunzip", "testunzip", "child", "readme.txt"),
+				FilePathJoin(fs, "testunzip2", "testunzip2", "testunzip", "testunzip", "child", "test.txt"),
+				FilePathJoin(fs, "testunzip2", "testunzip2", "testunzip", "testunzip", "child", "todo.txt"),
+				FilePathJoin(fs, "testunzip2", "testunzip2", "testunzip", "testunzip", "readme.txt"),
+				FilePathJoin(fs, "testunzip2", "testunzip2", "testunzip", "testunzip", "test.txt"),
+				FilePathJoin(fs, "testunzip2", "testunzip2", "testunzip", "testunzip", "todo.txt"),
+				FilePathJoin(fs, "testunzip2", "testunzip2", "testunzip", "testunzip", "ไป ไหน มา.txt"),
+				FilePathJoin(fs, "testunzip", "testunzip", "L'irrǸsolution est toujours une marque de faiblesse.txt"),
+				FilePathJoin(fs, "testunzip", "testunzip", "child", "readme.txt"),
+				FilePathJoin(fs, "testunzip", "testunzip", "child", "test.txt"),
+				FilePathJoin(fs, "testunzip", "testunzip", "child", "todo.txt"),
+				FilePathJoin(fs, "testunzip", "testunzip", "readme.txt"),
+				FilePathJoin(fs, "testunzip", "testunzip", "test.txt"),
+				FilePathJoin(fs, "testunzip", "testunzip", "todo.txt"),
+				FilePathJoin(fs, "testunzip", "testunzip", "ไป ไหน มา.txt")},
 			expectedTopFolder: false,
 		},
 	}
@@ -517,7 +517,7 @@ func TestUnzip_Recursive(t *testing.T) {
 		t.Run(fmt.Sprintf("#%v %v", i, FilepathStem(test.zipFile)), func(t *testing.T) {
 			var outPath string
 			if test.expectedTopFolder {
-				outPath = filepath.Join(destPath, FilepathStem(test.zipFile))
+				outPath = FilePathJoin(fs, destPath, FilepathStem(test.zipFile))
 			} else {
 				outPath = destPath
 			}
@@ -554,23 +554,23 @@ func TestUnzip_Failures(t *testing.T) {
 		expectedError error
 	}{
 		{
-			zipFile:       filepath.Join(testInDir, "unknownfile.zip"),
+			zipFile:       FilePathJoin(fs, testInDir, "unknownfile.zip"),
 			expectedError: commonerrors.ErrNotFound,
 		},
 		{
-			zipFile:       filepath.Join(testInDir, "invalidzipfile.zip"),
+			zipFile:       FilePathJoin(fs, testInDir, "invalidzipfile.zip"),
 			expectedError: commonerrors.ErrInvalid,
 		},
 		{
-			zipFile:       filepath.Join(testInDir, "testunzip2.7z"),
+			zipFile:       FilePathJoin(fs, testInDir, "testunzip2.7z"),
 			expectedError: commonerrors.ErrInvalid,
 		},
 		{
-			zipFile:       filepath.Join(testInDir, "5MB.zip"),
+			zipFile:       FilePathJoin(fs, testInDir, "5MB.zip"),
 			expectedError: commonerrors.ErrInvalid,
 		},
 		{
-			zipFile:       filepath.Join(testInDir, "1KB.gz"),
+			zipFile:       FilePathJoin(fs, testInDir, "1KB.gz"),
 			expectedError: commonerrors.ErrInvalid,
 		},
 	}
@@ -598,11 +598,11 @@ func TestUnzip_DepthLimit(t *testing.T) {
 		expectedError error
 	}{
 		{
-			zipFile:       filepath.Join(testInDir, "testunzip.zip"),
+			zipFile:       FilePathJoin(fs, testInDir, "testunzip.zip"),
 			expectedDepth: 2,
 		},
 		{
-			zipFile:       filepath.Join(testInDir, "testunzip2.zip"),
+			zipFile:       FilePathJoin(fs, testInDir, "testunzip2.zip"),
 			expectedDepth: 3,
 		},
 	}
@@ -648,11 +648,11 @@ func TestUnzipWithNonUTF8Filenames(t *testing.T) {
 		{
 			zipFile: "zipwithnonutf8filenames2.zip",
 			expectedFiles: []string{"examples",
-				filepath.Join("examples", "AN-32013 FT32F0XX\xb2\xce\xca\xfd.pdf"),
-				filepath.Join("examples", "BAT32G133_Packʹ\xd3\xc3˵\xc3\xf7.pdf"),
-				filepath.Join("examples", "OpenAtomFoundation_TencentOS-tiny_ \xcc\xdaѶ\xce\xef\xc1\xaa\xcd\xf8\xd6ն˲\xd9\xd7\xf7ϵͳ.html"),
-				filepath.Join("examples", "hello_world.c"),
-				filepath.Join("examples", "main.c"),
+				FilePathJoin(fs, "examples", "AN-32013 FT32F0XX\xb2\xce\xca\xfd.pdf"),
+				FilePathJoin(fs, "examples", "BAT32G133_Packʹ\xd3\xc3˵\xc3\xf7.pdf"),
+				FilePathJoin(fs, "examples", "OpenAtomFoundation_TencentOS-tiny_ \xcc\xdaѶ\xce\xef\xc1\xaa\xcd\xf8\xd6ն˲\xd9\xd7\xf7ϵͳ.html"),
+				FilePathJoin(fs, "examples", "hello_world.c"),
+				FilePathJoin(fs, "examples", "main.c"),
 			},
 			expectedError: nil,
 		},
@@ -667,7 +667,7 @@ func TestUnzipWithNonUTF8Filenames(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(fmt.Sprintf("zipfile_%v", test.zipFile), func(t *testing.T) {
-			srcPath := filepath.Join(testInDir, test.zipFile)
+			srcPath := FilePathJoin(fs, testInDir, test.zipFile)
 			destPath, err := fs.TempDirInTempDir("unzip")
 			require.NoError(t, err)
 			defer func() { _ = fs.Rm(destPath) }()
@@ -682,7 +682,7 @@ func TestUnzipWithNonUTF8Filenames(t *testing.T) {
 				sort.Strings(fileList)
 				var expectedFiles []string
 				for j := range test.expectedFiles {
-					expectedFiles = append(expectedFiles, filepath.Join(destPath, test.expectedFiles[j]))
+					expectedFiles = append(expectedFiles, FilePathJoin(fs, destPath, test.expectedFiles[j]))
 				}
 				sort.Strings(expectedFiles)
 				assert.NoError(t, err)
@@ -704,7 +704,7 @@ func TestUnzipFileCountLimit(t *testing.T) {
 
 	t.Run("unzip file above file count limit", func(t *testing.T) {
 		testFile := "abovefilecountlimitzip"
-		srcPath := filepath.Join(testInDir, testFile+".zip")
+		srcPath := FilePathJoin(fs, testInDir, testFile+".zip")
 
 		destPath, err := fs.TempDirInTempDir("unzip-limits-")
 		assert.NoError(t, err)
@@ -718,7 +718,7 @@ func TestUnzipFileCountLimit(t *testing.T) {
 
 	t.Run("unzip file below file count limit", func(t *testing.T) {
 		testFile := "belowfilecountlimitzip"
-		srcPath := filepath.Join(testInDir, testFile+".zip")
+		srcPath := FilePathJoin(fs, testInDir, testFile+".zip")
 
 		destPath, err := fs.TempDirInTempDir("unzip-limits-")
 		assert.NoError(t, err)
@@ -736,7 +736,7 @@ func TestUnzipFileCountLimit(t *testing.T) {
 
 func testSanitiseZipExtractPath(t *testing.T, filePath string) {
 	fs := NewStandardFileSystem()
-	dst := filepath.Join(faker.Word(), faker.Name(), faker.UUIDHyphenated(), faker.Name())
+	dst := FilePathJoin(fs, faker.Word(), faker.Name(), faker.UUIDHyphenated(), faker.Name())
 	rootDepth, err := FileTreeDepth(fs, "", dst)
 	require.NoError(t, err)
 	dest, subErr := sanitiseZipExtractPath(fs, filePath, dst)
@@ -752,4 +752,103 @@ func testSanitiseZipExtractPath(t *testing.T, filePath string) {
 func FuzzSanitiseZipExtractPath(f *testing.F) {
 	f.Add("..")
 	f.Fuzz(testSanitiseZipExtractPath)
+}
+
+func TestZipBetweenFilesystemWithDifferentFilePathSeparators(t *testing.T) {
+	fs1 := NewTestOSFilesystem(t, '\\')
+	fs2 := NewTestOSFilesystem(t, '/')
+	ctx := context.Background()
+	tests := []struct {
+		fsSrc  FS
+		fsDest FS
+	}{
+		{fs1, fs1},
+		{fs2, fs2},
+		{fs1, fs2},
+		{fs2, fs1},
+	}
+	for k := range tests {
+		fsSrc := tests[k].fsSrc
+		fsDest := tests[k].fsDest
+		t.Run(fmt.Sprintf("%v_from_fs_with_sep_%v_to_fs_with_sep_%v", t.Name(), string(fsSrc.PathSeparator()), string(fsDest.PathSeparator())), func(t *testing.T) {
+			for i := 0; i < 10; i++ {
+				func() {
+					// create a directory for the test
+					tmpDirFs1, err := fsSrc.TempDirInTempDir("zip")
+					require.NoError(t, err)
+					defer func() { _ = fsSrc.Rm(tmpDirFs1) }()
+					tmpDirFs2, err := fsDest.TempDirInTempDir("unzip")
+					require.NoError(t, err)
+					defer func() { _ = fsDest.Rm(tmpDirFs2) }()
+
+					testDirSrc := FilePathJoin(fsSrc, tmpDirFs1, "test")
+					srcZipfile := FilePathJoin(fsSrc, testDirSrc, "test.zip")
+					testDirDest := FilePathJoin(fsDest, tmpDirFs2, "test")
+					outDir := FilePathJoin(fsDest, testDirDest, "output")
+					destZipFile := FilePathJoin(fsDest, testDirDest, "test.zip")
+
+					tree := GenerateTestFileTree(t, fsSrc, testDirSrc, "", false, time.Now(), time.Now())
+					tree = append(tree, srcZipfile)
+					// zip the directory into the zipfile
+					err = fsSrc.Zip(testDirSrc, srcZipfile)
+					require.NoError(t, err)
+
+					require.NoError(t, CopyBetweenFS(ctx, fsSrc, srcZipfile, fsDest, destZipFile))
+
+					// unzip
+					tree2, err := fsDest.Unzip(destZipFile, outDir)
+					require.NoError(t, err)
+
+					// Check no files were lost in the zip/unzip process.
+					relativeSrcTree, err := fsSrc.ConvertToRelativePath(testDirSrc, tree...)
+					require.NoError(t, err)
+					relativeSrcTree = FilePathsToSlash(fsSrc, relativeSrcTree...)
+					relativeResultTree, err := fsDest.ConvertToRelativePath(outDir, tree2...)
+					require.NoError(t, err)
+					relativeResultTree = FilePathsToSlash(fsDest, relativeResultTree...)
+					sort.Strings(relativeSrcTree)
+					sort.Strings(relativeResultTree)
+					require.Equal(t, relativeSrcTree, relativeResultTree)
+
+					hasher, err := NewFileHash(hashing.HashXXHash)
+					require.NoError(t, err)
+
+					// check for size, timestamp, hash preservation
+					for _, path := range relativeSrcTree {
+						if FilePathExt(fsSrc, FilePathFromSlash(fsSrc, path)) == ".zip" {
+							continue
+						}
+						srcFilePath := FilePathJoin(fsSrc, testDirSrc, FilePathFromSlash(fsSrc, path))
+						require.True(t, fsDest.Exists(srcFilePath))
+						fileinfoSrc, err := fsSrc.Lstat(srcFilePath)
+						require.NoError(t, err)
+						resultFilePath := FilePathJoin(fsDest, outDir, FilePathFromSlash(fsDest, path))
+						require.True(t, fsDest.Exists(resultFilePath))
+						fileinfoResult, err := fsDest.Lstat(resultFilePath)
+						require.NoError(t, err)
+						// TODO handle links separately
+						if IsSymLink(fileinfoSrc) {
+							continue
+						}
+						// Check sizes
+						assert.Equal(t, fileinfoSrc.Size(), fileinfoResult.Size())
+
+						// perform hash comparison
+						if IsRegularFile(fileinfoSrc) {
+							hashSrc, err := hasher.CalculateFile(fsSrc, srcFilePath)
+							require.NoError(t, err)
+							hashResult, err := hasher.CalculateFile(fsDest, resultFilePath)
+							require.NoError(t, err)
+							assert.Equal(t, hashSrc, hashResult)
+						}
+					}
+					err = fsSrc.Rm(tmpDirFs1)
+					require.NoError(t, err)
+					err = fsDest.Rm(tmpDirFs2)
+					require.NoError(t, err)
+				}()
+			}
+		})
+	}
+
 }
