@@ -14,6 +14,29 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.102.0" (2025-06-30)
+======================
+
+Features
+--------
+
+- :sparkles: `[filesystem]` Add filepath utilities to work across file-systems no matter the underlying platform (#20250627145431)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v2-2.3.0 (#20250617102123, #20250617102125)
+- Dependency upgrade: go-retryablehttp-0.7.8 (#20250619103030, #20250619103033, #20250619103055, #20250619103104, #20250619103126, #20250619103135, #20250619103153, #20250619103203, #20250619103221, #20250619103230, #20250619103248, #20250619103256, #20250619103318, #20250619103322, #20250619103346)
+- :bug: `[filesystem]` fix [bug](https://unix.stackexchange.com/questions/166159/convert-a-windows-created-zip-to-linux-internal-paths-issue) when zipping a package on Windows and unzipping it on a different platform such as Linux (#20250627161647)
+
+
+Misc
+----
+
+- #20250613163053
+
+
 "1.101.0" (2025-06-09)
 ======================
 
