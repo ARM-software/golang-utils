@@ -9,7 +9,6 @@ package filesystem
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -73,7 +72,7 @@ func heartBeat(ctx context.Context, fs FS, period time.Duration, filepath string
 	}
 }
 func (l *RemoteLockFile) lockPath() string {
-	return filepath.Join(l.path, fmt.Sprintf("%v-%v", strings.TrimSpace(l.prefix), strings.TrimSpace(l.id)))
+	return FilePathJoin(l.fs, l.path, fmt.Sprintf("%v-%v", strings.TrimSpace(l.prefix), strings.TrimSpace(l.id)))
 }
 
 // IsStale checks whether the lock is stale (i.e. no heart beat detected) or not.
@@ -99,7 +98,7 @@ func (l *RemoteLockFile) IsStale() bool {
 func areHeartBeatFilesAllStale(fs *VFS, lockPath string, heartBeatFiles []string, lockHeartBeatPeriod time.Duration) bool {
 	staleFiles := []bool{}
 	for i := range heartBeatFiles {
-		heartBeat := filepath.Join(lockPath, heartBeatFiles[i]) // there should only be one file in the directory
+		heartBeat := FilePathJoin(fs, lockPath, heartBeatFiles[i]) // there should only be one file in the directory
 		// check the time since the heart beat was last modified.
 		// if this is less than that beat period then the lock is alive
 		info, err := fs.StatTimes(heartBeat)
@@ -165,7 +164,7 @@ func (l *RemoteLockFile) TryLock(ctx context.Context) (err error) {
 }
 
 func (l *RemoteLockFile) heartBeatFile(lockPath string) string {
-	return filepath.Join(lockPath, fmt.Sprintf("%v.lock", l.id))
+	return FilePathJoin(l.fs, lockPath, fmt.Sprintf("%v.lock", l.id))
 }
 
 // Lock locks the lock. This call will block until the lock is available.

@@ -16,10 +16,10 @@ import (
 
 // FilepathStem returns  the final path component, without its suffix. It's similar to `stem` in python's [pathlib](https://docs.python.org/3/library/pathlib.html#pathlib.PurePath.stem)
 func FilepathStem(fp string) string {
-	return strings.TrimSuffix(filepath.Base(fp), filepath.Ext(fp))
+	return FilePathStemOnFilesystem(GetGlobalFileSystem(), fp)
 }
 
-// FilepathParents returns a list of to the logical ancestors of the path and it's similar to `parents` in python's [pathlib](https://docs.python.org/3/library/pathlib.html#pathlib.PurePath.parents)
+// FilepathParents returns a list of to the logical ancestors of the path, and it's similar to `parents` in python's [pathlib](https://docs.python.org/3/library/pathlib.html#pathlib.PurePath.parents)
 func FilepathParents(fp string) []string {
 	return FilePathParentsOnFilesystem(GetGlobalFileSystem(), fp)
 }
@@ -55,16 +55,16 @@ func FilePathJoin(fs FS, element ...string) string {
 		return ""
 	}
 
-	if fs.PathSeparator() == '/' {
+	if isSlashSeparator(fs) {
 		return path.Join(element...)
 	}
 
-	joinedPath := filepath.Join(element...)
-	if fs.PathSeparator() != platform.PathListSeparator {
-		joinedPath = strings.ReplaceAll(joinedPath, string(platform.PathListSeparator), string(fs.PathSeparator()))
+	elements := make([]string, len(element))
+	for i := range elements {
+		elements[i] = FilePathToPlatformPathSeparator(fs, element[i])
 	}
 
-	return joinedPath
+	return FilePathFromPlatformPathSeparator(fs, filepath.Join(elements...))
 }
 
 // FilePathBase has the same behaviour as filepath.Base, but can handle different filesystems.
@@ -73,15 +73,145 @@ func FilePathBase(fs FS, fp string) string {
 		return ""
 	}
 
-	if fs.PathSeparator() == '/' {
+	if isSlashSeparator(fs) {
 		return path.Base(fp)
 	}
 
-	if fs.PathSeparator() != platform.PathListSeparator {
-		fp = strings.ReplaceAll(fp, string(fs.PathSeparator()), string(platform.PathListSeparator))
+	return FilePathFromPlatformPathSeparator(fs, filepath.Base(FilePathToPlatformPathSeparator(fs, fp)))
+}
+
+// FilePathDir has the same behaviour as filepath.Dir, but can handle different filesystems.
+func FilePathDir(fs FS, fp string) string {
+	if fs == nil {
+		return ""
 	}
 
-	return filepath.Base(fp)
+	if isSlashSeparator(fs) {
+		return path.Dir(fp)
+	}
+	return FilePathFromPlatformPathSeparator(fs, filepath.Dir(FilePathToPlatformPathSeparator(fs, fp)))
+}
+
+// FilePathIsAbs has the same behaviour as filepath.IsAbs, but can handle different filesystems.
+func FilePathIsAbs(fs FS, fp string) bool {
+	if fs == nil {
+		return false
+	}
+	if isSlashSeparator(fs) {
+		return path.IsAbs(fp)
+	}
+	return filepath.IsAbs(FilePathToPlatformPathSeparator(fs, fp))
+}
+
+// FilePathRel has the same behaviour as filepath.FilePathRel, but can handle different filesystems.
+func FilePathRel(fs FS, basepath, targpath string) (rel string, err error) {
+	if fs == nil {
+		err = commonerrors.UndefinedVariable("filesystem specification")
+		return
+	}
+	rel, err = filepath.Rel(FilePathToPlatformPathSeparator(fs, basepath), FilePathToPlatformPathSeparator(fs, targpath))
+	if err != nil {
+		return
+	}
+	rel = FilePathFromPlatformPathSeparator(fs, rel)
+	return
+}
+
+// FilePathSplit has the same behaviour as filepath.Split, but can handle different filesystems
+func FilePathSplit(fs FS, fp string) (dir, file string) {
+	if fs == nil {
+		return
+	}
+
+	if isSlashSeparator(fs) {
+		return path.Split(fp)
+	}
+	dir, file = filepath.Split(FilePathToPlatformPathSeparator(fs, fp))
+	dir = FilePathFromPlatformPathSeparator(fs, dir)
+	return
+}
+
+// FilePathAbs tries to be similar to filepath.Abs behaviour but without using platform information or location.
+func FilePathAbs(fs FS, fp, currentDirectory string) string {
+	if FilePathIsAbs(fs, fp) {
+		return FilePathClean(fs, fp)
+	}
+	return FilePathJoin(fs, currentDirectory, fp)
+}
+
+// FilePathToPlatformPathSeparator returns the result of replacing each separator character in path with a platform path separator character
+func FilePathToPlatformPathSeparator(fs FS, path string) string {
+	if fs.PathSeparator() == platform.PathSeparator {
+		return path
+	}
+	return strings.ReplaceAll(path, string(fs.PathSeparator()), string(platform.PathSeparator))
+}
+
+// FilePathFromPlatformPathSeparator returns the result of replacing each platform path separator character in path with filesystem's path separator character
+func FilePathFromPlatformPathSeparator(fs FS, path string) string {
+	if fs.PathSeparator() == platform.PathSeparator {
+		return path
+	}
+	return strings.ReplaceAll(path, string(platform.PathSeparator), string(fs.PathSeparator()))
+}
+
+// FilePathToSlash is filepath.ToSlash  but using filesystem path separator rather than platform's
+func FilePathToSlash(fs FS, path string) string {
+	if isSlashSeparator(fs) {
+		return path
+	}
+	return strings.ReplaceAll(path, string(fs.PathSeparator()), "/")
+}
+
+// FilePathsToSlash just applying FilePathToSlash to a slice of path
+func FilePathsToSlash(fs FS, path ...string) (toSlashes []string) {
+	if len(path) == 0 {
+		return
+	}
+	toSlashes = make([]string, len(path))
+	for i := range path {
+		toSlashes[i] = FilePathToSlash(fs, path[i])
+	}
+	return
+}
+
+// FilePathFromSlash is filepath.FromSlash but using filesystem path separator rather than platform's
+func FilePathFromSlash(fs FS, path string) string {
+	if isSlashSeparator(fs) {
+		return path
+	}
+	return strings.ReplaceAll(path, "/", string(fs.PathSeparator()))
+}
+
+// FilePathsFromSlash just applying FilePathFromSlash to a slice of path
+func FilePathsFromSlash(fs FS, path ...string) (fromlashes []string) {
+	if len(path) == 0 {
+		return
+	}
+	fromlashes = make([]string, len(path))
+	for i := range path {
+		fromlashes[i] = FilePathFromSlash(fs, path[i])
+	}
+	return
+}
+
+// FilePathStemOnFilesystem has the same behaviour as FilePathStem, but can handle different filesystems.
+func FilePathStemOnFilesystem(fs FS, fp string) string {
+	if fs == nil {
+		return ""
+	}
+	return strings.TrimSuffix(FilePathBase(fs, fp), FilePathExt(fs, fp))
+}
+
+// FilePathExt has the same behaviour as filepath.Ext, but can handle different filesystems.
+func FilePathExt(fs FS, fp string) string {
+	if fs == nil {
+		return ""
+	}
+	if isSlashSeparator(fs) {
+		return path.Ext(fp)
+	}
+	return filepath.Ext(FilePathToPlatformPathSeparator(fs, fp))
 }
 
 // FilePathClean has the same behaviour as filepath.Clean, but can handle different filesystems.
@@ -90,11 +220,26 @@ func FilePathClean(fs FS, fp string) string {
 		return ""
 	}
 
-	if fs.PathSeparator() == '/' {
+	if isSlashSeparator(fs) {
 		return path.Clean(fp)
 	}
+	return FilePathFromPlatformPathSeparator(fs, filepath.Clean(FilePathToPlatformPathSeparator(fs, fp)))
+}
 
-	return filepath.Clean(fp)
+// FilePathVolumeName has the same behaviour as filepath.VolumeName, but can handle different filesystems.
+func FilePathVolumeName(fs FS, fp string) string {
+	if fs == nil {
+		return ""
+	}
+
+	return filepath.VolumeName(FilePathToPlatformPathSeparator(fs, fp))
+}
+
+func isSlashSeparator(fs FS) bool {
+	if fs == nil {
+		return false
+	}
+	return fs.PathSeparator() == '/'
 }
 
 // FileTreeDepth returns the depth of a file in a tree starting from root
@@ -110,7 +255,7 @@ func FileTreeDepth(fs FS, root, filePath string) (depth int64, err error) {
 	if reflection.IsEmpty(diff) {
 		return
 	}
-	diff = strings.ReplaceAll(diff, string(fs.PathSeparator()), "/")
+	diff = FilePathToSlash(fs, diff)
 	depth = int64(len(strings.Split(diff, "/")) - 1)
 	return
 }
