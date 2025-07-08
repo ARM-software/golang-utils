@@ -3,9 +3,10 @@ package validation
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCastingToInt(t *testing.T) {
@@ -43,8 +44,7 @@ func TestCastingToInt(t *testing.T) {
 		{"nil", nil, commonerrors.ErrMarshalling},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			var err error
-			err = IsPort().Validate(test.value)
+			err := IsPort().Validate(test.value)
 			if test.err == nil {
 				assert.NoError(t, err)
 			} else {
