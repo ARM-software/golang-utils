@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.103.0" (2025-07-08)
+======================
+
+Features
+--------
+
+- :sparkles: `validation` Add validation rules (IsPort) for non-string values (#20250708093742)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v4-4.25.6 (#20250701105844, #20250701105848)
+
+
 "1.102.0" (2025-06-30)
 ======================
 
