@@ -44,7 +44,7 @@ func TestCastingToInt(t *testing.T) {
 		{"nil", nil, commonerrors.ErrMarshalling},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			err := IsPort().Validate(test.value)
+			err := IsPort.Validate(test.value)
 			if test.err == nil {
 				assert.NoError(t, err)
 			} else {
