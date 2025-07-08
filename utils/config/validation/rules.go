@@ -9,6 +9,8 @@ import (
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
+// IsPort validates whether a value is a port using is.Port from github.com/go-ozzo/ozzo-validation/v4.
+// However it supports all base go integer types not just strings.
 func IsPort() validation.Rule {
 	return validation.By(func(vRaw any) (err error) {
 		val := reflect.ValueOf(vRaw)
@@ -26,9 +28,12 @@ func IsPort() validation.Rule {
 		default:
 			return commonerrors.Newf(commonerrors.ErrMarshalling, "unsupported type for port validation: %T", vRaw)
 		}
+
 		if err != nil {
 			err = commonerrors.WrapError(commonerrors.ErrInvalid, err, "")
+			return
 		}
+
 		return
 	})
 }
