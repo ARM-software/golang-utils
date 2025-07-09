@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"strconv"
 
+	"github.com/ARM-software/golang-utils/utils/encoding/base64"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 
@@ -11,7 +12,7 @@ import (
 )
 
 // IsPort validates whether a value is a port using is.Port from github.com/go-ozzo/ozzo-validation/v4.
-// However it supports all base go integer types not just strings.
+// However, it supports all base go integer types not just strings.
 var IsPort = validation.By(isPort)
 
 func isPort(vRaw any) (err error) {
@@ -37,3 +38,6 @@ func isPort(vRaw any) (err error) {
 
 	return
 }
+
+// IsBase64 validates whether a value is a base64 encoded string. It is similar to is.Base64 but more generic and robust although less performant.
+var IsBase64 = validation.NewStringRuleWithError(base64.IsEncoded, is.ErrBase64)

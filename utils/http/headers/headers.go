@@ -1,7 +1,7 @@
 package headers
 
 import (
-	"encoding/base64"
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -10,6 +10,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/encoding/base64"
 	"github.com/ARM-software/golang-utils/utils/http/headers/useragent"
 	"github.com/ARM-software/golang-utils/utils/http/schemes"
 	"github.com/ARM-software/golang-utils/utils/reflection"
@@ -259,7 +260,7 @@ func FetchWebsocketAuthorisation(r *http.Request) (authorisationHeader string) {
 	if found {
 		if i < len(subProtocols)-1 {
 			authorisationHeader = subProtocols[i+1]
-			if decoded, err := decodeBase64Token(authorisationHeader); err == nil {
+			if decoded, err := base64.DecodeString(context.Background(), authorisationHeader); err == nil {
 				authorisationHeader = decoded
 			}
 			_ = SetAuthorisationIfNotPresent(r, authorisationHeader)
@@ -272,7 +273,7 @@ func FetchWebsocketAuthorisation(r *http.Request) (authorisationHeader string) {
 		for j := range subProtocols {
 			token := strings.TrimPrefix(subProtocols[j], "base64url.bearer.authorization.k8s.io.")
 			if token != subProtocols[j] {
-				data, err := decodeBase64Token(token)
+				data, err := base64.DecodeString(context.Background(), token)
 				if err == nil {
 					authorisationHeader = data
 					_ = SetAuthorisationIfNotPresent(r, authorisationHeader)
@@ -281,29 +282,6 @@ func FetchWebsocketAuthorisation(r *http.Request) (authorisationHeader string) {
 			}
 		}
 
-	}
-	return
-}
-
-func decodeBase64Token(token string) (decoded string, err error) {
-	data, err := base64.URLEncoding.DecodeString(token)
-	if err == nil {
-		decoded = string(data)
-		return
-	}
-	data, err = base64.RawURLEncoding.DecodeString(token)
-	if err == nil {
-		decoded = string(data)
-		return
-	}
-	data, err = base64.StdEncoding.DecodeString(token)
-	if err == nil {
-		decoded = string(data)
-		return
-	}
-	data, err = base64.RawStdEncoding.DecodeString(token)
-	if err == nil {
-		decoded = string(data)
 	}
 	return
 }

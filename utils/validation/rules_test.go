@@ -1,9 +1,14 @@
 package validation
 
 import (
+	"encoding/base64"
 	"testing"
 
+	"github.com/go-faker/faker/v4"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
@@ -49,6 +54,45 @@ func TestCastingToInt(t *testing.T) {
 				assert.NoError(t, err)
 			} else {
 				errortest.AssertError(t, err, test.err)
+			}
+		})
+	}
+}
+
+func TestIsBase64Encoded(t *testing.T) {
+	random := faker.Sentence()
+	base641 := base64.RawURLEncoding.EncodeToString([]byte(random))
+	base642 := base64.RawStdEncoding.EncodeToString([]byte(random))
+	base643 := base64.URLEncoding.EncodeToString([]byte(random))
+	base644 := base64.StdEncoding.EncodeToString([]byte(random))
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{"U29tZSBkYXRh", true},     // "Some data"
+		{"SGVsbG8gd29ybGQ=", true}, // "Hello world"
+		{"U29tZSBkYXRh===", false},
+		{"", false},                    // Empty string
+		{"NotBase64", false},           // Plain text
+		{"!@#$%^&*", false},            // Non-Base64 characters
+		{"U29tZSBkYXRh\n", true},       // Line break
+		{"V2l0aCB3aGl0ZXNwYWNl", true}, // "With whitespace" (valid if stripped)
+		{base641, true},
+		{base642, true},
+		{base643, true},
+		{base644, true},
+		{"U29tZSBkYXRh=", true},
+		{"U29tZSBkYXRh==", true},
+	}
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.input, func(t *testing.T) {
+			err := validation.Validate(test.input, IsBase64)
+			if test.expected {
+				errortest.AssertError(t, err, is.ErrBase64)
+			} else {
+				require.NoError(t, err)
 			}
 		})
 	}
