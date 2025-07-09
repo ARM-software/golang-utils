@@ -1,1 +1,1 @@
-:sparkles: Added a `[encoding]` module to help encoding/decoding strings
+:sparkles: Added a `[encoding]` module to help encode/decode strings

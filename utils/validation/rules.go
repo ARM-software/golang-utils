@@ -4,11 +4,11 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/ARM-software/golang-utils/utils/encoding/base64"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/encoding/base64"
 )
 
 // IsPort validates whether a value is a port using is.Port from github.com/go-ozzo/ozzo-validation/v4.

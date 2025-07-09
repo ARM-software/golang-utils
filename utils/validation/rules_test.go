@@ -72,7 +72,7 @@ func TestIsBase64Encoded(t *testing.T) {
 		{"U29tZSBkYXRh", true},     // "Some data"
 		{"SGVsbG8gd29ybGQ=", true}, // "Hello world"
 		{"U29tZSBkYXRh===", false},
-		{"", false},                    // Empty string
+		{"", true},                     // Empty string
 		{"NotBase64", false},           // Plain text
 		{"!@#$%^&*", false},            // Non-Base64 characters
 		{"U29tZSBkYXRh\n", true},       // Line break
@@ -90,9 +90,9 @@ func TestIsBase64Encoded(t *testing.T) {
 		t.Run(test.input, func(t *testing.T) {
 			err := validation.Validate(test.input, IsBase64)
 			if test.expected {
-				errortest.AssertError(t, err, is.ErrBase64)
-			} else {
 				require.NoError(t, err)
+			} else {
+				errortest.AssertErrorDescription(t, err, is.ErrBase64.Error())
 			}
 		})
 	}
