@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.104.0" (2025-07-10)
+======================
+
+Features
+--------
+
+- :sparkles: Added a `[encoding]` module to help encode/decode strings (#20250709190241)
+
+
 "1.103.1" (2025-07-08)
 ======================
 
