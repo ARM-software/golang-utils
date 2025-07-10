@@ -23,11 +23,12 @@ func (s *CancelFunctionStore) RegisterCancelFunction(cancel ...context.CancelFun
 }
 
 func (s *CancelFunctionStore) Cancel() {
-	defer s.mu.RUnlock()
-	s.mu.RLock()
+	defer s.mu.Unlock()
+	s.mu.Lock()
 	for _, c := range s.cancelFunctions {
 		c()
 	}
+	s.cancelFunctions = []context.CancelFunc{}
 }
 
 func (s *CancelFunctionStore) Len() int {
