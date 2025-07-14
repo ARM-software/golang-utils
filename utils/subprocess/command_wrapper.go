@@ -7,7 +7,6 @@ package subprocess
 
 import (
 	"context"
-	"fmt"
 	"os/exec"
 	"time"
 
@@ -45,7 +44,7 @@ func (c *cmdWrapper) Start() error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	if c.cmd == nil {
-		return fmt.Errorf("%w:undefined command", commonerrors.ErrUndefined)
+		return commonerrors.UndefinedVariable("command")
 	}
 	return ConvertCommandError(c.cmd.Start())
 }
@@ -54,7 +53,7 @@ func (c *cmdWrapper) Run() error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	if c.cmd == nil {
-		return fmt.Errorf("%w:undefined command", commonerrors.ErrUndefined)
+		return commonerrors.UndefinedVariable("command")
 	}
 	return ConvertCommandError(c.cmd.Run())
 }
@@ -71,7 +70,7 @@ func (c *cmdWrapper) interruptWithContext(ctx context.Context, interrupt interru
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	if c.cmd == nil {
-		return commonerrors.New(commonerrors.ErrUndefined, "undefined command")
+		return commonerrors.UndefinedVariable("command")
 	}
 	subprocess := c.cmd.Process
 	ctx, cancel := context.WithCancel(ctx)
@@ -121,12 +120,12 @@ func (c *cmdWrapper) Pid() (pid int, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	if c.cmd == nil {
-		err = fmt.Errorf("%w:undefined command", commonerrors.ErrUndefined)
+		err = commonerrors.UndefinedVariable("command")
 		return
 	}
 	subprocess := c.cmd.Process
 	if subprocess == nil {
-		err = fmt.Errorf("%w:undefined subprocess", commonerrors.ErrUndefined)
+		err = commonerrors.UndefinedVariable("subprocess")
 		return
 	}
 	pid = subprocess.Pid
@@ -169,11 +168,11 @@ func (c *command) Reset() {
 
 func (c *command) Check() (err error) {
 	if c.cmd == "" {
-		err = fmt.Errorf("missing command: %w", commonerrors.ErrUndefined)
+		err = commonerrors.UndefinedVariable("command")
 		return
 	}
 	if c.as == nil {
-		err = fmt.Errorf("missing command translator: %w", commonerrors.ErrUndefined)
+		err = commonerrors.UndefinedVariable("command translator")
 		return
 	}
 	if c.loggers == nil {

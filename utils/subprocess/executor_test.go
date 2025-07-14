@@ -94,7 +94,11 @@ test 1
 			loggers, err := logs.NewStringLogger("Test") // clean log between each test
 			require.NoError(t, err)
 
-			err = Execute(context.Background(), loggers, "", "", "", "echo", testInput)
+			if platform.IsWindows() {
+				err = Execute(context.Background(), loggers, "", "", "", "cmd", "/c", "echo", testInput)
+			} else {
+				err = Execute(context.Background(), loggers, "", "", "", "sh", "-c", "echo", testInput)
+			}
 			require.NoError(t, err)
 
 			contents := loggers.GetLogContent()
@@ -125,14 +129,14 @@ func TestStartStop(t *testing.T) {
 		{
 			name:       "ShortProcess",
 			cmdWindows: "cmd",
-			argWindows: []string{"dir", currentDir},
+			argWindows: []string{"/c", "dir", currentDir},
 			cmdOther:   "ls",
 			argOther:   []string{"-l", currentDir},
 		},
 		{
 			name:       "LongProcess",
 			cmdWindows: "cmd",
-			argWindows: []string{"SLEEP 1"},
+			argWindows: []string{"/c", "SLEEP 1"},
 			cmdOther:   "sleep",
 			argOther:   []string{"1"},
 		},
@@ -194,14 +198,14 @@ func TestStartInterrupt(t *testing.T) {
 		{
 			name:       "ShortProcess",
 			cmdWindows: "cmd",
-			argWindows: []string{"dir", currentDir},
+			argWindows: []string{"/c", "dir", currentDir},
 			cmdOther:   "ls",
 			argOther:   []string{"-l", currentDir},
 		},
 		{
 			name:       "LongProcess",
 			cmdWindows: "cmd",
-			argWindows: []string{"SLEEP 1"},
+			argWindows: []string{"/c", "SLEEP 1"},
 			cmdOther:   "sleep",
 			argOther:   []string{"1"},
 		},
@@ -262,14 +266,14 @@ func TestExecute(t *testing.T) {
 		{
 			name:       "ShortProcess",
 			cmdWindows: "cmd",
-			argWindows: []string{"dir", currentDir},
+			argWindows: []string{"/c", "dir", currentDir},
 			cmdOther:   "ls",
 			argOther:   []string{"-l", currentDir},
 		},
 		{
 			name:       "LongProcess",
 			cmdWindows: "cmd",
-			argWindows: []string{"SLEEP 1"},
+			argWindows: []string{"/c", "SLEEP 1"},
 			cmdOther:   "sleep",
 			argOther:   []string{"1"},
 		},
@@ -315,7 +319,7 @@ func TestOutput(t *testing.T) {
 		{
 			name:         "ShortProcess",
 			cmdWindows:   "cmd",
-			argWindows:   []string{"dir", currentDir},
+			argWindows:   []string{"/c", "dir", currentDir},
 			cmdOther:     "ls",
 			argOther:     []string{"-l", currentDir},
 			expectOutput: true,
@@ -324,7 +328,7 @@ func TestOutput(t *testing.T) {
 		{
 			name:       "LongProcess",
 			cmdWindows: "cmd",
-			argWindows: []string{"SLEEP 1"},
+			argWindows: []string{"/c", "SLEEP 1"},
 			cmdOther:   "sleep",
 			argOther:   []string{"1"},
 			runCount:   1,
@@ -373,7 +377,7 @@ func TestCancelledSubprocess(t *testing.T) {
 		{
 			name:       "LongProcess",
 			cmdWindows: "cmd",
-			argWindows: []string{"SLEEP 4"},
+			argWindows: []string{"/c", "SLEEP 4"},
 			cmdOther:   "sleep",
 			argOther:   []string{"4"},
 		},
@@ -419,7 +423,7 @@ func TestCancelledSubprocess2(t *testing.T) {
 		{
 			name:       "LongProcess",
 			cmdWindows: "cmd",
-			argWindows: []string{"SLEEP 4"},
+			argWindows: []string{"/c", "SLEEP 4"},
 			cmdOther:   "sleep",
 			argOther:   []string{"4"},
 		},
@@ -468,7 +472,7 @@ func TestCancelledSubprocess3(t *testing.T) {
 		{
 			name:       "LongProcess",
 			cmdWindows: "cmd",
-			argWindows: []string{"SLEEP 4"},
+			argWindows: []string{"/c", "SLEEP 4"},
 			cmdOther:   "sleep",
 			argOther:   []string{"4"},
 		},
