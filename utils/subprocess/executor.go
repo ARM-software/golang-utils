@@ -8,14 +8,12 @@ package subprocess
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/sasha-s/go-deadlock"
 	"go.uber.org/atomic"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/logs"
-	"github.com/ARM-software/golang-utils/utils/platform"
 	"github.com/ARM-software/golang-utils/utils/proc"
 	commandUtils "github.com/ARM-software/golang-utils/utils/subprocess/command"
 )
@@ -167,7 +165,7 @@ func (s *Subprocess) check() (err error) {
 	// In GO, there is no reentrant locks and so following what is described there
 	// https://groups.google.com/forum/#!msg/golang-nuts/XqW1qcuZgKg/Ui3nQkeLV80J
 	if s.command == nil {
-		err = fmt.Errorf("missing command: %w", commonerrors.ErrUndefined)
+		err = commonerrors.UndefinedVariable("command")
 		return
 	}
 	err = s.command.Check()
@@ -202,11 +200,6 @@ func (s *Subprocess) Wait(ctx context.Context) (err error) {
 		pid = s.command.cmdWrapper.cmd.Process.Pid
 	} else {
 		return commonerrors.New(commonerrors.ErrConflict, "command not started")
-	}
-
-	// FIXME: verify proc.WaitForCompletion works on windows. Remove this platform check once this is verified.
-	if platform.IsWindows() {
-		return s.command.cmdWrapper.cmd.Wait()
 	}
 
 	return proc.WaitForCompletion(ctx, pid)
@@ -267,7 +260,7 @@ func (s *Subprocess) Execute() (err error) {
 	defer s.Cancel()
 
 	if s.IsOn() {
-		return fmt.Errorf("process is already started: %w", commonerrors.ErrConflict)
+		return commonerrors.New(commonerrors.ErrConflict, "process is already started")
 	}
 	s.processMonitoring.Reset()
 	s.command.Reset()

@@ -24,6 +24,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/logs"
 	"github.com/ARM-software/golang-utils/utils/logs/logstest"
+	"github.com/ARM-software/golang-utils/utils/parallelisation"
 	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
@@ -32,6 +33,9 @@ var (
 )
 
 func TestExecuteEmptyLines(t *testing.T) {
+	if platform.IsWindows() {
+		t.Skip("test will need to be refactored so it can run on Windows")
+	}
 	defer goleak.VerifyNone(t)
 	multilineEchos := []string{ // Some weird lines with contents and empty lines to be filtered
 		`hello
@@ -61,9 +65,8 @@ test 1
 	}
 
 	edgeCases := []string{ // both these would mess with the regex
-		`
-`, // just a '\n'
-		"", // empty string
+		"\r\n", // just a '\n'
+		"",     // empty string
 	}
 
 	var cleanedLines []string
@@ -136,7 +139,7 @@ func TestStartStop(t *testing.T) {
 		{
 			name:       "LongProcess",
 			cmdWindows: "cmd",
-			argWindows: []string{"/c", "SLEEP 1"},
+			argWindows: []string{"/c", fmt.Sprintf("ping -n 2 -w %v localhost > nul", time.Second.Milliseconds())}, // See https://stackoverflow.com/a/79268314/45375
 			cmdOther:   "sleep",
 			argOther:   []string{"1"},
 		},
@@ -205,7 +208,7 @@ func TestStartInterrupt(t *testing.T) {
 		{
 			name:       "LongProcess",
 			cmdWindows: "cmd",
-			argWindows: []string{"/c", "SLEEP 1"},
+			argWindows: []string{"/c", fmt.Sprintf("ping -n 2 -w %v localhost > nul", time.Second.Milliseconds())}, // See https://stackoverflow.com/a/79268314/45375
 			cmdOther:   "sleep",
 			argOther:   []string{"1"},
 		},
@@ -273,7 +276,7 @@ func TestExecute(t *testing.T) {
 		{
 			name:       "LongProcess",
 			cmdWindows: "cmd",
-			argWindows: []string{"/c", "SLEEP 1"},
+			argWindows: []string{"/c", fmt.Sprintf("ping -n 2 -w %v localhost > nul", time.Second.Milliseconds())}, // See https://stackoverflow.com/a/79268314/45375
 			cmdOther:   "sleep",
 			argOther:   []string{"1"},
 		},
@@ -328,7 +331,7 @@ func TestOutput(t *testing.T) {
 		{
 			name:       "LongProcess",
 			cmdWindows: "cmd",
-			argWindows: []string{"/c", "SLEEP 1"},
+			argWindows: []string{"/c", fmt.Sprintf("ping -n 2 -w %v localhost > nul", time.Second.Milliseconds())}, // See https://stackoverflow.com/a/79268314/45375
 			cmdOther:   "sleep",
 			argOther:   []string{"1"},
 			runCount:   1,
@@ -377,7 +380,7 @@ func TestCancelledSubprocess(t *testing.T) {
 		{
 			name:       "LongProcess",
 			cmdWindows: "cmd",
-			argWindows: []string{"/c", "SLEEP 4"},
+			argWindows: []string{"/c", fmt.Sprintf("ping -n 2 -w %v localhost > nul", (10 * time.Second).Milliseconds())}, // See https://stackoverflow.com/a/79268314/45375
 			cmdOther:   "sleep",
 			argOther:   []string{"4"},
 		},
@@ -406,7 +409,16 @@ func TestCancelledSubprocess(t *testing.T) {
 			assert.True(t, p.IsOn())
 			time.Sleep(10 * time.Millisecond)
 			cancelFunc()
-			time.Sleep(200 * time.Millisecond)
+			cancelCtx, cancelFunc := context.WithTimeout(context.Background(), 2*time.Second)
+			defer cancelFunc()
+			require.NoError(t, parallelisation.WaitUntil(cancelCtx, func(ctx2 context.Context) (done bool, err error) {
+				err = parallelisation.DetermineContextError(ctx2)
+				if err != nil {
+					return
+				}
+				done = !p.IsOn()
+				return
+			}, 50*time.Millisecond))
 			assert.False(t, p.IsOn())
 		})
 	}
@@ -423,9 +435,9 @@ func TestCancelledSubprocess2(t *testing.T) {
 		{
 			name:       "LongProcess",
 			cmdWindows: "cmd",
-			argWindows: []string{"/c", "SLEEP 4"},
+			argWindows: []string{"/c", fmt.Sprintf("ping -n 2 -w %v localhost > nul", (4 * time.Second).Milliseconds())}, // See https://stackoverflow.com/a/79268314/45375
 			cmdOther:   "sleep",
-			argOther:   []string{"4"},
+			argOther:   []string{"10"},
 		},
 	}
 
@@ -455,7 +467,16 @@ func TestCancelledSubprocess2(t *testing.T) {
 			assert.True(t, p.IsOn())
 			time.Sleep(10 * time.Millisecond)
 			cancelFunc()
-			time.Sleep(200 * time.Millisecond)
+			cancelCtx, cancelFunc := context.WithTimeout(context.Background(), time.Second)
+			defer cancelFunc()
+			require.NoError(t, parallelisation.WaitUntil(cancelCtx, func(ctx2 context.Context) (done bool, err error) {
+				err = parallelisation.DetermineContextError(ctx2)
+				if err != nil {
+					return
+				}
+				done = !p.IsOn()
+				return
+			}, 50*time.Millisecond))
 			assert.False(t, p.IsOn())
 		})
 	}
@@ -472,7 +493,7 @@ func TestCancelledSubprocess3(t *testing.T) {
 		{
 			name:       "LongProcess",
 			cmdWindows: "cmd",
-			argWindows: []string{"/c", "SLEEP 4"},
+			argWindows: []string{"/c", fmt.Sprintf("ping -n 2 -w %v localhost > nul", (4 * time.Second).Milliseconds())}, // See https://stackoverflow.com/a/79268314/45375
 			cmdOther:   "sleep",
 			argOther:   []string{"4"},
 		},
@@ -500,13 +521,31 @@ func TestCancelledSubprocess3(t *testing.T) {
 				_ = proc.Execute()
 			}(p)
 			<-ready
-			time.Sleep(10 * time.Millisecond)
+			cancelCtx, cancelFunc := context.WithTimeout(ctx, time.Second)
+			defer cancelFunc()
+			require.NoError(t, parallelisation.WaitUntil(cancelCtx, func(ctx2 context.Context) (done bool, err error) {
+				err = parallelisation.DetermineContextError(ctx2)
+				if err != nil {
+					return
+				}
+				done = p.IsOn()
+				return
+			}, 50*time.Millisecond))
 			assert.True(t, p.IsOn())
 			time.Sleep(10 * time.Millisecond)
 			p.Cancel()
 			// checking idempotence.
 			p.Cancel()
-			time.Sleep(200 * time.Millisecond)
+			cancelCtx, cancelFunc = context.WithTimeout(context.Background(), 2*time.Second)
+			defer cancelFunc()
+			require.NoError(t, parallelisation.WaitUntil(cancelCtx, func(ctx2 context.Context) (done bool, err error) {
+				err = parallelisation.DetermineContextError(ctx2)
+				if err != nil {
+					return
+				}
+				done = !p.IsOn()
+				return
+			}, 50*time.Millisecond))
 			assert.False(t, p.IsOn())
 		})
 	}
@@ -558,9 +597,14 @@ func TestOutputWithEnvironment(t *testing.T) {
 
 func TestWait(t *testing.T) {
 	t.Run("Valid subprocess returns no error", func(t *testing.T) {
-		cmd := exec.Command("sleep", "1")
+		var cmd *exec.Cmd
+		if platform.IsWindows() {
+			cmd = exec.Command("cmd", "/c", fmt.Sprintf("ping -n 2 -w %v localhost > nul", (time.Second).Milliseconds())) // See https://stackoverflow.com/a/79268314/45375 //nolint: gosec G204: Subprocess launched with a potential tainted input or cmd arguments
+		} else {
+			cmd = exec.Command("sh", "-c", "sleep 1")
+		}
+		defer func() { _ = CleanKillOfCommand(context.Background(), cmd) }()
 		require.NoError(t, cmd.Start())
-		defer func() { _ = cmd.Process.Kill() }()
 
 		p := &Subprocess{
 			command: &command{
@@ -570,9 +614,7 @@ func TestWait(t *testing.T) {
 			},
 		}
 
-		ctx := context.Background()
-		err := p.Wait(ctx)
-		assert.NoError(t, err)
+		assert.NoError(t, p.Wait(context.Background()))
 	})
 
 	t.Run("Invalid subprocess returns expected error", func(t *testing.T) {
@@ -584,9 +626,14 @@ func TestWait(t *testing.T) {
 	})
 
 	t.Run("Cancelled context returns error", func(t *testing.T) {
-		cmd := exec.Command("sleep", "3")
+		var cmd *exec.Cmd
+		if platform.IsWindows() {
+			cmd = exec.Command("cmd", "/c", fmt.Sprintf("ping -n 2 -w %v localhost > nul", (10*time.Second).Milliseconds())) // See https://stackoverflow.com/a/79268314/45375  //nolint: gosec G204: Subprocess launched with a potential tainted input or cmd arguments
+		} else {
+			cmd = exec.Command("sh", "-c", "sleep 10")
+		}
+		defer func() { _ = CleanKillOfCommand(context.Background(), cmd) }()
 		require.NoError(t, cmd.Start())
-		defer func() { _ = cmd.Process.Kill() }()
 
 		p := &Subprocess{
 			command: &command{
@@ -598,7 +645,6 @@ func TestWait(t *testing.T) {
 
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
-		err := p.Wait(ctx)
-		assert.Error(t, err)
+		errortest.AssertError(t, p.Wait(ctx), commonerrors.ErrCancelled)
 	})
 }
