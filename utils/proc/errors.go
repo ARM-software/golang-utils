@@ -5,7 +5,6 @@
 package proc
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"syscall"
@@ -33,17 +32,17 @@ func ConvertProcessError(err error) error {
 		// ESRCH is "no such process", meaning the process has already exited.
 		return nil
 	case commonerrors.Any(err, exec.ErrWaitDelay):
-		return fmt.Errorf("%w: %v", commonerrors.ErrTimeout, err.Error())
+		return commonerrors.WrapError(commonerrors.ErrTimeout, err, "")
 	case commonerrors.Any(err, exec.ErrDot, exec.ErrNotFound):
-		return fmt.Errorf("%w: %v", commonerrors.ErrNotFound, err.Error())
+		return commonerrors.WrapError(commonerrors.ErrNotFound, err, "")
 	case commonerrors.Any(process.ErrorNotPermitted):
-		return fmt.Errorf("%w: %v", commonerrors.ErrForbidden, err.Error())
+		return commonerrors.WrapError(commonerrors.ErrForbidden, err, "")
 	case commonerrors.Any(process.ErrorProcessNotRunning):
-		return fmt.Errorf("%w: %v", commonerrors.ErrNotFound, err.Error())
+		return commonerrors.WrapError(commonerrors.ErrNotFound, err, "")
 	case commonerrors.CorrespondTo(err, errAccessDenied):
-		return fmt.Errorf("%w: %v", commonerrors.ErrNotFound, err.Error())
+		return commonerrors.WrapError(commonerrors.ErrNotFound, err, "")
 	case commonerrors.CorrespondTo(err, errNotImplemented):
-		return fmt.Errorf("%w: %v", commonerrors.ErrNotImplemented, err.Error())
+		return commonerrors.WrapError(commonerrors.ErrNotImplemented, err, "")
 	default:
 		return err
 	}
