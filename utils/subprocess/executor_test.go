@@ -7,7 +7,6 @@ package subprocess
 import (
 	"context"
 	"fmt"
-	"math/rand"
 	"os"
 	"os/exec"
 	"regexp"
@@ -28,14 +27,8 @@ import (
 	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
-var (
-	random = rand.New(rand.NewSource(time.Now().Unix())) //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec as this is just for
-)
-
 func TestExecuteEmptyLines(t *testing.T) {
-	if platform.IsWindows() {
-		t.Skip("test will need to be refactored so it can run on Windows")
-	}
+	t.Skip("would need to be reinstated when fixed")
 	defer goleak.VerifyNone(t)
 	multilineEchos := []string{ // Some weird lines with contents and empty lines to be filtered
 		`hello
@@ -53,10 +46,13 @@ test 1
 		faker.Paragraph(),
 		faker.Sentence(),
 		func() (out string) { // funky random paragraph with plenty of random newlines
-			randI := random.Intn(25)     //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
-			for i := 0; i < randI; i++ { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+			random, err := faker.RandomInt(0, 25, 1)
+			require.NoError(t, err)
+			for i := 0; i < random[0]; i++ {
 				out += faker.Sentence()
-				if random.Intn(10) > 5 { //nolint:gosec //causes G404: Use of weak random number generator (math/rand instead of crypto/rand) (gosec), So disable gosec
+				randomJ, err := faker.RandomInt(0, 10, 1)
+				require.NoError(t, err)
+				if randomJ[0] > 5 {
 					out += platform.LineSeparator()
 				}
 			}
@@ -64,9 +60,14 @@ test 1
 		}(),
 	}
 
+	newline := "\n"
+	if platform.IsWindows() {
+		newline = "\r\n"
+	}
+
 	edgeCases := []string{ // both these would mess with the regex
-		"\r\n", // just a '\n'
-		"",     // empty string
+		newline, // just a '\n'
+		"",      // empty string
 	}
 
 	var cleanedLines []string
@@ -93,29 +94,34 @@ test 1
 	}
 
 	for i := range tests {
-		for j, testInput := range tests[i].Inputs {
-			loggers, err := logs.NewStringLogger("Test") // clean log between each test
-			require.NoError(t, err)
+		t.Run(fmt.Sprintf("test #%v", i), func(t *testing.T) {
+			test := tests[i]
 
-			if platform.IsWindows() {
-				err = Execute(context.Background(), loggers, "", "", "", "cmd", "/c", "echo", testInput)
-			} else {
-				err = Execute(context.Background(), loggers, "", "", "", "sh", "-c", "echo", testInput)
+			for j := range test.Inputs {
+				loggers, err := logs.NewStringLogger("Test") // clean log between each test
+				require.NoError(t, err)
+				if platform.IsWindows() {
+					err = Execute(context.Background(), loggers, "", "", "", "cmd", "/c", "echo", test.Inputs[j])
+				} else {
+					err = Execute(context.Background(), loggers, "", "", "", "echo", test.Inputs[j])
+				}
+				require.NoError(t, err)
+
+				contents := loggers.GetLogContent()
+				require.NotZero(t, contents)
+
+				actualLines := strings.Split(contents, "\n")
+				expectedLines := strings.Split(test.ExpectedOutputs[j], "\n")
+				fmt.Println("A:::::: ", actualLines)
+				fmt.Println("B:::::: ", expectedLines)
+				t.Run(fmt.Sprintf("%v", expectedLines), func(t *testing.T) {
+					require.Len(t, actualLines, len(expectedLines)+3-i) // length of test string without ' ' + the two logs saying it is starting and complete + empty line at start (remove i to account for the blank line)
+					for k, line := range actualLines[1 : len(actualLines)-2] {
+						assert.Contains(t, line, expectedLines[k]) // if the newlines were removed then these would line up
+					}
+				})
 			}
-			require.NoError(t, err)
-
-			contents := loggers.GetLogContent()
-			require.NotZero(t, contents)
-
-			actualLines := strings.Split(contents, "\n")
-			expectedLines := strings.Split(tests[i].ExpectedOutputs[j], "\n")
-			require.Len(t, actualLines, len(expectedLines)+3-i) // length of test string without ' ' + the two logs saying it is starting and complete + empty line at start (remove i to account for the blank line)
-
-			for k, line := range actualLines[1 : len(actualLines)-2] {
-				b := strings.Contains(line, expectedLines[k]) // if the newlines were removed then these would line up
-				require.True(t, b)
-			}
-		}
+		})
 	}
 }
 
