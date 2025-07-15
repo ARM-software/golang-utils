@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/sasha-s/go-deadlock"
+	"go.uber.org/atomic"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/logs"
@@ -18,6 +19,8 @@ import (
 	"github.com/ARM-software/golang-utils/utils/proc"
 	commandUtils "github.com/ARM-software/golang-utils/utils/subprocess/command"
 )
+
+const subprocessTerminationGracePeriod = 10 * time.Millisecond
 
 // INTERNAL
 // wrapper over an exec cmd.
@@ -58,15 +61,7 @@ func (c *cmdWrapper) Run() error {
 	return ConvertCommandError(c.cmd.Run())
 }
 
-type interruptType int
-
-const (
-	sigint  interruptType = 2
-	sigkill interruptType = 9
-	sigterm interruptType = 15
-)
-
-func (c *cmdWrapper) interruptWithContext(ctx context.Context, interrupt interruptType) error {
+func (c *cmdWrapper) interruptWithContext(ctx context.Context, interrupt proc.InterruptType) error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	if c.cmd == nil {
@@ -75,24 +70,19 @@ func (c *cmdWrapper) interruptWithContext(ctx context.Context, interrupt interru
 	subprocess := c.cmd.Process
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	var stopErr error
+	stopErr := atomic.NewError(nil)
 	if subprocess != nil {
 		pid := subprocess.Pid
-		parallelisation.ScheduleAfter(ctx, 10*time.Millisecond, func(time.Time) {
-			process, err := proc.FindProcess(ctx, pid)
-			if process == nil || err != nil {
+		parallelisation.ScheduleAfter(ctx, subprocessTerminationGracePeriod, func(time.Time) {
+			process, sErr := proc.FindProcess(ctx, pid)
+			if process == nil || sErr != nil {
 				return
 			}
-			switch interrupt {
-			case sigint:
-				_ = process.Interrupt(ctx)
-			case sigkill:
-				_ = process.KillWithChildren(ctx)
-			case sigterm:
-				_ = process.Terminate(ctx)
-			default:
-				stopErr = commonerrors.New(commonerrors.ErrInvalid, "unknown interrupt type for process")
+			sErr = proc.InterruptProcess(ctx, pid, interrupt)
+			if commonerrors.Any(sErr, commonerrors.ErrInvalid, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
+				stopErr.Store(sErr)
 			}
+			return
 		})
 	}
 
@@ -101,19 +91,19 @@ func (c *cmdWrapper) interruptWithContext(ctx context.Context, interrupt interru
 		return err
 	}
 
-	return stopErr
+	return stopErr.Load()
 }
 
-func (c *cmdWrapper) interrupt(interrupt interruptType) error {
+func (c *cmdWrapper) interrupt(interrupt proc.InterruptType) error {
 	return c.interruptWithContext(context.Background(), interrupt)
 }
 
 func (c *cmdWrapper) Stop() error {
-	return c.interrupt(sigkill)
+	return c.interrupt(proc.SigKill)
 }
 
 func (c *cmdWrapper) Interrupt(ctx context.Context) error {
-	return c.interruptWithContext(ctx, sigint)
+	return c.interruptWithContext(ctx, proc.SigInt)
 }
 
 func (c *cmdWrapper) Pid() (pid int, err error) {
@@ -145,6 +135,13 @@ type command struct {
 func (c *command) createCommand(cmdCtx context.Context) *exec.Cmd {
 	newCmd, newArgs := c.as.Redefine(c.cmd, c.args...)
 	cmd := exec.CommandContext(cmdCtx, newCmd, newArgs...) //nolint:gosec
+	cmd.Cancel = func() error {
+		p := cmd.Process
+		if p == nil {
+			return nil
+		}
+		return proc.TerminateGracefully(context.Background(), p.Pid, subprocessTerminationGracePeriod)
+	}
 	cmd.Stdout = newOutStreamer(cmdCtx, c.loggers)
 	cmd.Stderr = newErrLogStreamer(cmdCtx, c.loggers)
 	cmd.Env = cmd.Environ()
@@ -198,6 +195,7 @@ func ConvertCommandError(err error) error {
 	return proc.ConvertProcessError(err)
 }
 
+// CleanKillOfCommand tries to terminate a command gracefully.
 func CleanKillOfCommand(ctx context.Context, cmd *exec.Cmd) (err error) {
 	if cmd == nil {
 		return
@@ -211,13 +209,7 @@ func CleanKillOfCommand(ctx context.Context, cmd *exec.Cmd) (err error) {
 	thisP := cmd.Process
 	if thisP == nil {
 		return
-	} else {
-		p, subErr := proc.FindProcess(ctx, thisP.Pid)
-		if subErr != nil {
-			err = subErr
-			return
-		}
-		err = p.KillWithChildren(ctx)
 	}
+	err = proc.TerminateGracefully(ctx, thisP.Pid, subprocessTerminationGracePeriod)
 	return
 }
