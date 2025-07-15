@@ -82,7 +82,6 @@ func (c *cmdWrapper) interruptWithContext(ctx context.Context, interrupt proc.In
 			if commonerrors.Any(sErr, commonerrors.ErrInvalid, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
 				stopErr.Store(sErr)
 			}
-			return
 		})
 	}
 

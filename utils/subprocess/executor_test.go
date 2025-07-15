@@ -599,7 +599,8 @@ func TestWait(t *testing.T) {
 	t.Run("Valid subprocess returns no error", func(t *testing.T) {
 		var cmd *exec.Cmd
 		if platform.IsWindows() {
-			cmd = exec.Command("cmd", "/c", fmt.Sprintf("ping -n 2 -w %v localhost > nul", (time.Second).Milliseconds())) // See https://stackoverflow.com/a/79268314/45375 //nolint: gosec G204: Subprocess launched with a potential tainted input or cmd arguments
+			// See https://stackoverflow.com/a/79268314/45375
+			cmd = exec.Command("cmd", "/c", fmt.Sprintf("ping -n 2 -w %v localhost > nul", (time.Second).Milliseconds())) //nolint:gosec // Causes G204: Subprocess launched with a potential tainted input or cmd arguments
 		} else {
 			cmd = exec.Command("sh", "-c", "sleep 1")
 		}
@@ -628,7 +629,8 @@ func TestWait(t *testing.T) {
 	t.Run("Cancelled context returns error", func(t *testing.T) {
 		var cmd *exec.Cmd
 		if platform.IsWindows() {
-			cmd = exec.Command("cmd", "/c", fmt.Sprintf("ping -n 2 -w %v localhost > nul", (10*time.Second).Milliseconds())) // See https://stackoverflow.com/a/79268314/45375  //nolint: gosec G204: Subprocess launched with a potential tainted input or cmd arguments
+			// See https://stackoverflow.com/a/79268314/45375
+			cmd = exec.Command("cmd", "/c", fmt.Sprintf("ping -n 2 -w %v localhost > nul", (10*time.Second).Milliseconds())) //nolint:gosec // Causes G204: Subprocess launched with a potential tainted input or cmd arguments
 		} else {
 			cmd = exec.Command("sh", "-c", "sleep 10")
 		}
