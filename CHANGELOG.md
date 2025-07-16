@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.106.0" (2025-07-16)
+======================
+
+Features
+--------
+
+- :sparkles: `[parallelisation]` Create a store for closing functions so they can be done concurrently (#20250715185008)
+
+
 "1.105.0" (2025-07-15)
 ======================
 
