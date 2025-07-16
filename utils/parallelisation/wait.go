@@ -28,7 +28,7 @@ func WaitWithContextAndError(ctx context.Context, wg IErrorWaiter) (err error) {
 	}
 }
 
-// IError can be used to wait on sync WaitGroups and similar types where Wait() does not return an error
+// IWaiter can be used to wait on sync WaitGroups and similar types where Wait() does not return an error
 // This is used to support use in the WaitWithContext function to wait but listen to contexts
 type IWaiter interface {
 	Wait()
