@@ -14,6 +14,16 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.106.1" (2025-07-18)
+======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: pflag-1.0.7 (#20250717103618)
+- :bug: `[subprocess]` Improve the error reporting when a process is cancelled (#20250718123400)
+
+
 "1.106.0" (2025-07-16)
 ======================
 
