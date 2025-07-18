@@ -2,7 +2,7 @@ package platform
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"os"
 	"os/exec"
 	"time"
@@ -16,7 +16,7 @@ import (
 func RemoveWithPrivileges(ctx context.Context, path string) (err error) {
 	fi, err := os.Stat(path)
 	if err != nil {
-		err = fmt.Errorf("%w: could not find path [%v]: %v", commonerrors.ErrNotFound, path, err.Error())
+		err = commonerrors.WrapErrorf(commonerrors.ErrNotFound, err, "could not find path [%v]", path)
 		return
 	}
 	if fi.IsDir() {
@@ -25,33 +25,25 @@ func RemoveWithPrivileges(ctx context.Context, path string) (err error) {
 		err = removeFileAs(ctx, WithPrivileges(command.Me()), path)
 	}
 	if err != nil {
-		err = fmt.Errorf("%w: could not remove the path [%v]: %v", commonerrors.ErrUnexpected, path, err.Error())
+		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not remove the path [%v]", path)
 	}
 	return
 }
 
 func executeCommandAs(ctx context.Context, as *command.CommandAsDifferentUser, args ...string) error {
 	if as == nil {
-		return fmt.Errorf("%w: missing command wrapper", commonerrors.ErrUndefined)
+		return commonerrors.UndefinedVariable("command wrapper")
 	}
 	if len(args) == 0 {
-		return fmt.Errorf("%w: missing command to execute", commonerrors.ErrUndefined)
+		return commonerrors.UndefinedVariable("command to execute")
 	}
 	cmdName, cmdArgs := as.RedefineCommand(args...)
 	cmd := exec.CommandContext(ctx, cmdName, cmdArgs...)
 	// setting the following to avoid having hanging subprocesses as described in https://github.com/golang/go/issues/24050
 	cmd.WaitDelay = 5 * time.Second
-	cmd.Cancel = func() error {
-		if cmd.Process == nil {
-			return nil
-		}
-		p, err := proc.FindProcess(context.Background(), cmd.Process.Pid)
-		if err == nil {
-			return p.KillWithChildren(context.Background())
-		} else {
-			// Default behaviour
-			return cmd.Process.Kill()
-		}
+	cmd, err := proc.DefineCmdCancel(cmd)
+	if err != nil {
+		return commonerrors.WrapError(commonerrors.ErrUnexpected, err, "could not set the command cancel function")
 	}
 	return runCommand(args[0], cmd)
 }
@@ -71,10 +63,11 @@ func runCommand(cmdDescription string, cmd *exec.Cmd) error {
 		return newErr
 	default:
 		details := "no further details"
-		if exitError, ok := err.(*exec.ExitError); ok {
+		var exitError *exec.ExitError
+		if errors.As(err, &exitError) {
 			details = string(exitError.Stderr)
 		}
-		newErr = fmt.Errorf("%w: the command `%v` failed: %v (%v)", commonerrors.ErrUnknown, cmdDescription, err.Error(), details)
+		newErr = commonerrors.WrapErrorf(commonerrors.ErrUnknown, err, "the command `%v` failed (%v)", cmdDescription, details)
 		return newErr
 	}
 }
