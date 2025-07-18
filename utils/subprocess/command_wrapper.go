@@ -20,8 +20,6 @@ import (
 	commandUtils "github.com/ARM-software/golang-utils/utils/subprocess/command"
 )
 
-const subprocessTerminationGracePeriod = 10 * time.Millisecond
-
 // INTERNAL
 // wrapper over an exec cmd.
 type cmdWrapper struct {
@@ -73,7 +71,7 @@ func (c *cmdWrapper) interruptWithContext(ctx context.Context, interrupt proc.In
 	stopErr := atomic.NewError(nil)
 	if subprocess != nil {
 		pid := subprocess.Pid
-		parallelisation.ScheduleAfter(ctx, subprocessTerminationGracePeriod, func(time.Time) {
+		parallelisation.ScheduleAfter(ctx, proc.SubprocessTerminationGracePeriod, func(time.Time) {
 			process, sErr := proc.FindProcess(ctx, pid)
 			if process == nil || sErr != nil {
 				return
@@ -134,12 +132,9 @@ type command struct {
 func (c *command) createCommand(cmdCtx context.Context) *exec.Cmd {
 	newCmd, newArgs := c.as.Redefine(c.cmd, c.args...)
 	cmd := exec.CommandContext(cmdCtx, newCmd, newArgs...) //nolint:gosec
-	cmd.Cancel = func() error {
-		p := cmd.Process
-		if p == nil {
-			return nil
-		}
-		return proc.TerminateGracefully(context.Background(), p.Pid, subprocessTerminationGracePeriod)
+	cancellableCmd, err := proc.DefineCmdCancel(cmd)
+	if err == nil {
+		cmd = cancellableCmd
 	}
 	cmd.Stdout = newOutStreamer(cmdCtx, c.loggers)
 	cmd.Stderr = newErrLogStreamer(cmdCtx, c.loggers)
@@ -209,6 +204,6 @@ func CleanKillOfCommand(ctx context.Context, cmd *exec.Cmd) (err error) {
 	if thisP == nil {
 		return
 	}
-	err = proc.TerminateGracefully(ctx, thisP.Pid, subprocessTerminationGracePeriod)
+	err = proc.TerminateGracefully(ctx, thisP.Pid, proc.SubprocessTerminationGracePeriod)
 	return
 }

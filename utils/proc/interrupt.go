@@ -2,6 +2,8 @@ package proc
 
 import (
 	"context"
+	"os"
+	"os/exec"
 	"time"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -12,9 +14,10 @@ import (
 type InterruptType int
 
 const (
-	SigInt  InterruptType = 2
-	SigKill InterruptType = 9
-	SigTerm InterruptType = 15
+	SigInt                           InterruptType = 2
+	SigKill                          InterruptType = 9
+	SigTerm                          InterruptType = 15
+	SubprocessTerminationGracePeriod               = 10 * time.Millisecond
 )
 
 func InterruptProcess(ctx context.Context, pid int, signal InterruptType) (err error) {
@@ -61,4 +64,33 @@ func TerminateGracefully(ctx context.Context, pid int, gracePeriod time.Duration
 	parallelisation.SleepWithContext(ctx, gracePeriod)
 	err = InterruptProcess(ctx, pid, SigKill)
 	return
+}
+
+// CancelExecCommand defines a more robust way to cancel subprocesses than what is done per default by [CommandContext](https://pkg.go.dev/os/exec#CommandContext)
+func CancelExecCommand(cmd *exec.Cmd) (err error) {
+	if cmd == nil {
+		err = commonerrors.UndefinedVariable("command")
+		return
+	}
+	if cmd.Process == nil {
+		return
+	}
+	err = TerminateGracefully(context.Background(), cmd.Process.Pid, SubprocessTerminationGracePeriod)
+	err = commonerrors.Ignore(err, os.ErrProcessDone)
+	if err != nil {
+		// Default behaviour
+		err = cmd.Process.Kill()
+	}
+	return
+}
+
+// DefineCmdCancel sets and overwrites the cmd.Cancel function with CancelExecCommand so that it is more robust and thorough.
+func DefineCmdCancel(cmd *exec.Cmd) (*exec.Cmd, error) {
+	if cmd == nil {
+		return nil, commonerrors.UndefinedVariable("command")
+	}
+	cmd.Cancel = func() error {
+		return CancelExecCommand(cmd)
+	}
+	return cmd, nil
 }

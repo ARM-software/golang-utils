@@ -2,7 +2,6 @@ package supervisor
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"golang.org/x/sync/errgroup"
@@ -113,7 +112,7 @@ func (s *Supervisor) Run(ctx context.Context) (err error) {
 				if commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
 					return err
 				}
-				return fmt.Errorf("%w: error running pre-start hook: %v", commonerrors.ErrUnexpected, err.Error())
+				return commonerrors.WrapError(commonerrors.ErrUnexpected, err, "error running pre-start hook")
 			}
 		}
 
@@ -123,10 +122,10 @@ func (s *Supervisor) Run(ctx context.Context) (err error) {
 			if commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
 				return err
 			}
-			return fmt.Errorf("%w: error occurred when creating new command: %v", commonerrors.ErrUnexpected, err.Error())
+			return commonerrors.WrapError(commonerrors.ErrUnexpected, err, "error occurred when creating new command")
 		}
 		if s.cmd == nil {
-			return fmt.Errorf("%w: command was undefined", commonerrors.ErrUndefined)
+			return commonerrors.UndefinedVariable("command to be supervised")
 		}
 
 		g.Go(s.cmd.Execute)
@@ -137,7 +136,7 @@ func (s *Supervisor) Run(ctx context.Context) (err error) {
 				if commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
 					return err
 				}
-				return fmt.Errorf("%w: error running post-start hook: %v", commonerrors.ErrUnexpected, err.Error())
+				return commonerrors.WrapError(commonerrors.ErrUnexpected, err, "error running post-start hook")
 			}
 		}
 
@@ -149,7 +148,7 @@ func (s *Supervisor) Run(ctx context.Context) (err error) {
 				if commonerrors.Any(err, commonerrors.ErrCancelled, commonerrors.ErrTimeout) {
 					return err
 				}
-				return fmt.Errorf("%w: error running post-stop hook: %v", commonerrors.ErrUnexpected, err.Error())
+				return commonerrors.WrapError(commonerrors.ErrUnexpected, err, "error running post-stop hook")
 			}
 		}
 
