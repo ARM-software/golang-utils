@@ -1,6 +1,7 @@
 package logrimp
 
 import (
+	"log/slog"
 	"os"
 	"testing"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	"golang.org/x/exp/slog"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )

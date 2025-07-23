@@ -5,14 +5,16 @@
 package logs
 
 import (
+	"log/slog"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"golang.org/x/exp/slog"
+	"go.uber.org/goleak"
 )
 
 func TestSlogLogger(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	loggers, err := NewSlogLogger(logger, "Test")
 	require.NoError(t, err)

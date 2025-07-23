@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
@@ -19,12 +20,14 @@ import (
 )
 
 func TestMultipleLogger(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	loggers, err := NewMultipleLoggers("Test")
 	require.NoError(t, err)
 	testLog(t, loggers)
 }
 
 func TestCombinedLogger(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	_, err := NewCombinedLoggers()
 	errortest.RequireError(t, err, commonerrors.ErrNoLogger)
 	testLogger, err := NewLogrLogger(logstest.NewTestLogger(t), "Test")
@@ -37,6 +40,7 @@ func TestCombinedLogger(t *testing.T) {
 }
 
 func TestMultipleLoggers(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	t.Run("Manually add loggers", func(t *testing.T) {
 		// With default logger
 		loggers, err := NewMultipleLoggers("Test Multiple")

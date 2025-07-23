@@ -9,15 +9,18 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 func TestStdLogger(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	loggers, err := NewStdLogger("Test")
 	require.NoError(t, err)
 	testLog(t, loggers)
 }
 
 func TestAsynchronousStdLogger(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	loggers, err := NewAsynchronousStdLogger("Test", 1024, 2*time.Millisecond, "test source")
 	require.NoError(t, err)
 	testLog(t, loggers)

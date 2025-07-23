@@ -14,11 +14,14 @@ import (
 	"github.com/rs/zerolog/diode"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
 type MultipleWritersWithSource struct {
-	mu      sync.RWMutex
-	writers []WriterWithSource
+	mu           sync.RWMutex
+	writers      []WriterWithSource
+	closeWriters bool
+	closerStore  *parallelisation.CloserStore
 }
 
 func (w *MultipleWritersWithSource) GetWriters() ([]WriterWithSource, error) {
@@ -31,6 +34,11 @@ func (w *MultipleWritersWithSource) AddWriters(writers ...WriterWithSource) erro
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.writers = append(w.writers, writers...)
+	if w.closeWriters {
+		for i := range writers {
+			w.closerStore.RegisterCloser(writers[i])
+		}
+	}
 	return nil
 }
 func (w *MultipleWritersWithSource) Write(p []byte) (n int, err error) {
@@ -38,8 +46,8 @@ func (w *MultipleWritersWithSource) Write(p []byte) (n int, err error) {
 	if err != nil {
 		return
 	}
-	for _, writer := range writers {
-		n, _ = writer.Write(p)
+	for i := range writers {
+		n, _ = writers[i].Write(p)
 	}
 	return
 }
@@ -49,28 +57,35 @@ func (w *MultipleWritersWithSource) SetSource(source string) (err error) {
 	if err != nil {
 		return
 	}
-	for _, writer := range writers {
-		err = writer.SetSource(source)
+	for i := range writers {
+		err = writers[i].SetSource(source)
 	}
 	return
 }
 
 func (w *MultipleWritersWithSource) Close() (err error) {
-	writers, err := w.GetWriters()
-	if err != nil {
-		return
-	}
-	for _, writer := range writers {
-		err1 := writer.Close()
-		if err1 != nil {
-			err = err1
-		}
-	}
+	err = w.closerStore.Close()
 	return
 }
 
-func NewMultipleWritersWithSource(writers ...WriterWithSource) (writer *MultipleWritersWithSource, err error) {
-	writer = &MultipleWritersWithSource{}
+// NewMultipleWritersWithSource returns a writer which writes to multiple writers.
+// On close, all sub writers are also closed.
+func NewMultipleWritersWithSource(writers ...WriterWithSource) (*MultipleWritersWithSource, error) {
+	return newWritersWithSource(true, writers...)
+}
+
+// NewWritersWithSource returns a writer which writes to multiple writers.
+// It is similar to NewWritersWithSource but differs when closing as the sub writers are not closed and, it is the responsibility of their creator to do so.
+func NewWritersWithSource(writers ...WriterWithSource) (*MultipleWritersWithSource, error) {
+	return newWritersWithSource(false, writers...)
+}
+
+func newWritersWithSource(closeWriterOnClose bool, writers ...WriterWithSource) (writer *MultipleWritersWithSource, err error) {
+	writer = &MultipleWritersWithSource{
+		writers:      nil,
+		closeWriters: closeWriterOnClose,
+		closerStore:  parallelisation.NewCloserStore(false),
+	}
 	err = writer.AddWriters(writers...)
 	return
 }
@@ -86,6 +101,7 @@ type DiodeWriter struct {
 	WriterWithSource
 	diodeWriter io.Writer
 	slowWriter  WriterWithSource
+	closeStore  *parallelisation.CloserStore
 }
 
 func (w *DiodeWriter) Write(p []byte) (n int, err error) {
@@ -107,13 +123,36 @@ func (w *DiodeWriter) SetSource(source string) error {
 	return w.slowWriter.SetSource(source)
 }
 
+// NewDiodeWriterForSlowWriter returns a thread-safe, lock-free, non-blocking WriterWithSource using a diode. On close, the writer is also closed.
 func NewDiodeWriterForSlowWriter(slowWriter WriterWithSource, ringBufferSize int, pollInterval time.Duration, droppedMessagesLogger Loggers) WriterWithSource {
-	return &DiodeWriter{diodeWriter: diode.NewWriter(slowWriter, ringBufferSize, pollInterval, func(missed int) {
+	return newDiodeWriterForSlowWriter(true, slowWriter, ringBufferSize, pollInterval, droppedMessagesLogger)
+}
+
+// NewDiodeWriter returns a thread-safe, lock-free, non-blocking WriterWithSource using a diode. It is similar to NewDiodeWriterForSlowWriter but differs in that the writer is not closed when closing, only the internal diode.
+func NewDiodeWriter(slowWriter WriterWithSource, ringBufferSize int, pollInterval time.Duration, droppedMessagesLogger Loggers) WriterWithSource {
+	return newDiodeWriterForSlowWriter(false, slowWriter, ringBufferSize, pollInterval, droppedMessagesLogger)
+}
+
+func newDiodeWriterForSlowWriter(closeWriterOnClose bool, slowWriter WriterWithSource, ringBufferSize int, pollInterval time.Duration, droppedMessagesLogger Loggers) WriterWithSource {
+	closerStore := parallelisation.NewCloserStore(false)
+	if closeWriterOnClose {
+		closerStore.RegisterCloser(slowWriter)
+	}
+	d := diode.NewWriter(slowWriter, ringBufferSize, pollInterval, func(missed int) {
 		if droppedMessagesLogger != nil {
 			droppedMessagesLogger.LogError(fmt.Sprintf("Logger dropped %d messages", missed))
 		}
-	}),
-		slowWriter: slowWriter,
+	})
+	var diodeWriter io.Writer
+	diodeWriter = d
+	if diodeCloser, ok := diodeWriter.(io.Closer); ok {
+		closerStore.RegisterCloser(diodeCloser)
+	}
+
+	return &DiodeWriter{
+		diodeWriter: diodeWriter,
+		slowWriter:  slowWriter,
+		closeStore:  closerStore,
 	}
 }
 

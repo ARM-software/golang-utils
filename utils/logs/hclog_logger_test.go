@@ -9,11 +9,13 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 
 	"github.com/ARM-software/golang-utils/utils/logs/logstest"
 )
 
 func TestHclogLogger(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	logger := hclog.New(nil)
 	loggers, err := NewHclogLogger(logger, "Test")
 	require.NoError(t, err)
@@ -21,6 +23,7 @@ func TestHclogLogger(t *testing.T) {
 }
 
 func TestHclogWrapper(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	loggers, err := NewLogrLogger(logstest.NewTestLogger(t), "test")
 	require.NoError(t, err)
 	hcLogger, err := NewHclogWrapper(loggers)

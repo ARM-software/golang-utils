@@ -9,9 +9,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 func TestStringLogger(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	loggers, err := NewStringLogger("Test")
 	require.NoError(t, err)
 	testLog(t, loggers)
@@ -24,6 +26,7 @@ func TestStringLogger(t *testing.T) {
 }
 
 func TestPlainStringLogger(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	loggers, err := NewPlainStringLogger()
 	require.NoError(t, err)
 	testLog(t, loggers)

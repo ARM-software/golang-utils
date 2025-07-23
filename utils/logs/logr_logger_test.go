@@ -14,6 +14,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
@@ -21,6 +22,7 @@ import (
 )
 
 func TestLogrLogger(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	loggers, err := NewLogrLogger(logstest.NewTestLogger(t), "Test")
 	require.NoError(t, err)
 	testLog(t, loggers)
@@ -31,6 +33,7 @@ func TestLogrLogger(t *testing.T) {
 }
 
 func TestLogrLoggerConversion(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	loggers, err := NewLogrLogger(logstest.NewTestLogger(t), "Test")
 	require.NoError(t, err)
 	converted := NewLogrLoggerFromLoggers(loggers)
@@ -39,6 +42,7 @@ func TestLogrLoggerConversion(t *testing.T) {
 }
 
 func TestLogrFromLoggersWithMultipleName(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	loggerSource := "src-" + faker.Name()
 	strLogger, err := NewStringLogger(loggerSource)
 	require.NoError(t, err)
@@ -52,6 +56,7 @@ func TestLogrFromLoggersWithMultipleName(t *testing.T) {
 }
 
 func TestLoggersFromLoggerWithMultipleSource(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	loggerSource := "src-" + faker.Name()
 	strLogger, err := NewStringLogger(loggerSource)
 	require.NoError(t, err)
@@ -74,6 +79,7 @@ func TestLoggersFromLoggerWithMultipleSource(t *testing.T) {
 }
 
 func TestLogrLoggerConversionPlain(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	loggers, err := NewPipeLogger()
 	require.NoError(t, err)
 	converted := NewPlainLogrLoggerFromLoggers(loggers)
@@ -82,6 +88,7 @@ func TestLogrLoggerConversionPlain(t *testing.T) {
 }
 
 func TestGetLogrFromEmptyContext(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	ctx := context.Background()
 	logger, err := GetLogrLoggerFromContext(ctx)
 
@@ -90,6 +97,7 @@ func TestGetLogrFromEmptyContext(t *testing.T) {
 }
 
 func TestGetLogrFromContext(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	ctx := context.Background()
 	logger := logstest.NewTestLogger(t)
 	ctx = logr.NewContext(ctx, logger)

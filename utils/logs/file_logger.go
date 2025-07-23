@@ -6,9 +6,19 @@
 package logs
 
 import (
+	"fmt"
 	"io"
+	"log"
+	"time"
 
 	"github.com/sirupsen/logrus"
+	"gopkg.in/natefinch/lumberjack.v2"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/parallelisation"
+	"github.com/ARM-software/golang-utils/utils/reflection"
+	"github.com/ARM-software/golang-utils/utils/safecast"
+	sizeUnits "github.com/ARM-software/golang-utils/utils/units/size"
 )
 
 // NewFileLogger creates a logger to a file.
@@ -28,4 +38,32 @@ func NewFileOnlyLogger(logFile string, loggerSource string) (loggers Loggers, er
 // Deprecated: Use NewFileLogger instead
 func CreateFileLogger(logFile string, loggerSource string) (loggers Loggers, err error) {
 	return NewFileLogger(logFile, loggerSource)
+}
+
+// NewRollingFilesLogger creates a rolling file logger using [lumberjack](https://github.com/natefinch/lumberjack) under the bonnet.
+// maxSize is the maximum size in bytes of a log file before it gets rotated.
+// maxBackups is the maximum number of old log files to retain.
+// maxAge is the maximum duration old log files are retained.
+func NewRollingFilesLogger(logFile string, loggerSource string, maxFileSize float64, maxBackups int, maxAge time.Duration) (loggers Loggers, err error) {
+	if reflection.IsEmpty(logFile) {
+		err = commonerrors.New(commonerrors.ErrInvalidDestination, "missing file destination")
+		return
+	}
+	l := &lumberjack.Logger{
+		Filename:   logFile,
+		MaxSize:    safecast.ToInt(maxFileSize / sizeUnits.MiB),
+		MaxAge:     safecast.ToInt(maxAge.Hours() / 24),
+		MaxBackups: maxBackups,
+		LocalTime:  false,
+		Compress:   false,
+	}
+	closerStore := parallelisation.NewCloserStore(false)
+	closerStore.RegisterCloser(l)
+
+	loggers = &GenericLoggers{
+		Output:     log.New(l, fmt.Sprintf("[%v] Output: ", loggerSource), log.LstdFlags),
+		Error:      log.New(l, fmt.Sprintf("[%v] Error: ", loggerSource), log.LstdFlags),
+		closeStore: closerStore,
+	}
+	return
 }

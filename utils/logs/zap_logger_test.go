@@ -8,10 +8,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 	"go.uber.org/zap"
 )
 
 func TestZapLoggerDev(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err)
 	loggers, err := NewZapLogger(logger, "Test")
@@ -20,6 +22,7 @@ func TestZapLoggerDev(t *testing.T) {
 }
 
 func TestZapLoggerProd(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	logger, err := zap.NewProduction()
 	require.NoError(t, err)
 	loggers, err := NewZapLogger(logger, "Test")

@@ -6,15 +6,16 @@ package logs
 
 import (
 	"fmt"
-	"testing"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
+	"testing"
 
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 )
 
 func TestFileLogger(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	var tests = []struct {
 		loggerCreationFunc func(path string) (Loggers, error)
 	}{
@@ -28,6 +29,7 @@ func TestFileLogger(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(fmt.Sprintf("logger %v", i), func(t *testing.T) {
+			defer goleak.VerifyNone(t)
 			file, err := filesystem.TouchTempFileInTempDir("test-filelog-*.log")
 			require.NoError(t, err)
 

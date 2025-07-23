@@ -8,9 +8,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 func TestPipeLogger(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	loggers, err := NewPipeLogger()
 	require.NoError(t, err)
 	testLog(t, loggers)
