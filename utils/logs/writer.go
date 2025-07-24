@@ -68,15 +68,15 @@ func (w *MultipleWritersWithSource) Close() (err error) {
 	return
 }
 
-// NewMultipleWritersWithSource returns a writer which writes to multiple writers.
+// NewMultipleWritersWithSource returns a writer which writes using multiple writers.
 // On close, all sub writers are also closed.
 func NewMultipleWritersWithSource(writers ...WriterWithSource) (*MultipleWritersWithSource, error) {
 	return newWritersWithSource(true, writers...)
 }
 
-// NewWritersWithSource returns a writer which writes to multiple writers.
-// It is similar to NewWritersWithSource but differs when closing as the sub writers are not closed and, it is the responsibility of their creator to do so.
-func NewWritersWithSource(writers ...WriterWithSource) (*MultipleWritersWithSource, error) {
+// NewMultipleWriterWithSourceWithoutClosingWriters returns a writer which writes using multiple writers.
+// It is similar to NewMultipleWritersWithSource but differs when closing as the sub writers are not closed and, it is the responsibility of their creator to do so.
+func NewMultipleWriterWithSourceWithoutClosingWriters(writers ...WriterWithSource) (*MultipleWritersWithSource, error) {
 	return newWritersWithSource(false, writers...)
 }
 
@@ -128,8 +128,8 @@ func NewDiodeWriterForSlowWriter(slowWriter WriterWithSource, ringBufferSize int
 	return newDiodeWriterForSlowWriter(true, slowWriter, ringBufferSize, pollInterval, droppedMessagesLogger)
 }
 
-// NewDiodeWriter returns a thread-safe, lock-free, non-blocking WriterWithSource using a diode. It is similar to NewDiodeWriterForSlowWriter but differs in that the writer is not closed when closing, only the internal diode.
-func NewDiodeWriter(slowWriter WriterWithSource, ringBufferSize int, pollInterval time.Duration, droppedMessagesLogger Loggers) WriterWithSource {
+// NewDiodeWriterForSlowWriterWithoutClosing returns a thread-safe, lock-free, non-blocking WriterWithSource using a diode. It is similar to NewDiodeWriterForSlowWriter but differs in that the writer is not closed when closing, only the internal diode.
+func NewDiodeWriterForSlowWriterWithoutClosing(slowWriter WriterWithSource, ringBufferSize int, pollInterval time.Duration, droppedMessagesLogger Loggers) WriterWithSource {
 	return newDiodeWriterForSlowWriter(false, slowWriter, ringBufferSize, pollInterval, droppedMessagesLogger)
 }
 

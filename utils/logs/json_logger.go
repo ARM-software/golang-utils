@@ -144,7 +144,7 @@ func NewJSONLoggerForSlowWriter(slowWriter WriterWithSource, ringBufferSize int,
 	return NewJSONLogger(NewDiodeWriterForSlowWriter(slowWriter, ringBufferSize, pollInterval, droppedMessagesLogger), loggerSource, source)
 }
 
-// NewJSONLoggerForSlowWriters creates a lock free, non-blocking & thread safe logger
+// NewJSONLoggerForSlowWriterWithoutClosingWriter creates a lock free, non-blocking & thread safe logger
 // wrapped around slowWriter. It is similar to NewJSONLoggerForSlowWriter but does not close the writer on Close().
 //
 // params:
@@ -155,6 +155,6 @@ func NewJSONLoggerForSlowWriter(slowWriter WriterWithSource, ringBufferSize int,
 // source : source string
 // droppedMessagesLogger : logger for dropped messages
 // If pollInterval is greater than 0, a poller is used otherwise a waiter is used.
-func NewJSONLoggerForSlowWriters(slowWriter WriterWithSource, ringBufferSize int, pollInterval time.Duration, loggerSource string, source string, droppedMessagesLogger Loggers) (loggers Loggers, err error) {
-	return NewJSONLogger(NewDiodeWriter(slowWriter, ringBufferSize, pollInterval, droppedMessagesLogger), loggerSource, source)
+func NewJSONLoggerForSlowWriterWithoutClosingWriter(slowWriter WriterWithSource, ringBufferSize int, pollInterval time.Duration, loggerSource string, source string, droppedMessagesLogger Loggers) (loggers Loggers, err error) {
+	return NewJSONLogger(NewDiodeWriterForSlowWriterWithoutClosing(slowWriter, ringBufferSize, pollInterval, droppedMessagesLogger), loggerSource, source)
 }

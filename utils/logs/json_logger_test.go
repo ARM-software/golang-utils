@@ -44,7 +44,7 @@ func TestLogMessageToSlowLogger(t *testing.T) {
 	t.Run("without writer closing", func(t *testing.T) {
 		writer := NewTestSlowWriter(t)
 		defer func() { _ = writer.Close() }()
-		loggers, err := NewJSONLoggerForSlowWriters(writer, 1024, 2*time.Millisecond, "Test", "TestLogMessageToSlowLogger", stdloggers)
+		loggers, err := NewJSONLoggerForSlowWriterWithoutClosingWriter(writer, 1024, 2*time.Millisecond, "Test", "TestLogMessageToSlowLogger", stdloggers)
 		require.NoError(t, err)
 		testLog(t, loggers)
 		time.Sleep(100 * time.Millisecond)
