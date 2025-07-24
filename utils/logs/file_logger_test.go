@@ -30,7 +30,12 @@ func TestFileLogger(t *testing.T) {
 		},
 		{
 			loggerCreationFunc: func(path string) (Loggers, error) {
-				return NewRollingFilesLogger(path, "Test", sizeUnits.MiB, 2, time.Second)
+				return NewRollingFilesLogger(path, "Test", WithMaxFileSize(sizeUnits.MiB), WithMaxBackups(2), WithMaxAge(time.Second))
+			},
+		},
+		{
+			loggerCreationFunc: func(path string) (Loggers, error) {
+				return NewRollingFilesLogger(path, "Test")
 			},
 		},
 	}

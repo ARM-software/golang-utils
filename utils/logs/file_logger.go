@@ -13,7 +13,6 @@ import (
 
 	"github.com/DeRuina/timberjack"
 	"github.com/sirupsen/logrus"
-	"go.uber.org/atomic"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
@@ -41,23 +40,69 @@ func CreateFileLogger(logFile string, loggerSource string) (loggers Loggers, err
 	return NewFileLogger(logFile, loggerSource)
 }
 
+type FileLoggerOptions struct {
+	maxFileSize float64
+	maxAge      time.Duration
+	maxBackups  int
+}
+
+type FileLoggerOption func(*FileLoggerOptions) *FileLoggerOptions
+
+// WithMaxFileSize sets the maximum size in bytes of a log file before it gets rotated.
+func WithMaxFileSize(maxFileSize float64) FileLoggerOption {
+	return func(o *FileLoggerOptions) *FileLoggerOptions {
+		if o == nil {
+			return o
+		}
+		o.maxFileSize = maxFileSize
+		return o
+	}
+}
+
+// WithMaxAge sets the maximum duration old log files are retained.
+func WithMaxAge(maxAge time.Duration) FileLoggerOption {
+	return func(o *FileLoggerOptions) *FileLoggerOptions {
+		if o == nil {
+			return o
+		}
+		o.maxAge = maxAge
+		return o
+	}
+}
+
+// WithMaxBackups sets the maximum number of old log files to retain.
+func WithMaxBackups(maxBackups int) FileLoggerOption {
+	return func(o *FileLoggerOptions) *FileLoggerOptions {
+		if o == nil {
+			return o
+		}
+		o.maxBackups = maxBackups
+		return o
+	}
+}
+
 // NewRollingFilesLogger creates a rolling file logger using [lumberjack](https://github.com/natefinch/lumberjack) under the bonnet.
-// maxSize is the maximum size in bytes of a log file before it gets rotated.
-// maxBackups is the maximum number of old log files to retain.
-// maxAge is the maximum duration old log files are retained.
-func NewRollingFilesLogger(logFile string, loggerSource string, maxFileSize float64, maxBackups int, maxAge time.Duration) (loggers Loggers, err error) {
+func NewRollingFilesLogger(logFile string, loggerSource string, options ...FileLoggerOption) (loggers Loggers, err error) {
+	opts := &FileLoggerOptions{
+		maxFileSize: 100 * sizeUnits.MiB,
+		maxAge:      24 * time.Hour,
+		maxBackups:  3,
+	}
+	for i := range options {
+		opts = options[i](opts)
+	}
 	if reflection.IsEmpty(logFile) {
 		err = commonerrors.New(commonerrors.ErrInvalidDestination, "missing file destination")
 		return
 	}
-	l := newTimberJackLogger(&timberjack.Logger{
+	l := &timberjack.Logger{
 		Filename:   logFile,
-		MaxSize:    safecast.ToInt(maxFileSize / sizeUnits.MiB),
-		MaxAge:     safecast.ToInt(maxAge.Hours() / 24),
-		MaxBackups: maxBackups,
+		MaxSize:    safecast.ToInt(opts.maxFileSize / sizeUnits.MiB),
+		MaxAge:     safecast.ToInt(opts.maxAge.Hours() / 24),
+		MaxBackups: opts.maxBackups,
 		LocalTime:  false,
 		Compress:   false,
-	})
+	}
 	closerStore := parallelisation.NewCloserStore(false)
 	closerStore.RegisterCloser(l)
 
@@ -67,30 +112,4 @@ func NewRollingFilesLogger(logFile string, loggerSource string, maxFileSize floa
 		closeStore: closerStore,
 	}
 	return
-}
-
-// FIXME the following has only been put in place to avoid a panic when closing more than once: https://github.com/DeRuina/timberjack/issues/26
-type timberjackLogger struct {
-	l      *timberjack.Logger
-	closed *atomic.Bool
-}
-
-func (l *timberjackLogger) Write(p []byte) (n int, err error) {
-	return l.l.Write(p)
-}
-
-func newTimberJackLogger(l *timberjack.Logger) io.WriteCloser {
-	return &timberjackLogger{
-		l:      l,
-		closed: atomic.NewBool(false),
-	}
-}
-
-func (l *timberjackLogger) Close() error {
-	if l.closed.Load() {
-		return nil
-	}
-	err := l.l.Close()
-	l.closed.Store(true)
-	return err
 }
