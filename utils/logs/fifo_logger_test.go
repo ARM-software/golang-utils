@@ -12,11 +12,11 @@ import (
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
-	"go.uber.org/goleak"
 )
 
 func TestFIFOLoggerLineIterator(t *testing.T) {

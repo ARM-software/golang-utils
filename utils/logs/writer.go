@@ -143,7 +143,7 @@ func newDiodeWriterForSlowWriter(closeWriterOnClose bool, slowWriter WriterWithS
 			droppedMessagesLogger.LogError(fmt.Sprintf("Logger dropped %d messages", missed))
 		}
 	})
-	var diodeWriter io.Writer
+	var diodeWriter io.Writer //nolint:gosimple // S1021: should merge variable declaration with assignment on next line (gosimple)
 	diodeWriter = d
 	if diodeCloser, ok := diodeWriter.(io.Closer); ok {
 		closerStore.RegisterCloser(diodeCloser)

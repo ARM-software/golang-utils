@@ -11,8 +11,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/DeRuina/timberjack"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/natefinch/lumberjack.v2"
+	"go.uber.org/atomic"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
@@ -49,14 +50,14 @@ func NewRollingFilesLogger(logFile string, loggerSource string, maxFileSize floa
 		err = commonerrors.New(commonerrors.ErrInvalidDestination, "missing file destination")
 		return
 	}
-	l := &lumberjack.Logger{
+	l := newTimberJackLogger(&timberjack.Logger{
 		Filename:   logFile,
 		MaxSize:    safecast.ToInt(maxFileSize / sizeUnits.MiB),
 		MaxAge:     safecast.ToInt(maxAge.Hours() / 24),
 		MaxBackups: maxBackups,
 		LocalTime:  false,
 		Compress:   false,
-	}
+	})
 	closerStore := parallelisation.NewCloserStore(false)
 	closerStore.RegisterCloser(l)
 
@@ -66,4 +67,30 @@ func NewRollingFilesLogger(logFile string, loggerSource string, maxFileSize floa
 		closeStore: closerStore,
 	}
 	return
+}
+
+// FIXME the following has only been put in place to avoid a panic when closing more than once: https://github.com/DeRuina/timberjack/issues/26
+type timberjackLogger struct {
+	l      *timberjack.Logger
+	closed *atomic.Bool
+}
+
+func (l *timberjackLogger) Write(p []byte) (n int, err error) {
+	return l.l.Write(p)
+}
+
+func newTimberJackLogger(l *timberjack.Logger) io.WriteCloser {
+	return &timberjackLogger{
+		l:      l,
+		closed: atomic.NewBool(false),
+	}
+}
+
+func (l *timberjackLogger) Close() error {
+	if l.closed.Load() {
+		return nil
+	}
+	err := l.l.Close()
+	l.closed.Store(true)
+	return err
 }

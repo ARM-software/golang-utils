@@ -6,12 +6,15 @@ package logs
 
 import (
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
-	"testing"
 
 	"github.com/ARM-software/golang-utils/utils/filesystem"
+	sizeUnits "github.com/ARM-software/golang-utils/utils/units/size"
 )
 
 func TestFileLogger(t *testing.T) {
@@ -24,6 +27,11 @@ func TestFileLogger(t *testing.T) {
 		},
 		{
 			loggerCreationFunc: func(path string) (Loggers, error) { return NewFileOnlyLogger(path, "Test") },
+		},
+		{
+			loggerCreationFunc: func(path string) (Loggers, error) {
+				return NewRollingFilesLogger(path, "Test", sizeUnits.MiB, 2, time.Second)
+			},
 		},
 	}
 	for i := range tests {
