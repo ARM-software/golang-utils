@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 type SlowWriter struct {
@@ -22,9 +23,16 @@ func (w *SlowWriter) Write(p []byte) (n int, err error) {
 	return os.Stdout.Write(p)
 }
 
+func NewTestSlowWriter(t *testing.T) *SlowWriter {
+	t.Helper()
+	return &SlowWriter{}
+}
+
 // Creates a logger to standard output/error
-func CreateMultipleWriterLogger(prefix string) (loggers Loggers, err error) {
-	writer, err := NewMultipleWritersWithSource(&StdWriter{}, &SlowWriter{})
+func NewTestMultipleWriterLogger(t *testing.T, prefix string) (loggers Loggers) {
+	t.Helper()
+	writer, err := NewMultipleWritersWithSource(NewTestSlowWriter(t), NewTestSlowWriter(t))
+	require.NoError(t, err)
 	loggers = &GenericLoggers{
 		Output: log.New(writer, "["+prefix+"] Output: ", log.LstdFlags),
 		Error:  log.New(writer, "["+prefix+"] Error: ", log.LstdFlags),
@@ -33,8 +41,7 @@ func CreateMultipleWriterLogger(prefix string) (loggers Loggers, err error) {
 }
 
 func TestMultipleWriters(t *testing.T) {
-	stdloggers, err := CreateMultipleWriterLogger("Test")
-	require.NoError(t, err)
-	testLog(t, stdloggers)
+	defer goleak.VerifyNone(t)
+	testLog(t, NewTestMultipleWriterLogger(t, "Test"))
 	time.Sleep(100 * time.Millisecond)
 }

@@ -16,7 +16,6 @@ import (
 )
 
 type StdWriter struct {
-	WriterWithSource
 }
 
 func (w *StdWriter) Write(p []byte) (n int, err error) {
@@ -32,8 +31,11 @@ func (w *StdWriter) SetSource(source string) error {
 	return err
 }
 
+func NewStdWriterWithSource() WriterWithSource {
+	return &StdWriter{}
+}
+
 type StdErrWriter struct {
-	WriterWithSource
 }
 
 func (w *StdErrWriter) Write(p []byte) (n int, err error) {
@@ -44,8 +46,12 @@ func (w *StdErrWriter) Close() error {
 	return nil
 }
 
-func (w *StdErrWriter) SetSource(source string) error {
+func (w *StdErrWriter) SetSource(_ string) error {
 	return nil
+}
+
+func NewStdErrWriterWithSource() WriterWithSource {
+	return &StdErrWriter{}
 }
 
 // NewStdLogger creates a logger to standard output/error
@@ -65,7 +71,7 @@ func CreateStdLogger(loggerSource string) (loggers Loggers, err error) {
 }
 
 func NewAsynchronousStdLogger(loggerSource string, ringBufferSize int, pollInterval time.Duration, source string) (loggers Loggers, err error) {
-	return NewAsynchronousLoggers(&StdWriter{}, &StdErrWriter{}, ringBufferSize, pollInterval, loggerSource, source, nil)
+	return NewAsynchronousLoggers(NewStdWriterWithSource(), NewStdErrWriterWithSource(), ringBufferSize, pollInterval, loggerSource, source, nil)
 }
 
 func NewGolangStdLoggerFromLoggers(loggers Loggers, toStdErr bool) StdLogger {

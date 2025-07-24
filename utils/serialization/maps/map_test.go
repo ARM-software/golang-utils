@@ -107,6 +107,10 @@ func TestToMap(t *testing.T) {
 	t.Run("generic", func(t *testing.T) {
 		testStruct := TestStruct1{}
 		require.NoError(t, faker.FakeData(&testStruct))
+		if len(testStruct.Array) == 0 {
+			// This is to avoid the case where the slice is empty and so the comparison may differ because the slice could be set to nil instead of an empty slice
+			testStruct.Array = []int{1212, 544}
+		}
 
 		structMap, err := ToMap[TestStruct1](&testStruct)
 		require.NoError(t, err)

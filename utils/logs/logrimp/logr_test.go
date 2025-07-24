@@ -1,6 +1,7 @@
 package logrimp
 
 import (
+	"log/slog"
 	"os"
 	"testing"
 
@@ -9,13 +10,14 @@ import (
 	"github.com/hashicorp/go-hclog"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 	"go.uber.org/zap"
-	"golang.org/x/exp/slog"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 func TestLoggerImplementations(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	zl, err := zap.NewDevelopment()
 	require.NoError(t, err)
 	tests := []struct {
@@ -50,6 +52,7 @@ func TestLoggerImplementations(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
+			defer goleak.VerifyNone(t)
 			logger := test.Logger
 			logger.WithName(faker.Name()).WithValues("foo", "bar").Info(faker.Sentence())
 			logger.Error(commonerrors.ErrUnexpected, faker.Sentence(), faker.Word(), faker.Name())

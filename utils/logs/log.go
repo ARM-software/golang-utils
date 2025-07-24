@@ -12,11 +12,13 @@ import (
 	"time"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
 type GenericLoggers struct {
-	Output *log.Logger
-	Error  *log.Logger
+	Output     *log.Logger
+	Error      *log.Logger
+	closeStore *parallelisation.CloserStore
 }
 
 func (l *GenericLoggers) Check() error {
@@ -44,7 +46,10 @@ func (l *GenericLoggers) LogError(err ...interface{}) {
 
 // Close closes the logger
 func (l *GenericLoggers) Close() error {
-	return nil
+	if l.closeStore == nil {
+		return nil
+	}
+	return l.closeStore.Close()
 }
 
 type AsynchronousLoggers struct {

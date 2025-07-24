@@ -12,6 +12,7 @@ import (
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
@@ -19,6 +20,7 @@ import (
 )
 
 func TestFIFOLoggerLineIterator(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	t.Run("logger tests", func(t *testing.T) {
 		loggers, err := NewFIFOLogger()
 		require.NoError(t, err)
@@ -48,6 +50,7 @@ func TestFIFOLoggerLineIterator(t *testing.T) {
 }
 
 func TestPlainFIFOLoggerLineIterator(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	t.Run("logger tests", func(t *testing.T) {
 		loggers, err := NewPlainFIFOLogger()
 		require.NoError(t, err)

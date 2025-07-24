@@ -7,13 +7,13 @@
 package logs
 
 import (
-	"golang.org/x/exp/slog"
+	"log/slog"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/logs/logrimp"
 )
 
-// NewSlogLogger returns a logger which uses slog logger (andard library package )
+// NewSlogLogger returns a logger which uses slog logger (standard library package)
 func NewSlogLogger(slogL *slog.Logger, loggerSource string) (loggers Loggers, err error) {
 	if slogL == nil {
 		err = commonerrors.ErrNoLogger

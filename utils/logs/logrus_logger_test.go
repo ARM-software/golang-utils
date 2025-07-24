@@ -9,9 +9,11 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 func TestLogrusLogger(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	loggers, err := NewLogrusLogger(logrus.StandardLogger(), "Test")
 	require.NoError(t, err)
 	testLog(t, loggers)

@@ -9,11 +9,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 func TestLog(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	var loggers Loggers = &GenericLoggers{}
 	err := loggers.Check()
 	assert.Error(t, err)
@@ -22,6 +24,7 @@ func TestLog(t *testing.T) {
 }
 
 func testLog(t *testing.T, loggers Loggers) {
+	t.Helper()
 	err := loggers.Check()
 	require.NoError(t, err)
 	defer func() { _ = loggers.Close() }()

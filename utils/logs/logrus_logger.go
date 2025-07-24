@@ -7,8 +7,6 @@
 package logs
 
 import (
-	"fmt"
-
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
 
@@ -33,7 +31,7 @@ func NewLogrusLoggerWithFileHook(logrusL *logrus.Logger, loggerSource string, lo
 		return
 	}
 	if reflection.IsEmpty(logFilePath) {
-		err = fmt.Errorf("%w: missing file destination", commonerrors.ErrInvalidDestination)
+		err = commonerrors.New(commonerrors.ErrInvalidDestination, "missing file destination")
 		return
 	}
 	pathMap := lfshook.PathMap{

@@ -8,9 +8,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 func TestQuietLogger(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	logger, err := NewStdLogger("Test")
 	require.NoError(t, err)
 	loggers, err := NewQuietLogger(logger)
