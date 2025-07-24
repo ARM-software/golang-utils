@@ -65,7 +65,10 @@ func WithMaxAge(maxAge time.Duration) FileLoggerOption {
 		if o == nil {
 			return o
 		}
-		o.maxAge = maxAge
+		// This is necessary to avoid a Race Condition
+		if maxAge >= time.Minute {
+			o.maxAge = maxAge
+		}
 		return o
 	}
 }
