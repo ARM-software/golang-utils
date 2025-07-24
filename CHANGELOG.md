@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.107.0" (2025-07-24)
+======================
+
+Features
+--------
+
+- :sparkles: [logs] Added a rolling file logger (#20250723185203)
+
+
+Bugfixes
+--------
+
+- :recycle: [logs] update slog utilities to use standard library slog rather than golang extension's implementation (#20250723181707)
+- :recycle: [logs] Update ways to not close writers when loggers close (#20250723182149)
+
+
 "1.106.1" (2025-07-18)
 ======================
 
