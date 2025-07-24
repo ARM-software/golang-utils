@@ -68,7 +68,7 @@ func (w *MultipleWritersWithSource) Close() (err error) {
 	return
 }
 
-// NewMultipleWritersWithSource returns a writer which writes to multiple writers.
+// NewMultipleWritersWithSource returns a writer which writes using multiple writers.
 // On close, all sub writers are also closed.
 func NewMultipleWritersWithSource(writers ...WriterWithSource) (*MultipleWritersWithSource, error) {
 	return newWritersWithSource(true, writers...)
