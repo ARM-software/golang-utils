@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.107.2" (2025-07-29)
+======================
+
+Bugfixes
+--------
+
+- :bug: Fix zerolog closing the writer passed to it (#20250729141206)
+
+
 "1.107.1" (2025-07-29)
 ======================
 
