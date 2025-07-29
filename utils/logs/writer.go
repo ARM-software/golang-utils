@@ -41,6 +41,7 @@ func (w *MultipleWritersWithSource) AddWriters(writers ...WriterWithSource) erro
 	}
 	return nil
 }
+
 func (w *MultipleWritersWithSource) Write(p []byte) (n int, err error) {
 	writers, err := w.GetWriters()
 	if err != nil {
@@ -133,12 +134,24 @@ func NewDiodeWriterForSlowWriterWithoutClosing(slowWriter WriterWithSource, ring
 	return newDiodeWriterForSlowWriter(false, slowWriter, ringBufferSize, pollInterval, droppedMessagesLogger)
 }
 
+type nonCloseableWriter struct {
+	io.Writer
+}
+
+func (ncw nonCloseableWriter) Close() error {
+	return nil
+}
+
 func newDiodeWriterForSlowWriter(closeWriterOnClose bool, slowWriter WriterWithSource, ringBufferSize int, pollInterval time.Duration, droppedMessagesLogger Loggers) WriterWithSource {
 	closerStore := parallelisation.NewCloserStore(false)
 	if closeWriterOnClose {
 		closerStore.RegisterCloser(slowWriter)
 	}
-	d := diode.NewWriter(slowWriter, ringBufferSize, pollInterval, func(missed int) {
+
+	// We pass a wrapper that "overrides" the close method to do nothing,
+	// this is because we control the writer's close behaviour through the `closeWriterOnClose` check
+	ncw := nonCloseableWriter{slowWriter}
+	d := diode.NewWriter(ncw, ringBufferSize, pollInterval, func(missed int) {
 		if droppedMessagesLogger != nil {
 			droppedMessagesLogger.LogError(fmt.Sprintf("Logger dropped %d messages", missed))
 		}
