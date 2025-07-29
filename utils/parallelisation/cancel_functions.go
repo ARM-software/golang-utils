@@ -8,6 +8,8 @@ package parallelisation
 import (
 	"context"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/reflection"
 	"github.com/sasha-s/go-deadlock"
 	"golang.org/x/sync/errgroup"
 )
@@ -45,6 +47,9 @@ func (s *store[T]) Len() int {
 func (s *store[T]) Execute(ctx context.Context) error {
 	defer s.mu.Unlock()
 	s.mu.Lock()
+	if reflection.IsEmpty(s.executeFunc) {
+		return commonerrors.New(commonerrors.ErrUndefined, "the cancel store was not initialised correctly")
+	}
 	g, gCtx := errgroup.WithContext(ctx)
 	if !s.stopOnFirstError {
 		gCtx = ctx
@@ -75,6 +80,7 @@ func (s *CancelFunctionStore) RegisterCancelFunction(cancel ...context.CancelFun
 	s.store.RegisterFunction(cancel...)
 }
 
+// Cancel will execute the cancel functions in the store. Any errors will be ignored and Execute() is recommended if you need to know if a cancellation failed
 func (s *CancelFunctionStore) Cancel() {
 	_ = s.Execute(context.Background())
 }
