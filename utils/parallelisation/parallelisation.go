@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"go.uber.org/atomic"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
@@ -266,4 +267,58 @@ func WaitUntil(ctx context.Context, evalCondition func(ctx2 context.Context) (bo
 		}
 		SleepWithContext(ctx, pauseBetweenEvaluations)
 	}
+}
+
+func newWorker[JobType, ResultType any](ctx context.Context, f func(context.Context, JobType) (ResultType, bool, error), jobs chan JobType, results chan ResultType) (err error) {
+	for job := range jobs {
+		result, ok, subErr := f(ctx, job)
+		if subErr != nil {
+			err = commonerrors.WrapError(commonerrors.ErrUnexpected, subErr, "an error occurred whilst handling a job")
+			return
+		}
+
+		err = DetermineContextError(ctx)
+		if err != nil {
+			return
+		}
+
+		if ok {
+			results <- result
+		}
+	}
+
+	return
+}
+
+func WorkerPool[JobType, ResultType any](ctx context.Context, numWorkers int, jobs []JobType, f func(context.Context, JobType) (ResultType, bool, error)) (results []ResultType, err error) {
+	if numWorkers < 1 {
+		err = commonerrors.New(commonerrors.ErrInvalid, "numWorkers must be greater than or equal to 1")
+		return
+	}
+
+	numJobs := len(jobs)
+	jobsChan := make(chan JobType, numJobs)
+	resultsChan := make(chan ResultType, numJobs)
+
+	g, gCtx := errgroup.WithContext(ctx)
+	g.SetLimit(numWorkers)
+	for range numWorkers {
+		g.Go(func() error { return newWorker(gCtx, f, jobsChan, resultsChan) })
+	}
+	for _, job := range jobs {
+		jobsChan <- job
+	}
+
+	close(jobsChan)
+	err = g.Wait()
+	close(resultsChan)
+	if err != nil {
+		return
+	}
+
+	for result := range resultsChan {
+		results = append(results, result)
+	}
+
+	return
 }
