@@ -8,9 +8,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
-	"github.com/stretchr/testify/assert"
 )
 
 // Given a CancelFunctionsStore

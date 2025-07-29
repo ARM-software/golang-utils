@@ -8,10 +8,11 @@ package parallelisation
 import (
 	"context"
 
-	"github.com/ARM-software/golang-utils/utils/commonerrors"
-	"github.com/ARM-software/golang-utils/utils/reflection"
 	"github.com/sasha-s/go-deadlock"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
 func newFunctionStore[T any](clearOnExecution, stopOnFirstError bool, executeFunc func(context.Context, T) error) *store[T] {
