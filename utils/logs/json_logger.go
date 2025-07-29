@@ -45,6 +45,7 @@ func (l *JSONLoggers) GetSource() string {
 	defer l.mu.RUnlock()
 	return l.source
 }
+
 func (l *JSONLoggers) GetLoggerSource() string {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
@@ -156,5 +157,5 @@ func NewJSONLoggerForSlowWriter(slowWriter WriterWithSource, ringBufferSize int,
 // droppedMessagesLogger : logger for dropped messages
 // If pollInterval is greater than 0, a poller is used otherwise a waiter is used.
 func NewJSONLoggerForSlowWriterWithoutClosingWriter(slowWriter WriterWithSource, ringBufferSize int, pollInterval time.Duration, loggerSource string, source string, droppedMessagesLogger Loggers) (loggers Loggers, err error) {
-	return NewJSONLogger(NewDiodeWriterForSlowWriterWithoutClosing(slowWriter, ringBufferSize, pollInterval, droppedMessagesLogger), loggerSource, source)
+	return NewJSONLoggerWithWriter(NewDiodeWriterForSlowWriterWithoutClosing(slowWriter, ringBufferSize, pollInterval, droppedMessagesLogger), loggerSource, source)
 }
