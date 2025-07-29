@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.107.1" (2025-07-29)
+======================
+
+Bugfixes
+--------
+
+- :bug: Make sure that an improperly initialised cancel store doesn't cause a panic (#20250729105643)
+
+
 "1.107.0" (2025-07-24)
 ======================
 
