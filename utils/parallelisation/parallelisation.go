@@ -290,14 +290,15 @@ func newWorker[JobType, ResultType any](ctx context.Context, f func(context.Cont
 	return
 }
 
-func WorkerPool[JobType, ResultType any](ctx context.Context, numWorkers int, jobs []JobType, f func(context.Context, JobType) (ResultType, bool, error)) (results []ResultType, err error) {
+// WorkerPool parallelises an action using a worker pool of the size provided by numWorkers and retrieves all the results when all the actions have completed. It is similar to Parallelise but it uses generics instead of reflection and allows you to control the pool size
+func WorkerPool[InputType, ResultType any](ctx context.Context, numWorkers int, jobs []InputType, f func(context.Context, InputType) (ResultType, bool, error)) (results []ResultType, err error) {
 	if numWorkers < 1 {
 		err = commonerrors.New(commonerrors.ErrInvalid, "numWorkers must be greater than or equal to 1")
 		return
 	}
 
 	numJobs := len(jobs)
-	jobsChan := make(chan JobType, numJobs)
+	jobsChan := make(chan InputType, numJobs)
 	resultsChan := make(chan ResultType, numJobs)
 
 	g, gCtx := errgroup.WithContext(ctx)
