@@ -78,7 +78,7 @@ func FindProcessByRegexForFS(ctx context.Context, fs filesystem.FS, re *regexp.R
 	searchGlobTerm := fmt.Sprintf("%v/*/%v", procFS, procDataFile)
 	procEntries, err := fs.Glob(searchGlobTerm)
 	if err != nil {
-		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "an error occured when searching for processes using the following glob '%v'", searchGlobTerm)
+		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "an error occurred when searching for processes using the following glob '%v'", searchGlobTerm)
 		return
 	}
 
