@@ -105,7 +105,7 @@ func FindProcessByRegex(ctx context.Context, re *regexp.Regexp) (processes []pro
 	return FindProcessByRegexForFS(ctx, filesystem.GetGlobalFileSystem(), re)
 }
 
-// FindProcessByRegexForFS will search for the processes that match a specific name
+// FindProcessByName will search for the processes that match a specific name
 func FindProcessByName(ctx context.Context, name string) (processes []proc.IProcess, err error) {
 	return FindProcessByRegex(ctx, regexp.MustCompile(fmt.Sprintf(".*%v.*", regexp.QuoteMeta(name))))
 }
