@@ -463,3 +463,102 @@ func TestWaitUntil(t *testing.T) {
 		errortest.AssertError(t, err, commonerrors.ErrUnexpected)
 	})
 }
+
+func TestWorkerPool(t *testing.T) {
+	for _, test := range []struct {
+		name       string
+		numWorkers int
+		jobs       []int
+		results    []int
+		workerFunc func(context.Context, int) (int, bool, error)
+		err        error
+	}{
+		{
+			name:       "Success",
+			numWorkers: 3,
+			jobs:       []int{1, 2, 3, 4, 5},
+			results:    []int{2, 4, 6, 8, 10},
+			workerFunc: func(ctx context.Context, job int) (int, bool, error) {
+				return job * 2, true, nil
+			},
+			err: nil,
+		},
+		{
+			name:       "Invalid Num Workers",
+			numWorkers: 0,
+			jobs:       []int{1, 2, 3},
+			results:    nil,
+			workerFunc: func(ctx context.Context, job int) (int, bool, error) {
+				return 0, true, nil
+			},
+			err: commonerrors.ErrInvalid,
+		},
+		{
+			name:       "Worker Returns Error",
+			numWorkers: 2,
+			jobs:       []int{1, 2, 3},
+			results:    nil,
+			workerFunc: func(ctx context.Context, job int) (int, bool, error) {
+				if job == 2 {
+					return 0, false, errors.New("fail")
+				}
+				return job, true, nil
+			},
+			err: commonerrors.ErrUnexpected,
+		},
+		{
+			name:       "Some ok False",
+			numWorkers: 1,
+			jobs:       []int{1, 2, 3},
+			results:    []int{1, 3},
+			workerFunc: func(ctx context.Context, job int) (int, bool, error) {
+				return job, job != 2, nil
+			},
+			err: nil,
+		},
+		{
+			name:       "All ok False",
+			numWorkers: 1,
+			jobs:       []int{1, 2, 3},
+			results:    []int{},
+			workerFunc: func(ctx context.Context, job int) (int, bool, error) {
+				return job, false, nil
+			},
+			err: nil,
+		},
+		{
+			name:       "Empty Jobs",
+			numWorkers: 2,
+			jobs:       []int{},
+			results:    []int{},
+			workerFunc: func(ctx context.Context, job int) (int, bool, error) {
+				return job, true, nil
+			},
+			err: nil,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			results, err := WorkerPool(ctx, test.numWorkers, test.jobs, test.workerFunc)
+
+			if test.err != nil {
+				errortest.AssertError(t, err, test.err)
+			} else {
+				require.NoError(t, err)
+				assert.ElementsMatch(t, test.results, results)
+			}
+		})
+	}
+
+	t.Run("Context cancelled", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		_, err := WorkerPool(ctx, 100, []int{1, 2, 3}, func(ctx context.Context, job int) (int, bool, error) {
+			return job, true, nil
+		})
+
+		errortest.AssertError(t, err, commonerrors.ErrCancelled)
+	})
+}
