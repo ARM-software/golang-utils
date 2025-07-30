@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.108.1" (2025-07-30)
+======================
+
+Bugfixes
+--------
+
+- :bug: `proc` In process find, ignore processes that have stopped between listing and matching (#20250730095330)
+
+
 "1.108.0" (2025-07-30)
 ======================
 
