@@ -29,9 +29,9 @@ func checkProcessMatch(ctx context.Context, fs filesystem.FS, re *regexp.Regexp,
 
 	data, err := fs.ReadFile(procEntry)
 	if err != nil {
-		if commonerrors.CorrespondTo(err, "no bytes were read") {
+		if commonerrors.CorrespondTo(err, "no bytes were read", "no such file or directory") {
 			err = nil
-			return // ignore special descriptors since our cmdline will have content (we still have to check since all files in proc have size zero)
+			return // ignore special descriptors since our cmdline will have content (we still have to check since all files in proc have size zero) as well as processes that have stopped since the listing occurred
 		}
 		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not read proc entry '%v'", procEntry)
 		return
