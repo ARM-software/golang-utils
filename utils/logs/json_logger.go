@@ -45,6 +45,7 @@ func (l *JSONLoggers) GetSource() string {
 	defer l.mu.RUnlock()
 	return l.source
 }
+
 func (l *JSONLoggers) GetLoggerSource() string {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
@@ -71,7 +72,7 @@ func (l *JSONLoggers) Configure() error {
 }
 
 // Log logs to the output stream.
-func (l *JSONLoggers) Log(output ...interface{}) {
+func (l *JSONLoggers) Log(output ...any) {
 	if len(output) == 1 && output[0] == "\n" {
 		return
 	}
@@ -79,7 +80,7 @@ func (l *JSONLoggers) Log(output ...interface{}) {
 }
 
 // LogError logs to the error stream.
-func (l *JSONLoggers) LogError(err ...interface{}) {
+func (l *JSONLoggers) LogError(err ...any) {
 	if len(err) == 1 && err[0] == "\n" {
 		return
 	}
@@ -98,7 +99,7 @@ func NewJSONLogger(writer WriterWithSource, loggerSource string, source string) 
 	return newJSONLogger(true, writer, loggerSource, source)
 }
 
-// NewJSONLogger creates a Json logger. It is similar to NewJSONLogger but does not close the writer on Close().
+// NewJSONLoggerWithWriter creates a Json logger. It is similar to NewJSONLogger but does not close the writer on Close().
 func NewJSONLoggerWithWriter(writer WriterWithSource, loggerSource string, source string) (Loggers, error) {
 	return newJSONLogger(false, writer, loggerSource, source)
 }
@@ -156,5 +157,10 @@ func NewJSONLoggerForSlowWriter(slowWriter WriterWithSource, ringBufferSize int,
 // droppedMessagesLogger : logger for dropped messages
 // If pollInterval is greater than 0, a poller is used otherwise a waiter is used.
 func NewJSONLoggerForSlowWriterWithoutClosingWriter(slowWriter WriterWithSource, ringBufferSize int, pollInterval time.Duration, loggerSource string, source string, droppedMessagesLogger Loggers) (loggers Loggers, err error) {
+	// We call NewJSONLogger which closes the writer, because in this case the writer is a DiodeWriter that doesn't close the writer that is passed to it.
+	// JSONLogger.Close()
+	//   -> DiodeWriterWithoutClosing.Close()
+	//      -> does the proper steps for closing it's own goroutines
+	//      -> does not close the writer passed as it's passed a non-closeable writer
 	return NewJSONLogger(NewDiodeWriterForSlowWriterWithoutClosing(slowWriter, ringBufferSize, pollInterval, droppedMessagesLogger), loggerSource, source)
 }

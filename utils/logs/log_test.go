@@ -27,7 +27,7 @@ func testLog(t *testing.T, loggers Loggers) {
 	t.Helper()
 	err := loggers.Check()
 	require.NoError(t, err)
-	defer func() { _ = loggers.Close() }()
+	defer func() { require.NoError(t, loggers.Close()) }()
 
 	err = loggers.SetLogSource("source1")
 	require.NoError(t, err)
@@ -60,6 +60,4 @@ func testLog(t *testing.T, loggers Loggers) {
 	loggers.LogError(commonerrors.ErrUnexpected, "some error")
 	loggers.LogError("some error", commonerrors.ErrUnexpected)
 	loggers.LogError(nil, "no error")
-	err = loggers.Close()
-	require.NoError(t, err)
 }

@@ -110,14 +110,10 @@ func (w *DiodeWriter) Write(p []byte) (n int, err error) {
 }
 
 func (w *DiodeWriter) Close() error {
-	err := w.slowWriter.Close()
-	if err != nil {
-		return err
+	if w.closeStore == nil {
+		return nil
 	}
-	if diodeCloser, ok := w.diodeWriter.(io.Closer); ok {
-		return diodeCloser.Close()
-	}
-	return err
+	return w.closeStore.Close()
 }
 
 func (w *DiodeWriter) SetSource(source string) error {
@@ -150,8 +146,7 @@ func newDiodeWriterForSlowWriter(closeWriterOnClose bool, slowWriter WriterWithS
 
 	// We pass a wrapper that "overrides" the close method to do nothing,
 	// this is because we control the writer's close behaviour through the `closeWriterOnClose` check
-	ncw := nonCloseableWriter{slowWriter}
-	d := diode.NewWriter(ncw, ringBufferSize, pollInterval, func(missed int) {
+	d := diode.NewWriter(nonCloseableWriter{Writer: slowWriter}, ringBufferSize, pollInterval, func(missed int) {
 		if droppedMessagesLogger != nil {
 			droppedMessagesLogger.LogError(fmt.Sprintf("Logger dropped %d messages", missed))
 		}

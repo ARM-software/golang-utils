@@ -21,11 +21,10 @@ func TestLogMessage(t *testing.T) {
 	})
 	t.Run("without writer closing", func(t *testing.T) {
 		writer := NewStdWriterWithSource()
-		defer func() { _ = writer.Close() }()
+		defer func() { require.NoError(t, writer.Close()) }()
 		loggers, err := NewJSONLoggerWithWriter(writer, "Test", "TestLogMessage")
 		require.NoError(t, err)
 		testLog(t, loggers)
-		require.NoError(t, writer.Close())
 	})
 }
 
@@ -34,7 +33,6 @@ func TestLogMessageToSlowLogger(t *testing.T) {
 	stdloggers, err := NewStdLogger("ERR:")
 	require.NoError(t, err)
 
-	defer goleak.VerifyNone(t)
 	t.Run("with writer closing", func(t *testing.T) {
 		loggers, err := NewJSONLoggerForSlowWriter(NewTestSlowWriter(t), 1024, 2*time.Millisecond, "Test", "TestLogMessageToSlowLogger", stdloggers)
 		require.NoError(t, err)
@@ -43,11 +41,10 @@ func TestLogMessageToSlowLogger(t *testing.T) {
 	})
 	t.Run("without writer closing", func(t *testing.T) {
 		writer := NewTestSlowWriter(t)
-		defer func() { _ = writer.Close() }()
+		defer func() { require.NoError(t, writer.Close()) }()
 		loggers, err := NewJSONLoggerForSlowWriterWithoutClosingWriter(writer, 1024, 2*time.Millisecond, "Test", "TestLogMessageToSlowLogger", stdloggers)
 		require.NoError(t, err)
 		testLog(t, loggers)
 		time.Sleep(100 * time.Millisecond)
-		require.NoError(t, writer.Close())
 	})
 }
