@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.108.2" (2025-07-30)
+======================
+
+Bugfixes
+--------
+
+- :bug: `logs` Fix missing writer close skip (#20250729175928)
+
+
 "1.108.1" (2025-07-30)
 ======================
 
