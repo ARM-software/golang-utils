@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.108.0" (2025-07-30)
+======================
+
+Features
+--------
+
+- :sparkles: Add support for finding processes by their name/the command that was started (#20250729164750)
+
+
 "1.107.2" (2025-07-29)
 ======================
 
