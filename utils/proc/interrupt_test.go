@@ -78,6 +78,9 @@ func TestTerminateGracefully(t *testing.T) {
 				require.NotNil(t, cmd.Process)
 				p, err := FindProcess(context.Background(), cmd.Process.Pid)
 				require.NoError(t, err)
+				for !p.IsRunning() {
+					time.Sleep(200 * time.Millisecond)
+				}
 				require.True(t, p.IsRunning())
 				children, err := p.Children(context.Background())
 				require.NoError(t, err)
