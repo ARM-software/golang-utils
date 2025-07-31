@@ -6,9 +6,10 @@ import (
 	"os/exec"
 	"time"
 
+	"golang.org/x/sync/errgroup"
+
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
-	"golang.org/x/sync/errgroup"
 )
 
 //go:generate go run github.com/dmarkham/enumer -type=InterruptType -text -json -yaml
