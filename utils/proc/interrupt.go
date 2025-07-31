@@ -49,7 +49,7 @@ func InterruptProcess(ctx context.Context, pid int, signal InterruptType) (err e
 // TerminateGracefullyWithChildren follows the pattern set by [kubernetes](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination) and terminates processes gracefully by first sending a SIGTERM and then a SIGKILL after the grace period has elapsed.
 // It does not attempt to terminate the process group. If you wish to terminate the process group directly then send -pgid to TerminateGracefully but
 // this does not guarantee that the group will be terminated gracefully.
-// Instead this function lists each child and attempts to kill them gracefully in a concurrently. It will then attempt to gracefully terminate itself.
+// Instead this function lists each child and attempts to kill them gracefully concurrently. It will then attempt to gracefully terminate itself.
 // Due to the multi-stage process and the fact that the full grace period must pass for each stage specified above, the total maximum length of this
 // function will be 2*gracePeriod not gracePeriod.
 func TerminateGracefullyWithChildren(ctx context.Context, pid int, gracePeriod time.Duration) (err error) {
