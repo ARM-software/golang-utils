@@ -48,7 +48,7 @@ func TestTerminateGracefully(t *testing.T) {
 				now := time.Now()
 				gracePeriod := 10 * time.Second
 				require.NoError(t, test.testFunc(context.Background(), cmd.Process.Pid, gracePeriod))
-				assert.Less(t, time.Now().Sub(now), gracePeriod) // this indicates that the process was closed by INT/SIG not KILL
+				assert.Less(t, time.Since(now), gracePeriod) // this indicates that the process was closed by INT/SIG not KILL
 
 				time.Sleep(500 * time.Millisecond)
 				process, err = FindProcess(context.Background(), cmd.Process.Pid)
@@ -86,7 +86,7 @@ func TestTerminateGracefully(t *testing.T) {
 				now := time.Now()
 				gracePeriod := 10 * time.Second
 				require.NoError(t, test.testFunc(context.Background(), cmd.Process.Pid, gracePeriod))
-				assert.Less(t, time.Now().Sub(now), gracePeriod) // this indicates that the process was closed by INT/SIG not KILL
+				assert.Less(t, time.Since(now), gracePeriod) // this indicates that the process was closed by INT/SIG not KILL
 
 				p, err = FindProcess(context.Background(), cmd.Process.Pid)
 				if err == nil {

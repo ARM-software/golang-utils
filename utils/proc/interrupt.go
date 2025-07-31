@@ -2,7 +2,6 @@ package proc
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/exec"
 	"time"
@@ -53,7 +52,7 @@ func InterruptProcess(ctx context.Context, pid int, signal InterruptType) (err e
 // Due to the multi-stage process and the fact that the full grace period must pass for each stage specified above, the total maximum length of this
 // function will be 2*gracePeriod not gracePeriod.
 func TerminateGracefullyWithChildren(ctx context.Context, pid int, gracePeriod time.Duration) (err error) {
-	defer TerminateGracefully(ctx, pid, gracePeriod)
+	defer func() { _ = TerminateGracefully(ctx, pid, gracePeriod) }()
 
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
@@ -78,7 +77,8 @@ func TerminateGracefullyWithChildren(ctx context.Context, pid int, gracePeriod t
 	}
 
 	if len(children) == 0 {
-		return // will trigger defer to Interrupt self
+		err = TerminateGracefully(ctx, pid, gracePeriod)
+		return
 	}
 
 	childGroup, terminateCtx := errgroup.WithContext(ctx)
@@ -88,14 +88,16 @@ func TerminateGracefullyWithChildren(ctx context.Context, pid int, gracePeriod t
 			childGroup.Go(func() error { return TerminateGracefullyWithChildren(terminateCtx, child.Pid(), gracePeriod) })
 		}
 	}
-	childGroup.Wait()
-
-	fmt.Println(890, time.Now())
+	err = childGroup.Wait()
+	if err != nil {
+		return
+	}
 
 	for _, child := range children {
 		defer InterruptProcess(ctx, child.Pid(), SigKill)
 	}
 
+	err = TerminateGracefully(ctx, pid, gracePeriod)
 	return
 }
 
