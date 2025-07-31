@@ -2,7 +2,6 @@ package proc
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/exec"
 	"time"
@@ -90,12 +89,6 @@ func TerminateGracefullyWithChildren(ctx context.Context, pid int, gracePeriod t
 	err = childGroup.Wait()
 	if err != nil {
 		return
-	}
-
-	fmt.Println(890, time.Now())
-
-	for _, child := range children {
-		defer InterruptProcess(ctx, child.Pid(), SigKill)
 	}
 
 	err = TerminateGracefully(ctx, pid, gracePeriod)
