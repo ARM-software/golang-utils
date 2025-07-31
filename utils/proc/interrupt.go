@@ -2,12 +2,14 @@ package proc
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 	"time"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
+	"golang.org/x/sync/errgroup"
 )
 
 //go:generate go run github.com/dmarkham/enumer -type=InterruptType -text -json -yaml
@@ -44,9 +46,60 @@ func InterruptProcess(ctx context.Context, pid int, signal InterruptType) (err e
 	return
 }
 
-// TerminateGracefully follows the pattern set by [kubernetes](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination) and terminates processes gracefully by first sending a SIGTERM and then a SIGKILL after the grace period has elapsed.
-func TerminateGracefully(ctx context.Context, pid int, gracePeriod time.Duration) (err error) {
-	defer func() { _ = InterruptProcess(context.Background(), pid, SigKill) }()
+// TerminateGracefullyWithChildren follows the pattern set by [kubernetes](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination) and terminates processes gracefully by first sending a SIGTERM and then a SIGKILL after the grace period has elapsed.
+// It does not attempt to terminate the process group. If you wish to terminate the process group directly then send -pgid to TerminateGracefully but
+// this does not guarantee that the group will be terminated gracefully.
+// Instead this function lists each child and attempts to kill them gracefully in a concurrently. It will then attempt to gracefully terminate itself.
+// Due to the multi-stage process and the fact that the full grace period must pass for each stage specified above, the total maximum length of this
+// function will be 2*gracePeriod not gracePeriod.
+func TerminateGracefullyWithChildren(ctx context.Context, pid int, gracePeriod time.Duration) (err error) {
+	defer TerminateGracefully(ctx, pid, gracePeriod)
+
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+
+	p, err := FindProcess(ctx, pid)
+	if err != nil {
+		if commonerrors.Any(err, commonerrors.ErrNotFound) {
+			err = nil
+			return
+		}
+
+		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "an error occurred whilst searching for process '%v'", pid)
+		return
+	}
+
+	children, err := p.Children(ctx)
+	if err != nil {
+		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not check for children for pid '%v'", pid)
+		return
+	}
+
+	if len(children) == 0 {
+		return // will trigger defer to Interrupt self
+	}
+
+	childGroup, terminateCtx := errgroup.WithContext(ctx)
+	childGroup.SetLimit(len(children))
+	for _, child := range children {
+		if child.IsRunning() {
+			childGroup.Go(func() error { return TerminateGracefullyWithChildren(terminateCtx, child.Pid(), gracePeriod) })
+		}
+	}
+	childGroup.Wait()
+
+	fmt.Println(890, time.Now())
+
+	for _, child := range children {
+		defer InterruptProcess(ctx, child.Pid(), SigKill)
+	}
+
+	return
+}
+
+func terminateGracefully(ctx context.Context, pid int, gracePeriod time.Duration) (err error) {
 	err = InterruptProcess(ctx, pid, SigInt)
 	if err != nil {
 		return
@@ -55,13 +108,23 @@ func TerminateGracefully(ctx context.Context, pid int, gracePeriod time.Duration
 	if err != nil {
 		return
 	}
-	_, fErr := FindProcess(ctx, pid)
-	if commonerrors.Any(fErr, commonerrors.ErrNotFound) {
-		// The process no longer exist.
-		// No need to wait the grace period
-		return
-	}
-	parallelisation.SleepWithContext(ctx, gracePeriod)
+
+	return parallelisation.RunActionWithParallelCheck(ctx,
+		func(ctx context.Context) error {
+			parallelisation.SleepWithContext(ctx, gracePeriod)
+			return nil
+		},
+		func(ctx context.Context) bool {
+			_, fErr := FindProcess(ctx, pid)
+			return commonerrors.Any(fErr, commonerrors.ErrNotFound)
+
+		}, 200*time.Millisecond)
+}
+
+// TerminateGracefully follows the pattern set by [kubernetes](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination) and terminates processes gracefully by first sending a SIGTERM and then a SIGKILL after the grace period has elapsed.
+func TerminateGracefully(ctx context.Context, pid int, gracePeriod time.Duration) (err error) {
+	defer func() { _ = InterruptProcess(context.Background(), pid, SigKill) }()
+	_ = terminateGracefully(ctx, pid, gracePeriod)
 	err = InterruptProcess(ctx, pid, SigKill)
 	return
 }
