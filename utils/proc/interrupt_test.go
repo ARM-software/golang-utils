@@ -14,6 +14,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
 func TestTerminateGracefully(t *testing.T) {
@@ -76,15 +77,22 @@ func TestTerminateGracefully(t *testing.T) {
 				}()
 				time.Sleep(500 * time.Millisecond)
 				require.NotNil(t, cmd.Process)
+
+				timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				defer cancel()
+				require.NoError(t, parallelisation.WaitUntil(timeoutCtx, func(fCtx context.Context) (bool, error) {
+					p, fErr := FindProcess(fCtx, cmd.Process.Pid)
+					if fErr != nil {
+						return false, fErr
+					}
+					return p.IsRunning(), nil
+				}, 200*time.Millisecond))
 				p, err := FindProcess(context.Background(), cmd.Process.Pid)
 				require.NoError(t, err)
-				for !p.IsRunning() {
-					time.Sleep(200 * time.Millisecond)
-				}
 				require.True(t, p.IsRunning())
-				children, err := p.Children(context.Background())
+				children, err := p.Children(timeoutCtx)
 				require.NoError(t, err)
-				require.Greater(t, len(children), 0)
+				require.NotZero(t, len(children))
 
 				now := time.Now()
 				gracePeriod := 10 * time.Second
