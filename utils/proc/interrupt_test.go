@@ -74,7 +74,7 @@ func TestTerminateGracefully(t *testing.T) {
 						_ = cmd.Wait()
 					}
 				}()
-				time.Sleep(200 * time.Millisecond)
+				time.Sleep(500 * time.Millisecond)
 				require.NotNil(t, cmd.Process)
 				p, err := FindProcess(context.Background(), cmd.Process.Pid)
 				require.NoError(t, err)
