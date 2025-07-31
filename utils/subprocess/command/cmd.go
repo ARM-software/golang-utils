@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-// CommandAsDifferentUser helps redefining commands so that they are run as a different user or with more privileges.
+// CommandAsDifferentUser helps to redefine commands so that they are run as a different user or with more privileges.
 type CommandAsDifferentUser struct {
 	mu sync.RWMutex
 	// changeUserCmd describes the command to use to execute any command as a different user
@@ -65,7 +65,7 @@ func (c *CommandAsDifferentUser) Prepend(cmd *CommandAsDifferentUser) *CommandAs
 	return c
 }
 
-// NewCommandAsDifferentUser defines a command wrapper which helps redefining commands so that they are run as a different user.
+// NewCommandAsDifferentUser defines a command wrapper which helps to redefine commands so that they are run as a different user.
 // e.g.
 //   - switchUserCmd="sudo" to run commands as `root`
 //   - switchUserCmd="su", "tom" if `tom` has enough privileges to run the command

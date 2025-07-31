@@ -3,7 +3,9 @@
 
 package platform
 
-import "github.com/ARM-software/golang-utils/utils/subprocess/command"
+import (
+	"github.com/ARM-software/golang-utils/utils/subprocess/command"
+)
 
 var (
 	// runAsAdmin describes the command to use to run command as Administrator
@@ -22,4 +24,8 @@ func DefineRunAsAdmin(args ...string) {
 
 func getRunCommandWithPrivileges() *command.CommandAsDifferentUser {
 	return runAsAdmin
+}
+
+func hasPasswordlessPrivileges() bool {
+	return true
 }
