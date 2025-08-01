@@ -556,38 +556,49 @@ func TestIsFile(t *testing.T) {
 		t.Run(fmt.Sprint(fsType), func(t *testing.T) {
 			fs := NewFs(fsType)
 
-			if fsType == InMemoryFS {
-				t.Skip("In-memory file system won't have hardware devices or special files")
-			}
-
-			b, err := fs.IsFile("/dev/null")
-			require.NoError(t, err)
-			assert.True(t, b)
-
 			tmpDir := t.TempDir()
 
-			fifoPath := filepath.Join(tmpDir, faker.Word())
-			require.NoError(t, err)
-			defer func() { _ = fs.Rm(fifoPath) }()
-			err = unix.Mkfifo(fifoPath, 0666)
-			require.NoError(t, err)
-			b, err = fs.IsFile(fifoPath)
-			require.NoError(t, err)
-			assert.True(t, b)
-			err = fs.Rm(fifoPath)
-			require.NoError(t, err)
+			t.Run("normal file", func(t *testing.T) {
+				filePath := filepath.Join(tmpDir, faker.Word())
+				err := fs.Touch(filePath)
+				require.NoError(t, err)
+				b, err := fs.IsFile(filePath)
+				require.NoError(t, err)
+				assert.True(t, b)
+			})
 
-			socketPath := filepath.Join(tmpDir, faker.Word())
-			require.NoError(t, err)
-			defer func() { _ = fs.Rm(socketPath) }()
-			l, err := net.Listen("unix", socketPath)
-			require.NoError(t, err)
-			defer func() { _ = l.Close() }()
-			b, err = fs.IsFile(socketPath)
-			require.NoError(t, err)
-			assert.True(t, b)
-			err = fs.Rm(socketPath)
-			require.NoError(t, err)
+			t.Run("special file", func(t *testing.T) {
+				if fsType == InMemoryFS {
+					t.Skip("In-memory file system won't have hardware devices or special files")
+				}
+
+				b, err := fs.IsFile("/dev/null")
+				require.NoError(t, err)
+				assert.True(t, b)
+
+				fifoPath := filepath.Join(tmpDir, faker.Word())
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(fifoPath) }()
+				err = unix.Mkfifo(fifoPath, 0666)
+				require.NoError(t, err)
+				b, err = fs.IsFile(fifoPath)
+				require.NoError(t, err)
+				assert.True(t, b)
+				err = fs.Rm(fifoPath)
+				require.NoError(t, err)
+
+				socketPath := filepath.Join(tmpDir, faker.Word())
+				require.NoError(t, err)
+				defer func() { _ = fs.Rm(socketPath) }()
+				l, err := net.Listen("unix", socketPath)
+				require.NoError(t, err)
+				defer func() { _ = l.Close() }()
+				b, err = fs.IsFile(socketPath)
+				require.NoError(t, err)
+				assert.True(t, b)
+				err = fs.Rm(socketPath)
+				require.NoError(t, err)
+			})
 		})
 	}
 }
