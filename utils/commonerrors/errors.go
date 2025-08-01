@@ -255,7 +255,7 @@ func Ignore(target error, ignore ...error) error {
 	return target
 }
 
-// IgnoreCorrespondTo will return nil if the target error matches one of the errors to ignore
+// IgnoreCorrespondTo will return nil if the target error matches one of the descriptions of errors to ignore
 func IgnoreCorrespondTo(target error, ignore ...string) error {
 	if CorrespondTo(target, ignore...) {
 		return nil
