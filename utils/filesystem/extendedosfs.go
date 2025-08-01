@@ -25,7 +25,7 @@ func (c *ExtendedOsFs) Remove(name string) (err error) {
 	// The following is to ensure sockets are correctly removed
 	// https://stackoverflow.com/questions/16681944/how-to-reliably-unlink-a-unix-domain-socket-in-go-programming-language
 	err = commonerrors.Ignore(ConvertFileSystemError(syscall.Unlink(name)), commonerrors.ErrNotFound)
-	if err != nil {
+	if err != nil && !commonerrors.CorrespondTo(err, "is a directory") {
 		return
 	}
 
