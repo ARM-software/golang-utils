@@ -3,7 +3,11 @@
 
 package platform
 
-import "github.com/ARM-software/golang-utils/utils/subprocess/command"
+import (
+	"os/exec"
+
+	"github.com/ARM-software/golang-utils/utils/subprocess/command"
+)
 
 var (
 	// sudoCommand describes the command to use to execute command as root
@@ -21,4 +25,9 @@ func DefineSudoCommand(args ...string) {
 
 func getRunCommandWithPrivileges() *command.CommandAsDifferentUser {
 	return sudoCommand
+}
+
+func hasPasswordlessPrivileges() bool {
+	// See https://www.baeldung.com/linux/sudo-passwordless-check
+	return exec.Command("sh", "-c", "sudo -n true 2>/dev/null || exit 1").Run() == nil
 }
