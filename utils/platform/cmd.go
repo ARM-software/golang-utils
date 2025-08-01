@@ -15,7 +15,7 @@ func WithPrivileges(cmd *command.CommandAsDifferentUser) (cmdWithPrivileges *com
 	if err != nil {
 		return
 	}
-	if !hasPrivileges {
+	if !hasPrivileges && hasPasswordlessPrivileges() {
 		cmdWithPrivileges.Prepend(getRunCommandWithPrivileges())
 	}
 	return

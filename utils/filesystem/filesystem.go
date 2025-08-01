@@ -115,7 +115,7 @@ func ConvertFileSystemError(err error) error {
 		return commonerrors.WrapError(commonerrors.ErrConflict, err, "")
 	case commonerrors.CorrespondTo(err, "required privilege is not held") || commonerrors.CorrespondTo(err, "operation not permitted"):
 		return commonerrors.WrapError(commonerrors.ErrForbidden, err, "")
-	case os.IsNotExist(err) || commonerrors.Any(err, os.ErrNotExist, afero.ErrFileNotFound):
+	case os.IsNotExist(err) || commonerrors.Any(err, os.ErrNotExist, afero.ErrFileNotFound) || IsPathNotExist(err) || commonerrors.CorrespondTo(err, "No such file or directory"):
 		return commonerrors.WrapError(commonerrors.ErrNotFound, err, "")
 	case commonerrors.Any(err, os.ErrNoDeadline):
 		return commonerrors.WrapError(commonerrors.ErrUnsupported, err, "file type does not support deadline")
