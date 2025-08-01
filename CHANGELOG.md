@@ -14,6 +14,16 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.109.1" (2025-08-01)
+======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: v4-4.25.7 (#20250801105313, #20250801105328, #20250801105343, #20250801105356, #20250801105410, #20250801105424, #20250801105438, #20250801105448, #20250801105504, #20250801105514)
+- :bug: `filesystem` IsFile should return true for special unix files not just regular files (#20250801151058)
+
+
 "1.109.0" (2025-08-01)
 ======================
 
