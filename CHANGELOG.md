@@ -14,6 +14,23 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.109.0" (2025-08-01)
+======================
+
+Features
+--------
+
+- :sparkles: `commonerrors` Add IgnoreCorrespondTo function (#20250801105019)
+
+
+Bugfixes
+--------
+
+- :bug: `[platform]` make sure command with privileges are run when passwords are not needed (#20250731182237)
+- :bug: `[filesystem]` make sure to unlink files when removal is called so that sockets are correctly closed (#20250731182404)
+- :bug: `filsystem` Unlink files before attempting to remove them in Remove (#20250801093542)
+
+
 "1.108.2" (2025-07-30)
 ======================
 
