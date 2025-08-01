@@ -255,6 +255,14 @@ func Ignore(target error, ignore ...error) error {
 	return target
 }
 
+// IgnoreCorrespondTo will return nil if the target error matches one of the errors to ignore
+func IgnoreCorrespondTo(target error, ignore ...string) error {
+	if CorrespondTo(target, ignore...) {
+		return nil
+	}
+	return target
+}
+
 // IsEmpty states whether an error is empty or not.
 // An error is considered empty if it is `nil` or has no description.
 func IsEmpty(err error) bool {

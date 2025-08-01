@@ -49,6 +49,13 @@ func TestCorrespondTo(t *testing.T) {
 	assert.True(t, CorrespondTo(fmt.Errorf("%v %v", faker.Sentence(), strings.ToUpper(ErrUndefined.Error())), strings.ToLower(ErrUndefined.Error())))
 }
 
+func TestIgnoreCorrespondTo(t *testing.T) {
+	assert.NoError(t, IgnoreCorrespondTo(errors.New("test"), "test"))
+	assert.NoError(t, IgnoreCorrespondTo(errors.New("test 123"), "test"))
+	assert.Error(t, IgnoreCorrespondTo(errors.New("test 123"), "abc", "def", faker.Word()))
+	assert.NoError(t, IgnoreCorrespondTo(ErrCondition, "condition"))
+}
+
 func TestContextErrorConversion(t *testing.T) {
 	defer goleak.VerifyNone(t)
 	task := func(ctx context.Context) {
