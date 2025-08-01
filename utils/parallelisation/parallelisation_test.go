@@ -378,6 +378,7 @@ func runActionWithParallelCheckHappy(t *testing.T, ctx context.Context) {
 	}
 	err := RunActionWithParallelCheck(ctx, action, checkAction, 10*time.Millisecond)
 	require.NoError(t, err)
+	assert.Equal(t, int32(15), counter.Load())
 }
 
 func runActionWithParallelCheckFail(t *testing.T, ctx context.Context) {
@@ -394,6 +395,7 @@ func runActionWithParallelCheckFail(t *testing.T, ctx context.Context) {
 	err := RunActionWithParallelCheck(ctx, action, checkAction, 10*time.Millisecond)
 	require.Error(t, err)
 	errortest.AssertError(t, err, commonerrors.ErrCancelled)
+	assert.Equal(t, int32(1), counter.Load())
 }
 
 func runActionWithParallelCheckFailAtRandom(t *testing.T, ctx context.Context) {
@@ -410,6 +412,7 @@ func runActionWithParallelCheckFailAtRandom(t *testing.T, ctx context.Context) {
 	err := RunActionWithParallelCheck(ctx, action, checkAction, 10*time.Millisecond)
 	require.Error(t, err)
 	errortest.AssertError(t, err, commonerrors.ErrCancelled)
+	assert.GreaterOrEqual(t, counter.Load(), int32(1))
 }
 
 func TestWaitUntil(t *testing.T) {

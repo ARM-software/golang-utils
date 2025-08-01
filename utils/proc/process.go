@@ -7,6 +7,7 @@ package proc
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/shirou/gopsutil/v4/process"
 
@@ -252,11 +253,12 @@ func isProcessRunning(p *process.Process) (running bool) {
 		running = false
 		return
 	}
-	// On some platforms, such as *nix, a zombie process is reported as a running process by p.IsRunning() but this is not the case. Therefore, a further check is performed on the process status to verify a running process is actually in the expected running state. Nonetheless, status is not cross platform and is not implemented on Windows. For those platform, the status returned by IsRunning is then considered
+	// On some platforms, such as *nix, a zombie process is reported as a running process by p.IsRunning() but this is not the case. Therefore, a further check is performed on the process status to verify a running process is actually in the expected running state. Nonetheless, status is not cross-platform and is not implemented on Windows. For those platform, the status returned by IsRunning is then considered
 	status, err := p.Status()
 	if err != nil {
 		return
 	}
+	fmt.Println(">>>Process status: ", status)
 	// https://github.com/shirou/gopsutil/blob/e230f528f075f78e713f167c28b692cc15307d19/process/process.go#L48
 	_, running = collection.FindInSlice(false, status, statusRunning, statusSleep, statusIdle)
 	return
