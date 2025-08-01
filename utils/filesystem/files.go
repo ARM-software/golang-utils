@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -777,7 +778,7 @@ func (fs *VFS) IsFile(path string) (result bool, err error) {
 	if err != nil {
 		return
 	}
-	result = IsRegularFile(fi)
+	result = IsRegularFile(fi) || IsSpecialFile(fi)
 	return
 }
 
@@ -786,6 +787,17 @@ func IsRegularFile(fi os.FileInfo) bool {
 		return false
 	}
 	return fi.Mode().IsRegular()
+}
+
+func IsSpecialFile(fi os.FileInfo) bool {
+	if fi == nil {
+		return false
+	}
+	mode := fi.Mode()
+	isSocket := mode&fs.ModeSocket != 0
+	isDevice := mode&fs.ModeDevice != 0
+	isNamedPipe := mode&fs.ModeNamedPipe != 0
+	return isSocket || isDevice || isNamedPipe
 }
 
 func (fs *VFS) IsLink(path string) (result bool, err error) {
