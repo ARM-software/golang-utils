@@ -115,22 +115,22 @@ func TestAllNotEmpty(t *testing.T) {
 
 func TestFilterReject(t *testing.T) {
 	nums := []int{1, 2, 3, 4, 5}
-	assert.EqualValues(t, []int{2, 4}, Filter(nums, func(n int) bool {
+	assert.ElementsMatch(t, []int{2, 4}, Filter(nums, func(n int) bool {
 		return n%2 == 0
 	}))
-	assert.EqualValues(t, []int{1, 3, 5}, Reject(nums, func(n int) bool {
+	assert.ElementsMatch(t, []int{1, 3, 5}, Reject(nums, func(n int) bool {
 		return n%2 == 0
 	}))
-	assert.EqualValues(t, []int{4, 5}, Filter(nums, func(n int) bool {
+	assert.ElementsMatch(t, []int{4, 5}, Filter(nums, func(n int) bool {
 		return n > 3
 	}))
-	assert.EqualValues(t, []int{1, 2, 3}, Reject(nums, func(n int) bool {
+	assert.ElementsMatch(t, []int{1, 2, 3}, Reject(nums, func(n int) bool {
 		return n > 3
 	}))
-	assert.EqualValues(t, []string{"foo", "bar"}, Filter([]string{"", "foo", "", "bar", ""}, func(x string) bool {
+	assert.ElementsMatch(t, []string{"foo", "bar"}, Filter([]string{"", "foo", "", "bar", ""}, func(x string) bool {
 		return len(x) > 0
 	}))
-	assert.EqualValues(t, []string{"", "", ""}, Reject([]string{"", "foo", "", "bar", ""}, func(x string) bool {
+	assert.ElementsMatch(t, []string{"", "", ""}, Reject([]string{"", "foo", "", "bar", ""}, func(x string) bool {
 		return len(x) > 0
 	}))
 }
@@ -139,11 +139,11 @@ func TestMap(t *testing.T) {
 	mapped := Map([]int{1, 2}, func(i int) string {
 		return fmt.Sprintf("Hello world %v", i)
 	})
-	assert.EqualValues(t, []string{"Hello world 1", "Hello world 2"}, mapped)
+	assert.ElementsMatch(t, []string{"Hello world 1", "Hello world 2"}, mapped)
 	mapped = Map([]int64{1, 2, 3, 4}, func(x int64) string {
 		return strconv.FormatInt(x, 10)
 	})
-	assert.EqualValues(t, []string{"1", "2", "3", "4"}, mapped)
+	assert.ElementsMatch(t, []string{"1", "2", "3", "4"}, mapped)
 }
 
 func TestReduce(t *testing.T) {

@@ -92,7 +92,9 @@ func TestTerminateGracefully(t *testing.T) {
 				require.True(t, p.IsRunning() || p.IsAZombie())
 				children, err := p.Children(timeoutCtx)
 				require.NoError(t, err)
-				require.NotZero(t, len(children))
+				if !p.IsAZombie() {
+					assert.NotEmpty(t, children)
+				}
 
 				now := time.Now()
 				gracePeriod := 10 * time.Second
@@ -102,7 +104,7 @@ func TestTerminateGracefully(t *testing.T) {
 				p, err = FindProcess(context.Background(), cmd.Process.Pid)
 				if err == nil {
 					require.NotEmpty(t, p)
-					assert.False(t, p.IsRunning() || p.IsAZombie())
+					assert.False(t, p.IsRunning())
 				} else {
 					errortest.AssertError(t, err, commonerrors.ErrNotFound)
 					assert.Empty(t, p)

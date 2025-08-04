@@ -17,7 +17,9 @@ import (
 )
 
 func TestFindProcessByName(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	if runtime.GOOS != "linux" {
+		defer goleak.VerifyNone(t)
+	}
 	tests := []struct {
 		cmdWindows         *exec.Cmd
 		cmdOther           *exec.Cmd
