@@ -71,6 +71,44 @@ func AnyFunc[S ~[]E, E any](s S, f func(E) bool) bool {
 	return conditions.Any()
 }
 
+// Filter returns a new slice that contains elements from the input slice which return true when they’re passed as a parameter to the provided filtering function f.
+func Filter[S ~[]E, E any](s S, f func(E) bool) (result S) {
+	result = make(S, 0, len(s))
+
+	for i := range s {
+		if f(s[i]) {
+			result = append(result, s[i])
+		}
+	}
+
+	return result
+}
+
+// Map creates a new slice and populates it with the results of calling the provided function on every element in input slice.
+func Map[T1 any, T2 any](s []T1, f func(T1) T2) (result []T2) {
+	result = make([]T2, len(s))
+
+	for i := range s {
+		result[i] = f(s[i])
+	}
+
+	return result
+}
+
+// Reject is the opposite of Filter and returns the elements of collection for which the filtering function f returns false.
+func Reject[S ~[]E, E any](s S, f func(E) bool) S {
+	return Filter(s, func(e E) bool { return !f(e) })
+}
+
+// Reduce runs a reducer function f over all elements in the array, in ascending-index order, and accumulates them into a single value.
+func Reduce[T1, T2 any](s []T1, accumulator T2, f func(T2, T1) T2) (result T2) {
+	result = accumulator
+	for i := range s {
+		result = f(result, s[i])
+	}
+	return
+}
+
 // AnyEmpty returns whether there is one entry in the slice which is empty.
 // If strict, then whitespaces are considered as empty strings
 func AnyEmpty(strict bool, slice []string) bool {

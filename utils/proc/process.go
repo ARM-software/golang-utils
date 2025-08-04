@@ -7,7 +7,6 @@ package proc
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/shirou/gopsutil/v4/process"
 
@@ -21,6 +20,8 @@ const (
 	statusRunning = "running"
 	statusSleep   = "sleep"
 	statusIdle    = "idle"
+	statusZombie  = "zombie"
+	workers       = 10
 )
 
 // Ps returns all processes in a similar fashion to `ps` command on Unix.
@@ -35,9 +36,9 @@ func Ps(ctx context.Context) (processes []IProcess, err error) {
 	if err != nil {
 		return
 	}
-	for i := range pss {
-		processes = append(processes, wrapProcess(pss[i]))
-	}
+	processes, err = parallelisation.Map[*process.Process, IProcess](ctx, workers, pss, func(p *process.Process) IProcess {
+		return wrapProcess(p)
+	})
 	return
 }
 
@@ -91,6 +92,10 @@ type ps struct {
 func (p *ps) IsRunning() (running bool) {
 	running = isProcessRunning(p.imp)
 	return
+}
+
+func (p *ps) IsAZombie() bool {
+	return isProcessAZombie(p.imp)
 }
 
 func (p *ps) Cmdline() string {
@@ -258,9 +263,27 @@ func isProcessRunning(p *process.Process) (running bool) {
 	if err != nil {
 		return
 	}
-	fmt.Println(">>>Process status: ", status)
 	// https://github.com/shirou/gopsutil/blob/e230f528f075f78e713f167c28b692cc15307d19/process/process.go#L48
 	_, running = collection.FindInSlice(false, status, statusRunning, statusSleep, statusIdle)
+	return
+}
+
+// a zombie process
+func isProcessAZombie(p *process.Process) (zombie bool) {
+	if p == nil {
+		return
+	}
+	exist, _ := process.PidExists(p.Pid)
+	if !exist {
+		zombie = false
+		return
+	}
+	status, err := p.Status()
+	if err != nil {
+		return
+	}
+	// https://github.com/shirou/gopsutil/blob/e230f528f075f78e713f167c28b692cc15307d19/process/process.go#L48
+	_, zombie = collection.FindInSlice(false, status, statusZombie)
 	return
 }
 

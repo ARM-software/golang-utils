@@ -38,7 +38,7 @@ func TestTerminateGracefully(t *testing.T) {
 				require.NoError(t, cmd.Start())
 				defer func() {
 					p, _ := FindProcess(context.Background(), cmd.Process.Pid)
-					if p != nil && p.IsRunning() {
+					if p != nil && (p.IsRunning() || p.IsAZombie()) {
 						_ = cmd.Wait()
 					}
 				}()
@@ -71,7 +71,7 @@ func TestTerminateGracefully(t *testing.T) {
 				require.NoError(t, cmd.Start())
 				defer func() {
 					p, _ := FindProcess(context.Background(), cmd.Process.Pid)
-					if p != nil && p.IsRunning() {
+					if p != nil && (p.IsRunning() || p.IsAZombie()) {
 						_ = cmd.Wait()
 					}
 				}()
@@ -85,11 +85,11 @@ func TestTerminateGracefully(t *testing.T) {
 					if fErr != nil {
 						return false, fErr
 					}
-					return p.IsRunning(), nil
+					return p.IsRunning() || p.IsAZombie(), nil
 				}, 200*time.Millisecond))
 				p, err := FindProcess(context.Background(), cmd.Process.Pid)
 				require.NoError(t, err)
-				require.True(t, p.IsRunning())
+				require.True(t, p.IsRunning() || p.IsAZombie())
 				children, err := p.Children(timeoutCtx)
 				require.NoError(t, err)
 				require.NotZero(t, len(children))
@@ -102,7 +102,7 @@ func TestTerminateGracefully(t *testing.T) {
 				p, err = FindProcess(context.Background(), cmd.Process.Pid)
 				if err == nil {
 					require.NotEmpty(t, p)
-					assert.False(t, p.IsRunning())
+					assert.False(t, p.IsRunning() || p.IsAZombie())
 				} else {
 					errortest.AssertError(t, err, commonerrors.ErrNotFound)
 					assert.Empty(t, p)

@@ -23,20 +23,21 @@ func DetermineContextError(ctx context.Context) error {
 }
 
 type result struct {
-	Item interface{}
+	Item any
 	err  error
 }
 
 // Parallelise parallelises an action over as many goroutines as specified by the argList and retrieves all the results when all the goroutines are done.
-func Parallelise(argList interface{}, action func(arg interface{}) (interface{}, error), resultType reflect.Type) (results interface{}, err error) {
+// To control the number of goroutines spawned, prefer WorkerPool
+func Parallelise(argList any, action func(arg any) (any, error), resultType reflect.Type) (results any, err error) {
 	keepReturn := resultType != nil
 	argListValue := reflect.ValueOf(argList)
 	length := argListValue.Len()
 	channel := make(chan result, length)
 	for i := 0; i < length; i++ {
-		go func(args reflect.Value, actionFunc func(arg interface{}) (interface{}, error)) {
+		go func(args reflect.Value, actionFunc func(arg any) (any, error)) {
 			var r result
-			r.Item, r.err = func(v reflect.Value) (interface{}, error) {
+			r.Item, r.err = func(v reflect.Value) (any, error) {
 				return actionFunc(v.Interface())
 			}(args)
 			channel <- r
@@ -306,13 +307,19 @@ func WorkerPool[InputType, ResultType any](ctx context.Context, numWorkers int, 
 	for range numWorkers {
 		g.Go(func() error { return newWorker(gCtx, f, jobsChan, resultsChan) })
 	}
-	for _, job := range jobs {
-		jobsChan <- job
+	for i := range jobs {
+		if DetermineContextError(ctx) != nil {
+			break
+		}
+		jobsChan <- jobs[i]
 	}
 
 	close(jobsChan)
 	err = g.Wait()
 	close(resultsChan)
+	if err == nil {
+		err = DetermineContextError(ctx)
+	}
 	if err != nil {
 		return
 	}
@@ -322,4 +329,37 @@ func WorkerPool[InputType, ResultType any](ctx context.Context, numWorkers int, 
 	}
 
 	return
+}
+
+// Filter is similar to collection.Filter but uses parallelisation.
+func Filter[T any](ctx context.Context, numWorkers int, s []T, f func(T) bool) (result []T, err error) {
+	result, err = WorkerPool[T, T](ctx, numWorkers, s, func(fCtx context.Context, item T) (r T, ok bool, fErr error) {
+		fErr = DetermineContextError(fCtx)
+		if fErr != nil {
+			return
+		}
+		ok = f(item)
+		r = item
+		return
+	})
+	return
+}
+
+// Map is similar to collection.Map but uses parallelisation.
+func Map[T1 any, T2 any](ctx context.Context, numWorkers int, s []T1, f func(T1) T2) (result []T2, err error) {
+	result, err = WorkerPool[T1, T2](ctx, numWorkers, s, func(fCtx context.Context, item T1) (r T2, ok bool, fErr error) {
+		fErr = DetermineContextError(fCtx)
+		if fErr != nil {
+			return
+		}
+		r = f(item)
+		ok = true
+		return
+	})
+	return
+}
+
+// Reject is the opposite of Filter and returns the elements of collection for which the filtering function f returns false.
+func Reject[T any](ctx context.Context, numWorkers int, s []T, f func(T) bool) ([]T, error) {
+	return Filter[T](ctx, numWorkers, s, func(e T) bool { return !f(e) })
 }

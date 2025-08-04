@@ -8,6 +8,7 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
@@ -153,4 +154,19 @@ func DefineCmdCancel(cmd *exec.Cmd) (*exec.Cmd, error) {
 		return CancelExecCommand(cmd)
 	}
 	return cmd, nil
+}
+
+// WaitForCompletion will wait for a given process to complete.
+// This allows check to work if the underlying process was stopped without needing the os.Process that started it.
+func WaitForCompletion(ctx context.Context, pid int) (err error) {
+	pids, err := getGroupProcesses(ctx, pid)
+	if err != nil {
+		return
+	}
+	return parallelisation.WaitUntil(ctx, func(ctx2 context.Context) (bool, error) {
+		return collection.AnyFunc(pids, func(subPid int) bool {
+			p, _ := FindProcess(ctx2, subPid)
+			return p.IsRunning() // FindProcess will always return an instantiated process and any non-running state should exit without error
+		}), nil
+	}, 1000*time.Millisecond)
 }
