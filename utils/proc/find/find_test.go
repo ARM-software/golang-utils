@@ -25,8 +25,8 @@ func TestFindProcessByName(t *testing.T) {
 		processNameOther   string
 	}{
 		{
-			cmdWindows:         exec.Command("cmd.exe", "/c", fmt.Sprintf("ping localhost -n %v > nul", time.Second.Seconds())),
-			cmdOther:           exec.Command("sh", "-c", fmt.Sprintf("sleep %v", time.Second.Seconds())),
+			cmdWindows:         exec.Command("cmd.exe", "/c", fmt.Sprintf("ping localhost -n %v > nul", time.Second.Seconds())), //nolint: gosec // G204 Subprocess launched with a potential tainted input or cmd arguments (gosec)
+			cmdOther:           exec.Command("sh", "-c", fmt.Sprintf("sleep %v", time.Second.Seconds())),                        //nolint: gosec // G204 Subprocess launched with a potential tainted input or cmd arguments (gosec)
 			processNameWindows: "ping",
 			processNameOther:   "sleep",
 		},

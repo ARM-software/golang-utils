@@ -36,9 +36,7 @@ func Ps(ctx context.Context) (processes []IProcess, err error) {
 	if err != nil {
 		return
 	}
-	processes, err = parallelisation.Map[*process.Process, IProcess](ctx, workers, pss, func(p *process.Process) IProcess {
-		return wrapProcess(p)
-	})
+	processes, err = parallelisation.Map[*process.Process, IProcess](ctx, workers, pss, wrapProcess)
 	return
 }
 
