@@ -96,6 +96,7 @@ func Map[T1 any, T2 any](s []T1, f func(T1) T2) (result []T2) {
 }
 
 // Reject is the opposite of Filter and returns the elements of collection for which the filtering function f returns false.
+// This is functionally equivalent to slices.DeleteFunc but it returns a new slice.
 func Reject[S ~[]E, E any](s S, f func(E) bool) S {
 	return Filter(s, func(e E) bool { return !f(e) })
 }
