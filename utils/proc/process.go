@@ -20,6 +20,8 @@ const (
 	statusRunning = "running"
 	statusSleep   = "sleep"
 	statusIdle    = "idle"
+	statusZombie  = "zombie"
+	workers       = 10
 )
 
 // Ps returns all processes in a similar fashion to `ps` command on Unix.
@@ -34,9 +36,7 @@ func Ps(ctx context.Context) (processes []IProcess, err error) {
 	if err != nil {
 		return
 	}
-	for i := range pss {
-		processes = append(processes, wrapProcess(pss[i]))
-	}
+	processes, err = parallelisation.Map[*process.Process, IProcess](ctx, workers, pss, wrapProcess)
 	return
 }
 
@@ -90,6 +90,10 @@ type ps struct {
 func (p *ps) IsRunning() (running bool) {
 	running = isProcessRunning(p.imp)
 	return
+}
+
+func (p *ps) IsAZombie() bool {
+	return isProcessAZombie(p.imp)
 }
 
 func (p *ps) Cmdline() string {
@@ -252,13 +256,32 @@ func isProcessRunning(p *process.Process) (running bool) {
 		running = false
 		return
 	}
-	// On some platforms, such as *nix, a zombie process is reported as a running process by p.IsRunning() but this is not the case. Therefore, a further check is performed on the process status to verify a running process is actually in the expected running state. Nonetheless, status is not cross platform and is not implemented on Windows. For those platform, the status returned by IsRunning is then considered
+	// On some platforms, such as *nix, a zombie process is reported as a running process by p.IsRunning() but this is not the case. Therefore, a further check is performed on the process status to verify a running process is actually in the expected running state. Nonetheless, status is not cross-platform and is not implemented on Windows. For those platform, the status returned by IsRunning is then considered
 	status, err := p.Status()
 	if err != nil {
 		return
 	}
 	// https://github.com/shirou/gopsutil/blob/e230f528f075f78e713f167c28b692cc15307d19/process/process.go#L48
 	_, running = collection.FindInSlice(false, status, statusRunning, statusSleep, statusIdle)
+	return
+}
+
+// a zombie process
+func isProcessAZombie(p *process.Process) (zombie bool) {
+	if p == nil {
+		return
+	}
+	exist, _ := process.PidExists(p.Pid)
+	if !exist {
+		zombie = false
+		return
+	}
+	status, err := p.Status()
+	if err != nil {
+		return
+	}
+	// https://github.com/shirou/gopsutil/blob/e230f528f075f78e713f167c28b692cc15307d19/process/process.go#L48
+	_, zombie = collection.FindInSlice(false, status, statusZombie)
 	return
 }
 

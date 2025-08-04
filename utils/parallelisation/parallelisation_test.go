@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"math/rand"
 	"reflect"
+	"strconv"
 	"testing"
 	"time"
 
@@ -378,6 +379,7 @@ func runActionWithParallelCheckHappy(t *testing.T, ctx context.Context) {
 	}
 	err := RunActionWithParallelCheck(ctx, action, checkAction, 10*time.Millisecond)
 	require.NoError(t, err)
+	assert.Equal(t, int32(15), counter.Load())
 }
 
 func runActionWithParallelCheckFail(t *testing.T, ctx context.Context) {
@@ -394,6 +396,7 @@ func runActionWithParallelCheckFail(t *testing.T, ctx context.Context) {
 	err := RunActionWithParallelCheck(ctx, action, checkAction, 10*time.Millisecond)
 	require.Error(t, err)
 	errortest.AssertError(t, err, commonerrors.ErrCancelled)
+	assert.Equal(t, int32(1), counter.Load())
 }
 
 func runActionWithParallelCheckFailAtRandom(t *testing.T, ctx context.Context) {
@@ -410,9 +413,11 @@ func runActionWithParallelCheckFailAtRandom(t *testing.T, ctx context.Context) {
 	err := RunActionWithParallelCheck(ctx, action, checkAction, 10*time.Millisecond)
 	require.Error(t, err)
 	errortest.AssertError(t, err, commonerrors.ErrCancelled)
+	assert.GreaterOrEqual(t, counter.Load(), int32(1))
 }
 
 func TestWaitUntil(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	verifiedCondition := func(ctx context.Context) (bool, error) {
 		SleepWithContext(ctx, 50*time.Millisecond)
 		return true, nil
@@ -465,6 +470,7 @@ func TestWaitUntil(t *testing.T) {
 }
 
 func TestWorkerPool(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	for _, test := range []struct {
 		name       string
 		numWorkers int
@@ -559,6 +565,74 @@ func TestWorkerPool(t *testing.T) {
 			return job, true, nil
 		})
 
+		errortest.AssertError(t, err, commonerrors.ErrCancelled)
+	})
+}
+
+func TestFilterReject(t *testing.T) {
+	defer goleak.VerifyNone(t)
+	nums := []int{1, 2, 3, 4, 5}
+	ctx := context.Background()
+	results, err := Filter(ctx, 3, nums, func(n int) bool {
+		return n%2 == 0
+	})
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []int{2, 4}, results)
+	results, err = Reject(ctx, 3, nums, func(n int) bool {
+		return n%2 == 0
+	})
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []int{1, 3, 5}, results)
+	results, err = Filter(ctx, 3, nums, func(n int) bool {
+		return n > 3
+	})
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []int{4, 5}, results)
+	results, err = Reject(ctx, 3, nums, func(n int) bool {
+		return n > 3
+	})
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []int{1, 2, 3}, results)
+	results2, err := Filter(ctx, 3, []string{"", "foo", "", "bar", ""}, func(x string) bool {
+		return len(x) > 0
+	})
+
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{"foo", "bar"}, results2)
+	results3, err := Reject(ctx, 3, []string{"", "foo", "", "bar", ""}, func(x string) bool {
+		return len(x) > 0
+	})
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{"", "", ""}, results3)
+	t.Run("cancelled context", func(t *testing.T) {
+		cancelledCtx, cancel := context.WithCancel(context.Background())
+		cancel()
+		_, err := Filter(cancelledCtx, 3, nums, func(n int) bool {
+			return n%2 == 0
+		})
+		errortest.AssertError(t, err, commonerrors.ErrCancelled)
+	})
+}
+
+func TestMap(t *testing.T) {
+	defer goleak.VerifyNone(t)
+	ctx := context.Background()
+	mapped, err := Map(ctx, 3, []int{1, 2}, func(i int) string {
+		return fmt.Sprintf("Hello world %v", i)
+	})
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{"Hello world 1", "Hello world 2"}, mapped)
+	mapped, err = Map(ctx, 3, []int64{1, 2, 3, 4}, func(x int64) string {
+		return strconv.FormatInt(x, 10)
+	})
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{"1", "2", "3", "4"}, mapped)
+	t.Run("cancelled context", func(t *testing.T) {
+		cancelledCtx, cancel := context.WithCancel(context.Background())
+		cancel()
+		_, err := Map(cancelledCtx, 3, []int{1, 2}, func(i int) string {
+			return fmt.Sprintf("Hello world %v", i)
+		})
 		errortest.AssertError(t, err, commonerrors.ErrCancelled)
 	})
 }

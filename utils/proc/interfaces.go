@@ -40,6 +40,9 @@ type IProcess interface {
 	// Children returns the children of the process if any.
 	Children(ctx context.Context) ([]IProcess, error)
 
+	// IsAZombie returns whether the process is a zombie process. See https://en.wikipedia.org/wiki/Zombie_process
+	IsAZombie() bool
+
 	// IsRunning returns whether the process is still running or not.
 	IsRunning() bool
 

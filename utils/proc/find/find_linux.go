@@ -82,7 +82,7 @@ func FindProcessByRegexForFS(ctx context.Context, fs filesystem.FS, re *regexp.R
 		return
 	}
 
-	processes, err = parallelisation.WorkerPool(ctx, 10, procEntries, func(ctx context.Context, entry string) (p proc.IProcess, matches bool, err error) {
+	processes, err = parallelisation.WorkerPool(ctx, numWorkers, procEntries, func(ctx context.Context, entry string) (p proc.IProcess, matches bool, err error) {
 		matches, err = checkProcessMatch(ctx, fs, re, entry)
 		if err != nil || !matches {
 			return
@@ -100,12 +100,7 @@ func FindProcessByRegexForFS(ctx context.Context, fs filesystem.FS, re *regexp.R
 	return
 }
 
-// FindProcessByRegex will search for the processes that match a specific regex
-func FindProcessByRegex(ctx context.Context, re *regexp.Regexp) (processes []proc.IProcess, err error) {
+// findProcessByRegex will search for the processes that match a specific regex
+func findProcessByRegex(ctx context.Context, re *regexp.Regexp) (processes []proc.IProcess, err error) {
 	return FindProcessByRegexForFS(ctx, filesystem.GetGlobalFileSystem(), re)
-}
-
-// FindProcessByName will search for the processes that match a specific name
-func FindProcessByName(ctx context.Context, name string) (processes []proc.IProcess, err error) {
-	return FindProcessByRegex(ctx, regexp.MustCompile(fmt.Sprintf(".*%v.*", regexp.QuoteMeta(name))))
 }

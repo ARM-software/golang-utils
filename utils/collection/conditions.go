@@ -110,7 +110,7 @@ func (c *Conditions) Xor() bool {
 	return Xor(*c...)
 }
 
-// OneHot performs an `OnHot` operation on all conditions
+// OneHot performs an `OneHot` operation on all conditions
 func (c *Conditions) OneHot() bool {
 	if c == nil {
 		return false

@@ -10,9 +10,7 @@ package proc
 
 import (
 	"context"
-	"fmt"
 	"syscall"
-	"time"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
@@ -41,24 +39,19 @@ func killGroup(ctx context.Context, pid int32) (err error) {
 	// kill a whole process group by sending a signal to -xyz where xyz is the pgid
 	// http://unix.stackexchange.com/questions/14815/process-descendants
 	if pgid != int(pid) {
-		err = fmt.Errorf("%w: process #%v is not group leader", commonerrors.ErrUnexpected, pid)
+		err = commonerrors.Newf(commonerrors.ErrUnexpected, "process #%v is not group leader", pid)
 		return
 	}
 	err = ConvertProcessError(syscall.Kill(-pgid, syscall.SIGKILL))
 	return
 }
 
-// WaitForCompletion will wait for a given process to complete.
-// This allows check to work if the underlying process was stopped without needing the os.Process that started it.
-func WaitForCompletion(ctx context.Context, pid int) (err error) {
+func getGroupProcesses(ctx context.Context, pid int) (pids []int, err error) {
 	pgid, err := getpgid(pid)
 	if err != nil {
 		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not get group PID for '%v'", pid)
 		return
 	}
-
-	return parallelisation.WaitUntil(ctx, func(ctx2 context.Context) (bool, error) {
-		p, _ := FindProcess(ctx, pgid)
-		return p.IsRunning(), nil // FindProcess will always return an instantiated process and any non-runnning state should exit without error
-	}, 1000*time.Millisecond)
+	pids = append(pids, pgid)
+	return
 }
