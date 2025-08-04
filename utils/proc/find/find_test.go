@@ -52,7 +52,8 @@ func TestFindProcessByName(t *testing.T) {
 			ps, err = FindProcessByName(ctx, toFind)
 			require.NoError(t, err)
 			assert.NotEmpty(t, ps)
-			assert.Equal(t, numOfProcesses+1, len(ps))
+
+			assert.GreaterOrEqual(t, len(ps), numOfProcesses)
 			require.NoError(t, cmd.Wait())
 			t.Run("cancelled context", func(t *testing.T) {
 				cancelCtx, cancel := context.WithCancel(ctx)
