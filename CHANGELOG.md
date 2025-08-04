@@ -14,6 +14,18 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.110.0" (2025-08-04)
+======================
+
+Features
+--------
+
+- :sparkles: Add support for gracefully killing child processes (#20250731140445)
+- :sparkles: `[collection]` added collection functional operations `Map`, `Filter`, `Reject`, `Reduce` (#20250804122854)
+- :sparkles: `[parallelisation]` added parallelised collection functional operations `Map`, `Filter`, `Reject` (#20250804122923)
+- :sparkles: `[proc]` added a function to find processes based on name (#20250804130842)
+
+
 "1.109.1" (2025-08-01)
 ======================
 
