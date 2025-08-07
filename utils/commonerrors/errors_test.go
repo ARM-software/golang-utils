@@ -128,8 +128,22 @@ func TestIsWarning(t *testing.T) {
 	assert.True(t, IsWarning(ErrWarning))
 	assert.False(t, IsWarning(ErrUnexpected))
 	assert.False(t, IsWarning(nil))
-	assert.True(t, IsWarning(fmt.Errorf("%w: i am i warning", ErrWarning)))
-	assert.True(t, IsWarning(fmt.Errorf("%w: i am i warning too: %v", ErrWarning, ErrUnknown)))
+	assert.True(t, IsWarning(fmt.Errorf("%w: i am a warning", ErrWarning)))
+	assert.True(t, IsWarning(fmt.Errorf("%w: i am a warning too: %v", ErrWarning, ErrUnknown)))
+}
+
+func TestIsFailure(t *testing.T) {
+	assert.True(t, IsFailure(ErrFailed))
+	assert.False(t, IsFailure(ErrUnexpected))
+	assert.True(t, IsFailure(MarkAsFailure(ErrUnexpected)))
+	assert.True(t, Any(MarkAsFailure(ErrUnexpected), ErrUnexpected))
+	assert.True(t, Any(MarkAsFailure(ErrUnexpected), ErrFailed))
+	assert.False(t, IsFailure(nil))
+	assert.True(t, IsFailure(NewFailure("i am a failure and I know it")))
+	assert.True(t, IsFailure(fmt.Errorf("%w: i am a failure", ErrFailed)))
+	assert.True(t, IsFailure(fmt.Errorf("%w: i am a failure too: %v", ErrFailed, ErrUnknown)))
+	assert.True(t, IsFailure(fmt.Errorf("%v: %w", ErrFailed, ErrUnknown)))
+	assert.True(t, IsFailure(fmt.Errorf("%v: %w: i am a failure too too", ErrFailed, ErrUnknown)))
 }
 
 func TestNewWarning(t *testing.T) {
