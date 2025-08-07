@@ -17,8 +17,9 @@ import (
 )
 
 const (
-	procFS       = "/proc"
-	procDataFile = "cmdline"
+	procFS        = "/proc"
+	procDataFile  = "cmdline"
+	invalidPIDErr = "could not parse PID from proc path"
 )
 
 func checkProcessMatch(ctx context.Context, fs filesystem.FS, re *regexp.Regexp, procEntry string) (ok bool, err error) {
@@ -51,7 +52,7 @@ func parseProcess(ctx context.Context, entry string) (p proc.IProcess, err error
 
 	pid, err := strconv.Atoi(strings.Trim(strings.TrimSuffix(strings.TrimPrefix(entry, procFS), fmt.Sprintf("%v", procDataFile)), "/"))
 	if err != nil {
-		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not parse PID from proc path '%v'", entry)
+		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "%v '%v'", invalidPIDErr, entry)
 		return
 	}
 
@@ -75,7 +76,7 @@ func FindProcessByRegexForFS(ctx context.Context, fs filesystem.FS, re *regexp.R
 		return
 	}
 
-	searchGlobTerm := fmt.Sprintf("%v/*/%v", procFS, procDataFile)
+	searchGlobTerm := fmt.Sprintf("%v/[0-9]*/%v", procFS, procDataFile)
 	procEntries, err := fs.Glob(searchGlobTerm)
 	if err != nil {
 		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "an error occurred when searching for processes using the following glob '%v'", searchGlobTerm)
@@ -90,6 +91,7 @@ func FindProcessByRegexForFS(ctx context.Context, fs filesystem.FS, re *regexp.R
 
 		p, err = parseProcess(ctx, entry)
 		if err != nil {
+			err = commonerrors.IgnoreCorrespondTo(err, invalidPIDErr)
 			return
 		}
 

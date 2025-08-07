@@ -13,6 +13,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/logs"
 	"github.com/ARM-software/golang-utils/utils/logs/logstest"
 	"github.com/ARM-software/golang-utils/utils/subprocess"
@@ -87,4 +88,12 @@ func TestFind(t *testing.T) {
 		assert.Empty(t, processes)
 	})
 
+	t.Run("Exclude invalid", func(t *testing.T) {
+		ctx := context.Background()
+		allProcesses, err := filesystem.Glob(fmt.Sprintf("%v/[0-9]*/%v", procFS, procDataFile))
+		require.NoError(t, err)
+		processes, err := FindProcessByName(ctx, "") // empty name will return all processes that were valid according to the logic (e.g. no invalid names or empty cmdline files)
+		assert.NoError(t, err)
+		assert.LessOrEqual(t, len(processes), len(allProcesses))
+	})
 }
