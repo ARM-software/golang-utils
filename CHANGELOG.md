@@ -14,6 +14,16 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.110.1" (2025-08-07)
+======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: timberjack-1.3.4 (#20250805144229, #20250805144235, #20250805144302)
+- :bug: `proc` Make sure that invalid PIDs are ignored when stopping processes (#20250807104110)
+
+
 "1.110.0" (2025-08-04)
 ======================
 
