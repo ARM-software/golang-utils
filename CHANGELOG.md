@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.111.0" (2025-08-07)
+======================
+
+Features
+--------
+
+- :sparkles: `commonerrors` Add ErrFailed to be used as a generic error where an error is an expected and valid state that should be distinguished from a system error (#20250807151301)
+
+
 "1.110.1" (2025-08-07)
 ======================
 
