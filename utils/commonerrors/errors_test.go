@@ -112,6 +112,7 @@ func TestIsCommonError(t *testing.T) {
 		ErrMalicious,
 		ErrWarning,
 		ErrOutOfRange,
+		ErrFailed,
 	}
 	for i := range commonErrors {
 		assert.True(t, IsCommonError(commonErrors[i]))

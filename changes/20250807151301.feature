@@ -1,0 +1,1 @@
+:sparkles: `commonerrors` Add ErrFailed
