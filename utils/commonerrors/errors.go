@@ -320,7 +320,7 @@ func WrapError(targetError, originalError error, msg string) error {
 			return New(tErr, originalError.Error())
 		} else {
 			return Errorf(
-				tErr, "%v%v %v", cleansedMsg, string(TypeReasonErrorSeparator), originalError)
+				tErr, "%v%v %v", cleansedMsg, string(TypeReasonErrorSeparator), originalError.Error())
 		}
 	}
 }
