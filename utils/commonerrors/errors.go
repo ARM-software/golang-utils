@@ -11,6 +11,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/hashicorp/go-multierror"
 )
 
 // List of common errors used to qualify and categorise go errors
@@ -45,19 +47,30 @@ var (
 	ErrEOF                = errors.New("end of file")
 	ErrMalicious          = errors.New("suspected malicious intent")
 	ErrOutOfRange         = errors.New("out of range")
+	// ErrFailed should be used as a generic error where an error is an expected and valid state.
+	// For example a failing command may cause subprocess.Execute to return an error if the command exits with 1 but
+	// this wouldn't be a system error, and you might want to distinguish between this and the subprocess wrapper erroring
+	// when you pass the message up the stack.
+	ErrFailed = errors.New(failureStr)
 	// ErrWarning is a generic error that can be used when an error should be raised but it shouldn't necessary be
 	// passed up the chain, for example in cases where an error should be logged but the program should continue. In
 	// these situations it should be handled immediately and then ignored/set to nil.
 	ErrWarning = errors.New(warningStr)
 )
 
-const warningStr = "warning"
+const (
+	warningStr = "warning"
+	failureStr = "failed"
+)
 
-var warningStrPrepend = fmt.Sprintf("%v: ", warningStr)
+var (
+	warningStrPrepend = fmt.Sprintf("%v%v ", warningStr, string(TypeReasonErrorSeparator))
+	failureStrPrepend = fmt.Sprintf("%v%v ", failureStr, string(TypeReasonErrorSeparator))
+)
 
 // IsCommonError returns whether an error is a commonerror
 func IsCommonError(target error) bool {
-	return Any(target, ErrNotImplemented, ErrNoExtension, ErrNoLogger, ErrNoLoggerSource, ErrNoLogSource, ErrUndefined, ErrInvalidDestination, ErrTimeout, ErrLocked, ErrStaleLock, ErrExists, ErrNotFound, ErrUnsupported, ErrUnavailable, ErrWrongUser, ErrUnauthorised, ErrUnknown, ErrInvalid, ErrConflict, ErrMarshalling, ErrCancelled, ErrEmpty, ErrUnexpected, ErrTooLarge, ErrForbidden, ErrCondition, ErrEOF, ErrMalicious, ErrWarning, ErrOutOfRange)
+	return Any(target, ErrNotImplemented, ErrNoExtension, ErrNoLogger, ErrNoLoggerSource, ErrNoLogSource, ErrUndefined, ErrInvalidDestination, ErrTimeout, ErrLocked, ErrStaleLock, ErrExists, ErrNotFound, ErrUnsupported, ErrUnavailable, ErrWrongUser, ErrUnauthorised, ErrUnknown, ErrInvalid, ErrConflict, ErrMarshalling, ErrCancelled, ErrEmpty, ErrUnexpected, ErrTooLarge, ErrForbidden, ErrCondition, ErrEOF, ErrMalicious, ErrWarning, ErrOutOfRange, ErrFailed)
 }
 
 // Any determines whether the target error is of the same type as any of the errors `err`
@@ -183,6 +196,8 @@ func deserialiseCommonError(errStr string) (bool, error) {
 		return true, ErrWarning
 	case CorrespondTo(ErrOutOfRange, errStr):
 		return true, ErrOutOfRange
+	case CorrespondTo(ErrFailed, errStr):
+		return true, ErrFailed
 	}
 	return false, ErrUnknown
 }
@@ -203,11 +218,24 @@ func ConvertContextError(err error) error {
 
 // IsWarning will return whether an error is actually a warning
 func IsWarning(target error) bool {
+	return isSpecialCase(target, ErrWarning, warningStrPrepend)
+}
+
+// IsFailure returns whether an error is unexpected (i.e. deviation from an expected state) but not a system error e.g. test failure
+func IsFailure(target error) bool {
+	return isSpecialCase(target, ErrFailed, failureStrPrepend)
+}
+
+func isSpecialCase(target, specialErrorCase error, prefix string) bool {
 	if target == nil {
 		return false
 	}
 
-	if Any(target, ErrWarning) {
+	if Any(target, specialErrorCase) {
+		return true
+	}
+
+	if strings.HasPrefix(target.Error(), prefix) {
 		return true
 	}
 
@@ -216,7 +244,33 @@ func IsWarning(target error) bool {
 		return false
 	}
 
-	return strings.TrimSuffix(target.Error(), underlyingErr.Error()) == warningStrPrepend
+	return strings.TrimSuffix(target.Error(), underlyingErr.Error()) == prefix
+}
+
+// MarkAsFailure will tent an error as failure. It will retain its original error type but IsFailure should return true.
+func MarkAsFailure(err error) error {
+	if Any(err, nil, ErrFailed) {
+		return err
+	}
+	result := multierror.Append(err, ErrFailed)
+	result.ErrorFormat = func(e []error) string {
+		builder := strings.Builder{}
+		_, _ = builder.WriteString(failureStr)
+		for i := range e {
+			if None(e[i], nil, ErrFailed) {
+				_, _ = builder.WriteString(string(TypeReasonErrorSeparator))
+				_, _ = builder.WriteString(" ")
+				_, _ = builder.WriteString(e[i].Error())
+			}
+		}
+		return builder.String()
+	}
+	return result.ErrorOrNil()
+}
+
+// NewFailure creates a failure object.
+func NewFailure(msgFormat string, args ...any) error {
+	return Newf(ErrFailed, msgFormat, args...)
 }
 
 // NewWarning will create a warning wrapper around an existing commonerror so that it can be easily recovered. If the
@@ -293,7 +347,8 @@ func Errorf(targetErr error, format string, args ...any) error {
 	}
 }
 
-// WrapError wraps an error into a particular targetError. However, if the original error has to do with a contextual error (i.e. ErrCancelled or ErrTimeout), it will be passed through without having is type changed.
+// WrapError wraps an error into a particular targetError. However, if the original error has to do with a contextual error (i.e. ErrCancelled or ErrTimeout) or should be considered as a failure rather than an error, it will be passed through without having its type changed.
+// Same is true with warnings.
 // This method should be used to safely wrap errors without losing information about context control information.
 // If the target error is not set, the wrapped error will be of type ErrUnknown.
 func WrapError(targetError, originalError error, msg string) error {
@@ -302,7 +357,7 @@ func WrapError(targetError, originalError error, msg string) error {
 		tErr = ErrUnknown
 	}
 	origErr := ConvertContextError(originalError)
-	if Any(origErr, ErrTimeout, ErrCancelled) {
+	if Any(origErr, ErrTimeout, ErrCancelled, ErrWarning, ErrFailed) {
 		tErr = origErr
 	}
 	if originalError == nil {
@@ -312,7 +367,8 @@ func WrapError(targetError, originalError error, msg string) error {
 		if cleansedMsg == "" {
 			return New(tErr, originalError.Error())
 		} else {
-			return Errorf(tErr, "%v%v %v", cleansedMsg, string(TypeReasonErrorSeparator), originalError.Error())
+			return Errorf(
+				tErr, "%v%v %v", cleansedMsg, string(TypeReasonErrorSeparator), originalError.Error())
 		}
 	}
 }

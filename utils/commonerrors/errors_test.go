@@ -27,6 +27,8 @@ func TestAny(t *testing.T) {
 	assert.False(t, Any(nil, ErrInvalid, ErrUnknown))
 	assert.True(t, Any(fmt.Errorf("an error %w", ErrNotImplemented), ErrInvalid, ErrNotImplemented, ErrUnknown))
 	assert.False(t, Any(fmt.Errorf("an error %w", ErrNotImplemented), ErrInvalid, ErrUnknown))
+	assert.True(t, Any(WrapError(ErrUnexpected, WrapError(ErrNotFound, WrapError(ErrFailed, errors.New(faker.Sentence()), "failure!!!"), faker.Sentence()), faker.Sentence()), ErrFailed))
+	assert.False(t, Any(WrapError(ErrUnexpected, WrapError(ErrNotFound, WrapError(ErrFailed, errors.New(faker.Sentence()), "failure!!!"), faker.Sentence()), faker.Sentence()), ErrUnexpected, ErrNotFound))
 }
 
 func TestNone(t *testing.T) {
@@ -38,6 +40,7 @@ func TestNone(t *testing.T) {
 	assert.False(t, None(nil, nil, ErrInvalid, ErrNotImplemented, ErrUnknown))
 	assert.False(t, None(fmt.Errorf("an error %w", ErrNotImplemented), ErrInvalid, ErrNotImplemented, ErrUnknown))
 	assert.True(t, None(fmt.Errorf("an error %w", ErrNotImplemented), ErrInvalid, ErrUnknown))
+	assert.False(t, None(WrapError(ErrUnexpected, WrapError(ErrNotFound, WrapError(ErrFailed, errors.New(faker.Sentence()), "failure!!!"), faker.Sentence()), faker.Sentence()), ErrFailed, ErrUnauthorised))
 }
 
 func TestCorrespondTo(t *testing.T) {
@@ -112,6 +115,7 @@ func TestIsCommonError(t *testing.T) {
 		ErrMalicious,
 		ErrWarning,
 		ErrOutOfRange,
+		ErrFailed,
 	}
 	for i := range commonErrors {
 		assert.True(t, IsCommonError(commonErrors[i]))
@@ -124,8 +128,22 @@ func TestIsWarning(t *testing.T) {
 	assert.True(t, IsWarning(ErrWarning))
 	assert.False(t, IsWarning(ErrUnexpected))
 	assert.False(t, IsWarning(nil))
-	assert.True(t, IsWarning(fmt.Errorf("%w: i am i warning", ErrWarning)))
-	assert.True(t, IsWarning(fmt.Errorf("%w: i am i warning too: %v", ErrWarning, ErrUnknown)))
+	assert.True(t, IsWarning(fmt.Errorf("%w: i am a warning", ErrWarning)))
+	assert.True(t, IsWarning(fmt.Errorf("%w: i am a warning too: %v", ErrWarning, ErrUnknown)))
+}
+
+func TestIsFailure(t *testing.T) {
+	assert.True(t, IsFailure(ErrFailed))
+	assert.False(t, IsFailure(ErrUnexpected))
+	assert.True(t, IsFailure(MarkAsFailure(ErrUnexpected)))
+	assert.True(t, Any(MarkAsFailure(ErrUnexpected), ErrUnexpected))
+	assert.True(t, Any(MarkAsFailure(ErrUnexpected), ErrFailed))
+	assert.False(t, IsFailure(nil))
+	assert.True(t, IsFailure(NewFailure("i am a failure and I know it")))
+	assert.True(t, IsFailure(fmt.Errorf("%w: i am a failure", ErrFailed)))
+	assert.True(t, IsFailure(fmt.Errorf("%w: i am a failure too: %v", ErrFailed, ErrUnknown)))
+	assert.True(t, IsFailure(fmt.Errorf("%v: %w", ErrFailed, ErrUnknown)))
+	assert.True(t, IsFailure(fmt.Errorf("%v: %w: i am a failure too too", ErrFailed, ErrUnknown)))
 }
 
 func TestNewWarning(t *testing.T) {
