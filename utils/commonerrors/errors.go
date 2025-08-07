@@ -45,7 +45,11 @@ var (
 	ErrEOF                = errors.New("end of file")
 	ErrMalicious          = errors.New("suspected malicious intent")
 	ErrOutOfRange         = errors.New("out of range")
-	ErrFailed             = errors.New("failed")
+	// ErrFailed should be used as a generic error where an error is an expected and valid state.
+	// For example a failing command may cause subproccess.Execute to return an error if the command exits with 1 but
+	// this wouldn't be a system error and you might want to distinguish between this and the subprocess wrapper erroring
+	// when you pass the message up the stack.
+	ErrFailed = errors.New("failed")
 	// ErrWarning is a generic error that can be used when an error should be raised but it shouldn't necessary be
 	// passed up the chain, for example in cases where an error should be logged but the program should continue. In
 	// these situations it should be handled immediately and then ignored/set to nil.
@@ -305,7 +309,7 @@ func WrapError(targetError, originalError error, msg string) error {
 		tErr = ErrUnknown
 	}
 	origErr := ConvertContextError(originalError)
-	if Any(origErr, ErrTimeout, ErrCancelled) {
+	if Any(origErr, ErrTimeout, ErrCancelled, ErrWarning, ErrFailed) {
 		tErr = origErr
 	}
 	if originalError == nil {
@@ -315,7 +319,8 @@ func WrapError(targetError, originalError error, msg string) error {
 		if cleansedMsg == "" {
 			return New(tErr, originalError.Error())
 		} else {
-			return Errorf(tErr, "%v%v %v", cleansedMsg, string(TypeReasonErrorSeparator), originalError.Error())
+			return Errorf(
+				tErr, "%v%v %v", cleansedMsg, string(TypeReasonErrorSeparator), originalError)
 		}
 	}
 }

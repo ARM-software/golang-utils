@@ -27,6 +27,8 @@ func TestAny(t *testing.T) {
 	assert.False(t, Any(nil, ErrInvalid, ErrUnknown))
 	assert.True(t, Any(fmt.Errorf("an error %w", ErrNotImplemented), ErrInvalid, ErrNotImplemented, ErrUnknown))
 	assert.False(t, Any(fmt.Errorf("an error %w", ErrNotImplemented), ErrInvalid, ErrUnknown))
+	assert.True(t, Any(WrapError(ErrUnexpected, WrapError(ErrNotFound, WrapError(ErrFailed, errors.New(faker.Sentence()), "failure!!!"), faker.Sentence()), faker.Sentence()), ErrFailed))
+	assert.False(t, Any(WrapError(ErrUnexpected, WrapError(ErrNotFound, WrapError(ErrFailed, errors.New(faker.Sentence()), "failure!!!"), faker.Sentence()), faker.Sentence()), ErrUnexpected, ErrNotFound))
 }
 
 func TestNone(t *testing.T) {
@@ -38,6 +40,7 @@ func TestNone(t *testing.T) {
 	assert.False(t, None(nil, nil, ErrInvalid, ErrNotImplemented, ErrUnknown))
 	assert.False(t, None(fmt.Errorf("an error %w", ErrNotImplemented), ErrInvalid, ErrNotImplemented, ErrUnknown))
 	assert.True(t, None(fmt.Errorf("an error %w", ErrNotImplemented), ErrInvalid, ErrUnknown))
+	assert.False(t, None(WrapError(ErrUnexpected, WrapError(ErrNotFound, WrapError(ErrFailed, errors.New(faker.Sentence()), "failure!!!"), faker.Sentence()), faker.Sentence()), ErrFailed, ErrUnauthorised))
 }
 
 func TestCorrespondTo(t *testing.T) {
