@@ -247,30 +247,54 @@ func isSpecialCase(target, specialErrorCase error, prefix string) bool {
 	return strings.TrimSuffix(target.Error(), underlyingErr.Error()) == prefix
 }
 
+// Join is similar to errors.Join but follows the common errors convention when printing
+func Join(errs ...error) error {
+	switch len(errs) {
+	case 0:
+		return nil
+	case 1:
+		return errs[0]
+	default:
+		err := multierror.Append(errs[0], errs[1:]...)
+		err.ErrorFormat = func(e []error) string {
+			builder := strings.Builder{}
+			_, _ = builder.WriteString(e[0].Error())
+			for i := range e[1:] {
+				if None(e[i+1], nil) {
+					_, _ = builder.WriteString(string(TypeReasonErrorSeparator))
+					_, _ = builder.WriteString(" ")
+					_, _ = builder.WriteString(e[i+1].Error())
+				}
+			}
+			return builder.String()
+		}
+		return err.ErrorOrNil()
+	}
+
+}
+
 // MarkAsFailure will tent an error as failure. It will retain its original error type but IsFailure should return true.
 func MarkAsFailure(err error) error {
 	if Any(err, nil, ErrFailed) {
 		return err
 	}
-	result := multierror.Append(err, ErrFailed)
-	result.ErrorFormat = func(e []error) string {
-		builder := strings.Builder{}
-		_, _ = builder.WriteString(failureStr)
-		for i := range e {
-			if None(e[i], nil, ErrFailed) {
-				_, _ = builder.WriteString(string(TypeReasonErrorSeparator))
-				_, _ = builder.WriteString(" ")
-				_, _ = builder.WriteString(e[i].Error())
-			}
-		}
-		return builder.String()
-	}
-	return result.ErrorOrNil()
+	return Join(ErrFailed, err)
 }
 
 // NewFailure creates a failure object.
 func NewFailure(msgFormat string, args ...any) error {
+	if len(args) == 0 {
+		return New(ErrFailed, msgFormat)
+	}
 	return Newf(ErrFailed, msgFormat, args...)
+}
+
+// NewWarningMessage creates a warning message.
+func NewWarningMessage(msgFormat string, args ...any) error {
+	if len(args) == 0 {
+		return New(ErrWarning, msgFormat)
+	}
+	return Newf(ErrWarning, msgFormat, args...)
 }
 
 // NewWarning will create a warning wrapper around an existing commonerror so that it can be easily recovered. If the
@@ -357,7 +381,7 @@ func WrapError(targetError, originalError error, msg string) error {
 		tErr = ErrUnknown
 	}
 	origErr := ConvertContextError(originalError)
-	if Any(origErr, ErrTimeout, ErrCancelled, ErrWarning, ErrFailed) {
+	if Any(origErr, ErrTimeout, ErrCancelled, ErrWarning, ErrFailed) || IsWarning(origErr) || IsFailure(origErr) {
 		tErr = origErr
 	}
 	if originalError == nil {

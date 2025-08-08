@@ -5,6 +5,7 @@
 package config
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -22,6 +23,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/keyring"
 )
 
 var (
@@ -125,6 +127,7 @@ func TestServiceConfigurationLoad(t *testing.T) {
 	os.Clearenv()
 	configTest := &ConfigurationTest{}
 	defaults := DefaultConfiguration()
+	require.NoError(t, keyring.Clear(context.Background(), "test"))
 	err := Load("test", configTest, defaults)
 	// Some required values are missing.
 	require.Error(t, err)
@@ -171,6 +174,39 @@ func TestServiceConfigurationLoad(t *testing.T) {
 	assert.NotEqual(t, expectedDB, configTest.TestConfig.DB)
 	assert.True(t, configTest.TestConfig.Flag)
 	assert.False(t, configTest.TestConfig2.Flag)
+	t.Run("load from system", func(t *testing.T) {
+		configTest2 := &ConfigurationTest{}
+		err = LoadFromSystem("test", configTest2, defaults)
+		require.NoError(t, err)
+		require.NoError(t, configTest2.Validate())
+	})
+	t.Run("load from system", func(t *testing.T) {
+		configTest2 := &ConfigurationTest{}
+		err = Load("test", configTest2, defaults)
+		require.NoError(t, err)
+		require.NoError(t, configTest2.Validate())
+		assert.EqualExportedValues(t, configTest, configTest2)
+		configTest2.TestConfig2.Host = faker.URL()
+		configTest2.TestConfig2.User = faker.Name()
+		assert.NotEqual(t, configTest, configTest2)
+		err := keyring.Store[ConfigurationTest](context.Background(), "test", configTest2)
+		errortest.AssertError(t, err, nil, commonerrors.ErrUnsupported)
+		if commonerrors.Any(err, commonerrors.ErrUnsupported) {
+			t.Skip("keyring is not supported")
+		}
+		configTest3 := &ConfigurationTest{}
+		err = LoadFromSystem("test", configTest3, defaults)
+		require.NoError(t, err)
+		require.NoError(t, configTest3.Validate())
+		assert.EqualExportedValues(t, configTest2, configTest3)
+		assert.NotEqual(t, configTest, configTest3)
+		configTest4 := &ConfigurationTest{}
+		err = Load("test", configTest4, defaults)
+		require.NoError(t, err)
+		require.NoError(t, configTest4.Validate())
+		assert.EqualExportedValues(t, configTest, configTest4)
+		assert.NotEqual(t, configTest4, configTest3)
+	})
 }
 
 func TestServiceConfigurationLoad_Errors(t *testing.T) {

@@ -6,6 +6,7 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/field"
+	"github.com/ARM-software/golang-utils/utils/keyring"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
@@ -33,6 +35,16 @@ const (
 // make sure that the tags on the fields of configurationToSet are properly set using only `[_1-9a-zA-Z]` characters.
 func Load(envVarPrefix string, configurationToSet IServiceConfiguration, defaultConfiguration IServiceConfiguration) error {
 	return LoadFromViper(viper.New(), envVarPrefix, configurationToSet, defaultConfiguration)
+}
+
+// LoadFromSystem is similar to Load but also fetches values from system's [keyring service](https://github.com/zalando/go-keyring).
+func LoadFromSystem(envVarPrefix string, configurationToSet IServiceConfiguration, defaultConfiguration IServiceConfiguration) error {
+	return LoadFromViperAndSystem(viper.New(), envVarPrefix, configurationToSet, defaultConfiguration)
+}
+
+// LoadFromViperAndSystem is the same as `LoadFromViper` but also fetches values from system's [keyring service](https://github.com/zalando/go-keyring).
+func LoadFromViperAndSystem(viperSession *viper.Viper, envVarPrefix string, configurationToSet IServiceConfiguration, defaultConfiguration IServiceConfiguration) error {
+	return LoadFromEnvironmentAndSystem(viperSession, envVarPrefix, configurationToSet, defaultConfiguration, "", true)
 }
 
 // LoadFromViper is the same as `Load` but instead of creating a new viper session, reuse the one provided.
@@ -58,7 +70,22 @@ func LoadFromViper(viperSession *viper.Viper, envVarPrefix string, configuration
 // 5) key/value store
 // 6) default values (set via flag default values, or calls to `SetDefault` or via `defaultConfiguration` argument provided)
 // Nonetheless, when it comes to default values. It differs slightly from Viper as default values from the default Configuration (i.e. `defaultConfiguration` argument provided) will take precedence over defaults set via `SetDefault` or flags unless they are considered empty values according to `reflection.IsEmpty`.
-func LoadFromEnvironment(viperSession *viper.Viper, envVarPrefix string, configurationToSet IServiceConfiguration, defaultConfiguration IServiceConfiguration, configFile string) (err error) {
+func LoadFromEnvironment(viperSession *viper.Viper, envVarPrefix string, configurationToSet IServiceConfiguration, defaultConfiguration IServiceConfiguration, configFile string) error {
+	return LoadFromEnvironmentAndSystem(viperSession, envVarPrefix, configurationToSet, defaultConfiguration, configFile, false)
+}
+
+// LoadFromEnvironmentAndSystem is the same as `LoadFromEnvironment` but also gives the ability to load the configuration from system's [keyring service](https://github.com/zalando/go-keyring).
+// Important note:
+// Viper's precedence order is mostly maintained:
+// 1) values defined in keyring (if not empty and keyring is selected - this is the only difference from Viper)
+// 2) values set using explicit calls to `Set`
+// 3) flags
+// 4) environment (variables or `.env`)
+// 5) configuration file
+// 6) key/value store
+// 7) default values (set via flag default values, or calls to `SetDefault` or via `defaultConfiguration` argument provided)
+// Nonetheless, when it comes to default values. It differs slightly from Viper as default values from the default Configuration (i.e. `defaultConfiguration` argument provided) will take precedence over defaults set via `SetDefault` or flags unless they are considered empty values according to `reflection.IsEmpty`.
+func LoadFromEnvironmentAndSystem(viperSession *viper.Viper, envVarPrefix string, configurationToSet IServiceConfiguration, defaultConfiguration IServiceConfiguration, configFile string, useKeyring bool) (err error) {
 	// Load Defaults
 	var defaults map[string]interface{}
 	err = mapstructure.Decode(defaultConfiguration, &defaults)
@@ -90,6 +117,12 @@ func LoadFromEnvironment(viperSession *viper.Viper, envVarPrefix string, configu
 	if err != nil {
 		err = commonerrors.WrapError(commonerrors.ErrMarshalling, err, "unable to fill configuration structure from the configuration session")
 		return
+	}
+	if useKeyring {
+		err = commonerrors.Ignore(keyring.FetchPointer[IServiceConfiguration](context.Background(), envVarPrefix, configurationToSet), commonerrors.ErrUnsupported)
+		if err != nil {
+			return
+		}
 	}
 	// Run validation
 	err = WrapValidationError(field.ToOptionalString(envVarPrefix), configurationToSet.Validate())

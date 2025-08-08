@@ -7,6 +7,9 @@ import (
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
 
 type TestStruct0 struct {
@@ -131,12 +134,31 @@ func TestToMap(t *testing.T) {
 		}
 		structMap, err := ToMap[TestStruct3WithTime](&testStruct)
 		require.NoError(t, err)
+		_, err = ToMapFromPointer[TestStruct3WithTime](testStruct)
+		errortest.AssertError(t, err, commonerrors.ErrInvalid)
 		newStruct := TestStruct3WithTime{}
 		require.NoError(t, FromMap[TestStruct3WithTime](structMap, &newStruct))
+		errortest.AssertError(t, FromMapToPointer[TestStruct3WithTime](structMap, newStruct), commonerrors.ErrInvalid)
 		assert.WithinDuration(t, testStruct.Time, newStruct.Time, 0)
 		assert.Equal(t, testStruct.Duration, newStruct.Duration)
 		assert.WithinDuration(t, testStruct.Struct.Time, newStruct.Struct.Time, 0)
 		assert.Equal(t, testStruct.Struct.Duration, newStruct.Struct.Duration)
+	})
+	t.Run("invalid", func(t *testing.T) {
+		var testMap map[string]string
+		testStruct := TestStruct3WithTime{}
+		_, err := ToMapFromPointer[TestStruct3WithTime](testStruct)
+		errortest.AssertError(t, err, commonerrors.ErrInvalid, commonerrors.ErrUndefined)
+		_, err = ToMapFromPointer[any](testStruct)
+		errortest.AssertError(t, err, commonerrors.ErrInvalid, commonerrors.ErrUndefined)
+		_, err = ToMapFromPointer[any](nil)
+		errortest.AssertError(t, err, commonerrors.ErrInvalid, commonerrors.ErrUndefined)
+		_, err = ToMapFromPointer[*TestStruct3WithTime](nil)
+		errortest.AssertError(t, err, commonerrors.ErrInvalid, commonerrors.ErrUndefined)
+		errortest.AssertError(t, FromMapToPointer[TestStruct3WithTime](testMap, testStruct), commonerrors.ErrInvalid, commonerrors.ErrUndefined)
+		errortest.AssertError(t, FromMapToPointer[any](testMap, testStruct), commonerrors.ErrInvalid, commonerrors.ErrUndefined)
+		errortest.AssertError(t, FromMapToPointer[any](testMap, nil), commonerrors.ErrInvalid, commonerrors.ErrUndefined)
+		errortest.AssertError(t, FromMapToPointer[*TestStruct3WithTime](testMap, nil), commonerrors.ErrInvalid, commonerrors.ErrUndefined)
 	})
 
 }
