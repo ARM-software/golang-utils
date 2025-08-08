@@ -10,10 +10,18 @@ import (
 	"github.com/ARM-software/golang-utils/utils/maps"
 )
 
-// ToMap converts a struct to a flat map using (mapstructure)[https://github.com/go-viper/mapstructure]
-func ToMap[T any](o *T) (m map[string]string, err error) {
-	if o == nil {
-		err = commonerrors.UndefinedVariable("object")
+// ToMapFromPointer is like ToMap but deals with a pointer.
+func ToMapFromPointer[T any](o T) (m map[string]string, err error) {
+	if reflect.TypeOf(o) == nil {
+		err = commonerrors.UndefinedVariable("pointer")
+		return
+	}
+	if reflect.TypeOf(o).Kind() != reflect.Ptr {
+		err = commonerrors.Newf(commonerrors.ErrInvalid, "expected a pointer and got %T", o)
+		return
+	}
+	if reflect.ValueOf(o).IsNil() {
+		err = commonerrors.UndefinedVariable("pointer")
 		return
 	}
 	mapAny := map[string]any{}
@@ -29,10 +37,28 @@ func ToMap[T any](o *T) (m map[string]string, err error) {
 	return
 }
 
-// FromMap deserialises a flatten map into a struct using (mapstructure)[https://github.com/go-viper/mapstructure]
-func FromMap[T any](m map[string]string, o *T) (err error) {
+// ToMap converts a struct to a flat map using (mapstructure)[https://github.com/go-viper/mapstructure]
+func ToMap[T any](o *T) (m map[string]string, err error) {
 	if o == nil {
 		err = commonerrors.UndefinedVariable("object")
+		return
+	}
+	m, err = ToMapFromPointer[*T](o)
+	return
+}
+
+// FromMapToPointer is like FromMap but deals with a pointer.
+func FromMapToPointer[T any](m map[string]string, o T) (err error) {
+	if reflect.TypeOf(o) == nil {
+		err = commonerrors.UndefinedVariable("pointer")
+		return
+	}
+	if reflect.TypeOf(o).Kind() != reflect.Ptr {
+		err = commonerrors.Newf(commonerrors.ErrInvalid, "expected a pointer and got %T", o)
+		return
+	}
+	if reflect.ValueOf(o).IsNil() {
+		err = commonerrors.UndefinedVariable("pointer")
 		return
 	}
 	if len(m) == 0 {
@@ -48,6 +74,16 @@ func FromMap[T any](m map[string]string, o *T) (err error) {
 	if err != nil {
 		err = commonerrors.WrapError(commonerrors.ErrMarshalling, err, "failed to deserialise upload request")
 	}
+	return
+}
+
+// FromMap deserialises a flatten map into a struct using (mapstructure)[https://github.com/go-viper/mapstructure]
+func FromMap[T any](m map[string]string, o *T) (err error) {
+	if o == nil {
+		err = commonerrors.UndefinedVariable("object")
+		return
+	}
+	err = FromMapToPointer[*T](m, o)
 	return
 }
 

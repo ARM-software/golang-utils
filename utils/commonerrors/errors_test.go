@@ -59,6 +59,14 @@ func TestIgnoreCorrespondTo(t *testing.T) {
 	assert.NoError(t, IgnoreCorrespondTo(ErrCondition, "condition"))
 }
 
+func TestJoin(t *testing.T) {
+	assert.True(t, Any(Join(ErrFailed, ErrMarshalling, ErrCancelled), ErrFailed))
+	assert.True(t, Any(Join(ErrFailed, ErrMarshalling, ErrCancelled), ErrCancelled))
+	assert.False(t, Any(Join(ErrFailed, ErrMarshalling, nil, ErrCancelled), nil))
+	assert.True(t, IsWarning(Join(ErrFailed, ErrMarshalling, NewWarningMessage(faker.Sentence()), ErrCancelled)))
+	require.NoError(t, Join(nil, nil, nil))
+}
+
 func TestContextErrorConversion(t *testing.T) {
 	defer goleak.VerifyNone(t)
 	task := func(ctx context.Context) {
@@ -126,6 +134,7 @@ func TestIsCommonError(t *testing.T) {
 
 func TestIsWarning(t *testing.T) {
 	assert.True(t, IsWarning(ErrWarning))
+	assert.True(t, IsWarning(NewWarningMessage(faker.Sentence())))
 	assert.False(t, IsWarning(ErrUnexpected))
 	assert.False(t, IsWarning(nil))
 	assert.True(t, IsWarning(fmt.Errorf("%w: i am a warning", ErrWarning)))
