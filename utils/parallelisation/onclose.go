@@ -66,6 +66,22 @@ func (s *CloseFunctionStore) RegisterCloseFunction(closerObj ...CloseFunc) {
 	s.store.RegisterFunction(closerObj...)
 }
 
+func (s *CloseFunctionStore) RegisterCancelStore(cancelStore *CancelFunctionStore) {
+	if cancelStore == nil {
+		return
+	}
+	s.store.RegisterFunction(func() error {
+		cancelStore.Cancel()
+		return nil
+	})
+}
+
+func (s *CloseFunctionStore) RegisterCancelFunction(cancelFunc ...context.CancelFunc) {
+	cancelStore := NewCancelFunctionsStore()
+	cancelStore.RegisterCancelFunction(cancelFunc...)
+	s.RegisterCancelStore(cancelStore)
+}
+
 func (s *CloseFunctionStore) Close() error {
 	return s.Execute(context.Background())
 }

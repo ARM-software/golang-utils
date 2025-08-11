@@ -1,6 +1,7 @@
 package parallelisation
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -40,4 +41,21 @@ func TestCloseAll(t *testing.T) {
 		errortest.AssertError(t, CloseAllFunc(func() error { return nil }, func() error { return nil }, func() error { return closeError }, func() error { return nil }), closeError)
 	})
 
+}
+
+func TestCancelOnClose(t *testing.T) {
+	closeStore := NewCloseFunctionStoreStore(true)
+	ctx1, cancel := context.WithCancel(context.Background())
+	closeStore.RegisterCancelFunction(cancel)
+	ctx2, cancel := context.WithCancel(context.Background())
+	closeStore.RegisterCancelFunction(cancel)
+	ctx3, cancel := context.WithCancel(context.Background())
+	closeStore.RegisterCancelFunction(cancel)
+	require.NoError(t, DetermineContextError(ctx1))
+	require.NoError(t, DetermineContextError(ctx2))
+	require.NoError(t, DetermineContextError(ctx3))
+	require.NoError(t, closeStore.Close())
+	errortest.AssertError(t, DetermineContextError(ctx1), commonerrors.ErrCancelled)
+	errortest.AssertError(t, DetermineContextError(ctx2), commonerrors.ErrCancelled)
+	errortest.AssertError(t, DetermineContextError(ctx3), commonerrors.ErrCancelled)
 }

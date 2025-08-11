@@ -8,6 +8,8 @@ import (
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/field"
 )
 
 var randomNumber = faker.RandomUnixTime()
@@ -21,6 +23,16 @@ func TestFlatten(t *testing.T) {
 			Input: map[string]any{
 				"foo": "bar",
 				"bar": "baz",
+			},
+			Output: map[string]string{
+				"foo": "bar",
+				"bar": "baz",
+			},
+		},
+		{
+			Input: map[string]any{
+				"foo": "bar",
+				"bar": field.ToOptionalString("baz"),
 			},
 			Output: map[string]string{
 				"foo": "bar",
