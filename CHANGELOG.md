@@ -14,6 +14,29 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.112.0" (2025-08-11)
+======================
+
+Features
+--------
+
+- :sparkles: [parallelisation] Added a way to register cancel functions to a close store to ensure everything is cancelled on close (#20250808203905)
+- :sparkles: [commonerrors] Added a Join which is similar to errors.Join but following inline string convention (#20250808204006)
+- :sparkles: [keyring] Added a module to store configuration in [system keyring service](https://github.com/zalando/go-keyring) (#20250808204222)
+- :sparkles: `[config]` Added ability to read configuration from system keyring service (#20250808230944)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: crypto-0.41.0 (#20250808104957)
+- Dependency upgrade: mod-0.27.0 (#20250808105012, #20250808105019, #20250808105226, #20250808105329, #20250808105434, #20250808105500, #20250808105507, #20250808105729, #20250808105745, #20250808105803, #20250808105932, #20250808105944, #20250808110029, #20250808110124, #20250808110139, #20250808110210, #20250808110239, #20250808110306, #20250808110327, #20250808110345, #20250808110406, #20250808110414, #20250808110443, #20250808110454, #20250808110509, #20250808110523, #20250808110538, #20250808110602, #20250808110604)
+- Dependency upgrade: text-0.28.0 (#20250808105016, #20250808105023, #20250808105223, #20250808105316, #20250808105318, #20250808105415, #20250808105506, #20250808105532, #20250808105701, #20250808105732, #20250808105833, #20250808105844, #20250808105907, #20250808110040, #20250808110104, #20250808110147, #20250808110149)
+- Dependency upgrade: sys-0.35.0 (#20250808164822, #20250808164824)
+- Dependency upgrade: net-0.43.0 (#20250808190051, #20250808190104, #20250808190117, #20250808190156)
+- :bug: [`maps`] Expand the `Flatten` function to support pointers (#20250811090744)
+
+
 "1.111.0" (2025-08-07)
 ======================
 
