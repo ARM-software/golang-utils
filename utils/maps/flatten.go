@@ -34,6 +34,9 @@ func Flatten(thing map[string]any) (result Map, err error) {
 
 func flatten(result map[string]string, prefix string, v reflect.Value) (err error) {
 	if v.Kind() == reflect.Interface {
+		if v.IsNil() {
+			return
+		}
 		v = v.Elem()
 	}
 	switch v.Kind() {
@@ -82,11 +85,16 @@ func flatten(result map[string]string, prefix string, v reflect.Value) (err erro
 		result[prefix] = v.String()
 	case reflect.Invalid:
 		result[prefix] = ""
+	case reflect.Ptr:
+		if v.IsNil() {
+			return
+		}
+		err = flatten(result, prefix, v.Elem())
 	default:
 		if v.IsZero() {
 			result[prefix] = ""
 		} else {
-			err = commonerrors.Newf(commonerrors.ErrUnknown, "unknown %v", v)
+			err = commonerrors.Newf(commonerrors.ErrUnknown, "unknown value '%v'", v)
 		}
 	}
 	return
