@@ -132,7 +132,7 @@ func (s *store[T]) Execute(ctx context.Context) (err error) {
 	if s.options.sequential {
 		err = s.executeSequentially(ctx, s.options.stopOnFirstError, s.options.reverse)
 	} else {
-		err = s.executeConcurrently(ctx, s.options.stopOnFirstError)
+		err = s.executeInParallel(ctx, s.options.stopOnFirstError)
 	}
 
 	if err == nil && s.options.clearOnExecution {
