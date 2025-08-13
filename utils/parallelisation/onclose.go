@@ -25,13 +25,22 @@ func (s *CloserStore) Len() int {
 
 // NewCloserStore returns a store of io.Closer object which will all be closed concurrently on Close(). The first error received will be returned
 func NewCloserStore(stopOnFirstError bool) *CloserStore {
+	option := ExecuteAll
+	if stopOnFirstError {
+		option = StopOnFirstError
+	}
+	return NewCloserStoreWithOptions(option, Parallel)
+}
+
+// NewCloserStoreWithOptions returns a store of io.Closer object which will all be closed on Close(). The first error received if any will be returned
+func NewCloserStoreWithOptions(opts ...StoreOption) *CloserStore {
 	return &CloserStore{
-		store: *newFunctionStore[io.Closer](false, stopOnFirstError, func(_ context.Context, closerObj io.Closer) error {
+		store: *newFunctionStore[io.Closer](func(_ context.Context, closerObj io.Closer) error {
 			if closerObj == nil {
 				return commonerrors.UndefinedVariable("closer object")
 			}
 			return closerObj.Close()
-		}),
+		}, append(opts, RetainAfterExecution)...),
 	}
 }
 
@@ -90,11 +99,26 @@ func (s *CloseFunctionStore) Len() int {
 	return s.store.Len()
 }
 
-// NewCloseFunctionStoreStore returns a store closing functions which will all be called concurrently on Close(). The first error received will be returned.
-func NewCloseFunctionStoreStore(stopOnFirstError bool) *CloseFunctionStore {
+// NewCloseFunctionStore returns a store closing functions which will all be called on Close(). The first error received if any will be returned.
+func NewCloseFunctionStore(options ...StoreOption) *CloseFunctionStore {
 	return &CloseFunctionStore{
-		store: *newFunctionStore[CloseFunc](false, stopOnFirstError, func(_ context.Context, closerObj CloseFunc) error {
+		store: *newFunctionStore[CloseFunc](func(_ context.Context, closerObj CloseFunc) error {
 			return closerObj()
-		}),
+		}, append(options, RetainAfterExecution)...),
 	}
+}
+
+// NewCloseFunctionStoreStore is exactly the same as NewConcurrentCloseFunctionStore but without a typo in the name.
+func NewCloseFunctionStoreStore(stopOnFirstError bool) *CloseFunctionStore {
+	return NewConcurrentCloseFunctionStore(stopOnFirstError)
+}
+
+// NewConcurrentCloseFunctionStore returns a store closing functions which will all be called concurrently on Close(). The first error received will be returned.
+// Prefer using NewCloseFunctionStore where possible
+func NewConcurrentCloseFunctionStore(stopOnFirstError bool) *CloseFunctionStore {
+	option := ExecuteAll
+	if stopOnFirstError {
+		option = StopOnFirstError
+	}
+	return NewCloseFunctionStore(option, Parallel)
 }

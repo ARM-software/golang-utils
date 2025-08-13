@@ -15,22 +15,99 @@ import (
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
-func newFunctionStore[T any](clearOnExecution, stopOnFirstError bool, executeFunc func(context.Context, T) error) *store[T] {
+type StoreOptions struct {
+	clearOnExecution bool
+	stopOnFirstError bool
+	sequential       bool
+	reverse          bool
+}
+
+type StoreOption func(*StoreOptions) *StoreOptions
+
+// StopOnFirstError stops store execution on first error.
+var StopOnFirstError StoreOption = func(o *StoreOptions) *StoreOptions {
+	if o == nil {
+		return o
+	}
+	o.stopOnFirstError = true
+	return o
+}
+
+// ExecuteAll executes all functions in the store even if an error is raised. the first error raised is then returned.
+var ExecuteAll StoreOption = func(o *StoreOptions) *StoreOptions {
+	if o == nil {
+		return o
+	}
+	o.stopOnFirstError = false
+	return o
+}
+
+// ClearAfterExecution clears the store after execution.
+var ClearAfterExecution StoreOption = func(o *StoreOptions) *StoreOptions {
+	if o == nil {
+		return o
+	}
+	o.clearOnExecution = true
+	return o
+}
+
+// RetainAfterExecution keep the store intact after execution (no reset).
+var RetainAfterExecution StoreOption = func(o *StoreOptions) *StoreOptions {
+	if o == nil {
+		return o
+	}
+	o.clearOnExecution = false
+	return o
+}
+
+// Parallel ensures every function registered in the store is executed concurrently in the order they were registered.
+var Parallel StoreOption = func(o *StoreOptions) *StoreOptions {
+	if o == nil {
+		return o
+	}
+	o.sequential = false
+	return o
+}
+
+// Sequential ensures every function registered in the store is executed sequentially in the order they were registered.
+var Sequential StoreOption = func(o *StoreOptions) *StoreOptions {
+	if o == nil {
+		return o
+	}
+	o.sequential = true
+	return o
+}
+
+// SequentialInReverse ensures every function registered in the store is executed sequentially but in the reverse order they were registered.
+var SequentialInReverse StoreOption = func(o *StoreOptions) *StoreOptions {
+	if o == nil {
+		return o
+	}
+	o.sequential = true
+	o.reverse = true
+	return o
+}
+
+func newFunctionStore[T any](executeFunc func(context.Context, T) error, options ...StoreOption) *store[T] {
+
+	opts := &StoreOptions{}
+
+	for i := range options {
+		opts = options[i](opts)
+	}
 	return &store[T]{
-		mu:               deadlock.RWMutex{},
-		functions:        make([]T, 0),
-		executeFunc:      executeFunc,
-		clearOnExecution: clearOnExecution,
-		stopOnFirstError: stopOnFirstError,
+		mu:          deadlock.RWMutex{},
+		functions:   make([]T, 0),
+		executeFunc: executeFunc,
+		options:     *opts,
 	}
 }
 
 type store[T any] struct {
-	mu               deadlock.RWMutex
-	functions        []T
-	executeFunc      func(ctx context.Context, element T) error
-	clearOnExecution bool
-	stopOnFirstError bool
+	mu          deadlock.RWMutex
+	functions   []T
+	executeFunc func(ctx context.Context, element T) error
+	options     StoreOptions
 }
 
 func (s *store[T]) RegisterFunction(function ...T) {
@@ -45,32 +122,87 @@ func (s *store[T]) Len() int {
 	return len(s.functions)
 }
 
-func (s *store[T]) Execute(ctx context.Context) error {
+func (s *store[T]) Execute(ctx context.Context) (err error) {
 	defer s.mu.Unlock()
 	s.mu.Lock()
 	if reflection.IsEmpty(s.executeFunc) {
-		return commonerrors.New(commonerrors.ErrUndefined, "the cancel store was not initialised correctly")
+		return commonerrors.New(commonerrors.ErrUndefined, "the store was not initialised correctly")
 	}
+
+	if s.options.sequential {
+		err = s.executeSequentially(ctx, s.options.stopOnFirstError, s.options.reverse)
+	} else {
+		err = s.executeConcurrently(ctx, s.options.stopOnFirstError)
+	}
+
+	if err == nil && s.options.clearOnExecution {
+		s.functions = make([]T, 0, len(s.functions))
+	}
+	return
+}
+
+func (s *store[T]) executeConcurrently(ctx context.Context, stopOnFirstError bool) error {
 	g, gCtx := errgroup.WithContext(ctx)
-	if !s.stopOnFirstError {
+	if !stopOnFirstError {
 		gCtx = ctx
 	}
 	g.SetLimit(len(s.functions))
 	for i := range s.functions {
 		g.Go(func() error {
-			err := DetermineContextError(gCtx)
-			if err != nil {
-				return err
-			}
-			return s.executeFunc(gCtx, s.functions[i])
+			_, subErr := s.executeFunction(gCtx, s.functions[i])
+			return subErr
 		})
 	}
 
-	err := g.Wait()
-	if err == nil && s.clearOnExecution {
-		s.functions = make([]T, 0, len(s.functions))
+	return g.Wait()
+}
+
+func (s *store[T]) executeSequentially(ctx context.Context, stopOnFirstError, reverse bool) (err error) {
+	err = DetermineContextError(ctx)
+	if err != nil {
+		return
 	}
-	return err
+	if reverse {
+		for i := len(s.functions) - 1; i >= 0; i-- {
+			shouldBreak, subErr := s.executeFunction(ctx, s.functions[i])
+			if shouldBreak {
+				err = subErr
+				return
+			}
+			if subErr != nil && err == nil {
+				err = subErr
+				if stopOnFirstError {
+					return
+				}
+			}
+		}
+	} else {
+		for i := range s.functions {
+			shouldBreak, subErr := s.executeFunction(ctx, s.functions[i])
+			if shouldBreak {
+				err = subErr
+				return
+			}
+			if subErr != nil && err == nil {
+				err = subErr
+				if stopOnFirstError {
+					return
+				}
+			}
+		}
+	}
+
+	return
+}
+
+func (s *store[T]) executeFunction(ctx context.Context, element T) (shouldBreak bool, err error) {
+	err = DetermineContextError(ctx)
+	if err != nil {
+		shouldBreak = true
+		return
+	}
+	err = s.executeFunc(ctx, element)
+	return
 }
 
 type CancelFunctionStore struct {
@@ -90,12 +222,12 @@ func (s *CancelFunctionStore) Len() int {
 	return s.store.Len()
 }
 
-// NewCancelFunctionsStore creates a store for cancel functions.
-func NewCancelFunctionsStore() *CancelFunctionStore {
+// NewCancelFunctionsStore creates a store for cancel functions. Whatever the options passed, all cancel functions will be executed.
+func NewCancelFunctionsStore(options ...StoreOption) *CancelFunctionStore {
 	return &CancelFunctionStore{
-		store: *newFunctionStore[context.CancelFunc](true, false, func(_ context.Context, cancelFunc context.CancelFunc) error {
+		store: *newFunctionStore[context.CancelFunc](func(_ context.Context, cancelFunc context.CancelFunc) error {
 			cancelFunc()
 			return nil
-		}),
+		}, append(options, ClearAfterExecution, ExecuteAll)...),
 	}
 }
