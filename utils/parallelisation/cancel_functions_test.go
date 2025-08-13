@@ -9,36 +9,54 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
+
+func testCancelStore(t *testing.T, store *CancelFunctionStore) {
+	t.Helper()
+	require.NotNil(t, store)
+	// Set up some fake CancelFuncs to make sure they are called
+	called1 := false
+	called2 := false
+	cancelFunc1 := func() {
+		called1 = true
+	}
+	cancelFunc2 := func() {
+		called2 = true
+	}
+
+	store.RegisterCancelFunction(cancelFunc1, cancelFunc2)
+
+	assert.Equal(t, 2, store.Len())
+	assert.False(t, called1)
+	assert.False(t, called2)
+	store.Cancel()
+
+	assert.True(t, called1)
+	assert.True(t, called2)
+}
 
 // Given a CancelFunctionsStore
 // Functions can be registered
 // and all functions will be called
 func TestCancelFunctionStore(t *testing.T) {
 	t.Run("valid cancel store", func(t *testing.T) {
-		// Set up some fake CancelFuncs to make sure they are called
-		called1 := false
-		called2 := false
-		cancelFunc1 := func() {
-			called1 = true
-		}
-		cancelFunc2 := func() {
-			called2 = true
-		}
 
-		store := NewCancelFunctionsStore()
-
-		store.RegisterCancelFunction(cancelFunc1, cancelFunc2)
-
-		assert.Equal(t, 2, store.Len())
-
-		store.Cancel()
-
-		assert.True(t, called1)
-		assert.True(t, called2)
+		t.Run("parallel", func(t *testing.T) {
+			testCancelStore(t, NewCancelFunctionsStore())
+		})
+		t.Run("sequential", func(t *testing.T) {
+			testCancelStore(t, NewCancelFunctionsStore(Sequential))
+		})
+		t.Run("reverse", func(t *testing.T) {
+			testCancelStore(t, NewCancelFunctionsStore(SequentialInReverse))
+		})
+		t.Run("execute all", func(t *testing.T) {
+			testCancelStore(t, NewCancelFunctionsStore(StopOnFirstError))
+		})
 	})
 
 	t.Run("incorrectly initialised cancel store", func(t *testing.T) {
