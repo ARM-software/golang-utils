@@ -20,8 +20,8 @@ type StoreOptions struct {
 	stopOnFirstError bool
 	sequential       bool
 	reverse          bool
+	joinErrors       bool
 }
-
 type StoreOption func(*StoreOptions) *StoreOptions
 
 // StopOnFirstError stops store execution on first error.
@@ -30,6 +30,18 @@ var StopOnFirstError StoreOption = func(o *StoreOptions) *StoreOptions {
 		return o
 	}
 	o.stopOnFirstError = true
+	o.joinErrors = false
+	return o
+}
+
+// JoinErrors will collate any errors which happened when executing functions in store.
+// This option should not be used in combination to StopOnFirstError.
+var JoinErrors StoreOption = func(o *StoreOptions) *StoreOptions {
+	if o == nil {
+		return o
+	}
+	o.stopOnFirstError = false
+	o.joinErrors = true
 	return o
 }
 
@@ -130,9 +142,9 @@ func (s *store[T]) Execute(ctx context.Context) (err error) {
 	}
 
 	if s.options.sequential {
-		err = s.executeSequentially(ctx, s.options.stopOnFirstError, s.options.reverse)
+		err = s.executeSequentially(ctx, s.options.stopOnFirstError, s.options.reverse, s.options.joinErrors)
 	} else {
-		err = s.executeInParallel(ctx, s.options.stopOnFirstError)
+		err = s.executeConcurrently(ctx, s.options.stopOnFirstError, s.options.joinErrors)
 	}
 
 	if err == nil && s.options.clearOnExecution {
@@ -141,31 +153,48 @@ func (s *store[T]) Execute(ctx context.Context) (err error) {
 	return
 }
 
-func (s *store[T]) executeInParallel(ctx context.Context, stopOnFirstError bool) error {
+func (s *store[T]) executeConcurrently(ctx context.Context, stopOnFirstError bool, collateErrors bool) error {
 	g, gCtx := errgroup.WithContext(ctx)
 	if !stopOnFirstError {
 		gCtx = ctx
 	}
-	g.SetLimit(len(s.functions))
+	funcNum := len(s.functions)
+	errCh := make(chan error, funcNum)
+	g.SetLimit(funcNum)
 	for i := range s.functions {
 		g.Go(func() error {
 			_, subErr := s.executeFunction(gCtx, s.functions[i])
+			errCh <- subErr
 			return subErr
 		})
 	}
+	err := g.Wait()
+	close(errCh)
+	if collateErrors {
+		collateErr := make([]error, funcNum)
+		i := 0
+		for subErr := range errCh {
+			collateErr[i] = subErr
+			i++
+		}
+		err = commonerrors.Join(collateErr...)
+	}
 
-	return g.Wait()
+	return err
 }
 
-func (s *store[T]) executeSequentially(ctx context.Context, stopOnFirstError, reverse bool) (err error) {
+func (s *store[T]) executeSequentially(ctx context.Context, stopOnFirstError, reverse, collateErrors bool) (err error) {
 	err = DetermineContextError(ctx)
 	if err != nil {
 		return
 	}
+	funcNum := len(s.functions)
+	collateErr := make([]error, funcNum)
 	if reverse {
-		for i := len(s.functions) - 1; i >= 0; i-- {
-			mustBreak, subErr := s.executeFunction(ctx, s.functions[i])
-			if mustBreak {
+		for i := funcNum - 1; i >= 0; i-- {
+			shouldBreak, subErr := s.executeFunction(ctx, s.functions[i])
+			collateErr[funcNum-i-1] = subErr
+			if shouldBreak {
 				err = subErr
 				return
 			}
@@ -179,6 +208,7 @@ func (s *store[T]) executeSequentially(ctx context.Context, stopOnFirstError, re
 	} else {
 		for i := range s.functions {
 			shouldBreak, subErr := s.executeFunction(ctx, s.functions[i])
+			collateErr[i] = subErr
 			if shouldBreak {
 				err = subErr
 				return
@@ -192,6 +222,9 @@ func (s *store[T]) executeSequentially(ctx context.Context, stopOnFirstError, re
 		}
 	}
 
+	if collateErrors {
+		err = commonerrors.Join(collateErr...)
+	}
 	return
 }
 
