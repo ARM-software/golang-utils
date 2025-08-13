@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.114.0" (2025-08-13)
+======================
+
+Features
+--------
+
+- :sparkles: [parallelisation] Add an option to collate all the errors found during a function store execution (#20250813180357)
+
+
 "1.113.0" (2025-08-13)
 ======================
 
