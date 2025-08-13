@@ -51,6 +51,13 @@ func CloseAll(cs ...io.Closer) error {
 	return group.Close()
 }
 
+// CloseAllAndCollateErrors calls concurrently Close on all io.Closer implementations passed as arguments and returns the errors encountered
+func CloseAllAndCollateErrors(cs ...io.Closer) error {
+	group := NewCloserStoreWithOptions(ExecuteAll, Parallel, JoinErrors)
+	group.RegisterFunction(cs...)
+	return group.Close()
+}
+
 // CloseAllWithContext is similar to CloseAll but can be controlled using a context.
 func CloseAllWithContext(ctx context.Context, cs ...io.Closer) error {
 	group := NewCloserStore(false)
@@ -58,9 +65,23 @@ func CloseAllWithContext(ctx context.Context, cs ...io.Closer) error {
 	return group.Execute(ctx)
 }
 
+// CloseAllWithContextAndCollateErrors is similar to CloseAllAndCollateErrors but can be controlled using a context.
+func CloseAllWithContextAndCollateErrors(ctx context.Context, cs ...io.Closer) error {
+	group := NewCloserStoreWithOptions(ExecuteAll, Parallel, JoinErrors)
+	group.RegisterFunction(cs...)
+	return group.Execute(ctx)
+}
+
 // CloseAllFunc calls concurrently all Close functions passed as arguments and returns the first error encountered
 func CloseAllFunc(cs ...CloseFunc) error {
 	group := NewCloseFunctionStoreStore(false)
+	group.RegisterFunction(cs...)
+	return group.Close()
+}
+
+// CloseAllFuncAndCollateErrors calls concurrently all Close functions passed as arguments and returns the errors encountered
+func CloseAllFuncAndCollateErrors(cs ...CloseFunc) error {
+	group := NewCloseFunctionStore(ExecuteAll, Parallel, JoinErrors)
 	group.RegisterFunction(cs...)
 	return group.Close()
 }
