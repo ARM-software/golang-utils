@@ -141,7 +141,7 @@ func (s *store[T]) Execute(ctx context.Context) (err error) {
 	return
 }
 
-func (s *store[T]) executeConcurrently(ctx context.Context, stopOnFirstError bool) error {
+func (s *store[T]) executeInParallel(ctx context.Context, stopOnFirstError bool) error {
 	g, gCtx := errgroup.WithContext(ctx)
 	if !stopOnFirstError {
 		gCtx = ctx
@@ -164,8 +164,8 @@ func (s *store[T]) executeSequentially(ctx context.Context, stopOnFirstError, re
 	}
 	if reverse {
 		for i := len(s.functions) - 1; i >= 0; i-- {
-			shouldBreak, subErr := s.executeFunction(ctx, s.functions[i])
-			if shouldBreak {
+			mustBreak, subErr := s.executeFunction(ctx, s.functions[i])
+			if mustBreak {
 				err = subErr
 				return
 			}
@@ -195,10 +195,10 @@ func (s *store[T]) executeSequentially(ctx context.Context, stopOnFirstError, re
 	return
 }
 
-func (s *store[T]) executeFunction(ctx context.Context, element T) (shouldBreak bool, err error) {
+func (s *store[T]) executeFunction(ctx context.Context, element T) (mustBreak bool, err error) {
 	err = DetermineContextError(ctx)
 	if err != nil {
-		shouldBreak = true
+		mustBreak = true
 		return
 	}
 	err = s.executeFunc(ctx, element)
@@ -222,7 +222,7 @@ func (s *CancelFunctionStore) Len() int {
 	return s.store.Len()
 }
 
-// NewCancelFunctionsStore creates a store for cancel functions. Whatever the options passed, all cancel functions will be executed.
+// NewCancelFunctionsStore creates a store for cancel functions. Whatever the options passed, all cancel functions will be executed and cleared. In other words, options `RetainAfterExecution` and `StopOnFirstError` would be discarded if selected to create the Cancel store
 func NewCancelFunctionsStore(options ...StoreOption) *CancelFunctionStore {
 	return &CancelFunctionStore{
 		store: *newFunctionStore[context.CancelFunc](func(_ context.Context, cancelFunc context.CancelFunc) error {
