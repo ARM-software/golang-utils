@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.113.0" (2025-08-13)
+======================
+
+Features
+--------
+
+- :sparkles: `[parallelisation]` Extend the cancel/close store to have various ways of functioning (e.g. parallel, sequential, reverse order, etc.) (#20250813063457)
+
+
 "1.112.0" (2025-08-11)
 ======================
 
