@@ -29,7 +29,7 @@ func NewCloserStore(stopOnFirstError bool) *CloserStore {
 	if stopOnFirstError {
 		option = StopOnFirstError
 	}
-	return NewCloserStoreWithOptions(option, Parallel)
+	return NewCloserStoreWithOptions(option, Parallel, RetainAfterExecution)
 }
 
 // NewCloserStoreWithOptions returns a store of io.Closer object which will all be closed on Close(). The first error received if any will be returned
@@ -40,7 +40,7 @@ func NewCloserStoreWithOptions(opts ...StoreOption) *CloserStore {
 				return commonerrors.UndefinedVariable("closer object")
 			}
 			return closerObj.Close()
-		}, append(opts, RetainAfterExecution)...),
+		}, opts...),
 	}
 }
 
@@ -125,7 +125,7 @@ func NewCloseFunctionStore(options ...StoreOption) *CloseFunctionStore {
 	return &CloseFunctionStore{
 		store: *newFunctionStore[CloseFunc](func(_ context.Context, closerObj CloseFunc) error {
 			return closerObj()
-		}, append(options, RetainAfterExecution)...),
+		}, options...),
 	}
 }
 
@@ -141,5 +141,5 @@ func NewConcurrentCloseFunctionStore(stopOnFirstError bool) *CloseFunctionStore 
 	if stopOnFirstError {
 		option = StopOnFirstError
 	}
-	return NewCloseFunctionStore(option, Parallel)
+	return NewCloseFunctionStore(option, Parallel, RetainAfterExecution)
 }
