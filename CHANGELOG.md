@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.114.1" (2025-08-14)
+======================
+
+Bugfixes
+--------
+
+- :bug: [parallelisation] Make sure options are not overridden for a close store (#20250814104556)
+
+
 "1.114.0" (2025-08-13)
 ======================
 
