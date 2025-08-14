@@ -145,6 +145,14 @@ func (hs Headers) Append(h *Header) {
 	hs[h.Key] = *h
 }
 
+func (hs Headers) Get(key string) string {
+	h, found := hs[key]
+	if !found {
+		return ""
+	}
+	return h.Value
+}
+
 func (hs Headers) Has(h *Header) bool {
 	if h == nil {
 		return false

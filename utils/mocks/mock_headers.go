@@ -91,6 +91,20 @@ func (mr *MockIHTTPHeadersMockRecorder) Empty() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Empty", reflect.TypeOf((*MockIHTTPHeaders)(nil).Empty))
 }
 
+// Get mocks base method.
+func (m *MockIHTTPHeaders) Get(key string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", key)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockIHTTPHeadersMockRecorder) Get(key any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockIHTTPHeaders)(nil).Get), key)
+}
+
 // Has mocks base method.
 func (m *MockIHTTPHeaders) Has(h *headers.Header) bool {
 	m.ctrl.T.Helper()

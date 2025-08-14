@@ -57,18 +57,18 @@ func (mr *MockIClientMockRecorder) Close() *gomock.Call {
 }
 
 // Delete mocks base method.
-func (m *MockIClient) Delete(url string) (*http.Response, error) {
+func (m *MockIClient) Delete(arg0 string) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", url)
+	ret := m.ctrl.Call(m, "Delete", arg0)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockIClientMockRecorder) Delete(url any) *gomock.Call {
+func (mr *MockIClientMockRecorder) Delete(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockIClient)(nil).Delete), url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockIClient)(nil).Delete), arg0)
 }
 
 // Do mocks base method.
@@ -87,93 +87,93 @@ func (mr *MockIClientMockRecorder) Do(req any) *gomock.Call {
 }
 
 // Get mocks base method.
-func (m *MockIClient) Get(url string) (*http.Response, error) {
+func (m *MockIClient) Get(arg0 string) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", url)
+	ret := m.ctrl.Call(m, "Get", arg0)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockIClientMockRecorder) Get(url any) *gomock.Call {
+func (mr *MockIClientMockRecorder) Get(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockIClient)(nil).Get), url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockIClient)(nil).Get), arg0)
 }
 
 // Head mocks base method.
-func (m *MockIClient) Head(url string) (*http.Response, error) {
+func (m *MockIClient) Head(arg0 string) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Head", url)
+	ret := m.ctrl.Call(m, "Head", arg0)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Head indicates an expected call of Head.
-func (mr *MockIClientMockRecorder) Head(url any) *gomock.Call {
+func (mr *MockIClientMockRecorder) Head(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Head", reflect.TypeOf((*MockIClient)(nil).Head), url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Head", reflect.TypeOf((*MockIClient)(nil).Head), arg0)
 }
 
 // Options mocks base method.
-func (m *MockIClient) Options(url string) (*http.Response, error) {
+func (m *MockIClient) Options(arg0 string) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Options", url)
+	ret := m.ctrl.Call(m, "Options", arg0)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Options indicates an expected call of Options.
-func (mr *MockIClientMockRecorder) Options(url any) *gomock.Call {
+func (mr *MockIClientMockRecorder) Options(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Options", reflect.TypeOf((*MockIClient)(nil).Options), url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Options", reflect.TypeOf((*MockIClient)(nil).Options), arg0)
 }
 
 // Post mocks base method.
-func (m *MockIClient) Post(url, contentType string, body any) (*http.Response, error) {
+func (m *MockIClient) Post(arg0, contentType string, body any) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Post", url, contentType, body)
+	ret := m.ctrl.Call(m, "Post", arg0, contentType, body)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Post indicates an expected call of Post.
-func (mr *MockIClientMockRecorder) Post(url, contentType, body any) *gomock.Call {
+func (mr *MockIClientMockRecorder) Post(arg0, contentType, body any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Post", reflect.TypeOf((*MockIClient)(nil).Post), url, contentType, body)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Post", reflect.TypeOf((*MockIClient)(nil).Post), arg0, contentType, body)
 }
 
 // PostForm mocks base method.
-func (m *MockIClient) PostForm(url string, data url.Values) (*http.Response, error) {
+func (m *MockIClient) PostForm(arg0 string, data url.Values) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PostForm", url, data)
+	ret := m.ctrl.Call(m, "PostForm", arg0, data)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // PostForm indicates an expected call of PostForm.
-func (mr *MockIClientMockRecorder) PostForm(url, data any) *gomock.Call {
+func (mr *MockIClientMockRecorder) PostForm(arg0, data any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostForm", reflect.TypeOf((*MockIClient)(nil).PostForm), url, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostForm", reflect.TypeOf((*MockIClient)(nil).PostForm), arg0, data)
 }
 
 // Put mocks base method.
-func (m *MockIClient) Put(url string, body any) (*http.Response, error) {
+func (m *MockIClient) Put(arg0 string, body any) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Put", url, body)
+	ret := m.ctrl.Call(m, "Put", arg0, body)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Put indicates an expected call of Put.
-func (mr *MockIClientMockRecorder) Put(url, body any) *gomock.Call {
+func (mr *MockIClientMockRecorder) Put(arg0, body any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockIClient)(nil).Put), url, body)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockIClient)(nil).Put), arg0, body)
 }
 
 // StandardClient mocks base method.
@@ -291,18 +291,18 @@ func (mr *MockIClientWithHeadersMockRecorder) Close() *gomock.Call {
 }
 
 // Delete mocks base method.
-func (m *MockIClientWithHeaders) Delete(url string) (*http.Response, error) {
+func (m *MockIClientWithHeaders) Delete(arg0 string) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", url)
+	ret := m.ctrl.Call(m, "Delete", arg0)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockIClientWithHeadersMockRecorder) Delete(url any) *gomock.Call {
+func (mr *MockIClientWithHeadersMockRecorder) Delete(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockIClientWithHeaders)(nil).Delete), url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockIClientWithHeaders)(nil).Delete), arg0)
 }
 
 // Do mocks base method.
@@ -321,93 +321,93 @@ func (mr *MockIClientWithHeadersMockRecorder) Do(req any) *gomock.Call {
 }
 
 // Get mocks base method.
-func (m *MockIClientWithHeaders) Get(url string) (*http.Response, error) {
+func (m *MockIClientWithHeaders) Get(arg0 string) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", url)
+	ret := m.ctrl.Call(m, "Get", arg0)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockIClientWithHeadersMockRecorder) Get(url any) *gomock.Call {
+func (mr *MockIClientWithHeadersMockRecorder) Get(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockIClientWithHeaders)(nil).Get), url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockIClientWithHeaders)(nil).Get), arg0)
 }
 
 // Head mocks base method.
-func (m *MockIClientWithHeaders) Head(url string) (*http.Response, error) {
+func (m *MockIClientWithHeaders) Head(arg0 string) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Head", url)
+	ret := m.ctrl.Call(m, "Head", arg0)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Head indicates an expected call of Head.
-func (mr *MockIClientWithHeadersMockRecorder) Head(url any) *gomock.Call {
+func (mr *MockIClientWithHeadersMockRecorder) Head(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Head", reflect.TypeOf((*MockIClientWithHeaders)(nil).Head), url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Head", reflect.TypeOf((*MockIClientWithHeaders)(nil).Head), arg0)
 }
 
 // Options mocks base method.
-func (m *MockIClientWithHeaders) Options(url string) (*http.Response, error) {
+func (m *MockIClientWithHeaders) Options(arg0 string) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Options", url)
+	ret := m.ctrl.Call(m, "Options", arg0)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Options indicates an expected call of Options.
-func (mr *MockIClientWithHeadersMockRecorder) Options(url any) *gomock.Call {
+func (mr *MockIClientWithHeadersMockRecorder) Options(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Options", reflect.TypeOf((*MockIClientWithHeaders)(nil).Options), url)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Options", reflect.TypeOf((*MockIClientWithHeaders)(nil).Options), arg0)
 }
 
 // Post mocks base method.
-func (m *MockIClientWithHeaders) Post(url, contentType string, body any) (*http.Response, error) {
+func (m *MockIClientWithHeaders) Post(arg0, contentType string, body any) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Post", url, contentType, body)
+	ret := m.ctrl.Call(m, "Post", arg0, contentType, body)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Post indicates an expected call of Post.
-func (mr *MockIClientWithHeadersMockRecorder) Post(url, contentType, body any) *gomock.Call {
+func (mr *MockIClientWithHeadersMockRecorder) Post(arg0, contentType, body any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Post", reflect.TypeOf((*MockIClientWithHeaders)(nil).Post), url, contentType, body)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Post", reflect.TypeOf((*MockIClientWithHeaders)(nil).Post), arg0, contentType, body)
 }
 
 // PostForm mocks base method.
-func (m *MockIClientWithHeaders) PostForm(url string, data url.Values) (*http.Response, error) {
+func (m *MockIClientWithHeaders) PostForm(arg0 string, data url.Values) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PostForm", url, data)
+	ret := m.ctrl.Call(m, "PostForm", arg0, data)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // PostForm indicates an expected call of PostForm.
-func (mr *MockIClientWithHeadersMockRecorder) PostForm(url, data any) *gomock.Call {
+func (mr *MockIClientWithHeadersMockRecorder) PostForm(arg0, data any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostForm", reflect.TypeOf((*MockIClientWithHeaders)(nil).PostForm), url, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostForm", reflect.TypeOf((*MockIClientWithHeaders)(nil).PostForm), arg0, data)
 }
 
 // Put mocks base method.
-func (m *MockIClientWithHeaders) Put(url string, body any) (*http.Response, error) {
+func (m *MockIClientWithHeaders) Put(arg0 string, body any) (*http.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Put", url, body)
+	ret := m.ctrl.Call(m, "Put", arg0, body)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Put indicates an expected call of Put.
-func (mr *MockIClientWithHeadersMockRecorder) Put(url, body any) *gomock.Call {
+func (mr *MockIClientWithHeadersMockRecorder) Put(arg0, body any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockIClientWithHeaders)(nil).Put), url, body)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockIClientWithHeaders)(nil).Put), arg0, body)
 }
 
 // RemoveHeader mocks base method.

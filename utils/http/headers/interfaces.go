@@ -9,6 +9,7 @@ import "net/http"
 type IHTTPHeaders interface {
 	AppendHeader(key, value string)
 	Append(h *Header)
+	Get(key string) string
 	Has(h *Header) bool
 	HasHeader(key string) bool
 	Empty() bool

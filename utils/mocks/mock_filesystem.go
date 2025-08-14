@@ -12,14 +12,14 @@ package mocks
 import (
 	context "context"
 	io "io"
-	fs "io/fs"
+	os "os"
 	user "os/user"
 	filepath "path/filepath"
 	reflect "reflect"
 	time "time"
 
 	filesystem "github.com/ARM-software/golang-utils/utils/filesystem"
-	v3 "github.com/bmatcuk/doublestar/v3"
+	doublestar "github.com/bmatcuk/doublestar/v3"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -294,10 +294,10 @@ func (mr *MockFileMockRecorder) ReadAt(p, off any) *gomock.Call {
 }
 
 // Readdir mocks base method.
-func (m *MockFile) Readdir(count int) ([]fs.FileInfo, error) {
+func (m *MockFile) Readdir(count int) ([]os.FileInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Readdir", count)
-	ret0, _ := ret[0].([]fs.FileInfo)
+	ret0, _ := ret[0].([]os.FileInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -339,10 +339,10 @@ func (mr *MockFileMockRecorder) Seek(offset, whence any) *gomock.Call {
 }
 
 // Stat mocks base method.
-func (m *MockFile) Stat() (fs.FileInfo, error) {
+func (m *MockFile) Stat() (os.FileInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Stat")
-	ret0, _ := ret[0].(fs.FileInfo)
+	ret0, _ := ret[0].(os.FileInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -981,7 +981,7 @@ func (mr *MockFSMockRecorder) ChangeOwnershipRecursively(ctx, path, owner any) *
 }
 
 // Chmod mocks base method.
-func (m *MockFS) Chmod(name string, mode fs.FileMode) error {
+func (m *MockFS) Chmod(name string, mode os.FileMode) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Chmod", name, mode)
 	ret0, _ := ret[0].(error)
@@ -995,7 +995,7 @@ func (mr *MockFSMockRecorder) Chmod(name, mode any) *gomock.Call {
 }
 
 // ChmodRecursively mocks base method.
-func (m *MockFS) ChmodRecursively(ctx context.Context, path string, mode fs.FileMode) error {
+func (m *MockFS) ChmodRecursively(ctx context.Context, path string, mode os.FileMode) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChmodRecursively", ctx, path, mode)
 	ret0, _ := ret[0].(error)
@@ -1562,32 +1562,32 @@ func (mr *MockFSMockRecorder) IsLink(path any) *gomock.Call {
 }
 
 // IsZip mocks base method.
-func (m *MockFS) IsZip(filepath string) bool {
+func (m *MockFS) IsZip(arg0 string) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsZip", filepath)
+	ret := m.ctrl.Call(m, "IsZip", arg0)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
 // IsZip indicates an expected call of IsZip.
-func (mr *MockFSMockRecorder) IsZip(filepath any) *gomock.Call {
+func (mr *MockFSMockRecorder) IsZip(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsZip", reflect.TypeOf((*MockFS)(nil).IsZip), filepath)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsZip", reflect.TypeOf((*MockFS)(nil).IsZip), arg0)
 }
 
 // IsZipWithContext mocks base method.
-func (m *MockFS) IsZipWithContext(ctx context.Context, filepath string) (bool, error) {
+func (m *MockFS) IsZipWithContext(ctx context.Context, arg1 string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsZipWithContext", ctx, filepath)
+	ret := m.ctrl.Call(m, "IsZipWithContext", ctx, arg1)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsZipWithContext indicates an expected call of IsZipWithContext.
-func (mr *MockFSMockRecorder) IsZipWithContext(ctx, filepath any) *gomock.Call {
+func (mr *MockFSMockRecorder) IsZipWithContext(ctx, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsZipWithContext", reflect.TypeOf((*MockFS)(nil).IsZipWithContext), ctx, filepath)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsZipWithContext", reflect.TypeOf((*MockFS)(nil).IsZipWithContext), ctx, arg1)
 }
 
 // Link mocks base method.
@@ -1652,10 +1652,10 @@ func (mr *MockFSMockRecorder) ListDirTreeWithContextAndExclusionPatterns(ctx, di
 }
 
 // Lls mocks base method.
-func (m *MockFS) Lls(dir string) ([]fs.FileInfo, error) {
+func (m *MockFS) Lls(dir string) ([]os.FileInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Lls", dir)
-	ret0, _ := ret[0].([]fs.FileInfo)
+	ret0, _ := ret[0].([]os.FileInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1667,10 +1667,10 @@ func (mr *MockFSMockRecorder) Lls(dir any) *gomock.Call {
 }
 
 // LlsFromOpenedDirectory mocks base method.
-func (m *MockFS) LlsFromOpenedDirectory(dir filesystem.File) ([]fs.FileInfo, error) {
+func (m *MockFS) LlsFromOpenedDirectory(dir filesystem.File) ([]os.FileInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LlsFromOpenedDirectory", dir)
-	ret0, _ := ret[0].([]fs.FileInfo)
+	ret0, _ := ret[0].([]os.FileInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1802,10 +1802,10 @@ func (mr *MockFSMockRecorder) LsWithExclusionPatterns(dir any, exclusionPatterns
 }
 
 // Lstat mocks base method.
-func (m *MockFS) Lstat(name string) (fs.FileInfo, error) {
+func (m *MockFS) Lstat(name string) (os.FileInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Lstat", name)
-	ret0, _ := ret[0].(fs.FileInfo)
+	ret0, _ := ret[0].(os.FileInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1831,7 +1831,7 @@ func (mr *MockFSMockRecorder) MkDir(dir any) *gomock.Call {
 }
 
 // MkDirAll mocks base method.
-func (m *MockFS) MkDirAll(dir string, perm fs.FileMode) error {
+func (m *MockFS) MkDirAll(dir string, perm os.FileMode) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MkDirAll", dir, perm)
 	ret0, _ := ret[0].(error)
@@ -1887,10 +1887,10 @@ func (mr *MockFSMockRecorder) NewRemoteLockFile(id, dirToLock any) *gomock.Call 
 }
 
 // Open mocks base method.
-func (m *MockFS) Open(name string) (v3.File, error) {
+func (m *MockFS) Open(name string) (doublestar.File, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Open", name)
-	ret0, _ := ret[0].(v3.File)
+	ret0, _ := ret[0].(doublestar.File)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -1902,7 +1902,7 @@ func (mr *MockFSMockRecorder) Open(name any) *gomock.Call {
 }
 
 // OpenFile mocks base method.
-func (m *MockFS) OpenFile(name string, flag int, perm fs.FileMode) (filesystem.File, error) {
+func (m *MockFS) OpenFile(name string, flag int, perm os.FileMode) (filesystem.File, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "OpenFile", name, flag, perm)
 	ret0, _ := ret[0].(filesystem.File)
@@ -2082,10 +2082,10 @@ func (mr *MockFSMockRecorder) Rm(dir any) *gomock.Call {
 }
 
 // Stat mocks base method.
-func (m *MockFS) Stat(name string) (fs.FileInfo, error) {
+func (m *MockFS) Stat(name string) (os.FileInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Stat", name)
-	ret0, _ := ret[0].(fs.FileInfo)
+	ret0, _ := ret[0].(os.FileInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2386,7 +2386,7 @@ func (mr *MockFSMockRecorder) WalkWithContextAndExclusionPatterns(ctx, root, fn 
 }
 
 // WriteFile mocks base method.
-func (m *MockFS) WriteFile(filename string, data []byte, perm fs.FileMode) error {
+func (m *MockFS) WriteFile(filename string, data []byte, perm os.FileMode) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WriteFile", filename, data, perm)
 	ret0, _ := ret[0].(error)
@@ -2400,7 +2400,7 @@ func (mr *MockFSMockRecorder) WriteFile(filename, data, perm any) *gomock.Call {
 }
 
 // WriteFileWithContext mocks base method.
-func (m *MockFS) WriteFileWithContext(ctx context.Context, filename string, data []byte, perm fs.FileMode) error {
+func (m *MockFS) WriteFileWithContext(ctx context.Context, filename string, data []byte, perm os.FileMode) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WriteFileWithContext", ctx, filename, data, perm)
 	ret0, _ := ret[0].(error)
@@ -2414,7 +2414,7 @@ func (mr *MockFSMockRecorder) WriteFileWithContext(ctx, filename, data, perm any
 }
 
 // WriteToFile mocks base method.
-func (m *MockFS) WriteToFile(ctx context.Context, filename string, reader io.Reader, perm fs.FileMode) (int64, error) {
+func (m *MockFS) WriteToFile(ctx context.Context, filename string, reader io.Reader, perm os.FileMode) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WriteToFile", ctx, filename, reader, perm)
 	ret0, _ := ret[0].(int64)
@@ -2542,7 +2542,7 @@ func (mr *MockICloseableFSMockRecorder) ChangeOwnershipRecursively(ctx, path, ow
 }
 
 // Chmod mocks base method.
-func (m *MockICloseableFS) Chmod(name string, mode fs.FileMode) error {
+func (m *MockICloseableFS) Chmod(name string, mode os.FileMode) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Chmod", name, mode)
 	ret0, _ := ret[0].(error)
@@ -2556,7 +2556,7 @@ func (mr *MockICloseableFSMockRecorder) Chmod(name, mode any) *gomock.Call {
 }
 
 // ChmodRecursively mocks base method.
-func (m *MockICloseableFS) ChmodRecursively(ctx context.Context, path string, mode fs.FileMode) error {
+func (m *MockICloseableFS) ChmodRecursively(ctx context.Context, path string, mode os.FileMode) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChmodRecursively", ctx, path, mode)
 	ret0, _ := ret[0].(error)
@@ -3137,32 +3137,32 @@ func (mr *MockICloseableFSMockRecorder) IsLink(path any) *gomock.Call {
 }
 
 // IsZip mocks base method.
-func (m *MockICloseableFS) IsZip(filepath string) bool {
+func (m *MockICloseableFS) IsZip(arg0 string) bool {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsZip", filepath)
+	ret := m.ctrl.Call(m, "IsZip", arg0)
 	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
 // IsZip indicates an expected call of IsZip.
-func (mr *MockICloseableFSMockRecorder) IsZip(filepath any) *gomock.Call {
+func (mr *MockICloseableFSMockRecorder) IsZip(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsZip", reflect.TypeOf((*MockICloseableFS)(nil).IsZip), filepath)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsZip", reflect.TypeOf((*MockICloseableFS)(nil).IsZip), arg0)
 }
 
 // IsZipWithContext mocks base method.
-func (m *MockICloseableFS) IsZipWithContext(ctx context.Context, filepath string) (bool, error) {
+func (m *MockICloseableFS) IsZipWithContext(ctx context.Context, arg1 string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsZipWithContext", ctx, filepath)
+	ret := m.ctrl.Call(m, "IsZipWithContext", ctx, arg1)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsZipWithContext indicates an expected call of IsZipWithContext.
-func (mr *MockICloseableFSMockRecorder) IsZipWithContext(ctx, filepath any) *gomock.Call {
+func (mr *MockICloseableFSMockRecorder) IsZipWithContext(ctx, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsZipWithContext", reflect.TypeOf((*MockICloseableFS)(nil).IsZipWithContext), ctx, filepath)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsZipWithContext", reflect.TypeOf((*MockICloseableFS)(nil).IsZipWithContext), ctx, arg1)
 }
 
 // Link mocks base method.
@@ -3227,10 +3227,10 @@ func (mr *MockICloseableFSMockRecorder) ListDirTreeWithContextAndExclusionPatter
 }
 
 // Lls mocks base method.
-func (m *MockICloseableFS) Lls(dir string) ([]fs.FileInfo, error) {
+func (m *MockICloseableFS) Lls(dir string) ([]os.FileInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Lls", dir)
-	ret0, _ := ret[0].([]fs.FileInfo)
+	ret0, _ := ret[0].([]os.FileInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3242,10 +3242,10 @@ func (mr *MockICloseableFSMockRecorder) Lls(dir any) *gomock.Call {
 }
 
 // LlsFromOpenedDirectory mocks base method.
-func (m *MockICloseableFS) LlsFromOpenedDirectory(dir filesystem.File) ([]fs.FileInfo, error) {
+func (m *MockICloseableFS) LlsFromOpenedDirectory(dir filesystem.File) ([]os.FileInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LlsFromOpenedDirectory", dir)
-	ret0, _ := ret[0].([]fs.FileInfo)
+	ret0, _ := ret[0].([]os.FileInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3377,10 +3377,10 @@ func (mr *MockICloseableFSMockRecorder) LsWithExclusionPatterns(dir any, exclusi
 }
 
 // Lstat mocks base method.
-func (m *MockICloseableFS) Lstat(name string) (fs.FileInfo, error) {
+func (m *MockICloseableFS) Lstat(name string) (os.FileInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Lstat", name)
-	ret0, _ := ret[0].(fs.FileInfo)
+	ret0, _ := ret[0].(os.FileInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3406,7 +3406,7 @@ func (mr *MockICloseableFSMockRecorder) MkDir(dir any) *gomock.Call {
 }
 
 // MkDirAll mocks base method.
-func (m *MockICloseableFS) MkDirAll(dir string, perm fs.FileMode) error {
+func (m *MockICloseableFS) MkDirAll(dir string, perm os.FileMode) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "MkDirAll", dir, perm)
 	ret0, _ := ret[0].(error)
@@ -3462,10 +3462,10 @@ func (mr *MockICloseableFSMockRecorder) NewRemoteLockFile(id, dirToLock any) *go
 }
 
 // Open mocks base method.
-func (m *MockICloseableFS) Open(name string) (v3.File, error) {
+func (m *MockICloseableFS) Open(name string) (doublestar.File, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Open", name)
-	ret0, _ := ret[0].(v3.File)
+	ret0, _ := ret[0].(doublestar.File)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3477,7 +3477,7 @@ func (mr *MockICloseableFSMockRecorder) Open(name any) *gomock.Call {
 }
 
 // OpenFile mocks base method.
-func (m *MockICloseableFS) OpenFile(name string, flag int, perm fs.FileMode) (filesystem.File, error) {
+func (m *MockICloseableFS) OpenFile(name string, flag int, perm os.FileMode) (filesystem.File, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "OpenFile", name, flag, perm)
 	ret0, _ := ret[0].(filesystem.File)
@@ -3657,10 +3657,10 @@ func (mr *MockICloseableFSMockRecorder) Rm(dir any) *gomock.Call {
 }
 
 // Stat mocks base method.
-func (m *MockICloseableFS) Stat(name string) (fs.FileInfo, error) {
+func (m *MockICloseableFS) Stat(name string) (os.FileInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Stat", name)
-	ret0, _ := ret[0].(fs.FileInfo)
+	ret0, _ := ret[0].(os.FileInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3961,7 +3961,7 @@ func (mr *MockICloseableFSMockRecorder) WalkWithContextAndExclusionPatterns(ctx,
 }
 
 // WriteFile mocks base method.
-func (m *MockICloseableFS) WriteFile(filename string, data []byte, perm fs.FileMode) error {
+func (m *MockICloseableFS) WriteFile(filename string, data []byte, perm os.FileMode) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WriteFile", filename, data, perm)
 	ret0, _ := ret[0].(error)
@@ -3975,7 +3975,7 @@ func (mr *MockICloseableFSMockRecorder) WriteFile(filename, data, perm any) *gom
 }
 
 // WriteFileWithContext mocks base method.
-func (m *MockICloseableFS) WriteFileWithContext(ctx context.Context, filename string, data []byte, perm fs.FileMode) error {
+func (m *MockICloseableFS) WriteFileWithContext(ctx context.Context, filename string, data []byte, perm os.FileMode) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WriteFileWithContext", ctx, filename, data, perm)
 	ret0, _ := ret[0].(error)
@@ -3989,7 +3989,7 @@ func (mr *MockICloseableFSMockRecorder) WriteFileWithContext(ctx, filename, data
 }
 
 // WriteToFile mocks base method.
-func (m *MockICloseableFS) WriteToFile(ctx context.Context, filename string, reader io.Reader, perm fs.FileMode) (int64, error) {
+func (m *MockICloseableFS) WriteToFile(ctx context.Context, filename string, reader io.Reader, perm os.FileMode) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WriteToFile", ctx, filename, reader, perm)
 	ret0, _ := ret[0].(int64)
@@ -4127,10 +4127,10 @@ func (m *MockIStater) EXPECT() *MockIStaterMockRecorder {
 }
 
 // LstatIfPossible mocks base method.
-func (m *MockIStater) LstatIfPossible(arg0 string) (fs.FileInfo, bool, error) {
+func (m *MockIStater) LstatIfPossible(arg0 string) (os.FileInfo, bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LstatIfPossible", arg0)
-	ret0, _ := ret[0].(fs.FileInfo)
+	ret0, _ := ret[0].(os.FileInfo)
 	ret1, _ := ret[1].(bool)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
