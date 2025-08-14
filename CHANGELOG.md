@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.115.0" (2025-08-14)
+======================
+
+Features
+--------
+
+- [headers] Add method to get the value of a specific header (#20250814161616)
+
+
 "1.114.1" (2025-08-14)
 ======================
 

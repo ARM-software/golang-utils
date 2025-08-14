@@ -1,1 +1,0 @@
-[headers] Add method to get the value of a specific header
