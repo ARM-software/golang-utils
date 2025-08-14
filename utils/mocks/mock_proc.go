@@ -113,6 +113,34 @@ func (mr *MockIProcessMockRecorder) Executable() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Executable", reflect.TypeOf((*MockIProcess)(nil).Executable))
 }
 
+// Interrupt mocks base method.
+func (m *MockIProcess) Interrupt(arg0 context.Context) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Interrupt", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Interrupt indicates an expected call of Interrupt.
+func (mr *MockIProcessMockRecorder) Interrupt(arg0 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Interrupt", reflect.TypeOf((*MockIProcess)(nil).Interrupt), arg0)
+}
+
+// IsAZombie mocks base method.
+func (m *MockIProcess) IsAZombie() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsAZombie")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsAZombie indicates an expected call of IsAZombie.
+func (mr *MockIProcessMockRecorder) IsAZombie() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsAZombie", reflect.TypeOf((*MockIProcess)(nil).IsAZombie))
+}
+
 // IsRunning mocks base method.
 func (m *MockIProcess) IsRunning() bool {
 	m.ctrl.T.Helper()
