@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.116.0" (2025-08-15)
+======================
+
+Features
+--------
+
+- ✨ [collection] Add ConvertMapToLoggerValues function for logr.Logger compatibility (#20250815151015)
+
+
 "1.115.0" (2025-08-14)
 ======================
 
