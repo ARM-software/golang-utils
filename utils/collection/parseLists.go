@@ -137,6 +137,18 @@ func ConvertMapToSlice[K comparable, V any](pairs map[K]V) []string {
 	return slice
 }
 
+// ConvertMapToLoggerValues is similar to ConvertMapToSlice but returns a type compatible with logr.Logger.
+func ConvertMapToLoggerValues[K comparable, V any](pairs map[K]V) []any {
+	if len(pairs) == 0 {
+		return nil
+	}
+	slice := make([]any, 0, len(pairs)*2)
+	for key, value := range pairs {
+		slice = append(slice, fmt.Sprintf("%v", key), value)
+	}
+	return slice
+}
+
 // ConvertMapToPairSlice converts a map to list of key value pairs e.g. ["key1=value1", "key2=value2"]
 func ConvertMapToPairSlice[K comparable, V any](pairs map[K]V, pairSeparator string) []string {
 	if len(pairs) == 0 {
