@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.116.1" (2025-08-18)
+======================
+
+Bugfixes
+--------
+
+- :bug: `subprocess` Make sure that cancellation can't enter deadlock (#20250818160732)
+
+
 "1.116.0" (2025-08-15)
 ======================
 
