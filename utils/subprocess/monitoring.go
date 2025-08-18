@@ -34,7 +34,16 @@ func newSubprocessMonitoring(parentCtx context.Context) *subprocessMonitoring {
 
 // CancelSubprocess interrupts an on-going process.
 func (s *subprocessMonitoring) CancelSubprocess() {
-	s.monitoringStopping.Store(true)
+	// Ensure we only ever run the cancel-store once and prevent the following deadlocks:
+	// 1. Some functions like Execute() do defer s.Cancel()
+	// 2. This calls subprocessMonitoring.CancelSubprocess() which calls cancelStore.Cancel() (acquiring mutex)
+	// 3. That Cancel() calls the context cancel func, which closes ProcessContext().Done()
+	// 4. The runProcessMonitoring blocks on ctx<-Done() and calls m.CancelSubprocess() again
+	// 5. This tries to run cancelStore.Cancel() a second time while the first Cancel() is still executing
+	// 6. go-deadlock detects deadlock
+	if s.monitoringStopping.Swap(true) {
+		return
+	}
 	s.cancelStore.Cancel()
 }
 
