@@ -17,11 +17,6 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
-// DetermineContextError determines what the context error is if any.
-func DetermineContextError(ctx context.Context) error {
-	return commonerrors.ConvertContextError(ctx.Err())
-}
-
 type result struct {
 	Item any
 	err  error
@@ -178,7 +173,7 @@ func RunActionWithTimeoutAndContext(ctx context.Context, timeout time.Duration, 
 }
 
 // RunActionWithTimeoutAndCancelStore runs an action with timeout
-// The cancel store is used just to register the cancel function so that it can be called on Cancel.
+// The cancel ExecutionGroup is used just to register the cancel function so that it can be called on Cancel.
 func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Duration, store *CancelFunctionStore, blockingAction func(context.Context) error) error {
 	err := DetermineContextError(ctx)
 	if err != nil {

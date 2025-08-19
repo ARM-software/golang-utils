@@ -14,7 +14,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/parallelisation/mocks"
 )
 
-//go:generate go tool mockgen -destination=./mocks/mock_$GOPACKAGE.go -package=mocks io Closer
+//go:generate go tool mockgen -destination=./mocks/mock_$GOPACKAGE.go -package=mocks io.Closer
 func TestCloseAll(t *testing.T) {
 	t.Run("close", func(t *testing.T) {
 		ctlr := gomock.NewController(t)

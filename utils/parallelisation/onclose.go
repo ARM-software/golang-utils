@@ -8,11 +8,11 @@ import (
 )
 
 type CloserStore struct {
-	store[io.Closer]
+	ExecutionGroup[io.Closer]
 }
 
 func (s *CloserStore) RegisterCloser(closerObj ...io.Closer) {
-	s.store.RegisterFunction(closerObj...)
+	s.ExecutionGroup.RegisterFunction(closerObj...)
 }
 
 func (s *CloserStore) Close() error {
@@ -20,7 +20,7 @@ func (s *CloserStore) Close() error {
 }
 
 func (s *CloserStore) Len() int {
-	return s.store.Len()
+	return s.ExecutionGroup.Len()
 }
 
 // NewCloserStore returns a store of io.Closer object which will all be closed concurrently on Close(). The first error received will be returned
@@ -35,7 +35,7 @@ func NewCloserStore(stopOnFirstError bool) *CloserStore {
 // NewCloserStoreWithOptions returns a store of io.Closer object which will all be closed on Close(). The first error received if any will be returned
 func NewCloserStoreWithOptions(opts ...StoreOption) *CloserStore {
 	return &CloserStore{
-		store: *newFunctionStore[io.Closer](func(_ context.Context, closerObj io.Closer) error {
+		ExecutionGroup: *NewExecutionGroup[io.Closer](func(_ context.Context, closerObj io.Closer) error {
 			if closerObj == nil {
 				return commonerrors.UndefinedVariable("closer object")
 			}
@@ -86,24 +86,55 @@ func CloseAllFuncAndCollateErrors(cs ...CloseFunc) error {
 	return group.Close()
 }
 
+type ContextualFunc func(ctx context.Context) error
 type CloseFunc func() error
 
+func WrapCancelToCloseFunc(f context.CancelFunc) CloseFunc {
+	return func() error {
+		f()
+		return nil
+	}
+}
+
+func WrapCancelToContextualFunc(f context.CancelFunc) ContextualFunc {
+	return WrapCloseToContextualFunc(WrapCancelToCloseFunc(f))
+}
+
+func WrapCloseToContextualFunc(f CloseFunc) ContextualFunc {
+	return func(_ context.Context) error {
+		return f()
+	}
+}
+
+func WrapCloseToCancelFunc(f CloseFunc) context.CancelFunc {
+	return func() {
+		_ = f()
+	}
+}
+
+func WrapContextualToCloseFunc(f ContextualFunc) CloseFunc {
+	return func() error {
+		return f(context.Background())
+	}
+}
+
+func WrapContextualToCancelFunc(f ContextualFunc) context.CancelFunc {
+	return WrapCloseToCancelFunc(WrapContextualToCloseFunc(f))
+}
+
 type CloseFunctionStore struct {
-	store[CloseFunc]
+	ExecutionGroup[CloseFunc]
 }
 
 func (s *CloseFunctionStore) RegisterCloseFunction(closerObj ...CloseFunc) {
-	s.store.RegisterFunction(closerObj...)
+	s.ExecutionGroup.RegisterFunction(closerObj...)
 }
 
 func (s *CloseFunctionStore) RegisterCancelStore(cancelStore *CancelFunctionStore) {
 	if cancelStore == nil {
 		return
 	}
-	s.store.RegisterFunction(func() error {
-		cancelStore.Cancel()
-		return nil
-	})
+	s.ExecutionGroup.RegisterFunction(WrapCancelToCloseFunc(cancelStore.Cancel))
 }
 
 func (s *CloseFunctionStore) RegisterCancelFunction(cancelFunc ...context.CancelFunc) {
@@ -117,13 +148,13 @@ func (s *CloseFunctionStore) Close() error {
 }
 
 func (s *CloseFunctionStore) Len() int {
-	return s.store.Len()
+	return s.ExecutionGroup.Len()
 }
 
 // NewCloseFunctionStore returns a store closing functions which will all be called on Close(). The first error received if any will be returned.
 func NewCloseFunctionStore(options ...StoreOption) *CloseFunctionStore {
 	return &CloseFunctionStore{
-		store: *newFunctionStore[CloseFunc](func(_ context.Context, closerObj CloseFunc) error {
+		ExecutionGroup: *NewExecutionGroup[CloseFunc](func(_ context.Context, closerObj CloseFunc) error {
 			return closerObj()
 		}, options...),
 	}
