@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.24.1
 
 require (
-	github.com/DeRuina/timberjack v1.3.4
+	github.com/DeRuina/timberjack v1.3.5
 	github.com/OneOfOne/xxhash v1.2.8
 	github.com/avast/retry-go/v4 v4.6.1
 	github.com/bmatcuk/doublestar/v3 v3.0.0
