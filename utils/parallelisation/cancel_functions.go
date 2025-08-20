@@ -15,6 +15,15 @@ func (s *CancelFunctionStore) RegisterCancelFunction(cancel ...context.CancelFun
 	s.ExecutionGroup.RegisterFunction(cancel...)
 }
 
+func (s *CancelFunctionStore) RegisterCancelStore(store *CancelFunctionStore) {
+	if store == nil {
+		return
+	}
+	s.RegisterCancelFunction(func() {
+		store.Cancel()
+	})
+}
+
 // Cancel will execute the cancel functions in the store. Any errors will be ignored and Execute() is recommended if you need to know if a cancellation failed
 func (s *CancelFunctionStore) Cancel() {
 	_ = s.Execute(context.Background())
