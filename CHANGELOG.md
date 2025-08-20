@@ -14,6 +14,23 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.117.0" (2025-08-20)
+======================
+
+Features
+--------
+
+- :sparkles: `[parallelisation]` Added new groups (ContextualFunctionGroup) and new Store options to configure the execution (number of workers, single execution, etc.) (#20250820002654)
+- :sparkles: `[parallelisation]` Added new compound execution group to support nested execution groups (#20250820140853)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: mock-0.6.0 (#20250819182939, #20250819182946, #20250819183009, #20250819183013, #20250819183037, #20250819183041, #20250819183111, #20250819183113)
+- Dependency upgrade: timberjack-1.3.5 (#20250820111138)
+
+
 "1.116.1" (2025-08-18)
 ======================
 
