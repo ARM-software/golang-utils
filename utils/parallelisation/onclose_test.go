@@ -84,6 +84,7 @@ func TestCloseOnce(t *testing.T) {
 		group := NewCloseOnceGroup(Parallel, RetainAfterExecution)
 		group.RegisterCloseFunction(WrapCloserIntoCloseFunc(closerMock), WrapCloserIntoCloseFunc(closerMock), WrapCloserIntoCloseFunc(closerMock))
 		errortest.AssertError(t, group.Close(), closeError)
+		require.NoError(t, group.Close())
 	})
 }
 
