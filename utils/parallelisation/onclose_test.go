@@ -72,6 +72,21 @@ func TestCloseAll(t *testing.T) {
 
 }
 
+func TestCloseOnce(t *testing.T) {
+	t.Run("close every function once", func(t *testing.T) {
+		ctlr := gomock.NewController(t)
+		defer ctlr.Finish()
+		closeError := commonerrors.ErrUnexpected
+
+		closerMock := mocks.NewMockCloser(ctlr)
+		closerMock.EXPECT().Close().Return(closeError).Times(3)
+
+		group := NewCloseOnceGroup(Parallel, RetainAfterExecution)
+		group.RegisterCloseFunction(WrapCloserIntoCloseFunc(closerMock), WrapCloserIntoCloseFunc(closerMock), WrapCloserIntoCloseFunc(closerMock))
+		errortest.AssertError(t, group.Close(), closeError)
+	})
+}
+
 func TestCancelOnClose(t *testing.T) {
 	t.Run("parallel", func(t *testing.T) {
 		closeStore := NewCloseFunctionStoreStore(true)
@@ -136,7 +151,7 @@ func TestSequentialExecution(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(fmt.Sprintf("%v-%#v", i, test.option), func(t *testing.T) {
-			opt := test.option(&StoreOptions{})
+			opt := test.option(DefaultOptions())
 			t.Run("sequentially", func(t *testing.T) {
 				closeStore := NewCloseFunctionStore(test.option, Sequential)
 				ctx1, cancel1 := context.WithCancel(context.Background())

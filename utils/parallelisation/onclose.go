@@ -29,17 +29,14 @@ func NewCloserStore(stopOnFirstError bool) *CloserStore {
 	if stopOnFirstError {
 		option = StopOnFirstError
 	}
-	return NewCloserStoreWithOptions(option, Parallel, RetainAfterExecution)
+	return NewCloserStoreWithOptions(option, Parallel, OnlyOnce, RetainAfterExecution)
 }
 
 // NewCloserStoreWithOptions returns a store of io.Closer object which will all be closed on Close(). The first error received if any will be returned
 func NewCloserStoreWithOptions(opts ...StoreOption) *CloserStore {
 	return &CloserStore{
-		ExecutionGroup: *NewExecutionGroup[io.Closer](func(_ context.Context, closerObj io.Closer) error {
-			if closerObj == nil {
-				return commonerrors.UndefinedVariable("closer object")
-			}
-			return closerObj.Close()
+		ExecutionGroup: *NewExecutionGroup[io.Closer](func(ctx context.Context, closerObj io.Closer) error {
+			return WrapCloseToContextualFunc(WrapCloserIntoCloseFunc(closerObj))(ctx)
 		}, opts...),
 	}
 }
@@ -86,8 +83,20 @@ func CloseAllFuncAndCollateErrors(cs ...CloseFunc) error {
 	return group.Close()
 }
 
-type ContextualFunc func(ctx context.Context) error
 type CloseFunc func() error
+
+func (c CloseFunc) Close() error {
+	return c()
+}
+
+func WrapCloserIntoCloseFunc(closer io.Closer) CloseFunc {
+	return func() error {
+		if closer == nil {
+			return commonerrors.UndefinedVariable("closer object")
+		}
+		return closer.Close()
+	}
+}
 
 func WrapCancelToCloseFunc(f context.CancelFunc) CloseFunc {
 	return func() error {
@@ -172,5 +181,10 @@ func NewConcurrentCloseFunctionStore(stopOnFirstError bool) *CloseFunctionStore 
 	if stopOnFirstError {
 		option = StopOnFirstError
 	}
-	return NewCloseFunctionStore(option, Parallel, RetainAfterExecution)
+	return NewCloseFunctionStore(option, Parallel, RetainAfterExecution, OnlyOnce)
+}
+
+// NewCloseOnceGroup is the same as NewCloseFunctionStore but ensures any closing functions are only executed once.
+func NewCloseOnceGroup(options ...StoreOption) *CloseFunctionStore {
+	return NewCloseFunctionStore(OnlyOnce(WithOptions(options...)).Options()...)
 }

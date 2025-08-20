@@ -11,6 +11,8 @@ func DetermineContextError(ctx context.Context) error {
 	return commonerrors.ConvertContextError(ctx.Err())
 }
 
+type ContextualFunc func(ctx context.Context) error
+
 type ContextualFunctionGroup struct {
 	ExecutionGroup[ContextualFunc]
 }

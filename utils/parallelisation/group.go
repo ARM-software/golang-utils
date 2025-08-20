@@ -23,19 +23,41 @@ type StoreOptions struct {
 	workers          int
 }
 
+func (o *StoreOptions) Default() *StoreOptions {
+	o.clearOnExecution = false
+	o.stopOnFirstError = false
+	o.sequential = false
+	o.reverse = false
+	o.joinErrors = false
+	o.onlyOnce = false
+	o.workers = 0
+	return o
+}
+
 func (o *StoreOptions) Merge(opts *StoreOptions) *StoreOptions {
 	if opts == nil {
 		return o
 	}
-	return &StoreOptions{
-		clearOnExecution: opts.clearOnExecution || o.clearOnExecution,
-		stopOnFirstError: opts.stopOnFirstError || o.stopOnFirstError,
-		sequential:       opts.sequential || o.sequential,
-		reverse:          opts.reverse || o.reverse,
-		joinErrors:       opts.joinErrors || o.joinErrors,
-		onlyOnce:         opts.onlyOnce || o.onlyOnce,
-		workers:          safecast.ToInt(math.Max(float64(opts.workers), float64(o.workers))),
-	}
+	o.clearOnExecution = opts.clearOnExecution || o.clearOnExecution
+	o.stopOnFirstError = opts.stopOnFirstError || o.stopOnFirstError
+	o.sequential = opts.sequential || o.sequential
+	o.reverse = opts.reverse || o.reverse
+	o.joinErrors = opts.joinErrors || o.joinErrors
+	o.onlyOnce = opts.onlyOnce || o.onlyOnce
+	o.workers = safecast.ToInt(math.Max(float64(opts.workers), float64(o.workers)))
+	return o
+}
+
+func (o *StoreOptions) MergeWithOptions(opt ...StoreOption) *StoreOptions {
+	return o.Merge(WithOptions(opt...))
+}
+
+func (o *StoreOptions) Overwrite(opts *StoreOptions) *StoreOptions {
+	return o.Default().Merge(opts)
+}
+
+func (o *StoreOptions) WithOptions(opts ...StoreOption) *StoreOptions {
+	return o.Overwrite(WithOptions(opts...))
 }
 
 func (o *StoreOptions) Options() []StoreOption {
@@ -43,7 +65,7 @@ func (o *StoreOptions) Options() []StoreOption {
 		func(opts *StoreOptions) *StoreOptions {
 			op := o
 			if op == nil {
-				op = &StoreOptions{}
+				op = DefaultOptions()
 			}
 			return op.Merge(opts)
 		},
@@ -55,7 +77,7 @@ type StoreOption func(*StoreOptions) *StoreOptions
 // StopOnFirstError stops ExecutionGroup execution on first error.
 var StopOnFirstError StoreOption = func(o *StoreOptions) *StoreOptions {
 	if o == nil {
-		o = &StoreOptions{}
+		o = DefaultOptions()
 	}
 	o.stopOnFirstError = true
 	o.joinErrors = false
@@ -66,7 +88,7 @@ var StopOnFirstError StoreOption = func(o *StoreOptions) *StoreOptions {
 // This option should not be used in combination to StopOnFirstError.
 var JoinErrors StoreOption = func(o *StoreOptions) *StoreOptions {
 	if o == nil {
-		o = &StoreOptions{}
+		o = DefaultOptions()
 	}
 	o.stopOnFirstError = false
 	o.joinErrors = true
@@ -76,7 +98,7 @@ var JoinErrors StoreOption = func(o *StoreOptions) *StoreOptions {
 // OnlyOnce will ensure the function are executed only once if they do.
 var OnlyOnce StoreOption = func(o *StoreOptions) *StoreOptions {
 	if o == nil {
-		o = &StoreOptions{}
+		o = DefaultOptions()
 	}
 	o.onlyOnce = true
 	return o
@@ -85,7 +107,7 @@ var OnlyOnce StoreOption = func(o *StoreOptions) *StoreOptions {
 // AnyTimes will allow the functions to be executed as often that they might be.
 var AnyTimes StoreOption = func(o *StoreOptions) *StoreOptions {
 	if o == nil {
-		o = &StoreOptions{}
+		o = DefaultOptions()
 	}
 	o.onlyOnce = false
 	return o
@@ -94,7 +116,7 @@ var AnyTimes StoreOption = func(o *StoreOptions) *StoreOptions {
 // ExecuteAll executes all functions in the ExecutionGroup even if an error is raised. the first error raised is then returned.
 var ExecuteAll StoreOption = func(o *StoreOptions) *StoreOptions {
 	if o == nil {
-		o = &StoreOptions{}
+		o = DefaultOptions()
 	}
 	o.stopOnFirstError = false
 	return o
@@ -103,7 +125,7 @@ var ExecuteAll StoreOption = func(o *StoreOptions) *StoreOptions {
 // ClearAfterExecution clears the ExecutionGroup after execution.
 var ClearAfterExecution StoreOption = func(o *StoreOptions) *StoreOptions {
 	if o == nil {
-		o = &StoreOptions{}
+		o = DefaultOptions()
 	}
 	o.clearOnExecution = true
 	return o
@@ -112,7 +134,7 @@ var ClearAfterExecution StoreOption = func(o *StoreOptions) *StoreOptions {
 // RetainAfterExecution keep the ExecutionGroup intact after execution (no reset).
 var RetainAfterExecution StoreOption = func(o *StoreOptions) *StoreOptions {
 	if o == nil {
-		o = &StoreOptions{}
+		o = DefaultOptions()
 	}
 	o.clearOnExecution = false
 	return o
@@ -121,7 +143,7 @@ var RetainAfterExecution StoreOption = func(o *StoreOptions) *StoreOptions {
 // Parallel ensures every function registered in the ExecutionGroup is executed concurrently in the order they were registered.
 var Parallel StoreOption = func(o *StoreOptions) *StoreOptions {
 	if o == nil {
-		o = &StoreOptions{}
+		o = DefaultOptions()
 	}
 	o.sequential = false
 	return o
@@ -131,7 +153,7 @@ var Parallel StoreOption = func(o *StoreOptions) *StoreOptions {
 func Workers(workers int) StoreOption {
 	return func(o *StoreOptions) *StoreOptions {
 		if o == nil {
-			o = &StoreOptions{}
+			o = DefaultOptions()
 		}
 		o.workers = workers
 		o.sequential = false
@@ -142,7 +164,7 @@ func Workers(workers int) StoreOption {
 // Sequential ensures every function registered in the ExecutionGroup is executed sequentially in the order they were registered.
 var Sequential StoreOption = func(o *StoreOptions) *StoreOptions {
 	if o == nil {
-		o = &StoreOptions{}
+		o = DefaultOptions()
 	}
 	o.sequential = true
 	return o
@@ -151,7 +173,7 @@ var Sequential StoreOption = func(o *StoreOptions) *StoreOptions {
 // SequentialInReverse ensures every function registered in the ExecutionGroup is executed sequentially but in the reverse order they were registered.
 var SequentialInReverse StoreOption = func(o *StoreOptions) *StoreOptions {
 	if o == nil {
-		o = &StoreOptions{}
+		o = DefaultOptions()
 	}
 	o.sequential = true
 	o.reverse = true
@@ -164,9 +186,32 @@ func WithOptions(option ...StoreOption) (opts *StoreOptions) {
 		opts = option[i](opts)
 	}
 	if opts == nil {
-		opts = &StoreOptions{}
+		opts = DefaultOptions()
 	}
 	return
+}
+
+// DefaultOptions returns the default store configuration
+func DefaultOptions() *StoreOptions {
+	opts := &StoreOptions{}
+	return opts.Default()
+}
+
+type IExecutor interface {
+	// Execute executes all the functions in the group.
+	Execute(ctx context.Context) error
+}
+
+type IExecutionGroup[T any] interface {
+	IExecutor
+	RegisterFunction(function ...T)
+	Len() int
+}
+
+type ICompoundExecutionGroup[T any] interface {
+	IExecutionGroup[T]
+	// RegisterExecutor registers executors of any kind to the group: they could be functions or sub-groups.
+	RegisterExecutor(executor ...IExecutor)
 }
 
 // NewExecutionGroup returns an execution group which executes functions according to store options.
@@ -364,5 +409,27 @@ func newWrapped[T any](e T, once bool) wrappedElement[T] {
 		return newOnce[T](e)
 	} else {
 		return newBasicWrap[T](e)
+	}
+}
+
+var _ ICompoundExecutionGroup[ContextualFunc] = &CompoundExecutionGroup{}
+
+// NewCompoundExecutionGroup returns an execution group made of executors
+func NewCompoundExecutionGroup(options ...StoreOption) *CompoundExecutionGroup {
+	return &CompoundExecutionGroup{
+		ContextualFunctionGroup: *NewContextualGroup(options...),
+	}
+}
+
+type CompoundExecutionGroup struct {
+	ContextualFunctionGroup
+}
+
+// RegisterExecutor registers executors
+func (g *CompoundExecutionGroup) RegisterExecutor(group ...IExecutor) {
+	for i := range group {
+		g.RegisterFunction(func(ctx context.Context) error {
+			return group[i].Execute(ctx)
+		})
 	}
 }
