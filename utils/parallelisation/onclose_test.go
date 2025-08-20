@@ -14,7 +14,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/parallelisation/mocks"
 )
 
-//go:generate go tool mockgen -destination=./mocks/mock_$GOPACKAGE.go -package=mocks io Closer
+//go:generate go tool mockgen -destination=./mocks/mock_$GOPACKAGE.go -package=mocks io.Closer
 func TestCloseAll(t *testing.T) {
 	t.Run("close", func(t *testing.T) {
 		ctlr := gomock.NewController(t)
@@ -70,6 +70,22 @@ func TestCloseAll(t *testing.T) {
 		errortest.AssertError(t, CloseAllFuncAndCollateErrors(func() error { return nil }, func() error { return nil }, func() error { return closeError }, func() error { return nil }), closeError)
 	})
 
+}
+
+func TestCloseOnce(t *testing.T) {
+	t.Run("close every function once", func(t *testing.T) {
+		ctlr := gomock.NewController(t)
+		defer ctlr.Finish()
+		closeError := commonerrors.ErrUnexpected
+
+		closerMock := mocks.NewMockCloser(ctlr)
+		closerMock.EXPECT().Close().Return(closeError).Times(3)
+
+		group := NewCloseOnceGroup(Parallel, RetainAfterExecution)
+		group.RegisterCloseFunction(WrapCloserIntoCloseFunc(closerMock), WrapCloserIntoCloseFunc(closerMock), WrapCloserIntoCloseFunc(closerMock))
+		errortest.AssertError(t, group.Close(), closeError)
+		require.NoError(t, group.Close())
+	})
 }
 
 func TestCancelOnClose(t *testing.T) {
@@ -136,7 +152,7 @@ func TestSequentialExecution(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(fmt.Sprintf("%v-%#v", i, test.option), func(t *testing.T) {
-			opt := test.option(&StoreOptions{})
+			opt := test.option(DefaultOptions())
 			t.Run("sequentially", func(t *testing.T) {
 				closeStore := NewCloseFunctionStore(test.option, Sequential)
 				ctx1, cancel1 := context.WithCancel(context.Background())

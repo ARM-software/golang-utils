@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/atomic"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
@@ -19,24 +20,35 @@ func testCancelStore(t *testing.T, store *CancelFunctionStore) {
 	t.Helper()
 	require.NotNil(t, store)
 	// Set up some fake CancelFuncs to make sure they are called
-	called1 := false
-	called2 := false
+	called1 := atomic.NewBool(false)
+	called2 := atomic.NewBool(false)
+	called3 := atomic.NewBool(false)
+
 	cancelFunc1 := func() {
-		called1 = true
+		called1.Store(true)
 	}
 	cancelFunc2 := func() {
-		called2 = true
+		called2.Store(true)
 	}
+	cancelFunc3 := func() {
+		called3.Store(true)
+	}
+	subStore := NewCancelFunctionsStore()
+	subStore.RegisterCancelFunction(cancelFunc3)
 
 	store.RegisterCancelFunction(cancelFunc1, cancelFunc2)
+	store.RegisterCancelStore(subStore)
+	store.RegisterCancelStore(nil)
 
-	assert.Equal(t, 2, store.Len())
-	assert.False(t, called1)
-	assert.False(t, called2)
+	assert.Equal(t, 3, store.Len())
+	assert.False(t, called1.Load())
+	assert.False(t, called2.Load())
+	assert.False(t, called3.Load())
 	store.Cancel()
 
-	assert.True(t, called1)
-	assert.True(t, called2)
+	assert.True(t, called1.Load())
+	assert.True(t, called2.Load())
+	assert.True(t, called3.Load())
 }
 
 // Given a CancelFunctionsStore
