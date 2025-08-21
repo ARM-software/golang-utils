@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.118.0" (2025-08-21)
+======================
+
+Features
+--------
+
+- :sparkles: `proc` Add support for gracefully killing processes with specific interrupts (#20250821120026)
+
+
 "1.117.0" (2025-08-20)
 ======================
 
