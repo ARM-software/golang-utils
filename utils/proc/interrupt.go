@@ -47,13 +47,29 @@ func InterruptProcess(ctx context.Context, pid int, signal InterruptType) (err e
 	return
 }
 
-// TerminateGracefullyWithChildren follows the pattern set by [kubernetes](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination) and terminates processes gracefully by first sending a SIGTERM and then a SIGKILL after the grace period has elapsed.
+// TerminateGracefullyWithChildren follows the pattern set by [kubernetes](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination) and terminates processes gracefully by first sending a SIGINT+SIGTERM and then a SIGKILL after the grace period has elapsed.
 // It does not attempt to terminate the process group. If you wish to terminate the process group directly then send -pgid to TerminateGracefully but
 // this does not guarantee that the group will be terminated gracefully.
 // Instead, this function lists each child and attempts to kill them gracefully concurrently. It will then attempt to gracefully terminate itself.
 // Due to the multi-stage process and the fact that the full grace period must pass for each stage specified above, the total maximum length of this
 // function will be 2*gracePeriod not gracePeriod.
 func TerminateGracefullyWithChildren(ctx context.Context, pid int, gracePeriod time.Duration) (err error) {
+	return terminateGracefullyWithChildren(ctx, pid, gracePeriod, TerminateGracefully)
+}
+
+// TerminateGracefullyWithChildrenWithSpecificInterrupts follows the pattern set by [kubernetes](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination) and terminates processes gracefully by first sending the specified interrupts and then a SIGKILL after the grace period has elapsed.
+// It does not attempt to terminate the process group. If you wish to terminate the process group directly then send -pgid to TerminateGracefully but
+// this does not guarantee that the group will be terminated gracefully.
+// Instead, this function lists each child and attempts to kill them gracefully concurrently. It will then attempt to gracefully terminate itself.
+// Due to the multi-stage process and the fact that the full grace period must pass for each stage specified above, the total maximum length of this
+// function will be 2*gracePeriod not gracePeriod.
+func TerminateGracefullyWithChildrenWithSpecificInterrupts(ctx context.Context, pid int, gracePeriod time.Duration, interrupts ...InterruptType) (err error) {
+	return terminateGracefullyWithChildren(ctx, pid, gracePeriod, func(ctx context.Context, pid int, gracePeriod time.Duration) error {
+		return TerminateGracefullyWithSpecificInterrupts(ctx, pid, gracePeriod, interrupts...)
+	})
+}
+
+func terminateGracefullyWithChildren(ctx context.Context, pid int, gracePeriod time.Duration, terminate func(context.Context, int, time.Duration) error) (err error) {
 	err = parallelisation.DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -77,7 +93,7 @@ func TerminateGracefullyWithChildren(ctx context.Context, pid int, gracePeriod t
 	}
 
 	if len(children) == 0 {
-		err = TerminateGracefully(ctx, pid, gracePeriod)
+		err = terminate(ctx, pid, gracePeriod)
 		return
 	}
 
@@ -85,7 +101,9 @@ func TerminateGracefullyWithChildren(ctx context.Context, pid int, gracePeriod t
 	childGroup.SetLimit(len(children))
 	for _, child := range children {
 		if child.IsRunning() {
-			childGroup.Go(func() error { return TerminateGracefullyWithChildren(terminateCtx, child.Pid(), gracePeriod) })
+			childGroup.Go(func() error {
+				return terminateGracefullyWithChildren(terminateCtx, child.Pid(), gracePeriod, terminate)
+			})
 		}
 	}
 	err = childGroup.Wait()
@@ -93,18 +111,21 @@ func TerminateGracefullyWithChildren(ctx context.Context, pid int, gracePeriod t
 		return
 	}
 
-	err = TerminateGracefully(ctx, pid, gracePeriod)
+	err = terminate(ctx, pid, gracePeriod)
 	return
 }
 
-func terminateGracefully(ctx context.Context, pid int, gracePeriod time.Duration) (err error) {
-	err = InterruptProcess(ctx, pid, SigInt)
-	if err != nil {
+func terminateGracefully(ctx context.Context, pid int, gracePeriod time.Duration, interrupts ...InterruptType) (err error) {
+	if len(interrupts) == 0 {
+		err = commonerrors.New(commonerrors.ErrInvalid, "at least one interrupt must be provided")
 		return
 	}
-	err = InterruptProcess(ctx, pid, SigTerm)
-	if err != nil {
-		return
+
+	for _, interrupt := range interrupts {
+		err = InterruptProcess(ctx, pid, interrupt)
+		if err != nil {
+			return
+		}
 	}
 
 	return parallelisation.RunActionWithParallelCheck(ctx,
@@ -119,10 +140,18 @@ func terminateGracefully(ctx context.Context, pid int, gracePeriod time.Duration
 		}, 200*time.Millisecond)
 }
 
-// TerminateGracefully follows the pattern set by [kubernetes](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination) and terminates processes gracefully by first sending a SIGTERM and then a SIGKILL after the grace period has elapsed.
+// TerminateGracefully follows the pattern set by [kubernetes](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination) and terminates processes gracefully by first sending a SIGINT+SIGTERM and then a SIGKILL after the grace period has elapsed.
 func TerminateGracefully(ctx context.Context, pid int, gracePeriod time.Duration) (err error) {
 	defer func() { _ = InterruptProcess(context.Background(), pid, SigKill) }()
-	_ = terminateGracefully(ctx, pid, gracePeriod)
+	_ = terminateGracefully(ctx, pid, gracePeriod, SigInt, SigTerm)
+	err = InterruptProcess(ctx, pid, SigKill)
+	return
+}
+
+// TerminateGracefullyWithSpecificInterrupts follows the pattern set by [kubernetes](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination) and terminates processes gracefully by first sending the specified interrupts and then a SIGKILL after the grace period has elapsed.
+func TerminateGracefullyWithSpecificInterrupts(ctx context.Context, pid int, gracePeriod time.Duration, interrupts ...InterruptType) (err error) {
+	defer func() { _ = InterruptProcess(context.Background(), pid, SigKill) }()
+	_ = terminateGracefully(ctx, pid, gracePeriod, interrupts...)
 	err = InterruptProcess(ctx, pid, SigKill)
 	return
 }

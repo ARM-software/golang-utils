@@ -27,8 +27,20 @@ func TestTerminateGracefully(t *testing.T) {
 			testFunc: TerminateGracefully,
 		},
 		{
+			name: "TerminateGracefullyWithSpecificInterrupts",
+			testFunc: func(ctx context.Context, pid int, gracePeriod time.Duration) error {
+				return TerminateGracefullyWithSpecificInterrupts(ctx, pid, gracePeriod, SigInt)
+			},
+		},
+		{
 			name:     "TerminateGracefullyWithChildren",
 			testFunc: TerminateGracefullyWithChildren,
+		},
+		{
+			name: "TerminateGracefullyWithChildrenWithSpecificInterrupts",
+			testFunc: func(ctx context.Context, pid int, gracePeriod time.Duration) error {
+				return TerminateGracefullyWithChildrenWithSpecificInterrupts(ctx, pid, gracePeriod, SigInt)
+			},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
