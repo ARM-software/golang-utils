@@ -118,6 +118,7 @@ func terminateGracefullyWithChildren(ctx context.Context, pid int, gracePeriod t
 func terminateGracefully(ctx context.Context, pid int, gracePeriod time.Duration, interrupts ...InterruptType) (err error) {
 	if len(interrupts) == 0 {
 		err = commonerrors.New(commonerrors.ErrInvalid, "at least one interrupt must be provided")
+		return
 	}
 
 	for _, interrupt := range interrupts {
