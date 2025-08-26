@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.119.0" (2025-08-26)
+======================
+
+Features
+--------
+
+- :sparkles: `[safeio]` Add the ability to perform safe concatenations like `cat` (#20250826104813)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: testify-1.11.0 (#20250825204747, #20250825204800, #20250825204831)
+
+
 "1.118.0" (2025-08-21)
 ======================
 
