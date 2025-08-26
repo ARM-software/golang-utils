@@ -76,6 +76,14 @@ func NewContextualReader(ctx context.Context, reader io.Reader) io.Reader {
 	return contextio.NewReader(ctx, reader)
 }
 
+func NewContextualMultipleReader(ctx context.Context, reader ...io.Reader) io.Reader {
+	readers := make([]io.Reader, len(reader))
+	for i := range reader {
+		readers[i] = NewContextualReader(ctx, reader[i])
+	}
+	return io.MultiReader(readers...)
+}
+
 // NewContextualReaderFrom returns a io.ReaderFrom which is context aware.
 // Context state is checked BEFORE every Read, Write, Copy.
 func NewContextualReaderFrom(ctx context.Context, reader io.ReaderFrom) io.ReaderFrom {
