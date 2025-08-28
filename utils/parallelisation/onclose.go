@@ -25,11 +25,12 @@ func (s *CloserStore) Len() int {
 
 // NewCloserStore returns a store of io.Closer object which will all be closed concurrently on Close(). The first error received will be returned
 func NewCloserStore(stopOnFirstError bool) *CloserStore {
-	option := ExecuteAll
-	if stopOnFirstError {
-		option = StopOnFirstError
-	}
-	return NewCloserStoreWithOptions(option, Parallel, OnlyOnce, RetainAfterExecution)
+	return NewCloserStoreWithOptions(closeDefaultOptions(stopOnFirstError).Options()...)
+}
+
+// NewCloserOnceStore is similar to NewCloserStore but only close the closers once.
+func NewCloserOnceStore(stopOnFirstError bool) *CloserStore {
+	return NewCloserStoreWithOptions(closeDefaultOptions(stopOnFirstError).Apply(OnlyOnce).Options()...)
 }
 
 // NewCloserStoreWithOptions returns a store of io.Closer object which will all be closed on Close(). The first error received if any will be returned
@@ -177,11 +178,22 @@ func NewCloseFunctionStoreStore(stopOnFirstError bool) *CloseFunctionStore {
 // NewConcurrentCloseFunctionStore returns a store closing functions which will all be called concurrently on Close(). The first error received will be returned.
 // Prefer using NewCloseFunctionStore where possible
 func NewConcurrentCloseFunctionStore(stopOnFirstError bool) *CloseFunctionStore {
-	option := ExecuteAll
+	return NewCloseFunctionStore(closeDefaultOptions(stopOnFirstError).Options()...)
+}
+
+// NewConcurrentCloseOnceFunctionStore returns a store closing functions once on Close(). It is similar to NewConcurrentCloseFunctionStore otherwise.
+func NewConcurrentCloseOnceFunctionStore(stopOnFirstError bool) *CloseFunctionStore {
+	return NewCloseFunctionStore(closeDefaultOptions(stopOnFirstError).Apply(OnlyOnce).Options()...)
+}
+
+func closeDefaultOptions(stopOnFirstError bool) *StoreOptions {
+	opts := WithOptions(Parallel, RetainAfterExecution)
 	if stopOnFirstError {
-		option = StopOnFirstError
+		opts = opts.Apply(StopOnFirstError)
+	} else {
+		opts = opts.Apply(ExecuteAll)
 	}
-	return NewCloseFunctionStore(option, Parallel, RetainAfterExecution, OnlyOnce)
+	return opts
 }
 
 // NewCloseOnceGroup is the same as NewCloseFunctionStore but ensures any closing functions are only executed once.

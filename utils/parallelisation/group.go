@@ -52,6 +52,13 @@ func (o *StoreOptions) MergeWithOptions(opt ...StoreOption) *StoreOptions {
 	return o.Merge(WithOptions(opt...))
 }
 
+func (o *StoreOptions) Apply(opt StoreOption) *StoreOptions {
+	if opt == nil {
+		return o
+	}
+	return opt(o)
+}
+
 func (o *StoreOptions) Overwrite(opts *StoreOptions) *StoreOptions {
 	return o.Default().Merge(opts)
 }
