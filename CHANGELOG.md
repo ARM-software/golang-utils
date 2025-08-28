@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.119.1" (2025-08-28)
+======================
+
+Bugfixes
+--------
+
+- :bug: [parallelisation] Revert the behaviour change of close stores introduced in recent release (#20250828111444)
+
+
 "1.119.0" (2025-08-26)
 ======================
 
