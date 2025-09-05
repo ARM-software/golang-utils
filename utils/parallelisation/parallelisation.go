@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"go.uber.org/atomic"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
@@ -265,64 +264,22 @@ func WaitUntil(ctx context.Context, evalCondition func(ctx2 context.Context) (bo
 	}
 }
 
-func newWorker[JobType, ResultType any](ctx context.Context, f func(context.Context, JobType) (ResultType, bool, error), jobs chan JobType, results chan ResultType) (err error) {
-	for job := range jobs {
-		result, ok, subErr := f(ctx, job)
-		if subErr != nil {
-			err = commonerrors.WrapError(commonerrors.ErrUnexpected, subErr, "an error occurred whilst handling a job")
-			return
-		}
-
-		err = DetermineContextError(ctx)
-		if err != nil {
-			return
-		}
-
-		if ok {
-			results <- result
-		}
-	}
-
-	return
-}
-
 // WorkerPool parallelises an action using a worker pool of the size provided by numWorkers and retrieves all the results when all the actions have completed. It is similar to Parallelise but it uses generics instead of reflection and allows you to control the pool size
 func WorkerPool[InputType, ResultType any](ctx context.Context, numWorkers int, jobs []InputType, f func(context.Context, InputType) (ResultType, bool, error)) (results []ResultType, err error) {
 	if numWorkers < 1 {
 		err = commonerrors.New(commonerrors.ErrInvalid, "numWorkers must be greater than or equal to 1")
 		return
 	}
-
-	numJobs := len(jobs)
-	jobsChan := make(chan InputType, numJobs)
-	resultsChan := make(chan ResultType, numJobs)
-
-	g, gCtx := errgroup.WithContext(ctx)
-	g.SetLimit(numWorkers)
-	for range numWorkers {
-		g.Go(func() error { return newWorker(gCtx, f, jobsChan, resultsChan) })
-	}
-	for i := range jobs {
-		if DetermineContextError(ctx) != nil {
-			break
-		}
-		jobsChan <- jobs[i]
-	}
-
-	close(jobsChan)
-	err = g.Wait()
-	close(resultsChan)
-	if err == nil {
-		err = DetermineContextError(ctx)
-	}
+	g := NewTransformGroup[InputType, ResultType](f, Workers(numWorkers), JoinErrors)
+	err = g.Inputs(ctx, jobs...)
 	if err != nil {
 		return
 	}
-
-	for result := range resultsChan {
-		results = append(results, result)
+	err = g.Transform(ctx)
+	if err != nil {
+		return
 	}
-
+	results, err = g.Outputs(ctx)
 	return
 }
 
