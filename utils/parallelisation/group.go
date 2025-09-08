@@ -224,6 +224,14 @@ type ICompoundExecutionGroup[T any] interface {
 // NewExecutionGroup returns an execution group which executes functions according to store options.
 func NewExecutionGroup[T any](executeFunc ExecuteFunc[T], options ...StoreOption) *ExecutionGroup[T] {
 
+	return NewOrderedExecutionGroup(func(ctx context.Context, index int, element T) error {
+		return executeFunc(ctx, element)
+	}, options...)
+}
+
+// NewOrderedExecutionGroup returns an execution group which executes functions according to store options. It also keeps track of the input index.
+func NewOrderedExecutionGroup[T any](executeFunc OrderedExecuteFunc[T], options ...StoreOption) *ExecutionGroup[T] {
+
 	opts := WithOptions(options...)
 	return &ExecutionGroup[T]{
 		mu:          deadlock.RWMutex{},
@@ -235,10 +243,12 @@ func NewExecutionGroup[T any](executeFunc ExecuteFunc[T], options ...StoreOption
 
 type ExecuteFunc[T any] func(ctx context.Context, element T) error
 
+type OrderedExecuteFunc[T any] func(ctx context.Context, index int, element T) error
+
 type ExecutionGroup[T any] struct {
 	mu          deadlock.RWMutex
 	functions   []wrappedElement[T]
-	executeFunc ExecuteFunc[T]
+	executeFunc OrderedExecuteFunc[T]
 	options     StoreOptions
 }
 
@@ -294,7 +304,7 @@ func (s *ExecutionGroup[T]) executeConcurrently(ctx context.Context, stopOnFirst
 	g.SetLimit(workers)
 	for i := range s.functions {
 		g.Go(func() error {
-			_, subErr := s.executeFunction(gCtx, s.functions[i])
+			_, subErr := s.executeFunction(gCtx, i, s.functions[i])
 			errCh <- subErr
 			return subErr
 		})
@@ -323,7 +333,7 @@ func (s *ExecutionGroup[T]) executeSequentially(ctx context.Context, stopOnFirst
 	collateErr := make([]error, funcNum)
 	if reverse {
 		for i := funcNum - 1; i >= 0; i-- {
-			shouldBreak, subErr := s.executeFunction(ctx, s.functions[i])
+			shouldBreak, subErr := s.executeFunction(ctx, i, s.functions[i])
 			collateErr[funcNum-i-1] = subErr
 			if shouldBreak {
 				err = subErr
@@ -338,7 +348,7 @@ func (s *ExecutionGroup[T]) executeSequentially(ctx context.Context, stopOnFirst
 		}
 	} else {
 		for i := range s.functions {
-			shouldBreak, subErr := s.executeFunction(ctx, s.functions[i])
+			shouldBreak, subErr := s.executeFunction(ctx, i, s.functions[i])
 			collateErr[i] = subErr
 			if shouldBreak {
 				err = subErr
@@ -359,7 +369,7 @@ func (s *ExecutionGroup[T]) executeSequentially(ctx context.Context, stopOnFirst
 	return
 }
 
-func (s *ExecutionGroup[T]) executeFunction(ctx context.Context, w wrappedElement[T]) (mustBreak bool, err error) {
+func (s *ExecutionGroup[T]) executeFunction(ctx context.Context, index int, w wrappedElement[T]) (mustBreak bool, err error) {
 	err = DetermineContextError(ctx)
 	if err != nil {
 		mustBreak = true
@@ -370,7 +380,9 @@ func (s *ExecutionGroup[T]) executeFunction(ctx context.Context, w wrappedElemen
 		mustBreak = true
 		return
 	}
-	err = w.Execute(ctx, s.executeFunc)
+	err = w.Execute(ctx, func(ctx context.Context, element T) error {
+		return s.executeFunc(ctx, index, element)
+	})
 
 	return
 }
