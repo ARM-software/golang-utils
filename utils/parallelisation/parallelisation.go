@@ -13,6 +13,7 @@ import (
 
 	"go.uber.org/atomic"
 
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
@@ -265,12 +266,21 @@ func WaitUntil(ctx context.Context, evalCondition func(ctx2 context.Context) (bo
 }
 
 // WorkerPool parallelises an action using a worker pool of the size provided by numWorkers and retrieves all the results when all the actions have completed. It is similar to Parallelise but it uses generics instead of reflection and allows you to control the pool size
-func WorkerPool[InputType, ResultType any](ctx context.Context, numWorkers int, jobs []InputType, f func(context.Context, InputType) (ResultType, bool, error)) (results []ResultType, err error) {
+func WorkerPool[InputType, ResultType any](ctx context.Context, numWorkers int, jobs []InputType, f TransformFunc[InputType, ResultType]) (results []ResultType, err error) {
+	g, err := workerPoolGroup[InputType, ResultType](ctx, numWorkers, jobs, f)
+	if err != nil {
+		return
+	}
+	results, err = g.Outputs(ctx)
+	return
+}
+
+func workerPoolGroup[I, O any](ctx context.Context, numWorkers int, jobs []I, f TransformFunc[I, O]) (g *TransformGroup[I, O], err error) {
 	if numWorkers < 1 {
 		err = commonerrors.New(commonerrors.ErrInvalid, "numWorkers must be greater than or equal to 1")
 		return
 	}
-	g := NewTransformGroup[InputType, ResultType](f, Workers(numWorkers), JoinErrors)
+	g = NewTransformGroup[I, O](f, Workers(numWorkers), JoinErrors)
 	err = g.Inputs(ctx, jobs...)
 	if err != nil {
 		return
@@ -279,12 +289,11 @@ func WorkerPool[InputType, ResultType any](ctx context.Context, numWorkers int, 
 	if err != nil {
 		return
 	}
-	results, err = g.Outputs(ctx)
 	return
 }
 
 // Filter is similar to collection.Filter but uses parallelisation.
-func Filter[T any](ctx context.Context, numWorkers int, s []T, f func(T) bool) (result []T, err error) {
+func Filter[T any](ctx context.Context, numWorkers int, s []T, f collection.FilterFunc[T]) (result []T, err error) {
 	result, err = WorkerPool[T, T](ctx, numWorkers, s, func(fCtx context.Context, item T) (r T, ok bool, fErr error) {
 		fErr = DetermineContextError(fCtx)
 		if fErr != nil {
@@ -297,9 +306,8 @@ func Filter[T any](ctx context.Context, numWorkers int, s []T, f func(T) bool) (
 	return
 }
 
-// Map is similar to collection.Map but uses parallelisation.
-func Map[T1 any, T2 any](ctx context.Context, numWorkers int, s []T1, f func(T1) T2) (result []T2, err error) {
-	result, err = WorkerPool[T1, T2](ctx, numWorkers, s, func(fCtx context.Context, item T1) (r T2, ok bool, fErr error) {
+func mapGroup[T1 any, T2 any](ctx context.Context, numWorkers int, s []T1, f collection.MapFunc[T1, T2]) (*TransformGroup[T1, T2], error) {
+	return workerPoolGroup[T1, T2](ctx, numWorkers, s, func(fCtx context.Context, item T1) (r T2, ok bool, fErr error) {
 		fErr = DetermineContextError(fCtx)
 		if fErr != nil {
 			return
@@ -308,10 +316,29 @@ func Map[T1 any, T2 any](ctx context.Context, numWorkers int, s []T1, f func(T1)
 		ok = true
 		return
 	})
+}
+
+// Map is similar to collection.Map but uses parallelisation.
+func Map[T1 any, T2 any](ctx context.Context, numWorkers int, s []T1, f collection.MapFunc[T1, T2]) (result []T2, err error) {
+	g, err := mapGroup[T1, T2](ctx, numWorkers, s, f)
+	if err != nil {
+		return
+	}
+	result, err = g.Outputs(ctx)
+	return
+}
+
+// OrderedMap is similar to Map but ensures the results are in the same order as the input.
+func OrderedMap[T1 any, T2 any](ctx context.Context, numWorkers int, s []T1, f collection.MapFunc[T1, T2]) (result []T2, err error) {
+	g, err := mapGroup[T1, T2](ctx, numWorkers, s, f)
+	if err != nil {
+		return
+	}
+	result, err = g.OrderedOutputs(ctx)
 	return
 }
 
 // Reject is the opposite of Filter and returns the elements of collection for which the filtering function f returns false.
-func Reject[T any](ctx context.Context, numWorkers int, s []T, f func(T) bool) ([]T, error) {
+func Reject[T any](ctx context.Context, numWorkers int, s []T, f collection.FilterFunc[T]) ([]T, error) {
 	return Filter[T](ctx, numWorkers, s, func(e T) bool { return !f(e) })
 }

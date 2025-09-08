@@ -7,11 +7,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 
 	"github.com/ARM-software/golang-utils/utils/collection"
 )
 
 func TestNewTransformGroup(t *testing.T) {
+	defer goleak.VerifyNone(t)
 	tr := func(ctx context.Context, i string) (o int, success bool, err error) {
 		err = DetermineContextError(ctx)
 		if err != nil {

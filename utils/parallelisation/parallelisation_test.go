@@ -19,8 +19,10 @@ import (
 	"go.uber.org/atomic"
 	"go.uber.org/goleak"
 
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/field"
 )
 
 var (
@@ -635,4 +637,36 @@ func TestMap(t *testing.T) {
 		})
 		errortest.AssertError(t, err, commonerrors.ErrCancelled)
 	})
+}
+
+func TestMapAndOrderedMap(t *testing.T) {
+	defer goleak.VerifyNone(t)
+	ctx := context.Background()
+	mapped, err := OrderedMap(ctx, 3, []int{1, 2}, func(i int) string {
+		return fmt.Sprintf("Hello world %v", i)
+	})
+	require.NoError(t, err)
+	assert.Equal(t, []string{"Hello world 1", "Hello world 2"}, mapped)
+	mapped, err = OrderedMap(ctx, 3, []int64{1, 2, 3, 4}, func(x int64) string {
+		return strconv.FormatInt(x, 10)
+	})
+	require.NoError(t, err)
+	assert.Equal(t, []string{"1", "2", "3", "4"}, mapped)
+	t.Run("cancelled context", func(t *testing.T) {
+		cancelledCtx, cancel := context.WithCancel(context.Background())
+		cancel()
+		_, err := Map(cancelledCtx, 3, []int{1, 2}, func(i int) string {
+			return fmt.Sprintf("Hello world %v", i)
+		})
+		errortest.AssertError(t, err, commonerrors.ErrCancelled)
+	})
+
+	in := collection.Range(0, 1000, field.ToOptionalInt(5))
+	mappedInt, err := OrderedMap(ctx, 3, in, collection.IdentityMapFunc[int]())
+	require.NoError(t, err)
+	assert.Equal(t, in, mappedInt)
+	mappedInt, err = Map(ctx, 3, in, collection.IdentityMapFunc[int]())
+	require.NoError(t, err)
+	assert.NotEqual(t, in, mappedInt)
+	assert.ElementsMatch(t, in, mappedInt)
 }
