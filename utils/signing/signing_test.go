@@ -37,7 +37,7 @@ func TestSigning(t *testing.T) {
 		signature, err := signer.Sign(message)
 		require.NoError(t, err)
 
-		ok, err := signer.Verify([]byte(faker.Word()), signature)
+		ok, err := signer.Verify([]byte(faker.Word()+faker.Word()), signature)
 		require.NoError(t, err)
 		assert.False(t, ok)
 	})
@@ -48,7 +48,7 @@ func TestSigning(t *testing.T) {
 		signer, err := NewEd25519SignerFromSeed(faker.Word())
 		require.NoError(t, err)
 
-		wrongSignature, err := signer.Sign([]byte(faker.Word()))
+		wrongSignature, err := signer.Sign([]byte(faker.Word() + faker.Word()))
 		require.NoError(t, err)
 
 		ok, err := signer.Verify(message, wrongSignature)

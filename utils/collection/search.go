@@ -71,8 +71,10 @@ func AnyFunc[S ~[]E, E any](s S, f func(E) bool) bool {
 	return conditions.Any()
 }
 
+type FilterFunc[E any] func(E) bool
+
 // Filter returns a new slice that contains elements from the input slice which return true when they’re passed as a parameter to the provided filtering function f.
-func Filter[S ~[]E, E any](s S, f func(E) bool) (result S) {
+func Filter[S ~[]E, E any](s S, f FilterFunc[E]) (result S) {
 	result = make(S, 0, len(s))
 
 	for i := range s {
@@ -84,8 +86,16 @@ func Filter[S ~[]E, E any](s S, f func(E) bool) (result S) {
 	return result
 }
 
+type MapFunc[T1, T2 any] func(T1) T2
+
+func IdentityMapFunc[T any]() MapFunc[T, T] {
+	return func(i T) T {
+		return i
+	}
+}
+
 // Map creates a new slice and populates it with the results of calling the provided function on every element in input slice.
-func Map[T1 any, T2 any](s []T1, f func(T1) T2) (result []T2) {
+func Map[T1 any, T2 any](s []T1, f MapFunc[T1, T2]) (result []T2) {
 	result = make([]T2, len(s))
 
 	for i := range s {
@@ -97,12 +107,14 @@ func Map[T1 any, T2 any](s []T1, f func(T1) T2) (result []T2) {
 
 // Reject is the opposite of Filter and returns the elements of collection for which the filtering function f returns false.
 // This is functionally equivalent to slices.DeleteFunc but it returns a new slice.
-func Reject[S ~[]E, E any](s S, f func(E) bool) S {
+func Reject[S ~[]E, E any](s S, f FilterFunc[E]) S {
 	return Filter(s, func(e E) bool { return !f(e) })
 }
 
+type ReduceFunc[T1, T2 any] func(T2, T1) T2
+
 // Reduce runs a reducer function f over all elements in the array, in ascending-index order, and accumulates them into a single value.
-func Reduce[T1, T2 any](s []T1, accumulator T2, f func(T2, T1) T2) (result T2) {
+func Reduce[T1, T2 any](s []T1, accumulator T2, f ReduceFunc[T1, T2]) (result T2) {
 	result = accumulator
 	for i := range s {
 		result = f(result, s[i])
