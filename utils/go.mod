@@ -38,7 +38,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/spf13/afero v1.14.0
-	github.com/spf13/pflag v1.0.9
+	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.11.1
 	github.com/zalando/go-keyring v0.2.6
