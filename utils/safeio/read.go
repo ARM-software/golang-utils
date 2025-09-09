@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/dolmen-go/contextio"
+	"go.uber.org/atomic"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
@@ -74,6 +75,42 @@ func NewByteReader(ctx context.Context, someBytes []byte) io.Reader {
 // Context state is checked BEFORE every Read.
 func NewContextualReader(ctx context.Context, reader io.Reader) io.Reader {
 	return contextio.NewReader(ctx, reader)
+}
+
+type safeReadCloser struct {
+	reader io.Reader
+	close  parallelisation.CloseFunc
+	closed *atomic.Bool
+}
+
+func (r safeReadCloser) Read(p []byte) (int, error) {
+	return r.reader.Read(p)
+}
+
+func (r safeReadCloser) Close() error {
+	if r.closed.Swap(true) {
+		return nil
+	}
+
+	return r.close()
+}
+
+// NewContextualReadCloser returns a readcloser which is context aware.
+// Context state is checked during the read and close is called if the context is cancelled
+// This allows for readers that block on syscalls to be stopped via a context
+func NewContextualReadCloser(ctx context.Context, reader io.ReadCloser) io.ReadCloser {
+	stop := context.AfterFunc(ctx, func() { _ = reader.Close() })
+
+	r := safeReadCloser{
+		reader: contextio.NewReader(ctx, reader),
+		close: func() error {
+			_ = stop()
+			return reader.Close()
+		},
+		closed: atomic.NewBool(false),
+	}
+
+	return r
 }
 
 func NewContextualMultipleReader(ctx context.Context, reader ...io.Reader) io.Reader {
