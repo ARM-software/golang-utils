@@ -78,7 +78,7 @@ func NewContextualReader(ctx context.Context, reader io.Reader) io.Reader {
 }
 
 type safeReadCloser struct {
-	reader io.Reader
+	reader io.Reader // use reader to ensure idempotency since you can't call close on the reader itself, only via the wrapper
 	close  parallelisation.CloseFunc
 	closed *atomic.Bool
 }
