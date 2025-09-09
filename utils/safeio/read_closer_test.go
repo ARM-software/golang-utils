@@ -9,10 +9,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 func TestNewContextualReadCloser(t *testing.T) {
 	t.Run("Normal contextual reader blocks even after cancel", func(t *testing.T) {
+		defer goleak.VerifyNone(t)
+
 		r, w, err := os.Pipe()
 		require.NoError(t, err)
 		defer func() { _ = r.Close(); _ = w.Close() }()
@@ -39,6 +42,8 @@ func TestNewContextualReadCloser(t *testing.T) {
 	})
 
 	t.Run("Contextual read closer does not block even on long running copies", func(t *testing.T) {
+		defer goleak.VerifyNone(t)
+
 		r, w, err := os.Pipe()
 		require.NoError(t, err)
 		defer func() { _ = w.Close() }()
