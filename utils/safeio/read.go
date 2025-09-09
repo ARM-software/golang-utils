@@ -105,7 +105,7 @@ func NewContextualReadCloser(ctx context.Context, reader io.ReadCloser) io.ReadC
 		reader: contextio.NewReader(ctx, reader),
 		close: func() error {
 			_ = stop()
-			return reader.Close()
+			return nil
 		},
 		closed: atomic.NewBool(false),
 	}
