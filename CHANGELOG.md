@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.121.0" (2025-09-09)
+======================
+
+Features
+--------
+
+- :sparkles: `safeio` Add support for cancelling readers that make blocking kernel reads during copying (#20250909150027)
+
+
 "1.120.0" (2025-09-08)
 ======================
 
