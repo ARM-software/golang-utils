@@ -10,7 +10,8 @@ import (
 
 func TestDefaultIO(t *testing.T) {
 	io := NewDefaultIO()
-	assert.Equal(t, os.Stdin, io.SetInput(context.Background()))
-	assert.Equal(t, os.Stdout, io.SetOutput(context.Background()))
-	assert.Equal(t, os.Stderr, io.SetError(context.Background()))
+	in, out, errs := io.Register(context.Background())
+	assert.Equal(t, os.Stdin, in)
+	assert.Equal(t, os.Stdout, out)
+	assert.Equal(t, os.Stderr, errs)
 }

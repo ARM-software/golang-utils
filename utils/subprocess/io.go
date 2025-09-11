@@ -13,15 +13,10 @@ import (
 
 // ICommandIO allows you to set the stdin, stdout, and stderr that will be used in a subprocess. A context can be injected for context aware readers and writers
 type ICommandIO interface {
-	SetInput(context.Context) io.Reader
-	SetOutput(context.Context) io.Writer
-	SetError(context.Context) io.Writer
+	Register(context.Context) (in io.Reader, out, errs io.Writer)
 }
 
 type commandIO struct {
-	input        io.Reader
-	output       io.Writer
-	error        io.Writer
 	newInFunc    func(context.Context) io.Reader
 	newOutFunc   func(context.Context) io.Writer
 	newErrorFunc func(context.Context) io.Writer
@@ -53,32 +48,18 @@ func NewDefaultIO() ICommandIO {
 	return NewIO(nil, nil, nil)
 }
 
-func (c *commandIO) SetInput(ctx context.Context) io.Reader {
+func (c *commandIO) Register(ctx context.Context) (in io.Reader, out, errs io.Writer) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.input = os.Stdin
+	in, out, errs = os.Stdin, os.Stdout, os.Stderr
 	if c.newInFunc != nil {
-		c.input = c.newInFunc(ctx)
+		in = c.newInFunc(ctx)
 	}
-	return c.input
-}
-
-func (c *commandIO) SetOutput(ctx context.Context) io.Writer {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.output = os.Stdout
 	if c.newOutFunc != nil {
-		c.output = c.newOutFunc(ctx)
+		out = c.newOutFunc(ctx)
 	}
-	return c.output
-}
-
-func (c *commandIO) SetError(ctx context.Context) io.Writer {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.error = os.Stderr
 	if c.newErrorFunc != nil {
-		c.error = c.newErrorFunc(ctx)
+		errs = c.newErrorFunc(ctx)
 	}
-	return c.error
+	return
 }

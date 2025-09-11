@@ -43,9 +43,9 @@ func newTestIO() *testIO {
 	}
 }
 
-func (t *testIO) SetInput(context.Context) io.Reader  { return t.in }
-func (t *testIO) SetOutput(context.Context) io.Writer { return t.out }
-func (t *testIO) SetError(context.Context) io.Writer  { return t.err }
+func (t *testIO) Register(context.Context) (io.Reader, io.Writer, io.Writer) {
+	return t.in, t.out, t.err
+}
 
 type execFunc func(ctx context.Context, l logs.Loggers, cmd string, args ...string) error
 

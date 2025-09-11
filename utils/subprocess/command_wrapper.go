@@ -137,9 +137,7 @@ func (c *command) createCommand(cmdCtx context.Context) *exec.Cmd {
 	if err == nil {
 		cmd = cancellableCmd
 	}
-	cmd.Stdout = c.io.SetOutput(cmdCtx)
-	cmd.Stderr = c.io.SetError(cmdCtx)
-	cmd.Stdin = c.io.SetInput(cmdCtx)
+	cmd.Stdin, cmd.Stdout, cmd.Stderr = c.io.Register(cmdCtx)
 	cmd.Env = cmd.Environ()
 	cmd.Env = append(cmd.Env, c.env...)
 	setGroupAttrToCmd(cmd)
