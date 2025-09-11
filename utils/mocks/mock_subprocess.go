@@ -41,44 +41,18 @@ func (m *MockICommandIO) EXPECT() *MockICommandIOMockRecorder {
 	return m.recorder
 }
 
-// SetError mocks base method.
-func (m *MockICommandIO) SetError(arg0 context.Context) io.Writer {
+// Register mocks base method.
+func (m *MockICommandIO) Register(arg0 context.Context) (io.Reader, io.Writer, io.Writer) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetError", arg0)
-	ret0, _ := ret[0].(io.Writer)
-	return ret0
-}
-
-// SetError indicates an expected call of SetError.
-func (mr *MockICommandIOMockRecorder) SetError(arg0 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetError", reflect.TypeOf((*MockICommandIO)(nil).SetError), arg0)
-}
-
-// SetInput mocks base method.
-func (m *MockICommandIO) SetInput(arg0 context.Context) io.Reader {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetInput", arg0)
+	ret := m.ctrl.Call(m, "Register", arg0)
 	ret0, _ := ret[0].(io.Reader)
-	return ret0
+	ret1, _ := ret[1].(io.Writer)
+	ret2, _ := ret[2].(io.Writer)
+	return ret0, ret1, ret2
 }
 
-// SetInput indicates an expected call of SetInput.
-func (mr *MockICommandIOMockRecorder) SetInput(arg0 any) *gomock.Call {
+// Register indicates an expected call of Register.
+func (mr *MockICommandIOMockRecorder) Register(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetInput", reflect.TypeOf((*MockICommandIO)(nil).SetInput), arg0)
-}
-
-// SetOutput mocks base method.
-func (m *MockICommandIO) SetOutput(arg0 context.Context) io.Writer {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetOutput", arg0)
-	ret0, _ := ret[0].(io.Writer)
-	return ret0
-}
-
-// SetOutput indicates an expected call of SetOutput.
-func (mr *MockICommandIOMockRecorder) SetOutput(arg0 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetOutput", reflect.TypeOf((*MockICommandIO)(nil).SetOutput), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockICommandIO)(nil).Register), arg0)
 }
