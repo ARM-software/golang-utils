@@ -5,8 +5,10 @@
 package subprocess
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"regexp"
@@ -26,6 +28,45 @@ import (
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 	"github.com/ARM-software/golang-utils/utils/platform"
 )
+
+type testIO struct {
+	in  io.Reader
+	out *bytes.Buffer
+	err *bytes.Buffer
+}
+
+func newTestIO() *testIO {
+	return &testIO{
+		in:  strings.NewReader(""),
+		out: &bytes.Buffer{},
+		err: &bytes.Buffer{},
+	}
+}
+
+func (t *testIO) SetInput(context.Context) io.Reader  { return t.in }
+func (t *testIO) SetOutput(context.Context) io.Writer { return t.out }
+func (t *testIO) SetError(context.Context) io.Writer  { return t.err }
+
+type execFunc func(ctx context.Context, l logs.Loggers, cmd string, args ...string) error
+
+func newDefaultExecutor(t *testing.T) execFunc {
+	t.Helper()
+	return func(ctx context.Context, l logs.Loggers, cmd string, args ...string) error {
+		return Execute(ctx, l, "", "", "", cmd, args...)
+	}
+}
+
+func newCustomIOExecutor(t *testing.T, customIO *testIO) execFunc {
+	t.Helper()
+	return func(ctx context.Context, l logs.Loggers, cmd string, args ...string) (err error) {
+		p := &Subprocess{}
+		err = p.SetupWithEnvironmentWithCustomIO(ctx, l, customIO, nil, "", "", "", cmd, args...)
+		if err != nil {
+			return
+		}
+		return p.Execute()
+	}
+}
 
 func TestExecuteEmptyLines(t *testing.T) {
 	t.Skip("would need to be reinstated when fixed")
@@ -265,12 +306,14 @@ func TestStartInterrupt(t *testing.T) {
 func TestExecute(t *testing.T) {
 	currentDir, err := os.Getwd()
 	require.NoError(t, err)
+
 	tests := []struct {
 		name       string
 		cmdWindows string
 		argWindows []string
 		cmdOther   string
 		argOther   []string
+		expectIO   bool
 	}{
 		{
 			name:       "ShortProcess",
@@ -278,6 +321,7 @@ func TestExecute(t *testing.T) {
 			argWindows: []string{"/c", "dir", currentDir},
 			cmdOther:   "ls",
 			argOther:   []string{"-l", currentDir},
+			expectIO:   true,
 		},
 		{
 			name:       "LongProcess",
@@ -285,30 +329,70 @@ func TestExecute(t *testing.T) {
 			argWindows: []string{"/c", fmt.Sprintf("ping -n 2 -w %v localhost > nul", time.Second.Milliseconds())}, // See https://stackoverflow.com/a/79268314/45375
 			cmdOther:   "sleep",
 			argOther:   []string{"1"},
+			expectIO:   false,
 		},
 	}
 
-	for i := range tests {
-		test := tests[i]
+	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			defer goleak.VerifyNone(t)
-			var loggers logs.Loggers = &logs.GenericLoggers{}
-			err := loggers.Check()
-			assert.Error(t, err)
 
-			err = Execute(context.Background(), loggers, "", "", "", "ls")
-			assert.Error(t, err)
-
-			loggers, err = logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
-			require.NoError(t, err)
-			if platform.IsWindows() {
-				err = Execute(context.Background(), loggers, "", "", "", test.cmdWindows, test.argWindows...)
-			} else {
-				err = Execute(context.Background(), loggers, "", "", "", test.cmdOther, test.argOther...)
+			customIO := newTestIO()
+			executors := []struct {
+				name string
+				run  execFunc
+				io   *testIO
+			}{
+				{"normal", newDefaultExecutor(t), nil},
+				{"with IO", newCustomIOExecutor(t, customIO), customIO},
 			}
-			require.NoError(t, err)
+
+			for _, executor := range executors {
+				t.Run(executor.name, func(t *testing.T) {
+					var loggers logs.Loggers = &logs.GenericLoggers{}
+					err := loggers.Check()
+					assert.Error(t, err)
+
+					err = executor.run(context.Background(), loggers, "ls")
+					assert.Error(t, err)
+
+					loggers, err = logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
+					require.NoError(t, err)
+
+					if platform.IsWindows() {
+						err = executor.run(context.Background(), loggers, test.cmdWindows, test.argWindows...)
+					} else {
+						err = executor.run(context.Background(), loggers, test.cmdOther, test.argOther...)
+					}
+					require.NoError(t, err)
+
+					if executor.io != nil && test.expectIO {
+						assert.NotZero(t, executor.io.out.Len()+executor.io.err.Len()) // expect some output
+					}
+				})
+			}
 		})
 	}
+}
+
+func TestExecuteWithCustomIO_Stderr(t *testing.T) {
+	if platform.IsWindows() {
+		t.Skip("Uses bash and redirection so can't run on Windows")
+	}
+	defer goleak.VerifyNone(t)
+
+	loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
+	require.NoError(t, err)
+
+	customIO := newTestIO()
+	run := newCustomIOExecutor(t, customIO)
+
+	msg := "hello adrien"
+	err = run(context.Background(), loggers, "bash", "-c", fmt.Sprintf("echo %s 1>&2", msg))
+	require.NoError(t, err)
+
+	require.Empty(t, customIO.out.String()) // should be no stdout
+	require.Equal(t, fmt.Sprintln(msg), customIO.err.String())
 }
 
 func TestOutput(t *testing.T) {

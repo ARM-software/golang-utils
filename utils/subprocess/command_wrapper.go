@@ -127,6 +127,7 @@ type command struct {
 	as         *commandUtils.CommandAsDifferentUser
 	loggers    logs.Loggers
 	cmdWrapper cmdWrapper
+	io         ICommandIO
 }
 
 func (c *command) createCommand(cmdCtx context.Context) *exec.Cmd {
@@ -136,8 +137,9 @@ func (c *command) createCommand(cmdCtx context.Context) *exec.Cmd {
 	if err == nil {
 		cmd = cancellableCmd
 	}
-	cmd.Stdout = newOutStreamer(cmdCtx, c.loggers)
-	cmd.Stderr = newErrLogStreamer(cmdCtx, c.loggers)
+	cmd.Stdout = c.io.SetOutput(cmdCtx)
+	cmd.Stderr = c.io.SetError(cmdCtx)
+	cmd.Stdin = c.io.SetInput(cmdCtx)
 	cmd.Env = cmd.Environ()
 	cmd.Env = append(cmd.Env, c.env...)
 	setGroupAttrToCmd(cmd)
@@ -181,6 +183,20 @@ func newCommand(loggers logs.Loggers, as *commandUtils.CommandAsDifferentUser, e
 		as:         as,
 		loggers:    loggers,
 		cmdWrapper: cmdWrapper{},
+		io:         NewIOFromLoggers(loggers),
+	}
+	return
+}
+
+func newCommandWithCustomIO(loggers logs.Loggers, io ICommandIO, as *commandUtils.CommandAsDifferentUser, env []string, cmd string, args ...string) (osCmd *command) {
+	osCmd = &command{
+		cmd:        cmd,
+		args:       args,
+		env:        env,
+		as:         as,
+		loggers:    loggers,
+		cmdWrapper: cmdWrapper{},
+		io:         io,
 	}
 	return
 }
