@@ -389,6 +389,10 @@ func WrapError(targetError, originalError error, msg string) error {
 	} else {
 		cleansedMsg := strings.TrimSpace(msg)
 		if cleansedMsg == "" {
+			if Any(tErr, originalError) {
+				// The error is already wrapped and of the same type.
+				return originalError
+			}
 			return New(tErr, originalError.Error())
 		} else {
 			return Errorf(
