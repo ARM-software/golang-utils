@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.123.0" (2025-09-11)
+======================
+
+Features
+--------
+
+- :sparkles: `subprocess` Add support for overriding the stdin/stdout/stderr of a process when running it with subprocess.Execute (#20250911130716)
+
+
+Bugfixes
+--------
+
+- :bug: `[commonerrors]` Ensure the wrapping of an already wrapped error does not result in message duplication such as `unknown: unknown: blah` or `unexpected: unexpected: blah` (#20250911133122)
+
+
 "1.122.0" (2025-09-11)
 ======================
 
