@@ -272,4 +272,5 @@ func TestString(t *testing.T) {
 	assert.Equal(t, "unsupported: not found", WrapError(ErrUnsupported, ErrNotFound, "").Error())
 	assert.Equal(t, "unknown: test: unsupported", WrapError(nil, ErrUnsupported, "test").Error())
 	assert.Equal(t, "unsupported: test 56: not found", WrapErrorf(ErrUnsupported, ErrNotFound, "test %v", 56).Error())
+	assert.Equal(t, "unsupported: test", WrapError(ErrUnsupported, Newf(ErrUnsupported, "test"), "").Error())
 }
