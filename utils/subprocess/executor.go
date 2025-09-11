@@ -47,7 +47,7 @@ func newSubProcess(ctx context.Context, loggers logs.Loggers, env []string, mess
 
 func newPlainSubProcess(ctx context.Context, loggers logs.Loggers, env []string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (p *Subprocess, err error) {
 	p = new(Subprocess)
-	err = p.setup(ctx, loggers, env, false, "", "", "", as, cmd, args...)
+	err = p.setup(ctx, loggers, nil, env, false, "", "", "", as, cmd, args...)
 	return
 }
 
@@ -130,7 +130,7 @@ func (s *Subprocess) Setup(ctx context.Context, loggers logs.Loggers, messageOnS
 
 // SetupWithEnvironment sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure. Compared to Setup, it allows specifying additional environment variables to be used by the process.
 func (s *Subprocess) SetupWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnv []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
-	return s.setup(ctx, loggers, additionalEnv, true, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Me(), cmd, args...)
+	return s.setup(ctx, loggers, nil, additionalEnv, true, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Me(), cmd, args...)
 }
 
 // SetupAs is similar to Setup but allows the command to be run as a different user.
@@ -140,11 +140,31 @@ func (s *Subprocess) SetupAs(ctx context.Context, loggers logs.Loggers, messageO
 
 // SetupAsWithEnvironment is similar to Setup but allows the command to be run as a different user. Compared to SetupAs, it allows specifying additional environment variables to be used by the process.
 func (s *Subprocess) SetupAsWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnv []string, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
-	return s.setup(ctx, loggers, additionalEnv, true, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+	return s.setup(ctx, loggers, nil, additionalEnv, true, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
 }
 
-// Setup sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure.
-func (s *Subprocess) setup(ctx context.Context, loggers logs.Loggers, env []string, withAdditionalMessages bool, messageOnStart, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
+// SetupWithCustomIO sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure. It allows the stdin, stdout, and stderr to be overridden.
+func (s *Subprocess) SetupWithCustomIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
+	return s.SetupWithEnvironmentWithCustomIO(ctx, loggers, io, nil, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+}
+
+// SetupWithEnvironmentWithCustomIO sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure. Compared to SetupWithCustomIO, it allows specifying additional environment variables to be used by the process. It allows the stdin, stdout, and stderr to be overridden.
+func (s *Subprocess) SetupWithEnvironmentWithCustomIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, additionalEnv []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
+	return s.setup(ctx, loggers, io, additionalEnv, true, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Me(), cmd, args...)
+}
+
+// SetupAsWithCustomIO is similar to SetupWithCustomIO but allows the command to be run as a different user. It allows the stdin, stdout, and stderr to be overridden.
+func (s *Subprocess) SetupAsWithCustomIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
+	return s.SetupAsWithEnvironmentWithCustomIO(ctx, loggers, io, nil, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+}
+
+// SetupAsWithEnvironmentWithCustomIO is similar to SetupWithCustomIO but allows the command to be run as a different user. Compared to SetupAsWithCustomIO, it allows specifying additional environment variables to be used by the process. It allows the stdin, stdout, and stderr to be overridden.
+func (s *Subprocess) SetupAsWithEnvironmentWithCustomIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, additionalEnv []string, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
+	return s.setup(ctx, loggers, io, additionalEnv, true, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+}
+
+// Setup sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure as well as the stdin, stdout, and stderr.
+func (s *Subprocess) setup(ctx context.Context, loggers logs.Loggers, io ICommandIO, env []string, withAdditionalMessages bool, messageOnStart, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
 	if s.IsOn() {
 		err = s.Stop()
 		if err != nil {
@@ -155,7 +175,11 @@ func (s *Subprocess) setup(ctx context.Context, loggers logs.Loggers, env []stri
 	defer s.mu.Unlock()
 	s.isRunning.Store(false)
 	s.processMonitoring = newSubprocessMonitoring(ctx)
-	s.command = newCommand(loggers, as, env, cmd, args...)
+	if io != nil {
+		s.command = newCommandWithCustomIO(loggers, io, as, env, cmd, args...)
+	} else {
+		s.command = newCommand(loggers, as, env, cmd, args...)
+	}
 	s.messaging = newSubprocessMessaging(loggers, withAdditionalMessages, messageOnSuccess, messageOnFailure, messageOnStart, s.command.GetPath())
 	s.reset()
 	return s.check()
