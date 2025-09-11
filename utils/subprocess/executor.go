@@ -41,7 +41,7 @@ func NewWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnv
 // newSubProcess creates a subprocess description.
 func newSubProcess(ctx context.Context, loggers logs.Loggers, env []string, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (p *Subprocess, err error) {
 	p = new(Subprocess)
-	err = p.SetupAsWithEnvironment(ctx, loggers, env, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+	err = p.SetupAsWithEnvironmentWithCustomIO(ctx, loggers, io, env, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
 	return
 }
 
