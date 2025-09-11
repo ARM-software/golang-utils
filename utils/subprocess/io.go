@@ -13,6 +13,7 @@ import (
 
 // ICommandIO allows you to set the stdin, stdout, and stderr that will be used in a subprocess. A context can be injected for context aware readers and writers
 type ICommandIO interface {
+	// Register creates new readers and writers based on the constructor methods in the ICommandIO implementation. If the constructors are not specified then it will default to os.Stdin, os.Stdout, and os.Stderr
 	Register(context.Context) (in io.Reader, out, errs io.Writer)
 }
 
@@ -38,7 +39,7 @@ func NewIO(
 
 func NewIOFromLoggers(loggers logs.Loggers) ICommandIO {
 	return NewIO(
-		func(context.Context) io.Reader { return os.Stdin },
+		nil,
 		func(ctx context.Context) io.Writer { return newOutStreamer(ctx, loggers) },
 		func(ctx context.Context) io.Writer { return newErrLogStreamer(ctx, loggers) },
 	)
