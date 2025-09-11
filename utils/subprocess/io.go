@@ -10,6 +10,8 @@ import (
 )
 
 //go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE ICommandIO
+
+// ICommandIO allows you to set the stdin, stdout, and stderr that will be used in a subprocess. A context can be injected for context aware readers and writers
 type ICommandIO interface {
 	SetInput(context.Context) io.Reader
 	SetOutput(context.Context) io.Writer
