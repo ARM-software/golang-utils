@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.122.0" (2025-09-11)
+======================
+
+Features
+--------
+
+- :sparkles: `subprocess` Add support for overriding the stdin/stdout/stderr of a subprocess (#20250911113619)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: afero-1.15.0 (#20250909100413)
+- Dependency upgrade: viper-1.21.0 (#20250909162414, #20250909162418, #20250909162447)
+
+
 "1.121.0" (2025-09-09)
 ======================
 
