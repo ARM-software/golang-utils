@@ -51,7 +51,7 @@ func NewWithEnvironmentWithIO(ctx context.Context, loggers logs.Loggers, io ICom
 // newSubProcess creates a subprocess description with custom IO
 func newSubProcess(ctx context.Context, loggers logs.Loggers, io ICommandIO, env []string, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (p *Subprocess, err error) {
 	p = new(Subprocess)
-	err = p.SetupAsWithEnvironment(ctx, loggers, env, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+	err = p.SetupAsWithEnvironmentWithCustomIO(ctx, loggers, io, env, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
 	return
 }
 
