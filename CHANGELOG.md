@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.123.1" (2025-09-12)
+======================
+
+Bugfixes
+--------
+
+- :bug: `subprocess` Make sure that newSubProcess supports overriding the stdin, stdout, and stderr (#20250911152014)
+
+
 "1.123.0" (2025-09-11)
 ======================
 
