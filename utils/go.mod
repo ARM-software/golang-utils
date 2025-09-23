@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.24.1
 
 require (
-	github.com/DeRuina/timberjack v1.3.6
+	github.com/DeRuina/timberjack v1.3.7
 	github.com/OneOfOne/xxhash v1.2.8
 	github.com/avast/retry-go/v4 v4.6.1
 	github.com/bmatcuk/doublestar/v3 v3.0.0
@@ -81,6 +81,7 @@ require (
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
+	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
