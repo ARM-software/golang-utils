@@ -100,10 +100,26 @@ type TestStruct2WithTime struct {
 	Time     time.Time     `mapstructure:"some_time"`
 	Duration time.Duration `mapstructure:"some_duration"`
 }
+
 type TestStruct3WithTime struct {
 	Time     time.Time     `mapstructure:"some_time"`
 	Duration time.Duration `mapstructure:"some_duration"`
 	Struct   TestStruct2WithTime
+}
+
+type TestStruct4 struct {
+	Field1 string `mapstructure:"field_1"`
+	Field2 string `mapstructure:"field_2"`
+}
+
+type TestStruct5WithEmbeddedStruct struct {
+	TestStruct4
+	Field3 string `mapstructure:"field_3"`
+}
+
+type TestStruct6WithEmbeddedStruct struct {
+	TestStruct5WithEmbeddedStruct
+	Field4 string `mapstructure:"field_4"`
 }
 
 func TestToMap(t *testing.T) {
@@ -160,5 +176,30 @@ func TestToMap(t *testing.T) {
 		errortest.AssertError(t, FromMapToPointer[any](testMap, nil), commonerrors.ErrInvalid, commonerrors.ErrUndefined)
 		errortest.AssertError(t, FromMapToPointer[*TestStruct3WithTime](testMap, nil), commonerrors.ErrInvalid, commonerrors.ErrUndefined)
 	})
+	t.Run("embedded struct mapping", func(t *testing.T) {
+		testStruct := TestStruct6WithEmbeddedStruct{}
+		require.NoError(t, faker.FakeData(&testStruct))
 
+		m := make(map[string]string)
+		m["field_1"] = faker.Word()
+		m["field_2"] = faker.Word()
+		m["field_3"] = faker.Word()
+		m["field_4"] = faker.Word()
+
+		// Should correctly set embedded struct fields from map m, even on nested embedded structs
+		err := FromMap[TestStruct6WithEmbeddedStruct](m, &testStruct)
+		require.NoError(t, err)
+		assert.Equal(t, testStruct.Field1, m["field_1"])
+		assert.Equal(t, testStruct.Field2, m["field_2"])
+		assert.Equal(t, testStruct.Field3, m["field_3"])
+		assert.Equal(t, testStruct.Field4, m["field_4"])
+
+		structMap, err := ToMap[TestStruct6WithEmbeddedStruct](&testStruct)
+		require.NoError(t, err)
+		assert.Equal(t, m, structMap)
+
+		newStruct := TestStruct6WithEmbeddedStruct{}
+		require.NoError(t, FromMap[TestStruct6WithEmbeddedStruct](structMap, &newStruct))
+		assert.Equal(t, testStruct, newStruct)
+	})
 }

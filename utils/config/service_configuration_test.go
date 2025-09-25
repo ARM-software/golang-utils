@@ -776,3 +776,109 @@ func TestServiceConfigurationLoadFromEnvironment(t *testing.T) {
 	assert.True(t, configTest.TestConfig.Flag)
 	assert.False(t, configTest.TestConfig2.Flag)
 }
+
+type TestBaseCfg struct {
+	Embedded1 string `mapstructure:"embedded1"`
+	Embedded2 string `mapstructure:"embedded2"`
+}
+
+func (cfg *TestBaseCfg) Validate() error {
+	return validation.ValidateStruct(cfg,
+		validation.Field(&cfg.Embedded1, validation.Required),
+		validation.Field(&cfg.Embedded2, validation.Required),
+	)
+}
+
+type TestCfgWithEmbeddedCfg struct {
+	TestBaseCfg
+	NonEmbedded1 string `mapstructure:"non_embedded1"`
+	NonEmbedded2 string `mapstructure:"non_embedded2"`
+}
+
+func (cfg *TestCfgWithEmbeddedCfg) Validate() error {
+	// Validate Embedded Structs
+	err := ValidateEmbedded(cfg)
+	if err != nil {
+		return err
+	}
+
+	return validation.ValidateStruct(cfg,
+		validation.Field(&cfg.NonEmbedded1, validation.Required),
+	)
+}
+
+type TestCfgWithEmbeddedCfgWithTag struct {
+	TestBaseCfg  `mapstructure:"embedded_struct_tag"`
+	NonEmbedded1 string `mapstructure:"non_embedded1"`
+}
+
+func (cfg *TestCfgWithEmbeddedCfgWithTag) Validate() error {
+	// Validate Embedded Structs
+	err := ValidateEmbedded(cfg)
+	if err != nil {
+		return err
+	}
+
+	return validation.ValidateStruct(cfg,
+		validation.Field(&cfg.NonEmbedded1, validation.Required),
+	)
+}
+
+// Config values should be correctly mapped onto a struct that embeds another struct
+func TestEmbeddedServiceConfigurationLoadFromFile(t *testing.T) {
+	os.Clearenv()
+	session := viper.New()
+	testEmbedded := TestCfgWithEmbeddedCfg{}
+	err := LoadFromEnvironment(session, "", &testEmbedded,
+		&TestCfgWithEmbeddedCfg{}, filepath.Join(".", "fixtures", "flat-config-to-embedded-test.json"))
+	require.NoError(t, err)
+	assert.NotEmpty(t, testEmbedded.NonEmbedded1)
+	assert.Equal(t, "non_embedded 1", testEmbedded.NonEmbedded1)
+	assert.Empty(t, testEmbedded.NonEmbedded2)
+	assert.NotEmpty(t, testEmbedded.Embedded1)
+	assert.Equal(t, "embedded 1", testEmbedded.Embedded1)
+	assert.NotEmpty(t, testEmbedded.Embedded2)
+	assert.Equal(t, "embedded 2", testEmbedded.Embedded2)
+}
+
+// Config values should be correctly mapped onto a struct that embeds another struct tagged with mapstructure
+func TestEmbeddedServiceConfigurationWithTagLoadFromFile(t *testing.T) {
+	os.Clearenv()
+	session := viper.New()
+	testEmbeddedWithCustomTag := TestCfgWithEmbeddedCfgWithTag{}
+	err := LoadFromEnvironment(session, "", &testEmbeddedWithCustomTag,
+		&TestCfgWithEmbeddedCfgWithTag{}, filepath.Join(".", "fixtures", "flat-config-to-embedded-test.json"))
+	require.NoError(t, err)
+	assert.NotEmpty(t, testEmbeddedWithCustomTag.NonEmbedded1)
+	assert.Equal(t, "non_embedded 1", testEmbeddedWithCustomTag.NonEmbedded1)
+	assert.NotEmpty(t, testEmbeddedWithCustomTag.Embedded1)
+	assert.Equal(t, "embedded 1", testEmbeddedWithCustomTag.Embedded1)
+	assert.NotEmpty(t, testEmbeddedWithCustomTag.Embedded2)
+	assert.Equal(t, "embedded 2", testEmbeddedWithCustomTag.Embedded2)
+}
+
+// Config values should be correctly mapped onto a struct that embeds another struct and maintain any defaults not overwritten
+func TestEmbeddedServiceConfigurationLoadFromFileWithDefaults(t *testing.T) {
+	os.Clearenv()
+	session := viper.New()
+	testEmbedded := TestCfgWithEmbeddedCfg{}
+	defaults := &TestCfgWithEmbeddedCfg{
+		TestBaseCfg: TestBaseCfg{
+			Embedded1: "a",
+			Embedded2: "b",
+		},
+		NonEmbedded1: "c",
+		NonEmbedded2: "d",
+	}
+	err := LoadFromEnvironment(session, "", &testEmbedded,
+		defaults, filepath.Join(".", "fixtures", "flat-config-to-embedded-test.json"))
+	require.NoError(t, err)
+	assert.NotEmpty(t, testEmbedded.NonEmbedded1)
+	assert.Equal(t, "non_embedded 1", testEmbedded.NonEmbedded1)
+	assert.NotEmpty(t, testEmbedded.NonEmbedded2)
+	assert.Equal(t, "d", testEmbedded.NonEmbedded2)
+	assert.NotEmpty(t, testEmbedded.Embedded1)
+	assert.Equal(t, "embedded 1", testEmbedded.Embedded1)
+	assert.NotEmpty(t, testEmbedded.Embedded2)
+	assert.Equal(t, "embedded 2", testEmbedded.Embedded2)
+}
