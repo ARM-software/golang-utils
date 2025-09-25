@@ -38,8 +38,16 @@ const (
 	HeaderTusExtension        = "Tus-Extension"
 	HeaderTusMaxSize          = "Tus-Max-Size"
 	HeaderXHTTPMethodOverride = "X-HTTP-Method-Override"
-	HeaderXWWWFormURLEncoded  = "application/x-www-form-urlencoded"
-	HeaderContentType         = "Content-Type"
+	// TUS extensions Headers
+	HeaderUploadMetadata    = "Upload-Metadata"        // See https://tus.io/protocols/resumable-upload#upload-metadata
+	HeaderUploadDeferLength = "Upload-Defer-Length"    // See https://tus.io/protocols/resumable-upload#upload-defer-length
+	HeaderUploadExpires     = "Upload-Expires"         // See https://tus.io/protocols/resumable-upload#upload-expires
+	HeaderChecksumAlgorithm = "Tus-Checksum-Algorithm" // See https://tus.io/protocols/resumable-upload#tus-checksum-algorithm
+	HeaderChecksum          = "Upload-Checksum"        // See https://tus.io/protocols/resumable-upload#upload-checksum
+	HeaderUploadConcat      = "Upload-Concat"          // See https://tus.io/protocols/resumable-upload#upload-concat
+
+	MIMEXWWWFormURLEncoded = "application/x-www-form-urlencoded"
+	MIMETusUpload          = "application/offset+octet-stream"
 )
 
 var (
@@ -62,6 +70,12 @@ var (
 		HeaderTusExtension,
 		HeaderTusMaxSize,
 		HeaderXHTTPMethodOverride,
+		HeaderUploadMetadata,
+		HeaderUploadDeferLength,
+		HeaderUploadExpires,
+		HeaderChecksumAlgorithm,
+		HeaderChecksum,
+		HeaderUploadConcat,
 		headers.Accept,
 		headers.AcceptCharset,
 		headers.AcceptEncoding,
@@ -198,12 +212,12 @@ func ParseAuthorizationHeader(r *http.Request) (string, string, error) {
 // and makes sure it has 2 parts  <scheme> <token>
 func ParseAuthorisationValue(authHeader string) (scheme string, token string, err error) {
 	if reflection.IsEmpty(authHeader) {
-		err = commonerrors.New(commonerrors.ErrUndefined, "authorization header is not set")
+		err = commonerrors.Newf(commonerrors.ErrUndefined, "`%v` header is not set", headers.Authorization)
 		return
 	}
 	parts := strings.Fields(authHeader)
 	if len(parts) != 2 {
-		err = commonerrors.New(commonerrors.ErrInvalid, "`Authorization` header contains incorrect number of parts")
+		err = commonerrors.Newf(commonerrors.ErrInvalid, "`%v` header contains incorrect number of parts", headers.Authorization)
 		return
 	}
 	scheme = parts[0]
@@ -342,11 +356,11 @@ func GenerateAuthorizationHeaderValue(scheme string, token string) (value string
 // AddToUserAgent adds some information to the `User Agent`.
 func AddToUserAgent(r *http.Request, elements ...string) (err error) {
 	if r == nil {
-		err = fmt.Errorf("%w: missing request", commonerrors.ErrUndefined)
+		err = commonerrors.UndefinedVariable("request")
 		return
 	}
 	if reflection.IsEmpty(elements) {
-		err = fmt.Errorf("%w: empty elements to add", commonerrors.ErrUndefined)
+		err = commonerrors.New(commonerrors.ErrUndefined, "empty elements to add")
 		return
 	}
 	r.Header.Set(headers.UserAgent, useragent.AddValuesToUserAgent(FetchUserAgent(r), elements...))
