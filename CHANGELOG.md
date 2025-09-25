@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.124.1" (2025-09-25)
+======================
+
+Bugfixes
+--------
+
+- :bug: `[goreleaser]` Update goreleaser yaml to work with version 2 (#20250925195429)
+
+
 "1.124.0" (2025-09-25)
 ======================
 
