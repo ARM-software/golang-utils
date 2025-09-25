@@ -11,7 +11,6 @@ import (
 	"crypto/sha1" //nolint:gosec
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"hash"
 	"io"
 	"math"
@@ -76,6 +75,42 @@ func newHashingAlgorithm(htype string, algorithm hash.Hash) (IHash, error) {
 	}, nil
 }
 
+// DetermineHashingAlgorithmCanonicalReference determines the hashing algorithm reference from a string.
+func DetermineHashingAlgorithmCanonicalReference(name string) (ref string, err error) {
+	n := strings.TrimSpace(strings.ReplaceAll(name, "-", ""))
+	if reflection.IsEmpty(n) {
+		err = commonerrors.UndefinedVariable("algorithm name")
+		return
+	}
+	switch {
+	case strings.EqualFold(HashMd5, n):
+		ref = HashMd5
+	case strings.EqualFold(HashSha1, n):
+
+		ref = HashSha1
+	case strings.EqualFold(HashSha256, n):
+		ref = HashSha256
+	case strings.EqualFold(HashMurmur, n):
+		ref = HashMurmur
+	case strings.EqualFold(HashXXHash, n):
+		ref = HashXXHash
+	case strings.EqualFold(HashBlake2256, n):
+		ref = HashBlake2256
+	default:
+		err = commonerrors.New(commonerrors.ErrNotFound, "could not find the corresponding hashing algorithm")
+	}
+	return
+}
+
+// DetermineHashingAlgorithm returns a hashing algorithm based on a string reference. Similar to NewHashingAlgorithm but more flexible.
+func DetermineHashingAlgorithm(algorithm string) (IHash, error) {
+	htype, err := DetermineHashingAlgorithmCanonicalReference(algorithm)
+	if err != nil {
+		return nil, err
+	}
+	return NewHashingAlgorithm(htype)
+}
+
 func NewHashingAlgorithm(htype string) (IHash, error) {
 	var hash hash.Hash
 	var err error
@@ -94,11 +129,11 @@ func NewHashingAlgorithm(htype string) (IHash, error) {
 		hash, err = blake2b.New256(nil)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed loading the hashing algorithm: %v", commonerrors.ErrUnexpected, err.Error())
+		return nil, commonerrors.WrapError(commonerrors.ErrUnexpected, err, "failed loading the hashing algorithm")
 	}
 
 	if hash == nil {
-		return nil, fmt.Errorf("%w: could not find the corresponding hashing algorithm", commonerrors.ErrNotFound)
+		return nil, commonerrors.New(commonerrors.ErrNotFound, "could not find the corresponding hashing algorithm")
 	}
 	return newHashingAlgorithm(htype, hash)
 }

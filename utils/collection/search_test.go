@@ -11,6 +11,9 @@ import (
 
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
 func TestFind(t *testing.T) {
@@ -140,10 +143,17 @@ func TestMap(t *testing.T) {
 		return fmt.Sprintf("Hello world %v", i)
 	})
 	assert.ElementsMatch(t, []string{"Hello world 1", "Hello world 2"}, mapped)
-	mapped = Map([]int64{1, 2, 3, 4}, func(x int64) string {
-		return strconv.FormatInt(x, 10)
+	num := []int{1, 2, 3, 4}
+	numStr := []string{"1", "2", "3", "4"}
+	mapped = Map(num, func(x int) string {
+		return strconv.FormatInt(safecast.ToInt64(x), 10)
 	})
-	assert.ElementsMatch(t, []string{"1", "2", "3", "4"}, mapped)
+	assert.ElementsMatch(t, numStr, mapped)
+	m, err := MapWithError[string, int](numStr, strconv.Atoi)
+	require.NoError(t, err)
+	assert.ElementsMatch(t, num, m)
+	_, err = MapWithError[string, int](append(numStr, faker.Word(), "5"), strconv.Atoi)
+	require.Error(t, err)
 }
 
 func TestReduce(t *testing.T) {

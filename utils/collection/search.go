@@ -87,6 +87,7 @@ func Filter[S ~[]E, E any](s S, f FilterFunc[E]) (result S) {
 }
 
 type MapFunc[T1, T2 any] func(T1) T2
+type MapWithErrorFunc[T1, T2 any] func(T1) (T2, error)
 
 func IdentityMapFunc[T any]() MapFunc[T, T] {
 	return func(i T) T {
@@ -103,6 +104,22 @@ func Map[T1 any, T2 any](s []T1, f MapFunc[T1, T2]) (result []T2) {
 	}
 
 	return result
+}
+
+// MapWithError creates a new slice and populates it with the results of calling the provided function on every element in input slice. If an error happens, the mapping stops and the error returned.
+func MapWithError[T1 any, T2 any](s []T1, f MapWithErrorFunc[T1, T2]) (result []T2, err error) {
+	result = make([]T2, len(s))
+
+	for i := range s {
+		var subErr error
+		result[i], subErr = f(s[i])
+		if subErr != nil {
+			err = subErr
+			return
+		}
+	}
+
+	return
 }
 
 // Reject is the opposite of Filter and returns the elements of collection for which the filtering function f returns false.
