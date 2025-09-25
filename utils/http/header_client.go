@@ -7,6 +7,8 @@ import (
 	"slices"
 	"strings"
 
+	headers2 "github.com/go-http-utils/headers"
+
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/http/headers"
 )
@@ -76,13 +78,13 @@ func (c *ClientWithHeaders) Post(url, contentType string, rawBody interface{}) (
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set(headers.HeaderContentType, contentType) // make sure to overrwrite any in the headers
+	req.Header.Set(headers2.ContentType, contentType) // make sure to overwrite any in the headers
 	return c.client.Do(req)
 }
 
 func (c *ClientWithHeaders) PostForm(url string, data url.Values) (*http.Response, error) {
 	rawBody := strings.NewReader(data.Encode())
-	return c.Post(url, headers.HeaderXWWWFormURLEncoded, rawBody)
+	return c.Post(url, headers.MIMEXWWWFormURLEncoded, rawBody)
 }
 
 func (c *ClientWithHeaders) StandardClient() *http.Client {
