@@ -860,7 +860,7 @@ func TestEmbeddedServiceConfigurationWithNoTagLoadFromFile(t *testing.T) {
 	assert.Equal(t, "embedded 2", testEmbedded.Embedded2)
 }
 
-// Config values loaded from file should be correctly mapped onto a struct that embeds another struct with a mapstructure tag set
+// Nested config values loaded from file should be correctly mapped onto a struct that embeds another struct with a mapstructure tag set
 func TestEmbeddedServiceConfigurationWithTagLoadFromFile(t *testing.T) {
 	os.Clearenv()
 	session := viper.New()
@@ -907,7 +907,7 @@ func TestEmbeddedServiceConfigurationWithSquashTagLoadFromNestedFile(t *testing.
 	assert.NotEqual(t, "embedded 2", testEmbeddedWithSquashTag.Embedded2)
 }
 
-// Config values loaded from file should be correctly mapped onto a struct that embeds another struct and maintains any defaults not overwritten
+// Nested config values loaded from file should be correctly mapped onto a struct that embeds another struct and should maintain any defaults not overwritten
 func TestEmbeddedServiceConfigurationLoadFromFileWithDefaults(t *testing.T) {
 	os.Clearenv()
 	session := viper.New()
