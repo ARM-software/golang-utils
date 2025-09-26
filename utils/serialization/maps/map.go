@@ -154,7 +154,6 @@ func mapstructureDecoder(input, result any) error {
 		DecodeHook: mapstructure.ComposeDecodeHookFunc(
 			timeHookFunc(), mapstructure.StringToTimeDurationHookFunc(), mapstructure.StringToURLHookFunc(), mapstructure.StringToIPHookFunc()),
 		Result: result,
-		Squash: true,
 	})
 	if err != nil {
 		return err

@@ -112,12 +112,8 @@ func LoadFromEnvironmentAndSystem(viperSession *viper.Viper, envVarPrefix string
 		}
 	}
 
-	defaultDecodeConfigOptions := func(dc *mapstructure.DecoderConfig) {
-		dc.Squash = true // this will automatically flatten embedded struct fields into parent structs and map them correctly
-	}
-
 	// Merge together all the sources and unmarshal into struct
-	err = viperSession.Unmarshal(configurationToSet, defaultDecodeConfigOptions)
+	err = viperSession.Unmarshal(configurationToSet)
 	if err != nil {
 		err = commonerrors.WrapError(commonerrors.ErrMarshalling, err, "unable to fill configuration structure from the configuration session")
 		return

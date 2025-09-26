@@ -1,1 +1,1 @@
-:sparkles: `[config]` Automatically flatten embedded struct fields on service configurations
+:gear: `[config]` Add tests for service configurations with embedded structs tagged with `mapstructure:",squash"`
