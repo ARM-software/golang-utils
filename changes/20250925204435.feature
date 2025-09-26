@@ -1,1 +1,1 @@
-:sparkles: `[config]` Automatically flatten embedded struct fields
+:sparkles: `[config]` Automatically flatten embedded struct fields on service configurations
