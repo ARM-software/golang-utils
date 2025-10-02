@@ -100,10 +100,36 @@ type TestStruct2WithTime struct {
 	Time     time.Time     `mapstructure:"some_time"`
 	Duration time.Duration `mapstructure:"some_duration"`
 }
+
 type TestStruct3WithTime struct {
 	Time     time.Time     `mapstructure:"some_time"`
 	Duration time.Duration `mapstructure:"some_duration"`
 	Struct   TestStruct2WithTime
+}
+
+type TestStruct4 struct {
+	Field1 string `mapstructure:"field_1"`
+	Field2 string `mapstructure:"field_2"`
+}
+
+type TestStruct5WithEmbeddedStruct struct {
+	TestStruct4
+	Field3 string `mapstructure:"field_3"`
+}
+
+type TestStruct5WithEmbeddedStructAndSquashTag struct {
+	TestStruct4 `mapstructure:",squash"`
+	Field3      string `mapstructure:"field_3"`
+}
+
+type TestStruct6WithEmbeddedStruct struct {
+	TestStruct5WithEmbeddedStruct
+	Field4 string `mapstructure:"field_4"`
+}
+
+type TestStruct6WithEmbeddedStructAndSquashTag struct {
+	TestStruct5WithEmbeddedStructAndSquashTag `mapstructure:",squash"`
+	Field4                                    string `mapstructure:"field_4"`
 }
 
 func TestToMap(t *testing.T) {
@@ -160,5 +186,56 @@ func TestToMap(t *testing.T) {
 		errortest.AssertError(t, FromMapToPointer[any](testMap, nil), commonerrors.ErrInvalid, commonerrors.ErrUndefined)
 		errortest.AssertError(t, FromMapToPointer[*TestStruct3WithTime](testMap, nil), commonerrors.ErrInvalid, commonerrors.ErrUndefined)
 	})
+	t.Run("embedded struct mapping with `mapstructure:\",squash\"`", func(t *testing.T) {
+		testStruct := TestStruct6WithEmbeddedStructAndSquashTag{}
+		require.NoError(t, faker.FakeData(&testStruct))
 
+		m := make(map[string]string)
+		m["field_1"] = faker.Word()
+		m["field_2"] = faker.Word()
+		m["field_3"] = faker.Word()
+		m["field_4"] = faker.Word()
+
+		// Should correctly set embedded struct fields from map m, even on nested embedded structs
+		err := FromMap[TestStruct6WithEmbeddedStructAndSquashTag](m, &testStruct)
+		require.NoError(t, err)
+		assert.Equal(t, testStruct.Field1, m["field_1"])
+		assert.Equal(t, testStruct.Field2, m["field_2"])
+		assert.Equal(t, testStruct.Field3, m["field_3"])
+		assert.Equal(t, testStruct.Field4, m["field_4"])
+
+		structMap, err := ToMap[TestStruct6WithEmbeddedStructAndSquashTag](&testStruct)
+		require.NoError(t, err)
+		assert.Equal(t, m, structMap)
+
+		newStruct := TestStruct6WithEmbeddedStructAndSquashTag{}
+		require.NoError(t, FromMap[TestStruct6WithEmbeddedStructAndSquashTag](structMap, &newStruct))
+		assert.Equal(t, testStruct, newStruct)
+	})
+	t.Run("embedded struct mapping without `mapstructure:\",squash\"`", func(t *testing.T) {
+		testStruct := TestStruct6WithEmbeddedStruct{}
+		require.NoError(t, faker.FakeData(&testStruct))
+
+		m := make(map[string]string)
+		m["field_1"] = faker.Word()
+		m["field_2"] = faker.Word()
+		m["field_3"] = faker.Word()
+		m["field_4"] = faker.Word()
+
+		// Should only set the parent struct fields from map m and ignore any embedded struct fields
+		err := FromMap[TestStruct6WithEmbeddedStruct](m, &testStruct)
+		require.NoError(t, err)
+		assert.NotEqual(t, testStruct.Field1, m["field_1"])
+		assert.NotEqual(t, testStruct.Field2, m["field_2"])
+		assert.NotEqual(t, testStruct.Field3, m["field_3"])
+		assert.Equal(t, testStruct.Field4, m["field_4"])
+
+		structMap, err := ToMap[TestStruct6WithEmbeddedStruct](&testStruct)
+		require.NoError(t, err)
+		assert.NotEqual(t, m, structMap)
+
+		newStruct := TestStruct6WithEmbeddedStruct{}
+		require.NoError(t, FromMap[TestStruct6WithEmbeddedStruct](structMap, &newStruct))
+		assert.Equal(t, testStruct, newStruct)
+	})
 }
