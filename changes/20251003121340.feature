@@ -1,1 +1,1 @@
-:sparkles: `parallisation` Add support for execution groups with priorities
+:sparkles: `parallelisation` Add support for execution groups with priorities
