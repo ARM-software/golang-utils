@@ -26,6 +26,18 @@ func NewContextualGroup(options ...StoreOption) *ContextualFunctionGroup {
 	}
 }
 
+// NewContextualGroupWithPriority returns a group executing contextual functions that will be run in priority order.
+func NewPriorityContextualGroup(options ...StoreOption) *PriorityExecutionGroup[ContextualFunc] {
+	return newPriorityExecutionGroup[ContextualFunc](
+		func(options ...StoreOption) IExecutionGroup[ContextualFunc] {
+			return NewExecutionGroup[ContextualFunc](func(ctx context.Context, f ContextualFunc) error {
+				return f(ctx)
+			}, options...)
+		},
+		options...,
+	)
+}
+
 // ForEach executes all the contextual functions according to the store options and returns an error if one occurred.
 func ForEach(ctx context.Context, executionOptions *StoreOptions, contextualFunc ...ContextualFunc) error {
 	group := NewContextualGroup(ExecuteAll(executionOptions).Options()...)
