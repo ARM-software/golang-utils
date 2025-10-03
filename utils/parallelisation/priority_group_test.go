@@ -368,9 +368,7 @@ func TestPriority(t *testing.T) {
 
 		priorityGroup := NewPriorityExecutionGroup(Parallel)
 
-		priorityGroup.RegisterFunction(testExecutorFunc(func(ctx context.Context) error {
-			return DetermineContextError(ctx)
-		}))
+		priorityGroup.RegisterFunction(testExecutorFunc(DetermineContextError))
 
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
@@ -384,9 +382,7 @@ func TestPriority(t *testing.T) {
 
 		priorityGroup := NewPriorityExecutionGroup(Parallel)
 
-		priorityGroup.RegisterFunction(testExecutorFunc(func(ctx context.Context) error {
-			return DetermineContextError(ctx)
-		}))
+		priorityGroup.RegisterFunction(testExecutorFunc(DetermineContextError))
 
 		ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 		defer cancel()

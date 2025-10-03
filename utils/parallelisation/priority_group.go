@@ -5,8 +5,9 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/sasha-s/go-deadlock"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 var _ IExecutionGroup[IExecutor] = &PriorityExecutionGroup[IExecutor]{}
