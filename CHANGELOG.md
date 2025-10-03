@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.125.0" (2025-10-03)
+======================
+
+Features
+--------
+
+- :gear: `[config]` Add tests for service configurations with embedded structs tagged with `mapstructure:",squash"` (#20250925204435)
+- :sparkles: `parallelisation` Add support for execution groups with priorities (#20251003121340)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v4-4.25.9 (#20251001100408, #20251001100414, #20251001100436, #20251001100444, #20251001100508, #20251001100516, #20251001100538, #20251001100553, #20251001100616, #20251001100619)
+
+
 "1.124.1" (2025-09-25)
 ======================
 
