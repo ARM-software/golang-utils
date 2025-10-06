@@ -31,13 +31,19 @@ const (
 	HeaderDeprecation = "Deprecation" // https://datatracker.ietf.org/doc/html/draft-ietf-httpapi-deprecation-header-02
 	HeaderLink        = headers.Link  // https://datatracker.ietf.org/doc/html/rfc8288
 	// TUS Headers https://tus.io/protocols/resumable-upload#headers
-	HeaderUploadOffset        = "Upload-Offset"
-	HeaderTusVersion          = "Tus-Version"
-	HeaderUploadLength        = "Upload-Length"
-	HeaderTusResumable        = "Tus-Resumable"
-	HeaderTusExtension        = "Tus-Extension"
-	HeaderTusMaxSize          = "Tus-Max-Size"
+	HeaderUploadOffset = "Upload-Offset"
+	HeaderTusVersion   = "Tus-Version"
+	HeaderUploadLength = "Upload-Length"
+	HeaderTusResumable = "Tus-Resumable"
+	HeaderTusExtension = "Tus-Extension"
+	HeaderTusMaxSize   = "Tus-Max-Size"
+	// Verb tunnelling  (see https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-odata/bdbabfa6-8c4a-4741-85a9-8d93ffd66c41)
+	// CAUTION see the security risk of supporting such headers https://www.sidechannel.blog/en/http-method-override-what-it-is-and-how-a-pentester-can-use-it/
 	HeaderXHTTPMethodOverride = "X-HTTP-Method-Override"
+	HeaderXHTTPMethod         = "X-HTTP-Method"
+	HeaderXMethodOverride     = "X-Method-Override"
+	HeaderXOverrideMethod     = "X-Override-Method"
+
 	// TUS extensions Headers
 	HeaderUploadMetadata    = "Upload-Metadata"        // See https://tus.io/protocols/resumable-upload#upload-metadata
 	HeaderUploadDeferLength = "Upload-Defer-Length"    // See https://tus.io/protocols/resumable-upload#upload-defer-length
@@ -51,6 +57,8 @@ const (
 )
 
 var (
+	// VerbTunnellingHeaders defines the non-standard headers which can be used for Verb tunnelling  (see https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-odata/bdbabfa6-8c4a-4741-85a9-8d93ffd66c41)
+	VerbTunnellingHeaders = []string{HeaderXHTTPMethodOverride, HeaderXHTTPMethod, HeaderXMethodOverride, HeaderXOverrideMethod}
 	// SafeHeaders corresponds to headers which do not store personal data.
 	SafeHeaders = []string{
 		HeaderVersion,
@@ -76,6 +84,9 @@ var (
 		HeaderChecksumAlgorithm,
 		HeaderChecksum,
 		HeaderUploadConcat,
+		HeaderXHTTPMethod,
+		HeaderXMethodOverride,
+		HeaderXOverrideMethod,
 		headers.Accept,
 		headers.AcceptCharset,
 		headers.AcceptEncoding,
