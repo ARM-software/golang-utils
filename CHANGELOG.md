@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.126.0" (2025-10-07)
+======================
+
+Features
+--------
+
+- :sparkles: `[headers]` Support headers for [verb tunnelling](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-odata/bdbabfa6-8c4a-4741-85a9-8d93ffd66c41) (#20251006152230)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v5-5.16.3 (#20251006104036)
+
+
 "1.125.0" (2025-10-03)
 ======================
 
