@@ -464,7 +464,7 @@ func DescribeCircumstance(originalError error, circumstance string) error {
 	return WrapError(ErrUnexpected, origErr, circumstance)
 }
 
-// DescribeCircumstanceAndKeepType does almost the same as DescribeCircumstance but if the err is not a common error, it won't wrap it but just add the context string to it.
+// DescribeCircumstanceAndKeepType does almost the same as DescribeCircumstance but if the error is not a common error, it won't wrap it but just add the context string to it.
 func DescribeCircumstanceAndKeepType(err error, circumstance string) error {
 	origErr := ConvertContextError(err)
 	isCommonError, commonError := RetrieveCommonError(origErr)
