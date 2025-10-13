@@ -128,6 +128,24 @@ func Reject[S ~[]E, E any](s S, f FilterFunc[E]) S {
 	return Filter(s, func(e E) bool { return !f(e) })
 }
 
+func match[E any](e E, matches []FilterFunc[E]) *Conditions {
+	conditions := NewConditions(len(matches))
+	for i := range matches {
+		conditions.Add(matches[i](e))
+	}
+	return &conditions
+}
+
+// Match checks whether an element e matches any of the matching functions.
+func Match[E any](e E, matches ...FilterFunc[E]) bool {
+	return match[E](e, matches).Any()
+}
+
+// MatchAll checks whether an element e matches all the matching functions.
+func MatchAll[E any](e E, matches ...FilterFunc[E]) bool {
+	return match[E](e, matches).All()
+}
+
 type ReduceFunc[T1, T2 any] func(T2, T1) T2
 
 // Reduce runs a reducer function f over all elements in the array, in ascending-index order, and accumulates them into a single value.
