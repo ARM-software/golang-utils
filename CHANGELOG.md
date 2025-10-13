@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.127.0" (2025-10-13)
+======================
+
+Features
+--------
+
+- :sparkles: `[collection]` Added a `Match` function (#20251013111319)
+
+
 "1.126.0" (2025-10-07)
 ======================
 
