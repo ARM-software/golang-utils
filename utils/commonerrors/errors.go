@@ -73,6 +73,89 @@ func IsCommonError(target error) bool {
 	return Any(target, ErrNotImplemented, ErrNoExtension, ErrNoLogger, ErrNoLoggerSource, ErrNoLogSource, ErrUndefined, ErrInvalidDestination, ErrTimeout, ErrLocked, ErrStaleLock, ErrExists, ErrNotFound, ErrUnsupported, ErrUnavailable, ErrWrongUser, ErrUnauthorised, ErrUnknown, ErrInvalid, ErrConflict, ErrMarshalling, ErrCancelled, ErrEmpty, ErrUnexpected, ErrTooLarge, ErrForbidden, ErrCondition, ErrEOF, ErrMalicious, ErrWarning, ErrOutOfRange, ErrFailed)
 }
 
+// RetrieveCommonError tries to return the common error of an error.
+func RetrieveCommonError(target error) (isCommonError bool, commonError error) {
+	switch {
+	case IsEmpty(target):
+		return true, nil
+	case Any(target, ErrNotImplemented):
+		return true, ErrNotImplemented
+	case Any(target, ErrNoExtension):
+		return true, ErrNoExtension
+	case Any(target, ErrNoLogger):
+		return true, ErrNoLogger
+	case Any(target, ErrNoLoggerSource):
+		return true, ErrNoLoggerSource
+	case Any(target, ErrNoLogSource):
+		return true, ErrNoLogSource
+	case Any(target, ErrUndefined):
+		return true, ErrUndefined
+	case Any(target, ErrInvalidDestination):
+		return true, ErrInvalidDestination
+	case Any(target, ErrTimeout):
+		return true, ErrTimeout
+	case Any(target, ErrLocked):
+		return true, ErrLocked
+	case Any(target, ErrStaleLock):
+		return true, ErrStaleLock
+	case Any(target, ErrExists):
+		return true, ErrExists
+	case Any(target, ErrNotFound):
+		return true, ErrNotFound
+	case Any(target, ErrUnsupported):
+		return true, ErrUnsupported
+	case Any(target, ErrUnavailable):
+		return true, ErrUnavailable
+	case Any(target, ErrWrongUser):
+		return true, ErrWrongUser
+	case Any(target, ErrUnauthorised):
+		return true, ErrUnauthorised
+	case Any(target, ErrUnknown):
+		return true, ErrUnknown
+	case Any(target, ErrInvalid):
+		return true, ErrInvalid
+	case Any(target, ErrConflict):
+		return true, ErrConflict
+	case Any(target, ErrMarshalling):
+		return true, ErrMarshalling
+	case Any(target, ErrCancelled):
+		return true, ErrCancelled
+	case Any(target, ErrEmpty):
+		return true, ErrEmpty
+	case Any(target, ErrUnexpected):
+		return true, ErrUnexpected
+	case Any(target, ErrTooLarge):
+		return true, ErrTooLarge
+	case Any(target, ErrForbidden):
+		return true, ErrForbidden
+	case Any(target, ErrCondition):
+		return true, ErrCondition
+	case Any(target, ErrEOF):
+		return true, ErrEOF
+	case Any(target, ErrMalicious):
+		return true, ErrMalicious
+	case Any(target, ErrOutOfRange):
+		return true, ErrOutOfRange
+	case Any(target, ErrFailed):
+		return true, ErrFailed
+	case Any(target, ErrWarning):
+		return true, ErrWarning
+	}
+
+	underlyingErr, parseError := GetUnderlyingErrorType(target)
+	if parseError != nil {
+		commonError = ErrUnknown
+		return
+	}
+	if IsCommonError(underlyingErr) {
+		commonError = underlyingErr
+		isCommonError = true
+	} else {
+		commonError = ErrUnknown
+	}
+	return
+}
+
 // Any determines whether the target error is of the same type as any of the errors `err`
 func Any(target error, err ...error) bool {
 	for i := range err {
@@ -371,6 +454,36 @@ func Errorf(targetErr error, format string, args ...any) error {
 	}
 }
 
+// DescribeCircumstance adds some context to a particular error. If the error is of a known type (as in, a common error), it will be kept. Otherwise, it will be set as Unexpected.
+func DescribeCircumstance(originalError error, circumstance string) error {
+	origErr := ConvertContextError(originalError)
+	isCommonError, commonError := RetrieveCommonError(origErr)
+	if isCommonError {
+		return WrapError(commonError, origErr, circumstance)
+	}
+	return WrapError(ErrUnexpected, origErr, circumstance)
+}
+
+// DescribeCircumstanceAndKeepType does almost the same as DescribeCircumstance but if the err is not a common error, it won't wrap it but just add the context string to it.
+func DescribeCircumstanceAndKeepType(err error, circumstance string) error {
+	origErr := ConvertContextError(err)
+	isCommonError, commonError := RetrieveCommonError(origErr)
+	if isCommonError {
+		return WrapError(commonError, origErr, circumstance)
+	}
+	return New(origErr, circumstance)
+}
+
+// DescribeCircumstanceAndKeepTypef is like DescribeCircumstanceAndKeepType but uses a message format to describe the error context.
+func DescribeCircumstanceAndKeepTypef(err error, circumstanceFormat string, args ...any) error {
+	return DescribeCircumstanceAndKeepType(err, fmt.Sprintf(circumstanceFormat, args...))
+}
+
+// DescribeCircumstancef is the same as DescribeCircumstance but uses a format for capturing the error context.
+func DescribeCircumstancef(err error, circumstanceFormat string, args ...any) error {
+	return DescribeCircumstance(err, fmt.Sprintf(circumstanceFormat, args...))
+}
+
 // WrapError wraps an error into a particular targetError. However, if the original error has to do with a contextual error (i.e. ErrCancelled or ErrTimeout) or should be considered as a failure rather than an error, it will be passed through without having its type changed.
 // Same is true with warnings.
 // This method should be used to safely wrap errors without losing information about context control information.
@@ -407,7 +520,7 @@ func WrapIfNotCommonError(targetError, originalError error, msg string) error {
 		return WrapError(targetError, originalError, msg)
 	}
 	if IsCommonError(originalError) {
-		return New(originalError, msg)
+		return DescribeCircumstance(originalError, msg)
 	}
 	return WrapError(targetError, originalError, msg)
 }
@@ -426,7 +539,7 @@ func WrapIfNotCommonErrorf(targetError, originalError error, msgFormat string, a
 		return WrapErrorf(targetError, originalError, msgFormat, args...)
 	}
 	if IsCommonError(originalError) {
-		return Newf(originalError, msgFormat, args...)
+		return DescribeCircumstancef(originalError, msgFormat, args...)
 	}
 	return WrapErrorf(targetError, originalError, msgFormat, args...)
 }

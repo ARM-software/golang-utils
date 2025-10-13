@@ -127,9 +127,42 @@ func TestIsCommonError(t *testing.T) {
 	}
 	for i := range commonErrors {
 		assert.True(t, IsCommonError(commonErrors[i]))
+		is, rawError := RetrieveCommonError(commonErrors[i])
+		assert.True(t, is)
+		assert.ErrorIs(t, rawError, commonErrors[i])
+		assert.True(t, Any(rawError, commonErrors[i]))
 	}
 
 	assert.False(t, IsCommonError(errors.New(faker.Sentence())))
+}
+
+func TestRetrieveCommonError(t *testing.T) {
+	is, rawError := RetrieveCommonError(nil)
+	assert.True(t, is)
+	assert.True(t, Any(rawError, nil))
+
+	is, rawError = RetrieveCommonError(errors.New("        "))
+	assert.True(t, is)
+	assert.True(t, Any(rawError, nil))
+
+	is, rawError = RetrieveCommonError(ErrUndefined)
+	assert.True(t, is)
+	assert.ErrorIs(t, rawError, ErrUndefined)
+	assert.True(t, Any(rawError, ErrUndefined))
+
+	is, rawError = RetrieveCommonError(fmt.Errorf("%w: %v", ErrInvalid, faker.Sentence()))
+	assert.True(t, is)
+	assert.ErrorIs(t, rawError, ErrInvalid)
+	assert.True(t, Any(rawError, ErrInvalid))
+
+	is, rawError = RetrieveCommonError(fmt.Errorf("%v: %v", ErrCondition.Error(), faker.Sentence()))
+	assert.True(t, is)
+	assert.ErrorIs(t, rawError, ErrCondition)
+	assert.True(t, Any(rawError, ErrCondition))
+
+	is, rawError = RetrieveCommonError(errors.New(faker.Sentence()))
+	assert.False(t, is)
+	assert.ErrorIs(t, rawError, ErrUnknown)
 }
 
 func TestIsWarning(t *testing.T) {
@@ -254,6 +287,35 @@ func TestWrapError(t *testing.T) {
 	assert.True(t, Any(WrapIfNotCommonErrorf(ErrUndefined, ErrConflict, faker.Sentence()), ErrConflict))
 	assert.True(t, Any(WrapIfNotCommonError(ErrUndefined, errors.New(faker.Sentence()), faker.Sentence()), ErrUndefined))
 	assert.True(t, Any(WrapIfNotCommonErrorf(ErrUndefined, errors.New(faker.Sentence()), faker.Sentence()), ErrUndefined))
+}
+
+func TestDescribeCircumstance(t *testing.T) {
+	tmpErr := errors.New(faker.Name())
+	assert.False(t, IsCommonError(tmpErr))
+	assert.True(t, Any(DescribeCircumstance(context.Canceled, faker.Sentence()), ErrCancelled))
+	assert.True(t, Any(DescribeCircumstance(ErrConflict, faker.Sentence()), ErrConflict))
+	assert.True(t, Any(DescribeCircumstance(New(ErrConflict, faker.Sentence()), faker.Sentence()), ErrConflict))
+	assert.True(t, Any(DescribeCircumstance(errors.New(ErrConflict.Error()), faker.Sentence()), ErrConflict))
+	assert.True(t, Any(DescribeCircumstance(tmpErr, faker.Sentence()), ErrUnexpected))
+	assert.Equal(t, "conflict: some context: conflict: initial error", DescribeCircumstance(New(ErrConflict, "initial error"), "some context").Error())
+	assert.True(t, Any(DescribeCircumstancef(context.Canceled, "%v", faker.Sentence()), ErrCancelled))
+	assert.True(t, Any(DescribeCircumstancef(ErrConflict, "%v", faker.Sentence()), ErrConflict))
+	assert.True(t, Any(DescribeCircumstancef(New(ErrConflict, faker.Sentence()), "%v", faker.Sentence()), ErrConflict))
+	assert.True(t, Any(DescribeCircumstancef(errors.New(ErrConflict.Error()), "%v", faker.Sentence()), ErrConflict))
+	assert.True(t, Any(DescribeCircumstancef(tmpErr, "%v", faker.Sentence()), ErrUnexpected))
+	assert.True(t, Any(DescribeCircumstanceAndKeepType(context.Canceled, faker.Sentence()), ErrCancelled))
+	assert.True(t, Any(DescribeCircumstanceAndKeepType(ErrConflict, faker.Sentence()), ErrConflict))
+	assert.True(t, Any(DescribeCircumstanceAndKeepType(New(ErrConflict, faker.Sentence()), faker.Sentence()), ErrConflict))
+	assert.True(t, Any(DescribeCircumstanceAndKeepType(errors.New(ErrConflict.Error()), faker.Sentence()), ErrConflict))
+	assert.False(t, Any(DescribeCircumstanceAndKeepType(tmpErr, faker.Sentence()), ErrUnexpected))
+	assert.ErrorIs(t, DescribeCircumstanceAndKeepType(tmpErr, faker.Sentence()), tmpErr)
+	assert.True(t, Any(DescribeCircumstanceAndKeepTypef(context.Canceled, "%v", faker.Sentence()), ErrCancelled))
+	assert.True(t, Any(DescribeCircumstanceAndKeepTypef(ErrConflict, "%v", faker.Sentence()), ErrConflict))
+	assert.True(t, Any(DescribeCircumstanceAndKeepTypef(New(ErrConflict, faker.Sentence()), "%v", faker.Sentence()), ErrConflict))
+	assert.True(t, Any(DescribeCircumstanceAndKeepTypef(errors.New(ErrConflict.Error()), "%v", faker.Sentence()), ErrConflict))
+	assert.False(t, Any(DescribeCircumstanceAndKeepTypef(tmpErr, "%v", faker.Sentence()), ErrUnexpected))
+	assert.ErrorIs(t, DescribeCircumstanceAndKeepTypef(tmpErr, "%v", faker.Sentence()), tmpErr)
+
 }
 
 func TestString(t *testing.T) {
