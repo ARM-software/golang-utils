@@ -138,6 +138,20 @@ func TestFilterReject(t *testing.T) {
 	}))
 }
 
+func TestMatch(t *testing.T) {
+	match1 := func(i int) bool { return i == 1 }
+	match2 := func(i int) bool { return i == 2 }
+	match3 := func(i int) bool { return i == 3 }
+	assert.True(t, Match(1, match1, match2, match3))
+	assert.True(t, Match(2, match1, match2, match3))
+	assert.True(t, Match(3, match1, match2, match3))
+	assert.False(t, Match(4, match1, match2, match3))
+	assert.False(t, Match(0, match1, match2, match3))
+	assert.False(t, Match(2, match1, match3))
+	assert.True(t, MatchAll(1, match1))
+	assert.False(t, MatchAll(1, match1, match2))
+}
+
 func TestMap(t *testing.T) {
 	mapped := Map([]int{1, 2}, func(i int) string {
 		return fmt.Sprintf("Hello world %v", i)
