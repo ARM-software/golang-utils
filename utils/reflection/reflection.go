@@ -7,10 +7,10 @@ package reflection
 import (
 	"fmt"
 	"reflect"
-	"strings"
 	"unsafe"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	valueUtils "github.com/ARM-software/golang-utils/utils/value"
 )
 
 func GetUnexportedStructureField(structure interface{}, fieldName string) interface{} {
@@ -22,8 +22,8 @@ func GetStructureField(field reflect.Value) interface{} {
 		return nil
 	}
 	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())). //nolint:gosec // this conversion is between types recommended by Go https://cs.opensource.google/go/go/+/master:src/reflect/value.go;l=2445
-										Elem().
-										Interface()
+		Elem().
+		Interface()
 }
 func SetUnexportedStructureField(structure interface{}, fieldName string, value interface{}) {
 	SetStructureField(fetchStructureField(structure, fieldName), value)
@@ -33,8 +33,8 @@ func SetStructureField(field reflect.Value, value interface{}) {
 		return
 	}
 	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())). //nolint:gosec // this conversion is between types recommended by Go https://cs.opensource.google/go/go/+/master:src/reflect/value.go;l=2445
-										Elem().
-										Set(reflect.ValueOf(value))
+		Elem().
+		Set(reflect.ValueOf(value))
 }
 
 func fetchStructureField(structure interface{}, fieldName string) reflect.Value {
@@ -198,36 +198,7 @@ func InheritsFrom(object interface{}, parentType reflect.Type) bool {
 // IsEmpty checks whether a value is empty i.e. "", nil, 0, [], {}, false, etc.
 // For Strings, a string is considered empty if it is "" or if it only contains whitespaces
 func IsEmpty(value any) bool {
-	if value == nil {
-		return true
-	}
-	if valueStr, ok := value.(string); ok {
-		return len(strings.TrimSpace(valueStr)) == 0
-	}
-	if valueStrPtr, ok := value.(*string); ok {
-		if valueStrPtr == nil {
-			return true
-		}
-		return len(strings.TrimSpace(*valueStrPtr)) == 0
-	}
-	if valueBool, ok := value.(bool); ok {
-		// if set to true, then value is not empty
-		return !valueBool
-	}
-	objValue := reflect.ValueOf(value)
-	switch objValue.Kind() {
-	case reflect.Array, reflect.Chan, reflect.Map, reflect.Slice:
-		return objValue.Len() == 0
-	case reflect.Ptr:
-		if objValue.IsNil() {
-			return true
-		}
-		deref := objValue.Elem().Interface()
-		return IsEmpty(deref)
-	default:
-		zero := reflect.Zero(objValue.Type())
-		return reflect.DeepEqual(value, zero.Interface())
-	}
+	return valueUtils.IsEmpty(value)
 }
 
 // ToStructPtr returns an instance of the pointer (interface) to the object obj.

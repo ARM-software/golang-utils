@@ -9,7 +9,7 @@ package field
 import (
 	"time"
 
-	"github.com/ARM-software/golang-utils/utils/reflection"
+	"github.com/ARM-software/golang-utils/utils/value"
 )
 
 // ToOptionalInt returns a pointer to an int
@@ -216,7 +216,7 @@ func ToOptional[T any](v T) *T {
 
 // ToOptionalOrNilIfEmpty returns a pointer to the given field value unless it is empty and in that case returns nil.
 func ToOptionalOrNilIfEmpty[T any](v T) *T {
-	if reflection.IsEmpty(v) {
+	if value.IsEmpty(v) {
 		return nil
 	}
 	return ToOptional[T](v)
