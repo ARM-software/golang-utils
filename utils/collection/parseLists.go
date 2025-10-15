@@ -5,7 +5,9 @@
 package collection
 
 import (
+	"cmp"
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 	"unicode"
@@ -169,4 +171,21 @@ func ConvertMapToCommaSeparatedList[K comparable, V any](pairs map[K]V) string {
 // ConvertMapToCommaSeparatedPairsList converts a map to a string of comma separated list of key, value pairs.
 func ConvertMapToCommaSeparatedPairsList[K comparable, V any](pairs map[K]V, pairSeparator string) string {
 	return ConvertSliceToCommaSeparatedList[string](ConvertMapToPairSlice[K, V](pairs, pairSeparator))
+}
+
+// ConvertMapToSliceStable converts a map to a slice and ensures that the ordering will always be the same
+func ConvertMapToSliceStable[K cmp.Ordered, V any](pairs map[K]V) []string {
+	if len(pairs) == 0 {
+		return nil
+	}
+	slice := make([]string, 0, len(pairs)*2)
+	for _, key := range slices.Sorted(maps.Keys(pairs)) {
+		slice = append(slice, fmt.Sprintf("%v", key), fmt.Sprintf("%v", pairs[key]))
+	}
+	return slice
+}
+
+// ConvertMapToCommaSeparatedListStable converts a map to a commar-separated list and ensures that the ordering will always be the same
+func ConvertMapToCommaSeparatedListStable[K cmp.Ordered, V any](pairs map[K]V) string {
+	return ConvertSliceToCommaSeparatedList[string](ConvertMapToSliceStable[K, V](pairs))
 }
