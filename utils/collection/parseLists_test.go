@@ -181,7 +181,7 @@ func TestParseCommaSeparatedPairListToMap(t *testing.T) {
 		{"Normal 10", ",, ,,  ,", map[string]string{}, nil, "+"},
 		{"Normal 11", ConvertMapToCommaSeparatedPairsList[string, string](randomMap, "/"), randomMap, nil, "/"},
 		{"Normal 12", ConvertMapToCommaSeparatedPairsList[string, string](randomMap, "  "), randomMap, nil, "  "},
-		{"Normal 13", ConvertMapToCommaSeparatedListStable[string, string](randomMap), randomMap, nil, ","},
+		{"Normal 13", ConvertMapToOrderedCommaSeparatedList[string, string](randomMap), randomMap, nil, ","},
 		{"Bad 1", "one", nil, commonerrors.ErrInvalid, "+"},
 		{"Bad 1", "one, two, three", nil, commonerrors.ErrInvalid, "+"},
 		{"Bad 2", "one element with spaces", nil, commonerrors.ErrInvalid, "+"},
@@ -201,6 +201,6 @@ func TestConvertMapToCommaSeparatedListStable(t *testing.T) {
 	testMap := map[string]string{"hello": "world", "adrien": "cabarbaye", "fish": "cake", "apple": "pie"}
 	expected := "adrien,cabarbaye,apple,pie,fish,cake,hello,world"
 	for range 100 {
-		assert.Equal(t, expected, ConvertMapToCommaSeparatedListStable(testMap))
+		assert.Equal(t, expected, ConvertMapToOrderedCommaSeparatedList(testMap))
 	}
 }

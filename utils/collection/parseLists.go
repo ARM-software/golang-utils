@@ -173,8 +173,8 @@ func ConvertMapToCommaSeparatedPairsList[K comparable, V any](pairs map[K]V, pai
 	return ConvertSliceToCommaSeparatedList[string](ConvertMapToPairSlice[K, V](pairs, pairSeparator))
 }
 
-// ConvertMapToSliceStable converts a map to a slice and ensures that the ordering will always be the same
-func ConvertMapToSliceStable[K cmp.Ordered, V any](pairs map[K]V) []string {
+// ConvertMapToOrderedSlice converts a map to a slice and ensures that the ordering will always be the same
+func ConvertMapToOrderedSlice[K cmp.Ordered, V any](pairs map[K]V) []string {
 	if len(pairs) == 0 {
 		return nil
 	}
@@ -185,7 +185,7 @@ func ConvertMapToSliceStable[K cmp.Ordered, V any](pairs map[K]V) []string {
 	return slice
 }
 
-// ConvertMapToCommaSeparatedListStable converts a map to a commar-separated list and ensures that the ordering will always be the same
-func ConvertMapToCommaSeparatedListStable[K cmp.Ordered, V any](pairs map[K]V) string {
-	return ConvertSliceToCommaSeparatedList[string](ConvertMapToSliceStable[K, V](pairs))
+// ConvertMapToOrderedCommaSeparatedList converts a map to a commar-separated list and ensures that the ordering will always be the same
+func ConvertMapToOrderedCommaSeparatedList[K cmp.Ordered, V any](pairs map[K]V) string {
+	return ConvertSliceToCommaSeparatedList[string](ConvertMapToOrderedSlice[K, V](pairs))
 }
