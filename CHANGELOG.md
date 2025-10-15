@@ -14,6 +14,25 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.128.0" (2025-10-15)
+======================
+
+Features
+--------
+
+- :sparkles: `[errors]` Added a way to provide context (`DescribeCircumstance`) to an error but without changing is type if it is a common error (#20251013123506)
+- :sparkles: [field] Added utilities to return nil if a value is empty as opposed to a pointer to an empty value (#20251014182838)
+- :sparkles: `collection` Add functions for converting maps to slices in a stable/ordered way (#20251015131907)
+
+
+Bugfixes
+--------
+
+- :bug: `[config]` escape mapstructure special tags when reporting an validation error (#20251014182937)
+- Dependency upgrade: v4-4.7.0 (#20251015100359, #20251015100407, #20251015100425, #20251015100443, #20251015100502, #20251015100511, #20251015100535, #20251015100540, #20251015100611, #20251015100614, #20251015100641, #20251015100700, #20251015100718, #20251015100736, #20251015100802, #20251015100813, #20251015100834, #20251015100900, #20251015100918, #20251015100932, #20251015100949, #20251015101011, #20251015101018, #20251015101046, #20251015101048)
+- :gear: `[parallelisation]` Report the context cancellation cause in the related error to provide more context (#20251015114355)
+
+
 "1.127.0" (2025-10-13)
 ======================
 
