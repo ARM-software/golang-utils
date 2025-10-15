@@ -2,8 +2,11 @@ package parallelisation
 
 import (
 	"context"
+	"errors"
 	"testing"
+	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -47,5 +50,39 @@ func TestForEach(t *testing.T) {
 	})
 	t.Run("for each with no error", func(t *testing.T) {
 		require.NoError(t, ForEach(context.Background(), WithOptions(Workers(5), JoinErrors), WrapCancelToContextualFunc(cancelFunc), WrapCancelToContextualFunc(cancelFunc), WrapCancelToContextualFunc(cancelFunc)))
+	})
+}
+
+func TestDetermineContextError(t *testing.T) {
+	t.Run("normal", func(t *testing.T) {
+		require.NoError(t, DetermineContextError(context.Background()))
+	})
+	t.Run("cancellation", func(t *testing.T) {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		require.NoError(t, DetermineContextError(ctx))
+		cancel()
+		err := DetermineContextError(ctx)
+		errortest.AssertError(t, err, commonerrors.ErrCancelled)
+	})
+	t.Run("cancellation with cause", func(t *testing.T) {
+		cause := errors.New("a cause")
+		ctx, cancel := context.WithCancelCause(context.Background())
+		defer cancel(cause)
+		require.NoError(t, DetermineContextError(ctx))
+		cancel(cause)
+		err := DetermineContextError(ctx)
+		errortest.AssertError(t, err, commonerrors.ErrCancelled)
+		errortest.AssertErrorDescription(t, err, cause.Error())
+	})
+	t.Run("cancellation with timeout cause", func(t *testing.T) {
+		cause := errors.New("a cause")
+		ctx, cancel := context.WithTimeoutCause(context.Background(), 5*time.Second, cause)
+		defer cancel()
+		require.NoError(t, DetermineContextError(ctx))
+		cancel()
+		err := DetermineContextError(ctx)
+		errortest.RequireError(t, err, commonerrors.ErrCancelled)
+		assert.NotContains(t, err.Error(), cause.Error()) // the timeout did not take effect and a cancellation was performed instead so the cause is not passed through
 	})
 }
