@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/field"
 )
 
@@ -245,7 +246,7 @@ func TestSetStructField_InvalidField(t *testing.T) {
 	err := SetStructField(&testStructure, "Title", "NEW_title")
 
 	assert.NotNil(t, err)
-	assert.Equal(t, err, fmt.Errorf("error with field [%v]: %w", "Title", commonerrors.ErrInvalid))
+	errortest.AssertError(t, err, commonerrors.ErrInvalid)
 }
 
 func TestSetStructField_UnsettableField(t *testing.T) {
@@ -259,7 +260,7 @@ func TestSetStructField_UnsettableField(t *testing.T) {
 	err := SetStructField(&testStructure, "unexported", "NEW_title")
 
 	assert.NotNil(t, err)
-	assert.Equal(t, err, fmt.Errorf("error with unsettable field [%v]: %w", "unexported", commonerrors.ErrUnsupported))
+	errortest.AssertError(t, err, commonerrors.ErrUnsupported)
 	assert.NotEqual(t, testStructure.unexported, "NEW_title")
 	assert.Equal(t, testStructure.unexported, "unsettable_field")
 }
@@ -277,7 +278,7 @@ func TestSetStructField_FieldAndValueDifferentTypes(t *testing.T) {
 	err := SetStructField(&testStructure, "Title", 133)
 
 	assert.NotNil(t, err)
-	assert.Equal(t, err, fmt.Errorf("conflicting types, field [%v] and value [%v]: %w", reflect.ValueOf(testStructure).FieldByName("Title").Type().Kind(), reflect.TypeOf(123), commonerrors.ErrConflict))
+	errortest.AssertError(t, err, commonerrors.ErrConflict)
 }
 
 func TestInheritsFrom(t *testing.T) {

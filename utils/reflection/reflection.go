@@ -5,7 +5,6 @@
 package reflection
 
 import (
-	"fmt"
 	"reflect"
 	"unsafe"
 
@@ -21,9 +20,7 @@ func GetStructureField(field reflect.Value) interface{} {
 	if !field.IsValid() {
 		return nil
 	}
-	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())). //nolint:gosec // this conversion is between types recommended by Go https://cs.opensource.google/go/go/+/master:src/reflect/value.go;l=2445
-		Elem().
-		Interface()
+	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Interface() //nolint:gosec // this conversion is between types recommended by Go https://cs.opensource.google/go/go/+/master:src/reflect/value.go;l=2445
 }
 func SetUnexportedStructureField(structure interface{}, fieldName string, value interface{}) {
 	SetStructureField(fetchStructureField(structure, fieldName), value)
@@ -32,9 +29,7 @@ func SetStructureField(field reflect.Value, value interface{}) {
 	if !field.IsValid() {
 		return
 	}
-	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())). //nolint:gosec // this conversion is between types recommended by Go https://cs.opensource.google/go/go/+/master:src/reflect/value.go;l=2445
-		Elem().
-		Set(reflect.ValueOf(value))
+	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Set(reflect.ValueOf(value)) //nolint:gosec // this conversion is between types recommended by Go https://cs.opensource.google/go/go/+/master:src/reflect/value.go;l=2445
 }
 
 func fetchStructureField(structure interface{}, fieldName string) reflect.Value {
@@ -62,7 +57,7 @@ func GetStructField(structure interface{}, fieldName string) (interface{}, bool)
 	}
 }
 
-// SetStructField attempts to set a field of a structure to the given vaule
+// SetStructField attempts to set a field of a structure to the given value
 // It returns nil or an error, in case the field doesn't exist on the structure
 // or the value and the field have different types
 func SetStructField(structure interface{}, fieldName string, value interface{}) error {
@@ -70,12 +65,12 @@ func SetStructField(structure interface{}, fieldName string, value interface{}) 
 	Field := ValueStructure.Elem().FieldByName(fieldName)
 	// Test field exists on structure
 	if !Field.IsValid() {
-		return fmt.Errorf("error with field [%v]: %w", fieldName, commonerrors.ErrInvalid)
+		return commonerrors.Newf(commonerrors.ErrInvalid, "error with field [%v]", fieldName)
 	}
 
 	// test field is settable
 	if !Field.CanSet() {
-		return fmt.Errorf("error with unsettable field [%v]: %w", fieldName, commonerrors.ErrUnsupported)
+		return commonerrors.Newf(commonerrors.ErrUnsupported, "error with unsettable field [%v]", fieldName)
 	}
 
 	// Helper variables
@@ -101,7 +96,7 @@ func SetStructField(structure interface{}, fieldName string, value interface{}) 
 
 	// Check that the underlying types are the same (e.g. no int and string)
 	if fieldUnderlyingType != valueUnderlyingType {
-		return fmt.Errorf("conflicting types, field [%v] and value [%v]: %w", fieldKind, valueKind, commonerrors.ErrConflict)
+		return commonerrors.Newf(commonerrors.ErrConflict, "conflicting types, field [%v] and value [%v]", fieldKind, valueKind)
 	}
 
 	if fieldKind == reflect.Ptr {
@@ -204,13 +199,13 @@ func IsEmpty(value any) bool {
 // ToStructPtr returns an instance of the pointer (interface) to the object obj.
 func ToStructPtr(obj reflect.Value) (val interface{}, err error) {
 	if !obj.IsValid() {
-		err = fmt.Errorf("%w: obj value [%v] is not valid", commonerrors.ErrUnsupported, obj)
+		err = commonerrors.Newf(commonerrors.ErrUnsupported, "obj value [%v] is not valid", obj)
 		return
 	}
 
 	vp := reflect.New(obj.Type())
 	if !vp.CanInterface() || !obj.CanInterface() {
-		err = fmt.Errorf("%w: cannot get the value of the object pointer of type %T", commonerrors.ErrUnsupported, obj.Type())
+		err = commonerrors.Newf(commonerrors.ErrUnsupported, "cannot get the value of the object pointer of type %T", obj.Type())
 		return
 	}
 	vp.Elem().Set(obj)
