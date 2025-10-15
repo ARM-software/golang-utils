@@ -11,16 +11,18 @@ import (
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/ARM-software/golang-utils/utils/reflection"
 	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
 func TestOptionalField(t *testing.T) {
 	tests := []struct {
-		fieldType    string
-		value        any
-		defaultValue any
-		setFunction  func(any) any
-		getFunction  func(any, any) any
+		fieldType        string
+		value            any
+		defaultValue     any
+		setFunction      func(any) any
+		setFunctionOrNil func(any) any
+		getFunction      func(any, any) any
 	}{
 		{
 			fieldType:    "Int",
@@ -28,6 +30,9 @@ func TestOptionalField(t *testing.T) {
 			defaultValue: 76,
 			setFunction: func(a any) any {
 				return ToOptionalInt(a.(int))
+			},
+			setFunctionOrNil: func(a any) any {
+				return ToOptionalIntOrNilIfEmpty(a.(int))
 			},
 			getFunction: func(a any, a2 any) any {
 				var ptr *int
@@ -44,6 +49,9 @@ func TestOptionalField(t *testing.T) {
 			setFunction: func(a any) any {
 				return ToOptionalUint(a.(uint))
 			},
+			setFunctionOrNil: func(a any) any {
+				return ToOptionalUintOrNilIfEmpty(a.(uint))
+			},
 			getFunction: func(a any, a2 any) any {
 				var ptr *uint
 				if a != nil {
@@ -58,6 +66,9 @@ func TestOptionalField(t *testing.T) {
 			defaultValue: safecast.ToInt32(97894),
 			setFunction: func(a any) any {
 				return ToOptionalInt32(a.(int32))
+			},
+			setFunctionOrNil: func(a any) any {
+				return ToOptionalInt32OrNilIfEmpty(a.(int32))
 			},
 			getFunction: func(a any, a2 any) any {
 				var ptr *int32
@@ -74,6 +85,9 @@ func TestOptionalField(t *testing.T) {
 			setFunction: func(a any) any {
 				return ToOptionalUint32(a.(uint32))
 			},
+			setFunctionOrNil: func(a any) any {
+				return ToOptionalUint32OrNilIfEmpty(a.(uint32))
+			},
 			getFunction: func(a any, a2 any) any {
 				var ptr *uint32
 				if a != nil {
@@ -88,6 +102,9 @@ func TestOptionalField(t *testing.T) {
 			defaultValue: safecast.ToInt64(97894),
 			setFunction: func(a any) any {
 				return ToOptionalInt64(a.(int64))
+			},
+			setFunctionOrNil: func(a any) any {
+				return ToOptionalInt64OrNilIfEmpty(a.(int64))
 			},
 			getFunction: func(a any, a2 any) any {
 				var ptr *int64
@@ -104,6 +121,9 @@ func TestOptionalField(t *testing.T) {
 			setFunction: func(a any) any {
 				return ToOptionalUint64(a.(uint64))
 			},
+			setFunctionOrNil: func(a any) any {
+				return ToOptionalUint64OrNilIfEmpty(a.(uint64))
+			},
 			getFunction: func(a any, a2 any) any {
 				var ptr *uint64
 				if a != nil {
@@ -118,6 +138,9 @@ func TestOptionalField(t *testing.T) {
 			defaultValue: float32(97894.1545),
 			setFunction: func(a any) any {
 				return ToOptionalFloat32(a.(float32))
+			},
+			setFunctionOrNil: func(a any) any {
+				return ToOptionalFloat32OrNilIfEmpty(a.(float32))
 			},
 			getFunction: func(a any, a2 any) any {
 				var ptr *float32
@@ -134,6 +157,9 @@ func TestOptionalField(t *testing.T) {
 			setFunction: func(a any) any {
 				return ToOptionalFloat64(a.(float64))
 			},
+			setFunctionOrNil: func(a any) any {
+				return ToOptionalFloat64OrNilIfEmpty(a.(float64))
+			},
 			getFunction: func(a any, a2 any) any {
 				var ptr *float64
 				if a != nil {
@@ -148,6 +174,9 @@ func TestOptionalField(t *testing.T) {
 			defaultValue: true,
 			setFunction: func(a any) any {
 				return ToOptionalBool(a.(bool))
+			},
+			setFunctionOrNil: func(a any) any {
+				return ToOptionalBoolOrNilIfEmpty(a.(bool))
 			},
 			getFunction: func(a any, a2 any) any {
 				var ptr *bool
@@ -164,6 +193,9 @@ func TestOptionalField(t *testing.T) {
 			setFunction: func(a any) any {
 				return ToOptionalString(a.(string))
 			},
+			setFunctionOrNil: func(a any) any {
+				return ToOptionalStringOrNilIfEmpty(a.(string))
+			},
 			getFunction: func(a any, a2 any) any {
 				var ptr *string
 				if a != nil {
@@ -178,6 +210,9 @@ func TestOptionalField(t *testing.T) {
 			defaultValue: time.Second,
 			setFunction: func(a any) any {
 				return ToOptionalDuration(a.(time.Duration))
+			},
+			setFunctionOrNil: func(a any) any {
+				return ToOptionalDurationOrNilIfEmpty(a.(time.Duration))
 			},
 			getFunction: func(a any, a2 any) any {
 				var ptr *time.Duration
@@ -194,6 +229,9 @@ func TestOptionalField(t *testing.T) {
 			setFunction: func(a any) any {
 				return ToOptionalTime(a.(time.Time))
 			},
+			setFunctionOrNil: func(a any) any {
+				return ToOptionalTimeOrNilIfEmpty(a.(time.Time))
+			},
 			getFunction: func(a any, a2 any) any {
 				var ptr *time.Time
 				if a != nil {
@@ -208,6 +246,9 @@ func TestOptionalField(t *testing.T) {
 			defaultValue: time.Now(),
 			setFunction: func(a any) any {
 				return ToOptionalAny(a)
+			},
+			setFunctionOrNil: func(a any) any {
+				return ToOptionalAnyOrNilIfEmpty(a)
 			},
 			getFunction: func(a any, a2 any) any {
 				var ptr *any
@@ -225,6 +266,14 @@ func TestOptionalField(t *testing.T) {
 			assert.NotNil(t, to)
 			assert.Equal(t, test.defaultValue, test.getFunction(nil, test.defaultValue))
 			assert.Equal(t, test.value, test.getFunction(to, test.defaultValue))
+			to2 := test.setFunctionOrNil(test.value)
+			if reflection.IsEmpty(test.value) {
+				assert.Nil(t, to2)
+				assert.Equal(t, test.defaultValue, test.getFunction(to2, test.defaultValue))
+			} else {
+				assert.NotNil(t, to2)
+				assert.Equal(t, test.value, test.getFunction(to2, test.defaultValue))
+			}
 		})
 	}
 }
