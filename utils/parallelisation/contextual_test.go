@@ -63,7 +63,7 @@ func TestDetermineContextError(t *testing.T) {
 		require.NoError(t, DetermineContextError(ctx))
 		cancel()
 		err := DetermineContextError(ctx)
-		errortest.AssertError(t, err, commonerrors.ErrTimeout, commonerrors.ErrCancelled)
+		errortest.AssertError(t, err, commonerrors.ErrCancelled)
 	})
 	t.Run("cancellation with cause", func(t *testing.T) {
 		cause := errors.New("a cause")
@@ -72,7 +72,7 @@ func TestDetermineContextError(t *testing.T) {
 		require.NoError(t, DetermineContextError(ctx))
 		cancel(cause)
 		err := DetermineContextError(ctx)
-		errortest.AssertError(t, err, commonerrors.ErrTimeout, commonerrors.ErrCancelled)
+		errortest.AssertError(t, err, commonerrors.ErrCancelled)
 		errortest.AssertErrorDescription(t, err, cause.Error())
 	})
 	t.Run("cancellation with timeout cause", func(t *testing.T) {
@@ -82,7 +82,7 @@ func TestDetermineContextError(t *testing.T) {
 		require.NoError(t, DetermineContextError(ctx))
 		cancel()
 		err := DetermineContextError(ctx)
-		errortest.RequireError(t, err, commonerrors.ErrTimeout, commonerrors.ErrCancelled)
+		errortest.RequireError(t, err, commonerrors.ErrCancelled)
 		assert.NotContains(t, err.Error(), cause.Error()) // the timeout did not take effect and a cancellation was performed instead so the cause is not passed through
 	})
 }
