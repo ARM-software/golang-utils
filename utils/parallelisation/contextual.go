@@ -8,7 +8,11 @@ import (
 
 // DetermineContextError determines what the context error is if any.
 func DetermineContextError(ctx context.Context) error {
-	return commonerrors.ConvertContextError(ctx.Err())
+	err := commonerrors.ConvertContextError(ctx.Err())
+	if commonerrors.Any(err, nil) {
+		return err
+	}
+	return commonerrors.WrapError(err, context.Cause(ctx), "")
 }
 
 type ContextualFunc func(ctx context.Context) error
