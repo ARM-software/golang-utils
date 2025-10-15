@@ -19,6 +19,7 @@ import (
 	"go.uber.org/goleak"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
 
 var (
@@ -361,18 +362,18 @@ func TestLockConcurrentSafeguard(t *testing.T) {
 			// FIXME it was noticed that there could be some race conditions happening in the in-memory file system
 			// see https://github.com/spf13/afero/issues/298
 			if err1 != nil {
-				require.Equal(t0, expectedError, err1)
+				errortest.RequireError(t0, err1, expectedError)
 			}
 			if err2 != nil {
-				require.Equal(t0, expectedError, err2)
+				errortest.RequireError(t0, err2, expectedError)
 			}
 		} else {
 			require.NotEqual(t0, err1, err2)
 			if err1 == nil {
-				require.Equal(t0, expectedError, err2)
+				errortest.RequireError(t0, err2, expectedError)
 			}
 			if err2 == nil {
-				require.Equal(t0, expectedError, err1)
+				errortest.RequireError(t0, err1, expectedError)
 			}
 		}
 	}
