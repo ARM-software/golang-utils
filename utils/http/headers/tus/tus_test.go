@@ -78,6 +78,15 @@ func TestParseTUSHash(t *testing.T) {
 			expectedChecksum: "this is a test value obviously",
 		},
 		{
+			header: func() string {
+				header, err := GenerateTUSChecksumHeader(hashing.HashSha256, "the cloudy crew: josh jennings, kem govender, bianca bunaciu, adrien cabarbaye, abdelrahman abdelraouf, phuong linh nguyen")
+				require.NoError(t, err)
+				return header
+			}(),
+			expectedAlgo:     hashing.HashSha256,
+			expectedChecksum: "the cloudy crew: josh jennings, kem govender, bianca bunaciu, adrien cabarbaye, abdelrahman abdelraouf, phuong linh nguyen",
+		},
+		{
 			header:           "sha1-md5 Lve95gjOVATpfV8EL5X4nxwjKHE=",
 			expectedAlgo:     "sha1-md5",
 			expectedChecksum: "Lve95gjOVATpfV8EL5X4nxwjKHE=",
@@ -144,6 +153,31 @@ func TestParseTUSConcatHeader(t *testing.T) {
 			expectedPartialURL: []string{
 				"/x",
 				"/y",
+			},
+		},
+		{
+			input: func() string {
+				header, err := GenerateTUSConcatFinalHeader(
+					[]*url.URL{
+						func() *url.URL {
+							u, err := url.Parse("/x")
+							require.NoError(t, err)
+							return u
+						}(),
+						func() *url.URL {
+							u, err := url.Parse("/ywh/h")
+							require.NoError(t, err)
+							return u
+						}(),
+					},
+				)
+				require.NoError(t, err)
+				return header
+			}(),
+			isPartial: false,
+			expectedPartialURL: []string{
+				"/x",
+				"/ywh/h",
 			},
 		},
 		{
@@ -273,6 +307,25 @@ func TestParseTUSMetadataHeader(t *testing.T) {
 			expectedElements: map[string]any{
 				"filename": "x",
 				"meta":     "y",
+				"empty":    true,
+			},
+		},
+		{
+			input: func() string {
+				header, err := GenerateTUSMetadataHeader(field.ToOptionalString("test.txt"), map[string]any{
+					"meta":  "y",
+					"test":  false,
+					"empty": true,
+				},
+				)
+				require.NoError(t, err)
+				return header
+			}(),
+			expectedFilename: field.ToOptionalString("test.txt"),
+			expectedElements: map[string]any{
+				"filename": "test.txt",
+				"meta":     "y",
+				"test":     "false",
 				"empty":    true,
 			},
 		},

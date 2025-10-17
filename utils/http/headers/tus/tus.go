@@ -2,6 +2,7 @@ package tus
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"regexp"
 	"strings"
@@ -15,6 +16,19 @@ import (
 )
 
 const KeyTUSMetadata = "filename"
+
+// GenerateTUSChecksumHeader generate the checksum header value
+// See https://tus.io/protocols/resumable-upload#upload-checksum
+func GenerateTUSChecksumHeader(hashAlgo, hash string) (header string, err error) {
+	hashAlgoC, err := hashing.DetermineHashingAlgorithmCanonicalReference(hashAlgo)
+	if err != nil {
+		err = commonerrors.WrapError(commonerrors.ErrUnsupported, err, "hashing algorithm is not supported")
+		return
+	}
+	base64Hash := base64.EncodeString(hash)
+	header = fmt.Sprintf("%v %v", strings.ToLower(hashAlgoC), base64Hash)
+	return
+}
 
 // ParseTUSHash parses the checksum header value and tries to determine the different elements it contains.
 // See https://tus.io/protocols/resumable-upload#upload-checksum
@@ -47,6 +61,17 @@ func ParseTUSHash(checksum string) (hashAlgo, hash string, err error) {
 	return
 }
 
+// GenerateTUSConcatFinalHeader generates the `Concat` header value https://tus.io/protocols/resumable-upload#upload-concat
+func GenerateTUSConcatFinalHeader(partials []*url.URL) (header string, err error) {
+	header = fmt.Sprintf("final;%v", strings.Join(collection.Map[*url.URL, string](partials, func(u *url.URL) string {
+		if u == nil {
+			return ""
+		}
+		return u.EscapedPath()
+	}), " "))
+	return
+}
+
 // ParseTUSConcatHeader parses the `Concat` header value https://tus.io/protocols/resumable-upload#upload-concat
 func ParseTUSConcatHeader(concat string) (isPartial bool, partials []*url.URL, err error) {
 	header := strings.TrimSpace(concat)
@@ -70,6 +95,24 @@ func ParseTUSConcatHeader(concat string) (isPartial bool, partials []*url.URL, e
 	if len(partials) == 0 {
 		err = commonerrors.New(commonerrors.ErrInvalid, "no partial url found")
 	}
+	return
+}
+
+// GenerateTUSMetadataHeader generates the `metadata` header value https://tus.io/protocols/resumable-upload#upload-metadata
+func GenerateTUSMetadataHeader(filename *string, elements map[string]any) (header string, err error) {
+	newMap := make(map[string]string, len(elements))
+	for key, value := range elements {
+		valueB, ok := value.(bool)
+		if ok && valueB {
+			newMap[key] = ""
+		} else {
+			newMap[key] = base64.EncodeString(fmt.Sprintf("%v", value))
+		}
+	}
+	if !reflection.IsEmpty(filename) {
+		newMap[KeyTUSMetadata] = base64.EncodeString(field.OptionalString(filename, ""))
+	}
+	header = strings.Join(collection.ConvertMapToPairSlice(newMap, " "), ",")
 	return
 }
 
