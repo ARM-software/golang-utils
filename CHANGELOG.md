@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.129.0" (2025-10-17)
+======================
+
+Features
+--------
+
+- :sparkles: `[tus]` Add utilities for generating header values (#20251017171656)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: timberjack-1.3.8 (#20251017153742, #20251017153746, #20251017153817)
+
+
 "1.128.0" (2025-10-15)
 ======================
 
