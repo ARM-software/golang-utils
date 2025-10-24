@@ -171,23 +171,31 @@ func (hs Headers) AppendHeader(key, value string) {
 }
 
 func (hs Headers) Append(h *Header) {
-	hs[headers.Normalize(h.Key)] = *h
+	hs[headers.Normalize(h.Key)] = *h //nolint:misspell
 }
 
 func (hs Headers) Get(key string) string {
-	_, value := hs.get(key)
-	return value
+	found, h := hs.get(key)
+	if !found {
+		return ""
+	}
+	return h.Value
 }
 
-func (hs Headers) get(key string) (found bool, value string) {
+func (hs Headers) GetHeader(key string) (header *Header) {
+	_, header = hs.get(key)
+	return
+}
+
+func (hs Headers) get(key string) (found bool, header *Header) {
 	h, found := hs[key]
 	if !found {
-		h, found = hs[headers.Normalize(key)]
+		h, found = hs[headers.Normalize(key)] //nolint:misspell
 		if !found {
 			return
 		}
 	}
-	value = h.Value
+	header = &h
 	return
 }
 
@@ -207,10 +215,10 @@ func (hs Headers) FromRequest(r *http.Request) {
 	if r == nil {
 		return
 	}
-	hs.FromGoHttpHeaders(&r.Header)
+	hs.FromGoHTTPHeaders(&r.Header)
 }
 
-func (hs Headers) FromGoHttpHeaders(headers *http.Header) {
+func (hs Headers) FromGoHTTPHeaders(headers *http.Header) {
 	if reflection.IsEmpty(headers) {
 		return
 	}
@@ -223,7 +231,7 @@ func (hs Headers) FromResponse(resp *http.Response) {
 	if resp == nil {
 		return
 	}
-	hs.FromGoHttpHeaders(&resp.Header)
+	hs.FromGoHTTPHeaders(&resp.Header)
 }
 
 func (hs Headers) Empty() bool {
@@ -248,7 +256,7 @@ func (hs Headers) AppendToRequest(r *http.Request) {
 
 func (hs Headers) RemoveHeader(key string) {
 	delete(hs, key)
-	delete(hs, headers.Normalize(key))
+	delete(hs, headers.Normalize(key)) //nolint:misspell
 }
 
 func (hs Headers) RemoveHeaders(key ...string) {
@@ -283,10 +291,10 @@ func (hs Headers) AllowList(key ...string) *Headers {
 // It is possible to provide an allowed list of extra headers which would also be retained.
 func (hs Headers) Sanitise(allowList ...string) {
 	allowedHeaders := mapset.NewSet[string](NormalisedSafeHeaders...)
-	allowedHeaders.Append(collection.Map[string, string](allowList, headers.Normalize)...)
+	allowedHeaders.Append(collection.Map[string, string](allowList, headers.Normalize)...) //nolint:misspell
 	var headersToRemove []string
 	for key := range hs {
-		if !allowedHeaders.Contains(headers.Normalize(key)) {
+		if !allowedHeaders.Contains(headers.Normalize(key)) { //nolint:misspell
 			headersToRemove = append(headersToRemove, key)
 		}
 	}
@@ -518,7 +526,7 @@ func CreateLinkHeader(link, relation, contentType string) string {
 // SanitiseHeaders sanitises a collection of request headers not to include any with personal data
 func SanitiseHeaders(requestHeader *http.Header) *Headers {
 	hs := NewHeaders()
-	hs.FromGoHttpHeaders(requestHeader)
+	hs.FromGoHTTPHeaders(requestHeader)
 	hs.Sanitise()
 	return hs
 }

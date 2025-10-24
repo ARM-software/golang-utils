@@ -201,12 +201,12 @@ func TestGetHeaders(t *testing.T) {
 	header := NewHeaders()
 	test := faker.Word()
 	header.AppendHeader(HeaderWebsocketProtocol, test)
-	assert.Equal(t, test, header.Get(headers.Normalize(HeaderWebsocketProtocol)))
+	assert.Equal(t, test, header.Get(headers.Normalize(HeaderWebsocketProtocol))) //nolint:misspell
 	assert.True(t, header.HasHeader(HeaderWebsocketProtocol))
-	assert.True(t, header.HasHeader(headers.Normalize(HeaderWebsocketProtocol)))
+	assert.True(t, header.HasHeader(headers.Normalize(HeaderWebsocketProtocol))) //nolint:misspell
 	assert.Empty(t, header.Get(headers.ContentLocation))
 	assert.False(t, header.HasHeader(headers.ContentLocation))
-	assert.False(t, header.HasHeader(headers.Normalize(headers.ContentLocation)))
+	assert.False(t, header.HasHeader(headers.Normalize(headers.ContentLocation))) //nolint:misspell
 }
 
 func TestSanitiseHeaders(t *testing.T) {
