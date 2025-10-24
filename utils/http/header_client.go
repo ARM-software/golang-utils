@@ -15,12 +15,12 @@ import (
 
 type ClientWithHeaders struct {
 	client  IClient
-	headers headers.Headers
+	headers *headers.Headers
 }
 
 func newClientWithHeaders(underlyingClient IClient, headerValues ...string) (c *ClientWithHeaders, err error) {
 	c = &ClientWithHeaders{
-		headers: make(headers.Headers),
+		headers: headers.NewHeaders(),
 	}
 
 	if underlyingClient == nil {
@@ -123,7 +123,7 @@ func (c *ClientWithHeaders) Close() error {
 
 func (c *ClientWithHeaders) AppendHeader(key, value string) {
 	if c.headers == nil {
-		c.headers = make(headers.Headers)
+		c.headers = headers.NewHeaders()
 	}
 	c.headers.AppendHeader(key, value)
 }
@@ -132,9 +132,9 @@ func (c *ClientWithHeaders) RemoveHeader(key string) {
 	if c.headers == nil {
 		return
 	}
-	delete(c.headers, key)
+	c.headers.RemoveHeader(key)
 }
 
 func (c *ClientWithHeaders) ClearHeaders() {
-	c.headers = make(headers.Headers)
+	c.headers = headers.NewHeaders()
 }

@@ -223,7 +223,9 @@ func TestClientWithHeadersWithDifferentBodies(t *testing.T) {
 
 			clientStruct.AppendHeader("hello", "world")
 			require.NotEmpty(t, clientStruct.headers)
-			assert.Equal(t, headers.Header{Key: "hello", Value: "world"}, clientStruct.headers["hello"])
+			header := clientStruct.headers.GetHeader("hello")
+			require.NotNil(t, header)
+			assert.Equal(t, headers.Header{Key: "hello", Value: "world"}, *header)
 
 			clientStruct.RemoveHeader("hello")
 			assert.Empty(t, clientStruct.headers)

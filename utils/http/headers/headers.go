@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/go-http-utils/headers"
 
 	"github.com/ARM-software/golang-utils/utils/collection"
@@ -146,6 +147,9 @@ var (
 		headers.XRatelimitRemaining,
 		headers.XRatelimitReset,
 	}
+	// NormalisedSafeHeaders returns a normalised list of safe headers
+	NormalisedSafeHeaders = collection.Map[string, string](SafeHeaders, headers.Normalize) //nolint:misspell
+
 )
 
 type Header struct {
@@ -167,15 +171,32 @@ func (hs Headers) AppendHeader(key, value string) {
 }
 
 func (hs Headers) Append(h *Header) {
-	hs[h.Key] = *h
+	hs[headers.Normalize(h.Key)] = *h //nolint:misspell
 }
 
 func (hs Headers) Get(key string) string {
-	h, found := hs[key]
+	found, h := hs.get(key)
 	if !found {
 		return ""
 	}
 	return h.Value
+}
+
+func (hs Headers) GetHeader(key string) (header *Header) {
+	_, header = hs.get(key)
+	return
+}
+
+func (hs Headers) get(key string) (found bool, header *Header) {
+	h, found := hs[key]
+	if !found {
+		h, found = hs[headers.Normalize(key)] //nolint:misspell
+		if !found {
+			return
+		}
+	}
+	header = &h
+	return
 }
 
 func (hs Headers) Has(h *Header) bool {
@@ -186,8 +207,31 @@ func (hs Headers) Has(h *Header) bool {
 }
 
 func (hs Headers) HasHeader(key string) bool {
-	_, found := hs[key]
+	found, _ := hs.get(key)
 	return found
+}
+
+func (hs Headers) FromRequest(r *http.Request) {
+	if r == nil {
+		return
+	}
+	hs.FromGoHTTPHeaders(&r.Header)
+}
+
+func (hs Headers) FromGoHTTPHeaders(headers *http.Header) {
+	if reflection.IsEmpty(headers) {
+		return
+	}
+	for key, value := range *headers {
+		hs.AppendHeader(key, value[0])
+	}
+}
+
+func (hs Headers) FromResponse(resp *http.Response) {
+	if resp == nil {
+		return
+	}
+	hs.FromGoHTTPHeaders(&resp.Header)
 }
 
 func (hs Headers) Empty() bool {
@@ -210,8 +254,75 @@ func (hs Headers) AppendToRequest(r *http.Request) {
 	}
 }
 
+func (hs Headers) RemoveHeader(key string) {
+	delete(hs, key)
+	delete(hs, headers.Normalize(key)) //nolint:misspell
+}
+
+func (hs Headers) RemoveHeaders(key ...string) {
+	for i := range key {
+		hs.RemoveHeader(key[i])
+	}
+}
+
+func (hs Headers) Clone() *Headers {
+	clone := make(Headers, len(hs))
+	for k, v := range hs {
+		clone[k] = v
+	}
+	return &clone
+}
+
+// DisallowList returns the headers minus any header defined in the disallow list.
+func (hs Headers) DisallowList(key ...string) *Headers {
+	clone := hs.Clone()
+	clone.RemoveHeaders(key...)
+	return clone
+}
+
+// AllowList return only safe headers and headers defined in the allow list.
+func (hs Headers) AllowList(key ...string) *Headers {
+	clone := hs.Clone()
+	clone.Sanitise(key...)
+	return clone
+}
+
+// Sanitise sanitises headers so no personal data is retained.
+// It is possible to provide an allowed list of extra headers which would also be retained.
+func (hs Headers) Sanitise(allowList ...string) {
+	allowedHeaders := mapset.NewSet[string](NormalisedSafeHeaders...)
+	allowedHeaders.Append(collection.Map[string, string](allowList, headers.Normalize)...) //nolint:misspell
+	var headersToRemove []string
+	for key := range hs {
+		if !allowedHeaders.Contains(headers.Normalize(key)) { //nolint:misspell
+			headersToRemove = append(headersToRemove, key)
+		}
+	}
+	hs.RemoveHeaders(headersToRemove...)
+}
+
 func NewHeaders() *Headers {
 	return &Headers{}
+}
+
+// FromRequest returns request's headers
+func FromRequest(r *http.Request) *Headers {
+	if r == nil {
+		return nil
+	}
+	h := NewHeaders()
+	h.FromRequest(r)
+	return h
+}
+
+// FromResponse returns response's headers
+func FromResponse(resp *http.Response) *Headers {
+	if resp == nil {
+		return nil
+	}
+	h := NewHeaders()
+	h.FromResponse(resp)
+	return h
 }
 
 // ParseAuthorizationHeader fetches the `Authorization` header and parses it.
@@ -414,17 +525,8 @@ func CreateLinkHeader(link, relation, contentType string) string {
 
 // SanitiseHeaders sanitises a collection of request headers not to include any with personal data
 func SanitiseHeaders(requestHeader *http.Header) *Headers {
-	if requestHeader == nil {
-		return nil
-	}
-	aHeaders := NewHeaders()
-	for i := range SafeHeaders {
-		safeHeader := SafeHeaders[i]
-		rHeader := requestHeader.Get(safeHeader)
-		if !reflection.IsEmpty(rHeader) {
-			aHeaders.AppendHeader(safeHeader, rHeader)
-		}
-	}
-
-	return aHeaders
+	hs := NewHeaders()
+	hs.FromGoHTTPHeaders(requestHeader)
+	hs.Sanitise()
+	return hs
 }
