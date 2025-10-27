@@ -94,6 +94,6 @@ For the latter, False positive keys are stored in the [baseline](./.secrets.base
 
 To flag individual false positives add comment `# pragma: allowlist secret` to line with secret
 
-To add all suspected secrets in the repository (excluding ones with an allow secret comment), run `detect-secrets scan --all-files --exclude-files '.*go\.sum$' --exclude-files '.*\.html$' --exclude-files '.*\.properties$' --exclude-files 'ci.yml' --exclude-files '\.git' > .secrets.baseline`
+To add all suspected secrets in the repository (excluding ones with an allow secret comment), run `detect-secrets scan --all-files  --exclude-files '.*\.html$' --exclude-files '.*\.properties$'  --exclude-files '^\.git[\\/]' --exclude-files ".*go\.sum$" --exclude-files '.*codegen.*' --exclude-files 'workflows/.*'  > .secrets.baseline`
 
 If on Windows: then change the encoding of the .secrets.baseline file to UTF-8 then convert all `\` to `/` in the .secrets.baseline file
