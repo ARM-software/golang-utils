@@ -64,9 +64,13 @@ func TestMd5(t *testing.T) {
 	}, {
 		Input: "CMSIS",
 		Hash:  "c61d595888f85f6d30e99ef6cacfcb7d",
-	}}
+	},
+	}
 	for _, testCase := range testCases {
 		assert.Equal(t, testCase.Hash, CalculateMD5Hash(testCase.Input))
+		hash, err := CalculateBytesHash(context.Background(), HashMd5, []byte(testCase.Input))
+		require.NoError(t, err)
+		assert.Equal(t, testCase.Hash, hash)
 	}
 }
 

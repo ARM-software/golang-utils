@@ -6,6 +6,7 @@
 package hashing
 
 import (
+	"bytes"
 	"context"
 	"crypto/md5"  //nolint:gosec
 	"crypto/sha1" //nolint:gosec
@@ -34,6 +35,10 @@ const (
 	HashMurmur    = "Murmur"
 	HashXXHash    = "xxhash"     // https://github.com/OneOfOne/xxhash
 	HashBlake2256 = "blake2b256" // https://www.blake2.net/
+)
+
+var (
+	SupportedHashingAlgorithms = []string{HashMd5, HashXXHash, HashSha1, HashSha256, HashMurmur, HashBlake2256}
 )
 
 type hashingAlgo struct {
@@ -133,7 +138,7 @@ func NewHashingAlgorithm(htype string) (IHash, error) {
 	}
 
 	if hash == nil {
-		return nil, commonerrors.New(commonerrors.ErrNotFound, "could not find the corresponding hashing algorithm")
+		return nil, commonerrors.Newf(commonerrors.ErrNotFound, "could not find the corresponding hashing algorithm. only %v are supported", SupportedHashingAlgorithms)
 	}
 	return newHashingAlgorithm(htype, hash)
 }
@@ -194,6 +199,21 @@ func CalculateHashWithContext(ctx context.Context, text, htype string) string {
 		return ""
 	}
 	return CalculateStringHashWithContext(ctx, hashing, text)
+}
+
+// CalculateHashFromReader returns the hash of element coming from a reader.
+func CalculateHashFromReader(ctx context.Context, htype string, reader io.Reader) (hash string, err error) {
+	hashing, err := NewHashingAlgorithm(htype)
+	if err != nil {
+		return
+	}
+	hash, err = hashing.CalculateWithContext(ctx, reader)
+	return
+}
+
+// CalculateBytesHash returns the hash of a byte array
+func CalculateBytesHash(ctx context.Context, htype string, array []byte) (string, error) {
+	return CalculateHashFromReader(ctx, htype, bytes.NewReader(array))
 }
 
 // CalculateHashOfListOfStrings calculates the hash of some text using the requested htype hashing algorithm.
