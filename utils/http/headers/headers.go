@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"strings"
 
+	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/go-http-utils/headers"
 
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/encoding/base64"
+	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/http/headers/useragent"
 	"github.com/ARM-software/golang-utils/utils/http/schemes"
 	"github.com/ARM-software/golang-utils/utils/reflection"
@@ -146,6 +148,9 @@ var (
 		headers.XRatelimitRemaining,
 		headers.XRatelimitReset,
 	}
+	// NormalisedSafeHeaders returns a normalised list of safe headers
+	NormalisedSafeHeaders = collection.Map[string, string](SafeHeaders, headers.Normalize) //nolint:misspell
+
 )
 
 type Header struct {
@@ -167,15 +172,32 @@ func (hs Headers) AppendHeader(key, value string) {
 }
 
 func (hs Headers) Append(h *Header) {
-	hs[h.Key] = *h
+	hs[headers.Normalize(h.Key)] = *h //nolint:misspell
 }
 
 func (hs Headers) Get(key string) string {
-	h, found := hs[key]
+	h, found := hs.get(key)
 	if !found {
 		return ""
 	}
 	return h.Value
+}
+
+func (hs Headers) GetHeader(key string) (header *Header) {
+	header, _ = hs.get(key)
+	return
+}
+
+func (hs Headers) get(key string) (header *Header, found bool) {
+	h, found := hs[key]
+	if !found {
+		h, found = hs[headers.Normalize(key)] //nolint:misspell
+		if !found {
+			return
+		}
+	}
+	header = &h
+	return
 }
 
 func (hs Headers) Has(h *Header) bool {
@@ -186,8 +208,28 @@ func (hs Headers) Has(h *Header) bool {
 }
 
 func (hs Headers) HasHeader(key string) bool {
-	_, found := hs[key]
+	_, found := hs.get(key)
 	return found
+}
+
+func (hs Headers) FromRequest(r *http.Request) {
+	if reflection.IsEmpty(r) {
+		return
+	}
+	hs.FromGoHTTPHeaders(&r.Header)
+}
+
+func (hs Headers) FromGoHTTPHeaders(headers *http.Header) {
+	for key, value := range field.Optional[http.Header](headers, http.Header{}) {
+		hs.AppendHeader(key, value[0])
+	}
+}
+
+func (hs Headers) FromResponse(resp *http.Response) {
+	if reflection.IsEmpty(resp) {
+		return
+	}
+	hs.FromGoHTTPHeaders(&resp.Header)
 }
 
 func (hs Headers) Empty() bool {
@@ -210,8 +252,75 @@ func (hs Headers) AppendToRequest(r *http.Request) {
 	}
 }
 
+func (hs Headers) RemoveHeader(key string) {
+	delete(hs, key)
+	delete(hs, headers.Normalize(key)) //nolint:misspell
+}
+
+func (hs Headers) RemoveHeaders(key ...string) {
+	for i := range key {
+		hs.RemoveHeader(key[i])
+	}
+}
+
+func (hs Headers) Clone() *Headers {
+	clone := make(Headers, len(hs))
+	for k, v := range hs {
+		clone[k] = v
+	}
+	return &clone
+}
+
+// DisallowList returns the headers minus any header defined in the disallow list.
+func (hs Headers) DisallowList(key ...string) *Headers {
+	clone := hs.Clone()
+	clone.RemoveHeaders(key...)
+	return clone
+}
+
+// AllowList return only safe headers and headers defined in the allow list.
+func (hs Headers) AllowList(key ...string) *Headers {
+	clone := hs.Clone()
+	clone.Sanitise(key...)
+	return clone
+}
+
+// Sanitise sanitises headers so no personal data is retained.
+// It is possible to provide an allowed list of extra headers which would also be retained.
+func (hs Headers) Sanitise(allowList ...string) {
+	allowedHeaders := mapset.NewSet[string](NormalisedSafeHeaders...)
+	allowedHeaders.Append(collection.Map[string, string](allowList, headers.Normalize)...) //nolint:misspell
+	var headersToRemove []string
+	for key := range hs {
+		if !allowedHeaders.Contains(headers.Normalize(key)) { //nolint:misspell
+			headersToRemove = append(headersToRemove, key)
+		}
+	}
+	hs.RemoveHeaders(headersToRemove...)
+}
+
 func NewHeaders() *Headers {
 	return &Headers{}
+}
+
+// FromRequest returns request's headers
+func FromRequest(r *http.Request) *Headers {
+	if reflection.IsEmpty(r) {
+		return nil
+	}
+	h := NewHeaders()
+	h.FromRequest(r)
+	return h
+}
+
+// FromResponse returns response's headers
+func FromResponse(resp *http.Response) *Headers {
+	if reflection.IsEmpty(resp) {
+		return nil
+	}
+	h := NewHeaders()
+	h.FromResponse(resp)
+	return h
 }
 
 // ParseAuthorizationHeader fetches the `Authorization` header and parses it.
@@ -414,17 +523,8 @@ func CreateLinkHeader(link, relation, contentType string) string {
 
 // SanitiseHeaders sanitises a collection of request headers not to include any with personal data
 func SanitiseHeaders(requestHeader *http.Header) *Headers {
-	if requestHeader == nil {
-		return nil
-	}
-	aHeaders := NewHeaders()
-	for i := range SafeHeaders {
-		safeHeader := SafeHeaders[i]
-		rHeader := requestHeader.Get(safeHeader)
-		if !reflection.IsEmpty(rHeader) {
-			aHeaders.AppendHeader(safeHeader, rHeader)
-		}
-	}
-
-	return aHeaders
+	hs := NewHeaders()
+	hs.FromGoHTTPHeaders(requestHeader)
+	hs.Sanitise()
+	return hs
 }
