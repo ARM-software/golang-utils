@@ -12,6 +12,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/encoding/base64"
+	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/http/headers/useragent"
 	"github.com/ARM-software/golang-utils/utils/http/schemes"
 	"github.com/ARM-software/golang-utils/utils/reflection"
@@ -175,7 +176,7 @@ func (hs Headers) Append(h *Header) {
 }
 
 func (hs Headers) Get(key string) string {
-	found, h := hs.get(key)
+	h, found := hs.get(key)
 	if !found {
 		return ""
 	}
@@ -183,11 +184,11 @@ func (hs Headers) Get(key string) string {
 }
 
 func (hs Headers) GetHeader(key string) (header *Header) {
-	_, header = hs.get(key)
+	header, _ = hs.get(key)
 	return
 }
 
-func (hs Headers) get(key string) (found bool, header *Header) {
+func (hs Headers) get(key string) (header *Header, found bool) {
 	h, found := hs[key]
 	if !found {
 		h, found = hs[headers.Normalize(key)] //nolint:misspell
@@ -207,28 +208,25 @@ func (hs Headers) Has(h *Header) bool {
 }
 
 func (hs Headers) HasHeader(key string) bool {
-	found, _ := hs.get(key)
+	_, found := hs.get(key)
 	return found
 }
 
 func (hs Headers) FromRequest(r *http.Request) {
-	if r == nil {
+	if reflection.IsEmpty(r) {
 		return
 	}
 	hs.FromGoHTTPHeaders(&r.Header)
 }
 
 func (hs Headers) FromGoHTTPHeaders(headers *http.Header) {
-	if reflection.IsEmpty(headers) {
-		return
-	}
-	for key, value := range *headers {
+	for key, value := range field.Optional[http.Header](headers, http.Header{}) {
 		hs.AppendHeader(key, value[0])
 	}
 }
 
 func (hs Headers) FromResponse(resp *http.Response) {
-	if resp == nil {
+	if reflection.IsEmpty(resp) {
 		return
 	}
 	hs.FromGoHTTPHeaders(&resp.Header)
@@ -307,7 +305,7 @@ func NewHeaders() *Headers {
 
 // FromRequest returns request's headers
 func FromRequest(r *http.Request) *Headers {
-	if r == nil {
+	if reflection.IsEmpty(r) {
 		return nil
 	}
 	h := NewHeaders()
@@ -317,7 +315,7 @@ func FromRequest(r *http.Request) *Headers {
 
 // FromResponse returns response's headers
 func FromResponse(resp *http.Response) *Headers {
-	if resp == nil {
+	if reflection.IsEmpty(resp) {
 		return nil
 	}
 	h := NewHeaders()
