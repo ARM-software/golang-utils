@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.131.0" (2025-10-27)
+======================
+
+Features
+--------
+
+- :sparkles: [hashing] Add helpers to simplify hashing (#20251027111917)
+
+
 "1.130.0" (2025-10-27)
 ======================
 
