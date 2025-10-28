@@ -87,7 +87,15 @@ func DefaultDeepConfiguration() *DeepConfig {
 }
 
 func (cfg *DeepConfig) Validate() error {
-	return nil
+	// Validate Embedded Structs
+	err := ValidateEmbedded(cfg)
+	if err != nil {
+		return err
+	}
+
+	return validation.ValidateStruct(cfg,
+		validation.Field(&cfg.TestConfigDeep, validation.Required),
+	)
 }
 
 func (cfg *ConfigurationTest) Validate() error {
@@ -121,8 +129,18 @@ func TestErrorFormatting(t *testing.T) {
 	cfg := DefaultConfiguration()
 	err := cfg.Validate()
 	require.Error(t, err)
+
 	errortest.AssertError(t, err, commonerrors.ErrInvalid)
-	assert.Contains(t, err.Error(), "invalid: structure failed validation: (TestConfig->db) [DUMMYCONFIG] cannot be blank")
+	assert.Contains(t, err.Error(), "invalid: structure failed validation: (TestConfig->db) [DUMMYCONFIG_DB] cannot be blank")
+}
+
+func TestDeepErrorFormatting(t *testing.T) {
+	cfg := DefaultDeepConfiguration()
+	err := cfg.Validate()
+	require.Error(t, err)
+
+	errortest.AssertError(t, err, commonerrors.ErrInvalid)
+	assert.Contains(t, err.Error(), "invalid: structure failed validation: (TestConfigDeep->TestConfig->db) [DEEP_CONFIG_DUMMYCONFIG_DB] cannot be blank")
 }
 
 func TestServiceConfigurationLoad(t *testing.T) {
@@ -133,6 +151,9 @@ func TestServiceConfigurationLoad(t *testing.T) {
 	err := Load("test", configTest, defaults)
 	// Some required values are missing.
 	require.Error(t, err)
+
+	assert.ErrorContains(t, err, "(TestConfig->db) [TEST_DUMMYCONFIG_DB] cannot be blank")
+
 	errortest.RequireError(t, err, commonerrors.ErrInvalid)
 	errortest.RequireError(t, configTest.Validate(), commonerrors.ErrInvalid)
 
