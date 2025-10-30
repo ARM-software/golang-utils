@@ -91,7 +91,15 @@ func DefaultDeepConfiguration() *DeepConfig {
 }
 
 func (cfg *DeepConfig) Validate() error {
-	return nil
+	// Validate Embedded Structs
+	err := ValidateEmbedded(cfg)
+	if err != nil {
+		return err
+	}
+
+	return validation.ValidateStruct(cfg,
+		validation.Field(&cfg.TestConfigDeep, validation.Required),
+	)
 }
 
 func (cfg *ConfigurationTest) Validate() error {
@@ -125,8 +133,37 @@ func TestErrorFormatting(t *testing.T) {
 	cfg := DefaultConfiguration()
 	err := cfg.Validate()
 	require.Error(t, err)
+
 	errortest.AssertError(t, err, commonerrors.ErrInvalid)
-	assert.Contains(t, err.Error(), "invalid: structure failed validation: (TestConfig->db) [DUMMYCONFIG] cannot be blank")
+	assert.Contains(t, err.Error(), "invalid: structure failed validation: (TestConfig->db) [DUMMYCONFIG_DB] cannot be blank")
+}
+
+func TestDeepErrorFormatting(t *testing.T) {
+	defaults := DefaultDeepConfiguration()
+	err := defaults.Validate()
+	require.Error(t, err)
+
+	errortest.AssertError(t, err, commonerrors.ErrInvalid)
+	assert.Contains(t, err.Error(), "invalid: structure failed validation: (TestConfigDeep->TestConfig->db) [DEEP_CONFIG_DUMMYCONFIG_DB] cannot be blank")
+
+	err = os.Setenv("TEST_DEEP_CONFIG_DUMMYCONFIG_DB", "a test db")
+	require.NoError(t, err)
+	err = os.Setenv("TEST_DEEP_CONFIG_DUMMYCONFIG_DUMMY_HOST", "a test host")
+	require.NoError(t, err)
+	err = os.Setenv("TEST_DEEP_CONFIG_DUMMYCONFIG_PASSWORD", "a test password")
+	require.NoError(t, err)
+	err = os.Setenv("TEST_DEEP_CONFIG_DUMMYCONFIG_USER", "a test user")
+	require.NoError(t, err)
+	err = os.Setenv("TEST_DEEP_CONFIG_DUMMY_CONFIG_DB", "a test user")
+	require.NoError(t, err)
+
+	t.Run("defined mapstructure", func(t *testing.T) {
+		configTest2 := &DeepConfig{}
+		err = LoadFromSystem("test", configTest2, defaults)
+
+		errortest.AssertError(t, err, commonerrors.ErrInvalid)
+		assert.Contains(t, err.Error(), "invalid: structure failed validation: (TestConfigDeep->TestConfig2->dummy_host) [TEST_DEEP_CONFIG_DUMMY_CONFIG_DUMMY_HOST] cannot be blank")
+	})
 }
 
 func TestServiceConfigurationLoad(t *testing.T) {
@@ -137,6 +174,9 @@ func TestServiceConfigurationLoad(t *testing.T) {
 	err := Load("test", configTest, defaults)
 	// Some required values are missing.
 	require.Error(t, err)
+
+	assert.ErrorContains(t, err, "(TestConfig->db) [TEST_DUMMYCONFIG_DB] cannot be blank")
+
 	errortest.RequireError(t, err, commonerrors.ErrInvalid)
 	errortest.RequireError(t, configTest.Validate(), commonerrors.ErrInvalid)
 

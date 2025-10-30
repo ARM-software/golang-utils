@@ -14,6 +14,16 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.131.1" (2025-10-30)
+======================
+
+Bugfixes
+--------
+
+- Fix bug with config validation incorrectly generating error messages omitting the field name segment (#1727)
+- Dependency upgrade: v5-5.4.0 (#20251030110347)
+
+
 "1.131.0" (2025-10-27)
 ======================
 

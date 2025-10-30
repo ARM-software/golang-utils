@@ -56,6 +56,7 @@ type validationError struct {
 	mapStructureTree   []string
 	mapStructurePrefix *string
 	reason             string
+	fieldName          string
 }
 
 func (v *validationError) GetTree() []string {
@@ -80,9 +81,11 @@ func (v *validationError) RecordField(fieldName string, mapStructureFieldName *s
 		treeMap = append(treeMap, strings.ToUpper(strings.TrimSpace(*mapStructureFieldName)))
 		treeMap = append(treeMap, v.mapStructureTree...)
 		v.mapStructureTree = treeMap
+	} else {
+		v.fieldName = fieldName
 	}
-	v.mapStructurePrefix = mapStructurePrefix
 
+	v.mapStructurePrefix = mapStructurePrefix
 }
 
 func (v *validationError) RecordPrefix(mapStructurePrefix string) {
@@ -113,6 +116,10 @@ func (v *validationError) GetMapStructurePath() string {
 		mapstructureStr = strings.ReplaceAll(mapstructureStr, "-", "_")
 		if v.mapStructurePrefix != nil {
 			mapstructureStr = fmt.Sprintf("%v_%v", strings.ToUpper(strings.TrimSpace(*v.mapStructurePrefix)), mapstructureStr)
+		}
+
+		if v.fieldName != "" {
+			mapstructureStr = fmt.Sprintf("%v_%v", mapstructureStr, strings.ToUpper(strings.TrimSpace(v.fieldName)))
 		}
 	}
 	return mapstructureStr
