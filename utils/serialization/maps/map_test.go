@@ -10,6 +10,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	mapstest "github.com/ARM-software/golang-utils/utils/serialization/maps/testing" //nolint:mispell
 )
 
 type TestStruct0 struct {
@@ -107,6 +108,18 @@ type TestStruct3WithTime struct {
 	Struct   TestStruct2WithTime
 }
 
+type TestStructWithEnum struct {
+	Time     time.Time                      `mapstructure:"some_time"`
+	TestEnum mapstest.TestEnumWithUnmarshal `mapstructure:"test_enum"`
+	Struct   TestStruct2WithTime
+}
+
+type TestStructWithEnumInvalid struct {
+	Time     time.Time                         `mapstructure:"some_time"`
+	TestEnum mapstest.TestEnumWithoutUnmarshal `mapstructure:"test_enum"`
+	Struct   TestStruct2WithTime
+}
+
 type TestStruct4 struct {
 	Field1 string `mapstructure:"field_1"`
 	Field2 string `mapstructure:"field_2"`
@@ -167,6 +180,53 @@ func TestToMap(t *testing.T) {
 		errortest.AssertError(t, FromMapToPointer[TestStruct3WithTime](structMap, newStruct), commonerrors.ErrInvalid)
 		assert.WithinDuration(t, testStruct.Time, newStruct.Time, 0)
 		assert.Equal(t, testStruct.Duration, newStruct.Duration)
+		assert.WithinDuration(t, testStruct.Struct.Time, newStruct.Struct.Time, 0)
+		assert.Equal(t, testStruct.Struct.Duration, newStruct.Struct.Duration)
+	})
+	t.Run("with custom type (has UnmarshalText)", func(t *testing.T) {
+		random, err := faker.RandomInt(0, 1000, 2)
+		require.NoError(t, err)
+		testStruct := TestStructWithEnum{
+			Time:     time.Now().UTC(),
+			TestEnum: mapstest.TestEnumWithUnmarshal1,
+			Struct: TestStruct2WithTime{
+				Time:     time.Unix(faker.RandomUnixTime(), 0),
+				Duration: time.Duration(random[1]) * time.Second,
+			},
+		}
+		structMap, err := ToMap[TestStructWithEnum](&testStruct)
+		structMap["test_enum"] = mapstest.TestEnumStringVer1 // change to the alternate version for unmarshalling
+		require.NoError(t, err)
+		_, err = ToMapFromPointer[TestStructWithEnum](testStruct)
+		errortest.AssertError(t, err, commonerrors.ErrInvalid)
+		newStruct := TestStructWithEnum{}
+		require.NoError(t, FromMap[TestStructWithEnum](structMap, &newStruct))
+		errortest.AssertError(t, FromMapToPointer[TestStructWithEnum](structMap, newStruct), commonerrors.ErrInvalid)
+		assert.WithinDuration(t, testStruct.Time, newStruct.Time, 0)
+		assert.Equal(t, testStruct.TestEnum, newStruct.TestEnum)
+		assert.WithinDuration(t, testStruct.Struct.Time, newStruct.Struct.Time, 0)
+		assert.Equal(t, testStruct.Struct.Duration, newStruct.Struct.Duration)
+	})
+	t.Run("with custom type (no UnmarshalText)", func(t *testing.T) {
+		random, err := faker.RandomInt(0, 1000, 2)
+		require.NoError(t, err)
+		testStruct := TestStructWithEnumInvalid{
+			Time:     time.Now().UTC(),
+			TestEnum: mapstest.TestEnumWithoutUnmarshal1,
+			Struct: TestStruct2WithTime{
+				Time:     time.Unix(faker.RandomUnixTime(), 0),
+				Duration: time.Duration(random[1]) * time.Second,
+			},
+		}
+		structMap, err := ToMap[TestStructWithEnumInvalid](&testStruct)
+		require.NoError(t, err)
+		_, err = ToMapFromPointer[TestStructWithEnumInvalid](testStruct)
+		errortest.AssertError(t, err, commonerrors.ErrInvalid)
+		newStruct := TestStructWithEnumInvalid{}
+		require.NoError(t, FromMap[TestStructWithEnumInvalid](structMap, &newStruct))
+		errortest.AssertError(t, FromMapToPointer[TestStructWithEnumInvalid](structMap, newStruct), commonerrors.ErrInvalid)
+		assert.WithinDuration(t, testStruct.Time, newStruct.Time, 0)
+		assert.Equal(t, testStruct.TestEnum, newStruct.TestEnum)
 		assert.WithinDuration(t, testStruct.Struct.Time, newStruct.Struct.Time, 0)
 		assert.Equal(t, testStruct.Struct.Duration, newStruct.Struct.Duration)
 	})

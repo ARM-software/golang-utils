@@ -1,13 +1,16 @@
 package maps
 
 import (
+	"encoding"
 	"reflect"
+	"strconv"
 	"time"
 
 	"github.com/go-viper/mapstructure/v2"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/maps"
+	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
 // ToMapFromPointer is like ToMap but deals with a pointer.
@@ -72,7 +75,7 @@ func FromMapToPointer[T any](m map[string]string, o T) (err error) {
 
 	err = mapstructureDecoder(expandedMap, o)
 	if err != nil {
-		err = commonerrors.WrapError(commonerrors.ErrMarshalling, err, "failed to deserialise upload request")
+		err = commonerrors.WrapError(commonerrors.ErrMarshalling, err, "failed to deserialise the map")
 	}
 	return
 }
@@ -148,11 +151,57 @@ func toTime(f reflect.Type, t reflect.Type, data any) (any, error) {
 	}
 }
 
+func toCustomTypeIntFallback(f reflect.Type, t reflect.Type, data any) (any, error) {
+	if f.Kind() != reflect.String {
+		return data, nil
+	}
+	if t.Kind() != reflect.Int {
+		return data, nil
+	}
+
+	s, ok := data.(string)
+	if !ok {
+		return data, nil
+	}
+
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		return data, nil
+	}
+
+	ptr := reflect.New(t).Elem()
+	ptr.SetInt(safecast.ToInt64(i))
+
+	return ptr.Interface(), nil
+}
+
+func toCustomType(f reflect.Type, t reflect.Type, data any) (any, error) {
+	if f.Kind() != reflect.String {
+		return data, nil
+	}
+
+	customType, ok := reflect.New(t).Interface().(encoding.TextUnmarshaler)
+	if !ok {
+		return toCustomTypeIntFallback(f, t, data)
+	}
+
+	err := customType.UnmarshalText([]byte(data.(string))) // we know it is a string based on reflection
+	if err != nil {
+		return toCustomTypeIntFallback(f, t, data)
+	}
+
+	return customType, nil
+}
+
+func CustomTypeHookFunc() mapstructure.DecodeHookFunc {
+	return toCustomType
+}
+
 func mapstructureDecoder(input, result any) error {
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		WeaklyTypedInput: true,
 		DecodeHook: mapstructure.ComposeDecodeHookFunc(
-			timeHookFunc(), mapstructure.StringToTimeDurationHookFunc(), mapstructure.StringToURLHookFunc(), mapstructure.StringToIPHookFunc()),
+			timeHookFunc(), CustomTypeHookFunc(), mapstructure.StringToTimeDurationHookFunc(), mapstructure.StringToURLHookFunc(), mapstructure.StringToIPHookFunc()),
 		Result: result,
 	})
 	if err != nil {
