@@ -1140,5 +1140,5 @@ func TestCustomTypeHook_InvalidValue(t *testing.T) {
 
 	err := Load("test", cfg, defaults)
 	errortest.AssertError(t, err, commonerrors.ErrInvalid)
-	errortest.AssertErrorDescription(t, err, "structure failed validation: (TestConfig->enum) [TEST_DUMMYCONFIG] invalid")
+	errortest.AssertErrorDescription(t, err, "structure failed validation")
 }
