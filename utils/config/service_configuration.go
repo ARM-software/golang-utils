@@ -20,7 +20,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/keyring"
 	"github.com/ARM-software/golang-utils/utils/reflection"
-	"github.com/ARM-software/golang-utils/utils/serialization/maps"
+	"github.com/ARM-software/golang-utils/utils/serialization/maps" //nolint:misspell
 )
 
 const (
