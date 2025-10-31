@@ -152,7 +152,7 @@ func toTime(f reflect.Type, t reflect.Type, data any) (any, error) {
 }
 
 func toCustomTypeIntFallback(f reflect.Type, t reflect.Type, data any) (any, error) {
-	if f.Kind() != reflect.String {
+	if f == nil || t == nil || f.Kind() != reflect.String {
 		return data, nil
 	}
 	if t.Kind() != reflect.Int {
@@ -176,7 +176,7 @@ func toCustomTypeIntFallback(f reflect.Type, t reflect.Type, data any) (any, err
 }
 
 func toCustomType(f reflect.Type, t reflect.Type, data any) (any, error) {
-	if f.Kind() != reflect.String {
+	if f == nil || t == nil || f.Kind() != reflect.String {
 		return data, nil
 	}
 
