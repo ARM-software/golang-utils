@@ -34,6 +34,7 @@ func ProxyRequest(r *http.Request, proxyMethod, endpoint string) (proxiedRequest
 		return
 	}
 	ctx := r.Context()
+	// Note: It is important to know that an 0 or -1 content length does not mean there is no body. This is likely the case but it could also be because the body was never read and its size never assessed.
 	contentLength := determineRequestContentLength(r)
 	h := httpheaders.FromRequest(r).AllowList(headers.Authorization)
 	if reflection.IsEmpty(proxyMethod) {
@@ -48,9 +49,21 @@ func ProxyRequest(r *http.Request, proxyMethod, endpoint string) (proxiedRequest
 	if proxiedRequest.ContentLength <= 0 {
 		if proxiedRequest.Body == nil || proxiedRequest.Body == http.NoBody {
 			if contentLength > 0 {
+				// In this case, NewRequestWithContext does not understand/expect the request body type (not a string/byte buffer as it may be wrapped into a bigger structure) and so, the body of the proxied request is set to nil
+				// This makes sure this does not happen without performing a copy of the body and the use of unnecessary memory.
 				proxiedRequest.Body = r.Body
 				proxiedRequest.GetBody = r.GetBody
 			} else {
+				// In this case, it will attempt a copy of the request body which should not be costly as the request is unlikely to have a body. Although it may still do as contentlength may not have actually been evaluated. However, we want to make sure it is set to the same type as the original request.
+				proxiedRequest, err = http.NewRequestWithContext(ctx, proxyMethod, endpoint, convertBody(ctx, r.Body))
+				if err != nil {
+					err = commonerrors.WrapError(commonerrors.ErrUnexpected, err, "could not create a proxied request")
+					return
+				}
+			}
+		} else {
+			// In this case, the original request is unlikely to have a body but we want to make sure that the body is of the same type.
+			if contentLength <= 0 {
 				proxiedRequest, err = http.NewRequestWithContext(ctx, proxyMethod, endpoint, convertBody(ctx, r.Body))
 				if err != nil {
 					err = commonerrors.WrapError(commonerrors.ErrUnexpected, err, "could not create a proxied request")
@@ -58,15 +71,6 @@ func ProxyRequest(r *http.Request, proxyMethod, endpoint string) (proxiedRequest
 				}
 			}
 		}
-
-		if contentLength <= 0 {
-			proxiedRequest, err = http.NewRequestWithContext(ctx, proxyMethod, endpoint, convertBody(ctx, r.Body))
-			if err != nil {
-				err = commonerrors.WrapError(commonerrors.ErrUnexpected, err, "could not create a proxied request")
-				return
-			}
-		}
-
 		if contentLength > 0 && proxiedRequest.ContentLength <= 0 {
 			proxiedRequest.ContentLength = contentLength
 			h.AppendHeader(headers.ContentLength, strconv.FormatInt(contentLength, 10))
