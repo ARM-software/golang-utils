@@ -19,8 +19,9 @@ import (
 
 // NewTestServer creates a test server
 func NewTestServer(t *testing.T, ctx context.Context, handler http.Handler, port string) {
+	t.Helper()
 	list, err := net.Listen("tcp", fmt.Sprintf(":%v", port))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	srv := &http.Server{
 		Handler:           handler,
 		ReadHeaderTimeout: time.Minute,
