@@ -20,6 +20,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/keyring"
 	"github.com/ARM-software/golang-utils/utils/reflection"
+	"github.com/ARM-software/golang-utils/utils/serialization/maps" //nolint:misspell
 )
 
 const (
@@ -113,7 +114,12 @@ func LoadFromEnvironmentAndSystem(viperSession *viper.Viper, envVarPrefix string
 	}
 
 	// Merge together all the sources and unmarshal into struct
-	err = viperSession.Unmarshal(configurationToSet)
+	err = viperSession.Unmarshal(configurationToSet, viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
+		maps.CustomTypeHookFunc(),
+		// Keep these two as they are the default values used by viper and we don't want to override them
+		mapstructure.StringToTimeDurationHookFunc(),
+		mapstructure.StringToSliceHookFunc(","),
+	)))
 	if err != nil {
 		err = commonerrors.WrapError(commonerrors.ErrMarshalling, err, "unable to fill configuration structure from the configuration session")
 		return

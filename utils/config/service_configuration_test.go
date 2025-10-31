@@ -26,6 +26,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/keyring"
+	mapstest "github.com/ARM-software/golang-utils/utils/serialization/maps/testing" //nolint:misspell
 )
 
 var (
@@ -39,13 +40,15 @@ var (
 )
 
 type DummyConfiguration struct {
-	Host              string        `mapstructure:"dummy_host"`
-	Port              int           `mapstructure:"port"`
-	DB                string        `mapstructure:"db"`
-	User              string        `mapstructure:"user"`
-	Password          string        `mapstructure:"password"`
-	Flag              bool          `mapstructure:"flag"`
-	HealthCheckPeriod time.Duration `mapstructure:"healthcheck_period"`
+	Host              string                            `mapstructure:"dummy_host"`
+	Port              int                               `mapstructure:"port"`
+	DB                string                            `mapstructure:"db"`
+	User              string                            `mapstructure:"user"`
+	Password          string                            `mapstructure:"password"`
+	Flag              bool                              `mapstructure:"flag"`
+	TestEnum          mapstest.TestEnumWithUnmarshal    `mapstructure:"enum"`
+	TestEnum1         mapstest.TestEnumWithoutUnmarshal `mapstructure:"enum1"`
+	HealthCheckPeriod time.Duration                     `mapstructure:"healthcheck_period"`
 }
 
 func (cfg *DummyConfiguration) Validate() error {
@@ -55,6 +58,7 @@ func (cfg *DummyConfiguration) Validate() error {
 		validation.Field(&cfg.DB, validation.Required),
 		validation.Field(&cfg.User, validation.Required),
 		validation.Field(&cfg.Password, validation.Required),
+		validation.Field(&cfg.TestEnum, validation.By(mapstest.ValidationFunc)),
 	)
 }
 
@@ -188,6 +192,14 @@ func TestServiceConfigurationLoad(t *testing.T) {
 	err = os.Setenv("TEST_DUMMYCONFIG_USER", "a test user")
 	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMY_CONFIG_USER", "a test user")
+	require.NoError(t, err)
+	err = os.Setenv("TEST_DUMMY_CONFIG_ENUM", mapstest.TestEnumStringVer1)
+	require.NoError(t, err)
+	err = os.Setenv("TEST_DUMMYCONFIG_ENUM", mapstest.TestEnumStringVer1)
+	require.NoError(t, err)
+	err = os.Setenv("TEST_DUMMY_CONFIG_ENUM1", "1")
+	require.NoError(t, err)
+	err = os.Setenv("TEST_DUMMYCONFIG_ENUM1", "1")
 	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMYCONFIG_DB", "a test db")
 	require.NoError(t, err)
@@ -407,6 +419,8 @@ func TestFlagsBinding(t *testing.T) {
 	flagSet.Int("int", 0, "dummy int")
 	flagSet.Duration("time", time.Second, "dummy time")
 	flagSet.Bool("flag", false, "dummy flag")
+	flagSet.String("enum", mapstest.TestEnumStringVer1, "dummy enum")
+	flagSet.String("enum1", "1", "dummy enum")
 	err = BindFlagsToEnv(session, prefix, "TEST_DUMMYCONFIG_DUMMY_HOST", flagSet.Lookup("host2"), flagSet.Lookup("host2"))
 	require.NoError(t, err)
 	err = BindFlagsToEnv(session, prefix, "TEST_DUMMY_CONFIG_DUMMY_HOST", flagSet.Lookup("host1"), flagSet.Lookup("host2"))
@@ -418,6 +432,10 @@ func TestFlagsBinding(t *testing.T) {
 	err = BindFlagsToEnv(session, prefix, "DUMMYCONFIG_USER", flagSet.Lookup("user"), flagSet.Lookup("user1"), flagSet.Lookup("user2"))
 	require.NoError(t, err)
 	err = BindFlagsToEnv(session, prefix, "DUMMY_CONFIG_USER", flagSet.Lookup("user1"), flagSet.Lookup("user2"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMY_CONFIG_ENUM", flagSet.Lookup("enum"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMY_CONFIG_ENUM1", flagSet.Lookup("enum1"))
 	require.NoError(t, err)
 	err = BindFlagsToEnv(session, prefix, "TEST_DUMMYCONFIG_DB", flagSet.Lookup("db"))
 	require.NoError(t, err)
@@ -476,6 +494,12 @@ func TestFlagsBinding(t *testing.T) {
 	assert.Equal(t, expectedHost, configTest.TestConfig2.Host)
 	assert.Equal(t, expectedPassword, configTest.TestConfig.Password)
 	assert.Equal(t, expectedPassword, configTest.TestConfig2.Password)
+	assert.NotEqual(t, mapstest.TestEnumStringVer1, configTest.TestConfig2.TestEnum)
+	assert.NotEqual(t, mapstest.TestEnumStringVer0, configTest.TestConfig.TestEnum)
+	assert.Equal(t, mapstest.TestEnumWithUnmarshal1, configTest.TestConfig2.TestEnum)
+	assert.Equal(t, mapstest.TestEnumWithUnmarshal0, configTest.TestConfig.TestEnum)
+	assert.Equal(t, mapstest.TestEnumWithoutUnmarshal1, configTest.TestConfig2.TestEnum1)
+	assert.Equal(t, mapstest.TestEnumWithoutUnmarshal0, configTest.TestConfig.TestEnum1)
 	assert.Equal(t, expectedDB, configTest.TestConfig.DB)
 	assert.Equal(t, aDifferentDB, configTest.TestConfig2.DB)
 	assert.NotEqual(t, expectedDB, configTest.TestConfig2.DB)
@@ -516,6 +540,8 @@ func TestFlagBindingDefaults(t *testing.T) {
 	flagSet.Int("int", expectedInt, "dummy int")
 	flagSet.Duration("time", expectedDuration, "dummy time")
 	flagSet.Bool("flag", !DefaultDummyConfiguration().Flag, "dummy flag")
+	flagSet.String("enum", mapstest.TestEnumStringVer0, "dummy enum")
+	flagSet.String("enum1", "0", "dummy enum")
 	err = BindFlagToEnv(session, prefix, "TEST_DUMMYCONFIG_DUMMY_HOST", flagSet.Lookup("host"))
 	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "TEST_DUMMY_CONFIG_DUMMY_HOST", flagSet.Lookup("host2"))
@@ -538,6 +564,10 @@ func TestFlagBindingDefaults(t *testing.T) {
 	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "DUMMY_Time", flagSet.Lookup("time"))
 	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMY_enum", flagSet.Lookup("enum"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "DUMMY_enum1", flagSet.Lookup("enum1"))
+	require.NoError(t, err)
 	err = os.Setenv("TEST_DUMMY_CONFIG_DB", expectedDB) // Should take precedence over flag default
 	require.NoError(t, err)
 	err = LoadFromViper(session, prefix, configTest, defaults)
@@ -556,6 +586,10 @@ func TestFlagBindingDefaults(t *testing.T) {
 	assert.Equal(t, expectedPassword, configTest.TestConfig2.Password)
 	assert.Equal(t, aDifferentDB, configTest.TestConfig.DB)
 	assert.Equal(t, expectedDB, configTest.TestConfig2.DB)
+	assert.Equal(t, mapstest.TestEnumWithUnmarshal0, configTest.TestConfig2.TestEnum)
+	assert.Equal(t, mapstest.TestEnumWithUnmarshal0, configTest.TestConfig.TestEnum)
+	assert.Equal(t, mapstest.TestEnumWithoutUnmarshal0, configTest.TestConfig2.TestEnum1)
+	assert.Equal(t, mapstest.TestEnumWithoutUnmarshal0, configTest.TestConfig.TestEnum1)
 	// Defaults from the default structure provided take precedence over defaults from flags when empty.
 	assert.Equal(t, DefaultConfiguration().TestConfig.Flag, configTest.TestConfig.Flag)
 	assert.Equal(t, DefaultConfiguration().TestConfig.Flag, configTest.TestConfig2.Flag)
@@ -575,6 +609,8 @@ func TestGenerateEnvFile_Defaults(t *testing.T) {
 		"TEST_PASSWORD":           configTest.Password,
 		"TEST_PORT":               configTest.Port,
 		"TEST_USER":               configTest.User,
+		"TEST_ENUM":               configTest.TestEnum,
+		"TEST_ENUM1":              configTest.TestEnum1,
 	}
 
 	// Generate env file
@@ -601,6 +637,8 @@ func TestGenerateEnvFile_Populated(t *testing.T) {
 	flagSet.String("password", "a password", "dummy password")
 	flagSet.String("user", "a user", "dummy user")
 	flagSet.String("db", "a db", "dummy db")
+	flagSet.String("enum", mapstest.TestEnumStringVer1, "dummy enum")
+	flagSet.String("enum1", "1", "dummy enum")
 	err = BindFlagToEnv(session, prefix, "TEST_DUMMY_HOST", flagSet.Lookup("host"))
 	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "PASSWORD", flagSet.Lookup("password"))
@@ -610,6 +648,10 @@ func TestGenerateEnvFile_Populated(t *testing.T) {
 	err = BindFlagToEnv(session, prefix, "DB", flagSet.Lookup("db"))
 	require.NoError(t, err)
 	err = BindFlagToEnv(session, prefix, "USER", flagSet.Lookup("user"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "ENUM", flagSet.Lookup("enum"))
+	require.NoError(t, err)
+	err = BindFlagToEnv(session, prefix, "ENUM1", flagSet.Lookup("enum1"))
 	require.NoError(t, err)
 	err = flagSet.Set("host", expectedHost)
 	require.NoError(t, err)
@@ -630,6 +672,8 @@ func TestGenerateEnvFile_Populated(t *testing.T) {
 		"TEST_PASSWORD":           configTest.Password,
 		"TEST_PORT":               configTest.Port,
 		"TEST_USER":               configTest.User,
+		"TEST_ENUM":               configTest.TestEnum,
+		"TEST_ENUM1":              configTest.TestEnum1,
 	}
 
 	// Generate env file
@@ -670,6 +714,8 @@ func TestGenerateEnvFile_Nested(t *testing.T) {
 		"TEST_DEEP_CONFIG_DUMMYCONFIG_PASSWORD":            configTest.TestConfigDeep.TestConfig.Password,
 		"TEST_DEEP_CONFIG_DUMMYCONFIG_PORT":                configTest.TestConfigDeep.TestConfig.Port,
 		"TEST_DEEP_CONFIG_DUMMYCONFIG_USER":                configTest.TestConfigDeep.TestConfig.User,
+		"TEST_DEEP_CONFIG_DUMMYCONFIG_ENUM":                configTest.TestConfigDeep.TestConfig.TestEnum,
+		"TEST_DEEP_CONFIG_DUMMYCONFIG_ENUM1":               configTest.TestConfigDeep.TestConfig.TestEnum1,
 		"TEST_DEEP_CONFIG_DUMMY_CONFIG_DB":                 configTest.TestConfigDeep.TestConfig2.DB,
 		"TEST_DEEP_CONFIG_DUMMY_CONFIG_DUMMY_HOST":         configTest.TestConfigDeep.TestConfig2.Host,
 		"TEST_DEEP_CONFIG_DUMMY_CONFIG_FLAG":               configTest.TestConfigDeep.TestConfig2.Flag,
@@ -677,6 +723,8 @@ func TestGenerateEnvFile_Nested(t *testing.T) {
 		"TEST_DEEP_CONFIG_DUMMY_CONFIG_PASSWORD":           configTest.TestConfigDeep.TestConfig2.Password,
 		"TEST_DEEP_CONFIG_DUMMY_CONFIG_PORT":               configTest.TestConfigDeep.TestConfig2.Port,
 		"TEST_DEEP_CONFIG_DUMMY_CONFIG_USER":               configTest.TestConfigDeep.TestConfig2.User,
+		"TEST_DEEP_CONFIG_DUMMY_CONFIG_ENUM":               configTest.TestConfigDeep.TestConfig2.TestEnum,
+		"TEST_DEEP_CONFIG_DUMMY_CONFIG_ENUM1":              configTest.TestConfigDeep.TestConfig2.TestEnum1,
 		"TEST_DEEP_CONFIG_DUMMY_INT":                       configTest.TestConfigDeep.TestInt,
 		"TEST_DUMMY_STRING":                                configTest.TestString,
 		"TEST_DEEP_CONFIG_DUMMY_TIME":                      configTest.TestConfigDeep.TestTime,
@@ -1039,4 +1087,58 @@ func loadEnvIntoEnvironment(t *testing.T, envPath string) (err error) {
 	require.NoError(t, err)
 
 	return
+}
+
+func TestCustomTypeHook_Success(t *testing.T) {
+	t.Cleanup(os.Clearenv)
+	os.Clearenv()
+
+	cfg := &ConfigurationTest{}
+	defaults := DefaultConfiguration()
+
+	require.NoError(t, os.Setenv("TEST_DUMMYCONFIG_DUMMY_HOST", expectedHost))
+	require.NoError(t, os.Setenv("TEST_DUMMYCONFIG_PASSWORD", expectedPassword))
+	require.NoError(t, os.Setenv("TEST_DUMMYCONFIG_USER", "user"))
+	require.NoError(t, os.Setenv("TEST_DUMMYCONFIG_DB", expectedDB))
+	require.NoError(t, os.Setenv("TEST_DUMMY_CONFIG_DUMMY_HOST", expectedHost))
+	require.NoError(t, os.Setenv("TEST_DUMMY_CONFIG_PASSWORD", expectedPassword))
+	require.NoError(t, os.Setenv("TEST_DUMMY_CONFIG_USER", "user"))
+	require.NoError(t, os.Setenv("TEST_DUMMY_CONFIG_DB", expectedDB))
+	require.NoError(t, os.Setenv("TEST_DUMMY_INT", fmt.Sprintf("%v", expectedInt)))
+	require.NoError(t, os.Setenv("TEST_DUMMY_TIME", expectedDuration.String()))
+
+	require.NoError(t, os.Setenv("TEST_DUMMYCONFIG_ENUM", mapstest.TestEnumStringVer1))
+	require.NoError(t, os.Setenv("TEST_DUMMYCONFIG_ENUM1", "1"))
+
+	err := Load("test", cfg, defaults)
+	require.NoError(t, err)
+	require.NoError(t, cfg.Validate())
+
+	assert.Equal(t, mapstest.TestEnumWithUnmarshal1, cfg.TestConfig.TestEnum)
+	assert.Equal(t, mapstest.TestEnumWithoutUnmarshal1, cfg.TestConfig.TestEnum1)
+}
+
+func TestCustomTypeHook_InvalidValue(t *testing.T) {
+	t.Cleanup(os.Clearenv)
+	os.Clearenv()
+
+	cfg := &ConfigurationTest{}
+	defaults := DefaultConfiguration()
+
+	require.NoError(t, os.Setenv("TEST_DUMMYCONFIG_DUMMY_HOST", expectedHost))
+	require.NoError(t, os.Setenv("TEST_DUMMYCONFIG_PASSWORD", expectedPassword))
+	require.NoError(t, os.Setenv("TEST_DUMMYCONFIG_USER", "user"))
+	require.NoError(t, os.Setenv("TEST_DUMMYCONFIG_DB", expectedDB))
+	require.NoError(t, os.Setenv("TEST_DUMMY_CONFIG_DUMMY_HOST", expectedHost))
+	require.NoError(t, os.Setenv("TEST_DUMMY_CONFIG_PASSWORD", expectedPassword))
+	require.NoError(t, os.Setenv("TEST_DUMMY_CONFIG_USER", "user"))
+	require.NoError(t, os.Setenv("TEST_DUMMY_CONFIG_DB", expectedDB))
+	require.NoError(t, os.Setenv("TEST_DUMMY_INT", fmt.Sprintf("%v", expectedInt)))
+	require.NoError(t, os.Setenv("TEST_DUMMY_TIME", expectedDuration.String()))
+
+	require.NoError(t, os.Setenv("TEST_DUMMYCONFIG_ENUM", "4"))
+
+	err := Load("test", cfg, defaults)
+	errortest.AssertError(t, err, commonerrors.ErrInvalid)
+	errortest.AssertErrorDescription(t, err, "structure failed validation")
 }
