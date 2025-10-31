@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.132.0" (2025-10-31)
+======================
+
+Features
+--------
+
+- :sparkles: `serialization` Add support for decoding enum strings to their underlying values when using mapstructure tags (#20251030161706)
+
+
 "1.131.1" (2025-10-30)
 ======================
 
