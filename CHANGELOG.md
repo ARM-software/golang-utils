@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.133.0" (2025-11-12)
+======================
+
+Features
+--------
+
+- :sparkles: `[http/proxy]` Add helpers for proxying requests and responses (#20251031150814)
+
+
+Bugfixes
+--------
+
+- :bug: `parallelisation` Ensure that execution options are propagated to compound execution group when creating a PriorityExecutionGroup (#20251112110252)
+
+
 "1.132.0" (2025-10-31)
 ======================
 
