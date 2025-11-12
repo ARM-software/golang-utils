@@ -95,7 +95,9 @@ func (g *PriorityExecutionGroup[T]) executors() (executor *CompoundExecutionGrou
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	executor = NewCompoundExecutionGroup(DefaultOptions().MergeWithOptions(Sequential).Options()...)
+	opts := DefaultOptions().MergeWithOptions(g.options...)
+	opts.MergeWithOptions(Sequential)
+	executor = NewCompoundExecutionGroup(opts.Options()...)
 	for _, key := range slices.Sorted(maps.Keys(g.groups)) {
 		executor.RegisterExecutor(g.groups[key])
 	}

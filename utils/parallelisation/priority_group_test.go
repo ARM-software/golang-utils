@@ -392,4 +392,32 @@ func TestPriority(t *testing.T) {
 		err := priorityGroup.Execute(ctx)
 		errortest.AssertError(t, err, commonerrors.ErrTimeout)
 	})
+
+	t.Run("stop on first error propagates properly across priorities", func(t *testing.T) {
+		defer goleak.VerifyNone(t)
+
+		var lowerPriorityCalled, samePriorityCalledAfter atomic.Bool
+
+		priorityGroup := NewPriorityExecutionGroup(Sequential, StopOnFirstError)
+
+		priorityGroup.RegisterFunctionWithPriority(0, testExecutorFunc(func(ctx context.Context) (err error) {
+			err = commonerrors.ErrConflict
+			return
+		}))
+
+		priorityGroup.RegisterFunctionWithPriority(0, testExecutorFunc(func(ctx context.Context) (err error) {
+			samePriorityCalledAfter.Store(true)
+			return
+		}))
+
+		priorityGroup.RegisterFunctionWithPriority(1, testExecutorFunc(func(ctx context.Context) (err error) {
+			lowerPriorityCalled.Store(true)
+			return
+		}))
+
+		err := priorityGroup.Execute(context.Background())
+		errortest.AssertError(t, err, commonerrors.ErrConflict)
+		assert.False(t, samePriorityCalledAfter.Load())
+		assert.False(t, lowerPriorityCalled.Load())
+	})
 }
