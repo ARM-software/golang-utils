@@ -10,6 +10,14 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
+func isPrivilegeError(err error) bool {
+	return commonerrors.Any(err, syscall.EPERM)
+}
+
+func isNotSupportedError(err error) bool {
+	return commonerrors.Any(err, syscall.ENOTSUP, syscall.EOPNOTSUPP)
+}
+
 func determineFileOwners(info os.FileInfo) (uid, gid int, err error) {
 	if raw, ok := info.Sys().(*syscall.Stat_t); ok {
 		gid = int(raw.Gid)
