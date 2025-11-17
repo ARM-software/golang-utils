@@ -186,9 +186,9 @@ func TestFilterReject(t *testing.T) {
 	assert.ElementsMatch(t, []int{1, 3, 5}, Reject(nums, func(n int) bool {
 		return n%2 == 0
 	}))
-	assert.ElementsMatch(t, []int{1, 3, 5}, RejectSequence(slices.Values(nums), func(n int) bool {
+	assert.ElementsMatch(t, []int{1, 3, 5}, slices.Collect[int](RejectSequence[int](slices.Values(nums), func(n int) bool {
 		return n%2 == 0
-	}))
+	})))
 	assert.ElementsMatch(t, []int{4, 5}, Filter(nums, func(n int) bool {
 		return n > 3
 	}))
