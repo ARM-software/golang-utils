@@ -6,9 +6,13 @@ package collection
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"testing"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,6 +29,32 @@ func TestFind(t *testing.T) {
 	assert.Equal(t, -1, index)
 
 	index, found = Find(&[]string{"A", "B", "b", "c"}, "b")
+	assert.True(t, found)
+	assert.Equal(t, 2, index)
+}
+
+func TestFindInSequence(t *testing.T) {
+
+	index, found := FindInSequence[string](slices.Values([]string{}), func(e string) bool {
+		return e == "D"
+	})
+	assert.False(t, found)
+	assert.Equal(t, -1, index)
+	index, found = FindInSequence[string](slices.Values([]string{}), func(_ string) bool {
+		return true
+	})
+	assert.False(t, found)
+	assert.Equal(t, -1, index)
+
+	index, found = FindInSequence[string](slices.Values([]string{"A", "b", "c"}), func(e string) bool {
+		return e == "D"
+	})
+	assert.False(t, found)
+	assert.Equal(t, -1, index)
+
+	index, found = FindInSequence[string](slices.Values([]string{"A", "B", "b", "c"}), func(e string) bool {
+		return e == "b"
+	})
 	assert.True(t, found)
 	assert.Equal(t, 2, index)
 }
@@ -70,8 +100,40 @@ func TestUniqueEntries(t *testing.T) {
 	_, found = FindInSlice(true, values, "test12")
 	assert.True(t, found)
 
-	intValues := UniqueEntries([]int{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4})
+	entry := []int{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4}
+	intValues := UniqueEntries(entry)
 	assert.Len(t, intValues, 4)
+
+	intValues = Unique(slices.Values(entry))
+	assert.Len(t, intValues, 4)
+}
+
+func TestSetOperations(t *testing.T) {
+	a := []string{"a", "b", "b", "c"}
+	b := []string{"b", "c", "d", "d"}
+
+	assert.ElementsMatch(t, []string{"a", "b", "c", "d"}, Union[string](a, b))
+	assert.ElementsMatch(t, UniqueEntries[string](a), Union[string](a, nil))
+	assert.ElementsMatch(t, UniqueEntries[string](b), Union[string](nil, b))
+	assert.Empty(t, Union[string](nil, nil))
+	assert.ElementsMatch(t, []string{"b", "c"}, Intersection[string](a, b))
+	assert.Empty(t, Intersection[string](nil, b))
+	assert.Empty(t, Intersection[string](nil, nil))
+	assert.Empty(t, Intersection[string](a, nil))
+	assert.ElementsMatch(t, []string{"a"}, Difference[string](a, b))
+	assert.Empty(t, Difference[string](nil, b))
+	assert.Empty(t, Difference[string](nil, nil))
+	assert.ElementsMatch(t, UniqueEntries[string](a), Difference[string](a, nil))
+	assert.ElementsMatch(t, []string{"a", "d"}, SymmetricDifference[string](a, b))
+	assert.ElementsMatch(t, UniqueEntries[string](a), SymmetricDifference[string](a, nil))
+	assert.Empty(t, SymmetricDifference[string](nil, nil))
+	assert.ElementsMatch(t, UniqueEntries[string](b), SymmetricDifference[string](nil, b))
+
+	entry := []int{1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4}
+	assert.ElementsMatch(t, UniqueEntries[int](entry), Union[int](entry, entry))
+	assert.ElementsMatch(t, UniqueEntries[int](entry), Intersection[int](entry, entry))
+	assert.Empty(t, Difference[int](entry, entry))
+	assert.Empty(t, SymmetricDifference[int](entry, entry))
 }
 
 func TestAnyFunc(t *testing.T) {
@@ -124,6 +186,9 @@ func TestFilterReject(t *testing.T) {
 	assert.ElementsMatch(t, []int{1, 3, 5}, Reject(nums, func(n int) bool {
 		return n%2 == 0
 	}))
+	assert.ElementsMatch(t, []int{1, 3, 5}, RejectSequence(slices.Values(nums), func(n int) bool {
+		return n%2 == 0
+	}))
 	assert.ElementsMatch(t, []int{4, 5}, Filter(nums, func(n int) bool {
 		return n > 3
 	}))
@@ -168,6 +233,9 @@ func TestMap(t *testing.T) {
 	assert.ElementsMatch(t, num, m)
 	_, err = MapWithError[string, int](append(numStr, faker.Word(), "5"), strconv.Atoi)
 	require.Error(t, err)
+
+	mappedInt := Map[int, int](num, IdentityMapFunc[int]())
+	assert.ElementsMatch(t, num, mappedInt)
 }
 
 func TestReduce(t *testing.T) {
@@ -176,4 +244,35 @@ func TestReduce(t *testing.T) {
 		return acc + n
 	})
 	assert.Equal(t, sumOfNums, 15)
+}
+
+func TestForEach(t *testing.T) {
+	var visited []int
+	list := Range(9, 1000, field.ToOptionalInt(13))
+	ForEachValues(func(i int) {
+		visited = append(visited, i)
+	}, list...)
+	assert.ElementsMatch(t, visited, list)
+}
+
+func TestForEachSequence(t *testing.T) {
+	var visited []int
+	list := Range(9, 1000, field.ToOptionalInt(13))
+	errortest.AssertError(t, Each(slices.Values(list), func(i int) error {
+		if i > 150 {
+			return commonerrors.ErrUnsupported
+		}
+		visited = append(visited, i)
+		return nil
+	}), commonerrors.ErrUnsupported)
+	assert.ElementsMatch(t, visited, []int{9, 22, 35, 48, 61, 74, 87, 100, 113, 126, 139})
+	visited = []int{}
+	assert.NoError(t, Each(slices.Values(list), func(i int) error {
+		if i > 150 {
+			return commonerrors.ErrEOF
+		}
+		visited = append(visited, i)
+		return nil
+	}))
+	assert.ElementsMatch(t, visited, []int{9, 22, 35, 48, 61, 74, 87, 100, 113, 126, 139})
 }

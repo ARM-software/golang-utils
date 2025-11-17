@@ -25,6 +25,14 @@ func TestAnyTrue(t *testing.T) {
 	assert.True(t, AnyTrue(true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true, true))
 }
 
+func TestAnyFalse(t *testing.T) {
+	assert.True(t, AnyFalse())
+	assert.True(t, AnyFalse(false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false))
+	assert.True(t, AnyFalse(false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false))
+	assert.False(t, AnyFalse(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true))
+	assert.True(t, AnyFalse(true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true, true))
+}
+
 func TestAll(t *testing.T) {
 	assert.False(t, All([]bool{}))
 	assert.False(t, All([]bool{false, false, false, false, false, false, false, false, false, false, false, true, false, false, false, false, false}))

@@ -1,6 +1,9 @@
 package collection
 
 import (
+	"iter"
+	"slices"
+
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
@@ -120,11 +123,16 @@ func (c *Conditions) OneHot() bool {
 
 // Any returns true if there is at least one element of the slice which is true.
 func Any(slice []bool) bool {
-	if len(slice) == 0 {
+	return AnySequence(slices.Values(slice))
+}
+
+// AnySequence returns true if there is at least one element of the slice which is true.
+func AnySequence(seq iter.Seq[bool]) bool {
+	if seq == nil {
 		return false
 	}
-	for i := range slice {
-		if slice[i] {
+	for e := range seq {
+		if e {
 			return true
 		}
 	}
@@ -136,17 +144,31 @@ func AnyTrue(values ...bool) bool {
 	return Any(values)
 }
 
-// All returns true if all items of the slice are true.
-func All(slice []bool) bool {
-	if len(slice) == 0 {
-		return false
-	}
-	for i := range slice {
-		if !slice[i] {
-			return false
+// AnyFalseSequence returns true if there is at least one element of the sequence which is false.
+func AnyFalseSequence(eq iter.Seq[bool]) bool {
+	hasElements := false
+	for e := range eq {
+		hasElements = true
+		if !e {
+			return true
 		}
 	}
-	return true
+	return !hasElements
+}
+
+// AnyFalse returns whether there is a value set to false
+func AnyFalse(values ...bool) bool {
+	return AnyFalseSequence(slices.Values(values))
+}
+
+// AllSequence returns true if all items of the sequence are true.
+func AllSequence(seq iter.Seq[bool]) bool {
+	return !AnyFalseSequence(seq)
+}
+
+// All returns true if all items of the slice are true.
+func All(slice []bool) bool {
+	return AllSequence(slices.Values(slice))
 }
 
 // AllTrue returns whether all values are true.
