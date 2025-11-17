@@ -2,6 +2,7 @@ package parallelisation
 
 import (
 	"context"
+	"slices"
 	"strconv"
 	"testing"
 
@@ -47,12 +48,18 @@ func TestNewTransformGroup(t *testing.T) {
 	o, err = g.Outputs(context.Background())
 	require.NoError(t, err)
 	assert.ElementsMatch(t, in, o)
+	o, err = Transform[string, int](context.Background(), slices.Values(in2), tr, RetainAfterExecution, Parallel)
+	require.NoError(t, err)
+	assert.ElementsMatch(t, in, o)
 	o, err = g.OrderedOutputs(context.Background())
 	require.NoError(t, err)
 	assert.Empty(t, o)
 	err = g.Transform(context.Background())
 	require.NoError(t, err)
 	o, err = g.OrderedOutputs(context.Background())
+	require.NoError(t, err)
+	assert.Equal(t, in, o)
+	o, err = TransformInOrder[string, int](context.Background(), slices.Values(in2), tr, RetainAfterExecution, Parallel)
 	require.NoError(t, err)
 	assert.Equal(t, in, o)
 	err = g.Inputs(context.Background(), in2...)

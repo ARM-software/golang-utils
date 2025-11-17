@@ -2,6 +2,8 @@ package parallelisation
 
 import (
 	"context"
+	"iter"
+	"slices"
 
 	"go.uber.org/atomic"
 
@@ -101,12 +103,17 @@ func (g *TransformGroup[I, O]) appendResult(o *resultElement[O]) {
 
 // Inputs registers inputs to transform.
 func (g *TransformGroup[I, O]) Inputs(ctx context.Context, i ...I) error {
-	for j := range i {
+	return g.InputSequence(ctx, slices.Values(i))
+}
+
+// InputSequence registers inputs to transform.
+func (g *TransformGroup[I, O]) InputSequence(ctx context.Context, i iter.Seq[I]) error {
+	for e := range i {
 		err := DetermineContextError(ctx)
 		if err != nil {
 			return err
 		}
-		g.RegisterFunction(i[j])
+		g.RegisterFunction(e)
 	}
 	return nil
 }
@@ -158,4 +165,32 @@ func NewTransformGroup[I any, O any](transform TransformFunc[I, O], options ...S
 		return nil
 	}, options...)
 	return g
+}
+
+func transformF[I any, O any](ctx context.Context, inputs iter.Seq[I], transform TransformFunc[I, O], ordered bool, options ...StoreOption) (result []O, err error) {
+	grp := NewTransformGroup[I, O](transform, options...)
+	err = grp.InputSequence(ctx, inputs)
+	if err != nil {
+		return
+	}
+	err = grp.Transform(ctx)
+	if err != nil {
+		return
+	}
+	if ordered {
+		result, err = grp.OrderedOutputs(ctx)
+	} else {
+		result, err = grp.Outputs(ctx)
+	}
+	return
+}
+
+// Transform transforms inputs into outputs using the transform function.
+func Transform[I any, O any](ctx context.Context, inputs iter.Seq[I], transform TransformFunc[I, O], options ...StoreOption) ([]O, error) {
+	return transformF[I, O](ctx, inputs, transform, false, options...)
+}
+
+// TransformInOrder transforms inputs into outputs using the transform function but returns the output in the same order as the input.
+func TransformInOrder[I any, O any](ctx context.Context, inputs iter.Seq[I], transform TransformFunc[I, O], options ...StoreOption) ([]O, error) {
+	return transformF[I, O](ctx, inputs, transform, true, options...)
 }
