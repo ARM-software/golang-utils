@@ -9,10 +9,11 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/ARM-software/golang-utils/utils/commonerrors"
-	"github.com/ARM-software/golang-utils/utils/safecast"
 	mapset "github.com/deckarep/golang-set/v2"
 	"go.uber.org/atomic"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
 // Find looks for an element in a slice. If found it will

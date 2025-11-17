@@ -10,13 +10,13 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/ARM-software/golang-utils/utils/commonerrors"
-	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
-	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
