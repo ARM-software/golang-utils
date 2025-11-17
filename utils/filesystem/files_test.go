@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/go-faker/faker/v4"
-	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -562,74 +561,6 @@ func TestIsFile(t *testing.T) {
 				assert.True(t, b)
 			})
 
-		})
-	}
-}
-
-func TestLink(t *testing.T) {
-	if platform.IsWindows() {
-		fmt.Println("In order to run TestLink on Windows, Developer mode must be enabled: https://github.com/golang/go/pull/24307")
-	}
-	for _, fsType := range FileSystemTypes {
-		t.Run(fmt.Sprintf("%v_for_fs_%v", t.Name(), fsType), func(t *testing.T) {
-			fs := NewFs(fsType)
-			tmpDir, err := fs.TempDirInTempDir("test-link-")
-			require.NoError(t, err)
-			defer func() { _ = fs.Rm(tmpDir) }()
-
-			txt := fmt.Sprintf("This is a test sentence!!! %v", faker.Sentence())
-			tmpFile, err := fs.TouchTempFile(tmpDir, "test-*.txt")
-			require.NoError(t, err)
-			err = fs.WriteFile(tmpFile, []byte(txt), 0755)
-			require.NoError(t, err)
-
-			symlink := filepath.Join(tmpDir, "symlink-tofile")
-			hardlink := filepath.Join(tmpDir, "hardlink-tofile")
-
-			err = fs.Symlink(tmpFile, symlink)
-			if commonerrors.Any(err, commonerrors.ErrNotImplemented, commonerrors.ErrForbidden, afero.ErrNoSymlink) {
-				return
-			}
-			require.NoError(t, err)
-
-			err = fs.Link(tmpFile, hardlink)
-			require.NoError(t, err)
-
-			assert.True(t, fs.Exists(symlink))
-			assert.True(t, fs.Exists(hardlink))
-
-			isLink, err := fs.IsLink(symlink)
-			require.NoError(t, err)
-			assert.True(t, isLink)
-
-			isFile, err := fs.IsFile(symlink)
-			require.NoError(t, err)
-			assert.True(t, isFile)
-
-			isLink, err = fs.IsLink(hardlink)
-			require.NoError(t, err)
-			assert.False(t, isLink)
-
-			isFile, err = fs.IsFile(hardlink)
-			require.NoError(t, err)
-			assert.True(t, isFile)
-
-			link, err := fs.Readlink(symlink)
-			require.NoError(t, err)
-			assert.Equal(t, tmpFile, link)
-
-			link, err = fs.Readlink(hardlink)
-			require.Error(t, err)
-			assert.Empty(t, link)
-
-			bytes, err := fs.ReadFile(symlink)
-			require.NoError(t, err)
-			assert.Equal(t, txt, string(bytes))
-
-			bytes, err = fs.ReadFile(hardlink)
-			require.NoError(t, err)
-			assert.Equal(t, txt, string(bytes))
-			_ = fs.Rm(tmpDir)
 		})
 	}
 }

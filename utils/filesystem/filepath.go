@@ -260,6 +260,24 @@ func FileTreeDepth(fs FS, root, filePath string) (depth int64, err error) {
 	return
 }
 
+// EvalSymlinks has the same behaviour as  filepath.EvalSymlinks , but can handle different filesystems.
+func EvalSymlinks(fs FS, pathWithSymlinks string) (populatedPath string, err error) {
+	if fs == nil {
+		return "", commonerrors.UndefinedVariable("filesystem")
+	}
+
+	// FIXME the following is only true for osfs
+	// Use https://github.com/spf13/afero/issues/562 whenever it is made available.
+	p, err := filepath.EvalSymlinks(FilePathToPlatformPathSeparator(fs, pathWithSymlinks))
+	if err != nil {
+		err = commonerrors.WrapIfNotCommonErrorf(commonerrors.ErrUnexpected, ConvertFileSystemError(err), "could not evaluate the path '%v'", pathWithSymlinks)
+		return
+	}
+
+	populatedPath = FilePathFromPlatformPathSeparator(fs, p)
+	return
+}
+
 // EndsWithPathSeparator states whether a path is ending with a path separator of not
 func EndsWithPathSeparator(fs FS, filePath string) bool {
 	return strings.HasSuffix(filePath, "/") || strings.HasSuffix(filePath, string(fs.PathSeparator()))
