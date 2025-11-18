@@ -113,7 +113,7 @@ func ConvertFileSystemError(err error) error {
 		return commonerrors.WrapError(commonerrors.ErrExists, err, "")
 	case commonerrors.CorrespondTo(err, "bad file descriptor") || os.IsPermission(err) || commonerrors.Any(err, os.ErrPermission, os.ErrClosed, afero.ErrFileClosed, ErrPathNotExist, io.ErrClosedPipe):
 		return commonerrors.WrapError(commonerrors.ErrConflict, err, "")
-	case commonerrors.CorrespondTo(err, "required privilege is not held") || commonerrors.CorrespondTo(err, "operation not permitted"):
+	case isPrivilegeError(err) || commonerrors.CorrespondTo(err, "required privilege is not held", "operation not permitted"):
 		return commonerrors.WrapError(commonerrors.ErrForbidden, err, "")
 	case os.IsNotExist(err) || commonerrors.Any(err, os.ErrNotExist, afero.ErrFileNotFound) || IsPathNotExist(err) || commonerrors.CorrespondTo(err, "No such file or directory"):
 		return commonerrors.WrapError(commonerrors.ErrNotFound, err, "")
@@ -130,6 +130,8 @@ func ConvertFileSystemError(err error) error {
 	case commonerrors.Any(err, io.ErrUnexpectedEOF):
 		// Do not add io.EOF as it is used to read files
 		return commonerrors.WrapError(commonerrors.ErrEOF, err, "")
+	case isNotSupportedError(err) || commonerrors.Any(err, afero.ErrNoSymlink, afero.ErrNoReadlink) || commonerrors.CorrespondTo(err, "not supported"):
+		return commonerrors.WrapError(commonerrors.ErrUnsupported, err, "")
 	}
 
 	return err
