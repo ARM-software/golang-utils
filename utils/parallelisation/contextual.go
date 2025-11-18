@@ -2,6 +2,7 @@ package parallelisation
 
 import (
 	"context"
+	"io"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
@@ -54,4 +55,9 @@ func BreakOnError(ctx context.Context, executionOptions *StoreOptions, contextua
 	group := NewContextualGroup(StopOnFirstError(executionOptions).Options()...)
 	group.RegisterFunction(contextualFunc...)
 	return group.Execute(ctx)
+}
+
+// BreakOnErrorOrEOF is similar to BreakOnError but also stops on EOF. However, in this case, no error is returned
+func BreakOnErrorOrEOF(ctx context.Context, executionOptions *StoreOptions, contextualFunc ...ContextualFunc) error {
+	return commonerrors.Ignore(BreakOnError(ctx, executionOptions, contextualFunc...), commonerrors.ErrEOF, io.EOF)
 }
