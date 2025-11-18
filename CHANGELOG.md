@@ -14,6 +14,19 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.134.0" (2025-11-18)
+======================
+
+Features
+--------
+
+- :sparkles: `[collection]` Added execute a function on each element of a function (#20251117162958)
+- :zap: `[collection]` Support `iter.Seq` for most operations on slices (map, filter) to increase performance (#20251117163045)
+- :sparkles: `[collection]` Added set operations on slices (#20251117163100)
+- :sparkles: `[parallelisation]` Added Transform helpers to ease the creation `transform` operations (#20251117175436)
+- :sparkles: `[parallelisation]` Added `BreakOnErrorOrEOF` to help performing actions in parallel but for which `EOF` is considered as termination rather than an error (#20251117175538)
+
+
 "1.133.0" (2025-11-12)
 ======================
 
