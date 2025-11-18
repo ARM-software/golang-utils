@@ -144,7 +144,7 @@ func AnyTrue(values ...bool) bool {
 	return Any(values)
 }
 
-// AnyFalseSequence returns true if there is at least one element of the sequence which is false.
+// AnyFalseSequence returns true if there is at least one element of the sequence which is false. If the sequence is empty, it also returns true.
 func AnyFalseSequence(eq iter.Seq[bool]) bool {
 	hasElements := false
 	for e := range eq {
