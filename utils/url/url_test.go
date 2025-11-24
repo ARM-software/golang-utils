@@ -1,7 +1,6 @@
 package url
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -17,6 +16,167 @@ func TestUrl_IsParamSegment(t *testing.T) {
 	t.Run("false", func(t *testing.T) {
 		assert.False(t, IsParamSegment("abc"))
 	})
+}
+
+func TestUrl_HasMatchingPathSegments(t *testing.T) {
+	tests := []struct {
+		name   string
+		pathA  string
+		pathB  string
+		result bool
+		err    error
+	}{
+		{
+			"empty pathA",
+			"",
+			"abc/123",
+			false,
+			commonerrors.ErrUndefined,
+		},
+		{
+			"empty pathB",
+			"abc/123",
+			"",
+			false,
+			commonerrors.ErrUndefined,
+		},
+		{
+			"identical paths",
+			"abc/123",
+			"abc/123",
+			true,
+			nil,
+		},
+		{
+			"identical paths with multiple segments",
+			"abc/123/def/456/zzz",
+			"abc/123/def/456/zzz",
+			true,
+			nil,
+		},
+		{
+			"root paths",
+			"/",
+			"/",
+			true,
+			nil,
+		},
+		{
+			"paths with different segment values",
+			"abc/123",
+			"abc/456",
+			false,
+			nil,
+		},
+		{
+			"paths with different lengths",
+			"abc/123",
+			"abc/123/456",
+			false,
+			nil,
+		},
+		{
+			"path with trailing slashes",
+			"/abc/123/",
+			"abc/123",
+			true,
+			nil,
+		},
+	}
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			match, err := HasMatchingPathSegments(test.pathA, test.pathB)
+
+			errortest.AssertError(t, err, test.err)
+			assert.Equal(t, test.result, match)
+		})
+	}
+}
+
+func TestUrl_HasMatchingPathSegmentsWithParams(t *testing.T) {
+	tests := []struct {
+		name   string
+		pathA  string
+		pathB  string
+		result bool
+		err    error
+	}{
+		{
+			"empty pathA",
+			"",
+			"abc/123",
+			false,
+			commonerrors.ErrUndefined,
+		},
+		{
+			"empty pathB",
+			"abc/123",
+			"",
+			false,
+			commonerrors.ErrUndefined,
+		},
+		{
+			"identical paths",
+			"abc/123",
+			"abc/123",
+			true,
+			nil,
+		},
+		{
+			"identical paths with multiple segments",
+			"abc/123/def/456/zzz",
+			"abc/123/def/456/zzz",
+			true,
+			nil,
+		},
+		{
+			"path with parameter segment",
+			"/abc/{id}/123",
+			"/abc/123/123",
+			true,
+			nil,
+		},
+		{
+			"both paths with matching parameter segments",
+			"/abc/{param}/123",
+			"/abc/{param}/123",
+			true,
+			nil,
+		},
+		{
+			"paths with different segments",
+			"/abc/123/xyz",
+			"/def/123/zzz",
+			false,
+			nil,
+		},
+		{
+			"paths with different segments with parameter",
+			"/abc/{param}/123",
+			"/def/123/zzz",
+			false,
+			nil,
+		},
+		{
+			"paths with different lengths and params",
+			"/abc/{param}",
+			"/abc/{param}/123",
+			false,
+			nil,
+		},
+	}
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			match, err := HasMatchingPathSegmentsWithParams(test.pathA, test.pathB)
+
+			errortest.AssertError(t, err, test.err)
+			assert.Equal(t, test.result, match)
+		})
+	}
 }
 
 func TestUrl_JoinPaths(t *testing.T) {
@@ -66,7 +226,7 @@ func TestUrl_JoinPaths(t *testing.T) {
 
 	for i := range tests {
 		test := tests[i]
-		t.Run(fmt.Sprintf("JoinPaths_%v", test.name), func(t *testing.T) {
+		t.Run(test.name, func(t *testing.T) {
 			joinedPaths, err := JoinPaths(test.paths...)
 
 			errortest.AssertError(t, err, test.error)
@@ -143,7 +303,7 @@ func TestUrl_JoinPathsWithSeparator(t *testing.T) {
 
 	for i := range tests {
 		test := tests[i]
-		t.Run(fmt.Sprintf("JoinPathsWithSeparator_%v", test.name), func(t *testing.T) {
+		t.Run(test.name, func(t *testing.T) {
 			joinedPaths, err := JoinPathsWithSeparator(test.separator, test.paths...)
 
 			errortest.AssertError(t, err, test.error)
@@ -193,7 +353,7 @@ func TestUrl_SplitPath(t *testing.T) {
 
 	for i := range tests {
 		test := tests[i]
-		t.Run(fmt.Sprintf("JoinPaths_%v", test.name), func(t *testing.T) {
+		t.Run(test.name, func(t *testing.T) {
 			segments := SplitPath(test.path)
 
 			if test.result != nil {
@@ -261,7 +421,7 @@ func TestUrl_SplitPathWithSeparator(t *testing.T) {
 
 	for i := range tests {
 		test := tests[i]
-		t.Run(fmt.Sprintf("JoinPaths_%v", test.name), func(t *testing.T) {
+		t.Run(test.name, func(t *testing.T) {
 			segments := SplitPathWithSeparator(test.path, test.separator)
 
 			if test.result != nil {

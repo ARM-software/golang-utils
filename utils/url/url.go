@@ -9,38 +9,49 @@ import (
 
 const defaultPathSeparator = "/"
 
-// HasMatchingPathSegments checks whether two path strings match based on their segments.
-func HasMatchingPathSegments(pathA, pathB string) (match bool, err error) {
-	if reflection.IsEmpty(pathA) {
-		err = commonerrors.UndefinedVariable("pathA")
-		return
-	}
-
-	pathASegments := SplitPath(pathA)
-	pathBSegments := SplitPath(pathB)
-	if len(pathASegments) != len(pathBSegments) {
-		return
-	}
-
-	for i := range pathBSegments {
-		pathBSeg, pathASeg := pathBSegments[i], pathASegments[i]
-		if pathBSeg != pathASeg {
-			return
-		}
-	}
-
-	match = true
-	return
+// IsParamSegment checks whether the segment string is a path parameter
+func IsParamSegment(segment string) bool {
+	return len(segment) >= 2 && segment[0] == '{' && segment[len(segment)-1] == '}'
 }
 
-// HasMatchingPathSegmentsWithParams is similar to MatchingPathSegments but considers segments as matching if at least one of them contains a path parameter.
+// HasMatchingPathSegments checks whether two path strings match based on their segments.
+func HasMatchingPathSegments(pathA, pathB string) (bool, error) {
+	return hasMatchingPathSegments(pathA, pathB, func(segmentA, segmentB string) bool {
+		return segmentA == segmentB
+	})
+}
+
+// HasMatchingPathSegmentsWithParams is similar to HasMatchingPathSegments but also considers segments as matching if at least one of them contains a path parameter.
 //
 //	HasMatchingPathSegmentsWithParams("/some/{param}/path", "/some/{param}/path") // true
 //	HasMatchingPathSegmentsWithParams("/some/abc/path", "/some/{param}/path") // true
 //	HasMatchingPathSegmentsWithParams("/some/abc/path", "/some/def/path") // false
-func HasMatchingPathSegmentsWithParams(pathA, pathB string) (match bool, err error) {
+func HasMatchingPathSegmentsWithParams(pathA, pathB string) (bool, error) {
+	return hasMatchingPathSegments(pathA, pathB, func(pathASeg, pathBSeg string) bool {
+		switch {
+		case IsParamSegment(pathASeg):
+			return pathBSeg != ""
+		case IsParamSegment(pathBSeg):
+			return pathASeg != ""
+		default:
+			return pathASeg == pathBSeg
+		}
+	})
+}
+
+func hasMatchingPathSegments(pathA, pathB string, segmentMatcherFn func(segmentA, segmentB string) bool) (match bool, err error) {
 	if reflection.IsEmpty(pathA) {
-		err = commonerrors.UndefinedVariable("pathA")
+		err = commonerrors.UndefinedVariable("path A")
+		return
+	}
+
+	if reflection.IsEmpty(pathB) {
+		err = commonerrors.UndefinedVariable("path B")
+		return
+	}
+
+	if segmentMatcherFn == nil {
+		err = commonerrors.UndefinedVariable("segment matcher function")
 		return
 	}
 
@@ -51,21 +62,7 @@ func HasMatchingPathSegmentsWithParams(pathA, pathB string) (match bool, err err
 	}
 
 	for i := range pathBSegments {
-		pathBSeg, pathASeg := pathBSegments[i], pathASegments[i]
-		if IsParamSegment(pathASeg) {
-			if pathBSeg == "" {
-				return
-			}
-			continue
-		}
-
-		if IsParamSegment(pathBSeg) {
-			if pathASeg == "" {
-				return
-			}
-			continue
-		}
-		if pathBSeg != pathASeg {
+		if !segmentMatcherFn(pathASegments[i], pathBSegments[i]) {
 			return
 		}
 	}
@@ -95,11 +92,6 @@ func SplitPathWithSeparator(path string, separator string) []string {
 		}
 	}
 	return out
-}
-
-// IsParamSegment checks whether the segment string is a path parameter
-func IsParamSegment(segment string) bool {
-	return len(segment) >= 2 && segment[0] == '{' && segment[len(segment)-1] == '}'
 }
 
 // JoinPaths returns a single concatenated path string from the supplied paths and correctly sets the default "/" separator between them.
