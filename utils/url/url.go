@@ -9,14 +9,17 @@ import (
 
 const defaultPathSeparator = "/"
 
-// IsParamSegment checks whether the segment string is a path parameter
+// The expected function signature for checking whether two path segments match.
+type PathSegmentMatcherFunc = func(segmentA, segmentB string) bool
+
+// IsParamSegment checks whether the segment string is a path parameter as described by the OpenAPI spec (see https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md#path-templating).
 func IsParamSegment(segment string) bool {
-	return len(segment) >= 2 && segment[0] == '{' && segment[len(segment)-1] == '}'
+	return len(segment) >= 2 && strings.HasPrefix(segment, "{") && strings.HasSuffix(segment, "}")
 }
 
 // HasMatchingPathSegments checks whether two path strings match based on their segments.
 func HasMatchingPathSegments(pathA, pathB string) (bool, error) {
-	return hasMatchingPathSegments(pathA, pathB, func(segmentA, segmentB string) bool {
+	return MatchingPathSegments(pathA, pathB, func(segmentA, segmentB string) bool {
 		return segmentA == segmentB
 	})
 }
@@ -27,19 +30,20 @@ func HasMatchingPathSegments(pathA, pathB string) (bool, error) {
 //	HasMatchingPathSegmentsWithParams("/some/abc/path", "/some/{param}/path") // true
 //	HasMatchingPathSegmentsWithParams("/some/abc/path", "/some/def/path") // false
 func HasMatchingPathSegmentsWithParams(pathA, pathB string) (bool, error) {
-	return hasMatchingPathSegments(pathA, pathB, func(pathASeg, pathBSeg string) bool {
+	return MatchingPathSegments(pathA, pathB, func(pathASeg, pathBSeg string) bool {
 		switch {
 		case IsParamSegment(pathASeg):
-			return pathBSeg != ""
+			return !reflection.IsEmpty(pathBSeg)
 		case IsParamSegment(pathBSeg):
-			return pathASeg != ""
+			return !reflection.IsEmpty(pathASeg)
 		default:
 			return pathASeg == pathBSeg
 		}
 	})
 }
 
-func hasMatchingPathSegments(pathA, pathB string, segmentMatcherFn func(segmentA, segmentB string) bool) (match bool, err error) {
+// MatchingPathSegments checks whether two path strings match based on their segments using the provided matcher function.
+func MatchingPathSegments(pathA, pathB string, matcherFn PathSegmentMatcherFunc) (match bool, err error) {
 	if reflection.IsEmpty(pathA) {
 		err = commonerrors.UndefinedVariable("path A")
 		return
@@ -50,7 +54,7 @@ func hasMatchingPathSegments(pathA, pathB string, segmentMatcherFn func(segmentA
 		return
 	}
 
-	if segmentMatcherFn == nil {
+	if matcherFn == nil {
 		err = commonerrors.UndefinedVariable("segment matcher function")
 		return
 	}
@@ -62,7 +66,7 @@ func hasMatchingPathSegments(pathA, pathB string, segmentMatcherFn func(segmentA
 	}
 
 	for i := range pathBSegments {
-		if !segmentMatcherFn(pathASegments[i], pathBSegments[i]) {
+		if !matcherFn(pathASegments[i], pathBSegments[i]) {
 			return
 		}
 	}
