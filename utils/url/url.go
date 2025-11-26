@@ -1,27 +1,52 @@
 package url
 
 import (
+	netUrl "net/url"
+	"path"
+	"regexp"
 	"strings"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
-const defaultPathSeparator = "/"
+const (
+	defaultPathSeparator       = "/"
+	minimumPathParameterLength = 3
+)
 
-// The expected function signature for checking whether two path segments match.
-type PathSegmentMatcherFunc = func(segmentA, segmentB string) bool
+var validParamRegex = regexp.MustCompile(`^\{[A-Za-z0-9_-]+\}$`)
 
-// IsParamSegment checks whether the segment string is a path parameter as described by the OpenAPI spec (see https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md#path-templating).
-func IsParamSegment(segment string) bool {
-	return len(segment) >= 2 && strings.HasPrefix(segment, "{") && strings.HasSuffix(segment, "}")
+// The expected signature for path segment matcher functions.
+type PathSegmentMatcherFunc = func(segmentA, segmentB string) (match bool, err error)
+
+// ValidatePathParameter checks whether a path parameter is valid. An error is returned if it is invalid.
+// Version 3.1.0 of the OpenAPI spec provides some guidance for path parameter values (see https://spec.openapis.org/oas/v3.1.0.html#path-templating)
+func ValidatePathParameter(parameter string) error {
+	if reflection.IsEmpty(parameter) || len(parameter) < minimumPathParameterLength {
+		return commonerrors.Newf(commonerrors.ErrInvalid, "parameter segment %q must have length greater than or equal to three", parameter)
+	}
+
+	unescapedSegment, err := netUrl.PathUnescape(parameter)
+	if err != nil {
+		return commonerrors.WrapErrorf(commonerrors.ErrInvalid, err, "an error occurred during path unescaping for parameter %q", parameter)
+	}
+
+	if !validParamRegex.MatchString(unescapedSegment) {
+		return commonerrors.Newf(commonerrors.ErrInvalid, "parameter %q unescaped to %q can only contain alphanumeric characters, dashes, underscores, and a single pair of braces", parameter, unescapedSegment)
+	}
+
+	return nil
 }
 
-// HasMatchingPathSegments checks whether two path strings match based on their segments.
-func HasMatchingPathSegments(pathA, pathB string) (bool, error) {
-	return MatchingPathSegments(pathA, pathB, func(segmentA, segmentB string) bool {
-		return segmentA == segmentB
-	})
+// IsPathParameter checks whether the parameter string is a path parameter as described by the OpenAPI spec (see https://spec.openapis.org/oas/v3.0.0.html#path-templating).
+func IsPathParameter(parameter string) bool {
+	return !reflection.IsEmpty(parameter) && strings.HasPrefix(parameter, "{") && strings.HasSuffix(parameter, "}")
+}
+
+// HasMatchingPathSegments checks whether two path strings match based on their segments by doing a simple equality check on each path segment pair.
+func HasMatchingPathSegments(pathA, pathB string) (match bool, err error) {
+	return MatchingPathSegments(pathA, pathB, BasicEqualityPathSegmentMatcher)
 }
 
 // HasMatchingPathSegmentsWithParams is similar to HasMatchingPathSegments but also considers segments as matching if at least one of them contains a path parameter.
@@ -29,17 +54,39 @@ func HasMatchingPathSegments(pathA, pathB string) (bool, error) {
 //	HasMatchingPathSegmentsWithParams("/some/{param}/path", "/some/{param}/path") // true
 //	HasMatchingPathSegmentsWithParams("/some/abc/path", "/some/{param}/path") // true
 //	HasMatchingPathSegmentsWithParams("/some/abc/path", "/some/def/path") // false
-func HasMatchingPathSegmentsWithParams(pathA, pathB string) (bool, error) {
-	return MatchingPathSegments(pathA, pathB, func(pathASeg, pathBSeg string) bool {
-		switch {
-		case IsParamSegment(pathASeg):
-			return !reflection.IsEmpty(pathBSeg)
-		case IsParamSegment(pathBSeg):
-			return !reflection.IsEmpty(pathASeg)
-		default:
-			return pathASeg == pathBSeg
+func HasMatchingPathSegmentsWithParams(pathA, pathB string) (match bool, err error) {
+	return MatchingPathSegments(pathA, pathB, BasicEqualityPathSegmentWithParamMatcher)
+}
+
+// BasicEqualityPathSegmentMatcher is a PathSegmentMatcherFunc that performs direct string comparison of two path segments.
+func BasicEqualityPathSegmentMatcher(segmentA, segmentB string) (match bool, err error) {
+	match = segmentA == segmentB
+	return
+}
+
+// BasicEqualityPathSegmentWithParamMatcher is a PathSegmentMatcherFunc that is similar to BasicEqualityPathSegmentMatcher but accounts for path parameter segments.
+func BasicEqualityPathSegmentWithParamMatcher(segmentA, segmentB string) (match bool, err error) {
+	if IsPathParameter(segmentA) {
+		if errValidatePathASeg := ValidatePathParameter(segmentA); errValidatePathASeg != nil {
+			err = commonerrors.WrapErrorf(commonerrors.ErrInvalid, errValidatePathASeg, "an error occurred while validating path parameter %q", segmentA)
+			return
 		}
-	})
+
+		match = !reflection.IsEmpty(segmentB)
+		return
+	}
+
+	if IsPathParameter(segmentB) {
+		if errValidatePathBSeg := ValidatePathParameter(segmentB); errValidatePathBSeg != nil {
+			err = commonerrors.WrapErrorf(commonerrors.ErrInvalid, errValidatePathBSeg, "an error occurred while validating path parameter %q", segmentB)
+			return
+		}
+
+		match = !reflection.IsEmpty(segmentA)
+		return
+	}
+
+	return BasicEqualityPathSegmentMatcher(segmentA, segmentB)
 }
 
 // MatchingPathSegments checks whether two path strings match based on their segments using the provided matcher function.
@@ -59,14 +106,32 @@ func MatchingPathSegments(pathA, pathB string, matcherFn PathSegmentMatcherFunc)
 		return
 	}
 
-	pathASegments := SplitPath(pathA)
-	pathBSegments := SplitPath(pathB)
+	unescapedPathA, errPathASeg := netUrl.PathUnescape(pathA)
+	if errPathASeg != nil {
+		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, errPathASeg, "an error occurred while unescaping path %q", pathA)
+		return
+	}
+
+	unescapedPathB, errPathBSeg := netUrl.PathUnescape(pathB)
+	if errPathBSeg != nil {
+		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, errPathBSeg, "an error occurred while unescaping path %q", pathB)
+		return
+	}
+
+	pathASegments := SplitPath(unescapedPathA)
+	pathBSegments := SplitPath(unescapedPathB)
 	if len(pathASegments) != len(pathBSegments) {
 		return
 	}
 
 	for i := range pathBSegments {
-		if !matcherFn(pathASegments[i], pathBSegments[i]) {
+		match, err = matcherFn(pathASegments[i], pathBSegments[i])
+		if err != nil {
+			err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "an error occurred during execution of the matcher function for path segments %q and %q", pathASegments[i], pathBSegments[i])
+			return
+		}
+
+		if !match {
 			return
 		}
 	}
@@ -75,66 +140,19 @@ func MatchingPathSegments(pathA, pathB string, matcherFn PathSegmentMatcherFunc)
 	return
 }
 
-// SplitPath returns a slice containing the individual segments that make up the path string. It looks for the default "/" path separator when splitting.
-func SplitPath(path string) []string {
-	return SplitPathWithSeparator(path, defaultPathSeparator)
-}
-
-// SplitPathWithSeparator is similar to SplitPath but allows for specifying the path separator to look for when splitting.
-func SplitPathWithSeparator(path string, separator string) []string {
-	path = strings.TrimSpace(path)
-	if reflection.IsEmpty(path) || path == separator {
+// SplitPath returns a slice containing the individual segments that make up the path string p.
+// It looks for the default forward slash path separator when splitting.
+func SplitPath(p string) []string {
+	p = strings.TrimSpace(p)
+	if reflection.IsEmpty(p) || p == defaultPathSeparator {
 		return nil
 	}
 
-	path = strings.Trim(path, separator)
-	segments := strings.Split(path, separator)
-	out := segments[:0]
-	for _, p := range segments {
-		if !reflection.IsEmpty(p) {
-			out = append(out, p)
-		}
-	}
-	return out
-}
-
-// JoinPaths returns a single concatenated path string from the supplied paths and correctly sets the default "/" separator between them.
-func JoinPaths(paths ...string) (joinedPath string, err error) {
-	return JoinPathsWithSeparator(defaultPathSeparator, paths...)
-}
-
-// JoinPathsWithSeparator is similar to JoinPaths but allows for specifying the path separator to use.
-func JoinPathsWithSeparator(separator string, paths ...string) (joinedPath string, err error) {
-	if paths == nil {
-		err = commonerrors.UndefinedVariable("paths")
-		return
-	}
-	if len(paths) == 0 {
-		return
-	}
-	if len(paths) == 1 {
-		joinedPath = paths[0]
-		return
+	p = path.Clean(p)
+	p = strings.Trim(p, defaultPathSeparator)
+	if reflection.IsEmpty(p) {
+		return []string{}
 	}
 
-	if reflection.IsEmpty(separator) {
-		separator = defaultPathSeparator
-	}
-
-	joinedPath = paths[0]
-	for _, p := range paths[1:] {
-		pathAHasSlashSuffix := strings.HasSuffix(joinedPath, separator)
-		pathBHasSlashPrefix := strings.HasPrefix(p, separator)
-
-		switch {
-		case pathAHasSlashSuffix && pathBHasSlashPrefix:
-			joinedPath += p[1:]
-		case !pathAHasSlashSuffix && !pathBHasSlashPrefix:
-			joinedPath += separator + p
-		default:
-			joinedPath += p
-		}
-	}
-
-	return
+	return strings.Split(p, defaultPathSeparator)
 }
