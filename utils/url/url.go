@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
@@ -143,16 +144,11 @@ func MatchingPathSegments(pathA, pathB string, matcherFn PathSegmentMatcherFunc)
 // SplitPath returns a slice containing the individual segments that make up the path string p.
 // It looks for the default forward slash path separator when splitting.
 func SplitPath(p string) []string {
-	p = strings.TrimSpace(p)
-	if reflection.IsEmpty(p) || p == defaultPathSeparator {
-		return nil
-	}
-
-	p = path.Clean(p)
-	p = strings.Trim(p, defaultPathSeparator)
 	if reflection.IsEmpty(p) {
 		return []string{}
 	}
 
-	return strings.Split(p, defaultPathSeparator)
+	p = path.Clean(p)
+	p = strings.Trim(p, defaultPathSeparator)
+	return collection.ParseListWithCleanup(p, defaultPathSeparator)
 }

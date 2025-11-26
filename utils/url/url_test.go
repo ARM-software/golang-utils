@@ -412,3 +412,58 @@ func TestUrl_MatchingPathSegments(t *testing.T) {
 		})
 	}
 }
+
+func TestUrl_SplitPath(t *testing.T) {
+	tests := []struct {
+		name   string
+		path   string
+		result []string
+	}{
+		{
+			"empty path",
+			"",
+			[]string{},
+		},
+		{
+			"root path",
+			"/",
+			[]string{"/"},
+		},
+		{
+			"root path with repeated slashes",
+			"///",
+			[]string{"/"},
+		},
+		{
+			"path with one segment",
+			"abc",
+			[]string{"abc"},
+		},
+		{
+			"path with two segments",
+			"abc/123",
+			[]string{"abc", "123"},
+		},
+		{
+			"path with multiple segments",
+			"abc/123/def/456",
+			[]string{"abc", "123", "def", "456"},
+		},
+		{
+			"path with multiple segments including param segment",
+			"abc/123/def/456/zzz/{param1}/999",
+			[]string{"abc", "123", "def", "456", "zzz", "{param1}", "999"},
+		},
+	}
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			segments := SplitPath(test.path)
+
+			for i, s := range segments {
+				assert.Equal(t, test.result[i], s)
+			}
+		})
+	}
+}
