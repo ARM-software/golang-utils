@@ -16,16 +16,17 @@ const (
 	minimumPathParameterLength = 3
 )
 
-var validParamRegex = regexp.MustCompile(`^\{[A-Za-z0-9_-]+\}$`)
+// Section 3.3 of RFC3986 details valid characters for path segments (see https://datatracker.ietf.org/doc/html/rfc3986#section-3.3)
+var validPathRegex = regexp.MustCompile(`^(?:[A-Za-z0-9._~\-!$&'()*+,;=:@{}]|%[0-9A-Fa-f]{2})+$`)
 
-// The expected signature for path segment matcher functions.
+// PathSegmentMatcherFunc defines the signature for path segment matcher functions.
 type PathSegmentMatcherFunc = func(segmentA, segmentB string) (match bool, err error)
 
 // ValidatePathParameter checks whether a path parameter is valid. An error is returned if it is invalid.
 // Version 3.1.0 of the OpenAPI spec provides some guidance for path parameter values (see https://spec.openapis.org/oas/v3.1.0.html#path-templating)
 func ValidatePathParameter(parameter string) error {
-	if reflection.IsEmpty(parameter) || len(parameter) < minimumPathParameterLength {
-		return commonerrors.Newf(commonerrors.ErrInvalid, "parameter segment %q must have length greater than or equal to three", parameter)
+	if !IsPathParameter(parameter) {
+		return commonerrors.Newf(commonerrors.ErrInvalid, "parameter %q must not be empty, cannot contain only whitespaces, have a length greater than or equal to three, start with an opening brace, and end with a closing brace", parameter)
 	}
 
 	unescapedSegment, err := netUrl.PathUnescape(parameter)
@@ -33,7 +34,7 @@ func ValidatePathParameter(parameter string) error {
 		return commonerrors.WrapErrorf(commonerrors.ErrInvalid, err, "an error occurred during path unescaping for parameter %q", parameter)
 	}
 
-	if !validParamRegex.MatchString(unescapedSegment) {
+	if !validPathRegex.MatchString(unescapedSegment) {
 		return commonerrors.Newf(commonerrors.ErrInvalid, "parameter %q unescaped to %q can only contain alphanumeric characters, dashes, underscores, and a single pair of braces", parameter, unescapedSegment)
 	}
 
@@ -42,7 +43,19 @@ func ValidatePathParameter(parameter string) error {
 
 // IsPathParameter checks whether the parameter string is a path parameter as described by the OpenAPI spec (see https://spec.openapis.org/oas/v3.0.0.html#path-templating).
 func IsPathParameter(parameter string) bool {
-	return !reflection.IsEmpty(parameter) && strings.HasPrefix(parameter, "{") && strings.HasSuffix(parameter, "}")
+	if reflection.IsEmpty(parameter) {
+		return false
+	}
+
+	if len(parameter) < minimumPathParameterLength {
+		return false
+	}
+
+	if !strings.HasPrefix(parameter, "{") || !strings.HasSuffix(parameter, "}") {
+		return false
+	}
+
+	return strings.Count(parameter, "{") == 1 && strings.Count(parameter, "}") == 1
 }
 
 // HasMatchingPathSegments checks whether two path strings match based on their segments by doing a simple equality check on each path segment pair.

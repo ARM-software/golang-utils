@@ -27,18 +27,28 @@ func TestUrl_IsPathParameter(t *testing.T) {
 			true,
 		},
 		{
-			"missing left brace",
+			"only whitespace",
+			"  ",
+			false,
+		},
+		{
+			"missing opening brace",
 			"abc}",
 			false,
 		},
 		{
-			"missing right brace",
+			"missing closing brace",
 			"{abc",
 			false,
 		},
 		{
 			"missing both braces",
 			"abc",
+			false,
+		},
+		{
+			"contains multiple braces",
+			"{{abc}}",
 			false,
 		},
 		{
@@ -49,6 +59,11 @@ func TestUrl_IsPathParameter(t *testing.T) {
 		{
 			"with encoded space",
 			"{%20abc%20}", // unescaped as '{ abc }'
+			true,
+		},
+		{
+			"with valid special characters",
+			"{abc$123.zzz~999}",
 			true,
 		},
 	}
@@ -73,17 +88,22 @@ func TestUrl_ValidatePathParameter(t *testing.T) {
 			nil,
 		},
 		{
+			"with valid special characters",
+			"{abc.-_+$@!123(a)}",
+			nil,
+		},
+		{
 			"with encoded underscore",
 			"{abc%5F1}", // unescaped as '{abc_1}'
 			nil,
 		},
 		{
-			"missing left brace",
+			"missing opening brace",
 			"abc}",
 			commonerrors.ErrInvalid,
 		},
 		{
-			"missing right brace",
+			"missing closing brace",
 			"{abc",
 			commonerrors.ErrInvalid,
 		},
@@ -93,8 +113,18 @@ func TestUrl_ValidatePathParameter(t *testing.T) {
 			commonerrors.ErrInvalid,
 		},
 		{
+			"contains multiple braces",
+			"{{abc}}",
+			commonerrors.ErrInvalid,
+		},
+		{
 			"with encoded asterisk",
 			"{abc%2A123}", // unescaped as '{abc*123}'
+			nil,
+		},
+		{
+			"with encoded hash",
+			"{abc%23123}", // unescaped as '{abc#123}'
 			commonerrors.ErrInvalid,
 		},
 		{
