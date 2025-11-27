@@ -97,3 +97,31 @@ func TestIsBase64Encoded(t *testing.T) {
 		})
 	}
 }
+
+func TestIsPathParameter(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{"{abc}", true},
+		{"abc}", false},
+		{"{abc", false},
+		{"abc", false},
+		{"{abc$123.zzz~999}", true},
+		{"{abc%5F1}", true}, // unescaped as '{abc_1}'
+		{"{abc#123}", false},
+		{" ", false},
+	}
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.input, func(t *testing.T) {
+			err := validation.Validate(test.input, IsPathParameter)
+			if test.expected {
+				require.NoError(t, err)
+			} else {
+				errortest.AssertErrorDescription(t, err, "invalid path parameter")
+			}
+		})
+	}
+}

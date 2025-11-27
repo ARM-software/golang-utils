@@ -25,7 +25,7 @@ type PathSegmentMatcherFunc = func(segmentA, segmentB string) (match bool, err e
 // ValidatePathParameter checks whether a path parameter is valid. An error is returned if it is invalid.
 // Version 3.1.0 of the OpenAPI spec provides some guidance for path parameter values (see https://spec.openapis.org/oas/v3.1.0.html#path-templating)
 func ValidatePathParameter(parameter string) error {
-	if !IsPathParameter(parameter) {
+	if !MatchesPathParameterSyntax(parameter) {
 		return commonerrors.Newf(commonerrors.ErrInvalid, "parameter %q must not be empty, cannot contain only whitespaces, have a length greater than or equal to three, start with an opening brace, and end with a closing brace", parameter)
 	}
 
@@ -41,8 +41,8 @@ func ValidatePathParameter(parameter string) error {
 	return nil
 }
 
-// IsPathParameter checks whether the parameter string is a path parameter as described by the OpenAPI spec (see https://spec.openapis.org/oas/v3.0.0.html#path-templating).
-func IsPathParameter(parameter string) bool {
+// MatchesPathParameterSyntax checks whether the parameter string matches the syntax for a path parameter as described by the OpenAPI spec (see https://spec.openapis.org/oas/v3.0.0.html#path-templating).
+func MatchesPathParameterSyntax(parameter string) bool {
 	if reflection.IsEmpty(parameter) {
 		return false
 	}
@@ -80,7 +80,7 @@ func BasicEqualityPathSegmentMatcher(segmentA, segmentB string) (match bool, err
 
 // BasicEqualityPathSegmentWithParamMatcher is a PathSegmentMatcherFunc that is similar to BasicEqualityPathSegmentMatcher but accounts for path parameter segments.
 func BasicEqualityPathSegmentWithParamMatcher(segmentA, segmentB string) (match bool, err error) {
-	if IsPathParameter(segmentA) {
+	if MatchesPathParameterSyntax(segmentA) {
 		if errValidatePathASeg := ValidatePathParameter(segmentA); errValidatePathASeg != nil {
 			err = commonerrors.WrapErrorf(commonerrors.ErrInvalid, errValidatePathASeg, "an error occurred while validating path parameter %q", segmentA)
 			return
@@ -90,7 +90,7 @@ func BasicEqualityPathSegmentWithParamMatcher(segmentA, segmentB string) (match 
 		return
 	}
 
-	if IsPathParameter(segmentB) {
+	if MatchesPathParameterSyntax(segmentB) {
 		if errValidatePathBSeg := ValidatePathParameter(segmentB); errValidatePathBSeg != nil {
 			err = commonerrors.WrapErrorf(commonerrors.ErrInvalid, errValidatePathBSeg, "an error occurred while validating path parameter %q", segmentB)
 			return

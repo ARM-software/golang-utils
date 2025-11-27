@@ -10,7 +10,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
 
-func TestUrl_IsPathParameter(t *testing.T) {
+func TestUrl_MatchesPathParameterSyntax(t *testing.T) {
 	tests := []struct {
 		name      string
 		parameter string
@@ -71,7 +71,7 @@ func TestUrl_IsPathParameter(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(test.name, func(t *testing.T) {
-			assert.Equal(t, test.result, IsPathParameter(test.parameter))
+			assert.Equal(t, test.result, MatchesPathParameterSyntax(test.parameter))
 		})
 	}
 }
