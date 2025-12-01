@@ -1,51 +1,65 @@
+version: "2"
 run:
-  timeout: 10m
-
-  # Run linters over integration tests
   build-tags:
     - integration
-
 linters:
-  disable-all: true # Disable defaults, then enable the ones we want
+  default: none
   enable:
+    - bodyclose
     - errcheck
-    - gosimple
+    - gocritic
+    - gosec
     - govet
     - ineffassign
-    - staticcheck
-    - typecheck
-    - unused
-    - bodyclose
-    - stylecheck
-    - gosec
-    - goimports
-    - gci
-    - revive
-    - gocritic
-    - unconvert
     - misspell
-
-linters-settings:
-  goimports:
-    local-prefixes: github.com/ARM-software
-  gci:
-    sections:
-      - Standard
-      - Default
-      - Prefix(github.com/ARM-software)
-  revive:
-    rules:
-      - name: exported
-        severity: warning
-        disabled: false
-        arguments:
-          - "disableStutteringCheck"
-  misspell:
-    locale: UK
-    extra-words:
-      - typo: "sanetisation"
-        correction: "sanitisation"
-      - typo: "sanetise"
-        correction: "sanitise"
-      - typo: "sanetising"
-        correction: "sanitising"
+    - revive
+    - staticcheck
+    - unconvert
+    - unused
+  settings:
+    misspell:
+      locale: UK
+      extra-words:
+        - typo: sanetisation
+          correction: sanitisation
+        - typo: sanetise
+          correction: sanitise
+        - typo: sanetising
+          correction: sanitising
+    revive:
+      rules:
+        - name: exported
+          arguments:
+            - disableStutteringCheck
+          severity: warning
+          disabled: false
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - goimports
+  settings:
+    gci:
+      sections:
+        - Standard
+        - Default
+        - Prefix(github.com/ARM-software)
+    goimports:
+      local-prefixes:
+        - github.com/ARM-software
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
