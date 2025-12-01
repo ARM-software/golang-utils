@@ -38,7 +38,7 @@ func (s *AbstractStreamPaginator) HasNext() bool {
 			s.timeReachLast.Store(time.Now())
 			return true
 		}
-		page, err := s.AbstractPaginator.FetchCurrentPage()
+		page, err := s.FetchCurrentPage()
 		if err != nil {
 			return false
 		}
@@ -60,7 +60,7 @@ func (s *AbstractStreamPaginator) HasNext() bool {
 		if err != nil {
 			return false
 		}
-		err = s.AbstractPaginator.SetCurrentPage(future)
+		err = s.SetCurrentPage(future)
 		if err != nil {
 			return false
 		}

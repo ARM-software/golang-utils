@@ -312,7 +312,7 @@ func (fs *VFS) unzip(ctx context.Context, source string, destination string, lim
 		}
 
 		// record unzipped files (except zip files if they get unzipped later)
-		if !(limits.ApplyRecursively() && fs.isZipWithContext(ctx, zippedFile.Name)) {
+		if !(limits.ApplyRecursively() && fs.isZipWithContext(ctx, zippedFile.Name)) { //nolint:staticcheck
 			fileCounter.Inc()
 			fileList = append(fileList, filePath)
 		}

@@ -12,7 +12,7 @@ type CloserStore struct {
 }
 
 func (s *CloserStore) RegisterCloser(closerObj ...io.Closer) {
-	s.ExecutionGroup.RegisterFunction(closerObj...)
+	s.RegisterFunction(closerObj...)
 }
 
 func (s *CloserStore) Close() error {
@@ -137,14 +137,14 @@ type CloseFunctionStore struct {
 }
 
 func (s *CloseFunctionStore) RegisterCloseFunction(closerObj ...CloseFunc) {
-	s.ExecutionGroup.RegisterFunction(closerObj...)
+	s.RegisterFunction(closerObj...)
 }
 
 func (s *CloseFunctionStore) RegisterCancelStore(cancelStore *CancelFunctionStore) {
 	if cancelStore == nil {
 		return
 	}
-	s.ExecutionGroup.RegisterFunction(WrapCancelToCloseFunc(cancelStore.Cancel))
+	s.RegisterFunction(WrapCancelToCloseFunc(cancelStore.Cancel))
 }
 
 func (s *CloseFunctionStore) RegisterCancelFunction(cancelFunc ...context.CancelFunc) {

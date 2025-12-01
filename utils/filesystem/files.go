@@ -1673,7 +1673,7 @@ func CopyBetweenFSWithExclusionRegexes(ctx context.Context, srcFs FS, src string
 	}
 
 	var dst string
-	if !(isSrcDir && !destExists) && isDestDir {
+	if !(isSrcDir && !destExists) && isDestDir { //nolint:staticcheck
 		dst = FilePathJoin(destFs, dest, FilePathBase(srcFs, src))
 	} else {
 		dst = dest

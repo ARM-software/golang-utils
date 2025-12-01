@@ -73,10 +73,10 @@ func Test_currentEnv_GetEnvironmentVariables(t *testing.T) {
 		require.NoError(t, err)
 		defer func() { _ = dotenv2.Close() }()
 		test4 := NewEnvironmentVariable("test4", faker.Sentence())
-		_, err = dotenv2.WriteString(fmt.Sprintf("%v\n", test4.String()))
+		_, err = fmt.Fprintf(dotenv2, "%v\n", test4.String())
 		require.NoError(t, err)
 		test5 := NewEnvironmentVariable("test5", faker.Sentence())
-		_, err = dotenv2.WriteString(fmt.Sprintf("%v\n", test5.String()))
+		_, err = fmt.Fprintf(dotenv2, "%v\n", test5.String())
 		require.NoError(t, err)
 		err = dotenv2.Close()
 		require.NoError(t, err)
@@ -143,10 +143,10 @@ func Test_currentenv_GetEnvironmentVariable(t *testing.T) {
 		require.NoError(t, err)
 		defer func() { _ = dotenv2.Close() }()
 		test4 := NewEnvironmentVariable("test4", faker.Sentence())
-		_, err = dotenv2.WriteString(fmt.Sprintf("%v\n", test4.String()))
+		_, err = fmt.Fprintf(dotenv2, "%v\n", test4.String())
 		require.NoError(t, err)
 		test5 := NewEnvironmentVariable("test5", faker.Sentence())
-		_, err = dotenv2.WriteString(fmt.Sprintf("%v\n", test5.String()))
+		_, err = fmt.Fprintf(dotenv2, "%v\n", test5.String())
 		require.NoError(t, err)
 		var test6 IEnvironmentVariable
 		if platform.IsWindows() {
@@ -154,7 +154,7 @@ func Test_currentenv_GetEnvironmentVariable(t *testing.T) {
 		} else {
 			test6 = NewEnvironmentVariable("test6", "${test5}")
 		}
-		_, err = dotenv2.WriteString(fmt.Sprintf("%v\n", test6.String()))
+		_, err = fmt.Fprintf(dotenv2, "%v\n", test6.String())
 		require.NoError(t, err)
 		err = dotenv2.Close()
 		require.NoError(t, err)

@@ -34,15 +34,15 @@ func Expand(value map[string]string) (expandedMap any, err error) {
 func ExpandPrefixed(m map[string]string, key string) (result any, err error) {
 	// If the key is exactly a key in the maps, just return it
 	if v, ok := m[key]; ok {
-		if v == "true" {
+		switch v {
+		case "true":
 			result = true
-			return
-		} else if v == "false" {
+		case "false":
 			result = false
-			return
+		default:
+			result = v
 		}
 
-		result = v
 		return
 	}
 

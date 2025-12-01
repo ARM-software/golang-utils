@@ -144,7 +144,7 @@ func TestPaginator(t *testing.T) {
 				require.NoError(t, err)
 				count := int64(0)
 				for {
-					if !paginator.HasNext() {
+					if !paginator.HasNext() { //nolint:staticcheck
 						break
 					}
 					count += 1

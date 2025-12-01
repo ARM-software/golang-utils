@@ -12,7 +12,7 @@ type CancelFunctionStore struct {
 }
 
 func (s *CancelFunctionStore) RegisterCancelFunction(cancel ...context.CancelFunc) {
-	s.ExecutionGroup.RegisterFunction(cancel...)
+	s.RegisterFunction(cancel...)
 }
 
 func (s *CancelFunctionStore) RegisterCancelStore(store *CancelFunctionStore) {

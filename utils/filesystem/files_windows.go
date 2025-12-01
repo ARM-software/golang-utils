@@ -1,5 +1,4 @@
 //go:build windows
-// +build windows
 
 // Package filesystem describes the filesystem on windows
 package filesystem
