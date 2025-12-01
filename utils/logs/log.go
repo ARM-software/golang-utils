@@ -95,11 +95,11 @@ func (l *AsynchronousLoggers) GetLoggerSource() string {
 }
 
 func (l *AsynchronousLoggers) Log(output ...interface{}) {
-	_, _ = l.oWriter.Write([]byte(fmt.Sprintf("[%v] Output (%v): %v\n", l.GetLoggerSource(), time.Now(), strings.TrimSpace(fmt.Sprint(output...)))))
+	_, _ = fmt.Fprintf(l.oWriter, "[%v] Output (%v): %v\n", l.GetLoggerSource(), time.Now(), strings.TrimSpace(fmt.Sprint(output...)))
 }
 
 func (l *AsynchronousLoggers) LogError(err ...interface{}) {
-	_, _ = l.eWriter.Write([]byte(fmt.Sprintf("[%v] Error (%v): %v\n", l.GetLoggerSource(), time.Now(), strings.TrimSpace(fmt.Sprint(err...)))))
+	_, _ = fmt.Fprintf(l.oWriter, "[%v] Error (%v): %v\n", l.GetLoggerSource(), time.Now(), strings.TrimSpace(fmt.Sprint(err...)))
 }
 
 func (l *AsynchronousLoggers) Close() error {

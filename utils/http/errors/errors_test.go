@@ -3,6 +3,7 @@ package errors
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
@@ -16,7 +17,6 @@ import (
 	"github.com/ARM-software/golang-utils/utils/reflection"
 	"github.com/ARM-software/golang-utils/utils/safeio"
 )
-import "net/http"
 
 func TestErrorMapping(t *testing.T) {
 	require.NoError(t, MapErrorToHTTPResponseCode(http.StatusAccepted))

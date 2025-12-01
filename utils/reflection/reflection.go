@@ -153,13 +153,13 @@ func InheritsFrom(object interface{}, parentType reflect.Type) bool {
 		pointerType reflect.Type
 	)
 	kind := parentType.Kind()
-	switch {
-	case kind == reflect.Ptr:
+	switch kind {
+	case reflect.Ptr:
 		pointerType = parentType
 		structType = parentType.Elem()
-	case kind == reflect.Interface:
+	case reflect.Interface:
 		pointerType = parentType
-	case kind == reflect.Struct:
+	case reflect.Struct:
 		structType = parentType
 	}
 

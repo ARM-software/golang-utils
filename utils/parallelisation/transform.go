@@ -139,7 +139,7 @@ func (g *TransformGroup[I, O]) OrderedOutputs(ctx context.Context) ([]O, error) 
 // Transform actually performs the transformation over all registered inputs.
 func (g *TransformGroup[I, O]) Transform(ctx context.Context) error {
 	g.results.Store(newResults[O](field.ToOptionalInt(g.Len())))
-	return g.ExecutionGroup.Execute(ctx)
+	return g.Execute(ctx)
 }
 
 // NewTransformGroup returns a group transforming inputs into outputs.

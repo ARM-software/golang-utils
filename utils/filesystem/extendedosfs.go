@@ -35,7 +35,7 @@ func (c *ExtendedOsFs) Remove(name string) (err error) {
 }
 
 func (c *ExtendedOsFs) ChownIfPossible(name string, uid int, gid int) error {
-	return ConvertFileSystemError(c.OsFs.Chown(name, uid, gid))
+	return ConvertFileSystemError(c.Chown(name, uid, gid))
 }
 
 func (c *ExtendedOsFs) LinkIfPossible(oldname, newname string) (err error) {

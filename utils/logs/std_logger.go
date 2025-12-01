@@ -27,7 +27,7 @@ func (w *StdWriter) Close() error {
 }
 
 func (w *StdWriter) SetSource(source string) error {
-	_, err := os.Stdout.Write([]byte(fmt.Sprintf("Source: %v%v", source, platform.LineSeparator())))
+	_, err := fmt.Fprintf(os.Stdout, "Source: %v%v", source, platform.LineSeparator())
 	return err
 }
 

@@ -72,8 +72,8 @@ func (c *CloneObject) getBlobObject(hash plumbing.Hash) (blob *object.Blob, err 
 
 func (c *CloneObject) handleEntry(entry Entry) (err error) {
 	mode := entry.TreeEntry.Mode
-	switch {
-	case mode&0o170000 == 0o40000:
+	switch mode & 0o170000 {
+	case 0o40000:
 		if c.processNonTreeOnly.Load() {
 			seenIdentifier := c.treeSeenIdentifier.Load()
 			if entry.Seen == seenIdentifier {
@@ -87,12 +87,12 @@ func (c *CloneObject) handleEntry(entry Entry) (err error) {
 		if err = c.handleTreeEntry(entry); err != nil {
 			return
 		}
-	case mode&0o170000 == 0o160000:
+	case 0o160000:
 		// Commit (i.e., submodule)
 		if err = c.handleCommitEntry(entry); err != nil {
 			return
 		}
-	case mode&0o170000 == 0o120000:
+	case 0o120000:
 		// Symlink
 		if err = c.handleSymlinkEntry(entry); err != nil {
 			return

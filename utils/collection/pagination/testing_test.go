@@ -51,7 +51,7 @@ func TestGenerateMockCollection(t *testing.T) {
 			size := safecast.ToInt64(cCount)
 			page := firstPage.(IPage)
 			for {
-				if !page.HasNext() {
+				if !page.HasNext() { //nolint:staticcheck
 					break
 				}
 				page, err = page.GetNext(context.Background())
@@ -79,7 +79,7 @@ func TestGenerateMockStream(t *testing.T) {
 			size := safecast.ToInt64(cCount)
 			page := firstPage
 			for {
-				if !page.HasNext() && !page.HasFuture() {
+				if !page.HasNext() && !page.HasFuture() { //nolint:staticcheck
 					break
 				}
 				if page.HasNext() {
