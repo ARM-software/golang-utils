@@ -3,12 +3,12 @@ package errors
 import (
 	"context"
 	"fmt"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"net/http/httptest"
 
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
