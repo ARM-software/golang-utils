@@ -53,7 +53,7 @@ func (e *ErrorResponseForTest) ToMap() (map[string]any, error) {
 	}
 	toSerialize["httpStatusCode"] = e.HTTPStatusCode
 	toSerialize["message"] = e.Message
-	toSerialize["requestId"] = e.RequestID
+	toSerialize["requestID"] = e.RequestID
 	return toSerialize, nil
 }
 
