@@ -47,6 +47,7 @@ func CheckAPICallSuccess(ctx context.Context, errorContext string, errorExtract 
 	}
 	if !IsCallSuccessful(resp) {
 		err = errors.FormatAPIErrorToGo(ctx, errorContext, resp, apiErr, errorExtract)
+		return
 	}
 	return
 }
