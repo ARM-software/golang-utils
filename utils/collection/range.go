@@ -38,9 +38,7 @@ func rangeSequence(start, stop int, step *int) (it iter.Seq[int], length int) {
 	s := field.OptionalInt(step, 1)
 	length = 0
 	if s == 0 {
-		it = func(yield func(int) bool) {
-			return
-		}
+		it = func(yield func(int) bool) {}
 		return
 	}
 	// Compute length
@@ -53,7 +51,6 @@ func rangeSequence(start, stop int, step *int) (it iter.Seq[int], length int) {
 				return
 			}
 		}
-		return
 	}
 	return
 }

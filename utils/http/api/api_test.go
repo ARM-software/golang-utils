@@ -39,11 +39,11 @@ type ErrorResponseForTest struct {
 	// Fields in the request that failed validation [Optional].
 	Fields []FieldObjectForTest `json:"fields,omitempty"`
 	// HTTP Status Code
-	HttpStatusCode int32 `json:"httpStatusCode"`
+	HTTPStatusCode int32 `json:"httpStatusCode"`
 	// A human-readable message, which should provide an explanation and possible corrective actions.
 	Message string `json:"message"`
 	// Request ID that could be used to identify the error in logs.
-	RequestId string `json:"requestId"`
+	RequestID string `json:"requestID"`
 }
 
 func (e *ErrorResponseForTest) ToMap() (map[string]any, error) {
@@ -51,9 +51,9 @@ func (e *ErrorResponseForTest) ToMap() (map[string]any, error) {
 	if e.Fields != nil {
 		toSerialize["fields"] = e.Fields
 	}
-	toSerialize["httpStatusCode"] = e.HttpStatusCode
+	toSerialize["httpStatusCode"] = e.HTTPStatusCode
 	toSerialize["message"] = e.Message
-	toSerialize["requestId"] = e.RequestId
+	toSerialize["requestId"] = e.RequestID
 	return toSerialize, nil
 }
 
@@ -88,7 +88,7 @@ func (e *ErrorResponseForTest) UnmarshalJSON(data []byte) (err error) {
 		return err
 	}
 
-	*e = ErrorResponseForTest(varErrorResponse)
+	*e = varErrorResponse
 
 	return err
 }
@@ -223,9 +223,9 @@ func TestCallAndCheckSuccess(t *testing.T) {
 				FieldPath: field.ToOptionalString(faker.Name()),
 				Message:   faker.Sentence(),
 			}},
-			HttpStatusCode: 200,
+			HTTPStatusCode: 200,
 			Message:        faker.Sentence(),
-			RequestId:      faker.UUIDDigit(),
+			RequestID:      faker.UUIDDigit(),
 		}
 		response, err := expectedErrorMessage.ToMap()
 		require.NoError(t, err)
@@ -254,9 +254,9 @@ func TestCallAndCheckSuccess(t *testing.T) {
 				FieldPath: field.ToOptionalString(faker.Name()),
 				Message:   faker.Sentence(),
 			}},
-			HttpStatusCode: 200,
+			HTTPStatusCode: 200,
 			Message:        faker.Sentence(),
-			RequestId:      faker.UUIDDigit(),
+			RequestID:      faker.UUIDDigit(),
 		}
 		response, err := expectedErrorMessage.ToMap()
 		require.NoError(t, err)
