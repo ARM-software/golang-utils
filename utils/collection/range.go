@@ -1,6 +1,10 @@
 package collection
 
-import "github.com/ARM-software/golang-utils/utils/field"
+import (
+	"iter"
+
+	"github.com/ARM-software/golang-utils/utils/field"
+)
 
 func sign(x int) int {
 	if x < 0 {
@@ -13,21 +17,43 @@ func sign(x int) int {
 // https://docs.python.org/2/library/functions.html#range
 //
 //	Note: The stop value is always exclusive.
-func Range(start, stop int, step *int) []int {
-	s := field.OptionalInt(step, 1)
-	if s == 0 {
-		return []int{}
+func Range(start, stop int, step *int) (result []int) {
+	it, length := rangeSequence(start, stop, step)
+	result = make([]int, length)
+	i := 0
+	for v := range it {
+		result[i] = v
+		i++
 	}
+	return result
+}
 
+// RangeSequence returns an iterator over a range
+func RangeSequence(start, stop int, step *int) iter.Seq[int] {
+	it, _ := rangeSequence(start, stop, step)
+	return it
+}
+
+func rangeSequence(start, stop int, step *int) (it iter.Seq[int], length int) {
+	s := field.OptionalInt(step, 1)
+	length = 0
+	if s == 0 {
+		it = func(yield func(int) bool) {
+			return
+		}
+		return
+	}
 	// Compute length
-	length := 0
 	if (s > 0 && start < stop) || (s < 0 && start > stop) {
 		length = (stop - start + s - sign(s)) / s
 	}
-
-	result := make([]int, length)
-	for i, v := 0, start; i < length; i, v = i+1, v+s {
-		result[i] = v
+	it = func(yield func(int) (end bool)) {
+		for i, v := 0, start; i < length; i, v = i+1, v+s {
+			if !yield(v) {
+				return
+			}
+		}
+		return
 	}
-	return result
+	return
 }

@@ -2,11 +2,13 @@ package collection
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ARM-software/golang-utils/utils/field"
+	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
 func TestRange(t *testing.T) {
@@ -35,6 +37,12 @@ func TestRange(t *testing.T) {
 		test := tests[i]
 		t.Run(fmt.Sprintf("[%v,%v,%v]", test.start, test.stop, test.step), func(t *testing.T) {
 			assert.Equal(t, test.expected, Range(test.start, test.stop, test.step))
+			if reflection.IsEmpty(test.expected) {
+				assert.Empty(t, slices.Collect(RangeSequence(test.start, test.stop, test.step)))
+			} else {
+				assert.Equal(t, test.expected, slices.Collect(RangeSequence(test.start, test.stop, test.step)))
+			}
+
 		})
 	}
 }
