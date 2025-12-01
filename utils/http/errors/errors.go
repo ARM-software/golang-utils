@@ -30,7 +30,7 @@ func FormatAPIErrorToGo(ctx context.Context, errorContext string, resp *http.Res
 			return
 		}
 		if !reflection.IsEmpty(errorDetails) {
-			errorMessage.WriteString(errorDetails)
+			_, _ = errorMessage.WriteString(errorDetails)
 		}
 		_ = resp.Body.Close()
 	}
