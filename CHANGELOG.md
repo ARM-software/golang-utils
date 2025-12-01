@@ -14,6 +14,23 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.136.0" (2025-12-01)
+======================
+
+Features
+--------
+
+- :sparkles: [collection] Add a function to generate a range sequence (#20251201133007)
+- :sparkles: [http] Added [api] module to help assessing the success or not of an api call (#20251201133100)
+- :sparkles: [http] Added [errors] module to convert api call errors into go errors for better handling (#20251201133141)
+
+
+Misc
+----
+
+- #20251201153616
+
+
 "1.135.0" (2025-11-27)
 ======================
 
