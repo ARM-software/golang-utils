@@ -443,8 +443,9 @@ func TestRunActionWithParallelCheckAndResult(t *testing.T) {
 					status: "healthy",
 				}, true
 			},
-			func(_ parallelisationCheckResult) {
+			func(_ parallelisationCheckResult) error {
 				checkResultCounter.Inc()
+				return nil
 			},
 			10*time.Millisecond,
 		)
@@ -487,8 +488,9 @@ func TestRunActionWithParallelCheckAndResult(t *testing.T) {
 					}, true
 				}
 			},
-			func(_ parallelisationCheckResult) {
+			func(_ parallelisationCheckResult) error {
 				checkResultCounter.Inc()
+				return nil
 			},
 			5*time.Millisecond,
 		)
@@ -522,8 +524,9 @@ func TestRunActionWithParallelCheckAndResult(t *testing.T) {
 					status: status,
 				}, true
 			},
-			func(_ parallelisationCheckResult) {
+			func(_ parallelisationCheckResult) error {
 				checkResultCounter.Inc()
+				return nil
 			},
 			5*time.Millisecond,
 		)
@@ -560,14 +563,49 @@ func TestRunActionWithParallelCheckAndResult(t *testing.T) {
 					status: status,
 				}, true
 			},
-			func(_ parallelisationCheckResult) {
+			func(_ parallelisationCheckResult) error {
 				checkResultCounter.Inc()
+				return nil
 			},
 			5*time.Millisecond,
 		)
 
 		require.Error(t, err)
 		errortest.AssertError(t, err, commonerrors.ErrTimeout)
+		assert.True(t, ok)
+		assert.GreaterOrEqual(t, res.checks, int32(1))
+		assert.Equal(t, res.checks, checkCounter.Load())
+		assert.Equal(t, checkCounter.Load(), checkResultCounter.Load())
+	})
+
+	t.Run("Check result error", func(t *testing.T) {
+		defer goleak.VerifyNone(t)
+
+		checkCounter := atomic.NewInt32(0)
+		checkResultCounter := atomic.NewInt32(0)
+		status := "kem"
+
+		res, ok, err := RunActionWithParallelCheckAndResult(
+			context.Background(),
+			func(ctx context.Context) error {
+				<-ctx.Done()
+				return DetermineContextError(ctx)
+			},
+			func(ctx context.Context) (parallelisationCheckResult, bool) {
+				return parallelisationCheckResult{
+					checks: checkCounter.Inc(),
+					status: status,
+				}, true
+			},
+			func(_ parallelisationCheckResult) error {
+				checkResultCounter.Inc()
+				return commonerrors.ErrUnexpected
+			},
+			5*time.Millisecond,
+		)
+
+		require.Error(t, err)
+		errortest.AssertError(t, err, commonerrors.ErrUnexpected)
 		assert.True(t, ok)
 		assert.GreaterOrEqual(t, res.checks, int32(1))
 		assert.Equal(t, res.checks, checkCounter.Load())
