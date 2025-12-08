@@ -428,7 +428,8 @@ func TestRunActionWithParallelCheckAndResult(t *testing.T) {
 	t.Run("Happy", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
-		counter := atomic.NewInt32(0)
+		checkCounter := atomic.NewInt32(0)
+		checkResultCounter := atomic.NewInt32(0)
 
 		res, ok, err := RunActionWithParallelCheckAndResult(
 			context.Background(),
@@ -438,9 +439,12 @@ func TestRunActionWithParallelCheckAndResult(t *testing.T) {
 			},
 			func(ctx context.Context) (res parallelisationCheckResult, ok bool) {
 				return parallelisationCheckResult{
-					checks: counter.Inc(),
+					checks: checkCounter.Inc(),
 					status: "healthy",
 				}, true
+			},
+			func(_ parallelisationCheckResult) {
+				checkResultCounter.Inc()
 			},
 			10*time.Millisecond,
 		)
@@ -449,14 +453,16 @@ func TestRunActionWithParallelCheckAndResult(t *testing.T) {
 		require.True(t, ok)
 
 		assert.GreaterOrEqual(t, res.checks, int32(10))
-		assert.Equal(t, res.checks, counter.Load())
+		assert.Equal(t, res.checks, checkCounter.Load())
 		assert.Equal(t, "healthy", res.status)
+		assert.Equal(t, checkCounter.Load(), checkResultCounter.Load())
 	})
 
 	t.Run("Check Fails With Reason", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
-		counter := atomic.NewInt32(0)
+		checkCounter := atomic.NewInt32(0)
+		checkResultCounter := atomic.NewInt32(0)
 		actionStarted := atomic.NewBool(false)
 
 		status := "adrien"
@@ -469,7 +475,7 @@ func TestRunActionWithParallelCheckAndResult(t *testing.T) {
 				return DetermineContextError(ctx)
 			},
 			func(ctx context.Context) (res parallelisationCheckResult, ok bool) {
-				if n := counter.Inc(); n >= 5 {
+				if n := checkCounter.Inc(); n >= 5 {
 					return parallelisationCheckResult{
 						checks: n,
 						status: status,
@@ -481,6 +487,9 @@ func TestRunActionWithParallelCheckAndResult(t *testing.T) {
 					}, true
 				}
 			},
+			func(_ parallelisationCheckResult) {
+				checkResultCounter.Inc()
+			},
 			5*time.Millisecond,
 		)
 
@@ -491,12 +500,14 @@ func TestRunActionWithParallelCheckAndResult(t *testing.T) {
 		require.False(t, ok)
 		assert.Equal(t, status, res.status)
 		assert.Equal(t, int32(5), res.checks)
-		assert.Equal(t, int32(5), counter.Load())
+		assert.Equal(t, int32(5), checkCounter.Load())
+		assert.Equal(t, checkCounter.Load(), checkResultCounter.Load())
 	})
 	t.Run("Action Error (no context cancel)", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
-		counter := atomic.NewInt32(0)
+		checkCounter := atomic.NewInt32(0)
+		checkResultCounter := atomic.NewInt32(0)
 		status := "abdel"
 
 		res, ok, err := RunActionWithParallelCheckAndResult(
@@ -507,9 +518,12 @@ func TestRunActionWithParallelCheckAndResult(t *testing.T) {
 			},
 			func(ctx context.Context) (parallelisationCheckResult, bool) {
 				return parallelisationCheckResult{
-					checks: counter.Inc(),
+					checks: checkCounter.Inc(),
 					status: status,
 				}, true
+			},
+			func(_ parallelisationCheckResult) {
+				checkResultCounter.Inc()
 			},
 			5*time.Millisecond,
 		)
@@ -520,7 +534,8 @@ func TestRunActionWithParallelCheckAndResult(t *testing.T) {
 
 		assert.Equal(t, status, res.status)
 		assert.GreaterOrEqual(t, res.checks, int32(1))
-		assert.Equal(t, res.checks, counter.Load())
+		assert.Equal(t, res.checks, checkCounter.Load())
+		assert.Equal(t, checkCounter.Load(), checkResultCounter.Load())
 	})
 
 	t.Run("Context cancel", func(t *testing.T) {
@@ -529,7 +544,8 @@ func TestRunActionWithParallelCheckAndResult(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 		defer cancel()
 
-		counter := atomic.NewInt32(0)
+		checkCounter := atomic.NewInt32(0)
+		checkResultCounter := atomic.NewInt32(0)
 		status := "kem"
 
 		res, ok, err := RunActionWithParallelCheckAndResult(
@@ -540,9 +556,12 @@ func TestRunActionWithParallelCheckAndResult(t *testing.T) {
 			},
 			func(ctx context.Context) (parallelisationCheckResult, bool) {
 				return parallelisationCheckResult{
-					checks: counter.Inc(),
+					checks: checkCounter.Inc(),
 					status: status,
 				}, true
+			},
+			func(_ parallelisationCheckResult) {
+				checkResultCounter.Inc()
 			},
 			5*time.Millisecond,
 		)
@@ -551,6 +570,8 @@ func TestRunActionWithParallelCheckAndResult(t *testing.T) {
 		errortest.AssertError(t, err, commonerrors.ErrTimeout)
 		assert.True(t, ok)
 		assert.GreaterOrEqual(t, res.checks, int32(1))
+		assert.Equal(t, res.checks, checkCounter.Load())
+		assert.Equal(t, checkCounter.Load(), checkResultCounter.Load())
 	})
 }
 

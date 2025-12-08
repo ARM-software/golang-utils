@@ -211,7 +211,7 @@ func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Durati
 	}
 }
 
-func runActionAndWait[T any](ctx context.Context, wg *sync.WaitGroup, action func(ctx context.Context) error, checkAction func(ctx context.Context) (res T, ok bool), checkPeriod time.Duration) (res T, ok bool, err error) {
+func runActionAndWait[T any](ctx context.Context, wg *sync.WaitGroup, action func(ctx context.Context) error, checkAction func(ctx context.Context) (res T, ok bool), onCheckResult func(res T), checkPeriod time.Duration) (res T, ok bool, err error) {
 	cancelStore := NewCancelFunctionsStore()
 	defer cancelStore.Cancel()
 
@@ -228,6 +228,9 @@ func runActionAndWait[T any](ctx context.Context, wg *sync.WaitGroup, action fun
 				return
 			default:
 				res, ok = checkAction(ctx)
+
+				onCheckResult(res)
+
 				if !ok {
 					store.Cancel()
 					return
@@ -250,7 +253,7 @@ func runActionAndWait[T any](ctx context.Context, wg *sync.WaitGroup, action fun
 // The function performing the check should return true if the check was favourable; false otherwise.
 // For more context, a result can be returned. If the check did not have the expected result and the
 // whole function would be cancelled.
-func RunActionWithParallelCheckAndResult[T any](ctx context.Context, action func(ctx context.Context) error, checkAction func(ctx context.Context) (res T, ok bool), checkPeriod time.Duration) (res T, ok bool, err error) {
+func RunActionWithParallelCheckAndResult[T any](ctx context.Context, action func(ctx context.Context) error, checkAction func(ctx context.Context) (res T, ok bool), onCheckResult func(res T), checkPeriod time.Duration) (res T, ok bool, err error) {
 	err = DetermineContextError(ctx)
 	if err != nil {
 		return
@@ -259,7 +262,7 @@ func RunActionWithParallelCheckAndResult[T any](ctx context.Context, action func
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
-	res, ok, err = runActionAndWait(ctx, &wg, action, checkAction, checkPeriod)
+	res, ok, err = runActionAndWait(ctx, &wg, action, checkAction, onCheckResult, checkPeriod)
 	return
 }
 
@@ -273,6 +276,7 @@ func RunActionWithParallelCheck(ctx context.Context, action func(ctx context.Con
 			ok = checkAction(ctx)
 			return
 		},
+		func(_ struct{}) {},
 		checkPeriod,
 	)
 
