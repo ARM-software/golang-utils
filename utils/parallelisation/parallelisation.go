@@ -9,6 +9,7 @@ package parallelisation
 import (
 	"context"
 	"reflect"
+	"sync"
 	"time"
 
 	"go.uber.org/atomic"
@@ -210,38 +211,72 @@ func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Durati
 	}
 }
 
-// RunActionWithParallelCheck runs an action with a check in parallel
-// The function performing the check should return true if the check was favourable; false otherwise. If the check did not have the expected result and the whole function would be cancelled.
-func RunActionWithParallelCheck(ctx context.Context, action func(ctx context.Context) error, checkAction func(ctx context.Context) bool, checkPeriod time.Duration) error {
-	err := DetermineContextError(ctx)
-	if err != nil {
-		return err
-	}
+func runActionAndWait[T any](ctx context.Context, wg *sync.WaitGroup, action func(ctx context.Context) error, checkAction func(ctx context.Context) (res T, ok bool), checkPeriod time.Duration) (res T, ok bool, err error) {
 	cancelStore := NewCancelFunctionsStore()
 	defer cancelStore.Cancel()
+
 	cancellableCtx, cancelFunc := context.WithCancel(ctx)
 	cancelStore.RegisterCancelFunction(cancelFunc)
+
+	wg.Add(1)
 	go func(ctx context.Context, store *CancelFunctionStore) {
+		defer wg.Done()
 		for {
 			select {
 			case <-ctx.Done():
 				store.Cancel()
 				return
 			default:
-				if !checkAction(ctx) {
+				res, ok = checkAction(ctx)
+				if !ok {
 					store.Cancel()
 					return
 				}
+
 				SleepWithContext(ctx, checkPeriod)
 			}
 		}
 	}(cancellableCtx, cancelStore)
+
 	err = action(cancellableCtx)
-	err2 := DetermineContextError(cancellableCtx)
-	if err2 != nil {
-		return err2
+	if errCtx := DetermineContextError(cancellableCtx); errCtx != nil {
+		err = errCtx
 	}
-	return err
+
+	return
+}
+
+// RunActionWithParallelCheck runs an action with a check in parallel
+// The function performing the check should return true if the check was favourable; false otherwise.
+// For more context, a result can be returned. If the check did not have the expected result and the
+// whole function would be cancelled.
+func RunActionWithParallelCheckAndResult[T any](ctx context.Context, action func(ctx context.Context) error, checkAction func(ctx context.Context) (res T, ok bool), checkPeriod time.Duration) (res T, ok bool, err error) {
+	err = DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+
+	var wg sync.WaitGroup
+	defer wg.Wait()
+
+	res, ok, err = runActionAndWait(ctx, &wg, action, checkAction, checkPeriod)
+	return
+}
+
+// RunActionWithParallelCheck runs an action with a check in parallel
+// The function performing the check should return true if the check was favourable; false otherwise. If the check did not have the expected result and the whole function would be cancelled.
+func RunActionWithParallelCheck(ctx context.Context, action func(ctx context.Context) error, checkAction func(ctx context.Context) bool, checkPeriod time.Duration) (err error) {
+	_, _, err = RunActionWithParallelCheckAndResult(
+		ctx,
+		action,
+		func(ctx context.Context) (_ struct{}, ok bool) {
+			ok = checkAction(ctx)
+			return
+		},
+		checkPeriod,
+	)
+
+	return
 }
 
 // WaitUntil waits for a condition evaluated by evalCondition to be verified

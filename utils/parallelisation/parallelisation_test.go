@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
@@ -416,6 +417,141 @@ func runActionWithParallelCheckFailAtRandom(t *testing.T, ctx context.Context) {
 	require.Error(t, err)
 	errortest.AssertError(t, err, commonerrors.ErrCancelled)
 	assert.GreaterOrEqual(t, counter.Load(), int32(1))
+}
+
+func TestRunActionWithParallelCheckAndResult(t *testing.T) {
+	type parallelisationCheckResult struct {
+		checks int32
+		status string
+	}
+
+	t.Run("Happy", func(t *testing.T) {
+		defer goleak.VerifyNone(t)
+
+		counter := atomic.NewInt32(0)
+
+		res, ok, err := RunActionWithParallelCheckAndResult(
+			context.Background(),
+			func(ctx context.Context) (err error) {
+				time.Sleep(120 * time.Millisecond)
+				return
+			},
+			func(ctx context.Context) (res parallelisationCheckResult, ok bool) {
+				return parallelisationCheckResult{
+					checks: counter.Inc(),
+					status: "healthy",
+				}, true
+			},
+			10*time.Millisecond,
+		)
+
+		require.NoError(t, err)
+		require.True(t, ok)
+
+		assert.GreaterOrEqual(t, res.checks, int32(10))
+		assert.Equal(t, res.checks, counter.Load())
+		assert.Equal(t, "healthy", res.status)
+	})
+
+	t.Run("Check Fails With Reason", func(t *testing.T) {
+		defer goleak.VerifyNone(t)
+
+		counter := atomic.NewInt32(0)
+		actionStarted := atomic.NewBool(false)
+
+		status := "adrien"
+
+		res, ok, err := RunActionWithParallelCheckAndResult(
+			context.Background(),
+			func(ctx context.Context) error {
+				actionStarted.Store(true)
+				<-ctx.Done()
+				return DetermineContextError(ctx)
+			},
+			func(ctx context.Context) (res parallelisationCheckResult, ok bool) {
+				if n := counter.Inc(); n >= 5 {
+					return parallelisationCheckResult{
+						checks: n,
+						status: status,
+					}, false
+				} else {
+					return parallelisationCheckResult{
+						checks: n,
+						status: "ok",
+					}, true
+				}
+			},
+			5*time.Millisecond,
+		)
+
+		require.True(t, actionStarted.Load())
+		require.Error(t, err)
+		errortest.AssertError(t, err, commonerrors.ErrCancelled)
+
+		require.False(t, ok)
+		assert.Equal(t, status, res.status)
+		assert.Equal(t, int32(5), res.checks)
+		assert.Equal(t, int32(5), counter.Load())
+	})
+	t.Run("Action Error (no context cancel)", func(t *testing.T) {
+		defer goleak.VerifyNone(t)
+
+		counter := atomic.NewInt32(0)
+		status := "abdel"
+
+		res, ok, err := RunActionWithParallelCheckAndResult(
+			context.Background(),
+			func(ctx context.Context) error {
+				time.Sleep(30 * time.Millisecond)
+				return commonerrors.New(commonerrors.ErrForbidden, faker.Sentence())
+			},
+			func(ctx context.Context) (parallelisationCheckResult, bool) {
+				return parallelisationCheckResult{
+					checks: counter.Inc(),
+					status: status,
+				}, true
+			},
+			5*time.Millisecond,
+		)
+
+		require.Error(t, err)
+		errortest.AssertError(t, err, commonerrors.ErrForbidden)
+		require.True(t, ok)
+
+		assert.Equal(t, status, res.status)
+		assert.GreaterOrEqual(t, res.checks, int32(1))
+		assert.Equal(t, res.checks, counter.Load())
+	})
+
+	t.Run("Context cancel", func(t *testing.T) {
+		defer goleak.VerifyNone(t)
+
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+		defer cancel()
+
+		counter := atomic.NewInt32(0)
+		status := "kem"
+
+		res, ok, err := RunActionWithParallelCheckAndResult(
+			ctx,
+			func(ctx context.Context) error {
+				<-ctx.Done()
+				return DetermineContextError(ctx)
+			},
+			func(ctx context.Context) (parallelisationCheckResult, bool) {
+				return parallelisationCheckResult{
+					checks: counter.Inc(),
+					status: status,
+				}, true
+			},
+			5*time.Millisecond,
+		)
+
+		require.Error(t, err)
+		errortest.AssertError(t, err, commonerrors.ErrTimeout)
+		assert.True(t, ok)
+		assert.GreaterOrEqual(t, res.checks, int32(1))
+	})
 }
 
 func TestWaitUntil(t *testing.T) {
