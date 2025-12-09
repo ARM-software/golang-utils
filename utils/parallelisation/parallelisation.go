@@ -211,7 +211,25 @@ func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Durati
 	}
 }
 
-func runActionAndWait[T any](ctx context.Context, errGroup *errgroup.Group, action func(ctx context.Context) error, checkAction func(ctx context.Context) (res T, ok bool), onCheckResult func(res T) error, checkPeriod time.Duration) (res T, ok bool, err error) {
+type (
+	ActionFunc                 func(ctx context.Context) (err error)
+	CheckFunc                  func(ctx context.Context) (ok bool)
+	CheckWithResultFunc[T any] func(ctx context.Context) (res T, ok bool)
+	ResultCheckFunc[T any]     func(res T) (err error)
+)
+
+// RunActionWithParallelCheck runs an action with a check in parallel
+// The function performing the check should return true if the check was successful, but not met; false otherwise.
+// For more context, a result can be returned. If the check did not have the expected result and the
+// whole function would be cancelled.
+func RunActionWithParallelCheckAndResult[T any](ctx context.Context, action ActionFunc, checkAction CheckWithResultFunc[T], onCheckResult ResultCheckFunc[T], checkPeriod time.Duration) (res T, ok bool, err error) {
+	err = DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+
+	var errGroup errgroup.Group
+
 	cancelStore := NewCancelFunctionsStore()
 	defer cancelStore.Cancel()
 
@@ -258,23 +276,8 @@ func runActionAndWait[T any](ctx context.Context, errGroup *errgroup.Group, acti
 }
 
 // RunActionWithParallelCheck runs an action with a check in parallel
-// The function performing the check should return true if the check was favourable; false otherwise.
-// For more context, a result can be returned. If the check did not have the expected result and the
-// whole function would be cancelled.
-func RunActionWithParallelCheckAndResult[T any](ctx context.Context, action func(ctx context.Context) error, checkAction func(ctx context.Context) (res T, ok bool), onCheckResult func(res T) error, checkPeriod time.Duration) (res T, ok bool, err error) {
-	err = DetermineContextError(ctx)
-	if err != nil {
-		return
-	}
-
-	var errGroup errgroup.Group
-	res, ok, err = runActionAndWait(ctx, &errGroup, action, checkAction, onCheckResult, checkPeriod)
-	return
-}
-
-// RunActionWithParallelCheck runs an action with a check in parallel
 // The function performing the check should return true if the check was favourable; false otherwise. If the check did not have the expected result and the whole function would be cancelled.
-func RunActionWithParallelCheck(ctx context.Context, action func(ctx context.Context) error, checkAction func(ctx context.Context) bool, checkPeriod time.Duration) (err error) {
+func RunActionWithParallelCheck(ctx context.Context, action ActionFunc, checkAction CheckFunc, checkPeriod time.Duration) (err error) {
 	_, _, err = RunActionWithParallelCheckAndResult(
 		ctx,
 		action,

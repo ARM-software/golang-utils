@@ -1,1 +1,1 @@
-:sparkles: `parallisation` Add support for more context when returning from RunActionWithParallelCheck
+:sparkles: `parallelisation` Add support for more context when returning from RunActionWithParallelCheck
