@@ -219,9 +219,9 @@ type (
 )
 
 // RunActionWithParallelCheck runs an action with a check in parallel
-// The function performing the check should return true if the check was successful, but not met; false otherwise.
-// For more context, a result can be returned. If the check did not have the expected result and the
-// whole function would be cancelled.
+// The function performing the check should return true if the check should be repeated; false otherwise it should not.
+// For more context about how the check ended, a result can be returned. If the check did not have the expected result
+// then the whole function would be cancelled.
 func RunActionWithParallelCheckAndResult[T any](ctx context.Context, action ActionFunc, checkAction CheckWithResultFunc[T], onCheckResult ResultCheckFunc[T], checkPeriod time.Duration) (res T, ok bool, err error) {
 	err = DetermineContextError(ctx)
 	if err != nil {
