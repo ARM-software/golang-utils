@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"go.uber.org/atomic"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -210,38 +211,85 @@ func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Durati
 	}
 }
 
+type (
+	ActionFunc                 func(ctx context.Context) (err error)
+	CheckFunc                  func(ctx context.Context) (ok bool)
+	CheckWithResultFunc[T any] func(ctx context.Context) (res T, ok bool)
+	ResultCheckFunc[T any]     func(res T) (err error)
+)
+
 // RunActionWithParallelCheck runs an action with a check in parallel
-// The function performing the check should return true if the check was favourable; false otherwise. If the check did not have the expected result and the whole function would be cancelled.
-func RunActionWithParallelCheck(ctx context.Context, action func(ctx context.Context) error, checkAction func(ctx context.Context) bool, checkPeriod time.Duration) error {
-	err := DetermineContextError(ctx)
+// The function performing the check should return true if the check should be repeated; false otherwise it should not.
+// For more context about how the check ended, a result can be returned. If the check did not have the expected result
+// then the whole function would be cancelled.
+func RunActionWithParallelCheckAndResult[T any](ctx context.Context, action ActionFunc, checkAction CheckWithResultFunc[T], onCheckResult ResultCheckFunc[T], checkPeriod time.Duration) (res T, ok bool, err error) {
+	err = DetermineContextError(ctx)
 	if err != nil {
-		return err
+		return
 	}
+
+	var errGroup errgroup.Group
+
 	cancelStore := NewCancelFunctionsStore()
 	defer cancelStore.Cancel()
+
 	cancellableCtx, cancelFunc := context.WithCancel(ctx)
 	cancelStore.RegisterCancelFunction(cancelFunc)
-	go func(ctx context.Context, store *CancelFunctionStore) {
-		for {
-			select {
-			case <-ctx.Done():
-				store.Cancel()
-				return
-			default:
-				if !checkAction(ctx) {
-					store.Cancel()
+
+	errGroup.Go(func() error {
+		return func(ctx context.Context, store *CancelFunctionStore) (err error) {
+			defer store.Cancel()
+			for {
+				select {
+				case <-ctx.Done():
 					return
+				default:
+					res, ok = checkAction(ctx)
+
+					err = onCheckResult(res)
+					if err != nil {
+						return
+					}
+
+					if !ok {
+						return
+					}
+
+					SleepWithContext(ctx, checkPeriod)
 				}
-				SleepWithContext(ctx, checkPeriod)
 			}
-		}
-	}(cancellableCtx, cancelStore)
+		}(cancellableCtx, cancelStore)
+	})
+
 	err = action(cancellableCtx)
-	err2 := DetermineContextError(cancellableCtx)
-	if err2 != nil {
-		return err2
+	if errCtx := DetermineContextError(cancellableCtx); errCtx != nil {
+		err = errCtx
 	}
-	return err
+	cancelFunc()
+
+	if egErr := errGroup.Wait(); commonerrors.Ignore(egErr, commonerrors.ErrCancelled, commonerrors.ErrTimeout) != nil {
+		err = egErr
+		return
+	}
+
+	return
+}
+
+// RunActionWithParallelCheck runs an action with a check in parallel
+// The function performing the check should return true if the check was favourable; false otherwise. If the check did not have the expected result then the whole function would be cancelled.
+func RunActionWithParallelCheck(ctx context.Context, action ActionFunc, checkAction CheckFunc, checkPeriod time.Duration) (err error) {
+	_, _, err = RunActionWithParallelCheckAndResult(
+		ctx,
+		action,
+		func(ctx context.Context) (_ struct{}, ok bool) {
+			ok = checkAction(ctx)
+			return
+		},
+		func(_ struct{}) error { return nil },
+		checkPeriod,
+	)
+
+	return
 }
 
 // WaitUntil waits for a condition evaluated by evalCondition to be verified
