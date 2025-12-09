@@ -48,6 +48,7 @@ func (t *testIO) Register(context.Context) (io.Reader, io.Writer, io.Writer) {
 }
 
 type execFunc func(ctx context.Context, l logs.Loggers, cmd string, args ...string) error
+type startFunc func(ctx context.Context, l logs.Loggers, cmd string, args ...string) (*Subprocess, error)
 
 func newDefaultExecutor(t *testing.T) execFunc {
 	t.Helper()
@@ -65,6 +66,26 @@ func newCustomIOExecutor(t *testing.T, customIO *testIO) execFunc {
 			return
 		}
 		return p.Execute()
+	}
+}
+
+func newDefaultStarter(t *testing.T) startFunc {
+	t.Helper()
+	return func(ctx context.Context, l logs.Loggers, cmd string, args ...string) (*Subprocess, error) {
+		return Start(ctx, l, "", "", "", cmd, args...)
+	}
+}
+
+func newCustomIOStarter(t *testing.T, customIO *testIO) startFunc {
+	t.Helper()
+	return func(ctx context.Context, l logs.Loggers, cmd string, args ...string) (p *Subprocess, err error) {
+		p = &Subprocess{}
+		err = p.SetupWithEnvironmentWithCustomIO(ctx, l, customIO, nil, "", "", "", cmd, args...)
+		if err != nil {
+			return
+		}
+		err = p.Start()
+		return
 	}
 }
 
@@ -369,6 +390,77 @@ func TestExecute(t *testing.T) {
 					if executor.io != nil && test.expectIO {
 						assert.NotZero(t, executor.io.out.Len()+executor.io.err.Len()) // expect some output
 					}
+				})
+			}
+		})
+	}
+}
+
+func TestStart(t *testing.T) {
+	currentDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	tests := []struct {
+		name       string
+		cmdWindows string
+		argWindows []string
+		cmdOther   string
+		argOther   []string
+		expectIO   bool
+	}{
+		{
+			name:       "ShortProcess",
+			cmdWindows: "cmd",
+			argWindows: []string{"/c", "dir", currentDir},
+			cmdOther:   "ls",
+			argOther:   []string{"-l", currentDir},
+			expectIO:   true,
+		},
+		{
+			name:       "LongProcess",
+			cmdWindows: "cmd",
+			argWindows: []string{"/c", fmt.Sprintf("ping -n 2 -w %v localhost > nul", time.Second.Milliseconds())}, // See https://stackoverflow.com/a/79268314/45375
+			cmdOther:   "sleep",
+			argOther:   []string{"1"},
+			expectIO:   false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			// defer goleak.VerifyNone(t)
+
+			customIO := newTestIO()
+			executors := []struct {
+				name  string
+				start startFunc
+				io    *testIO
+			}{
+				{"normal", newDefaultStarter(t), nil},
+				{"with IO", newCustomIOStarter(t, customIO), customIO},
+			}
+
+			for _, executor := range executors {
+				t.Run(executor.name, func(t *testing.T) {
+					var loggers logs.Loggers = &logs.GenericLoggers{}
+					err := loggers.Check()
+					assert.Error(t, err)
+
+					_, err = executor.start(context.Background(), loggers, "ls")
+					assert.Error(t, err)
+
+					loggers, err = logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
+					require.NoError(t, err)
+
+					var p *Subprocess
+					if platform.IsWindows() {
+						p, err = executor.start(context.Background(), loggers, test.cmdWindows, test.argWindows...)
+					} else {
+						p, err = executor.start(context.Background(), loggers, test.cmdOther, test.argOther...)
+					}
+					require.NoError(t, err)
+					require.NotNil(t, p)
+					require.NoError(t, p.Wait(context.Background()))
 				})
 			}
 		})
