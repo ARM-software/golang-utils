@@ -276,3 +276,28 @@ func TestForEachSequence(t *testing.T) {
 	}))
 	assert.ElementsMatch(t, visited, []int{9, 22, 35, 48, 61, 74, 87, 100, 113, 126, 139})
 }
+
+func TestForAll(t *testing.T) {
+	var visited []int
+	list := Range(9, 1000, field.ToOptionalInt(13))
+	errortest.AssertError(t, ForAll(list, func(i int) error {
+		visited = append(visited, i)
+		if i > 150 {
+			return commonerrors.ErrUnsupported
+		}
+		return nil
+	}), commonerrors.ErrUnsupported)
+	assert.ElementsMatch(t, visited, []int{9, 22, 35, 48, 61, 74, 87, 100, 113, 126, 139, 152, 165, 178, 191, 204, 217, 230, 243, 256, 269, 282, 295, 308, 321, 334, 347, 360, 373, 386, 399, 412, 425, 438, 451, 464, 477, 490, 503, 516, 529, 542, 555, 568, 581, 594, 607, 620, 633, 646, 659, 672, 685, 698, 711, 724, 737, 750, 763, 776, 789, 802, 815, 828, 841, 854, 867, 880, 893, 906, 919, 932, 945, 958, 971, 984, 997})
+	visited = []int{}
+	assert.NoError(t, ForAll(list, func(i int) error {
+		visited = append(visited, i)
+		if i > 150 {
+			return commonerrors.ErrEOF
+		}
+		return nil
+	}))
+	assert.ElementsMatch(t, visited, []int{9, 22, 35, 48, 61, 74, 87, 100, 113, 126, 139, 152})
+	assert.NoError(t, ForAll(list, func(i int) error {
+		return nil
+	}))
+}

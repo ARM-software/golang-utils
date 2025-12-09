@@ -167,6 +167,33 @@ func ForEach[S ~[]E, E any](s S, f func(E)) {
 	})
 }
 
+// ForAll iterates over every element in the provided sequence and invokes f
+// on each item in order. If f returns an error for one or more elements,
+// ForAll continues processing the remaining elements and returns a single
+// aggregated error containing all collected errors.  If no errors occur, the returned error is nil.
+func ForAll[S ~[]E, E any](s S, f func(E) error) error {
+	return ForAllSequence[E](slices.Values(s), f)
+}
+
+// ForAllSequence iterates over every element in the provided sequence and invokes f
+// on each item in order. If f returns an error for one or more elements,
+// ForAllSequence continues processing the remaining elements and returns a single
+// aggregated error containing all collected errors.  If no errors occur, the returned error is nil.
+func ForAllSequence[T any](s iter.Seq[T], f func(T) error) error {
+	var err error
+	err = commonerrors.Join(err, Each[T](s, func(e T) error {
+		subErr := f(e)
+		if commonerrors.Any(subErr, commonerrors.ErrEOF) {
+			return subErr
+		}
+		if subErr != nil {
+			err = commonerrors.Join(err, commonerrors.Newf(subErr, "error during iteration over value [%v]", e))
+		}
+		return nil
+	}))
+	return err
+}
+
 // Each iterates over a sequence and executes the passed function against each element.
 // If passed func returns an error, the iteration stops and the error is returned, unless it is EOF.
 func Each[T any](s iter.Seq[T], f func(T) error) error {
