@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.137.0" (2025-12-09)
+======================
+
+Features
+--------
+
+- :sparkles: `parallelisation` Add support for more context when returning from RunActionWithParallelCheck (#20251205145557)
+
+
 "1.136.0" (2025-12-01)
 ======================
 
