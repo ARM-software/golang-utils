@@ -1,0 +1,1 @@
+:sparkles: `[collection]` Introduced a new `ForAll` helper function that iterates through the entire collection and returns a single aggregated error containing any individual errors encountered during iteration
