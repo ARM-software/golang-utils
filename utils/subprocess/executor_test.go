@@ -397,6 +397,7 @@ func TestExecute(t *testing.T) {
 }
 
 func TestStart(t *testing.T) {
+
 	currentDir, err := os.Getwd()
 	require.NoError(t, err)
 
@@ -428,7 +429,7 @@ func TestStart(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			// defer goleak.VerifyNone(t)
+			defer goleak.VerifyNone(t)
 
 			customIO := newTestIO()
 			executors := []struct {
@@ -460,7 +461,9 @@ func TestStart(t *testing.T) {
 					}
 					require.NoError(t, err)
 					require.NotNil(t, p)
+					defer func() { _ = p.Stop() }()
 					require.NoError(t, p.Wait(context.Background()))
+					p.Cancel()
 				})
 			}
 		})
