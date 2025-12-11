@@ -14,6 +14,16 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.138.0" (2025-12-11)
+======================
+
+Features
+--------
+
+- :sparkles: `[collection]` Introduced a new `ForAll` helper function that iterates through the entire collection and returns a single aggregated error containing any individual errors encountered during iteration (#20251209161427)
+- :sparkles: [subprocess] add helpers for starting processes (#20251209165547)
+
+
 "1.137.0" (2025-12-09)
 ======================
 
