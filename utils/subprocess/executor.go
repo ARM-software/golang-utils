@@ -66,9 +66,19 @@ func ExecuteWithEnvironment(ctx context.Context, loggers logs.Loggers, additiona
 	return ExecuteWithEnvironmentWithIO(ctx, loggers, nil, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
 }
 
+// StartWithEnvironment starts a command (i.e. spawns a subprocess). It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func StartWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (*Subprocess, error) {
+	return StartWithEnvironmentWithIO(ctx, loggers, nil, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+}
+
 // Execute executes a command (i.e. spawns a subprocess).
 func Execute(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) error {
 	return ExecuteWithEnvironment(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+}
+
+// Start starts a command (i.e. spawns a subprocess).
+func Start(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (*Subprocess, error) {
+	return StartWithEnvironment(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
 }
 
 // ExecuteAs executes a command (i.e. spawns a subprocess) as a different user.
@@ -86,13 +96,23 @@ func ExecuteWithSudo(ctx context.Context, loggers logs.Loggers, messageOnStart s
 	return ExecuteAs(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Sudo(), cmd, args...)
 }
 
-// ExecuteWithEnvironment executes a command (i.e. spawns a subprocess) with overridden stdin/stdout/stderr. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+// ExecuteWithEnvironmentWithIO executes a command (i.e. spawns a subprocess) with overridden stdin/stdout/stderr. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
 func ExecuteWithEnvironmentWithIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
 	p, err := NewWithEnvironmentWithIO(ctx, loggers, io, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
 	if err != nil {
 		return
 	}
 	return p.Execute()
+}
+
+// StartWithEnvironmentWithIO starts a command (i.e. spawns a subprocess) with overridden stdin/stdout/stderr. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func StartWithEnvironmentWithIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (p *Subprocess, err error) {
+	p, err = NewWithEnvironmentWithIO(ctx, loggers, io, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+	if err != nil {
+		return
+	}
+	err = p.Start()
+	return
 }
 
 // ExecuteWithIO executes a command (i.e. spawns a subprocess) with overridden stdin/stdout/stderr.
