@@ -56,7 +56,7 @@ func NewStepArgumentsWithIdempotentKey(idemKey string, args map[string]any) IAct
 }
 
 func NewStepArguments(args map[string]any) IActionArguments {
-	return NewStepArgumentsWithIdempotentKey(rand.Text(), args) //nolint:gosec
+	return NewStepArgumentsWithIdempotentKey(rand.Text(), args) //nolint:govet
 }
 
 func NoStepArguments() IActionArguments {

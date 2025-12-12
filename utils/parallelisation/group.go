@@ -6,11 +6,11 @@ import (
 	"math"
 	"slices"
 
-	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/sasha-s/go-deadlock"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 	"github.com/ARM-software/golang-utils/utils/safecast"

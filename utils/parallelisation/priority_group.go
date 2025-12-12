@@ -6,9 +6,9 @@ import (
 	"maps"
 	"slices"
 
-	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/sasha-s/go-deadlock"
 
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
