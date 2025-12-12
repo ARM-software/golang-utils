@@ -2,9 +2,11 @@ package parallelisation
 
 import (
 	"context"
+	"iter"
 	"maps"
 	"slices"
 
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/sasha-s/go-deadlock"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -12,19 +14,21 @@ import (
 
 var _ IExecutionGroup[IExecutor] = &PriorityExecutionGroup[IExecutor]{}
 
+const defaultPriority uint = 0
+
 type PriorityExecutionGroup[T any] struct {
-	mu       deadlock.RWMutex
-	groups   map[uint]IExecutionGroup[T]
-	options  []StoreOption
-	newGroup func(...StoreOption) IExecutionGroup[T]
+	mu           deadlock.RWMutex
+	groups       map[uint]IExecutionGroup[T]
+	options      []StoreOption
+	newGroupFunc func(...StoreOption) IExecutionGroup[T]
 }
 
 func newPriorityExecutionGroup[T any](newGroup func(...StoreOption) IExecutionGroup[T], options ...StoreOption) *PriorityExecutionGroup[T] {
 	return &PriorityExecutionGroup[T]{
-		mu:       deadlock.RWMutex{},
-		groups:   make(map[uint]IExecutionGroup[T]),
-		options:  options,
-		newGroup: newGroup,
+		mu:           deadlock.RWMutex{},
+		groups:       make(map[uint]IExecutionGroup[T]),
+		options:      options,
+		newGroupFunc: newGroup,
 	}
 }
 
@@ -53,11 +57,11 @@ func (g *PriorityExecutionGroup[T]) check() {
 	if g.options == nil {
 		g.options = DefaultOptions().Options()
 	}
-	if g.newGroup == nil {
-		g.newGroup = func(options ...StoreOption) IExecutionGroup[T] {
+	if g.newGroupFunc == nil {
+		g.newGroupFunc = func(options ...StoreOption) IExecutionGroup[T] {
 			// since none of the methods return errors directly we inject executors that will force the error and reveal it to the consumer
 			return NewExecutionGroup[T](func(context.Context, T) error {
-				return commonerrors.UndefinedVariableWithMessage("g.newGroup", "priority execution group has not been initialised correctly")
+				return commonerrors.UndefinedVariableWithMessage("g.newGroupFunc", "priority execution group has not been initialised correctly")
 			})
 		}
 	}
@@ -65,20 +69,63 @@ func (g *PriorityExecutionGroup[T]) check() {
 
 // RegisterExecutor registers executors with a specific priority (lower values indidcate higher priority)
 func (g *PriorityExecutionGroup[T]) RegisterFunctionWithPriority(priority uint, function ...T) {
+	g.RegisterFunctionsWithPriority(priority, slices.Values(function))
+}
+
+func (g *PriorityExecutionGroup[T]) RegisterFunctionsWithPriority(priority uint, functionSeq iter.Seq[T]) {
+	g.GetPriorityGroup(priority).RegisterFunctions(functionSeq)
+}
+
+func (g *PriorityExecutionGroup[T]) GetPriorityGroup(priority uint) IExecutionGroup[T] {
 	g.check()
 
 	g.mu.Lock()
 	defer g.mu.Unlock()
-
 	if g.groups[priority] == nil {
-		g.groups[priority] = g.newGroup(g.options...)
+		g.groups[priority] = g.newGroupFunc(g.options...)
 	}
-	g.groups[priority].RegisterFunction(function...)
+	return g.groups[priority]
+}
+
+func (g *PriorityExecutionGroup[T]) CopyAllPriorityFunctions(d *PriorityExecutionGroup[T]) {
+	if d == nil {
+		return
+	}
+	_ = collection.Each(maps.Keys(g.groups), func(i uint) error {
+		g.CopyPriorityFunctions(i, d.GetPriorityGroup(i))
+		return nil
+	})
+
+}
+
+func (g *PriorityExecutionGroup[T]) CopyPriorityFunctions(priority uint, d IExecutionGroup[T]) {
+	g.GetPriorityGroup(priority).CopyFunctions(d)
+}
+
+func (g *PriorityExecutionGroup[T]) CopyFunctions(d IExecutionGroup[T]) {
+	if d == nil {
+		return
+	}
+	if p, ok := d.(*PriorityExecutionGroup[T]); ok {
+		g.CopyAllPriorityFunctions(p)
+	} else {
+		g.CopyPriorityFunctions(defaultPriority, d)
+	}
+}
+
+func (g *PriorityExecutionGroup[T]) RegisterFunctions(functionSeq iter.Seq[T]) {
+	g.RegisterFunctionsWithPriority(defaultPriority, functionSeq)
 }
 
 // RegisterExecutor registers executors with a priority of zero (highest priority)
 func (g *PriorityExecutionGroup[T]) RegisterFunction(function ...T) {
-	g.RegisterFunctionWithPriority(0, function...)
+	g.RegisterFunctionWithPriority(defaultPriority, function...)
+}
+
+func (g *PriorityExecutionGroup[T]) Clone() IExecutionGroup[T] {
+	c := newPriorityExecutionGroup[T](g.newGroupFunc, g.options...)
+	g.CopyAllPriorityFunctions(c)
+	return c
 }
 
 func (g *PriorityExecutionGroup[T]) Len() (n int) {

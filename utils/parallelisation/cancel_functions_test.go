@@ -51,6 +51,47 @@ func testCancelStore(t *testing.T, store *CancelFunctionStore) {
 	assert.True(t, called3.Load())
 }
 
+func testCancelStoreClone(t *testing.T, store *CancelFunctionStore) {
+	t.Helper()
+	t.Run("clone", func(t *testing.T) {
+		require.NotNil(t, store)
+		// Set up some fake CancelFuncs to make sure they are called
+		called1 := atomic.NewBool(false)
+		called2 := atomic.NewBool(false)
+		called3 := atomic.NewBool(false)
+
+		cancelFunc1 := func() {
+			called1.Store(true)
+		}
+		cancelFunc2 := func() {
+			called2.Store(true)
+		}
+		cancelFunc3 := func() {
+			called3.Store(true)
+		}
+		subStore := NewCancelFunctionsStore()
+		subStore.RegisterCancelFunction(cancelFunc3)
+
+		store.RegisterCancelFunction(cancelFunc1, cancelFunc2)
+		store.RegisterCancelStore(subStore)
+		store.RegisterCancelStore(nil)
+
+		assert.Equal(t, 3, store.Len())
+		assert.False(t, called1.Load())
+		assert.False(t, called2.Load())
+		assert.False(t, called3.Load())
+		clone := store.Clone()
+		require.NotNil(t, clone)
+		cClone, ok := clone.(*CancelFunctionStore)
+		require.True(t, ok)
+		cClone.Cancel()
+
+		assert.True(t, called1.Load())
+		assert.True(t, called2.Load())
+		assert.True(t, called3.Load())
+	})
+}
+
 // Given a CancelFunctionsStore
 // Functions can be registered
 // and all functions will be called
@@ -59,15 +100,19 @@ func TestCancelFunctionStore(t *testing.T) {
 
 		t.Run("parallel", func(t *testing.T) {
 			testCancelStore(t, NewCancelFunctionsStore())
+			testCancelStoreClone(t, NewCancelFunctionsStore())
 		})
 		t.Run("sequential", func(t *testing.T) {
 			testCancelStore(t, NewCancelFunctionsStore(Sequential))
+			testCancelStoreClone(t, NewCancelFunctionsStore(Sequential))
 		})
 		t.Run("reverse", func(t *testing.T) {
 			testCancelStore(t, NewCancelFunctionsStore(SequentialInReverse))
+			testCancelStoreClone(t, NewCancelFunctionsStore(SequentialInReverse))
 		})
 		t.Run("execute all", func(t *testing.T) {
 			testCancelStore(t, NewCancelFunctionsStore(StopOnFirstError))
+			testCancelStoreClone(t, NewCancelFunctionsStore(StopOnFirstError))
 		})
 	})
 

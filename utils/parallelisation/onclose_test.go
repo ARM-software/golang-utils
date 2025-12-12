@@ -14,7 +14,8 @@ import (
 	"github.com/ARM-software/golang-utils/utils/parallelisation/mocks"
 )
 
-//go:generate go tool mockgen -destination=./mocks/mock_$GOPACKAGE.go -package=mocks io.Closer
+////go:generate go tool mockgen -destination=./mocks/mock_$GOPACKAGE.go -package=mocks  io.Closer
+
 func TestCloseAll(t *testing.T) {
 	t.Run("close", func(t *testing.T) {
 		ctlr := gomock.NewController(t)
@@ -74,6 +75,19 @@ func TestCloseAll(t *testing.T) {
 
 func TestCloseOnce(t *testing.T) {
 	t.Run("close every function once", func(t *testing.T) {
+		ctlr := gomock.NewController(t)
+		defer ctlr.Finish()
+		closeError := commonerrors.ErrUnexpected
+
+		closerMock := mocks.NewMockCloser(ctlr)
+		closerMock.EXPECT().Close().Return(closeError).Times(3)
+
+		group := NewCloseOnceGroup(Parallel, RetainAfterExecution)
+		group.RegisterCloseFunction(WrapCloserIntoCloseFunc(closerMock), WrapCloserIntoCloseFunc(closerMock), WrapCloserIntoCloseFunc(closerMock))
+		errortest.AssertError(t, group.Close(), closeError)
+		require.NoError(t, group.Close())
+	})
+	t.Run("clone", func(t *testing.T) {
 		ctlr := gomock.NewController(t)
 		defer ctlr.Finish()
 		closeError := commonerrors.ErrUnexpected
@@ -167,6 +181,35 @@ func TestSequentialExecution(t *testing.T) {
 				require.NoError(t, DetermineContextError(ctx3))
 
 				errortest.AssertError(t, closeStore.Close(), commonerrors.ErrCancelled)
+				errortest.AssertError(t, DetermineContextError(ctx1), commonerrors.ErrCancelled)
+				if opt.stopOnFirstError {
+					assert.NoError(t, DetermineContextError(ctx2))
+					assert.NoError(t, DetermineContextError(ctx3))
+				} else {
+					errortest.AssertError(t, DetermineContextError(ctx2), commonerrors.ErrCancelled)
+					errortest.AssertError(t, DetermineContextError(ctx3), commonerrors.ErrCancelled)
+				}
+
+			})
+			t.Run("clone", func(t *testing.T) {
+				closeStore := NewCloseFunctionStore(test.option, Sequential)
+				ctx1, cancel1 := context.WithCancel(context.Background())
+				closeStore.RegisterCloseFunction(func() error { cancel1(); return DetermineContextError(ctx1) })
+				ctx2, cancel2 := context.WithCancel(context.Background())
+				closeStore.RegisterCloseFunction(func() error { cancel2(); return DetermineContextError(ctx2) })
+				ctx3, cancel3 := context.WithCancel(context.Background())
+				closeStore.RegisterCloseFunction(func() error { cancel3(); return DetermineContextError(ctx3) })
+				assert.Equal(t, 3, closeStore.Len())
+				clone := closeStore.Clone()
+				require.NotNil(t, clone)
+				require.NoError(t, DetermineContextError(ctx1))
+				require.NoError(t, DetermineContextError(ctx2))
+				require.NoError(t, DetermineContextError(ctx3))
+				assert.Equal(t, 3, clone.Len())
+
+				closeClone, ok := clone.(*CloseFunctionStore)
+				require.True(t, ok)
+				errortest.AssertError(t, closeClone.Close(), commonerrors.ErrCancelled)
 				errortest.AssertError(t, DetermineContextError(ctx1), commonerrors.ErrCancelled)
 				if opt.stopOnFirstError {
 					assert.NoError(t, DetermineContextError(ctx2))

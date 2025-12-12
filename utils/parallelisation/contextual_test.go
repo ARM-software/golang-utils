@@ -22,6 +22,19 @@ func TestForEach(t *testing.T) {
 		errortest.AssertError(t, ForEach(context.Background(), WithOptions(Parallel), WrapCancelToContextualFunc(cancelFunc), WrapCancelToContextualFunc(cancelFunc), WrapCloseToContextualFunc(func() error { return closeError }), WrapCancelToContextualFunc(cancelFunc)), closeError)
 	})
 
+	t.Run("clone", func(t *testing.T) {
+		closeError := commonerrors.ErrUnexpected
+		group := NewContextualGroup(ExecuteAll(WithOptions(Parallel)).Options()...)
+		group.RegisterFunction(WrapCancelToContextualFunc(cancelFunc), WrapCancelToContextualFunc(cancelFunc), WrapCloseToContextualFunc(func() error { return closeError }), WrapCancelToContextualFunc(cancelFunc))
+		clone := group.Clone()
+		require.NotNil(t, clone)
+		cGroup, ok := clone.(*ContextualFunctionGroup)
+		require.True(t, ok)
+		err := cGroup.Execute(context.Background())
+
+		errortest.AssertError(t, err, closeError)
+	})
+
 	t.Run("close with 1 error but error collection", func(t *testing.T) {
 		closeError := commonerrors.ErrUnexpected
 		errortest.AssertError(t, ForEach(context.Background(), WithOptions(Parallel), WrapCancelToContextualFunc(cancelFunc), WrapCancelToContextualFunc(cancelFunc), WrapCloseToContextualFunc(func() error { return closeError }), WrapCancelToContextualFunc(cancelFunc)), closeError)
