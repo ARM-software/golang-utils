@@ -86,6 +86,29 @@ func (a *atomicSlice) Data() []uint {
 
 func TestPriority(t *testing.T) {
 	t.Run("single executor group", func(t *testing.T) {
+		t.Run("clone", func(t *testing.T) {
+			defer goleak.VerifyNone(t)
+
+			executionOrder := newAtomicSlice(t)
+			priorities := []uint{3, 1, 2, 2, 0}
+			require.False(t, slices.IsSorted(priorities))
+
+			priorityGroup := NewPriorityExecutionGroup(Sequential, RetainAfterExecution)
+
+			priorityGroup.RegisterFunctionWithPriority(priorities[0], newRecordingExec(priorities[0], executionOrder))
+			priorityGroup.RegisterFunctionWithPriority(priorities[1], newRecordingExec(priorities[1], executionOrder))
+			priorityGroup.RegisterFunctionWithPriority(priorities[2], newRecordingExec(priorities[2], executionOrder))
+			priorityGroup.RegisterFunctionWithPriority(priorities[3], newRecordingExec(priorities[3], executionOrder))
+			priorityGroup.RegisterFunctionWithPriority(priorities[4], newRecordingExec(priorities[4], executionOrder))
+
+			clone := priorityGroup.Clone()
+			require.NotNil(t, clone)
+			require.NoError(t, clone.Execute(context.Background()))
+
+			assert.True(t, executionOrder.IsSorted())
+			assert.EqualValues(t, executionOrder.Len(), len(priorities))
+		})
+
 		t.Run("all sequential", func(t *testing.T) {
 			defer goleak.VerifyNone(t)
 
@@ -138,7 +161,7 @@ func TestPriority(t *testing.T) {
 
 	})
 
-	t.Run("newGroup not set", func(t *testing.T) {
+	t.Run("newGroupFunc not set", func(t *testing.T) {
 		defer goleak.VerifyNone(t)
 
 		var priorityGroup PriorityExecutionGroup[IExecutor] // no constructor used

@@ -23,6 +23,12 @@ func (s *CloserStore) Len() int {
 	return s.ExecutionGroup.Len()
 }
 
+func (s *CloserStore) Clone() IExecutionGroup[io.Closer] {
+	c := NewCloserStoreWithOptions(s.options.Options()...)
+	s.CopyFunctions(c)
+	return c
+}
+
 // NewCloserStore returns a store of io.Closer object which will all be closed concurrently on Close(). The first error received will be returned
 func NewCloserStore(stopOnFirstError bool) *CloserStore {
 	return NewCloserStoreWithOptions(closeDefaultOptions(stopOnFirstError).Options()...)
@@ -159,6 +165,12 @@ func (s *CloseFunctionStore) Close() error {
 
 func (s *CloseFunctionStore) Len() int {
 	return s.ExecutionGroup.Len()
+}
+
+func (s *CloseFunctionStore) Clone() IExecutionGroup[CloseFunc] {
+	g := NewCloseFunctionStore(s.options.Options()...)
+	s.CopyFunctions(g)
+	return g
 }
 
 // NewCloseFunctionStore returns a store closing functions which will all be called on Close(). The first error received if any will be returned.

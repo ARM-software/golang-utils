@@ -24,6 +24,12 @@ func (s *CancelFunctionStore) RegisterCancelStore(store *CancelFunctionStore) {
 	})
 }
 
+func (s *CancelFunctionStore) Clone() IExecutionGroup[context.CancelFunc] {
+	g := NewCancelFunctionsStore(s.options.Options()...)
+	s.CopyFunctions(g)
+	return g
+}
+
 // Cancel will execute the cancel functions in the store. Any errors will be ignored and Execute() is recommended if you need to know if a cancellation failed
 func (s *CancelFunctionStore) Cancel() {
 	_ = s.Execute(context.Background())
