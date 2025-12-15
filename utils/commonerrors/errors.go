@@ -296,6 +296,9 @@ func ErrFromContext(ctx context.Context) error {
 	if ctx.Err() == nil {
 		return nil
 	}
+	// Note: at this point we know the context has been cancelled and therefore there is no case where
+	// context.Cause returns nil as the only case where context.Cause returns nil is if the context
+	// hasn't been cancelled. Therefore we will will receive an error from the below command, never nil.
 	if isCommonError, commonError := RetrieveCommonError(context.Cause(ctx)); isCommonError {
 		return commonError
 	}
