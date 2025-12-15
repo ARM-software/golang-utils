@@ -47,6 +47,7 @@ var (
 	ErrEOF                = errors.New("end of file")
 	ErrMalicious          = errors.New("suspected malicious intent")
 	ErrOutOfRange         = errors.New("out of range")
+	ErrInterrupted        = errors.New("interrupted")
 	// ErrFailed should be used as a generic error where an error is an expected and valid state.
 	// For example a failing command may cause subprocess.Execute to return an error if the command exits with 1 but
 	// this wouldn't be a system error, and you might want to distinguish between this and the subprocess wrapper erroring
@@ -70,7 +71,7 @@ var (
 
 // IsCommonError returns whether an error is a commonerror
 func IsCommonError(target error) bool {
-	return Any(target, ErrNotImplemented, ErrNoExtension, ErrNoLogger, ErrNoLoggerSource, ErrNoLogSource, ErrUndefined, ErrInvalidDestination, ErrTimeout, ErrLocked, ErrStaleLock, ErrExists, ErrNotFound, ErrUnsupported, ErrUnavailable, ErrWrongUser, ErrUnauthorised, ErrUnknown, ErrInvalid, ErrConflict, ErrMarshalling, ErrCancelled, ErrEmpty, ErrUnexpected, ErrTooLarge, ErrForbidden, ErrCondition, ErrEOF, ErrMalicious, ErrWarning, ErrOutOfRange, ErrFailed)
+	return Any(target, ErrNotImplemented, ErrNoExtension, ErrNoLogger, ErrNoLoggerSource, ErrNoLogSource, ErrUndefined, ErrInvalidDestination, ErrTimeout, ErrLocked, ErrStaleLock, ErrExists, ErrNotFound, ErrUnsupported, ErrUnavailable, ErrWrongUser, ErrUnauthorised, ErrUnknown, ErrInvalid, ErrConflict, ErrMarshalling, ErrCancelled, ErrEmpty, ErrUnexpected, ErrTooLarge, ErrForbidden, ErrCondition, ErrEOF, ErrMalicious, ErrWarning, ErrOutOfRange, ErrFailed, ErrInterrupted)
 }
 
 // RetrieveCommonError tries to return the common error of an error.
@@ -140,6 +141,8 @@ func RetrieveCommonError(target error) (isCommonError bool, commonError error) {
 		return true, ErrFailed
 	case Any(target, ErrWarning):
 		return true, ErrWarning
+	case Any(target, ErrInterrupted):
+		return true, ErrInterrupted
 	}
 
 	underlyingErr, parseError := GetUnderlyingErrorType(target)
@@ -281,8 +284,25 @@ func deserialiseCommonError(errStr string) (bool, error) {
 		return true, ErrOutOfRange
 	case CorrespondTo(ErrFailed, errStr):
 		return true, ErrFailed
+	case CorrespondTo(ErrInterrupted, errStr):
+		return true, ErrInterrupted
 	}
 	return false, ErrUnknown
+}
+
+// ErrFromContext extracts the error from the context. If the error has a cause that is a common error then
+// that will be returned over the underlying context error
+func ErrFromContext(ctx context.Context) error {
+	if ctx.Err() == nil {
+		return nil
+	}
+	// Note: at this point we know the context has been cancelled and therefore there is no case where
+	// context.Cause returns nil as the only case where context.Cause returns nil is if the context
+	// hasn't been cancelled. Therefore we will will receive an error from the below command, never nil.
+	if isCommonError, commonError := RetrieveCommonError(context.Cause(ctx)); isCommonError {
+		return commonError
+	}
+	return ConvertContextError(ctx.Err())
 }
 
 // ConvertContextError converts a context error into common errors.
@@ -494,7 +514,7 @@ func WrapError(targetError, originalError error, msg string) error {
 		tErr = ErrUnknown
 	}
 	origErr := ConvertContextError(originalError)
-	if Any(origErr, ErrTimeout, ErrCancelled, ErrWarning, ErrFailed) || IsWarning(origErr) || IsFailure(origErr) {
+	if Any(origErr, ErrTimeout, ErrCancelled, ErrWarning, ErrFailed, ErrInterrupted) || IsWarning(origErr) || IsFailure(origErr) {
 		tErr = origErr
 	}
 	if originalError == nil {

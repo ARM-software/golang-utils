@@ -336,3 +336,52 @@ func TestString(t *testing.T) {
 	assert.Equal(t, "unsupported: test 56: not found", WrapErrorf(ErrUnsupported, ErrNotFound, "test %v", 56).Error())
 	assert.Equal(t, "unsupported: test", WrapError(ErrUnsupported, Newf(ErrUnsupported, "test"), "").Error())
 }
+
+func TestErrFromContext(t *testing.T) {
+	for _, cause := range []error{ErrUnexpected, ErrConflict, ErrEOF, ErrForbidden, ErrCancelled, ErrInterrupted} {
+		t.Run(fmt.Sprintf("%v (cancel)", cause.Error()), func(t *testing.T) {
+			ctx, cancel := context.WithCancelCause(context.Background())
+			require.NoError(t, ErrFromContext(ctx))
+			cancel(cause)
+			err := ErrFromContext(ctx)
+			assert.True(t, Any(err, cause))
+		})
+
+		t.Run(fmt.Sprintf("%v (timeout)", cause.Error()), func(t *testing.T) {
+			ctx, cancel := context.WithTimeoutCause(context.Background(), time.Nanosecond, cause)
+			defer cancel()
+			err := ErrFromContext(ctx)
+			assert.True(t, Any(err, cause))
+		})
+	}
+
+	t.Run("nil cause (cancel)", func(t *testing.T) {
+		ctx, cancel := context.WithCancelCause(context.Background())
+		require.NoError(t, ErrFromContext(ctx))
+		cancel(nil)
+		err := ErrFromContext(ctx)
+		assert.True(t, Any(err, ErrCancelled))
+	})
+
+	t.Run("non-commonerror (cancel)", func(t *testing.T) {
+		ctx, cancel := context.WithCancelCause(context.Background())
+		require.NoError(t, ErrFromContext(ctx))
+		cancel(errors.New(faker.Sentence()))
+		err := ErrFromContext(ctx)
+		assert.True(t, Any(err, ErrCancelled))
+	})
+
+	t.Run("nil cause (timeout)", func(t *testing.T) {
+		ctx, cancel := context.WithTimeoutCause(context.Background(), time.Nanosecond, nil)
+		defer cancel()
+		err := ErrFromContext(ctx)
+		assert.True(t, Any(err, ErrTimeout))
+	})
+
+	t.Run("non-commonerror (timeout)", func(t *testing.T) {
+		ctx, cancel := context.WithTimeoutCause(context.Background(), time.Nanosecond, errors.New(faker.Sentence()))
+		defer cancel()
+		err := ErrFromContext(ctx)
+		assert.True(t, Any(err, ErrTimeout))
+	})
+}

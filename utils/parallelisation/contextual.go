@@ -9,7 +9,7 @@ import (
 
 // DetermineContextError determines what the context error is if any.
 func DetermineContextError(ctx context.Context) error {
-	err := commonerrors.ConvertContextError(ctx.Err())
+	err := commonerrors.ErrFromContext(ctx)
 	if commonerrors.Any(err, nil) {
 		return err
 	}
