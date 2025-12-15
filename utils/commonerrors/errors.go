@@ -290,6 +290,8 @@ func deserialiseCommonError(errStr string) (bool, error) {
 	return false, ErrUnknown
 }
 
+// ErrFromContext extracts the error from the context. If the error has a cause that is a common error then
+// that will be returned over the underlying context error
 func ErrFromContext(ctx context.Context) error {
 	if ctx.Err() == nil {
 		return nil
