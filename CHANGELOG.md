@@ -14,6 +14,16 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.139.0" (2025-12-15)
+======================
+
+Features
+--------
+
+- :sparkles: `[parallelisation]` Extended groups so that they can be cloned (#20251211161243)
+- :sparkles: `[transaction]` Added a new module providing [SAGA orchestrator](https://microservices.io/patterns/data/saga.html) support for coordinated multi-step transactions with rollback handling (#20251212152429)
+
+
 "1.138.0" (2025-12-11)
 ======================
 
