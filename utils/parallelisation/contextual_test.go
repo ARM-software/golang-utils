@@ -102,6 +102,19 @@ func TestDetermineContextError(t *testing.T) {
 		errortest.AssertError(t, err, commonerrors.ErrCancelled)
 		errortest.AssertErrorDescription(t, err, cause.Error())
 	})
+	t.Run("cancellation with commonerror cause", func(t *testing.T) {
+		for _, cause := range []error{commonerrors.ErrUnexpected, commonerrors.ErrConflict, commonerrors.ErrEOF, commonerrors.ErrForbidden, commonerrors.ErrCancelled, commonerrors.ErrInterrupted} {
+			t.Run(cause.Error(), func(t *testing.T) {
+				ctx, cancel := context.WithCancelCause(context.Background())
+				defer cancel(cause)
+				require.NoError(t, DetermineContextError(ctx))
+				cancel(cause)
+				err := DetermineContextError(ctx)
+				errortest.AssertError(t, err, cause)
+				errortest.AssertErrorDescription(t, err, cause.Error())
+			})
+		}
+	})
 	t.Run("cancellation with timeout cause", func(t *testing.T) {
 		cause := errors.New("a cause")
 		ctx, cancel := context.WithTimeoutCause(context.Background(), 5*time.Second, cause)
