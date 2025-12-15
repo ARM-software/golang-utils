@@ -22,6 +22,12 @@ type ContextualFunctionGroup struct {
 	ExecutionGroup[ContextualFunc]
 }
 
+func (s *ContextualFunctionGroup) Clone() IExecutionGroup[ContextualFunc] {
+	g := NewContextualGroup(s.options.Options()...)
+	s.CopyFunctions(g)
+	return g
+}
+
 // NewContextualGroup returns a group executing contextual functions.
 func NewContextualGroup(options ...StoreOption) *ContextualFunctionGroup {
 	return &ContextualFunctionGroup{

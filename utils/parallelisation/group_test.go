@@ -14,6 +14,22 @@ import (
 )
 
 func TestExecutionTimes(t *testing.T) {
+	t.Run("clone", func(t *testing.T) {
+		ctlr := gomock.NewController(t)
+		defer ctlr.Finish()
+
+		closerMock := mocks.NewMockCloser(ctlr)
+		closerMock.EXPECT().Close().Return(nil).Times(6)
+		group := NewCloserStoreWithOptions(ExecuteAll, Parallel, OnlyOnce, RetainAfterExecution)
+		group.RegisterFunction(closerMock, closerMock, closerMock)
+		c := group.Clone()
+		require.NotNil(t, c)
+		assert.Equal(t, group.Len(), c.Len())
+		require.NoError(t, group.Close())
+		closeClone, ok := c.(*CloserStore)
+		require.True(t, ok)
+		require.NoError(t, closeClone.Close())
+	})
 
 	t.Run("close only Once Parallel with retention", func(t *testing.T) {
 		ctlr := gomock.NewController(t)

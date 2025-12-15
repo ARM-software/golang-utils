@@ -2,12 +2,15 @@ package parallelisation
 
 import (
 	"context"
+	"iter"
 	"math"
+	"slices"
 
 	"github.com/sasha-s/go-deadlock"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 	"github.com/ARM-software/golang-utils/utils/safecast"
@@ -212,12 +215,22 @@ type IExecutor interface {
 type IExecutionGroup[T any] interface {
 	IExecutor
 	RegisterFunction(function ...T)
+	// RegisterFunctions registers a sequence of functions to the group.
+	RegisterFunctions(function iter.Seq[T])
+	// CopyFunctions copies the registered functions to group g
+	CopyFunctions(g IExecutionGroup[T])
 	Len() int
+	// Clone returns a new execution group containing the same registered functions
+	// as the original. The cloned group does not inherit any execution state, so
+	// none of the functions are considered executed. Calling Execute on the clone
+	// will run all registered functions again, regardless of whether they were
+	// previously executed in the original group.
+	Clone() IExecutionGroup[T]
 }
 
 type ICompoundExecutionGroup[T any] interface {
 	IExecutionGroup[T]
-	// RegisterExecutor registers executors of any kind to the group: they could be functions or sub-groups.
+	// RegisterExecutor registers executors of any kind to the group: they could be functions or subgroups.
 	RegisterExecutor(executor ...IExecutor)
 }
 
@@ -263,10 +276,36 @@ func (s *ExecutionGroup[T]) RegisterFunction(function ...T) {
 	s.functions = append(s.functions, wrapped...)
 }
 
+// RegisterFunctions registers a sequence of functions to the group.
+func (s *ExecutionGroup[T]) RegisterFunctions(function iter.Seq[T]) {
+	defer s.mu.Unlock()
+	s.mu.Lock()
+	wrapped := make([]wrappedElement[T], 0, 10)
+	for f := range function {
+		wrapped = append(wrapped, newWrapped(f, s.options.onlyOnce))
+	}
+	s.functions = append(s.functions, wrapped...)
+}
+
 func (s *ExecutionGroup[T]) Len() int {
 	defer s.mu.RUnlock()
 	s.mu.RLock()
 	return len(s.functions)
+}
+
+func (s *ExecutionGroup[T]) Clone() IExecutionGroup[T] {
+	g := NewOrderedExecutionGroup[T](s.executeFunc, s.options.Options()...)
+	s.CopyFunctions(g)
+	return g
+}
+
+func (s *ExecutionGroup[T]) CopyFunctions(g IExecutionGroup[T]) {
+	if g == nil {
+		return
+	}
+	defer s.mu.Unlock()
+	s.mu.Lock()
+	g.RegisterFunctions(collection.MapSequence[wrappedElement[T], T](slices.Values(s.functions), func(f wrappedElement[T]) T { return f.RawElement() }))
 }
 
 // Execute executes all the function in the group according to store options.
@@ -389,6 +428,7 @@ func (s *ExecutionGroup[T]) executeFunction(ctx context.Context, index int, w wr
 
 type wrappedElement[T any] interface {
 	Execute(ctx context.Context, f ExecuteFunc[T]) error
+	RawElement() T
 }
 type basicWrap[T any] struct {
 	value T
@@ -396,6 +436,10 @@ type basicWrap[T any] struct {
 
 func (w *basicWrap[T]) Execute(ctx context.Context, f ExecuteFunc[T]) error {
 	return f(ctx, w.value)
+}
+
+func (w *basicWrap[T]) RawElement() T {
+	return w.value
 }
 
 func newBasicWrap[T any](e T) wrappedElement[T] {
@@ -451,4 +495,10 @@ func (g *CompoundExecutionGroup) RegisterExecutor(group ...IExecutor) {
 			return group[i].Execute(ctx)
 		})
 	}
+}
+
+func (g *CompoundExecutionGroup) Clone() IExecutionGroup[ContextualFunc] {
+	c := NewCompoundExecutionGroup(g.options.Options()...)
+	g.CopyFunctions(c)
+	return c
 }

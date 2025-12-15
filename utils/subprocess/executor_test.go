@@ -522,7 +522,7 @@ func TestOutput(t *testing.T) {
 			runCount:   1,
 		},
 		{
-			name:         "BothStdOutandStdErr",
+			name:         "BothStdOutAndStdErr",
 			cmdOther:     "./testdata/echo_stdout_and_stderr.sh",
 			argOther:     []string{"foo"},
 			expectOutput: true,

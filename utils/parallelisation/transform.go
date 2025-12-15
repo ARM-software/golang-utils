@@ -91,7 +91,8 @@ func newResults[O any](numberOfInput *int) *results[O] {
 
 type TransformGroup[I any, O any] struct {
 	ExecutionGroup[I]
-	results *atomic.Pointer[results[O]]
+	results   *atomic.Pointer[results[O]]
+	transform TransformFunc[I, O]
 }
 
 func (g *TransformGroup[I, O]) appendResult(o *resultElement[O]) {
@@ -142,13 +143,20 @@ func (g *TransformGroup[I, O]) Transform(ctx context.Context) error {
 	return g.Execute(ctx)
 }
 
+func (g *TransformGroup[I, O]) Clone() IExecutionGroup[I] {
+	c := NewTransformGroup[I, O](g.transform, g.options.Options()...)
+	g.CopyFunctions(c)
+	return c
+}
+
 // NewTransformGroup returns a group transforming inputs into outputs.
 // To register inputs, call the Input function
 // To perform the transformation of inputs, then call Transform
 // To retrieve the output, then call Output
 func NewTransformGroup[I any, O any](transform TransformFunc[I, O], options ...StoreOption) *TransformGroup[I, O] {
 	g := &TransformGroup[I, O]{
-		results: atomic.NewPointer[results[O]](newResults[O](nil)),
+		results:   atomic.NewPointer[results[O]](newResults[O](nil)),
+		transform: transform,
 	}
 	g.ExecutionGroup = *NewOrderedExecutionGroup[I](func(fCtx context.Context, index int, i I) error {
 		err := DetermineContextError(fCtx)
