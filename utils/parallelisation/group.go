@@ -220,7 +220,11 @@ type IExecutionGroup[T any] interface {
 	// CopyFunctions copies the registered functions to group g
 	CopyFunctions(g IExecutionGroup[T])
 	Len() int
-	// Clone returns a new execution group with all the same functions being registered.
+	// Clone returns a new execution group containing the same registered functions
+	// as the original. The cloned group does not inherit any execution state, so
+	// none of the functions are considered executed. Calling Execute on the clone
+	// will run all registered functions again, regardless of whether they were
+	// previously executed in the original group.
 	Clone() IExecutionGroup[T]
 }
 
