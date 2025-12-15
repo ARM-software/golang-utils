@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.140.0" (2025-12-15)
+======================
+
+Features
+--------
+
+- :sparkles: `commonerrors` Add ErrInterrupted for use with context.Cause (#20251215151323)
+
+
 "1.139.0" (2025-12-15)
 ======================
 
