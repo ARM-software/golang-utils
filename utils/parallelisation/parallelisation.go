@@ -18,6 +18,14 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
+type (
+	ActionFunc                 func(ctx context.Context) (err error)
+	CheckFunc                  func(ctx context.Context) (ok bool)
+	CheckFuncWithErr           func(ctx context.Context) (ok bool, err error)
+	CheckWithResultFunc[T any] func(ctx context.Context) (res T, ok bool)
+	ResultCheckFunc[T any]     func(res T) (err error)
+)
+
 type result struct {
 	Item any
 	err  error
@@ -142,6 +150,39 @@ func SafeSchedule(ctx context.Context, period time.Duration, offset time.Duratio
 	}(ctx, period, offset, f)
 }
 
+// SchedulePeriodicCheckWithAction continuously evaluates checkFunc and, when it returns true, executes actionFunc before waiting for pauseBetweenEvaluations.
+// The loop stops when the context is cancelled or when either the checkFunc or the actionFunc returns an error.
+func SchedulePeriodicCheckWithAction(ctx context.Context, checkFunc CheckFuncWithErr, actionFunc ActionFunc, pauseBetweenEvaluations time.Duration) error {
+	if checkFunc == nil {
+		return commonerrors.UndefinedVariable("check function")
+	}
+
+	if actionFunc == nil {
+		return commonerrors.UndefinedVariable("action function")
+	}
+
+	for {
+		err := DetermineContextError(ctx)
+		if err != nil {
+			return err
+		}
+
+		runAction, err := checkFunc(ctx)
+		if err != nil {
+			return err
+		}
+
+		if runAction {
+			err = actionFunc(ctx)
+			if err != nil {
+				return err
+			}
+		}
+
+		SleepWithContext(ctx, pauseBetweenEvaluations)
+	}
+}
+
 // RunActionWithTimeout runs an action with timeout
 func RunActionWithTimeout(blockingAction func(stop chan bool) error, timeout time.Duration) (err error) {
 	channel := make(chan error, 1)
@@ -210,14 +251,6 @@ func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Durati
 		return DetermineContextError(timeoutContext)
 	}
 }
-
-type (
-	ActionFunc                 func(ctx context.Context) (err error)
-	CheckFunc                  func(ctx context.Context) (ok bool)
-	CheckFuncWithErr           func(ctx context.Context) (ok bool, err error)
-	CheckWithResultFunc[T any] func(ctx context.Context) (res T, ok bool)
-	ResultCheckFunc[T any]     func(res T) (err error)
-)
 
 // RunActionWithParallelCheck runs an action with a check in parallel
 // The function performing the check should return true if the check should be repeated; false otherwise it should not.
@@ -291,39 +324,6 @@ func RunActionWithParallelCheck(ctx context.Context, action ActionFunc, checkAct
 	)
 
 	return
-}
-
-// RunPeriodicCheckWithAction continuously evaluates checkFunc and, when it returns true, executes actionFunc before waiting for pauseBetweenEvaluations.
-// The loop stops when the context is cancelled or when either the checkFunc or the actionFunc returns an error.
-func RunPeriodicCheckWithAction(ctx context.Context, checkFunc CheckFuncWithErr, actionFunc ActionFunc, pauseBetweenEvaluations time.Duration) error {
-	if checkFunc == nil {
-		return commonerrors.UndefinedVariable("check function")
-	}
-
-	if actionFunc == nil {
-		return commonerrors.UndefinedVariable("action function")
-	}
-
-	for {
-		err := DetermineContextError(ctx)
-		if err != nil {
-			return err
-		}
-
-		runAction, err := checkFunc(ctx)
-		if err != nil {
-			return err
-		}
-
-		if runAction {
-			err = actionFunc(ctx)
-			if err != nil {
-				return err
-			}
-		}
-
-		SleepWithContext(ctx, pauseBetweenEvaluations)
-	}
 }
 
 // WaitUntil waits for a condition evaluated by evalCondition to be verified

@@ -621,7 +621,7 @@ func TestRunPeriodicCheckWithAction(t *testing.T) {
 		checkCount := atomic.NewInt32(0)
 		actionCount := atomic.NewInt32(0)
 		stopErr := commonerrors.ErrEOF
-		err := RunPeriodicCheckWithAction(ctx,
+		err := SchedulePeriodicCheckWithAction(ctx,
 			func(ctx context.Context) (bool, error) {
 				val := checkCount.Inc()
 				if val > 6 {
@@ -645,7 +645,7 @@ func TestRunPeriodicCheckWithAction(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		actionErr := commonerrors.ErrFailed
-		err := RunPeriodicCheckWithAction(ctx,
+		err := SchedulePeriodicCheckWithAction(ctx,
 			func(ctx context.Context) (bool, error) {
 				return true, nil
 			},
@@ -662,7 +662,7 @@ func TestRunPeriodicCheckWithAction(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		checkErr := commonerrors.ErrFailed
-		err := RunPeriodicCheckWithAction(ctx,
+		err := SchedulePeriodicCheckWithAction(ctx,
 			func(ctx context.Context) (bool, error) {
 				return false, checkErr
 			},
@@ -679,7 +679,7 @@ func TestRunPeriodicCheckWithAction(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		actionCount := atomic.NewInt32(0)
-		err := RunPeriodicCheckWithAction(ctx,
+		err := SchedulePeriodicCheckWithAction(ctx,
 			func(ctx context.Context) (bool, error) {
 				return true, nil
 			},
