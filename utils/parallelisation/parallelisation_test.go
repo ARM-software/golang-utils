@@ -613,6 +613,90 @@ func TestRunActionWithParallelCheckAndResult(t *testing.T) {
 	})
 }
 
+func TestRunPeriodicCheckWithAction(t *testing.T) {
+	defer goleak.VerifyNone(t)
+	t.Run("action executed when check returns true", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		checkCount := atomic.NewInt32(0)
+		actionCount := atomic.NewInt32(0)
+		stopErr := commonerrors.ErrEOF
+		err := RunPeriodicCheckWithAction(ctx,
+			func(ctx context.Context) (bool, error) {
+				val := checkCount.Inc()
+				if val > 6 {
+					return false, stopErr
+				}
+				return val%2 == 0, nil
+			},
+			func(ctx context.Context) error {
+				actionCount.Inc()
+				return nil
+			},
+			time.Millisecond,
+		)
+		require.Error(t, err)
+		errortest.AssertError(t, err, stopErr)
+		assert.Equal(t, int32(7), checkCount.Load())
+		assert.Equal(t, int32(3), actionCount.Load())
+	})
+
+	t.Run("action error", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		actionErr := commonerrors.ErrFailed
+		err := RunPeriodicCheckWithAction(ctx,
+			func(ctx context.Context) (bool, error) {
+				return true, nil
+			},
+			func(ctx context.Context) error {
+				return actionErr
+			},
+			time.Millisecond,
+		)
+		require.Error(t, err)
+		errortest.AssertError(t, err, actionErr)
+	})
+
+	t.Run("check error", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		checkErr := commonerrors.ErrFailed
+		err := RunPeriodicCheckWithAction(ctx,
+			func(ctx context.Context) (bool, error) {
+				return false, checkErr
+			},
+			func(ctx context.Context) error {
+				return nil
+			},
+			time.Millisecond,
+		)
+		require.Error(t, err)
+		errortest.AssertError(t, err, checkErr)
+	})
+
+	t.Run("context cancellation", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		actionCount := atomic.NewInt32(0)
+		err := RunPeriodicCheckWithAction(ctx,
+			func(ctx context.Context) (bool, error) {
+				return true, nil
+			},
+			func(ctx context.Context) error {
+				if actionCount.Inc() >= 2 {
+					cancel()
+				}
+				return nil
+			},
+			time.Millisecond,
+		)
+		require.Error(t, err)
+		errortest.AssertError(t, err, commonerrors.ErrCancelled)
+		assert.GreaterOrEqual(t, actionCount.Load(), int32(2))
+	})
+}
+
 func TestWaitUntil(t *testing.T) {
 	defer goleak.VerifyNone(t)
 	verifiedCondition := func(ctx context.Context) (bool, error) {
