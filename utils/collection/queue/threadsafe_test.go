@@ -80,8 +80,8 @@ func TestThreadSafeQueue(t *testing.T) {
 								return
 							}
 
-							v := q.Dequeue()
-							if v == 0 {
+							v, ok := q.Dequeue()
+							if v == 0 || !ok {
 								// Non-blocking empty read; retry.
 								continue
 							}

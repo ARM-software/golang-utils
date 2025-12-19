@@ -7,7 +7,7 @@ import (
 
 // NewQueue returns a Queue which is not thread safe
 func NewQueue[T any]() IQueue[T] {
-	return &Queue[T]{nil, nil, 0}
+	return &Queue[T]{start: nil, end: nil, length: 0}
 }
 
 type Queue[T any] struct {
@@ -29,8 +29,8 @@ func (s *Queue[T]) Values() iter.Seq[T] {
 	return func(yield func(T) bool) {
 		length := s.Len()
 		for i := 0; i < length; i++ {
-			v := s.Dequeue()
-			if !yield(v) {
+			v, ok := s.Dequeue()
+			if !yield(v) || !ok {
 				return
 			}
 		}
@@ -47,18 +47,20 @@ func (s *Queue[T]) Len() int {
 	return s.length
 }
 
-func (s *Queue[T]) Peek() (element T) {
+func (s *Queue[T]) Peek() (element T, ok bool) {
 	if s.length == 0 {
 		return
 	}
+	ok = true
 	element = s.start.value
 	return
 }
 
-func (s *Queue[T]) Dequeue() (element T) {
+func (s *Queue[T]) Dequeue() (element T, ok bool) {
 	if s.length == 0 {
 		return
 	}
+	ok = true
 	n := s.start
 	if s.length == 1 {
 		s.start = nil

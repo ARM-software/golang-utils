@@ -23,7 +23,6 @@ func TestQueue(t *testing.T) {
 		},
 		{
 			details: "channel-based queue",
-			// Capacity must be >= total because we enqueue everything before we start dequeuing.
 			constructor: func() IQueue[int] {
 				c, err := NewChannelQueue[int](10)
 				require.NoError(t, err)
@@ -39,16 +38,27 @@ func TestQueue(t *testing.T) {
 				q := test.constructor()
 				assert.Zero(t, q.Len())
 				assert.True(t, q.IsEmpty())
-				assert.Zero(t, q.Dequeue())
-				assert.Zero(t, q.Peek())
+
+				e, ok := q.Dequeue()
+				assert.Zero(t, e)
+				assert.False(t, ok)
+
+				e, ok = q.Peek()
+				assert.Zero(t, e)
+				assert.False(t, ok)
 			})
 
 			t.Run("enqueue then peek does not remove", func(t *testing.T) {
 				q := test.constructor()
 				q.Enqueue(1)
+
 				assert.False(t, q.IsEmpty())
 				assert.Equal(t, 1, q.Len())
-				assert.Equal(t, 1, q.Peek())
+
+				e, ok := q.Peek()
+				assert.True(t, ok)
+				assert.Equal(t, 1, e)
+
 				assert.False(t, q.IsEmpty())
 				assert.Equal(t, 1, q.Len())
 			})
@@ -56,46 +66,84 @@ func TestQueue(t *testing.T) {
 			t.Run("enqueue then dequeue removes (FIFO)", func(t *testing.T) {
 				q := test.constructor()
 				q.Enqueue(1)
+
 				assert.False(t, q.IsEmpty())
 				assert.Equal(t, 1, q.Len())
-				assert.Equal(t, 1, q.Dequeue())
+
+				e, ok := q.Dequeue()
+				assert.True(t, ok)
+				assert.Equal(t, 1, e)
+
 				assert.True(t, q.IsEmpty())
+				assert.Zero(t, q.Len())
 			})
 
 			t.Run("multiple enqueue and dequeue", func(t *testing.T) {
 				q := test.constructor()
 				q.Enqueue(1, 2, 3, 4)
+
 				assert.False(t, q.IsEmpty())
 				assert.Equal(t, 4, q.Len())
-				assert.Equal(t, 1, q.Dequeue())
-				assert.Equal(t, 2, q.Dequeue())
-				assert.Equal(t, 3, q.Dequeue())
-				assert.Equal(t, 4, q.Dequeue())
+
+				e, ok := q.Dequeue()
+				assert.True(t, ok)
+				assert.Equal(t, 1, e)
+
+				e, ok = q.Dequeue()
+				assert.True(t, ok)
+				assert.Equal(t, 2, e)
+
+				e, ok = q.Dequeue()
+				assert.True(t, ok)
+				assert.Equal(t, 3, e)
+
+				e, ok = q.Dequeue()
+				assert.True(t, ok)
+				assert.Equal(t, 4, e)
+
 				assert.True(t, q.IsEmpty())
+				assert.Zero(t, q.Len())
 			})
 
 			t.Run("various actions", func(t *testing.T) {
 				q := test.constructor()
 				assert.Zero(t, q.Len())
-				q.Enqueue(1)
 
+				q.Enqueue(1)
 				assert.Equal(t, 1, q.Len())
-				assert.Equal(t, 1, q.Peek())
-				assert.Equal(t, 1, q.Dequeue())
+
+				e, ok := q.Peek()
+				assert.True(t, ok)
+				assert.Equal(t, 1, e)
+
+				e, ok = q.Dequeue()
+				assert.True(t, ok)
+				assert.Equal(t, 1, e)
+
 				assert.Zero(t, q.Len())
+
 				q.Enqueue(1)
 				q.Enqueue(2)
-
 				assert.Equal(t, 2, q.Len())
-				assert.Equal(t, 1, q.Peek())
+
+				e, ok = q.Peek()
+				assert.True(t, ok)
+				assert.Equal(t, 1, e)
 			})
 
 			t.Run("clear empties the queue", func(t *testing.T) {
 				q := test.constructor()
 				q.Enqueue(1, 1, 1, 1)
+
 				assert.False(t, q.IsEmpty())
+
 				q.Clear()
 				assert.True(t, q.IsEmpty())
+				assert.Zero(t, q.Len())
+
+				e, ok := q.Dequeue()
+				assert.Zero(t, e)
+				assert.False(t, ok)
 			})
 
 			t.Run("Clear then reuse", func(t *testing.T) {
@@ -105,20 +153,32 @@ func TestQueue(t *testing.T) {
 
 				q.Clear()
 				assert.True(t, q.IsEmpty())
+				assert.Zero(t, q.Len())
 
 				q.Enqueue(30)
 				assert.False(t, q.IsEmpty())
-				assert.Equal(t, 30, q.Peek())
+
+				e, ok := q.Peek()
+				assert.True(t, ok)
+				assert.Equal(t, 30, e)
 			})
 
 			t.Run("values drains the queue", func(t *testing.T) {
 				q := test.constructor()
 				q.Enqueue(1, 2, 3, 4)
+
 				assert.False(t, q.IsEmpty())
+
 				values := slices.Collect(q.Values())
+
 				assert.True(t, q.IsEmpty())
+				assert.Zero(t, q.Len())
 				assert.Len(t, values, 4)
 				assert.Equal(t, []int{1, 2, 3, 4}, values) // FIFO drain
+
+				e, ok := q.Peek()
+				assert.Zero(t, e)
+				assert.False(t, ok)
 			})
 		})
 	}

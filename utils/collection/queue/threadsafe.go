@@ -36,13 +36,13 @@ func (q *SafeQueue[T]) EnqueueSequence(seq iter.Seq[T]) {
 	q.q.EnqueueSequence(seq)
 }
 
-func (q *SafeQueue[T]) Dequeue() T {
+func (q *SafeQueue[T]) Dequeue() (T, bool) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	return q.q.Dequeue()
 }
 
-func (q *SafeQueue[T]) Peek() T {
+func (q *SafeQueue[T]) Peek() (T, bool) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	return q.q.Peek()

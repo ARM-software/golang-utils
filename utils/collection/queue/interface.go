@@ -10,10 +10,10 @@ type IQueue[T any] interface {
 	Enqueue(value ...T)
 	// EnqueueSequence adds an element to the queue.
 	EnqueueSequence(value iter.Seq[T])
-	// Dequeue removes and returns an element from the queue.
-	Dequeue() T
-	// Peek returns the element at the front of the queue without removing it.
-	Peek() T
+	// Dequeue removes and returns an element from the queue. It returns ok true if the queue is not empty.
+	Dequeue() (element T, ok bool)
+	// Peek returns the element at the front of the queue without removing it. It returns ok true if the queue is not empty.
+	Peek() (element T, ok bool)
 	// IsEmpty states whether the queue is empty.
 	IsEmpty() bool
 	// Clear removes all elements from the queue.

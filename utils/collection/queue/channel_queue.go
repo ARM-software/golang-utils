@@ -45,10 +45,11 @@ func (q *ChanQueue[T]) EnqueueSequence(seq iter.Seq[T]) {
 
 // Dequeue removes and returns the next element.
 // If the queue is empty, it returns the zero value.
-func (q *ChanQueue[T]) Dequeue() (element T) {
+func (q *ChanQueue[T]) Dequeue() (element T, ok bool) {
 	select {
 	case v := <-q.ch:
 		element = v
+		ok = true
 		return
 	default:
 		return
@@ -57,12 +58,13 @@ func (q *ChanQueue[T]) Dequeue() (element T) {
 
 // Peek returns the next element without removing it.
 // If the queue is empty, it returns the zero value.
-func (q *ChanQueue[T]) Peek() (element T) {
+func (q *ChanQueue[T]) Peek() (element T, ok bool) {
 	select {
 	case v := <-q.ch:
 		// put it back
 		q.ch <- v
 		element = v
+		ok = true
 		return
 	default:
 		return
