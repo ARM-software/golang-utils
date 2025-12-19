@@ -71,7 +71,7 @@ func (m Map) Keys() []string {
 //
 // This merge is smarter than a simple maps iteration because it
 // will fully replace arrays and other complex structures that
-// are present in this maps with the other maps's. For example, if
+// are present in this map with the other maps's. For example, if
 // this maps has a 3 element "foo" list, and m2 has a 2 element "foo"
 // list, then the result will be that m has a 2 element "foo"
 // list.
