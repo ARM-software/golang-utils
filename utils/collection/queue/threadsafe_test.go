@@ -20,58 +20,96 @@ func TestThreadSafeQueue(t *testing.T) {
 		repetitions = 50
 	)
 
-	for rep := 0; rep < repetitions; rep++ {
-		q := NewThreadSafeQueue[int]()
+	tests := []struct {
+		details     string
+		constructor func() IQueue[int]
+	}{
+		{
+			details:     "mutex-based thread-safe queue",
+			constructor: NewThreadSafeQueue[int],
+		},
+		{
+			details: "channel-based queue",
+			// Capacity must be >= total because we enqueue everything before we start dequeuing.
+			constructor: func() IQueue[int] {
+				c, err := NewChannelQueue[int](total)
+				require.NoError(t, err)
+				return c
+			},
+		},
+	}
 
-		var id uint64
-		var wgEnq sync.WaitGroup
-		wgEnq.Add(enqueuers)
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.details, func(t *testing.T) {
+			for rep := 0; rep < repetitions; rep++ {
+				q := tc.constructor()
 
-		for e := 0; e < enqueuers; e++ {
-			go func() {
-				defer wgEnq.Done()
-				for i := 0; i < perEnqueuer; i++ {
-					v := safecast.ToInt(atomic.AddUint64(&id, 1))
-					q.Enqueue(v)
+				var id uint64
+				var wgEnq sync.WaitGroup
+				wgEnq.Add(enqueuers)
+
+				for e := 0; e < enqueuers; e++ {
+					go func() {
+						defer wgEnq.Done()
+						for i := 0; i < perEnqueuer; i++ {
+							v := safecast.ToInt(atomic.AddUint64(&id, 1))
+							q.Enqueue(v)
+						}
+					}()
 				}
-			}()
-		}
-		wgEnq.Wait()
+				wgEnq.Wait()
 
-		assert.False(t, q.IsEmpty())
-		assert.Equal(t, total, q.Len())
+				assert.False(t, q.IsEmpty())
+				assert.Equal(t, total, q.Len())
 
-		var remaining int64 = total
-		seen := make(map[int]struct{}, total)
-		var mu sync.Mutex
+				var popped int64
+				seen := make(map[int]struct{}, total)
+				var mu sync.Mutex
 
-		var wgDeq sync.WaitGroup
-		wgDeq.Add(dequeuers)
+				var wgDeq sync.WaitGroup
+				wgDeq.Add(dequeuers)
 
-		for i := 0; i < dequeuers; i++ {
-			go func() {
-				defer wgDeq.Done()
-				for {
-					n := atomic.AddInt64(&remaining, -1)
-					if n < 0 {
-						return // done
-					}
-					v := q.Dequeue()
+				for i := 0; i < dequeuers; i++ {
+					go func() {
+						defer wgDeq.Done()
 
-					mu.Lock()
-					if _, exists := seen[v]; exists {
-						mu.Unlock()
-						require.Fail(t, "dequeued duplicate value", "rep", rep, "value", v)
-						return
-					}
-					seen[v] = struct{}{}
-					mu.Unlock()
+						for {
+							// Stop once we've successfully dequeued total items.
+							if atomic.LoadInt64(&popped) >= int64(total) {
+								return
+							}
+
+							v := q.Dequeue()
+							if v == 0 {
+								// Non-blocking empty read; retry.
+								continue
+							}
+
+							// Count this as a successful dequeue (cap at total to avoid overshoot races).
+							n := atomic.AddInt64(&popped, 1)
+							if n > int64(total) {
+								return
+							}
+
+							mu.Lock()
+							if _, exists := seen[v]; exists {
+								mu.Unlock()
+								require.Fail(t, "dequeued duplicate value", "rep", rep, "value", v)
+								return
+							}
+							seen[v] = struct{}{}
+							mu.Unlock()
+						}
+					}()
 				}
-			}()
-		}
-		wgDeq.Wait()
+				wgDeq.Wait()
 
-		assert.Len(t, seen, total)
-		assert.True(t, q.IsEmpty())
+				assert.Equal(t, int64(total), atomic.LoadInt64(&popped), "rep=%d", rep)
+				assert.Len(t, seen, total, "rep=%d", rep)
+				assert.True(t, q.IsEmpty(), "rep=%d", rep)
+				assert.Equal(t, 0, q.Len(), "rep=%d", rep)
+			}
+		})
 	}
 }

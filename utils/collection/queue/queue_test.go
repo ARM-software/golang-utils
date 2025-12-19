@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestQueue(t *testing.T) {
@@ -19,6 +20,15 @@ func TestQueue(t *testing.T) {
 		{
 			details:     "thread queue",
 			constructor: NewThreadSafeQueue[int],
+		},
+		{
+			details: "channel-based queue",
+			// Capacity must be >= total because we enqueue everything before we start dequeuing.
+			constructor: func() IQueue[int] {
+				c, err := NewChannelQueue[int](10)
+				require.NoError(t, err)
+				return c
+			},
 		},
 	}
 

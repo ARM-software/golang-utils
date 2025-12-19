@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-// NewThreadSafeQueue returns a thread safe queue.
+// NewThreadSafeQueue returns a thread safe queue using mutex.
 // This is inspired from https://github.com/hayageek/threadsafe.
 func NewThreadSafeQueue[T any]() IQueue[T] {
 	return &SafeQueue[T]{
@@ -14,6 +14,11 @@ func NewThreadSafeQueue[T any]() IQueue[T] {
 	}
 }
 
+// SafeQueue is a mutex-backed implementation of IQueue.
+//
+// All methods are safe for concurrent use.
+// Operations do not block on capacity; Enqueue always succeeds.
+// Dequeue and Peek return the zero value when the queue is empty.
 type SafeQueue[T any] struct {
 	q  IQueue[T]
 	mu sync.Mutex
