@@ -7,6 +7,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
 func TestThreadSafeStack(t *testing.T) {
@@ -29,7 +31,7 @@ func TestThreadSafeStack(t *testing.T) {
 			go func() {
 				defer wgPush.Done()
 				for i := 0; i < perPusher; i++ {
-					v := int(atomic.AddUint64(&id, 1))
+					v := safecast.ToInt(atomic.AddUint64(&id, 1))
 					s.Push(v)
 				}
 			}()
