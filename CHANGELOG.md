@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.141.0" (2025-12-19)
+======================
+
+Features
+--------
+
+- :sparkles: [maps] Added a merge method (#20251219122704)
+
+
 "1.140.0" (2025-12-15)
 ======================
 
