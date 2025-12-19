@@ -14,6 +14,17 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.142.0" (2025-12-19)
+======================
+
+Features
+--------
+
+- :sparkles: `[stack]` Added stacks collection structure (#20251219135745)
+- :sparkles: [queue] Added a queue data structure (#20251219144750)
+- :sparkles: `[paralllellisation]` Add a utility function for running a periodic conditional action (#20251219152647)
+
+
 "1.141.0" (2025-12-19)
 ======================
 
