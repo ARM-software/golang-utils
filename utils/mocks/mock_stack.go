@@ -81,11 +81,12 @@ func (mr *MockIStackMockRecorder[T]) Len() *gomock.Call {
 }
 
 // Peek mocks base method.
-func (m *MockIStack[T]) Peek() T {
+func (m *MockIStack[T]) Peek() (T, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Peek")
 	ret0, _ := ret[0].(T)
-	return ret0
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
 }
 
 // Peek indicates an expected call of Peek.
@@ -95,11 +96,12 @@ func (mr *MockIStackMockRecorder[T]) Peek() *gomock.Call {
 }
 
 // Pop mocks base method.
-func (m *MockIStack[T]) Pop() T {
+func (m *MockIStack[T]) Pop() (T, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Pop")
 	ret0, _ := ret[0].(T)
-	return ret0
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
 }
 
 // Pop indicates an expected call of Pop.

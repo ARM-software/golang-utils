@@ -56,7 +56,8 @@ func TestThreadSafeStack(t *testing.T) {
 					if n < 0 {
 						return // done
 					}
-					v := s.Pop()
+					v, ok := s.Pop()
+					require.True(t, ok)
 
 					mu.Lock()
 					if _, exists := seen[v]; exists {

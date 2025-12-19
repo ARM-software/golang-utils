@@ -11,11 +11,11 @@ type IStack[T any] interface {
 	Push(value ...T)
 	// PushSequence adds elements to the stack.
 	PushSequence(seq iter.Seq[T])
-	// Pop removes and returns an element from the stack.
-	Pop() T
+	// Pop removes and returns an element from the stack. Returns ok true if the stack is not empty.
+	Pop() (element T, ok bool)
 	// Peek returns the element at the top of the stack without removing it.
-	Peek() T
-	// IsEmpty states whether the stack is empty.
+	Peek() (element T, ok bool)
+	// IsEmpty states whether the stack is empty. Returns ok true if the stack is not empty.
 	IsEmpty() bool
 	// Clear clears all elements from the stack.
 	Clear()

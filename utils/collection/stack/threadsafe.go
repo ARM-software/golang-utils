@@ -31,13 +31,13 @@ func (s *SafeStack[T]) PushSequence(seq iter.Seq[T]) {
 	s.s.PushSequence(seq)
 }
 
-func (s *SafeStack[T]) Pop() T {
+func (s *SafeStack[T]) Pop() (T, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.s.Pop()
 }
 
-func (s *SafeStack[T]) Peek() T {
+func (s *SafeStack[T]) Peek() (T, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.s.Peek()
