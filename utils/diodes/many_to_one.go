@@ -16,7 +16,7 @@ type ManyToOne struct {
 }
 
 // NewManyToOne creates a new diode (ring buffer). The ManyToOne diode
-// is optimzed for many writers (on go-routines B-n) and a single reader
+// is optimised for many writers (on go-routines B-n) and a single reader
 // (on go-routine A). The alerter is invoked on the read's go-routine. It is
 // called when it notices that the writer go-routine has passed it and wrote
 // over data. A nil can be used to ignore alerts.
@@ -66,7 +66,7 @@ func (d *ManyToOne) Set(data GenericDataType) {
 }
 
 // TryNext will attempt to read from the next slot of the ring buffer.
-// If there is not data available, it will return (nil, false).
+// If there is no data available, it will return (nil, false).
 func (d *ManyToOne) TryNext() (data GenericDataType, ok bool) {
 	// Read a value from the ring buffer based on the readIndex.
 	idx := d.readIndex % uint64(len(d.buffer))
@@ -80,11 +80,11 @@ func (d *ManyToOne) TryNext() (data GenericDataType, ok bool) {
 	}
 
 	// When the seq value is less than the current read index that means a
-	// value was read from idx that was previously written but has since has
+	// value was read from idx that was previously written but has since
 	// been dropped. This value must be ignored and the read head must not
 	// increment.
 	//
-	// The simulation for this scenario assumes the fast forward occurred as
+	// The simulation for this scenario assumes the fast-forward occurred as
 	// detailed below.
 	//
 	// 5. The reader reads again getting seq 5. It then reads again expecting
@@ -112,7 +112,7 @@ func (d *ManyToOne) TryNext() (data GenericDataType, ok bool) {
 	// 3. The writer laps the read head.
 	//    `| 4 | 5 | 2 | 3 |` r: 0, w: 6
 	// 4. The reader reads the first value, expecting a seq of 0 but reads 4,
-	//    this forces the reader to fast forward to 5.
+	//    this forces the reader to fast-forward to 5.
 	//    `| 4 | 5 | 2 | 3 |` r: 5, w: 6
 	//
 	if result.seq > d.readIndex {
@@ -122,7 +122,7 @@ func (d *ManyToOne) TryNext() (data GenericDataType, ok bool) {
 	}
 
 	// Only increment read index if a regular read occurred (where seq was
-	// equal to readIndex) or a value was read that caused a fast forward
+	// equal to readIndex) or a value was read that caused a fast-forward
 	// (where seq was greater than readIndex).
 	//
 	d.readIndex++

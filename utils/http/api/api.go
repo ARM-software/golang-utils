@@ -91,19 +91,22 @@ func checkResponse(ctx context.Context, apiErr error, resp *http.Response, resul
 // apiCallFunc corresponds to a generic function that will be called to make the API call.
 // errorExtractFunc is a function for extracting an error message from an API error response.
 func CallAndCheckSuccess[T any](ctx context.Context, errorContext string, errorExtractFunc errors.ExtractAPIErrorDescriptionFunc, apiCallFunc APICallFunc[T]) (result *T, err error) {
+	result, resp, err := CallAndCheckSuccessAndReturnRawResponse(ctx, errorContext, errorExtractFunc, apiCallFunc)
+	if resp != nil && resp.Body != nil {
+		_ = resp.Body.Close()
+	}
+
+	return
+}
+
+// CallAndCheckSuccessAndReturnRawResponse behaves like CallAndCheckSuccess
+// but also returns the raw HTTP response. The caller is responsible for
+// closing the response body.
+func CallAndCheckSuccessAndReturnRawResponse[T any](ctx context.Context, errorContext string, errorExtractFunc errors.ExtractAPIErrorDescriptionFunc, apiCallFunc APICallFunc[T]) (result *T, resp *http.Response, err error) {
 	if err = parallelisation.DetermineContextError(ctx); err != nil {
 		return
 	}
-
 	result, resp, apiErr := apiCallFunc(ctx)
-	if resp != nil && resp.Body != nil {
-		defer func() {
-			if resp != nil && resp.Body != nil {
-				_ = resp.Body.Close()
-			}
-		}()
-	}
-
 	err = checkResponse(ctx, apiErr, resp, result, errorContext, errorExtractFunc)
 	return
 }
@@ -114,15 +117,31 @@ func CallAndCheckSuccess[T any](ctx context.Context, errorContext string, errorE
 // apiCallFunc corresponds to a generic function that will be called to make the API call.
 // errorExtractFunc is a function for extracting an error message from an API error response.
 func GenericCallAndCheckSuccess[T any](ctx context.Context, errorContext string, errorExtractFunc errors.ExtractAPIErrorDescriptionFunc, apiCallFunc GenericAPICallFunc[T]) (result T, err error) {
+	result, resp, err := GenericCallAndCheckSuccessAndReturnRawResponse(ctx, errorContext, errorExtractFunc, apiCallFunc)
+	if resp != nil && resp.Body != nil {
+		_ = resp.Body.Close()
+	}
+
+	return
+}
+
+// GenericCallAndCheckSuccessAndReturnRawResponse behaves like
+// CallAndCheckSuccessAndReturnRawResponse but operates on functions returning
+// interface types rather than concrete values.
+//
+// T must be an interface type; otherwise, a conflict error is returned.
+// errorContext describes the operation being performed when an error occurs
+// (for example, "failed to add a user").
+// apiCallFunc performs the API call.
+// errorExtractFunc extracts an error message from an API error response.
+//
+// The caller is responsible for closing the response body.
+func GenericCallAndCheckSuccessAndReturnRawResponse[T any](ctx context.Context, errorContext string, errorExtractFunc errors.ExtractAPIErrorDescriptionFunc, apiCallFunc GenericAPICallFunc[T]) (result T, resp *http.Response, err error) {
 	if err = parallelisation.DetermineContextError(ctx); err != nil {
 		return
 	}
 
 	result, resp, apiErr := apiCallFunc(ctx)
-	if resp != nil && resp.Body != nil {
-		_ = resp.Body.Close()
-	}
-
 	err = checkResponse(ctx, apiErr, resp, result, errorContext, errorExtractFunc)
 	if err != nil {
 		return
