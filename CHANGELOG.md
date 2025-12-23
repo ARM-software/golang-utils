@@ -14,6 +14,27 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.143.0" (2025-12-23)
+======================
+
+Features
+--------
+
+- :sparkles: `[api]` Add helpers to allow retrieving the raw `h`ttp.Response` when calling API endpoints (#20251222184752)
+
+
+Bugfixes
+--------
+
+- :recycle: [saga] Improve idempotent key generation (#20251222185030)
+
+
+Improved Documentation
+----------------------
+
+- :book: fix typos in docstring (#20251222184945)
+
+
 "1.142.0" (2025-12-19)
 ======================
 
