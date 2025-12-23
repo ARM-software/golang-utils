@@ -12,7 +12,7 @@ type Waiter struct {
 	ctx context.Context
 }
 
-// WaiterConfigOption can be used to setup the waiter.
+// WaiterConfigOption can be used to set up the waiter.
 type WaiterConfigOption func(*Waiter)
 
 // WithWaiterContext sets the context to cancel any retrieval (Next()). It

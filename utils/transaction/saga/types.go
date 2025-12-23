@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 
+	"github.com/ARM-software/golang-utils/utils/idgen"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
@@ -56,7 +57,11 @@ func NewStepArgumentsWithIdempotentKey(idemKey string, args map[string]any) IAct
 }
 
 func NewStepArguments(args map[string]any) IActionArguments {
-	return NewStepArgumentsWithIdempotentKey(rand.Text(), args) //nolint:govet
+	transactionId, err := idgen.GenerateUUID4()
+	if err != nil {
+		transactionId = rand.Text() //nolint:govet
+	}
+	return NewStepArgumentsWithIdempotentKey(transactionId, args)
 }
 
 func NoStepArguments() IActionArguments {
