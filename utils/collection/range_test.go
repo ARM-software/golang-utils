@@ -9,8 +9,18 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/reflection"
+	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
+func testRange[T safecast.IConvertable](t *testing.T, start, stop T, step *T, expected []T) {
+	t.Helper()
+	assert.Equal(t, expected, Range[T](start, stop, step))
+	if reflection.IsEmpty(expected) {
+		assert.Empty(t, slices.Collect(RangeSequence(start, stop, step)))
+	} else {
+		assert.Equal(t, expected, slices.Collect(RangeSequence(start, stop, step)))
+	}
+}
 func TestRange(t *testing.T) {
 	tests := []struct {
 		start    int
@@ -36,13 +46,34 @@ func TestRange(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(fmt.Sprintf("[%v,%v,%v]", test.start, test.stop, test.step), func(t *testing.T) {
-			assert.Equal(t, test.expected, Range(test.start, test.stop, test.step))
-			if reflection.IsEmpty(test.expected) {
-				assert.Empty(t, slices.Collect(RangeSequence(test.start, test.stop, test.step)))
-			} else {
-				assert.Equal(t, test.expected, slices.Collect(RangeSequence(test.start, test.stop, test.step)))
-			}
-
+			testRange(t, test.start, test.stop, test.step, test.expected)
 		})
 	}
+	t.Run("different types", func(t *testing.T) {
+		testRange[uint64](t, 1, 10, field.ToOptionalUint64(3), []uint64{1, 4, 7})
+		testRange[float32](t, 1, 10, field.ToOptionalFloat32(3), []float32{1, 4, 7})
+		testRange[int8](t, 1, 10, field.ToOptional[int8](3), []int8{1, 4, 7})
+	})
+}
+
+func Test_determineRangeLength(t *testing.T) {
+	assert.Equal(t, 3, determineRangeLength[int](2, 5, 1))
+	assert.Equal(t, 4, determineRangeLength[int](2, 10, 2))
+	assert.Equal(t, 4, determineRangeLength[int](10, 2, -2))
+	assert.Equal(t, 3, determineRangeLength[int](0, -5, -2))
+
+	assert.Equal(t, 3, determineRangeLength[int64](2, 5, 1))
+	assert.Equal(t, 4, determineRangeLength[int64](2, 10, 2))
+	assert.Equal(t, 4, determineRangeLength[int64](10, 2, -2))
+	assert.Equal(t, 3, determineRangeLength[int64](0, -5, -2))
+
+	assert.Equal(t, 3, determineRangeLength[uint64](2, 5, 1))
+	assert.Equal(t, 4, determineRangeLength[uint64](2, 10, 2))
+	assert.Equal(t, 3, determineRangeLength[uint32](2, 5, 1))
+	assert.Equal(t, 4, determineRangeLength[uint32](2, 10, 2))
+
+	assert.Equal(t, 3, determineRangeLength[float64](2, 5, 1))
+	assert.Equal(t, 4, determineRangeLength[float64](2, 10, 2))
+	assert.Equal(t, 4, determineRangeLength[float64](10, 2, -2))
+	assert.Equal(t, 3, determineRangeLength[float64](0, -5, -2))
 }
