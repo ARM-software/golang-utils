@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.144.0" (2025-12-24)
+======================
+
+Features
+--------
+
+- :sparkles: [collection] Extend Range functions to accept any type of numbers (#20251224115915)
+
+
 "1.143.0" (2025-12-23)
 ======================
 
