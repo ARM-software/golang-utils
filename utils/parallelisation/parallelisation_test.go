@@ -613,6 +613,83 @@ func TestRunActionWithParallelCheckAndResult(t *testing.T) {
 	})
 }
 
+func TestRunActionWithCancelStore(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
+	t.Run("action no error", func(t *testing.T) {
+		actionRan := atomic.NewBool(false)
+
+		action := func(actionCtx context.Context) error {
+			actionRan.Store(true)
+			return nil
+		}
+
+		err := RunActionWithCancelStore(t.Context(), NewCancelFunctionsStore(), action)
+
+		require.NoError(t, err)
+		assert.True(t, actionRan.Load())
+	})
+
+	t.Run("action error", func(t *testing.T) {
+		actionRan := atomic.NewBool(false)
+		actionErr := commonerrors.ErrUnexpected
+		action := func(actionCtx context.Context) error {
+			actionRan.Store(true)
+			return actionErr
+		}
+
+		err := RunActionWithCancelStore(t.Context(), NewCancelFunctionsStore(), action)
+
+		require.Error(t, err)
+		errortest.AssertError(t, err, actionErr)
+		assert.True(t, actionRan.Load())
+	})
+
+	t.Run("action canceled via parent context", func(t *testing.T) {
+		actionStarted := atomic.NewBool(false)
+
+		action := func(actionCtx context.Context) error {
+			actionStarted.Store(true)
+			<-actionCtx.Done()
+			return nil
+		}
+
+		parentCtx, cancel := context.WithCancel(t.Context())
+		cancel()
+
+		err := RunActionWithCancelStore(parentCtx, NewCancelFunctionsStore(), action)
+
+		require.Error(t, err)
+		errortest.AssertError(t, err, commonerrors.ErrCancelled)
+		assert.False(t, actionStarted.Load())
+	})
+
+	t.Run("action canceled via store", func(t *testing.T) {
+		actionStarted := atomic.NewBool(false)
+		store := NewCancelFunctionsStore()
+
+		action := func(actionCtx context.Context) error {
+			actionStarted.Store(true)
+			<-actionCtx.Done()
+			return DetermineContextError(actionCtx)
+		}
+
+		errCh := make(chan error, 1)
+		go func() {
+			errCh <- RunActionWithCancelStore(t.Context(), store, action)
+		}()
+
+		time.Sleep(5 * time.Millisecond)
+
+		store.Cancel()
+
+		err := <-errCh
+		require.Error(t, err)
+		errortest.AssertError(t, err, commonerrors.ErrCancelled)
+		assert.True(t, actionStarted.Load())
+	})
+}
+
 func TestRunPeriodicCheckWithAction(t *testing.T) {
 	defer goleak.VerifyNone(t)
 	t.Run("action executed when check returns true", func(t *testing.T) {

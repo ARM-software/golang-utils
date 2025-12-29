@@ -252,6 +252,32 @@ func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Durati
 	}
 }
 
+// RunActionWithCancelStore runs an action that can be canceled via the provided store.
+// Returns the action's error if the action completes first, or a context-derived error if ctx is canceled first.
+func RunActionWithCancelStore(ctx context.Context, store *CancelFunctionStore, blockingAction func(context.Context) error) error {
+	err := DetermineContextError(ctx)
+	if err != nil {
+		return err
+	}
+
+	actionCtx, actionCancel := context.WithCancel(ctx)
+	store.RegisterCancelFunction(actionCancel)
+	defer actionCancel()
+
+	errChannel := make(chan error, 1)
+	go func(actionCtx context.Context, action func(context.Context) error) {
+		errChannel <- action(actionCtx)
+	}(actionCtx, blockingAction)
+
+	select {
+	case err = <-errChannel:
+		return err
+	case <-ctx.Done():
+		actionCancel()
+		return DetermineContextError(ctx)
+	}
+}
+
 // RunActionWithParallelCheck runs an action with a check in parallel
 // The function performing the check should return true if the check should be repeated; false otherwise it should not.
 // For more context about how the check ended, a result can be returned. If the check did not have the expected result
