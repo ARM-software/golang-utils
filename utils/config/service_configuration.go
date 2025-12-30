@@ -307,7 +307,9 @@ func DisableKeyring() LoadingOption {
 func loadOptions(options ...LoadingOption) *LoadingOptions {
 	opts := DefaultLoadingOptions()
 	for i := range options {
-		opts = options[i](opts)
+        if options[i] != nil {
+            opts = options[i](opts)
+        }
 	}
 	return opts
 }
