@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.145.0" (2025-12-30)
+======================
+
+Features
+--------
+
+- :sparkles: [config] Define Loading Options so it is easier to define how to load configurations (#20251230102029)
+
+
 "1.144.0" (2025-12-24)
 ======================
 
