@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"strings"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-viper/mapstructure/v2"
 	"github.com/joho/godotenv"
 	"github.com/spf13/pflag"
@@ -86,14 +87,39 @@ func LoadFromEnvironment(viperSession *viper.Viper, envVarPrefix string, configu
 // 6) key/value store
 // 7) default values (set via flag default values, or calls to `SetDefault` or via `defaultConfiguration` argument provided)
 // Nonetheless, when it comes to default values. It differs slightly from Viper as default values from the default Configuration (i.e. `defaultConfiguration` argument provided) will take precedence over defaults set via `SetDefault` or flags unless they are considered empty values according to `reflection.IsEmpty`.
-func LoadFromEnvironmentAndSystem(viperSession *viper.Viper, envVarPrefix string, configurationToSet IServiceConfiguration, defaultConfiguration IServiceConfiguration, configFile string, useKeyring bool) (err error) {
+func LoadFromEnvironmentAndSystem(viperSession *viper.Viper, envVarPrefix string, configurationToSet IServiceConfiguration, defaultConfiguration IServiceConfiguration, configFile string, useKeyring bool) error {
+	return LoadUsing(configurationToSet, WithViperSession(viperSession), WithEnvVarPrefix(envVarPrefix), WithDefaultConfiguration(defaultConfiguration), WithConfigFile(configFile), WithKeyring(useKeyring))
+}
+
+// LoadUsing loads the service configuration using the provided loading options.
+//
+// Important note:
+// Viper's precedence order is mostly maintained:
+// 1) values defined in keyring (if not empty and keyring is selected - this is the only difference from Viper)
+// 2) values set using explicit calls to `Set`
+// 3) flags
+// 4) environment (variables or `.env`)
+// 5) configuration file
+// 6) key/value store
+// 7) default values (set via flag default values, or calls to `SetDefault` or via `defaultConfiguration` argument provided)
+// Nonetheless, when it comes to default values. It differs slightly from Viper as default values from the default Configuration (i.e. `defaultConfiguration` argument provided) will take precedence over defaults set via `SetDefault` or flags unless they are considered empty values according to `reflection.IsEmpty`.
+func LoadUsing(configurationToSet IServiceConfiguration, options ...LoadingOption) (err error) {
+	opts := loadOptions(options...)
+	if opts == nil {
+		err = commonerrors.UndefinedVariable("loading options")
+		return
+	}
+	err = opts.Validate()
+	if err != nil {
+		return commonerrors.DescribeCircumstance(err, "invalid loading options")
+	}
 	// Load Defaults
 	var defaults map[string]interface{}
-	err = mapstructure.Decode(defaultConfiguration, &defaults)
+	err = mapstructure.Decode(opts.defaultConfiguration, &defaults)
 	if err != nil {
 		return
 	}
-	err = viperSession.MergeConfigMap(defaults)
+	err = opts.viperSession.MergeConfigMap(defaults)
 	if err != nil {
 		return
 	}
@@ -102,44 +128,195 @@ func LoadFromEnvironmentAndSystem(viperSession *viper.Viper, envVarPrefix string
 	_ = godotenv.Load(DotEnvFile)
 
 	// Load Environment variables
-	setEnvOptions(viperSession, envVarPrefix)
+	setEnvOptions(opts.viperSession, opts.envVarPrefix)
 
-	linkFlagKeysToStructureKeys(viperSession, envVarPrefix)
+	linkFlagKeysToStructureKeys(opts.viperSession, opts.envVarPrefix)
 
-	if configFile != "" {
-		err = LoadFromConfigurationFile(viperSession, configFile)
+	if !reflection.IsEmpty(opts.configFile) {
+		err = LoadFromConfigurationFile(opts.viperSession, field.OptionalString(opts.configFile, ""))
 		if err != nil {
 			return
 		}
 	}
-
-	// Merge together all the sources and unmarshal into struct
-	err = viperSession.Unmarshal(configurationToSet, viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(
+	decoderOptions := []mapstructure.DecodeHookFunc{
 		maps.CustomTypeHookFunc(),
 		// Keep these two as they are the default values used by viper and we don't want to override them
 		mapstructure.StringToTimeDurationHookFunc(),
 		mapstructure.StringToSliceHookFunc(","),
-	)))
+	}
+	if opts.HasDecoderOptions() {
+		decoderOptions = append(decoderOptions, opts.decoderOptions...)
+	}
+
+	// Merge together all the sources and unmarshal into struct
+	err = opts.viperSession.Unmarshal(configurationToSet, viper.DecodeHook(mapstructure.ComposeDecodeHookFunc(decoderOptions...)))
 	if err != nil {
 		err = commonerrors.WrapError(commonerrors.ErrMarshalling, err, "unable to fill configuration structure from the configuration session")
 		return
 	}
-	if useKeyring {
-		err = commonerrors.Ignore(keyring.FetchPointer[IServiceConfiguration](context.Background(), envVarPrefix, configurationToSet), commonerrors.ErrUnsupported)
+	if opts.useKeyring {
+		err = commonerrors.Ignore(keyring.FetchPointer[IServiceConfiguration](context.Background(), opts.envVarPrefix, configurationToSet), commonerrors.ErrUnsupported)
 		if err != nil {
 			return
 		}
 	}
 	// Run validation
-	err = WrapValidationError(field.ToOptionalString(envVarPrefix), configurationToSet.Validate())
+	err = WrapValidationError(field.ToOptionalString(opts.envVarPrefix), configurationToSet.Validate())
 	return
+}
+
+// LoadingOptions defines the parameters used when loading and decoding
+// service configuration from various sources such as defaults, configuration
+// files, environment variables, and external backends.
+//
+// It controls how configuration values are discovered, merged, and decoded,
+// including support for custom decode hooks and optional keyring integration.
+type LoadingOptions struct {
+	defaultConfiguration IServiceConfiguration         `mapstructure:"defaults"`
+	viperSession         *viper.Viper                  `mapstructure:"viper_session"`
+	envVarPrefix         string                        `mapstructure:"envvar_prefix"`
+	configFile           *string                       `mapstructure:"config_file"`
+	decoderOptions       []mapstructure.DecodeHookFunc `mapstructure:"decoder_options"`
+	useKeyring           bool                          `mapstructure:"keyring_enabled"`
+}
+
+func (o *LoadingOptions) Validate() (err error) {
+	return WrapValidationError(nil, validation.ValidateStruct(o,
+		validation.Field(&o.viperSession, validation.Required),
+	))
+}
+
+func (o *LoadingOptions) HasDecoderOptions() bool {
+	return len(o.decoderOptions) > 0
+}
+
+func DefaultLoadingOptions() *LoadingOptions {
+	return &LoadingOptions{
+		defaultConfiguration: nil,
+		viperSession:         viper.New(),
+		envVarPrefix:         "",
+		configFile:           nil,
+		decoderOptions:       nil,
+		useKeyring:           false,
+	}
+}
+
+// LoadingOption represents a functional option used to modify LoadingOptions
+// during configuration loading.
+type LoadingOption func(*LoadingOptions) *LoadingOptions
+
+// WithDefaultConfiguration sets the baseline configuration that is applied
+// before loading values from other configuration sources.
+func WithDefaultConfiguration(cfg IServiceConfiguration) LoadingOption {
+	return func(opts *LoadingOptions) *LoadingOptions {
+		if opts == nil {
+			return nil
+		}
+		opts.defaultConfiguration = cfg
+		return opts
+	}
+}
+
+// WithViperSession sets the Viper instance used to load configuration
+// from files, environment variables, and other supported sources.
+func WithViperSession(v *viper.Viper) LoadingOption {
+	return func(opts *LoadingOptions) *LoadingOptions {
+		if opts == nil {
+			return nil
+		}
+		opts.viperSession = v
+		return opts
+	}
+}
+
+// WithEnvVarPrefix sets the prefix applied to environment variables
+// when resolving configuration values.
+func WithEnvVarPrefix(prefix string) LoadingOption {
+	return func(opts *LoadingOptions) *LoadingOptions {
+		if opts == nil {
+			return nil
+		}
+		opts.envVarPrefix = strings.TrimSpace(prefix)
+		return opts
+	}
+}
+
+// WithConfigFile specifies an explicit configuration file path to load.
+// Passing an empty string is allowed and will be treated as a valid path.
+func WithConfigFile(path string) LoadingOption {
+	return func(opts *LoadingOptions) *LoadingOptions {
+		if opts == nil {
+			return nil
+		}
+		opts.configFile = field.ToOptionalStringOrNilIfEmpty(path)
+		return opts
+	}
+}
+
+// WithDecoderOptions sets custom mapstructure decode hooks used when
+// unmarshalling configuration values into Go types.
+//
+// The provided hooks replace any previously configured decoder options.
+func WithDecoderOptions(hooks ...mapstructure.DecodeHookFunc) LoadingOption {
+	return func(opts *LoadingOptions) *LoadingOptions {
+		if opts == nil {
+			return nil
+		}
+		opts.decoderOptions = hooks
+		return opts
+	}
+}
+
+// WithAdditionalDecoderOptions appends custom mapstructure decode hooks used
+// when unmarshalling configuration values into Go types.
+//
+// The provided hooks are added to any decoder options already configured.
+func WithAdditionalDecoderOptions(hooks ...mapstructure.DecodeHookFunc) LoadingOption {
+	return func(opts *LoadingOptions) *LoadingOptions {
+		if opts == nil {
+			return nil
+		}
+		return WithDecoderOptions(append(opts.decoderOptions, hooks...)...)(opts)
+	}
+}
+
+// WithKeyring enables or disables the use of the system keyring for
+// loading or storing sensitive configuration values.
+func WithKeyring(enabled bool) LoadingOption {
+	return func(opts *LoadingOptions) *LoadingOptions {
+		if opts == nil {
+			return nil
+		}
+		opts.useKeyring = enabled
+		return opts
+	}
+}
+
+// UseKeyring enables the use of the system keyring for loading or storing
+// sensitive configuration values.
+func UseKeyring() LoadingOption {
+	return WithKeyring(true)
+}
+
+// DisableKeyring disables the use of the system keyring for loading or storing
+// sensitive configuration values.
+func DisableKeyring() LoadingOption {
+	return WithKeyring(false)
+}
+
+func loadOptions(options ...LoadingOption) *LoadingOptions {
+	opts := DefaultLoadingOptions()
+	for i := range options {
+		opts = options[i](opts)
+	}
+	return opts
 }
 
 // LoadFromConfigurationFile loads the configuration from the environment.
 // If the format is not supported, an error is raised and the same happens if the file cannot be found.
 // Supported formats are the same as what [viper](https://github.com/spf13/viper#what-is-viper) supports
 func LoadFromConfigurationFile(viperSession *viper.Viper, configFile string) (err error) {
-	if configFile == "" {
+	if reflection.IsEmpty(configFile) {
 		err = commonerrors.UndefinedVariable("configuration file")
 		return
 	}
