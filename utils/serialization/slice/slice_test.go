@@ -113,6 +113,9 @@ func TestToSlice(t *testing.T) {
 	t.Run("generic", func(t *testing.T) {
 		testStruct := TestStruct1{}
 		require.NoError(t, faker.FakeData(&testStruct))
+		random, err := faker.RandomInt(0, 1000, 50)
+		require.NoError(t, err)
+		testStruct.Array = random
 
 		structSlice, err := ToSlice[TestStruct1](&testStruct)
 		require.NoError(t, err)

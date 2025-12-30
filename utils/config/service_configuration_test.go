@@ -1080,7 +1080,7 @@ func TestEmbeddedServiceConfigurationWithSquashTagLoadFromEnvironment(t *testing
 
 func loadEnvIntoEnvironment(t *testing.T, envPath string) (err error) {
 	t.Helper()
-	_, err = fs.Stat(os.DirFS("."), envPath)
+	_, err = fs.Stat(os.DirFS("."), filepath.ToSlash(envPath))
 	require.NoError(t, err)
 
 	err = godotenv.Load(envPath)
