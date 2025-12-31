@@ -7,7 +7,9 @@
 package api
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"net/http"
 	"reflect"
 
@@ -47,12 +49,11 @@ func CheckAPICallSuccess(ctx context.Context, errorContext string, errorExtract 
 	}
 	if !IsCallSuccessful(resp) {
 		err = errors.FormatAPIErrorToGo(ctx, errorContext, resp, apiErr, errorExtract)
-		return
 	}
 	return
 }
 
-func checkResponse(ctx context.Context, apiErr error, resp *http.Response, result any, errorContext string, errorExtractFunc errors.ExtractAPIErrorDescriptionFunc) (err error) {
+func checkResponse(ctx context.Context, apiErr error, resp *http.Response, result any, errorContext string, errorExtractFunc errors.ExtractAPIErrorDescriptionFunc, resetBody bool) (err error) {
 	err = CheckAPICallSuccess(ctx, errorContext, errorExtractFunc, resp, apiErr)
 	if err != nil {
 		return
@@ -69,7 +70,7 @@ func checkResponse(ctx context.Context, apiErr error, resp *http.Response, resul
 		// At this point, the marshalling problem may be due to the presence of unknown fields in the response due to an API extension.
 		// See https://github.com/OpenAPITools/openapi-generator/issues/21446
 		var respB []byte
-		respB, err = safeio.ReadAll(ctx, resp.Body)
+		respB, err = readResponseBody(ctx, resp, resetBody)
 		if err != nil {
 			return
 		}
@@ -86,12 +87,33 @@ func checkResponse(ctx context.Context, apiErr error, resp *http.Response, resul
 	return
 }
 
+func readResponseBody(ctx context.Context, resp *http.Response, reset bool) (content []byte, err error) {
+	err = parallelisation.DetermineContextError(ctx)
+	if err != nil {
+		return
+	}
+	if resp == nil || resp.Body == nil {
+		return
+	}
+	content, err = safeio.ReadAll(ctx, resp.Body)
+	if err != nil || !reset {
+		return
+	}
+
+	// Close the original body
+	_ = resp.Body.Close()
+
+	// Reset body so it can be read again
+	resp.Body = io.NopCloser(bytes.NewBuffer(content))
+	return
+}
+
 // CallAndCheckSuccess is a wrapper for making an API call and then checking success with `CheckAPICallSuccess`
 // errorContext corresponds to the description of what led to the error if error there is e.g. `Failed adding a user`.
 // apiCallFunc corresponds to a generic function that will be called to make the API call.
 // errorExtractFunc is a function for extracting an error message from an API error response.
 func CallAndCheckSuccess[T any](ctx context.Context, errorContext string, errorExtractFunc errors.ExtractAPIErrorDescriptionFunc, apiCallFunc APICallFunc[T]) (result *T, err error) {
-	result, resp, err := CallAndCheckSuccessAndReturnRawResponse(ctx, errorContext, errorExtractFunc, apiCallFunc)
+	result, resp, err := callAndCheckSuccessAndReturnRawResponse(ctx, false, errorContext, errorExtractFunc, apiCallFunc)
 	if resp != nil && resp.Body != nil {
 		_ = resp.Body.Close()
 	}
@@ -103,11 +125,16 @@ func CallAndCheckSuccess[T any](ctx context.Context, errorContext string, errorE
 // but also returns the raw HTTP response. The caller is responsible for
 // closing the response body.
 func CallAndCheckSuccessAndReturnRawResponse[T any](ctx context.Context, errorContext string, errorExtractFunc errors.ExtractAPIErrorDescriptionFunc, apiCallFunc APICallFunc[T]) (result *T, resp *http.Response, err error) {
+	result, resp, err = callAndCheckSuccessAndReturnRawResponse(ctx, true, errorContext, errorExtractFunc, apiCallFunc)
+	return
+}
+
+func callAndCheckSuccessAndReturnRawResponse[T any](ctx context.Context, resetBody bool, errorContext string, errorExtractFunc errors.ExtractAPIErrorDescriptionFunc, apiCallFunc APICallFunc[T]) (result *T, resp *http.Response, err error) {
 	if err = parallelisation.DetermineContextError(ctx); err != nil {
 		return
 	}
 	result, resp, apiErr := apiCallFunc(ctx)
-	err = checkResponse(ctx, apiErr, resp, result, errorContext, errorExtractFunc)
+	err = checkResponse(ctx, apiErr, resp, result, errorContext, errorExtractFunc, resetBody)
 	return
 }
 
@@ -117,7 +144,7 @@ func CallAndCheckSuccessAndReturnRawResponse[T any](ctx context.Context, errorCo
 // apiCallFunc corresponds to a generic function that will be called to make the API call.
 // errorExtractFunc is a function for extracting an error message from an API error response.
 func GenericCallAndCheckSuccess[T any](ctx context.Context, errorContext string, errorExtractFunc errors.ExtractAPIErrorDescriptionFunc, apiCallFunc GenericAPICallFunc[T]) (result T, err error) {
-	result, resp, err := GenericCallAndCheckSuccessAndReturnRawResponse(ctx, errorContext, errorExtractFunc, apiCallFunc)
+	result, resp, err := genericCallAndCheckSuccessAndReturnRawResponse(ctx, false, errorContext, errorExtractFunc, apiCallFunc)
 	if resp != nil && resp.Body != nil {
 		_ = resp.Body.Close()
 	}
@@ -137,12 +164,17 @@ func GenericCallAndCheckSuccess[T any](ctx context.Context, errorContext string,
 //
 // The caller is responsible for closing the response body.
 func GenericCallAndCheckSuccessAndReturnRawResponse[T any](ctx context.Context, errorContext string, errorExtractFunc errors.ExtractAPIErrorDescriptionFunc, apiCallFunc GenericAPICallFunc[T]) (result T, resp *http.Response, err error) {
+	result, resp, err = genericCallAndCheckSuccessAndReturnRawResponse[T](ctx, true, errorContext, errorExtractFunc, apiCallFunc)
+	return
+}
+
+func genericCallAndCheckSuccessAndReturnRawResponse[T any](ctx context.Context, resetBody bool, errorContext string, errorExtractFunc errors.ExtractAPIErrorDescriptionFunc, apiCallFunc GenericAPICallFunc[T]) (result T, resp *http.Response, err error) {
 	if err = parallelisation.DetermineContextError(ctx); err != nil {
 		return
 	}
 
 	result, resp, apiErr := apiCallFunc(ctx)
-	err = checkResponse(ctx, apiErr, resp, result, errorContext, errorExtractFunc)
+	err = checkResponse(ctx, apiErr, resp, result, errorContext, errorExtractFunc, resetBody)
 	if err != nil {
 		return
 	}
