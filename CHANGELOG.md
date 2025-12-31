@@ -14,6 +14,16 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.145.1" (2025-12-31)
+======================
+
+Bugfixes
+--------
+
+- :bug: `[api]` reset the response body if necessary (#20251231170457)
+- :bug: `[http/error]` better handled already processed API errors (#20251231170526)
+
+
 "1.145.0" (2025-12-30)
 ======================
 
