@@ -2,6 +2,7 @@ package errors
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -48,6 +49,7 @@ func TestFormatAPIErrorToGo(t *testing.T) {
 		errorContext  string
 		responseBody  string
 		responseCode  int
+		noResponse    bool
 		clientErr     error
 		expectedError error
 	}{
@@ -67,8 +69,15 @@ func TestFormatAPIErrorToGo(t *testing.T) {
 			errorContext:  faker.Sentence(),
 			responseBody:  "",
 			responseCode:  http.StatusAccepted,
-			clientErr:     commonerrors.ErrInvalid,
+			clientErr:     errors.New("invalid"),
 			expectedError: commonerrors.ErrUnexpected,
+		},
+		{
+			errorContext:  faker.Sentence(),
+			responseBody:  "    ",
+			responseCode:  http.StatusBadRequest,
+			clientErr:     errors.New("404 not found"),
+			expectedError: commonerrors.ErrInvalid,
 		},
 		{
 			errorContext:  faker.Sentence(),
@@ -79,16 +88,22 @@ func TestFormatAPIErrorToGo(t *testing.T) {
 		},
 		{
 			errorContext:  faker.Sentence(),
+			noResponse:    true,
+			clientErr:     commonerrors.ErrNotFound,
+			expectedError: commonerrors.ErrNotFound,
+		},
+		{
+			errorContext:  faker.Sentence(),
 			responseBody:  faker.Sentence(),
 			responseCode:  http.StatusBadRequest,
-			clientErr:     commonerrors.ErrNotFound,
+			clientErr:     errors.New("404 not found"),
 			expectedError: commonerrors.ErrInvalid,
 		},
 		{
 			errorContext:  faker.Sentence(),
 			responseBody:  faker.Sentence(),
 			responseCode:  http.StatusServiceUnavailable,
-			clientErr:     commonerrors.ErrConflict,
+			clientErr:     errors.New("some conflict happened"),
 			expectedError: commonerrors.ErrUnavailable,
 		},
 		{
@@ -109,14 +124,17 @@ func TestFormatAPIErrorToGo(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
-			w := httptest.NewRecorder()
-			w.WriteHeader(test.responseCode)
-			if w.Body != nil {
-				_, err := w.Body.WriteString(test.responseBody)
-				require.NoError(t, err)
-			}
+			var resp *http.Response
+			if !test.noResponse {
+				w := httptest.NewRecorder()
+				w.WriteHeader(test.responseCode)
+				if w.Body != nil {
+					_, err := w.Body.WriteString(test.responseBody)
+					require.NoError(t, err)
+				}
 
-			resp := w.Result()
+				resp = w.Result()
+			}
 			returnedError := FormatAPIErrorToGo(context.Background(), test.errorContext, resp, test.clientErr, extractErrorMessage)
 			errortest.AssertError(t, returnedError, test.expectedError)
 			if test.expectedError != nil {

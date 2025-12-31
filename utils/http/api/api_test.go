@@ -276,6 +276,46 @@ func TestCallAndCheckSuccess(t *testing.T) {
 		assert.Equal(t, expectedErrorMessage, *result)
 	})
 
+	t.Run("api call successful, strict marshalling failed but recovery, with raw response", func(t *testing.T) {
+		expectedErrorMessage := ErrorResponseForTest{
+			Fields: []FieldObjectForTest{{
+				FieldName: faker.Name(),
+				FieldPath: field.ToOptionalString(faker.Name()),
+				Message:   faker.Sentence(),
+			}},
+			HTTPStatusCode: 200,
+			Message:        faker.Sentence(),
+			RequestID:      faker.UUIDDigit(),
+		}
+		response, err := expectedErrorMessage.ToMap()
+		require.NoError(t, err)
+		response[faker.Word()] = faker.Name()
+		response[faker.Word()] = faker.Sentence()
+		response[faker.Word()] = faker.Paragraph()
+		response[faker.Word()] = faker.UUIDDigit()
+		extendedResponse, err := json.Marshal(response)
+		require.NoError(t, err)
+		errMessage := "no error"
+		parentCtx := context.Background()
+		result, resp, err := CallAndCheckSuccessAndReturnRawResponse[ErrorResponseForTest](parentCtx, errMessage, extractError,
+			func(ctx context.Context) (*ErrorResponseForTest, *http.Response, error) {
+				return &ErrorResponseForTest{}, &http.Response{StatusCode: 200, Body: io.NopCloser(bytes.NewReader(extendedResponse))}, errors.New(errMessage)
+			})
+		defer func() {
+			if resp != nil && resp.Body != nil {
+				_ = resp.Body.Close()
+			}
+		}()
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.NotNil(t, resp.Body)
+		assert.Equal(t, expectedErrorMessage, *result)
+		bodyC, err := safeio.ReadAll(context.Background(), resp.Body)
+		require.NoError(t, err)
+		assert.NotEmpty(t, bodyC)
+		require.NoError(t, resp.Body.Close())
+	})
+
 	t.Run("api call successful, empty response", func(t *testing.T) {
 		errMessage := "no error"
 		parentCtx := context.Background()
@@ -356,5 +396,21 @@ func TestGenericCallAndCheckSuccess(t *testing.T) {
 				return struct{ Blah string }{Blah: "fsadsfs"}, &http.Response{StatusCode: 200}, nil
 			})
 		errortest.AssertError(t, err, commonerrors.ErrConflict)
+	})
+
+	t.Run("api call successful, incorrect response, returned raw response", func(t *testing.T) {
+		parentCtx := context.Background()
+		_, resp, err := GenericCallAndCheckSuccessAndReturnRawResponse(parentCtx, "response error", extractError,
+			func(ctx context.Context) (struct{ Blah string }, *http.Response, error) {
+				return struct{ Blah string }{Blah: "fsadsfs"}, &http.Response{StatusCode: 200}, nil
+			})
+		defer func() {
+			if resp != nil && resp.Body != nil {
+				_ = resp.Body.Close()
+			}
+		}()
+		errortest.AssertError(t, err, commonerrors.ErrConflict)
+		require.NotNil(t, resp)
+		require.Nil(t, resp.Body)
 	})
 }

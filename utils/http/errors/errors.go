@@ -18,6 +18,21 @@ type ExtractAPIErrorDescriptionFunc func(ctx context.Context, resp *http.Respons
 // resp corresponds to the HTTP response from a certain endpoint. Note: the body of such response is not closed by this function.
 // clientErr corresponds to the error which may be returned by the HTTP client when calling the endpoint.
 func FormatAPIErrorToGo(ctx context.Context, errorContext string, resp *http.Response, clientErr error, errorExtract ExtractAPIErrorDescriptionFunc) (err error) {
+	if commonerrors.IsCommonError(clientErr) {
+		// formatting has already happened
+		err = clientErr
+		if resp == nil {
+			if !reflection.IsEmpty(errorContext) {
+				err = commonerrors.DescribeCircumstance(err, errorContext)
+			}
+		} else {
+			err = commonerrors.WrapError(MapErrorToHTTPResponseCode(resp.StatusCode), err, errorContext)
+			if resp.Body != nil {
+				_ = resp.Body.Close()
+			}
+		}
+		return
+	}
 	statusCode := 0
 	errorMessage := strings.Builder{}
 	respErr := commonerrors.ErrUnexpected
@@ -32,7 +47,9 @@ func FormatAPIErrorToGo(ctx context.Context, errorContext string, resp *http.Res
 		if !reflection.IsEmpty(errorDetails) {
 			_, _ = errorMessage.WriteString(errorDetails)
 		}
-		_ = resp.Body.Close()
+		if resp.Body != nil {
+			_ = resp.Body.Close()
+		}
 	}
 	if respErr == nil {
 		if clientErr == nil {
