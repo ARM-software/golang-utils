@@ -27,6 +27,9 @@ func FormatAPIErrorToGo(ctx context.Context, errorContext string, resp *http.Res
 			}
 		} else {
 			err = commonerrors.WrapError(MapErrorToHTTPResponseCode(resp.StatusCode), err, errorContext)
+			if resp.Body != nil {
+				_ = resp.Body.Close()
+			}
 		}
 		return
 	}
@@ -44,7 +47,9 @@ func FormatAPIErrorToGo(ctx context.Context, errorContext string, resp *http.Res
 		if !reflection.IsEmpty(errorDetails) {
 			_, _ = errorMessage.WriteString(errorDetails)
 		}
-		_ = resp.Body.Close()
+		if resp.Body != nil {
+			_ = resp.Body.Close()
+		}
 	}
 	if respErr == nil {
 		if clientErr == nil {
