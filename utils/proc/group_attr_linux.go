@@ -1,16 +1,16 @@
 //go:build linux
 
-package subprocess
+package proc
 
 import (
 	"os/exec"
 	"syscall"
 )
 
-// See https://github.com/tgulacsi/go/blob/master/proc/
+// See https://github.com/tgulacsi/go/blob/master/proc/proc_linux.go
 func setGroupAttrToCmd(c *exec.Cmd) {
 	c.SysProcAttr = &syscall.SysProcAttr{
-		Setpgid:   true, // to be able to kill all children, too
+		Setpgid:   true,
 		Pdeathsig: syscall.SIGKILL,
 	}
 }

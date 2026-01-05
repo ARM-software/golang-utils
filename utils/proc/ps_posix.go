@@ -17,12 +17,16 @@ import (
 
 func getpgid(pid int) (gpid int, err error) {
 	gpid, err = syscall.Getpgid(pid)
-	if err != nil {
-		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not get pgid of '%v'", pid)
+	switch {
+	case commonerrors.CorrespondTo(err, "no such process"):
+		err = commonerrors.Newf(commonerrors.ErrNotFound, "process '%v' does not exist", pid)
+		return
+	case err != nil:
+		err = commonerrors.DescribeCircumstancef(err, "could not get pgid of '%v'", pid)
+		return
+	default:
 		return
 	}
-
-	return
 }
 
 func killGroup(ctx context.Context, pid int32) (err error) {
@@ -47,10 +51,14 @@ func killGroup(ctx context.Context, pid int32) (err error) {
 
 func getGroupProcesses(ctx context.Context, pid int) (pids []int, err error) {
 	pgid, err := getpgid(pid)
-	if err != nil {
+	switch {
+	case commonerrors.Any(err, commonerrors.ErrNotFound):
+		return
+	case err != nil:
 		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not get group PID for '%v'", pid)
 		return
+	default:
+		pids = append(pids, pgid)
+		return
 	}
-	pids = append(pids, pgid)
-	return
 }

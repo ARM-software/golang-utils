@@ -1,12 +1,13 @@
 //go:build windows
 
-package subprocess
+package proc
 
 import (
 	"os/exec"
 	"syscall"
 )
 
+// See https://github.com/tgulacsi/go/blob/master/proc/proc_windows.go
 func setGroupAttrToCmd(c *exec.Cmd) {
 	c.SysProcAttr = &syscall.SysProcAttr{
 		HideWindow: true,
