@@ -44,6 +44,8 @@ func InterruptProcess(ctx context.Context, pid int, signal InterruptType) (err e
 	default:
 		err = commonerrors.New(commonerrors.ErrInvalid, "unknown interrupt type for process")
 	}
+
+	err = commonerrors.IgnoreCorrespondTo(err, "process already finished") // equvalent to desired state
 	return
 }
 

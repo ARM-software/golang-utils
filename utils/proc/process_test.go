@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
 
@@ -21,6 +20,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	proctest "github.com/ARM-software/golang-utils/utils/proc/testing"
 )
 
 func TestFindProcess(t *testing.T) {
@@ -147,9 +147,7 @@ func TestPs_KillWithChildren(t *testing.T) {
 func TestWaitForCompletion(t *testing.T) {
 	t.Run("Wait for existing process (completes normally)", func(t *testing.T) {
 		cmd := exec.Command("sleep", "1")
-		cmd.SysProcAttr = &syscall.SysProcAttr{
-			Setpgid: true, // can't use subprocess in the test due to import cycle but this is needed to ensure we don't wait on the test process
-		}
+		proctest.SetGroupAttrToCmd(cmd)
 		require.NoError(t, cmd.Start())
 		defer func() { _ = cmd.Process.Kill() }()
 
@@ -163,9 +161,7 @@ func TestWaitForCompletion(t *testing.T) {
 
 	t.Run("Wait for existing process (completes before wait)", func(t *testing.T) {
 		cmd := exec.Command("sleep", "0.1")
-		cmd.SysProcAttr = &syscall.SysProcAttr{
-			Setpgid: true, // can't use subprocess in the test due to import cycle but this is needed to ensure we don't wait on the test process
-		}
+		proctest.SetGroupAttrToCmd(cmd)
 		require.NoError(t, cmd.Start())
 		defer func() { _ = cmd.Process.Kill() }()
 		err := cmd.Wait()
@@ -182,6 +178,7 @@ func TestWaitForCompletion(t *testing.T) {
 
 	t.Run("Cancelled context returns error", func(t *testing.T) {
 		cmd := exec.Command("sleep", "2")
+		proctest.SetGroupAttrToCmd(cmd)
 		require.NoError(t, cmd.Start())
 		defer func() { _ = cmd.Process.Kill() }()
 
