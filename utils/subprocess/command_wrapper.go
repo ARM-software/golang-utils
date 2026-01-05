@@ -140,7 +140,7 @@ func (c *command) createCommand(cmdCtx context.Context) *exec.Cmd {
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = c.io.Register(cmdCtx)
 	cmd.Env = cmd.Environ()
 	cmd.Env = append(cmd.Env, c.env...)
-	setGroupAttrToCmd(cmd)
+	proc.SetGroupAttrToCmd(cmd)
 	return cmd
 }
 

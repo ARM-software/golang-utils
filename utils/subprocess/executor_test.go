@@ -27,7 +27,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/logs/logstest"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 	"github.com/ARM-software/golang-utils/utils/platform"
-	proctest "github.com/ARM-software/golang-utils/utils/proc/testing"
+	"github.com/ARM-software/golang-utils/utils/proc"
 )
 
 type testIO struct {
@@ -789,7 +789,7 @@ func TestWait(t *testing.T) {
 			cmd = exec.Command("cmd", "/c", fmt.Sprintf("ping -n 2 -w %v localhost > nul", (time.Second).Milliseconds())) //nolint:gosec // Causes G204: Subprocess launched with a potential tainted input or cmd arguments
 		} else {
 			cmd = exec.Command("sh", "-c", "sleep 1")
-			proctest.SetGroupAttrToCmd(cmd)
+			proc.SetGroupAttrToCmd(cmd)
 		}
 		defer func() { _ = CleanKillOfCommand(context.Background(), cmd) }()
 		require.NoError(t, cmd.Start())

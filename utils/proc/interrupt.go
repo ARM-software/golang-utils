@@ -207,7 +207,7 @@ func WaitForCompletion(ctx context.Context, pid int) (err error) {
 			case commonerrors.Any(subErr, commonerrors.ErrNotFound):
 				// gone so stopped
 			default:
-				subErr = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, subErr, "an error occurred whilst finding sub process '%v'", subPid)
+				subErr = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, subErr, "an error occurred whilst looking for sub process '%v'", subPid)
 				return
 			}
 			return
