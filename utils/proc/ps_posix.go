@@ -22,7 +22,7 @@ func getpgid(pid int) (gpid int, err error) {
 		err = commonerrors.Newf(commonerrors.ErrNotFound, "process '%v' does not exist", pid)
 		return
 	case err != nil:
-		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not get pgid of '%v'", pid)
+		err = commonerrors.DescribeCircumstancef(err, "could not get pgid of '%v'", pid)
 		return
 	default:
 		return
