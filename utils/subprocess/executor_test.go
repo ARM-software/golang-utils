@@ -789,6 +789,10 @@ func TestWait(t *testing.T) {
 			cmd = exec.Command("cmd", "/c", fmt.Sprintf("ping -n 2 -w %v localhost > nul", (time.Second).Milliseconds())) //nolint:gosec // Causes G204: Subprocess launched with a potential tainted input or cmd arguments
 		} else {
 			cmd = exec.Command("sh", "-c", "sleep 1")
+
+			// for any of our wait checks to work we need to set the group ID to the pid, otherwise the
+			// group ID will be the code that launched it (e.g. the exec in the test). This causes issues
+			// in tests as any checks for running processes will return the test PID not the sub process one.
 			proc.SetGroupAttrToCmd(cmd)
 		}
 		defer func() { _ = CleanKillOfCommand(context.Background(), cmd) }()
