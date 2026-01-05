@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
@@ -146,17 +147,37 @@ func TestPs_KillWithChildren(t *testing.T) {
 func TestWaitForCompletion(t *testing.T) {
 	t.Run("Wait for existing process (completes normally)", func(t *testing.T) {
 		cmd := exec.Command("sleep", "1")
+		cmd.SysProcAttr = &syscall.SysProcAttr{
+			Setpgid: true, // can't use subprocess in the test due to import cycle but this is needed to ensure we don't wait on the test process
+		}
 		require.NoError(t, cmd.Start())
 		defer func() { _ = cmd.Process.Kill() }()
 
-		err := WaitForCompletion(context.Background(), cmd.Process.Pid)
+		start := time.Now()
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		err := WaitForCompletion(ctx, cmd.Process.Pid)
+		assert.Greater(t, time.Since(start), time.Second)
 		assert.NoError(t, err)
 	})
 
-	t.Run("Non-existent process returns error", func(t *testing.T) {
+	t.Run("Wait for existing process (completes before wait)", func(t *testing.T) {
+		cmd := exec.Command("sleep", "0.1")
+		cmd.SysProcAttr = &syscall.SysProcAttr{
+			Setpgid: true, // can't use subprocess in the test due to import cycle but this is needed to ensure we don't wait on the test process
+		}
+		require.NoError(t, cmd.Start())
+		defer func() { _ = cmd.Process.Kill() }()
+		err := cmd.Wait()
+		require.NoError(t, err)
+
+		err = WaitForCompletion(context.Background(), cmd.Process.Pid)
+		assert.NoError(t, err)
+	})
+	t.Run("Non-existent process does return error as it is impossible to tell if this is because it has already stopped or not", func(t *testing.T) {
 		nonExistent := 999999
 		err := WaitForCompletion(context.Background(), nonExistent)
-		assert.Error(t, err)
+		assert.NoError(t, err)
 	})
 
 	t.Run("Cancelled context returns error", func(t *testing.T) {

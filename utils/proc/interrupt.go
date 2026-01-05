@@ -189,13 +189,27 @@ func DefineCmdCancel(cmd *exec.Cmd) (*exec.Cmd, error) {
 // This allows check to work if the underlying process was stopped without needing the os.Process that started it.
 func WaitForCompletion(ctx context.Context, pid int) (err error) {
 	pids, err := getGroupProcesses(ctx, pid)
+	err = commonerrors.Ignore(err, commonerrors.ErrNotFound)
 	if err != nil {
 		return
 	}
-	return parallelisation.WaitUntil(ctx, func(ctx2 context.Context) (bool, error) {
-		return collection.AnyFunc(pids, func(subPid int) bool {
-			p, _ := FindProcess(ctx2, subPid)
-			return p.IsRunning() // FindProcess will always return an instantiated process and any non-running state should exit without error
-		}), nil
-	}, 1000*time.Millisecond)
+	return parallelisation.WaitUntil(ctx, func(ctx2 context.Context) (allStopped bool, err error) {
+		allStopped = true
+		err = collection.ForAll(pids, func(subPid int) (subErr error) {
+			proc, subErr := FindProcess(ctx2, subPid)
+			switch {
+			case subErr == nil:
+				if proc.IsRunning() && !proc.IsAZombie() {
+					allStopped = false
+				}
+			case commonerrors.Any(subErr, commonerrors.ErrNotFound):
+				// gone so stopped
+			default:
+				subErr = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, subErr, "an error occurred whilst finding sub process '%v'", subPid)
+				return
+			}
+			return
+		})
+		return
+	}, 200*time.Millisecond)
 }
