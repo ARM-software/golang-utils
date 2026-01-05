@@ -1,5 +1,5 @@
 <!--
-Copyright (C) 2020-2025 Arm Limited or its affiliates and Contributors. All rights reserved.
+Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
 # Changelog
@@ -13,6 +13,22 @@ This document contains a history of significant changes which have been released
 beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
+
+"1.146.0" (2026-01-05)
+======================
+
+Features
+--------
+
+- :sparkles: `proc` improve distinguishing between error fetching process and the process not existing (#20260105140047)
+- :sparkles: `proc` add `SetGroupAttrToCmd` to ensure that sub processes have the correct flags for process group searching to work correctly (#20260105150751)
+
+
+Bugfixes
+--------
+
+- :bug: `proc` Ensure that all WaitForCompletion actually waits for completion instead of returning immediately (#20260105135957)
+
 
 "1.145.1" (2025-12-31)
 ======================
