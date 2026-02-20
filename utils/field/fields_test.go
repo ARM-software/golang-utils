@@ -205,6 +205,24 @@ func TestOptionalField(t *testing.T) {
 			},
 		},
 		{
+			fieldType:    "String format",
+			value:        faker.Sentence(),
+			defaultValue: faker.Name(),
+			setFunction: func(a any) any {
+				return ToOptionalStringf("%v", a)
+			},
+			setFunctionOrNil: func(a any) any {
+				return ToOptionalStringOrNilIfEmptyf("%v", a)
+			},
+			getFunction: func(a any, a2 any) any {
+				var ptr *string
+				if a != nil {
+					ptr = a.(*string)
+				}
+				return OptionalString(ptr, a2.(string))
+			},
+		},
+		{
 			fieldType:    "Duration",
 			value:        time.Millisecond,
 			defaultValue: time.Second,

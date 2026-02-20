@@ -7,6 +7,7 @@
 package field
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/ARM-software/golang-utils/utils/value"
@@ -124,9 +125,19 @@ func ToOptionalString(s string) *string {
 	return ToOptional[string](s)
 }
 
+// ToOptionalStringf returns a pointer to a string formatted according to a format specifier.
+func ToOptionalStringf(format string, a ...any) *string {
+	return ToOptionalString(fmt.Sprintf(format, a...))
+}
+
 // ToOptionalStringOrNilIfEmpty returns a pointer to a string unless it is empty and in that case returns nil.
 func ToOptionalStringOrNilIfEmpty(f string) *string {
 	return ToOptionalOrNilIfEmpty[string](f)
+}
+
+// ToOptionalStringOrNilIfEmptyf returns a pointer to  a string formatted according to a format specifier unless it is empty and in that case returns nil.
+func ToOptionalStringOrNilIfEmptyf(format string, a ...any) *string {
+	return ToOptionalStringOrNilIfEmpty(fmt.Sprintf(format, a...))
 }
 
 // OptionalString returns the value of an optional field or else returns defaultValue.

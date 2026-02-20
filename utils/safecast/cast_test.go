@@ -495,5 +495,12 @@ func TestCastingToInt(t *testing.T) {
 			assert.Equal(t, int64(math.MinInt64), ToInt64(-9223372036854775808.4))    //nolint: gosec //G115: testing
 			assert.Equal(t, uint64(0), ToUint64(-18446744073709551616.4))             //nolint: gosec //G115: testing
 		})
+		t.Run("float64", func(t *testing.T) {
+			assert.Equal(t, float64(-4.6), ToFloat64(-4.6))                             //nolint: gosec //G115: testing
+			assert.Equal(t, float64(4.6), ToFloat64(4.6))                               //nolint: gosec //G115: testing
+			assert.Equal(t, float64(math.MaxInt64), ToFloat64(math.MaxInt64))           //nolint: gosec //G115: testing
+			assert.Equal(t, float64(math.MaxUint64), ToFloat64[uint64](math.MaxUint64)) //nolint: gosec //G115: testing
+			assert.Equal(t, float64(math.MinInt64), ToFloat64(math.MinInt64))           //nolint: gosec //G115: testing
+		})
 	})
 }
