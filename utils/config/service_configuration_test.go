@@ -44,7 +44,7 @@ type DummyConfiguration struct {
 	Port              int                               `mapstructure:"port"`
 	DB                string                            `mapstructure:"db"`
 	User              string                            `mapstructure:"user"`
-	Password          string                            `mapstructure:"password"`
+	Password          string                            `mapstructure:"password"` //nolint:gosec //G117: Exported struct field
 	Flag              bool                              `mapstructure:"flag"`
 	TestEnum          mapstest.TestEnumWithUnmarshal    `mapstructure:"enum"`
 	TestEnum1         mapstest.TestEnumWithoutUnmarshal `mapstructure:"enum1"`

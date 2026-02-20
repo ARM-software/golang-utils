@@ -11,11 +11,11 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/ARM-software/golang-utils/utils/field"
 	mapset "github.com/deckarep/golang-set/v2"
 	"go.uber.org/atomic"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 

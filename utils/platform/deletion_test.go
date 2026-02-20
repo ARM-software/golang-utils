@@ -29,6 +29,6 @@ func TestRemoveWithPrivileges(t *testing.T) {
 
 	assert.NoError(t, RemoveWithPrivileges(context.TODO(), f.Name()))
 
-	_, err = os.Stat(f.Name())
+	_, err = os.Stat(f.Name()) //nolint:gosec //G703
 	assert.Error(t, err)
 }
