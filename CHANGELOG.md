@@ -14,6 +14,30 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.147.0" (2026-02-20)
+======================
+
+Features
+--------
+
+- :sparkles: [safecast] Add ability to cast to float (#20260211094827)
+- :sparkles: [field] Add ability to format strings and return references (#20260211094853)
+- :sparkles: `[collection]` Extended utilities so that functions could use references of items (#20260220124149)
+
+
+Bugfixes
+--------
+
+- :lock: `[http]` Improve some check when executing a request to reduce the risk of Server-Side Request Forgery (SSRF) (#20260220131528)
+- :lock: `[platform]` Improve some check when removing a path to reduce the risk of path traversal (#20260220132229)
+
+
+Improved Documentation
+----------------------
+
+- :book: `[collection]` Improved docstrings where possible (#20260220124241)
+
+
 "1.146.0" (2026-01-05)
 ======================
 
