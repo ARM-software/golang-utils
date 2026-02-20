@@ -93,7 +93,7 @@ func (c *GenericClient) Do(req *http.Request) (resp *http.Response, err error) {
 		err = commonerrors.UndefinedVariable("request")
 		return
 	}
-	if reflection.IsEmpty(req.URL.String()) {
+	if reflection.IsEmpty(req.URL) || reflection.IsEmpty(req.URL.String()) {
 		err = commonerrors.UndefinedVariable("request's target (URL)")
 		return
 	}
