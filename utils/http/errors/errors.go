@@ -70,7 +70,7 @@ func FormatAPIErrorToGo(ctx context.Context, errorContext string, resp *http.Res
 		if errMsgBuilder.Len() > 0 {
 			errMsgBuilder.WriteString(" ")
 		}
-		errMsgBuilder.WriteString(fmt.Sprintf("(%d)", statusCode))
+		_, _ = fmt.Fprintf(&errMsgBuilder, "(%d)", statusCode)
 	}
 	errorDetails := errorMessage.String()
 	if !reflection.IsEmpty(errorDetails) {

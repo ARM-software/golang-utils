@@ -589,6 +589,11 @@ func UndefinedParameter(msg string) error {
 	return undefinedVariable("", msg)
 }
 
+// UndefinedParameterf returns an undefined error with a message
+func UndefinedParameterf(msgFormat string, args ...any) error {
+	return Newf(ErrUndefined, msgFormat, args...)
+}
+
 func undefinedVariable(variableName, msg string) error {
 	if msg == "" {
 		return Newf(ErrUndefined, "missing %v", variableName)

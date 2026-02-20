@@ -32,8 +32,8 @@ type TestStruct0 struct {
 	DomainName         string            `faker:"domain_name"`
 	IPV4               string            `faker:"ipv4"`
 	IPV6               string            `faker:"ipv6"`
-	Password           string            `faker:"password"`
-	Jwt                string            `faker:"jwt"`
+	Password           string            `faker:"password"` //nolint:gosec //G117: Exported struct field
+	Jwt                string            `faker:"jwt"`      //nolint:gosec //G117: Exported struct field
 	PhoneNumber        string            `faker:"phone_number"`
 	MacAddress         string            `faker:"mac_address"`
 	URL                string            `faker:"url"`

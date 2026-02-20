@@ -131,3 +131,8 @@ func ToUint64[C IConvertable](i C) uint64 {
 	}
 	return uint64(i)
 }
+
+// ToFloat64 attempts to convert any [IConvertable] value to an float64.
+func ToFloat64[C IConvertable](i C) float64 {
+	return float64(i)
+}

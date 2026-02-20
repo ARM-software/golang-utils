@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-cleanhttp"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
 // GenericClient is an HTTP client similar to
@@ -67,8 +68,37 @@ func (c *GenericClient) Get(url string) (*http.Response, error) {
 	return c.client.Get(url)
 }
 
-func (c *GenericClient) Do(req *http.Request) (*http.Response, error) {
-	return c.client.Do(req)
+// Do sends the provided HTTP request using the underlying http.Client
+// and returns the resulting response.
+//
+// Validation
+// The method performs minimal defensive checks before dispatching:
+//   - req must not be nil or empty
+//   - req.URL must not be empty
+//
+// If either validation fails, an UndefinedVariable error is returned.
+//
+// Security considerations
+// This method intentionally delegates full request validation and
+// authorisation decisions to the caller. In particular, it does not
+// enforce host allow-listing, scheme restrictions, redirect policies,
+// or other SSRF mitigations.
+//
+// Static analysis tools (e.g. gosec G704) flag direct execution of
+// externally influenced requests as a potential Server-Side Request
+// Forgery (SSRF) risk. This behaviour is deliberate: callers are
+// responsible for validating and constraining req before invoking Do.
+func (c *GenericClient) Do(req *http.Request) (resp *http.Response, err error) {
+	if reflection.IsEmpty(req) {
+		err = commonerrors.UndefinedVariable("request")
+		return
+	}
+	if reflection.IsEmpty(req.URL) || reflection.IsEmpty(req.URL.String()) {
+		err = commonerrors.UndefinedVariable("request's target (URL)")
+		return
+	}
+	resp, err = c.client.Do(req) //nolint:gosec //G704: SSRF via taint analysis (gosec) It is user's responsibility to check the request
+	return
 }
 
 func (c *GenericClient) Delete(url string) (*http.Response, error) {

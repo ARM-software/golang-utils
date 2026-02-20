@@ -41,7 +41,7 @@ var (
 type Auth struct {
 	Enforced    bool   `mapstructure:"enforced"`
 	Scheme      string `mapstructure:"scheme"`
-	AccessToken string `mapstructure:"token"`
+	AccessToken string `mapstructure:"token"` //nolint:gosec //G117: Exported struct field
 }
 
 const (

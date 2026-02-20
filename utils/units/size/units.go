@@ -143,9 +143,9 @@ func formatSize(value float64, formatValueFunc func(value float64) (valueInUnit 
 		formatDecimal = "%v"
 	}
 	if scale == 0 {
-		_, err = builder.WriteString(fmt.Sprintf(formatDecimal, safecast.ToUint64(math.Round(valueInUnit))))
+		_, err = fmt.Fprintf(&builder, formatDecimal, safecast.ToUint64(math.Round(valueInUnit)))
 	} else {
-		_, err = builder.WriteString(fmt.Sprintf(formatDecimal, valueInUnit))
+		_, err = fmt.Fprintf(&builder, formatDecimal, valueInUnit)
 	}
 	if err != nil {
 		err = commonerrors.WrapError(commonerrors.ErrMarshalling, err, "failed formatting the size")
