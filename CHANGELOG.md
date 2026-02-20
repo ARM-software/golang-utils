@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.147.1" (2026-02-20)
+======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: setup-python-6 (#20260220160027)
+- Dependency upgrade: scorecard-action-2.4.3 (#20260220160033)
+- Dependency upgrade: upload-artifact-6.0.0 (#20260220160035)
+- Dependency upgrade: codeql-action-4.32.4 (#20260220160140)
+- Dependency upgrade: fetch-metadata-2.5.0 (#20260220160145)
+- Dependency upgrade: checkout-6 (#20260220160154)
+- Dependency upgrade: golangci-lint-action-9 (#20260220160758)
+- Dependency upgrade: cache-5 (#20260220163221)
+
+
 "1.147.0" (2026-02-20)
 ======================
 
