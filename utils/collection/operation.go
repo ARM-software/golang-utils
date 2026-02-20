@@ -7,7 +7,6 @@
 package collection
 
 import (
-	"fmt"
 	"iter"
 	"slices"
 	"strings"
@@ -394,7 +393,7 @@ func MapRefWithError[T1 any, T2 any](s []T1, f MapRefWithErrorFunc[T1, T2]) (res
 			return
 		}
 		if r == nil {
-			err = commonerrors.UndefinedParameter(fmt.Sprintf("item #%v was nil", i))
+			err = commonerrors.UndefinedParameterf("item #%v was nil", i)
 			return
 		}
 		result[i] = *r
