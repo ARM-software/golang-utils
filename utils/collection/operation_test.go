@@ -51,6 +51,11 @@ func TestFindInSequence(t *testing.T) {
 	})
 	assert.False(t, found)
 	assert.Equal(t, -1, index)
+	index, found = FindInSequenceRef[string](slices.Values([]string{"A", "b", "c"}), func(e *string) bool {
+		return field.OptionalString(e, "") == "D"
+	})
+	assert.False(t, found)
+	assert.Equal(t, -1, index)
 
 	index, found = FindInSequence[string](slices.Values([]string{"A", "B", "b", "c"}), func(e string) bool {
 		return e == "b"
@@ -145,6 +150,9 @@ func TestAnyFunc(t *testing.T) {
 	assert.False(t, AnyFunc([]bool{false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false}, f))
 	assert.True(t, AnyFunc([]bool{true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true}, f))
 	assert.True(t, AnyFunc([]bool{true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true, true}, f))
+	assert.True(t, AnyRefFunc([]bool{true, true, true, true, true, true, true, true, true, false, true, true, true, true, true, true, true, true, true, true}, func(b *bool) bool {
+		return f(field.OptionalBool(b, false))
+	}))
 }
 
 func TestAllFunc(t *testing.T) {
@@ -183,8 +191,14 @@ func TestFilterReject(t *testing.T) {
 	assert.ElementsMatch(t, []int{2, 4}, Filter(nums, func(n int) bool {
 		return n%2 == 0
 	}))
+	assert.ElementsMatch(t, []int{2, 4}, FilterRef(nums, func(n *int) bool {
+		return field.OptionalInt(n, 0)%2 == 0
+	}))
 	assert.ElementsMatch(t, []int{1, 3, 5}, Reject(nums, func(n int) bool {
 		return n%2 == 0
+	}))
+	assert.ElementsMatch(t, []int{1, 3, 5}, RejectRef(nums, func(n *int) bool {
+		return field.OptionalInt(n, 0)%2 == 0
 	}))
 	assert.ElementsMatch(t, []int{1, 3, 5}, slices.Collect[int](RejectSequence[int](slices.Values(nums), func(n int) bool {
 		return n%2 == 0
@@ -192,6 +206,12 @@ func TestFilterReject(t *testing.T) {
 	assert.ElementsMatch(t, []int{4, 5}, Filter(nums, func(n int) bool {
 		return n > 3
 	}))
+	assert.ElementsMatch(t, []int{4, 5}, FilterRef(nums, func(n *int) bool {
+		return *n > 3
+	}))
+	assert.ElementsMatch(t, []int{4, 5}, slices.Collect(FilterRefSequence(slices.Values(nums), func(n *int) bool {
+		return *n > 3
+	})))
 	assert.ElementsMatch(t, []int{1, 2, 3}, Reject(nums, func(n int) bool {
 		return n > 3
 	}))
@@ -228,10 +248,22 @@ func TestMap(t *testing.T) {
 		return strconv.FormatInt(safecast.ToInt64(x), 10)
 	})
 	assert.ElementsMatch(t, numStr, mapped)
+	mapped = MapRef(num, func(x *int) *string {
+		return field.ToOptionalOrNilIfEmpty(strconv.FormatInt(safecast.ToInt64(field.OptionalInt(x, 0)), 10))
+	})
+	assert.ElementsMatch(t, numStr, mapped)
 	m, err := MapWithError[string, int](numStr, strconv.Atoi)
 	require.NoError(t, err)
 	assert.ElementsMatch(t, num, m)
 	_, err = MapWithError[string, int](append(numStr, faker.Word(), "5"), strconv.Atoi)
+	require.Error(t, err)
+	_, err = MapRefWithError[string, int](append(numStr, faker.Word(), "5"), func(s *string) (*int, error) {
+		if s == nil {
+			return nil, commonerrors.ErrUndefined
+		}
+		n, err := strconv.Atoi(*s)
+		return &n, err
+	})
 	require.Error(t, err)
 
 	mappedInt := Map[int, int](num, IdentityMapFunc[int]())
@@ -247,12 +279,29 @@ func TestReduce(t *testing.T) {
 }
 
 func TestForEach(t *testing.T) {
-	var visited []int
 	list := Range(9, 1000, field.ToOptionalInt(13))
-	ForEachValues(func(i int) {
-		visited = append(visited, i)
-	}, list...)
-	assert.ElementsMatch(t, visited, list)
+	t.Run("each", func(t *testing.T) {
+		var visited []int
+		ForEachValues(func(i int) {
+			visited = append(visited, i)
+		}, list...)
+		assert.ElementsMatch(t, visited, list)
+	})
+	t.Run("foreachref", func(t *testing.T) {
+		var visited []int
+		ForEachRef(list, func(i *int) {
+			visited = append(visited, field.OptionalInt(i, 0))
+		})
+		assert.ElementsMatch(t, visited, list)
+	})
+	t.Run("eachref", func(t *testing.T) {
+		var visited []int
+		require.NoError(t, EachRef(slices.Values(list), func(i *int) error {
+			visited = append(visited, field.OptionalInt(i, 0))
+			return nil
+		}))
+		assert.ElementsMatch(t, visited, list)
+	})
 }
 
 func TestForEachSequence(t *testing.T) {
@@ -297,7 +346,30 @@ func TestForAll(t *testing.T) {
 		return nil
 	}))
 	assert.ElementsMatch(t, visited, []int{9, 22, 35, 48, 61, 74, 87, 100, 113, 126, 139, 152})
+	visited = []int{}
+	assert.NoError(t, ForAllRef(list, func(i *int) error {
+		n := field.OptionalInt(i, 0)
+		visited = append(visited, n)
+		if n > 150 {
+			return commonerrors.ErrEOF
+		}
+		return nil
+	}))
+	assert.ElementsMatch(t, visited, []int{9, 22, 35, 48, 61, 74, 87, 100, 113, 126, 139, 152})
+	visited = []int{}
+	assert.NoError(t, ForAllSequenceRef(slices.Values(list), func(i *int) error {
+		n := field.OptionalInt(i, 0)
+		visited = append(visited, n)
+		if n > 150 {
+			return commonerrors.ErrEOF
+		}
+		return nil
+	}))
+	assert.ElementsMatch(t, visited, []int{9, 22, 35, 48, 61, 74, 87, 100, 113, 126, 139, 152})
 	assert.NoError(t, ForAll(list, func(i int) error {
+		return nil
+	}))
+	assert.NoError(t, ForAllRef(list, func(i *int) error {
 		return nil
 	}))
 }
