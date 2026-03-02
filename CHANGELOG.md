@@ -14,6 +14,24 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.148.0" (2026-03-02)
+======================
+
+Features
+--------
+
+- [Git] Add SSH authentication support (#20260302141052)
+- [Git] Add `CheckAccess` function to test authentication (#20260302151325)
+- :sparkles: Added [ptr] module so it is easier to find utilities for pointers (#20260302161350)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: codeql-action-4.32.4 (#20260223120233)
+- Dependency upgrade: upload-artifact-7.0.0 (#20260227111322)
+
+
 "1.147.1" (2026-02-20)
 ======================
 
