@@ -14,6 +14,29 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.149.0" (2026-03-02)
+======================
+
+Features
+--------
+
+- :boom: Upgrade minimum supported go version to `1.24` (#20260302163000)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: oauth2-0.31.0 (#20250908102329, #20250908102331, #20260302171614)
+- Dependency upgrade: v4-4.6.2 (#20250915104942, #20260302171616)
+- Dependency upgrade: v4-4.25.10 (#20251103110324, #20260302174357)
+- Dependency upgrade: codeql-action-4.32.5 (#20260302120400)
+- Dependency upgrade: sync-0.17.0 (#20260302171536)
+- Dependency upgrade: sys-0.36.0 (#20260302171612)
+- Dependency upgrade: circl-1.6.3 (#20260302171617)
+- Dependency upgrade: crypto-0.42.0 (#20260302174100)
+- Dependency upgrade: setup-go-6 (#20260302175809)
+
+
 "1.148.0" (2026-03-02)
 ======================
 
