@@ -9,6 +9,7 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	git "github.com/go-git/go-git/v5"
+	gitconfig "github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"go.uber.org/atomic"
@@ -411,6 +412,31 @@ func (c *CloneObject) Checkout(gitOptions *GitActionConfig) (err error) {
 		Create: gitOptions.GetCreate(),
 	}
 	return worktree.Checkout(&checkoutOptions)
+}
+
+// CheckAccess verifies that the repository at gitOptions.URL is reachable and
+// that the credentials in gitOptions authenticate successfully, without
+// performing a clone. It does so by listing remote references, which requires
+// only network access and valid auth.
+func CheckAccess(ctx context.Context, gitOptions *GitActionConfig) error {
+	auth, err := gitOptions.ResolveAuth()
+	if err != nil {
+		return fmt.Errorf("could not resolve authentication for %q: %w", gitOptions.GetURL(), err)
+	}
+
+	rem := git.NewRemote(nil, &gitconfig.RemoteConfig{
+		Name: "origin",
+		URLs: []string{gitOptions.GetURL()},
+	})
+
+	_, err = rem.ListContext(ctx, &git.ListOptions{
+		Auth:            auth,
+		InsecureSkipTLS: false,
+	})
+	if err != nil {
+		return fmt.Errorf("repository access check failed for %q: %w", gitOptions.GetURL(), err)
+	}
+	return nil
 }
 
 // CloneWithLimits clones a repository with limits on the max tree depth, the max repository size, the max file count, the max individual file size, and the max entries
