@@ -1,7 +1,7 @@
 // Package ptr provides utilities for working with pointers.
 package ptr
 
-import "github.com/ARM-software/golang-utils/utils/reflection"
+import "github.com/ARM-software/golang-utils/utils/value"
 
 func To[T any](v T) *T {
 	return &v
@@ -12,7 +12,7 @@ func To[T any](v T) *T {
 // Emptiness is determined via utils/reflection.IsEmpty (e.g. "", whitespace-only strings, 0, false, nil,
 // empty slices/maps, etc.).
 func ToOrNilIfEmpty[T any](v T) *T {
-	if reflection.IsEmpty(v) {
+	if value.IsEmpty(v) {
 		return nil
 	}
 	return To[T](v)
