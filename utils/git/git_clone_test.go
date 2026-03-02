@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/units/multiplication"
 	"github.com/ARM-software/golang-utils/utils/units/size"
@@ -312,3 +313,47 @@ func TestCloneNonExistentRepo(t *testing.T) {
 //		require.NoError(t, err)
 //	})
 // }
+
+func TestCheckAccess(t *testing.T) {
+
+	tests := []struct {
+		name    string
+		cfg     GitActionConfig
+		wantErr bool
+	}{
+		{
+			name:    "public repo - no auth succeeds",
+			cfg:     NewGitActionConfig("https://github.com/Arm-Examples/Blinky_MIMXRT1064-EVK_RTX"),
+			wantErr: false,
+		},
+		{
+			name:    "non-existent repo - GitHub treats as private - auth error",
+			cfg:     NewGitActionConfig("https://github.com/Arm-Examples/Fake-Repo-That-Does-Not-Exist"),
+			wantErr: true,
+		},
+		{
+			name:    "invalid URL - network error",
+			cfg:     NewGitActionConfig("https://fake.invalid.example.com/repo"),
+			wantErr: true,
+		},
+	}
+	for i := range tests {
+		tc := tests[i]
+		t.Run(tc.name, func(t *testing.T) {
+			err := CheckAccess(context.Background(), &tc.cfg)
+			if tc.wantErr {
+				require.Error(t, err)
+				errortest.AssertError(t, err, commonerrors.ErrFailed, commonerrors.ErrInvalid)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestCheckAccessSSHKeyError(t *testing.T) {
+	// Does not require network: ResolveAuth fails before any network call
+	cfg := NewSSHGitActionConfig("git@github.com:Arm-Examples/Blinky_MIMXRT1064-EVK_RTX.git", "/nonexistent/id_rsa", "", "")
+	err := CheckAccess(context.Background(), &cfg)
+	errortest.AssertError(t, err, commonerrors.ErrFailed)
+}
