@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// package field provides utilities to set structure fields. It was inspired by the kubernetes package https://pkg.go.dev/k8s.io/utils/pointer.
+// Package field provides utilities to set structure fields. It was inspired by the kubernetes package https://pkg.go.dev/k8s.io/utils/pointer.
 package field
 
 import (
 	"fmt"
 	"time"
 
-	"github.com/ARM-software/golang-utils/utils/value"
+	"github.com/ARM-software/golang-utils/utils/ptr"
 )
 
 // ToOptionalInt returns a pointer to an int
@@ -220,25 +220,19 @@ func OptionalTime(ptr *time.Time, defaultValue time.Time) time.Time {
 	return Optional[time.Time](ptr, defaultValue)
 }
 
-// ToOptional returns a pointer to the given field value.
-func ToOptional[T any](v T) *T {
-	return &v
-}
-
 // ToOptionalOrNilIfEmpty returns a pointer to the given field value unless it is empty and in that case returns nil.
 func ToOptionalOrNilIfEmpty[T any](v T) *T {
-	if value.IsEmpty(v) {
-		return nil
-	}
-	return ToOptional[T](v)
+	return ptr.ToOrNilIfEmpty(v)
+}
+
+// ToOptional returns a pointer to the given field value.
+func ToOptional[T any](v T) *T {
+	return ptr.To[T](v)
 }
 
 // Optional  returns the value of an optional field or else returns defaultValue.
-func Optional[T any](ptr *T, defaultValue T) T {
-	if ptr != nil {
-		return *ptr
-	}
-	return defaultValue
+func Optional[T any](p *T, defaultValue T) T {
+	return ptr.FromOrDefault(p, defaultValue)
 }
 
 // Equal returns true if both arguments are nil or both arguments
