@@ -22,7 +22,7 @@ func killGroup(ctx context.Context, pid int32) (err error) {
 	if err != nil {
 		return
 	}
-	cmd := exec.CommandContext(ctx, "taskkill", "/f", "/t", "/pid", strconv.Itoa(int(pid)))
+	cmd := exec.CommandContext(ctx, "taskkill", "/f", "/t", "/pid", strconv.Itoa(int(pid))) //nolint:gosec
 	// setting the following to avoid having hanging subprocesses as described in https://github.com/golang/go/issues/24050
 	cmd.WaitDelay = 50 * time.Millisecond
 	err = ConvertProcessError(cmd.Run())

@@ -63,7 +63,7 @@ func TestJoin(t *testing.T) {
 	assert.True(t, Any(Join(ErrFailed, ErrMarshalling, ErrCancelled), ErrFailed))
 	assert.True(t, Any(Join(ErrFailed, ErrMarshalling, ErrCancelled), ErrCancelled))
 	assert.False(t, Any(Join(ErrFailed, ErrMarshalling, nil, ErrCancelled), nil))
-	assert.True(t, IsWarning(Join(ErrFailed, ErrMarshalling, NewWarningMessage(faker.Sentence()), ErrCancelled)))
+	assert.True(t, IsWarning(Join(ErrFailed, ErrMarshalling, NewWarningMessage("%s", faker.Sentence()), ErrCancelled)))
 	require.NoError(t, Join(nil, nil, nil))
 }
 
@@ -167,7 +167,7 @@ func TestRetrieveCommonError(t *testing.T) {
 
 func TestIsWarning(t *testing.T) {
 	assert.True(t, IsWarning(ErrWarning))
-	assert.True(t, IsWarning(NewWarningMessage(faker.Sentence())))
+	assert.True(t, IsWarning(NewWarningMessage("%s", faker.Sentence())))
 	assert.False(t, IsWarning(ErrUnexpected))
 	assert.False(t, IsWarning(nil))
 	assert.True(t, IsWarning(fmt.Errorf("%w: i am a warning", ErrWarning)))
@@ -278,15 +278,15 @@ func TestWrapError(t *testing.T) {
 	assert.True(t, Any(WrapError(ErrUndefined, context.Canceled, faker.Sentence()), ErrCancelled))
 	assert.True(t, Any(WrapError(ErrUndefined, ErrTimeout, faker.Sentence()), ErrTimeout))
 	assert.True(t, Any(WrapError(ErrUndefined, ErrCancelled, faker.Sentence()), ErrCancelled))
-	assert.True(t, Any(WrapErrorf(context.DeadlineExceeded, nil, faker.Sentence()), ErrTimeout))
+	assert.True(t, Any(WrapErrorf(context.DeadlineExceeded, nil, "%s", faker.Sentence()), ErrTimeout))
 	assert.True(t, Any(WrapError(context.Canceled, ErrConflict, faker.Sentence()), ErrCancelled))
 	assert.True(t, Any(WrapErrorf(context.DeadlineExceeded, nil, "%v this is a test %v", faker.Name(), faker.Word()), ErrTimeout))
 	assert.True(t, Any(Newf(context.DeadlineExceeded, "%v this is a test %v", faker.Name(), faker.Word()), ErrTimeout))
 	assert.True(t, Any(WrapIfNotCommonError(context.Canceled, ErrConflict, faker.Sentence()), ErrCancelled))
 	assert.True(t, Any(WrapIfNotCommonError(ErrUndefined, ErrConflict, faker.Sentence()), ErrConflict))
-	assert.True(t, Any(WrapIfNotCommonErrorf(ErrUndefined, ErrConflict, faker.Sentence()), ErrConflict))
+	assert.True(t, Any(WrapIfNotCommonErrorf(ErrUndefined, ErrConflict, "%s", faker.Sentence()), ErrConflict))
 	assert.True(t, Any(WrapIfNotCommonError(ErrUndefined, errors.New(faker.Sentence()), faker.Sentence()), ErrUndefined))
-	assert.True(t, Any(WrapIfNotCommonErrorf(ErrUndefined, errors.New(faker.Sentence()), faker.Sentence()), ErrUndefined))
+	assert.True(t, Any(WrapIfNotCommonErrorf(ErrUndefined, errors.New(faker.Sentence()), "%s", faker.Sentence()), ErrUndefined))
 }
 
 func TestDescribeCircumstance(t *testing.T) {

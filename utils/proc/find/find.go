@@ -9,7 +9,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/proc"
 )
 
-const numWorkers = 10
+const numWorkers = 10 //nolint:unused
 
 // FindProcessByRegex will search for the processes that match a specific regex
 func FindProcessByRegex(ctx context.Context, re *regexp.Regexp) (processes []proc.IProcess, err error) {
