@@ -79,7 +79,7 @@ func executeCommandAs(ctx context.Context, as *command.CommandAsDifferentUser, a
 		return commonerrors.UndefinedVariable("command to execute")
 	}
 	cmdName, cmdArgs := as.RedefineCommand(args...)
-	cmd := exec.CommandContext(ctx, cmdName, cmdArgs...)
+	cmd := exec.CommandContext(ctx, cmdName, cmdArgs...) //nolint:gosec
 	// setting the following to avoid having hanging subprocesses as described in https://github.com/golang/go/issues/24050
 	cmd.WaitDelay = 5 * time.Second
 	cmd, err := proc.DefineCmdCancel(cmd)
@@ -89,7 +89,7 @@ func executeCommandAs(ctx context.Context, as *command.CommandAsDifferentUser, a
 	return runCommand(args[0], cmd)
 }
 
-func executeCommand(ctx context.Context, args ...string) error {
+func executeCommand(ctx context.Context, args ...string) error { //nolint:unused
 	return executeCommandAs(ctx, WithPrivileges(command.Me()), args...)
 }
 
