@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/knownhosts"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/config"
 )
 
@@ -70,7 +71,7 @@ func (s *SSHAuthConfig) ToAuthMethod() (transport.AuthMethod, error) {
 
 	pkAuth, err := gitssh.NewPublicKeysFromFile(s.username(), s.PrivateKeyPath, s.PrivateKeyPassword)
 	if err != nil {
-		return nil, fmt.Errorf("failed to load SSH private key %q: %w", s.PrivateKeyPath, err)
+		return nil, fmt.Errorf("%w: failed to load SSH private key %q: %v", commonerrors.ErrInvalid, s.PrivateKeyPath, err)
 	}
 
 	if s.UseInsecureHostKey {
@@ -78,7 +79,7 @@ func (s *SSHAuthConfig) ToAuthMethod() (transport.AuthMethod, error) {
 	} else if s.KnownHostsFile != "" {
 		cb, cbErr := knownhosts.New(s.KnownHostsFile)
 		if cbErr != nil {
-			return nil, fmt.Errorf("failed to load known_hosts file %q: %w", s.KnownHostsFile, cbErr)
+			return nil, fmt.Errorf("%w: failed to load known_hosts file %q: %v", commonerrors.ErrInvalid, s.KnownHostsFile, cbErr)
 		}
 		pkAuth.HostKeyCallback = cb
 	}

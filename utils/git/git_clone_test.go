@@ -342,6 +342,7 @@ func TestCheckAccess(t *testing.T) {
 			err := CheckAccess(context.Background(), &tc.cfg)
 			if tc.wantErr {
 				require.Error(t, err)
+				assert.True(t, commonerrors.Any(err, commonerrors.ErrFailed, commonerrors.ErrInvalid))
 			} else {
 				require.NoError(t, err)
 			}
@@ -354,5 +355,5 @@ func TestCheckAccessSSHKeyError(t *testing.T) {
 	cfg := NewSSHGitActionConfig("git@github.com:Arm-Examples/Blinky_MIMXRT1064-EVK_RTX.git", "/nonexistent/id_rsa", "", "")
 	err := CheckAccess(context.Background(), &cfg)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "could not resolve authentication")
+	assert.True(t, commonerrors.Any(err, commonerrors.ErrInvalid))
 }
