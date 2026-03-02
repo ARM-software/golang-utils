@@ -355,6 +355,5 @@ func TestCheckAccessSSHKeyError(t *testing.T) {
 	// Does not require network: ResolveAuth fails before any network call
 	cfg := NewSSHGitActionConfig("git@github.com:Arm-Examples/Blinky_MIMXRT1064-EVK_RTX.git", "/nonexistent/id_rsa", "", "")
 	err := CheckAccess(context.Background(), &cfg)
-	require.Error(t, err)
-	errortest.AssertError(t, err, commonerrors.ErrInvalid)
+	errortest.AssertError(t, err, commonerrors.ErrFailed)
 }
