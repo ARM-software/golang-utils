@@ -14,24 +14,24 @@ SPDX-License-Identifier: Apache-2.0
 ![Scorecard](https://img.shields.io/ossf-scorecard/github.com/ARM-software/golang-utils?label=openssf%20scorecard&style=flat)
 
 ## Overview
- 
+
 This repository contains various helpers and utilities for Golang in order to do actions not available in the standard library.
 It was initially developed for numerous projects at Arm, including some running in production, in order to apply the DRY principle.
 
 Few helpers may be themselves leveraging 3rd party libraries.
- 
-*Maintainers:* @ARM-software/golang-utils-admin 
- 
+
+*Maintainers:* @ARM-software/golang-utils-admin
+
 ## Using this library
 
 To use this library, add the following line to your `go.mod`:
-```
+
+```go
 require (
     github.com/ARM-software/golang-utils/utils latest
     ...
 )
 ```
-
 
 ## Releases
 
@@ -47,7 +47,6 @@ The follow described the major aspects of the project structure:
 - `utils/` - Go project source files.
 - `changes/` - Collection of news files for unreleased changes.
 
-
 ## Getting Help
 
 - For interface definition and usage documentation, please see [GitHub Pages](https://arm-software.github.io/golang-utils).
@@ -60,7 +59,3 @@ The follow described the major aspects of the project structure:
   [Code of Conduct](CODE_OF_CONDUCT.md) for more information.
 - For ways to contribute to the project, please see the [Contributions Guidelines](CONTRIBUTING.md)
 - For a technical introduction into developing this package, please see the [Development Guide](DEVELOPMENT.md)
-
-
-
-
