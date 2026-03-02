@@ -1,8 +1,6 @@
 package git
 
 import (
-	"fmt"
-
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
@@ -13,6 +11,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/config"
+	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
 // SSHAuthConfig holds SSH-specific authentication configuration.
@@ -42,7 +41,7 @@ func (s *SSHAuthConfig) isConfigured() bool {
 }
 
 func (s *SSHAuthConfig) username() string {
-	if s.Username == "" {
+	if reflection.IsEmpty(s.Username) {
 		return "git"
 	}
 	return s.Username
@@ -71,7 +70,7 @@ func (s *SSHAuthConfig) ToAuthMethod() (transport.AuthMethod, error) {
 
 	pkAuth, err := gitssh.NewPublicKeysFromFile(s.username(), s.PrivateKeyPath, s.PrivateKeyPassword)
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed to load SSH private key %q: %v", commonerrors.ErrInvalid, s.PrivateKeyPath, err)
+		return nil, commonerrors.WrapErrorf(commonerrors.ErrInvalid, err, "failed to load SSH private key from %q", s.PrivateKeyPath)
 	}
 
 	if s.UseInsecureHostKey {
@@ -79,7 +78,7 @@ func (s *SSHAuthConfig) ToAuthMethod() (transport.AuthMethod, error) {
 	} else if s.KnownHostsFile != "" {
 		cb, cbErr := knownhosts.New(s.KnownHostsFile)
 		if cbErr != nil {
-			return nil, fmt.Errorf("%w: failed to load known_hosts file %q: %v", commonerrors.ErrInvalid, s.KnownHostsFile, cbErr)
+			return nil, commonerrors.WrapErrorf(commonerrors.ErrInvalid, cbErr, "failed to load known_hosts file %q", s.KnownHostsFile)
 		}
 		pkAuth.HostKeyCallback = cb
 	}

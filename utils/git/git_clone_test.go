@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/units/multiplication"
 	"github.com/ARM-software/golang-utils/utils/units/size"
@@ -342,7 +343,7 @@ func TestCheckAccess(t *testing.T) {
 			err := CheckAccess(context.Background(), &tc.cfg)
 			if tc.wantErr {
 				require.Error(t, err)
-				assert.True(t, commonerrors.Any(err, commonerrors.ErrFailed, commonerrors.ErrInvalid))
+				errortest.AssertError(t, err, commonerrors.ErrFailed, commonerrors.ErrInvalid)
 			} else {
 				require.NoError(t, err)
 			}
@@ -355,5 +356,5 @@ func TestCheckAccessSSHKeyError(t *testing.T) {
 	cfg := NewSSHGitActionConfig("git@github.com:Arm-Examples/Blinky_MIMXRT1064-EVK_RTX.git", "/nonexistent/id_rsa", "", "")
 	err := CheckAccess(context.Background(), &cfg)
 	require.Error(t, err)
-	assert.True(t, commonerrors.Any(err, commonerrors.ErrInvalid))
+	errortest.AssertError(t, err, commonerrors.ErrInvalid)
 }
