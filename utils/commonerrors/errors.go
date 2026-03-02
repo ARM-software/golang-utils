@@ -566,7 +566,7 @@ func WrapIfNotCommonErrorf(targetError, originalError error, msgFormat string, a
 
 // New is similar to errors.New or fmt.Errorf but creates an error of type targetError
 func New(targetError error, msg string) error {
-	return Errorf(targetError, msg)
+	return Errorf(targetError, "%s", msg)
 }
 
 // Newf is similar to New but allows to format the message
