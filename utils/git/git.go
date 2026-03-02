@@ -421,7 +421,7 @@ func (c *CloneObject) Checkout(gitOptions *GitActionConfig) (err error) {
 func CheckAccess(ctx context.Context, gitOptions *GitActionConfig) error {
 	auth, err := gitOptions.ResolveAuth()
 	if err != nil {
-		return fmt.Errorf("%w: could not resolve authentication for %q: %v", commonerrors.ErrInvalid, gitOptions.GetURL(), err)
+		return commonerrors.WrapErrorf(commonerrors.ErrFailed, err, "could not resolve authentication for %q", gitOptions.GetURL())
 	}
 
 	rem := git.NewRemote(nil, &gitconfig.RemoteConfig{
@@ -434,8 +434,9 @@ func CheckAccess(ctx context.Context, gitOptions *GitActionConfig) error {
 		InsecureSkipTLS: false,
 	})
 	if err != nil {
-		return fmt.Errorf("%w: repository access check failed for %q: %v", commonerrors.ErrFailed, gitOptions.GetURL(), err)
+		return commonerrors.WrapErrorf(commonerrors.ErrFailed, err, "repository access check failed for %q", gitOptions.GetURL())
 	}
+
 	return nil
 }
 

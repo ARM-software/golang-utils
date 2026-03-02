@@ -1,6 +1,6 @@
 module github.com/ARM-software/golang-utils/utils
 
-go 1.24
+go 1.23.0
 
 require (
 	github.com/DeRuina/timberjack v1.3.9
