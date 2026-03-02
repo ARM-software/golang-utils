@@ -29,7 +29,12 @@ type ILimits interface {
 type IGitActionConfig interface {
 	config.IServiceConfiguration
 	GetUrl() string
+	// GetAuth returns the HTTP basic-auth transport.AuthMethod.
 	GetAuth() transport.AuthMethod
+	// GetSSHAuth returns the SSH transport.AuthMethod, or (nil, nil) when SSH is not configured.
+	GetSSHAuth() (transport.AuthMethod, error)
+	// ResolveAuth returns whichever auth method is appropriate (SSH takes precedence over HTTP).
+	ResolveAuth() (transport.AuthMethod, error)
 	GetDepth() int
 	GetReference() string
 	GetRecursiveSubModules() git.SubmoduleRescursivity

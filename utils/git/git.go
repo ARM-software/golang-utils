@@ -268,10 +268,15 @@ func (c *CloneObject) Clone(ctx context.Context, path string, cfg *GitActionConf
 		recursiveSubModules = git.DefaultSubmoduleRecursionDepth
 	}
 
+	auth, err := cfg.ResolveAuth()
+	if err != nil {
+		return
+	}
+
 	c.repo, err = git.PlainCloneContext(ctx, path, false, &git.CloneOptions{
 		NoCheckout:        cfg.GetNoCheckout(),
 		URL:               cfg.GetURL(),
-		Auth:              cfg.GetAuth(),
+		Auth:              auth,
 		RemoteName:        "",
 		ReferenceName:     "",
 		SingleBranch:      false,
