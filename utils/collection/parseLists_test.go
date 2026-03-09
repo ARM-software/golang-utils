@@ -204,3 +204,61 @@ func TestConvertMapToCommaSeparatedListStable(t *testing.T) {
 		assert.Equal(t, expected, ConvertMapToOrderedCommaSeparatedList(testMap))
 	}
 }
+
+func TestConvertListOfPairsToMapWithMode(t *testing.T) {
+	for _, test := range []struct {
+		Name          string
+		Input         []string
+		PairSeparator string
+		Mode          PairSplitMode
+		Expected      map[string]string
+		Err           error
+	}{
+		{
+			Name:          "split first match keeps separators in value",
+			Input:         []string{"key:localhost:80", "name: test:value:with:separators"},
+			PairSeparator: ":",
+			Mode:          SplitFirstMatch,
+			Expected:      map[string]string{"key": "localhost:80", "name": "test:value:with:separators"},
+			Err:           nil,
+		},
+		{
+			Name:          "split first match skips fully blank pair",
+			Input:         []string{" = ", "hello=world"},
+			PairSeparator: "=",
+			Mode:          SplitFirstMatch,
+			Expected:      map[string]string{"hello": "world"},
+			Err:           nil,
+		},
+		{
+			Name:          "split all match rejects additional separators",
+			Input:         []string{"key:value=with=separator"},
+			PairSeparator: "=",
+			Mode:          SplitAllMatch,
+			Expected:      nil,
+			Err:           commonerrors.ErrInvalid,
+		},
+		{
+			Name:          "split first match missing separator returns error",
+			Input:         []string{"key-without-separator"},
+			PairSeparator: "=",
+			Mode:          SplitFirstMatch,
+			Expected:      nil,
+			Err:           commonerrors.ErrInvalid,
+		},
+		{
+			Name:          "empty input returns nil map and no error",
+			Input:         []string{},
+			PairSeparator: "=",
+			Mode:          SplitFirstMatch,
+			Expected:      nil,
+			Err:           nil,
+		},
+	} {
+		t.Run(test.Name, func(t *testing.T) {
+			pairs, err := ConvertListOfPairsToMapWithMode(test.Input, test.PairSeparator, test.Mode)
+			errortest.AssertError(t, err, test.Err)
+			assert.True(t, maps.Equal(test.Expected, pairs))
+		})
+	}
+}

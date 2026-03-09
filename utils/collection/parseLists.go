@@ -15,6 +15,13 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
+type PairSplitMode int
+
+const (
+	SplitAllMatch PairSplitMode = iota
+	SplitFirstMatch
+)
+
 func lineIsOnlyWhitespace(line string) bool {
 	for _, c := range line {
 		if !unicode.IsSpace(c) {
@@ -112,6 +119,41 @@ func ConvertListOfPairsToMap(input []string, pairSeparator string) (pairs map[st
 		}
 	}
 	return
+}
+
+// ConvertListOfPairsToMapWithMode returns a map of key value pairs from a string containing a comma separated list of pairs using pairSeparator to separate between keys and values
+// with the option to specify how to split the key and value only at the first occurrence of the pairSeparator, e.g. for input "key=value=with=separators" and pairSeparator "=", SplitFirstMatch will return {key: value=with=separators}
+// while SplitAllMatch will return {key: value, with: separators}
+func ConvertListOfPairsToMapWithMode(input []string, pairSeparator string, mode PairSplitMode) (map[string]string, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+	pairs := make(map[string]string, len(input))
+	for _, item := range input {
+		switch mode {
+		case SplitFirstMatch:
+			k, v, ok := strings.Cut(item, pairSeparator)
+			if !ok {
+				return nil, commonerrors.Newf(commonerrors.ErrInvalid, "could not parse key value pair '%v'", item)
+			}
+			k, v = strings.TrimSpace(k), strings.TrimSpace(v)
+			if k == "" && v == "" {
+				continue
+			}
+			pairs[k] = v
+		default:
+			pair := ParseListWithCleanup(item, pairSeparator)
+			switch len(pair) {
+			case 0:
+				continue
+			case 2:
+				pairs[pair[0]] = pair[1]
+			default:
+				return nil, commonerrors.Newf(commonerrors.ErrInvalid, "could not parse key value pair '%v'", item)
+			}
+		}
+	}
+	return pairs, nil
 }
 
 // ConvertSliceToCommaSeparatedList converts a slice into a string containing a coma separated list
