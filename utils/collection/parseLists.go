@@ -18,8 +18,14 @@ import (
 
 type PairSplitMode int
 
+//go:generate go run github.com/dmarkham/enumer -type=PairSplitMode -text -json -yaml
+
 const (
+	// SplitAllMatch splits each pair item on all matches of the separator.
+	// The item is valid only if it resolves to exactly two non-empty parts after cleanup.
 	SplitAllMatch PairSplitMode = iota
+	// SplitFirstMatch splits each pair item only on the first match of the separator.
+	// This allows separator characters to remain in the value portion.
 	SplitFirstMatch
 )
 
@@ -28,12 +34,14 @@ type PairOptions struct {
 	splitMode     PairSplitMode
 }
 
+// PairOption applies configuration to PairOptions for pair parsing behavior.
 type PairOption func(*PairOptions) *PairOptions
 
 func defaultPairOptions() *PairOptions {
 	return &PairOptions{PairSeparator: ":", splitMode: SplitAllMatch}
 }
 
+// WithPairSeparator sets the separator used to split key/value pair entries.
 func WithPairSeparator(sep string) PairOption {
 	return func(opts *PairOptions) *PairOptions {
 		opts.PairSeparator = sep
@@ -41,6 +49,7 @@ func WithPairSeparator(sep string) PairOption {
 	}
 }
 
+// WithPairSplitMode sets how a pair entry is split into key and value.
 func WithPairSplitMode(mode PairSplitMode) PairOption {
 	return func(opts *PairOptions) *PairOptions {
 		opts.splitMode = mode

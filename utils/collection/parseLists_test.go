@@ -182,12 +182,12 @@ func TestParseCommaSeparatedPairListToMap(t *testing.T) {
 		{"Normal 11", ConvertMapToCommaSeparatedPairsList[string, string](randomMap, "/"), randomMap, nil, "/"},
 		{"Normal 12", ConvertMapToCommaSeparatedPairsList[string, string](randomMap, "  "), randomMap, nil, "  "},
 		{"Normal 13", ConvertMapToOrderedCommaSeparatedList[string, string](randomMap), randomMap, nil, ","},
-		{"Bad 1", "one", nil, commonerrors.ErrInvalid, "+"},
-		{"Bad 1", "one, two, three", nil, commonerrors.ErrInvalid, "+"},
-		{"Bad 2", "one element with spaces", nil, commonerrors.ErrInvalid, "+"},
-		{"Bad 3", "one element with spaces and end comma,", nil, commonerrors.ErrInvalid, "+"},
-		{"Bad 4", "one element with spaces and multiple end commas,,,", nil, commonerrors.ErrInvalid, "+"},
-		{"Bad 5", ",,,one element with spaces and multiple end/beginning commas,,,", nil, commonerrors.ErrInvalid, "="},
+		{"Bad 1", "one", nil, commonerrors.ErrMarshalling, "+"},
+		{"Bad 1", "one, two, three", nil, commonerrors.ErrMarshalling, "+"},
+		{"Bad 2", "one element with spaces", nil, commonerrors.ErrMarshalling, "+"},
+		{"Bad 3", "one element with spaces and end comma,", nil, commonerrors.ErrMarshalling, "+"},
+		{"Bad 4", "one element with spaces and multiple end commas,,,", nil, commonerrors.ErrMarshalling, "+"},
+		{"Bad 5", ",,,one element with spaces and multiple end/beginning commas,,,", nil, commonerrors.ErrMarshalling, "="},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			pairs, err := ParseCommaSeparatedListOfPairsToMap(test.Input, test.PairSeparator)
@@ -205,7 +205,7 @@ func TestConvertMapToCommaSeparatedListStable(t *testing.T) {
 	}
 }
 
-func TestConvertListOfPairsToMap(t *testing.T) {
+func TestConvertListOfPairsToMapWithOptions(t *testing.T) {
 	for _, test := range []struct {
 		Name          string
 		Input         []string
@@ -236,7 +236,7 @@ func TestConvertListOfPairsToMap(t *testing.T) {
 			PairSeparator: "=",
 			Mode:          SplitAllMatch,
 			Expected:      nil,
-			Err:           commonerrors.ErrInvalid,
+			Err:           commonerrors.ErrMarshalling,
 		},
 		{
 			Name:          "split first match missing separator returns error",
@@ -244,7 +244,7 @@ func TestConvertListOfPairsToMap(t *testing.T) {
 			PairSeparator: "=",
 			Mode:          SplitFirstMatch,
 			Expected:      nil,
-			Err:           commonerrors.ErrInvalid,
+			Err:           commonerrors.ErrMarshalling,
 		},
 		{
 			Name:          "empty input returns nil map and no error",
