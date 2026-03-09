@@ -22,6 +22,27 @@ const (
 	SplitFirstMatch
 )
 
+type PairOptions struct {
+	PairSeparator string
+	splitMode     PairSplitMode
+}
+
+type PairOption func(*PairOptions) *PairOptions
+
+func WithPairSeparator(sep string) PairOption {
+	return func(opts *PairOptions) *PairOptions {
+		opts.PairSeparator = sep
+		return opts
+	}
+}
+
+func WithPairSplitMode(mode PairSplitMode) PairOption {
+	return func(opts *PairOptions) *PairOptions {
+		opts.splitMode = mode
+		return opts
+	}
+}
+
 func lineIsOnlyWhitespace(line string) bool {
 	for _, c := range line {
 		if !unicode.IsSpace(c) {
@@ -97,63 +118,48 @@ func ParseCommaSeparatedListOfPairsToMap(input, pairSeparator string) (pairs map
 		pairs, err = ParseCommaSeparatedListToMap(input)
 		return
 	}
-	pairs, err = ConvertListOfPairsToMap(ParseCommaSeparatedList(input), pairSeparator)
+	pairs, err = ConvertListOfPairsToMap(ParseCommaSeparatedList(input), WithPairSeparator(pairSeparator))
 	return
 }
 
-func ConvertListOfPairsToMap(input []string, pairSeparator string) (pairs map[string]string, err error) {
+func ConvertListOfPairsToMap(input []string, opts ...PairOption) (pairs map[string]string, err error) {
 	if len(input) == 0 {
 		return
 	}
-	pairs = make(map[string]string, len(input))
-	for i := range input {
-		pair := ParseListWithCleanup(input[i], pairSeparator)
-		switch len(pair) {
-		case 0:
-			continue
-		case 2:
-			pairs[pair[0]] = pair[1]
-		default:
-			err = commonerrors.Newf(commonerrors.ErrInvalid, "could not parse key value pair '%v'", input[i])
-			return
-		}
-	}
-	return
-}
+	options := &PairOptions{PairSeparator: ":", splitMode: SplitAllMatch}
 
-// ConvertListOfPairsToMapWithMode returns a map of key value pairs from a string containing a comma separated list of pairs using pairSeparator to separate between keys and values
-// with the option to specify how to split the key and value only at the first occurrence of the pairSeparator, e.g. for input "key=value=with=separators" and pairSeparator "=", SplitFirstMatch will return {key: value=with=separators}
-// while SplitAllMatch will return {key: value, with: separators}
-func ConvertListOfPairsToMapWithMode(input []string, pairSeparator string, mode PairSplitMode) (map[string]string, error) {
-	if len(input) == 0 {
-		return nil, nil
+	for _, opt := range opts {
+		options = opt(options)
 	}
-	pairs := make(map[string]string, len(input))
-	for _, item := range input {
-		switch mode {
+
+	pairs = make(map[string]string, len(input))
+	err = ForAll(input, func(item string) error {
+		switch options.splitMode {
 		case SplitFirstMatch:
-			k, v, ok := strings.Cut(item, pairSeparator)
+			k, v, ok := strings.Cut(item, options.PairSeparator)
 			if !ok {
-				return nil, commonerrors.Newf(commonerrors.ErrInvalid, "could not parse key value pair '%v'", item)
+				return commonerrors.Newf(commonerrors.ErrInvalid, "could not parse key value pair '%v'", item)
 			}
 			k, v = strings.TrimSpace(k), strings.TrimSpace(v)
 			if k == "" && v == "" {
-				continue
+				return nil
 			}
 			pairs[k] = v
+			return nil
 		default:
-			pair := ParseListWithCleanup(item, pairSeparator)
+			pair := ParseListWithCleanup(item, options.PairSeparator)
 			switch len(pair) {
 			case 0:
-				continue
+				return nil
 			case 2:
 				pairs[pair[0]] = pair[1]
+				return nil
 			default:
-				return nil, commonerrors.Newf(commonerrors.ErrInvalid, "could not parse key value pair '%v'", item)
+				return commonerrors.Newf(commonerrors.ErrInvalid, "could not parse key value pair '%v'", item)
 			}
 		}
-	}
-	return pairs, nil
+	})
+	return
 }
 
 // ConvertSliceToCommaSeparatedList converts a slice into a string containing a coma separated list

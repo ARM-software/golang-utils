@@ -205,7 +205,7 @@ func TestConvertMapToCommaSeparatedListStable(t *testing.T) {
 	}
 }
 
-func TestConvertListOfPairsToMapWithMode(t *testing.T) {
+func TestConvertListOfPairsToMap(t *testing.T) {
 	for _, test := range []struct {
 		Name          string
 		Input         []string
@@ -256,7 +256,7 @@ func TestConvertListOfPairsToMapWithMode(t *testing.T) {
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
-			pairs, err := ConvertListOfPairsToMapWithMode(test.Input, test.PairSeparator, test.Mode)
+			pairs, err := ConvertListOfPairsToMap(test.Input, WithPairSeparator(test.PairSeparator), WithPairSplitMode(test.Mode))
 			errortest.AssertError(t, err, test.Err)
 			assert.True(t, maps.Equal(test.Expected, pairs))
 		})
