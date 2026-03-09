@@ -91,6 +91,7 @@ func (c *Cache) Fetch(ctx context.Context, key string, destFilesystem filesystem
 	}
 
 	cpCtx, stop := context.WithCancel(ctx)
+	defer stop()
 	c.cancelStore.RegisterCancelFunction(stop)
 
 	entry := c.entries.Load(key)
@@ -183,8 +184,14 @@ func NewGenericFileCache(ctx context.Context, cacheFilesystem filesystem.FS, ent
 	}
 
 	cancelStore := parallelisation.NewCancelFunctionsStore()
-	gcCtx, stop := context.WithCancel(ctx)
+	gcCtx, stop := context.WithCancel(ctx) //nolint:gosec // cancel is intentionally delegated to cancelStore and invoked on cache.Close()
 	cancelStore.RegisterCancelFunction(stop)
+	cleanup := true
+	defer func() {
+		if cleanup {
+			stop()
+		}
+	}()
 
 	if err := cacheFilesystem.MkDirAll(config.CachePath, 0755); err != nil {
 		return nil, err
@@ -204,6 +211,7 @@ func NewGenericFileCache(ctx context.Context, cacheFilesystem filesystem.FS, ent
 	}
 
 	parallelisation.SafeSchedule(gcCtx, cache.cfg.GarbageCollectionPeriod, 0, cache.gc)
+	cleanup = false
 
 	return cache, nil
 }

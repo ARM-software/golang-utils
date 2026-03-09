@@ -585,6 +585,7 @@ func TestFileCache_Concurent_Caches(t *testing.T) {
 		require.NoError(t, fs.MkDir(tmpCacheDir))
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 		config := DefaultFileCacheConfig()
 		config.CachePath = tmpCacheDir
 		cache, err := NewFsFileCache(ctx, fs, fs, tmpSrcDir, config)
@@ -593,7 +594,6 @@ func TestFileCache_Concurent_Caches(t *testing.T) {
 		defer func() {
 			err = cache.Close(ctx)
 			require.NoError(t, err)
-			cancel()
 		}()
 
 		for _, path := range evictSrcContent {
@@ -666,6 +666,7 @@ func TestFileCache_Concurent_Caches(t *testing.T) {
 		require.NoError(t, err)
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 		config := DefaultFileCacheConfig()
 		config.CachePath = tmpCacheDir
 		cache, err := NewFsFileCache(ctx, fs, fs, tmpSrcDir, config)
@@ -674,7 +675,6 @@ func TestFileCache_Concurent_Caches(t *testing.T) {
 		defer func() {
 			err = cache.Close(ctx)
 			require.NoError(t, err)
-			cancel()
 		}()
 
 		err = cache.Store(ctx, testFileName)

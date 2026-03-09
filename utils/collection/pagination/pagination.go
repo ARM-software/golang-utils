@@ -140,6 +140,10 @@ func NewAbstractPaginator(ctx context.Context, firstPage IStaticPage, fetchNextF
 		ctx:               cancelCtx,
 	}
 	err = p.setCurrentPage(firstPage)
+	if err != nil {
+		cancel()
+		return nil, err
+	}
 	return
 }
 

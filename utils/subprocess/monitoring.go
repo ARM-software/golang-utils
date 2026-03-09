@@ -67,7 +67,7 @@ func (s *subprocessMonitoring) RunMonitoring(stopProcess func() error) {
 
 func (s *subprocessMonitoring) Reset() {
 	s.monitoringStopping.Store(false)
-	subctx, cancelFunc := context.WithCancel(s.parentCtx)
+	subctx, cancelFunc := context.WithCancel(s.parentCtx) //nolint:gosec // cancellation is intentionally delegated to cancelStore and invoked by CancelSubprocess
 	s.cancellableCtx.Store(subctx)
 	s.cancelStore.RegisterCancelFunction(cancelFunc)
 }
