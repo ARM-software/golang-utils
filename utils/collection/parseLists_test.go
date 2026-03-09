@@ -256,7 +256,7 @@ func TestConvertListOfPairsToMap(t *testing.T) {
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
-			pairs, err := ConvertListOfPairsToMap(test.Input, WithPairSeparator(test.PairSeparator), WithPairSplitMode(test.Mode))
+			pairs, err := ConvertListOfPairsToMapWithOptions(test.Input, WithPairSeparator(test.PairSeparator), WithPairSplitMode(test.Mode))
 			errortest.AssertError(t, err, test.Err)
 			assert.True(t, maps.Equal(test.Expected, pairs))
 		})

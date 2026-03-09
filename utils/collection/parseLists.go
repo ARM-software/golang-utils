@@ -13,6 +13,7 @@ import (
 	"unicode"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
 type PairSplitMode int
@@ -28,6 +29,10 @@ type PairOptions struct {
 }
 
 type PairOption func(*PairOptions) *PairOptions
+
+func defaultPairOptions() *PairOptions {
+	return &PairOptions{PairSeparator: ":", splitMode: SplitAllMatch}
+}
 
 func WithPairSeparator(sep string) PairOption {
 	return func(opts *PairOptions) *PairOptions {
@@ -118,15 +123,19 @@ func ParseCommaSeparatedListOfPairsToMap(input, pairSeparator string) (pairs map
 		pairs, err = ParseCommaSeparatedListToMap(input)
 		return
 	}
-	pairs, err = ConvertListOfPairsToMap(ParseCommaSeparatedList(input), WithPairSeparator(pairSeparator))
+	pairs, err = ConvertListOfPairsToMap(ParseCommaSeparatedList(input), pairSeparator)
 	return
 }
 
-func ConvertListOfPairsToMap(input []string, opts ...PairOption) (pairs map[string]string, err error) {
+func ConvertListOfPairsToMap(input []string, pairSeparator string) (pairs map[string]string, err error) {
+	return ConvertListOfPairsToMapWithOptions(input, WithPairSeparator(pairSeparator))
+}
+
+func ConvertListOfPairsToMapWithOptions(input []string, opts ...PairOption) (pairs map[string]string, err error) {
 	if len(input) == 0 {
 		return
 	}
-	options := &PairOptions{PairSeparator: ":", splitMode: SplitAllMatch}
+	options := defaultPairOptions()
 
 	for _, opt := range opts {
 		options = opt(options)
@@ -138,10 +147,10 @@ func ConvertListOfPairsToMap(input []string, opts ...PairOption) (pairs map[stri
 		case SplitFirstMatch:
 			k, v, ok := strings.Cut(item, options.PairSeparator)
 			if !ok {
-				return commonerrors.Newf(commonerrors.ErrInvalid, "could not parse key value pair '%v'", item)
+				return commonerrors.Newf(commonerrors.ErrMarshalling, "could not parse key value pair '%v'", item)
 			}
 			k, v = strings.TrimSpace(k), strings.TrimSpace(v)
-			if k == "" && v == "" {
+			if reflection.IsEmpty(k) {
 				return nil
 			}
 			pairs[k] = v
@@ -155,7 +164,7 @@ func ConvertListOfPairsToMap(input []string, opts ...PairOption) (pairs map[stri
 				pairs[pair[0]] = pair[1]
 				return nil
 			default:
-				return commonerrors.Newf(commonerrors.ErrInvalid, "could not parse key value pair '%v'", item)
+				return commonerrors.Newf(commonerrors.ErrMarshalling, "could not parse key value pair '%v'", item)
 			}
 		}
 	})
