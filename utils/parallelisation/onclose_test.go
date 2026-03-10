@@ -105,14 +105,14 @@ func TestCloseOnce(t *testing.T) {
 func TestCancelOnClose(t *testing.T) {
 	t.Run("parallel", func(t *testing.T) {
 		closeStore := NewCloseFunctionStoreStore(true)
+		//nolint:gosec // G118: cancel is stored and invoked by cancellationStore via Stop()/Close().
 		ctx1, cancel := context.WithCancel(context.Background())
-		defer cancel()
 		closeStore.RegisterCancelFunction(cancel)
+		//nolint:gosec // G118: cancel is stored and invoked by cancellationStore via Stop()/Close().
 		ctx2, cancel := context.WithCancel(context.Background())
-		defer cancel()
 		closeStore.RegisterCancelFunction(cancel)
+		//nolint:gosec // G118: cancel is stored and invoked by cancellationStore via Stop()/Close().
 		ctx3, cancel := context.WithCancel(context.Background())
-		defer cancel()
 		closeStore.RegisterCancelFunction(cancel)
 		assert.Equal(t, 3, closeStore.Len())
 		require.NoError(t, DetermineContextError(ctx1))
@@ -125,14 +125,14 @@ func TestCancelOnClose(t *testing.T) {
 	})
 	t.Run("sequentially", func(t *testing.T) {
 		closeStore := NewCloseFunctionStore(StopOnFirstError, Sequential)
+		//nolint:gosec // G118: cancel is stored and invoked by cancellationStore via Stop()/Close().
 		ctx1, cancel := context.WithCancel(context.Background())
-		defer cancel()
 		closeStore.RegisterCancelFunction(cancel)
+		//nolint:gosec // G118: cancel is stored and invoked by cancellationStore via Stop()/Close().
 		ctx2, cancel := context.WithCancel(context.Background())
-		defer cancel()
 		closeStore.RegisterCancelFunction(cancel)
+		//nolint:gosec // G118: cancel is stored and invoked by cancellationStore via Stop()/Close().
 		ctx3, cancel := context.WithCancel(context.Background())
-		defer cancel()
 		closeStore.RegisterCancelFunction(cancel)
 		assert.Equal(t, 3, closeStore.Len())
 		require.NoError(t, DetermineContextError(ctx1))
@@ -145,14 +145,11 @@ func TestCancelOnClose(t *testing.T) {
 	})
 	t.Run("reverse", func(t *testing.T) {
 		closeStore := NewCloseFunctionStore(StopOnFirstError, SequentialInReverse)
-		ctx1, cancel := context.WithCancel(context.Background())
-		defer cancel()
+		ctx1, cancel := context.WithCancel(context.Background()) //nolint:gosec // cancellation is intentionally delegated to closeStore
 		closeStore.RegisterCancelFunction(cancel)
-		ctx2, cancel := context.WithCancel(context.Background())
-		defer cancel()
+		ctx2, cancel := context.WithCancel(context.Background()) //nolint:gosec // cancellation is intentionally delegated to closeStore
 		closeStore.RegisterCancelFunction(cancel)
-		ctx3, cancel := context.WithCancel(context.Background())
-		defer cancel()
+		ctx3, cancel := context.WithCancel(context.Background()) //nolint:gosec // cancellation is intentionally delegated to closeStore
 		closeStore.RegisterCancelFunction(cancel)
 		assert.Equal(t, 3, closeStore.Len())
 		require.NoError(t, DetermineContextError(ctx1))
@@ -178,14 +175,14 @@ func TestSequentialExecution(t *testing.T) {
 			opt := test.option(DefaultOptions())
 			t.Run("sequentially", func(t *testing.T) {
 				closeStore := NewCloseFunctionStore(test.option, Sequential)
+				//nolint:gosec // G118: cancel is stored and invoked by cancellationStore via Stop()/Close().
 				ctx1, cancel1 := context.WithCancel(context.Background())
-				defer cancel1()
 				closeStore.RegisterCloseFunction(func() error { cancel1(); return DetermineContextError(ctx1) })
 				ctx2, cancel2 := context.WithCancel(context.Background())
-				defer cancel2()
+				//nolint:gosec // G118: cancel is stored and invoked by cancellationStore via Stop()/Close().
 				closeStore.RegisterCloseFunction(func() error { cancel2(); return DetermineContextError(ctx2) })
+				//nolint:gosec // G118: cancel is stored and invoked by cancellationStore via Stop()/Close().
 				ctx3, cancel3 := context.WithCancel(context.Background())
-				defer cancel3()
 				closeStore.RegisterCloseFunction(func() error { cancel3(); return DetermineContextError(ctx3) })
 				assert.Equal(t, 3, closeStore.Len())
 				require.NoError(t, DetermineContextError(ctx1))
@@ -205,14 +202,14 @@ func TestSequentialExecution(t *testing.T) {
 			})
 			t.Run("clone", func(t *testing.T) {
 				closeStore := NewCloseFunctionStore(test.option, Sequential)
+				//nolint:gosec // G118: cancel is stored and invoked by cancellationStore via Stop()/Close().
 				ctx1, cancel1 := context.WithCancel(context.Background())
-				defer cancel1()
 				closeStore.RegisterCloseFunction(func() error { cancel1(); return DetermineContextError(ctx1) })
+				//nolint:gosec // G118: cancel is stored and invoked by cancellationStore via Stop()/Close().
 				ctx2, cancel2 := context.WithCancel(context.Background())
-				defer cancel2()
 				closeStore.RegisterCloseFunction(func() error { cancel2(); return DetermineContextError(ctx2) })
+				//nolint:gosec // G118: cancel is stored and invoked by cancellationStore via Stop()/Close().
 				ctx3, cancel3 := context.WithCancel(context.Background())
-				defer cancel3()
 				closeStore.RegisterCloseFunction(func() error { cancel3(); return DetermineContextError(ctx3) })
 				assert.Equal(t, 3, closeStore.Len())
 				clone := closeStore.Clone()
@@ -237,14 +234,14 @@ func TestSequentialExecution(t *testing.T) {
 			})
 			t.Run("reverse", func(t *testing.T) {
 				closeStore := NewCloseFunctionStore(test.option, SequentialInReverse)
+				//nolint:gosec // G118: cancel is stored and invoked by cancellationStore via Stop()/Close().
 				ctx1, cancel1 := context.WithCancel(context.Background())
-				defer cancel1()
 				closeStore.RegisterCloseFunction(func() error { cancel1(); return DetermineContextError(ctx1) })
+				//nolint:gosec // G118: cancel is stored and invoked by cancellationStore via Stop()/Close().
 				ctx2, cancel2 := context.WithCancel(context.Background())
-				defer cancel2()
 				closeStore.RegisterCloseFunction(func() error { cancel2(); return DetermineContextError(ctx2) })
+				//nolint:gosec // G118: cancel is stored and invoked by cancellationStore via Stop()/Close().
 				ctx3, cancel3 := context.WithCancel(context.Background())
-				defer cancel3()
 				closeStore.RegisterCloseFunction(func() error { cancel3(); return DetermineContextError(ctx3) })
 				assert.Equal(t, 3, closeStore.Len())
 				require.NoError(t, DetermineContextError(ctx1))

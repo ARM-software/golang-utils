@@ -34,7 +34,7 @@ type PairOptions struct {
 	splitMode     PairSplitMode
 }
 
-// PairOption applies configuration to PairOptions for pair parsing behavior.
+// PairOption applies configuration to PairOptions for pair parsing behaviour.
 type PairOption func(*PairOptions) *PairOptions
 
 func defaultPairOptions() *PairOptions {
