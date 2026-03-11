@@ -157,12 +157,10 @@ func (l *RemoteLockFile) TryLock(ctx context.Context) (err error) {
 	// there will be a context for cancelling update status when unlock is called
 	// the status file will update the file (modtime) until told to cancel through ctx
 	heartBeatFilePath := l.heartBeatFile(lockPath)
-	subctx, cancelFunc := context.WithCancel(ctx) //nolint:gosec // cancel is intentionally delegated to cancelStore and invoked on unlock/cancel path
+	//nolint:gosec // G118: cancel is stored and invoked by cancellationStore via Stop()/Close().
+	subctx, cancelFunc := context.WithCancel(ctx)
 	l.cancelStore.RegisterCancelFunction(cancelFunc)
-	go func() {
-		defer cancelFunc()
-		heartBeat(subctx, l.fs, l.lockHeartBeatPeriod, heartBeatFilePath)
-	}()
+	go heartBeat(subctx, l.fs, l.lockHeartBeatPeriod, heartBeatFilePath)
 	return nil
 }
 
