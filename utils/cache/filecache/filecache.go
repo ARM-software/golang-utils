@@ -90,7 +90,7 @@ func (c *Cache) Fetch(ctx context.Context, key string, destFilesystem filesystem
 		return commonerrors.Newf(commonerrors.ErrNotFound, "cache entry for '%s' not found", key)
 	}
 
-	cpCtx, stop := context.WithCancel(ctx)
+	cpCtx, stop := context.WithCancel(ctx) //nolint:gosec // cancellation is intentionally delegated to cancelStore and invoked on cache.Close()
 	c.cancelStore.RegisterCancelFunction(stop)
 
 	entry := c.entries.Load(key)
@@ -183,7 +183,7 @@ func NewGenericFileCache(ctx context.Context, cacheFilesystem filesystem.FS, ent
 	}
 
 	cancelStore := parallelisation.NewCancelFunctionsStore()
-	gcCtx, stop := context.WithCancel(ctx)
+	gcCtx, stop := context.WithCancel(ctx) //nolint:gosec // cancel is intentionally delegated to cancelStore and invoked on cache.Close()
 	cancelStore.RegisterCancelFunction(stop)
 
 	if err := cacheFilesystem.MkDirAll(config.CachePath, 0755); err != nil {

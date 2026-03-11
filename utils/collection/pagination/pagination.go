@@ -131,6 +131,7 @@ func (a *AbstractPaginator) GetContext() context.Context {
 
 func NewAbstractPaginator(ctx context.Context, firstPage IStaticPage, fetchNextFunc func(context.Context, IStaticPage) (IStaticPage, error)) (p *AbstractPaginator, err error) {
 	store := parallelisation.NewCancelFunctionsStore()
+	//nolint:gosec // G118: cancel is stored and invoked by cancellationStore via Stop()/Close().
 	cancelCtx, cancel := context.WithCancel(ctx)
 
 	store.RegisterCancelFunction(cancel)
