@@ -18,7 +18,7 @@ import (
 
 type PairSplitMode int
 
-//go:generate go run github.com/dmarkham/enumer -type=PairSplitMode -text -json -yaml
+//go:generate go tool enumer -type=PairSplitMode -text -json -yaml
 
 const (
 	// SplitAllMatch splits each pair item on all matches of the separator.
