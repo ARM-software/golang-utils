@@ -14,6 +14,16 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.150.1" (2026-03-13)
+======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: go-deadlock-0.3.7 (#20260309114844)
+- Dependency upgrade: timberjack-1.4.0 (#20260311111227)
+
+
 "1.150.0" (2026-03-11)
 ======================
 
