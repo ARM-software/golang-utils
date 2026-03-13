@@ -14,6 +14,33 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.150.1" (2026-03-13)
+======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: go-deadlock-0.3.7 (#20260309114844)
+- Dependency upgrade: timberjack-1.4.0 (#20260311111227)
+
+
+"1.150.0" (2026-03-11)
+======================
+
+Features
+--------
+
+- :sparkles: `[collection]` Split-mode parsing support for list-of-pairs conversion, allowing splitting at either the first occurrence or all occurrences of separators. (#20260309024542)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v5-5.17.0 (#20260303111321)
+- Dependency upgrade: v2-2.5.0 (#20260303111327)
+- Dependency upgrade: logrus-1.9.4 (#20260303111331)
+
+
 "1.149.0" (2026-03-02)
 ======================
 

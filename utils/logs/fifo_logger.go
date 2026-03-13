@@ -33,7 +33,7 @@ func newLoggerAlerter(logs Loggers) diodes.Alerter {
 }
 
 func newFIFODiode(ctx context.Context, ringBufferSize int, pollingPeriod time.Duration, droppedMessagesLogger Loggers) *fifoDiode {
-	dCtx, cancel := context.WithCancel(ctx)
+	dCtx, cancel := context.WithCancel(ctx) //nolint:gosec // cancellation is intentionally delegated to cancelStore and invoked by Close
 	cancelStore := parallelisation.NewCancelFunctionsStore()
 	cancelStore.RegisterCancelFunction(cancel)
 	return &fifoDiode{

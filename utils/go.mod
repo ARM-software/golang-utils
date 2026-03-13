@@ -1,11 +1,9 @@
 module github.com/ARM-software/golang-utils/utils
 
-go 1.24.0
-
-toolchain go1.24.1
+go 1.25
 
 require (
-	github.com/DeRuina/timberjack v1.3.9
+	github.com/DeRuina/timberjack v1.4.0
 	github.com/OneOfOne/xxhash v1.2.8
 	github.com/avast/retry-go/v4 v4.7.0
 	github.com/bmatcuk/doublestar/v3 v3.0.0
@@ -34,7 +32,7 @@ require (
 	github.com/perimeterx/marshmallow v1.1.5
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5
 	github.com/rs/zerolog v1.34.0
-	github.com/sasha-s/go-deadlock v0.3.6
+	github.com/sasha-s/go-deadlock v0.3.7
 	github.com/shirou/gopsutil/v4 v4.26.2
 	github.com/sirupsen/logrus v1.9.4
 	github.com/spaolacci/murmur3 v1.1.0
@@ -67,7 +65,7 @@ require (
 	github.com/cyphar/filepath-securejoin v0.4.1 // indirect
 	github.com/danieljoos/wincred v1.2.2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/dmarkham/enumer v1.5.11 // indirect
+	github.com/dmarkham/enumer v1.6.3 // indirect
 	github.com/ebitengine/purego v0.10.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fatih/color v1.16.0 // indirect
