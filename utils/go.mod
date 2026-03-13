@@ -1,6 +1,6 @@
 module github.com/ARM-software/golang-utils/utils
 
-go 1.25
+go 1.25.0
 
 require (
 	github.com/DeRuina/timberjack v1.4.0
@@ -51,7 +51,7 @@ require (
 	golang.org/x/net v0.49.0
 	golang.org/x/oauth2 v0.35.0
 	golang.org/x/sync v0.19.0
-	golang.org/x/sys v0.41.0
+	golang.org/x/sys v0.42.0
 	golang.org/x/text v0.34.0
 )
 
