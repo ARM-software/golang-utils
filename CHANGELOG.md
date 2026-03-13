@@ -14,6 +14,28 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.151.0" (2026-03-13)
+======================
+
+Features
+--------
+
+- :boom: Upgrade supported go version to `1.25` to apply security patches in dependencies (#20260313141203)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: codeql-action-4.32.6 (#20260306111440)
+- Dependency upgrade: sys-0.42.0 (#20260313144058)
+- Dependency upgrade: oauth2-0.36.0 (#20260313144137)
+- Dependency upgrade: sync-0.20.0 (#20260313145939)
+- Dependency upgrade: text-0.35.0 (#20260313150328)
+- Dependency upgrade: crypto-0.49.0 (#20260313150557)
+- Dependency upgrade: net-0.44.0 (#20260313150626)
+- Dependency upgrade: mod-0.28.0 (#20260313150813)
+
+
 "1.150.1" (2026-03-13)
 ======================
 
