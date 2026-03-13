@@ -3,7 +3,7 @@ module github.com/ARM-software/golang-utils/utils
 go 1.24.1
 
 require (
-	github.com/DeRuina/timberjack v1.3.9
+	github.com/DeRuina/timberjack v1.4.0
 	github.com/OneOfOne/xxhash v1.2.8
 	github.com/avast/retry-go/v4 v4.7.0
 	github.com/bmatcuk/doublestar/v3 v3.0.0
