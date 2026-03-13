@@ -13,7 +13,49 @@ import (
 	"unicode"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/reflection"
 )
+
+type PairSplitMode int
+
+//go:generate go tool enumer -type=PairSplitMode -text -json -yaml
+
+const (
+	// SplitAllMatch splits each pair item on all matches of the separator.
+	// The item is valid only if it resolves to exactly two non-empty parts after cleanup.
+	SplitAllMatch PairSplitMode = iota
+	// SplitFirstMatch splits each pair item only on the first match of the separator.
+	// This allows separator characters to remain in the value portion.
+	SplitFirstMatch
+)
+
+type PairOptions struct {
+	PairSeparator string
+	splitMode     PairSplitMode
+}
+
+// PairOption applies configuration to PairOptions for pair parsing behaviour.
+type PairOption func(*PairOptions) *PairOptions
+
+func defaultPairOptions() *PairOptions {
+	return &PairOptions{PairSeparator: ":", splitMode: SplitAllMatch}
+}
+
+// WithPairSeparator sets the separator used to split key/value pair entries.
+func WithPairSeparator(sep string) PairOption {
+	return func(opts *PairOptions) *PairOptions {
+		opts.PairSeparator = sep
+		return opts
+	}
+}
+
+// WithPairSplitMode sets how a pair entry is split into key and value.
+func WithPairSplitMode(mode PairSplitMode) PairOption {
+	return func(opts *PairOptions) *PairOptions {
+		opts.splitMode = mode
+		return opts
+	}
+}
 
 func lineIsOnlyWhitespace(line string) bool {
 	for _, c := range line {
@@ -95,22 +137,46 @@ func ParseCommaSeparatedListOfPairsToMap(input, pairSeparator string) (pairs map
 }
 
 func ConvertListOfPairsToMap(input []string, pairSeparator string) (pairs map[string]string, err error) {
+	return ConvertListOfPairsToMapWithOptions(input, WithPairSeparator(pairSeparator))
+}
+
+func ConvertListOfPairsToMapWithOptions(input []string, opts ...PairOption) (pairs map[string]string, err error) {
 	if len(input) == 0 {
 		return
 	}
-	pairs = make(map[string]string, len(input))
-	for i := range input {
-		pair := ParseListWithCleanup(input[i], pairSeparator)
-		switch len(pair) {
-		case 0:
-			continue
-		case 2:
-			pairs[pair[0]] = pair[1]
-		default:
-			err = commonerrors.Newf(commonerrors.ErrInvalid, "could not parse key value pair '%v'", input[i])
-			return
-		}
+	options := defaultPairOptions()
+
+	for _, opt := range opts {
+		options = opt(options)
 	}
+
+	pairs = make(map[string]string, len(input))
+	err = ForAll(input, func(item string) error {
+		switch options.splitMode {
+		case SplitFirstMatch:
+			k, v, ok := strings.Cut(item, options.PairSeparator)
+			if !ok {
+				return commonerrors.Newf(commonerrors.ErrMarshalling, "could not parse key value pair '%v'", item)
+			}
+			k, v = strings.TrimSpace(k), strings.TrimSpace(v)
+			if reflection.IsEmpty(k) {
+				return nil
+			}
+			pairs[k] = v
+			return nil
+		default:
+			pair := ParseListWithCleanup(item, options.PairSeparator)
+			switch len(pair) {
+			case 0:
+				return nil
+			case 2:
+				pairs[pair[0]] = pair[1]
+				return nil
+			default:
+				return commonerrors.Newf(commonerrors.ErrMarshalling, "could not parse key value pair '%v'", item)
+			}
+		}
+	})
 	return
 }
 

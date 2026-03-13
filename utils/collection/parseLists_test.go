@@ -182,12 +182,12 @@ func TestParseCommaSeparatedPairListToMap(t *testing.T) {
 		{"Normal 11", ConvertMapToCommaSeparatedPairsList[string, string](randomMap, "/"), randomMap, nil, "/"},
 		{"Normal 12", ConvertMapToCommaSeparatedPairsList[string, string](randomMap, "  "), randomMap, nil, "  "},
 		{"Normal 13", ConvertMapToOrderedCommaSeparatedList[string, string](randomMap), randomMap, nil, ","},
-		{"Bad 1", "one", nil, commonerrors.ErrInvalid, "+"},
-		{"Bad 1", "one, two, three", nil, commonerrors.ErrInvalid, "+"},
-		{"Bad 2", "one element with spaces", nil, commonerrors.ErrInvalid, "+"},
-		{"Bad 3", "one element with spaces and end comma,", nil, commonerrors.ErrInvalid, "+"},
-		{"Bad 4", "one element with spaces and multiple end commas,,,", nil, commonerrors.ErrInvalid, "+"},
-		{"Bad 5", ",,,one element with spaces and multiple end/beginning commas,,,", nil, commonerrors.ErrInvalid, "="},
+		{"Bad 1", "one", nil, commonerrors.ErrMarshalling, "+"},
+		{"Bad 1", "one, two, three", nil, commonerrors.ErrMarshalling, "+"},
+		{"Bad 2", "one element with spaces", nil, commonerrors.ErrMarshalling, "+"},
+		{"Bad 3", "one element with spaces and end comma,", nil, commonerrors.ErrMarshalling, "+"},
+		{"Bad 4", "one element with spaces and multiple end commas,,,", nil, commonerrors.ErrMarshalling, "+"},
+		{"Bad 5", ",,,one element with spaces and multiple end/beginning commas,,,", nil, commonerrors.ErrMarshalling, "="},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			pairs, err := ParseCommaSeparatedListOfPairsToMap(test.Input, test.PairSeparator)
@@ -202,5 +202,63 @@ func TestConvertMapToCommaSeparatedListStable(t *testing.T) {
 	expected := "adrien,cabarbaye,apple,pie,fish,cake,hello,world"
 	for range 100 {
 		assert.Equal(t, expected, ConvertMapToOrderedCommaSeparatedList(testMap))
+	}
+}
+
+func TestConvertListOfPairsToMapWithOptions(t *testing.T) {
+	for _, test := range []struct {
+		Name          string
+		Input         []string
+		PairSeparator string
+		Mode          PairSplitMode
+		Expected      map[string]string
+		Err           error
+	}{
+		{
+			Name:          "split first match keeps separators in value",
+			Input:         []string{"key:localhost:80", "name: test:value:with:separators"},
+			PairSeparator: ":",
+			Mode:          SplitFirstMatch,
+			Expected:      map[string]string{"key": "localhost:80", "name": "test:value:with:separators"},
+			Err:           nil,
+		},
+		{
+			Name:          "split first match skips fully blank pair",
+			Input:         []string{" = ", "hello=world"},
+			PairSeparator: "=",
+			Mode:          SplitFirstMatch,
+			Expected:      map[string]string{"hello": "world"},
+			Err:           nil,
+		},
+		{
+			Name:          "split all match rejects additional separators",
+			Input:         []string{"key:value=with=separator"},
+			PairSeparator: "=",
+			Mode:          SplitAllMatch,
+			Expected:      nil,
+			Err:           commonerrors.ErrMarshalling,
+		},
+		{
+			Name:          "split first match missing separator returns error",
+			Input:         []string{"key-without-separator"},
+			PairSeparator: "=",
+			Mode:          SplitFirstMatch,
+			Expected:      nil,
+			Err:           commonerrors.ErrMarshalling,
+		},
+		{
+			Name:          "empty input returns nil map and no error",
+			Input:         []string{},
+			PairSeparator: "=",
+			Mode:          SplitFirstMatch,
+			Expected:      nil,
+			Err:           nil,
+		},
+	} {
+		t.Run(test.Name, func(t *testing.T) {
+			pairs, err := ConvertListOfPairsToMapWithOptions(test.Input, WithPairSeparator(test.PairSeparator), WithPairSplitMode(test.Mode))
+			errortest.AssertError(t, err, test.Err)
+			assert.True(t, maps.Equal(test.Expected, pairs))
+		})
 	}
 }
