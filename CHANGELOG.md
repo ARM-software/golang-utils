@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.152.0" (2026-03-13)
+======================
+
+Features
+--------
+
+- :sparkles: Introduced package `[licensing]` in order to provide helpers regarding licence management (#20260313122127)
+
+
 "1.151.0" (2026-03-13)
 ======================
 
