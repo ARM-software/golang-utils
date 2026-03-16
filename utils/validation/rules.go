@@ -1,3 +1,15 @@
+// Package validation provides additional validation rules built on top of
+// ozzo-validation and its `is` helpers.
+//
+// It extends the standard rule set with reusable and project-specific
+// validators while remaining fully compatible with the ozzo-validation API.
+//
+// Upstream projects:
+//   - ozzo-validation: https://github.com/go-ozzo/ozzo-validation
+//   - ozzo-validation/is: https://github.com/go-ozzo/ozzo-validation/tree/master/is
+//
+// Documentation:
+//   - https://go-ozzo.github.io/ozzo-validation/
 package validation
 
 import (
