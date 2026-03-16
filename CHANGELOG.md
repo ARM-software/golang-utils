@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.153.0" (2026-03-16)
+======================
+
+Features
+--------
+
+- :sparkles: [validation] Add logical rule set for ozzo rules (#20260316165348)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: codeql-action-4.33.0 (#20260316113247)
+
+
 "1.152.0" (2026-03-13)
 ======================
 
