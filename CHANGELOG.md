@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.155.0" (2026-03-18)
+======================
+
+Features
+--------
+
+- :sparkles: `[field]` Add a utility to set an optional field to nil if empty (#20260318100334)
+
+
 "1.154.0" (2026-03-18)
 ======================
 
