@@ -27,7 +27,10 @@ type INumber interface {
 	IInteger | IFloat
 }
 
-// IConvertable is an alias for everything that can be converted
-type IConvertable interface {
+// IConvertible is an alias for everything that can be converted
+type IConvertible interface {
 	INumber
 }
+
+// Deprecated: IConvertable is an alias for IConvertible. Use IConvertible instead
+type IConvertable = IConvertible
