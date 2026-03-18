@@ -8,22 +8,22 @@ import (
 )
 
 // CastFunc defines a function that converts a value of type F to type T,
-// where both types satisfy [IConvertable].
-type CastFunc[F, T IConvertable] func(F) T
+// where both types satisfy [IConvertible].
+type CastFunc[F, T IConvertible] func(F) T
 
-// Cast converts an [IConvertable] value to another [IConvertable] type
+// Cast converts an [IConvertible] value to another [IConvertible] type
 // using the supplied conversion function.
-func Cast[F, T IConvertable](i F, f CastFunc[F, T]) T {
+func Cast[F, T IConvertible](i F, f CastFunc[F, T]) T {
 	return f(i)
 }
 
-// RobustCast converts an [IConvertable] value to the target type T by
+// RobustCast converts an [IConvertible] value to the target type T by
 // dispatching to the appropriate safe helper for T.
 //
 // Conversions to bounded integer and float32 types use the corresponding
 // helper, so out-of-range values are clamped to the nearest valid boundary.
 // If types are not supported, an error is returned.
-func RobustCast[F, T IConvertable](i F) (c T, err error) {
+func RobustCast[F, T IConvertible](i F) (c T, err error) {
 	var zero T
 
 	switch any(zero).(type) {
@@ -57,21 +57,21 @@ func RobustCast[F, T IConvertable](i F) (c T, err error) {
 	return
 }
 
-// CastRef converts a reference to an [IConvertable] value to a reference
-// to another [IConvertable] type using the supplied conversion function.
+// CastRef converts a reference to an [IConvertible] value to a reference
+// to another [IConvertible] type using the supplied conversion function.
 // A nil input returns nil.
-func CastRef[F, T IConvertable](i *F, f CastFunc[F, T]) *T {
+func CastRef[F, T IConvertible](i *F, f CastFunc[F, T]) *T {
 	if i == nil {
 		return nil
 	}
 	return ptr.To(Cast[F, T](ptr.From(i), f))
 }
 
-// RobustCastRef converts a reference to an [IConvertable] value to a reference
+// RobustCastRef converts a reference to an [IConvertible] value to a reference
 // to the target type T by dispatching to the appropriate safe helper for T.
 // A nil input returns nil.
 // If types are not supported, an error is returned.
-func RobustCastRef[F, T IConvertable](i *F) (c *T, err error) {
+func RobustCastRef[F, T IConvertible](i *F) (c *T, err error) {
 	if i == nil {
 		c = nil
 		return
@@ -85,10 +85,10 @@ func RobustCastRef[F, T IConvertable](i *F) (c *T, err error) {
 	return
 }
 
-// ToInt attempts to convert an [IConvertable] value to an int.
+// ToInt attempts to convert an [IConvertible] value to an int.
 // If the converted value falls outside the range of int,
 // the nearest boundary value is returned instead.
-func ToInt[C IConvertable](i C) int {
+func ToInt[C IConvertible](i C) int {
 	if lessThanLowerBoundary(i, math.MinInt) {
 		return math.MinInt
 	}
@@ -98,16 +98,16 @@ func ToInt[C IConvertable](i C) int {
 	return int(i)
 }
 
-// ToIntRef attempts to convert a reference to an [IConvertable] value
+// ToIntRef attempts to convert a reference to an [IConvertible] value
 // to a reference to an int. A nil input returns nil.
-func ToIntRef[C IConvertable](i *C) *int {
+func ToIntRef[C IConvertible](i *C) *int {
 	return CastRef(i, ToInt[C])
 }
 
-// ToUint attempts to convert an [IConvertable] value to a uint.
+// ToUint attempts to convert an [IConvertible] value to a uint.
 // If the converted value falls outside the range of uint,
 // the nearest boundary value is returned instead.
-func ToUint[C IConvertable](i C) uint {
+func ToUint[C IConvertible](i C) uint {
 	if lessThanLowerBoundary(i, uint(0)) {
 		return 0
 	}
@@ -117,16 +117,16 @@ func ToUint[C IConvertable](i C) uint {
 	return uint(i)
 }
 
-// ToUintRef attempts to convert a reference to an [IConvertable] value
+// ToUintRef attempts to convert a reference to an [IConvertible] value
 // to a reference to a uint. A nil input returns nil.
-func ToUintRef[C IConvertable](i *C) *uint {
+func ToUintRef[C IConvertible](i *C) *uint {
 	return CastRef(i, ToUint[C])
 }
 
-// ToInt8 attempts to convert an [IConvertable] value to an int8.
+// ToInt8 attempts to convert an [IConvertible] value to an int8.
 // If the converted value falls outside the range of int8,
 // the nearest boundary value is returned instead.
-func ToInt8[C IConvertable](i C) int8 {
+func ToInt8[C IConvertible](i C) int8 {
 	if lessThanLowerBoundary(i, math.MinInt8) {
 		return math.MinInt8
 	}
@@ -136,16 +136,16 @@ func ToInt8[C IConvertable](i C) int8 {
 	return int8(i)
 }
 
-// ToInt8Ref attempts to convert a reference to an [IConvertable] value
+// ToInt8Ref attempts to convert a reference to an [IConvertible] value
 // to a reference to an int8. A nil input returns nil.
-func ToInt8Ref[C IConvertable](i *C) *int8 {
+func ToInt8Ref[C IConvertible](i *C) *int8 {
 	return CastRef(i, ToInt8[C])
 }
 
-// ToUint8 attempts to convert an [IConvertable] value to a uint8.
+// ToUint8 attempts to convert an [IConvertible] value to a uint8.
 // If the converted value falls outside the range of uint8,
 // the nearest boundary value is returned instead.
-func ToUint8[C IConvertable](i C) uint8 {
+func ToUint8[C IConvertible](i C) uint8 {
 	if lessThanLowerBoundary(i, 0) {
 		return 0
 	}
@@ -155,16 +155,16 @@ func ToUint8[C IConvertable](i C) uint8 {
 	return uint8(i)
 }
 
-// ToUint8Ref attempts to convert a reference to an [IConvertable] value
+// ToUint8Ref attempts to convert a reference to an [IConvertible] value
 // to a reference to a uint8. A nil input returns nil.
-func ToUint8Ref[C IConvertable](i *C) *uint8 {
+func ToUint8Ref[C IConvertible](i *C) *uint8 {
 	return CastRef(i, ToUint8[C])
 }
 
-// ToInt16 attempts to convert an [IConvertable] value to an int16.
+// ToInt16 attempts to convert an [IConvertible] value to an int16.
 // If the converted value falls outside the range of int16,
 // the nearest boundary value is returned instead.
-func ToInt16[C IConvertable](i C) int16 {
+func ToInt16[C IConvertible](i C) int16 {
 	if lessThanLowerBoundary(i, math.MinInt16) {
 		return math.MinInt16
 	}
@@ -174,16 +174,16 @@ func ToInt16[C IConvertable](i C) int16 {
 	return int16(i)
 }
 
-// ToInt16Ref attempts to convert a reference to an [IConvertable] value
+// ToInt16Ref attempts to convert a reference to an [IConvertible] value
 // to a reference to an int16. A nil input returns nil.
-func ToInt16Ref[C IConvertable](i *C) *int16 {
+func ToInt16Ref[C IConvertible](i *C) *int16 {
 	return CastRef(i, ToInt16[C])
 }
 
-// ToUint16 attempts to convert an [IConvertable] value to a uint16.
+// ToUint16 attempts to convert an [IConvertible] value to a uint16.
 // If the converted value falls outside the range of uint16,
 // the nearest boundary value is returned instead.
-func ToUint16[C IConvertable](i C) uint16 {
+func ToUint16[C IConvertible](i C) uint16 {
 	if lessThanLowerBoundary(i, 0) {
 		return 0
 	}
@@ -193,16 +193,16 @@ func ToUint16[C IConvertable](i C) uint16 {
 	return uint16(i)
 }
 
-// ToUint16Ref attempts to convert a reference to an [IConvertable] value
+// ToUint16Ref attempts to convert a reference to an [IConvertible] value
 // to a reference to a uint16. A nil input returns nil.
-func ToUint16Ref[C IConvertable](i *C) *uint16 {
+func ToUint16Ref[C IConvertible](i *C) *uint16 {
 	return CastRef(i, ToUint16[C])
 }
 
-// ToInt32 attempts to convert an [IConvertable] value to an int32.
+// ToInt32 attempts to convert an [IConvertible] value to an int32.
 // If the converted value falls outside the range of int32,
 // the nearest boundary value is returned instead.
-func ToInt32[C IConvertable](i C) int32 {
+func ToInt32[C IConvertible](i C) int32 {
 	if lessThanLowerBoundary(i, math.MinInt32) {
 		return math.MinInt32
 	}
@@ -212,16 +212,16 @@ func ToInt32[C IConvertable](i C) int32 {
 	return int32(i)
 }
 
-// ToInt32Ref attempts to convert a reference to an [IConvertable] value
+// ToInt32Ref attempts to convert a reference to an [IConvertible] value
 // to a reference to an int32. A nil input returns nil.
-func ToInt32Ref[C IConvertable](i *C) *int32 {
+func ToInt32Ref[C IConvertible](i *C) *int32 {
 	return CastRef(i, ToInt32[C])
 }
 
-// ToUint32 attempts to convert an [IConvertable] value to a uint32.
+// ToUint32 attempts to convert an [IConvertible] value to a uint32.
 // If the converted value falls outside the range of uint32,
 // the nearest boundary value is returned instead.
-func ToUint32[C IConvertable](i C) uint32 {
+func ToUint32[C IConvertible](i C) uint32 {
 	if lessThanLowerBoundary(i, 0) {
 		return 0
 	}
@@ -231,16 +231,16 @@ func ToUint32[C IConvertable](i C) uint32 {
 	return uint32(i)
 }
 
-// ToUint32Ref attempts to convert a reference to an [IConvertable] value
+// ToUint32Ref attempts to convert a reference to an [IConvertible] value
 // to a reference to a uint32. A nil input returns nil.
-func ToUint32Ref[C IConvertable](i *C) *uint32 {
+func ToUint32Ref[C IConvertible](i *C) *uint32 {
 	return CastRef(i, ToUint32[C])
 }
 
-// ToInt64 attempts to convert an [IConvertable] value to an int64.
+// ToInt64 attempts to convert an [IConvertible] value to an int64.
 // If the converted value falls outside the range of int64,
 // the nearest boundary value is returned instead.
-func ToInt64[C IConvertable](i C) int64 {
+func ToInt64[C IConvertible](i C) int64 {
 	if lessThanLowerBoundary(i, math.MinInt64) {
 		return math.MinInt64
 	}
@@ -250,16 +250,16 @@ func ToInt64[C IConvertable](i C) int64 {
 	return int64(i)
 }
 
-// ToInt64Ref attempts to convert a reference to an [IConvertable] value
+// ToInt64Ref attempts to convert a reference to an [IConvertible] value
 // to a reference to an int64. A nil input returns nil.
-func ToInt64Ref[C IConvertable](i *C) *int64 {
+func ToInt64Ref[C IConvertible](i *C) *int64 {
 	return CastRef(i, ToInt64[C])
 }
 
-// ToUint64 attempts to convert an [IConvertable] value to a uint64.
+// ToUint64 attempts to convert an [IConvertible] value to a uint64.
 // If the converted value falls outside the range of uint64,
 // the nearest boundary value is returned instead.
-func ToUint64[C IConvertable](i C) uint64 {
+func ToUint64[C IConvertible](i C) uint64 {
 	if lessThanLowerBoundary(i, uint64(0)) {
 		return 0
 	}
@@ -269,27 +269,27 @@ func ToUint64[C IConvertable](i C) uint64 {
 	return uint64(i)
 }
 
-// ToUint64Ref attempts to convert a reference to an [IConvertable] value
+// ToUint64Ref attempts to convert a reference to an [IConvertible] value
 // to a reference to a uint64. A nil input returns nil.
-func ToUint64Ref[C IConvertable](i *C) *uint64 {
+func ToUint64Ref[C IConvertible](i *C) *uint64 {
 	return CastRef(i, ToUint64[C])
 }
 
-// ToFloat64 attempts to convert an [IConvertable] value to a float64.
-func ToFloat64[C IConvertable](i C) float64 {
+// ToFloat64 attempts to convert an [IConvertible] value to a float64.
+func ToFloat64[C IConvertible](i C) float64 {
 	return float64(i)
 }
 
-// ToFloat64Ref attempts to convert a reference to an [IConvertable] value
+// ToFloat64Ref attempts to convert a reference to an [IConvertible] value
 // to a reference to a float64. A nil input returns nil.
-func ToFloat64Ref[C IConvertable](i *C) *float64 {
+func ToFloat64Ref[C IConvertible](i *C) *float64 {
 	return CastRef(i, ToFloat64[C])
 }
 
-// ToFloat32 attempts to convert an [IConvertable] value to a float32.
+// ToFloat32 attempts to convert an [IConvertible] value to a float32.
 // If the converted value falls outside the range of float32,
 // the nearest boundary value is returned instead.
-func ToFloat32[C IConvertable](i C) float32 {
+func ToFloat32[C IConvertible](i C) float32 {
 	if lessThanLowerBoundary(i, -math.MaxFloat32) || math.IsInf(float64(i), -1) {
 		return -math.MaxFloat32
 	}
@@ -299,8 +299,8 @@ func ToFloat32[C IConvertable](i C) float32 {
 	return float32(i)
 }
 
-// ToFloat32Ref attempts to convert a reference to an [IConvertable] value
+// ToFloat32Ref attempts to convert a reference to an [IConvertible] value
 // to a reference to a float32. A nil input returns nil.
-func ToFloat32Ref[C IConvertable](i *C) *float32 {
+func ToFloat32Ref[C IConvertible](i *C) *float32 {
 	return CastRef(i, ToFloat32[C])
 }

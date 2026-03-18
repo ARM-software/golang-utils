@@ -11,7 +11,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/ptr"
 )
 
-type testCase[C1 IConvertable, C2 IConvertable] struct {
+type testCase[C1 IConvertible, C2 IConvertible] struct {
 	name         string
 	ctype        string
 	value        C1
@@ -609,7 +609,7 @@ func TestCastingToInt(t *testing.T) {
 	})
 }
 
-type robustCastTestCase[F IConvertable, T IConvertable] struct {
+type robustCastTestCase[F IConvertible, T IConvertible] struct {
 	name         string
 	ctype        string
 	value        F

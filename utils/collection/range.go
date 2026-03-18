@@ -7,14 +7,14 @@ import (
 	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
-func sign[T safecast.IConvertable](x T) int64 {
+func sign[T safecast.IConvertible](x T) int64 {
 	if x < 0 {
 		return -1
 	}
 	return 1
 }
 
-func determineRangeLength[T safecast.IConvertable](start, stop, step T) (length int) {
+func determineRangeLength[T safecast.IConvertible](start, stop, step T) (length int) {
 	if (step > 0 && start < stop) || (step < 0 && start > stop) {
 		length = safecast.ToInt((safecast.ToInt64(stop-start+step) - sign(step)) / safecast.ToInt64(step))
 	}
@@ -25,7 +25,7 @@ func determineRangeLength[T safecast.IConvertable](start, stop, step T) (length 
 // https://docs.python.org/2/library/functions.html#range
 //
 //	Note: The stop value is always exclusive.
-func Range[T safecast.IConvertable](start, stop T, step *T) (result []T) {
+func Range[T safecast.IConvertible](start, stop T, step *T) (result []T) {
 	it, length := rangeSequence(start, stop, step)
 	result = make([]T, length)
 	i := 0
@@ -37,12 +37,12 @@ func Range[T safecast.IConvertable](start, stop T, step *T) (result []T) {
 }
 
 // RangeSequence returns an iterator over a range
-func RangeSequence[T safecast.IConvertable](start, stop T, step *T) iter.Seq[T] {
+func RangeSequence[T safecast.IConvertible](start, stop T, step *T) iter.Seq[T] {
 	it, _ := rangeSequence(start, stop, step)
 	return it
 }
 
-func rangeSequence[T safecast.IConvertable](start, stop T, step *T) (it iter.Seq[T], length int) {
+func rangeSequence[T safecast.IConvertible](start, stop T, step *T) (it iter.Seq[T], length int) {
 	s := field.Optional[T](step, 1)
 	if s == 0 {
 		it = func(yield func(T) bool) {}

@@ -12,7 +12,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
-func testRange[T safecast.IConvertable](t *testing.T, start, stop T, step *T, expected []T) {
+func testRange[T safecast.IConvertible](t *testing.T, start, stop T, step *T, expected []T) {
 	t.Helper()
 	assert.Equal(t, expected, Range[T](start, stop, step))
 	if reflection.IsEmpty(expected) {

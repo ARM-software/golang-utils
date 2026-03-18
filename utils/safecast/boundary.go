@@ -1,6 +1,6 @@
 package safecast
 
-func greaterThanUpperBoundary[C1 IConvertable, C2 IConvertable](value C1, upperBoundary C2) (greater bool) {
+func greaterThanUpperBoundary[C1 IConvertible, C2 IConvertible](value C1, upperBoundary C2) (greater bool) {
 	if value <= 0 {
 		return
 	}
@@ -18,7 +18,7 @@ func greaterThanUpperBoundary[C1 IConvertable, C2 IConvertable](value C1, upperB
 	return
 }
 
-func lessThanLowerBoundary[T IConvertable, T2 IConvertable](value T, boundary T2) (lower bool) {
+func lessThanLowerBoundary[T IConvertible, T2 IConvertible](value T, boundary T2) (lower bool) {
 	if value >= 0 {
 		return
 	}
