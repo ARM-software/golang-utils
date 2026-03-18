@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.154.0" (2026-03-18)
+======================
+
+Features
+--------
+
+- :sparkles: `[safecast]` Adds safe numeric cast helpers, including generic value and reference casting, with clamping (#20260317181439)
+
+
 "1.153.0" (2026-03-16)
 ======================
 
