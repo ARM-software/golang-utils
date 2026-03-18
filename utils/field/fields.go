@@ -225,6 +225,11 @@ func ToOptionalOrNilIfEmpty[T any](v T) *T {
 	return ptr.ToOrNilIfEmpty(v)
 }
 
+// NilIfEmpty returns the given pointer unless it is empty and in that case returns nil. It is similar to ToOptionalOrNilIfEmpty but works on reference.
+func NilIfEmpty[T any](v *T) *T {
+	return ptr.NilIfEmpty(v)
+}
+
 // ToOptional returns a pointer to the given field value.
 func ToOptional[T any](v T) *T {
 	return ptr.To[T](v)

@@ -122,6 +122,20 @@ func (mr *MockIActionIdentifierMockRecorder) GetNamespace() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNamespace", reflect.TypeOf((*MockIActionIdentifier)(nil).GetNamespace))
 }
 
+// String mocks base method.
+func (m *MockIActionIdentifier) String() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "String")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// String indicates an expected call of String.
+func (mr *MockIActionIdentifierMockRecorder) String() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "String", reflect.TypeOf((*MockIActionIdentifier)(nil).String))
+}
+
 // MockITransactionStep is a mock of ITransactionStep interface.
 type MockITransactionStep struct {
 	ctrl     *gomock.Controller

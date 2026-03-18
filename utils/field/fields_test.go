@@ -296,6 +296,11 @@ func TestOptionalField(t *testing.T) {
 	}
 }
 
+func TestOptionalField_Nil(t *testing.T) {
+	var test int
+	assert.Nil(t, NilIfEmpty(&test))
+}
+
 func TestEqual(t *testing.T) {
 	type T int
 	assert.True(t, Equal[T](nil, nil))
