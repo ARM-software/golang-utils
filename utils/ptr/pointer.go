@@ -12,10 +12,15 @@ func To[T any](v T) *T {
 // Emptiness is determined via utils/reflection.IsEmpty (e.g. "", whitespace-only strings, 0, false, nil,
 // empty slices/maps, etc.).
 func ToOrNilIfEmpty[T any](v T) *T {
+	return NilIfEmpty(To[T](v))
+}
+
+// NilIfEmpty returns v if v is not considered empty; otherwise it returns nil.
+func NilIfEmpty[T any](v *T) *T {
 	if value.IsEmpty(v) {
 		return nil
 	}
-	return To[T](v)
+	return v
 }
 
 // From returns the value pointed to by v.
