@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.155.1" (2026-04-01)
+======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: go-deadlock-0.3.8 (#20260318111151)
+- Dependency upgrade: go-deadlock-0.3.9 (#20260319111313)
+- Dependency upgrade: codeql-action-4.34.1 (#20260323112752)
+- Dependency upgrade: fetch-metadata-3.0.0 (#20260327111335)
+- Dependency upgrade: v5-5.17.1 (#20260330105540)
+- Dependency upgrade: zerolog-1.35.0 (#20260330105546)
+- Dependency upgrade: go-keyring-0.2.7 (#20260401093311)
+- Dependency upgrade: spdx-0.1.2 (#20260401093438)
+
+
 "1.155.0" (2026-03-18)
 ======================
 
