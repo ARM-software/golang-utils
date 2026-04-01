@@ -14,6 +14,23 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.156.0" (2026-04-01)
+======================
+
+Features
+--------
+
+- :sparkles: [`collection`] Add matching helpers for collection lookups that can be used in `switch` statements. (#20260401153128)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: v5-5.17.2 (#20260401114251)
+- Dependency upgrade: v4-4.26.3 (#20260401114259)
+- Dependency upgrade: codeql-action-4.35.1 (#20260401114422)
+
+
 "1.155.1" (2026-04-01)
 ======================
 
