@@ -12,7 +12,7 @@ require (
 	github.com/djherbis/times v1.6.0
 	github.com/dolmen-go/contextio v1.0.0
 	github.com/evanphx/hclogr v0.2.0
-	github.com/git-pkgs/spdx v0.1.1
+	github.com/git-pkgs/spdx v0.1.2
 	github.com/go-faker/faker/v4 v4.7.0
 	github.com/go-git/go-git/v5 v5.17.1
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
