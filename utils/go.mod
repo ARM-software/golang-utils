@@ -32,7 +32,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/perimeterx/marshmallow v1.1.5
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5
-	github.com/rs/zerolog v1.34.0
+	github.com/rs/zerolog v1.35.0
 	github.com/sasha-s/go-deadlock v0.3.8
 	github.com/shirou/gopsutil/v4 v4.26.2
 	github.com/sirupsen/logrus v1.9.4
@@ -86,7 +86,7 @@ require (
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/pascaldekloe/name v1.0.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
