@@ -25,7 +25,7 @@ func Find(slice *[]string, val string) (int, bool) {
 }
 
 // FindInSequence searches elements (a sequence) for the first item that
-// satisfies predicate. It returns the zero-based index of the matching
+// satisfies the predicate. It returns the zero-based index of the matching
 // element and true when a match is found. If elements is nil or no
 // match exists, it returns -1 and false.
 func FindInSequence[E any](elements iter.Seq[E], predicate Predicate[E]) (int, bool) {

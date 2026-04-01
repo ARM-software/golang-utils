@@ -2,7 +2,9 @@ package collection
 
 import (
 	"iter"
+	"regexp"
 	"slices"
+	"strings"
 
 	"github.com/ARM-software/golang-utils/utils/field"
 )
@@ -33,6 +35,53 @@ func toPredicateFunc[E any](f PredicateRef[E]) Predicate[E] {
 		return f(field.ToOptional(e))
 	}
 }
+
+// MatchFunc compares two values of type E and reports whether they match.
+// It may return an error if the comparison requires additional processing,
+// such as compiling or evaluating a regular expression.
+type MatchFunc[E any] func(E, E) (bool, error)
+
+// MatchRefFunc compares two references to values of type E and reports whether
+// they match. It may return an error if the comparison requires additional
+// processing before the match can be determined.
+type MatchRefFunc[E any] func(*E, *E) (bool, error)
+
+func matchToPredicateFunc[E any](v E, matchFunc MatchFunc[E]) Predicate[E] {
+	return func(e E) bool {
+		matched, err := matchFunc(v, e)
+		return matched && err == nil
+	}
+}
+
+func matchToPredicateRefFunc[E any](v *E, matchFunc MatchRefFunc[E]) PredicateRef[E] {
+	return func(e *E) bool {
+		matched, err := matchFunc(v, e)
+		return matched && err == nil
+	}
+}
+
+// StringMatch reports whether two strings are exactly equal.
+var StringMatch MatchFunc[string] = func(a, b string) (bool, error) { return a == b, nil }
+
+// StringCaseInsensitiveMatch reports whether two strings are equal but ignoring their case.
+var StringCaseInsensitiveMatch MatchFunc[string] = func(a, b string) (bool, error) { return strings.EqualFold(a, b), nil }
+
+// StringCleanCaseInsensitiveMatch reports whether two strings are equal after
+// trimming surrounding whitespace and ignoring their case.
+var StringCleanCaseInsensitiveMatch MatchFunc[string] = func(a, b string) (bool, error) {
+	return StringCaseInsensitiveMatch(strings.TrimSpace(a), strings.TrimSpace(b))
+}
+
+// StringCleanMatch reports whether two strings are exactly equal after trimming
+// surrounding whitespace.
+var StringCleanMatch MatchFunc[string] = func(a, b string) (bool, error) { return StringMatch(strings.TrimSpace(a), strings.TrimSpace(b)) }
+
+// StringRegexMatch reports whether a string matches the provided regular expression pattern.
+// the pattern being the first argument.
+var StringRegexMatch MatchFunc[string] = regexp.MatchString
+
+// StrictRefMatch reports whether two references are equal using field.Equal.
+func StrictRefMatch[E comparable](a, b *E) (bool, error) { return field.Equal(a, b), nil }
 
 //
 // Rejection / Filtering
