@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.156.1" (2026-04-07)
+======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: timberjack-1.4.1 (#20260403101304)
+
+
+Misc
+----
+
+- #20260407112643
+
+
 "1.156.0" (2026-04-01)
 ======================
 
