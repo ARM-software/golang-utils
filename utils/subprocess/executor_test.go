@@ -24,6 +24,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/logs"
 	"github.com/ARM-software/golang-utils/utils/logs/logstest"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
@@ -596,7 +597,7 @@ func TestExecuteWithDir(t *testing.T) {
 			err = run(context.Background(), loggers, cmd, args...)
 			require.NoError(t, err)
 
-			_, err = os.Stat(createdFilePath)
+			_, err = filesystem.Stat(createdFilePath)
 			require.NoError(t, err)
 		})
 	}
@@ -642,7 +643,7 @@ func TestStartWithDir(t *testing.T) {
 
 			require.NoError(t, p.Wait(context.Background()))
 
-			_, err = os.Stat(createdFilePath)
+			_, err = filesystem.Stat(createdFilePath)
 			require.NoError(t, err)
 		})
 	}
