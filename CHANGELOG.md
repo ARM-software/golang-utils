@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.157.0" (2026-04-22)
+======================
+
+Features
+--------
+
+- :sparkles: Add support for specifying the directory in subprocess commands (#20260422120133)
+
+
 "1.156.1" (2026-04-07)
 ======================
 
