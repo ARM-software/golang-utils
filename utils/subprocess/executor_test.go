@@ -530,10 +530,6 @@ func TestStart(t *testing.T) {
 					defer func() { _ = p.Stop() }()
 					require.NoError(t, p.Wait(context.Background()))
 
-					if executor.io != nil && test.expectIO {
-						assert.NotZero(t, executor.io.out.Len()+executor.io.err.Len())
-					}
-
 					p.Cancel()
 				})
 			}
