@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
@@ -70,6 +71,26 @@ func newCustomIOExecutor(t *testing.T, customIO *testIO) execFunc {
 	}
 }
 
+func newDefaultExecutorWithDir(t *testing.T, dir string) execFunc {
+	t.Helper()
+	return func(ctx context.Context, l logs.Loggers, cmd string, args ...string) error {
+		return ExecuteWithDir(ctx, l, "", "", "", dir, cmd, args...)
+	}
+}
+
+func newCustomIOExecutorWithDir(t *testing.T, customIO *testIO, dir string) execFunc {
+	t.Helper()
+	return func(ctx context.Context, l logs.Loggers, cmd string, args ...string) (err error) {
+		p := &Subprocess{}
+		err = p.SetupWithEnvironmentWithCustomIOWithDir(ctx, l, customIO, nil, "", "", "", dir, cmd, args...)
+		if err != nil {
+			return
+		}
+
+		return p.Execute()
+	}
+}
+
 func newDefaultStarter(t *testing.T) startFunc {
 	t.Helper()
 	return func(ctx context.Context, l logs.Loggers, cmd string, args ...string) (*Subprocess, error) {
@@ -88,6 +109,39 @@ func newCustomIOStarter(t *testing.T, customIO *testIO) startFunc {
 		err = p.Start()
 		return
 	}
+}
+
+func newDefaultStarterWithDir(t *testing.T, dir string) startFunc {
+	t.Helper()
+	return func(ctx context.Context, l logs.Loggers, cmd string, args ...string) (*Subprocess, error) {
+		return StartWithDir(ctx, l, "", "", "", dir, cmd, args...)
+	}
+}
+
+func newCustomIOStarterWithDir(t *testing.T, customIO *testIO, dir string) startFunc {
+	t.Helper()
+	return func(ctx context.Context, l logs.Loggers, cmd string, args ...string) (p *Subprocess, err error) {
+		p = &Subprocess{}
+		err = p.SetupWithEnvironmentWithCustomIOWithDir(ctx, l, customIO, nil, "", "", "", dir, cmd, args...)
+		if err != nil {
+			return
+		}
+
+		err = p.Start()
+		return
+	}
+}
+
+func newRelativeFileCreateCommand(fileName string) (cmd string, args []string) {
+	if platform.IsWindows() {
+		cmd = "powershell"
+		args = []string{"-Command", fmt.Sprintf("New-Item -Path %q -ItemType File -Force | Out-Null", fileName)}
+		return
+	}
+
+	cmd = "touch"
+	args = []string{fileName}
+	return
 }
 
 func TestExecuteEmptyLines(t *testing.T) {
@@ -359,14 +413,19 @@ func TestExecute(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			defer goleak.VerifyNone(t)
 
+			dir := t.TempDir()
+
 			customIO := newTestIO()
+			customIOWithDir := newTestIO()
 			executors := []struct {
 				name string
 				run  execFunc
 				io   *testIO
 			}{
-				{"normal", newDefaultExecutor(t), nil},
-				{"with IO", newCustomIOExecutor(t, customIO), customIO},
+				{name: "normal", run: newDefaultExecutor(t)},
+				{name: "with IO", run: newCustomIOExecutor(t, customIO), io: customIO},
+				{name: "normal with dir", run: newDefaultExecutorWithDir(t, dir)},
+				{name: "with IO with dir", run: newCustomIOExecutorWithDir(t, customIOWithDir, dir), io: customIOWithDir},
 			}
 
 			for _, executor := range executors {
@@ -432,14 +491,19 @@ func TestStart(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			defer goleak.VerifyNone(t)
 
+			dir := t.TempDir()
+
 			customIO := newTestIO()
+			customIOWithDir := newTestIO()
 			executors := []struct {
 				name  string
 				start startFunc
 				io    *testIO
 			}{
-				{"normal", newDefaultStarter(t), nil},
-				{"with IO", newCustomIOStarter(t, customIO), customIO},
+				{name: "normal", start: newDefaultStarter(t)},
+				{name: "with IO", start: newCustomIOStarter(t, customIO), io: customIO},
+				{name: "normal with dir", start: newDefaultStarterWithDir(t, dir)},
+				{name: "with IO with dir", start: newCustomIOStarterWithDir(t, customIOWithDir, dir), io: customIOWithDir},
 			}
 
 			for _, executor := range executors {
@@ -464,6 +528,11 @@ func TestStart(t *testing.T) {
 					require.NotNil(t, p)
 					defer func() { _ = p.Stop() }()
 					require.NoError(t, p.Wait(context.Background()))
+
+					if executor.io != nil && test.expectIO {
+						assert.NotZero(t, executor.io.out.Len()+executor.io.err.Len())
+					}
+
 					p.Cancel()
 				})
 			}
@@ -489,6 +558,94 @@ func TestExecuteWithCustomIO_Stderr(t *testing.T) {
 
 	require.Empty(t, customIO.out.String()) // should be no stdout
 	require.Equal(t, fmt.Sprintln(msg), customIO.err.String())
+}
+
+func TestExecuteWithDir(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
+	for _, test := range []struct {
+		name string
+		run  func(t *testing.T, dir string) execFunc
+	}{
+		{
+			name: "normal",
+			run: func(t *testing.T, dir string) execFunc {
+				t.Helper()
+				return newDefaultExecutorWithDir(t, dir)
+			},
+		},
+		{
+			name: "with IO",
+			run: func(t *testing.T, dir string) execFunc {
+				t.Helper()
+				return newCustomIOExecutorWithDir(t, newTestIO(), dir)
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			dir := t.TempDir()
+			createdFileName := "created-by-execute.txt"
+			createdFilePath := filepath.Join(dir, createdFileName)
+
+			cmd, args := newRelativeFileCreateCommand(createdFileName)
+
+			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
+			require.NoError(t, err)
+
+			run := test.run(t, dir)
+			err = run(context.Background(), loggers, cmd, args...)
+			require.NoError(t, err)
+
+			_, err = os.Stat(createdFilePath)
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestStartWithDir(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
+	for _, test := range []struct {
+		name  string
+		start func(t *testing.T, dir string) startFunc
+	}{
+		{
+			name: "normal",
+			start: func(t *testing.T, dir string) startFunc {
+				t.Helper()
+				return newDefaultStarterWithDir(t, dir)
+			},
+		},
+		{
+			name: "with IO",
+			start: func(t *testing.T, dir string) startFunc {
+				t.Helper()
+				return newCustomIOStarterWithDir(t, newTestIO(), dir)
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			dir := t.TempDir()
+			createdFileName := "created-by-start.txt"
+			createdFilePath := filepath.Join(dir, createdFileName)
+
+			cmd, args := newRelativeFileCreateCommand(createdFileName)
+
+			loggers, err := logs.NewLogrLogger(logstest.NewTestLogger(t), "test")
+			require.NoError(t, err)
+
+			start := test.start(t, dir)
+			p, err := start(context.Background(), loggers, cmd, args...)
+			require.NoError(t, err)
+			require.NotNil(t, p)
+			defer func() { _ = p.Stop() }()
+
+			require.NoError(t, p.Wait(context.Background()))
+
+			_, err = os.Stat(createdFilePath)
+			require.NoError(t, err)
+		})
+	}
 }
 
 func TestOutput(t *testing.T) {
