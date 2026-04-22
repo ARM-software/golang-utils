@@ -74,11 +74,7 @@ func newSubProcess(ctx context.Context, loggers logs.Loggers, io ICommandIO, env
 	return
 }
 
-func newPlainSubProcess(ctx context.Context, loggers logs.Loggers, env []string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (p *Subprocess, err error) {
-	return newPlainSubProcessWithDir(ctx, loggers, env, as, "", cmd, args...)
-}
-
-func newPlainSubProcessWithDir(ctx context.Context, loggers logs.Loggers, env []string, as *commandUtils.CommandAsDifferentUser, dir string, cmd string, args ...string) (p *Subprocess, err error) {
+func newPlainSubProcess(ctx context.Context, loggers logs.Loggers, env []string, as *commandUtils.CommandAsDifferentUser, dir string, cmd string, args ...string) (p *Subprocess, err error) {
 	p = new(Subprocess)
 	err = p.setup(ctx, loggers, nil, env, false, "", "", "", as, dir, cmd, args...)
 	return
@@ -277,7 +273,7 @@ func OutputAsWithEnvironmentWithDir(ctx context.Context, loggers logs.Loggers, a
 	if err != nil {
 		return
 	}
-	p, err := newPlainSubProcessWithDir(ctx, mLoggers, additionalEnvVars, as, dir, cmd, args...)
+	p, err := newPlainSubProcess(ctx, mLoggers, additionalEnvVars, as, dir, cmd, args...)
 	if err != nil {
 		return
 	}
