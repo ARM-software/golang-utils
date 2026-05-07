@@ -170,8 +170,8 @@ func InheritsFrom(object any, parentType reflect.Type) bool {
 		return true
 	}
 
-	for _, f := range r.Fields() {
-		f := f
+	for i := 0; i < r.NumField(); i++ {
+		f := r.Field(i)
 		if f.Type() == parentType {
 			return true
 		}
