@@ -28,7 +28,7 @@ func IsEmpty(value any) bool {
 	switch objValue.Kind() {
 	case reflect.Array, reflect.Chan, reflect.Map, reflect.Slice:
 		return objValue.Len() == 0
-	case reflect.Ptr:
+	case reflect.Pointer:
 		if objValue.IsNil() {
 			return true
 		}
