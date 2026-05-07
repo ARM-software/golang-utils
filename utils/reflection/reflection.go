@@ -12,27 +12,27 @@ import (
 	valueUtils "github.com/ARM-software/golang-utils/utils/value"
 )
 
-func GetUnexportedStructureField(structure interface{}, fieldName string) interface{} {
+func GetUnexportedStructureField(structure any, fieldName string) any {
 	return GetStructureField(fetchStructureField(structure, fieldName))
 }
 
-func GetStructureField(field reflect.Value) interface{} {
+func GetStructureField(field reflect.Value) any {
 	if !field.IsValid() {
 		return nil
 	}
 	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Interface() //nolint:gosec // this conversion is between types recommended by Go https://cs.opensource.google/go/go/+/master:src/reflect/value.go;l=2445
 }
-func SetUnexportedStructureField(structure interface{}, fieldName string, value interface{}) {
+func SetUnexportedStructureField(structure any, fieldName string, value any) {
 	SetStructureField(fetchStructureField(structure, fieldName), value)
 }
-func SetStructureField(field reflect.Value, value interface{}) {
+func SetStructureField(field reflect.Value, value any) {
 	if !field.IsValid() {
 		return
 	}
 	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Elem().Set(reflect.ValueOf(value)) //nolint:gosec // this conversion is between types recommended by Go https://cs.opensource.google/go/go/+/master:src/reflect/value.go;l=2445
 }
 
-func fetchStructureField(structure interface{}, fieldName string) reflect.Value {
+func fetchStructureField(structure any, fieldName string) reflect.Value {
 	return reflect.ValueOf(structure).Elem().FieldByName(fieldName)
 }
 
@@ -41,13 +41,13 @@ func fetchStructureField(structure interface{}, fieldName string) reflect.Value 
 // If the boolean is false then there is no such field on the structure.
 // If the boolean is true but the interface stores "" then the field exists but is not set.
 // If the boolean is true and the interface is not empty, the field exists and is set.
-func GetStructField(structure interface{}, fieldName string) (interface{}, bool) {
+func GetStructField(structure any, fieldName string) (any, bool) {
 	Field := fetchStructureField(structure, fieldName)
 	if !Field.IsValid() {
 		return "", false
 	}
 
-	if Field.Type().Kind() == reflect.Ptr {
+	if Field.Type().Kind() == reflect.Pointer {
 		if Field.IsNil() {
 			return "", true
 		}
@@ -60,7 +60,7 @@ func GetStructField(structure interface{}, fieldName string) (interface{}, bool)
 // SetStructField attempts to set a field of a structure to the given value
 // It returns nil or an error, in case the field doesn't exist on the structure
 // or the value and the field have different types
-func SetStructField(structure interface{}, fieldName string, value interface{}) error {
+func SetStructField(structure any, fieldName string, value any) error {
 	ValueStructure := reflect.ValueOf(structure)
 	Field := ValueStructure.Elem().FieldByName(fieldName)
 	// Test field exists on structure
@@ -86,11 +86,11 @@ func SetStructField(structure interface{}, fieldName string, value interface{}) 
 
 	// helpers for determining whether the field and the value have the same underlying types
 	valueUnderlyingType := reflect.TypeOf(value)
-	if valueKind == reflect.Ptr {
+	if valueKind == reflect.Pointer {
 		valueUnderlyingType = valueUnderlyingType.Elem()
 	}
 	fieldUnderlyingType := Field.Type()
-	if fieldKind == reflect.Ptr {
+	if fieldKind == reflect.Pointer {
 		fieldUnderlyingType = fieldUnderlyingType.Elem()
 	}
 
@@ -99,8 +99,8 @@ func SetStructField(structure interface{}, fieldName string, value interface{}) 
 		return commonerrors.Newf(commonerrors.ErrConflict, "conflicting types, field [%v] and value [%v]", fieldKind, valueKind)
 	}
 
-	if fieldKind == reflect.Ptr {
-		if valueKind != reflect.Ptr { // value not ptr, field ptr
+	if fieldKind == reflect.Pointer {
+		if valueKind != reflect.Pointer { // value not ptr, field ptr
 			if Field.IsNil() {
 				pointerToValue := reflect.New(valueReflectValueWrapper.Type())
 				pointerToValue.Elem().Set(valueReflectValueWrapper)
@@ -110,7 +110,7 @@ func SetStructField(structure interface{}, fieldName string, value interface{}) 
 			}
 		}
 	} else { // field not ptr, val ptr
-		if valueKind == reflect.Ptr {
+		if valueKind == reflect.Pointer {
 			Field.Set(valueReflectValueWrapper.Elem())
 		}
 	}
@@ -120,7 +120,7 @@ func SetStructField(structure interface{}, fieldName string, value interface{}) 
 
 // InheritsFrom uses reflection to find if a struct "inherits" from a certain type.
 // In other words it checks whether the struct embeds a struct of that type.
-func InheritsFrom(object interface{}, parentType reflect.Type) bool {
+func InheritsFrom(object any, parentType reflect.Type) bool {
 	if parentType == nil {
 		return object == nil
 	}
@@ -131,7 +131,7 @@ func InheritsFrom(object interface{}, parentType reflect.Type) bool {
 		return true
 	}
 
-	if r.Kind() == reflect.Ptr {
+	if r.Kind() == reflect.Pointer {
 		if r.IsNil() {
 			return false
 		}
@@ -154,7 +154,7 @@ func InheritsFrom(object interface{}, parentType reflect.Type) bool {
 	)
 	kind := parentType.Kind()
 	switch kind {
-	case reflect.Ptr:
+	case reflect.Pointer:
 		pointerType = parentType
 		structType = parentType.Elem()
 	case reflect.Interface:
@@ -197,7 +197,7 @@ func IsEmpty(value any) bool {
 }
 
 // ToStructPtr returns an instance of the pointer (interface) to the object obj.
-func ToStructPtr(obj reflect.Value) (val interface{}, err error) {
+func ToStructPtr(obj reflect.Value) (val any, err error) {
 	if !obj.IsValid() {
 		err = commonerrors.Newf(commonerrors.ErrUnsupported, "obj value [%v] is not valid", obj)
 		return

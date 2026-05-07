@@ -182,7 +182,7 @@ func genericCallAndCheckSuccessAndReturnRawResponse[T any](ctx context.Context, 
 		return
 	}
 
-	if reflect.ValueOf(result).Kind() != reflect.Ptr {
+	if reflect.ValueOf(result).Kind() != reflect.Pointer {
 		err = commonerrors.Newf(commonerrors.ErrConflict, "result of the call is of type [%T] and so, not a pointer as expected", result)
 		return
 	}
