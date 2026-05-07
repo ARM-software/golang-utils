@@ -29,76 +29,135 @@ type Subprocess struct {
 
 // New creates a subprocess description.
 func New(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (*Subprocess, error) {
-	return NewWithEnvironment(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+	return NewWithDir(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, "", cmd, args...)
+}
+
+// NewWithDir creates a subprocess description with a working directory.
+func NewWithDir(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) (*Subprocess, error) {
+	return NewWithEnvironmentWithDir(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, dir, cmd, args...)
 }
 
 // NewWithEnvironment creates a subprocess description. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
 func NewWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (p *Subprocess, err error) {
-	return NewWithEnvironmentWithIO(ctx, loggers, nil, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+	return NewWithEnvironmentWithDir(ctx, loggers, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, "", cmd, args...)
+}
+
+// NewWithEnvironmentWithDir creates a subprocess description with a working directory. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func NewWithEnvironmentWithDir(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) (p *Subprocess, err error) {
+	return NewWithEnvironmentWithIOWithDir(ctx, loggers, nil, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, dir, cmd, args...)
 }
 
 // NewWithIO creates a subprocess description with overridden stdin/stdout/stderr.
 func NewWithIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (*Subprocess, error) {
-	return NewWithEnvironmentWithIO(ctx, loggers, io, nil, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+	return NewWithIOWithDir(ctx, loggers, io, messageOnStart, messageOnSuccess, messageOnFailure, "", cmd, args...)
+}
+
+// NewWithIOWithDir creates a subprocess description with a working directory and overridden stdin/stdout/stderr.
+func NewWithIOWithDir(ctx context.Context, loggers logs.Loggers, io ICommandIO, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) (*Subprocess, error) {
+	return NewWithEnvironmentWithIOWithDir(ctx, loggers, io, nil, messageOnStart, messageOnSuccess, messageOnFailure, dir, cmd, args...)
 }
 
 // NewWithEnvironmentWithIO creates a subprocess description with overridden stdin/stdout/stderr. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
 func NewWithEnvironmentWithIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (p *Subprocess, err error) {
-	p, err = newSubProcess(ctx, loggers, io, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Me(), cmd, args...)
+	return NewWithEnvironmentWithIOWithDir(ctx, loggers, io, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, "", cmd, args...)
+}
+
+// NewWithEnvironmentWithIOWithDir creates a subprocess description with a working directory and overridden stdin/stdout/stderr. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func NewWithEnvironmentWithIOWithDir(ctx context.Context, loggers logs.Loggers, io ICommandIO, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) (p *Subprocess, err error) {
+	p, err = newSubProcess(ctx, loggers, io, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Me(), dir, cmd, args...)
 	return
 }
 
-// newSubProcess creates a subprocess description with custom IO
-func newSubProcess(ctx context.Context, loggers logs.Loggers, io ICommandIO, env []string, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (p *Subprocess, err error) {
+func newSubProcess(ctx context.Context, loggers logs.Loggers, io ICommandIO, env []string, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, dir string, cmd string, args ...string) (p *Subprocess, err error) {
 	p = new(Subprocess)
-	err = p.SetupAsWithEnvironmentWithCustomIO(ctx, loggers, io, env, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+	err = p.SetupAsWithEnvironmentWithCustomIOWithDir(ctx, loggers, io, env, messageOnStart, messageOnSuccess, messageOnFailure, as, dir, cmd, args...)
 	return
 }
 
-func newPlainSubProcess(ctx context.Context, loggers logs.Loggers, env []string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (p *Subprocess, err error) {
+func newPlainSubProcess(ctx context.Context, loggers logs.Loggers, env []string, as *commandUtils.CommandAsDifferentUser, dir string, cmd string, args ...string) (p *Subprocess, err error) {
 	p = new(Subprocess)
-	err = p.setup(ctx, loggers, nil, env, false, "", "", "", as, cmd, args...)
+	err = p.setup(ctx, loggers, nil, env, false, "", "", "", as, dir, cmd, args...)
 	return
 }
 
 // ExecuteWithEnvironment executes a command (i.e. spawns a subprocess). It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
 func ExecuteWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
-	return ExecuteWithEnvironmentWithIO(ctx, loggers, nil, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+	return ExecuteWithEnvironmentWithDir(ctx, loggers, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, "", cmd, args...)
+}
+
+// ExecuteWithEnvironmentWithDir executes a command (i.e. spawns a subprocess) with a working directory. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func ExecuteWithEnvironmentWithDir(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) (err error) {
+	return ExecuteWithEnvironmentWithIOWithDir(ctx, loggers, nil, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, dir, cmd, args...)
 }
 
 // StartWithEnvironment starts a command (i.e. spawns a subprocess). It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
 func StartWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (*Subprocess, error) {
-	return StartWithEnvironmentWithIO(ctx, loggers, nil, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+	return StartWithEnvironmentWithDir(ctx, loggers, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, "", cmd, args...)
+}
+
+// StartWithEnvironmentWithDir starts a command (i.e. spawns a subprocess) with a working directory. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func StartWithEnvironmentWithDir(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) (*Subprocess, error) {
+	return StartWithEnvironmentWithIOWithDir(ctx, loggers, nil, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, dir, cmd, args...)
 }
 
 // Execute executes a command (i.e. spawns a subprocess).
 func Execute(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) error {
-	return ExecuteWithEnvironment(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+	return ExecuteWithDir(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, "", cmd, args...)
+}
+
+// ExecuteWithDir executes a command (i.e. spawns a subprocess) with a working directory.
+func ExecuteWithDir(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) error {
+	return ExecuteWithEnvironmentWithDir(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, dir, cmd, args...)
 }
 
 // Start starts a command (i.e. spawns a subprocess).
 func Start(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (*Subprocess, error) {
-	return StartWithEnvironment(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+	return StartWithDir(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, "", cmd, args...)
+}
+
+// StartWithDir starts a command (i.e. spawns a subprocess) with a working directory.
+func StartWithDir(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) (*Subprocess, error) {
+	return StartWithEnvironmentWithDir(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, dir, cmd, args...)
 }
 
 // ExecuteAs executes a command (i.e. spawns a subprocess) as a different user.
 func ExecuteAs(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) error {
-	return ExecuteAsWithEnvironment(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+	return ExecuteAsWithDir(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, as, "", cmd, args...)
+}
+
+// ExecuteAsWithDir executes a command (i.e. spawns a subprocess) as a different user with a working directory.
+func ExecuteAsWithDir(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, dir string, cmd string, args ...string) error {
+	return ExecuteAsWithEnvironmentWithDir(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, as, dir, cmd, args...)
 }
 
 // ExecuteAsWithEnvironment executes a command (i.e. spawns a subprocess) as a different user. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
 func ExecuteAsWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
-	return ExecuteAsWithEnvironmentWithIO(ctx, loggers, nil, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+	return ExecuteAsWithEnvironmentWithDir(ctx, loggers, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, as, "", cmd, args...)
+}
+
+// ExecuteAsWithEnvironmentWithDir executes a command (i.e. spawns a subprocess) as a different user with a working directory. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func ExecuteAsWithEnvironmentWithDir(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, dir string, cmd string, args ...string) (err error) {
+	return ExecuteAsWithEnvironmentWithIOWithDir(ctx, loggers, nil, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, as, dir, cmd, args...)
 }
 
 // ExecuteWithSudo executes a command (i.e. spawns a subprocess) as root.
 func ExecuteWithSudo(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) error {
-	return ExecuteAs(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Sudo(), cmd, args...)
+	return ExecuteWithSudoWithDir(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, "", cmd, args...)
+}
+
+// ExecuteWithSudoWithDir executes a command (i.e. spawns a subprocess) as root with a working directory.
+func ExecuteWithSudoWithDir(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) error {
+	return ExecuteAsWithDir(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Sudo(), dir, cmd, args...)
 }
 
 // ExecuteWithEnvironmentWithIO executes a command (i.e. spawns a subprocess) with overridden stdin/stdout/stderr. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
 func ExecuteWithEnvironmentWithIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
-	p, err := NewWithEnvironmentWithIO(ctx, loggers, io, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+	return ExecuteWithEnvironmentWithIOWithDir(ctx, loggers, io, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, "", cmd, args...)
+}
+
+// ExecuteWithEnvironmentWithIOWithDir executes a command (i.e. spawns a subprocess) with a working directory and overridden stdin/stdout/stderr. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func ExecuteWithEnvironmentWithIOWithDir(ctx context.Context, loggers logs.Loggers, io ICommandIO, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) (err error) {
+	p, err := NewWithEnvironmentWithIOWithDir(ctx, loggers, io, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, dir, cmd, args...)
 	if err != nil {
 		return
 	}
@@ -107,7 +166,12 @@ func ExecuteWithEnvironmentWithIO(ctx context.Context, loggers logs.Loggers, io 
 
 // StartWithEnvironmentWithIO starts a command (i.e. spawns a subprocess) with overridden stdin/stdout/stderr. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
 func StartWithEnvironmentWithIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (p *Subprocess, err error) {
-	p, err = NewWithEnvironmentWithIO(ctx, loggers, io, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+	return StartWithEnvironmentWithIOWithDir(ctx, loggers, io, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, "", cmd, args...)
+}
+
+// StartWithEnvironmentWithIOWithDir starts a command (i.e. spawns a subprocess) with a working directory and overridden stdin/stdout/stderr. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func StartWithEnvironmentWithIOWithDir(ctx context.Context, loggers logs.Loggers, io ICommandIO, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) (p *Subprocess, err error) {
+	p, err = NewWithEnvironmentWithIOWithDir(ctx, loggers, io, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, dir, cmd, args...)
 	if err != nil {
 		return
 	}
@@ -117,17 +181,32 @@ func StartWithEnvironmentWithIO(ctx context.Context, loggers logs.Loggers, io IC
 
 // ExecuteWithIO executes a command (i.e. spawns a subprocess) with overridden stdin/stdout/stderr.
 func ExecuteWithIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) error {
-	return ExecuteWithEnvironmentWithIO(ctx, loggers, io, nil, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+	return ExecuteWithIOWithDir(ctx, loggers, io, messageOnStart, messageOnSuccess, messageOnFailure, "", cmd, args...)
+}
+
+// ExecuteWithIOWithDir executes a command (i.e. spawns a subprocess) with a working directory and overridden stdin/stdout/stderr.
+func ExecuteWithIOWithDir(ctx context.Context, loggers logs.Loggers, io ICommandIO, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) error {
+	return ExecuteWithEnvironmentWithIOWithDir(ctx, loggers, io, nil, messageOnStart, messageOnSuccess, messageOnFailure, dir, cmd, args...)
 }
 
 // ExecuteAsWithIO executes a command (i.e. spawns a subprocess) as a different user with overridden stdin/stdout/stderr.
 func ExecuteAsWithIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) error {
-	return ExecuteAsWithEnvironmentWithIO(ctx, loggers, io, nil, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+	return ExecuteAsWithIOWithDir(ctx, loggers, io, messageOnStart, messageOnSuccess, messageOnFailure, as, "", cmd, args...)
+}
+
+// ExecuteAsWithIOWithDir executes a command (i.e. spawns a subprocess) as a different user with a working directory and overridden stdin/stdout/stderr.
+func ExecuteAsWithIOWithDir(ctx context.Context, loggers logs.Loggers, io ICommandIO, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, dir string, cmd string, args ...string) error {
+	return ExecuteAsWithEnvironmentWithIOWithDir(ctx, loggers, io, nil, messageOnStart, messageOnSuccess, messageOnFailure, as, dir, cmd, args...)
 }
 
 // ExecuteAsWithEnvironmentWithIO executes a command (i.e. spawns a subprocess) as a different user with overridden stdin/stdout/stderr. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
 func ExecuteAsWithEnvironmentWithIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
-	p, err := newSubProcess(ctx, loggers, io, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+	return ExecuteAsWithEnvironmentWithIOWithDir(ctx, loggers, io, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, as, "", cmd, args...)
+}
+
+// ExecuteAsWithEnvironmentWithIOWithDir executes a command (i.e. spawns a subprocess) as a different user with a working directory and overridden stdin/stdout/stderr. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func ExecuteAsWithEnvironmentWithIOWithDir(ctx context.Context, loggers logs.Loggers, io ICommandIO, additionalEnvVars []string, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, dir string, cmd string, args ...string) (err error) {
+	p, err := newSubProcess(ctx, loggers, io, additionalEnvVars, messageOnStart, messageOnSuccess, messageOnFailure, as, dir, cmd, args...)
 	if err != nil {
 		return
 	}
@@ -136,26 +215,51 @@ func ExecuteAsWithEnvironmentWithIO(ctx context.Context, loggers logs.Loggers, i
 
 // ExecuteWithSudoWithIO executes a command (i.e. spawns a subprocess) as root with overridden stdin/stdout/stderr.
 func ExecuteWithSudoWithIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) error {
-	return ExecuteAsWithIO(ctx, loggers, io, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Sudo(), cmd, args...)
+	return ExecuteWithSudoWithIOWithDir(ctx, loggers, io, messageOnStart, messageOnSuccess, messageOnFailure, "", cmd, args...)
+}
+
+// ExecuteWithSudoWithIOWithDir executes a command (i.e. spawns a subprocess) as root with a working directory and overridden stdin/stdout/stderr.
+func ExecuteWithSudoWithIOWithDir(ctx context.Context, loggers logs.Loggers, io ICommandIO, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) error {
+	return ExecuteAsWithIOWithDir(ctx, loggers, io, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Sudo(), dir, cmd, args...)
 }
 
 // Output executes a command and returns its output (stdOutput and stdErr are merged) as string.
 func Output(ctx context.Context, loggers logs.Loggers, cmd string, args ...string) (string, error) {
-	return OutputWithEnvironment(ctx, loggers, nil, cmd, args...)
+	return OutputWithDir(ctx, loggers, "", cmd, args...)
+}
+
+// OutputWithDir executes a command with a working directory and returns its output (stdOutput and stdErr are merged) as string.
+func OutputWithDir(ctx context.Context, loggers logs.Loggers, dir string, cmd string, args ...string) (string, error) {
+	return OutputWithEnvironmentWithDir(ctx, loggers, nil, dir, cmd, args...)
 }
 
 // OutputWithEnvironment executes a command and returns its output (stdOutput and stdErr are merged) as string. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
 func OutputWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, cmd string, args ...string) (string, error) {
-	return OutputAsWithEnvironment(ctx, loggers, additionalEnvVars, commandUtils.Me(), cmd, args...)
+	return OutputWithEnvironmentWithDir(ctx, loggers, additionalEnvVars, "", cmd, args...)
+}
+
+// OutputWithEnvironmentWithDir executes a command with a working directory and returns its output (stdOutput and stdErr are merged) as string. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func OutputWithEnvironmentWithDir(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, dir string, cmd string, args ...string) (string, error) {
+	return OutputAsWithEnvironmentWithDir(ctx, loggers, additionalEnvVars, commandUtils.Me(), dir, cmd, args...)
 }
 
 // OutputAs executes a command as a different user and returns its output (stdOutput and stdErr are merged) as string.
 func OutputAs(ctx context.Context, loggers logs.Loggers, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (string, error) {
-	return OutputAsWithEnvironment(ctx, loggers, nil, as, cmd, args...)
+	return OutputAsWithDir(ctx, loggers, as, "", cmd, args...)
+}
+
+// OutputAsWithDir executes a command as a different user with a working directory and returns its output (stdOutput and stdErr are merged) as string.
+func OutputAsWithDir(ctx context.Context, loggers logs.Loggers, as *commandUtils.CommandAsDifferentUser, dir string, cmd string, args ...string) (string, error) {
+	return OutputAsWithEnvironmentWithDir(ctx, loggers, nil, as, dir, cmd, args...)
 }
 
 // OutputAsWithEnvironment executes a command as a different user and returns its output (stdOutput and stdErr are merged) as string. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
 func OutputAsWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (output string, err error) {
+	return OutputAsWithEnvironmentWithDir(ctx, loggers, additionalEnvVars, as, "", cmd, args...)
+}
+
+// OutputAsWithEnvironmentWithDir executes a command as a different user with a working directory and returns its output (stdOutput and stdErr are merged) as string. It allows to specify the environment the subprocess should use. Each entry is of the form "key=value".
+func OutputAsWithEnvironmentWithDir(ctx context.Context, loggers logs.Loggers, additionalEnvVars []string, as *commandUtils.CommandAsDifferentUser, dir string, cmd string, args ...string) (output string, err error) {
 	if loggers == nil {
 		err = commonerrors.ErrNoLogger
 		return
@@ -169,7 +273,7 @@ func OutputAsWithEnvironment(ctx context.Context, loggers logs.Loggers, addition
 	if err != nil {
 		return
 	}
-	p, err := newPlainSubProcess(ctx, mLoggers, additionalEnvVars, as, cmd, args...)
+	p, err := newPlainSubProcess(ctx, mLoggers, additionalEnvVars, as, dir, cmd, args...)
 	if err != nil {
 		return
 	}
@@ -180,46 +284,86 @@ func OutputAsWithEnvironment(ctx context.Context, loggers logs.Loggers, addition
 
 // Setup sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure.
 func (s *Subprocess) Setup(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
-	return s.SetupWithEnvironment(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+	return s.SetupWithDir(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, "", cmd, args...)
+}
+
+// SetupWithDir sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure with a working directory.
+func (s *Subprocess) SetupWithDir(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) (err error) {
+	return s.SetupWithEnvironmentWithDir(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, dir, cmd, args...)
 }
 
 // SetupWithEnvironment sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure. Compared to Setup, it allows specifying additional environment variables to be used by the process.
 func (s *Subprocess) SetupWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnv []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
-	return s.setup(ctx, loggers, nil, additionalEnv, true, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Me(), cmd, args...)
+	return s.SetupWithEnvironmentWithDir(ctx, loggers, additionalEnv, messageOnStart, messageOnSuccess, messageOnFailure, "", cmd, args...)
+}
+
+// SetupWithEnvironmentWithDir sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure with a working directory. Compared to SetupWithDir, it allows specifying additional environment variables to be used by the process.
+func (s *Subprocess) SetupWithEnvironmentWithDir(ctx context.Context, loggers logs.Loggers, additionalEnv []string, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) (err error) {
+	return s.setup(ctx, loggers, nil, additionalEnv, true, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Me(), dir, cmd, args...)
 }
 
 // SetupAs is similar to Setup but allows the command to be run as a different user.
 func (s *Subprocess) SetupAs(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
-	return s.SetupAsWithEnvironment(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+	return s.SetupAsWithDir(ctx, loggers, messageOnStart, messageOnSuccess, messageOnFailure, as, "", cmd, args...)
+}
+
+// SetupAsWithDir is similar to SetupWithDir but allows the command to be run as a different user.
+func (s *Subprocess) SetupAsWithDir(ctx context.Context, loggers logs.Loggers, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, dir string, cmd string, args ...string) (err error) {
+	return s.SetupAsWithEnvironmentWithDir(ctx, loggers, nil, messageOnStart, messageOnSuccess, messageOnFailure, as, dir, cmd, args...)
 }
 
 // SetupAsWithEnvironment is similar to Setup but allows the command to be run as a different user. Compared to SetupAs, it allows specifying additional environment variables to be used by the process.
 func (s *Subprocess) SetupAsWithEnvironment(ctx context.Context, loggers logs.Loggers, additionalEnv []string, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
-	return s.setup(ctx, loggers, nil, additionalEnv, true, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+	return s.SetupAsWithEnvironmentWithDir(ctx, loggers, additionalEnv, messageOnStart, messageOnSuccess, messageOnFailure, as, "", cmd, args...)
+}
+
+// SetupAsWithEnvironmentWithDir is similar to SetupWithDir but allows the command to be run as a different user. Compared to SetupAsWithDir, it allows specifying additional environment variables to be used by the process.
+func (s *Subprocess) SetupAsWithEnvironmentWithDir(ctx context.Context, loggers logs.Loggers, additionalEnv []string, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, dir string, cmd string, args ...string) (err error) {
+	return s.setup(ctx, loggers, nil, additionalEnv, true, messageOnStart, messageOnSuccess, messageOnFailure, as, dir, cmd, args...)
 }
 
 // SetupWithCustomIO sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure. It allows the stdin, stdout, and stderr to be overridden.
 func (s *Subprocess) SetupWithCustomIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
-	return s.SetupWithEnvironmentWithCustomIO(ctx, loggers, io, nil, messageOnStart, messageOnSuccess, messageOnFailure, cmd, args...)
+	return s.SetupWithCustomIOWithDir(ctx, loggers, io, messageOnStart, messageOnSuccess, messageOnFailure, "", cmd, args...)
+}
+
+// SetupWithCustomIOWithDir sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure with a working directory. It allows the stdin, stdout, and stderr to be overridden.
+func (s *Subprocess) SetupWithCustomIOWithDir(ctx context.Context, loggers logs.Loggers, io ICommandIO, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) (err error) {
+	return s.SetupWithEnvironmentWithCustomIOWithDir(ctx, loggers, io, nil, messageOnStart, messageOnSuccess, messageOnFailure, dir, cmd, args...)
 }
 
 // SetupWithEnvironmentWithCustomIO sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure. Compared to SetupWithCustomIO, it allows specifying additional environment variables to be used by the process. It allows the stdin, stdout, and stderr to be overridden.
 func (s *Subprocess) SetupWithEnvironmentWithCustomIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, additionalEnv []string, messageOnStart string, messageOnSuccess, messageOnFailure string, cmd string, args ...string) (err error) {
-	return s.setup(ctx, loggers, io, additionalEnv, true, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Me(), cmd, args...)
+	return s.SetupWithEnvironmentWithCustomIOWithDir(ctx, loggers, io, additionalEnv, messageOnStart, messageOnSuccess, messageOnFailure, "", cmd, args...)
+}
+
+// SetupWithEnvironmentWithCustomIOWithDir sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure with a working directory. Compared to SetupWithCustomIOWithDir, it allows specifying additional environment variables to be used by the process. It allows the stdin, stdout, and stderr to be overridden.
+func (s *Subprocess) SetupWithEnvironmentWithCustomIOWithDir(ctx context.Context, loggers logs.Loggers, io ICommandIO, additionalEnv []string, messageOnStart string, messageOnSuccess, messageOnFailure string, dir string, cmd string, args ...string) (err error) {
+	return s.setup(ctx, loggers, io, additionalEnv, true, messageOnStart, messageOnSuccess, messageOnFailure, commandUtils.Me(), dir, cmd, args...)
 }
 
 // SetupAsWithCustomIO is similar to SetupWithCustomIO but allows the command to be run as a different user. It allows the stdin, stdout, and stderr to be overridden.
 func (s *Subprocess) SetupAsWithCustomIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
-	return s.SetupAsWithEnvironmentWithCustomIO(ctx, loggers, io, nil, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+	return s.SetupAsWithCustomIOWithDir(ctx, loggers, io, messageOnStart, messageOnSuccess, messageOnFailure, as, "", cmd, args...)
+}
+
+// SetupAsWithCustomIOWithDir is similar to SetupWithCustomIOWithDir but allows the command to be run as a different user. It allows the stdin, stdout, and stderr to be overridden.
+func (s *Subprocess) SetupAsWithCustomIOWithDir(ctx context.Context, loggers logs.Loggers, io ICommandIO, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, dir string, cmd string, args ...string) (err error) {
+	return s.SetupAsWithEnvironmentWithCustomIOWithDir(ctx, loggers, io, nil, messageOnStart, messageOnSuccess, messageOnFailure, as, dir, cmd, args...)
 }
 
 // SetupAsWithEnvironmentWithCustomIO is similar to SetupWithCustomIO but allows the command to be run as a different user. Compared to SetupAsWithCustomIO, it allows specifying additional environment variables to be used by the process. It allows the stdin, stdout, and stderr to be overridden.
 func (s *Subprocess) SetupAsWithEnvironmentWithCustomIO(ctx context.Context, loggers logs.Loggers, io ICommandIO, additionalEnv []string, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
-	return s.setup(ctx, loggers, io, additionalEnv, true, messageOnStart, messageOnSuccess, messageOnFailure, as, cmd, args...)
+	return s.SetupAsWithEnvironmentWithCustomIOWithDir(ctx, loggers, io, additionalEnv, messageOnStart, messageOnSuccess, messageOnFailure, as, "", cmd, args...)
+}
+
+// SetupAsWithEnvironmentWithCustomIOWithDir is similar to SetupWithCustomIOWithDir but allows the command to be run as a different user. Compared to SetupAsWithCustomIOWithDir, it allows specifying additional environment variables to be used by the process. It allows the stdin, stdout, and stderr to be overridden.
+func (s *Subprocess) SetupAsWithEnvironmentWithCustomIOWithDir(ctx context.Context, loggers logs.Loggers, io ICommandIO, additionalEnv []string, messageOnStart string, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, dir string, cmd string, args ...string) (err error) {
+	return s.setup(ctx, loggers, io, additionalEnv, true, messageOnStart, messageOnSuccess, messageOnFailure, as, dir, cmd, args...)
 }
 
 // Setup sets up a sub-process i.e. defines the command cmd and the messages on start, success and failure as well as the stdin, stdout, and stderr.
-func (s *Subprocess) setup(ctx context.Context, loggers logs.Loggers, io ICommandIO, env []string, withAdditionalMessages bool, messageOnStart, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, cmd string, args ...string) (err error) {
+func (s *Subprocess) setup(ctx context.Context, loggers logs.Loggers, io ICommandIO, env []string, withAdditionalMessages bool, messageOnStart, messageOnSuccess, messageOnFailure string, as *commandUtils.CommandAsDifferentUser, dir string, cmd string, args ...string) (err error) {
 	if s.IsOn() {
 		err = s.Stop()
 		if err != nil {
@@ -231,9 +375,9 @@ func (s *Subprocess) setup(ctx context.Context, loggers logs.Loggers, io IComman
 	s.isRunning.Store(false)
 	s.processMonitoring = newSubprocessMonitoring(ctx)
 	if io != nil {
-		s.command = newCommandWithCustomIO(loggers, io, as, env, cmd, args...)
+		s.command = newCommandWithCustomIO(loggers, io, as, env, dir, cmd, args...)
 	} else {
-		s.command = newCommand(loggers, as, env, cmd, args...)
+		s.command = newCommand(loggers, as, env, dir, cmd, args...)
 	}
 	s.messaging = newSubprocessMessaging(loggers, withAdditionalMessages, messageOnSuccess, messageOnFailure, messageOnStart, s.command.GetPath())
 	s.reset()

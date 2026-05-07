@@ -128,6 +128,7 @@ type command struct {
 	loggers    logs.Loggers
 	cmdWrapper cmdWrapper
 	io         ICommandIO
+	dir        string
 }
 
 func (c *command) createCommand(cmdCtx context.Context) *exec.Cmd {
@@ -140,6 +141,7 @@ func (c *command) createCommand(cmdCtx context.Context) *exec.Cmd {
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = c.io.Register(cmdCtx)
 	cmd.Env = cmd.Environ()
 	cmd.Env = append(cmd.Env, c.env...)
+	cmd.Dir = c.dir
 
 	// for any of our wait checks to work we need to set the group ID to the pid, otherwise the
 	// group ID will be the code that launched it (i.e. the code that calls exec.Cmd.Start). This
@@ -178,7 +180,7 @@ func (c *command) Check() (err error) {
 	return
 }
 
-func newCommand(loggers logs.Loggers, as *commandUtils.CommandAsDifferentUser, env []string, cmd string, args ...string) (osCmd *command) {
+func newCommand(loggers logs.Loggers, as *commandUtils.CommandAsDifferentUser, env []string, dir string, cmd string, args ...string) (osCmd *command) {
 	osCmd = &command{
 		cmd:        cmd,
 		args:       args,
@@ -187,11 +189,12 @@ func newCommand(loggers logs.Loggers, as *commandUtils.CommandAsDifferentUser, e
 		loggers:    loggers,
 		cmdWrapper: cmdWrapper{},
 		io:         NewIOFromLoggers(loggers),
+		dir:        dir,
 	}
 	return
 }
 
-func newCommandWithCustomIO(loggers logs.Loggers, io ICommandIO, as *commandUtils.CommandAsDifferentUser, env []string, cmd string, args ...string) (osCmd *command) {
+func newCommandWithCustomIO(loggers logs.Loggers, io ICommandIO, as *commandUtils.CommandAsDifferentUser, env []string, dir string, cmd string, args ...string) (osCmd *command) {
 	osCmd = &command{
 		cmd:        cmd,
 		args:       args,
@@ -200,6 +203,7 @@ func newCommandWithCustomIO(loggers logs.Loggers, io ICommandIO, as *commandUtil
 		loggers:    loggers,
 		cmdWrapper: cmdWrapper{},
 		io:         io,
+		dir:        dir,
 	}
 	return
 }

@@ -85,7 +85,7 @@ func flatten(result map[string]string, prefix string, v reflect.Value) (err erro
 		result[prefix] = v.String()
 	case reflect.Invalid:
 		result[prefix] = ""
-	case reflect.Ptr:
+	case reflect.Pointer:
 		if v.IsNil() {
 			return
 		}
