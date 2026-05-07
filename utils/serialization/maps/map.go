@@ -19,7 +19,7 @@ func ToMapFromPointer[T any](o T) (m map[string]string, err error) {
 		err = commonerrors.UndefinedVariable("pointer")
 		return
 	}
-	if reflect.TypeOf(o).Kind() != reflect.Ptr {
+	if reflect.TypeOf(o).Kind() != reflect.Pointer {
 		err = commonerrors.Newf(commonerrors.ErrInvalid, "expected a pointer and got %T", o)
 		return
 	}
@@ -56,7 +56,7 @@ func FromMapToPointer[T any](m map[string]string, o T) (err error) {
 		err = commonerrors.UndefinedVariable("pointer")
 		return
 	}
-	if reflect.TypeOf(o).Kind() != reflect.Ptr {
+	if reflect.TypeOf(o).Kind() != reflect.Pointer {
 		err = commonerrors.Newf(commonerrors.ErrInvalid, "expected a pointer and got %T", o)
 		return
 	}
