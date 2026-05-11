@@ -14,6 +14,37 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.157.1" (2026-05-11)
+======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: sys-0.43.0 (#20260409101816)
+- Dependency upgrade: crypto-0.50.0 (#20260410101244)
+- Dependency upgrade: mod-0.35.0 (#20260410101259)
+- Dependency upgrade: net-0.53.0 (#20260410101300)
+- Dependency upgrade: upload-artifact-7.0.1 (#20260413110322)
+- Dependency upgrade: codeql-action-4.35.2 (#20260416101503)
+- Dependency upgrade: v5-5.18.0 (#20260417101349)
+- Dependency upgrade: zerolog-1.35.1 (#20260421101451)
+- Dependency upgrade: v2-2.9.0 (#20260421101500)
+- Dependency upgrade: timberjack-1.4.2 (#20260421101514)
+- Dependency upgrade: zap-1.28.0 (#20260428101825)
+- Dependency upgrade: v4-4.26.4 (#20260501114549)
+- Dependency upgrade: spdx-0.1.3 (#20260504122618)
+- Dependency upgrade: crypto-0.51.0 (#20260511154537)
+- Dependency upgrade: net-0.54.0 (#20260511154553)
+- Dependency upgrade: v5-5.19.0 (#20260511163359)
+- Dependency upgrade: fetch-metadata-3.1.0 (#20260511163423)
+
+
+Misc
+----
+
+- #20260507133219
+
+
 "1.157.0" (2026-04-22)
 ======================
 
