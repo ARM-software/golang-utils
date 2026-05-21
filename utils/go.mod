@@ -29,10 +29,13 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/iamacarpet/go-win64api v0.0.0-20240507095429-873e84e85847
 	github.com/joho/godotenv v1.5.1
+	github.com/mailru/easyjson v0.7.7
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/perimeterx/marshmallow v1.1.5
+	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5
 	github.com/rs/zerolog v1.35.1
+	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 	github.com/sasha-s/go-deadlock v0.3.9
 	github.com/shirou/gopsutil/v4 v4.26.4
 	github.com/sirupsen/logrus v1.9.4
@@ -54,6 +57,7 @@ require (
 	golang.org/x/sync v0.20.0
 	golang.org/x/sys v0.44.0
 	golang.org/x/text v0.37.0
+	sigs.k8s.io/yaml v1.6.0
 )
 
 require (
@@ -85,7 +89,6 @@ require (
 	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
-	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/pascaldekloe/name v1.0.0 // indirect
@@ -107,6 +110,7 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.mongodb.org/mongo-driver v1.17.4 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
+	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/tools v0.44.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect

@@ -1,13 +1,9 @@
 package filesystem
 
 import (
-	"io/fs"
 	"path"
 	"path/filepath"
 	"strings"
-	"syscall"
-
-	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/platform"
@@ -281,104 +277,4 @@ func EvalSymlinks(fs FS, pathWithSymlinks string) (populatedPath string, err err
 // EndsWithPathSeparator states whether a path is ending with a path separator of not
 func EndsWithPathSeparator(fs FS, filePath string) bool {
 	return strings.HasSuffix(filePath, "/") || strings.HasSuffix(filePath, string(fs.PathSeparator()))
-}
-
-// NewPathValidationRule returns a validation rule to use in configuration.
-// The rule checks whether a string is a valid not empty path.
-// `when` describes whether the rule is enforced or not
-func NewPathValidationRule(filesystem FS, when bool) validation.Rule {
-	return &pathValidationRule{condition: when, filesystem: filesystem}
-}
-
-// NewOSPathValidationRule returns a validation rule to use in configuration.
-// The rule checks whether a string is a valid path for the Operating System's filesystem.
-// `when` describes whether the rule is enforced or not
-func NewOSPathValidationRule(when bool) validation.Rule {
-	return NewPathValidationRule(GetGlobalFileSystem(), when)
-}
-
-type pathValidationRule struct {
-	condition  bool
-	filesystem FS
-}
-
-func (r *pathValidationRule) Validate(value interface{}) error {
-	err := validation.Required.When(r.condition).Validate(value)
-	if err != nil {
-		return commonerrors.WrapErrorf(commonerrors.ErrUndefined, err, "path [%v] is required", value)
-	}
-	if !r.condition {
-		return nil
-	}
-	pathString, err := validation.EnsureString(value)
-	if err != nil {
-		return commonerrors.WrapErrorf(commonerrors.ErrInvalid, err, "path [%v] must be a string", value)
-	}
-	pathString = strings.TrimSpace(pathString)
-	// This check is here because it validates the path on any platform (it is a cross-platform check)
-	// Indeed if the path exists, then it can only be valid.
-	if r.filesystem.Exists(pathString) {
-		return nil
-	}
-
-	// Inspired from https://github.com/go-playground/validator/blob/84254aeb5a59e615ec0b66ab53b988bc0677f55e/baked_in.go#L1604 and https://stackoverflow.com/questions/35231846/golang-check-if-string-is-valid-path
-	if pathString == "" {
-		return commonerrors.Newf(commonerrors.ErrUndefined, "the path [%v] is empty", value)
-	}
-	// This check is to catch errors on Linux. It does not work as well on Windows.
-	if _, err := r.filesystem.Stat(pathString); err != nil {
-		switch t := err.(type) {
-		case *fs.PathError:
-			if t.Err == syscall.EINVAL {
-				return commonerrors.WrapErrorf(commonerrors.ErrInvalid, err, "the path [%v] has invalid characters", value)
-			}
-		default:
-			// make the linter happy
-		}
-	}
-	// The following case is not caught on Windows by the check above.
-	if strings.Contains(pathString, "\n") {
-		return commonerrors.Newf(commonerrors.ErrInvalid, "the path [%v] has carriage returns characters", value)
-	}
-
-	// TODO add platform validation checks: e.g. https://learn.microsoft.com/en-gb/windows/win32/fileio/naming-a-file?redirectedfrom=MSDN on windows
-
-	return nil
-}
-
-// NewPathExistRule returns a validation rule to use in configuration.
-// The rule checks whether a string is a valid not empty path and actually exists.
-// `when` describes whether the rule is enforced or not.
-func NewPathExistRule(filesystem FS, when bool) validation.Rule {
-	return &pathExistValidationRule{filesystem: filesystem, condition: when}
-}
-
-// NewOSPathExistRule returns a validation rule to use in configuration.
-// The rule checks whether a string is a valid path for the Operating system's filesystem and actually exists.
-// `when` describes whether the rule is enforced or not.
-func NewOSPathExistRule(when bool) validation.Rule {
-	return NewPathExistRule(GetGlobalFileSystem(), when)
-}
-
-type pathExistValidationRule struct {
-	condition  bool
-	filesystem FS
-}
-
-func (r *pathExistValidationRule) Validate(value interface{}) error {
-	err := NewPathValidationRule(r.filesystem, r.condition).Validate(value)
-	if err != nil {
-		return err
-	}
-	if !r.condition {
-		return nil
-	}
-	path, err := validation.EnsureString(value)
-	if err != nil {
-		return commonerrors.WrapErrorf(commonerrors.ErrInvalid, err, "path [%v] must be a string", value)
-	}
-	if !r.filesystem.Exists(path) {
-		err = commonerrors.Newf(commonerrors.ErrNotFound, "path [%v] does not exist", path)
-	}
-	return err
 }
