@@ -1,3 +1,4 @@
+//nolint:misspell // serialization package names and aliases are intentional.
 package jsontest
 
 import (
@@ -7,10 +8,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	jsonserialization "github.com/ARM-software/golang-utils/utils/serialization/json"
-	"github.com/ARM-software/golang-utils/utils/serialization/json/jsontest/easyjson"
-	"github.com/ARM-software/golang-utils/utils/serialization/json/jsontest/ffjson"
-	"github.com/ARM-software/golang-utils/utils/serialization/json/jsontest/nofast"
+	jsonserialization "github.com/ARM-software/golang-utils/utils/serialization/json" //nolint:misspell
+	"github.com/ARM-software/golang-utils/utils/serialization/json/jsontest/easyjson" //nolint:misspell
+	"github.com/ARM-software/golang-utils/utils/serialization/json/jsontest/ffjson"   //nolint:misspell
+	"github.com/ARM-software/golang-utils/utils/serialization/json/jsontest/nofast"   //nolint:misspell
 )
 
 type equals interface {

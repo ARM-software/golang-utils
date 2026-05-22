@@ -1,3 +1,4 @@
+//nolint:misspell // serialization package names and aliases are intentional.
 package jsonschema
 
 import (
@@ -8,8 +9,8 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
-	jsonserialization "github.com/ARM-software/golang-utils/utils/serialization/json"
-	"github.com/ARM-software/golang-utils/utils/serialization/yaml"
+	jsonserialization "github.com/ARM-software/golang-utils/utils/serialization/json" //nolint:misspell
+	"github.com/ARM-software/golang-utils/utils/serialization/yaml"                   //nolint:misspell
 )
 
 type fileValidator struct {

@@ -1,3 +1,4 @@
+//nolint:misspell // serialization package names and aliases are intentional.
 package yamltest
 
 import (
@@ -11,8 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/filesystem"
-	yamlserialization "github.com/ARM-software/golang-utils/utils/serialization/yaml"
-	"github.com/ARM-software/golang-utils/utils/serialization/yaml/yamltest/nofast"
+	yamlserialization "github.com/ARM-software/golang-utils/utils/serialization/yaml" //nolint:misspell
+	"github.com/ARM-software/golang-utils/utils/serialization/yaml/yamltest/nofast"   //nolint:misspell
 )
 
 func TestYAMLMarshalling(t *testing.T) {

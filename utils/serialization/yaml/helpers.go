@@ -1,5 +1,4 @@
-// Package yaml mirrors the repository's serialization/json helper shape for
-// YAML data.
+// Package yaml mirrors the repository's JSON helper shape for YAML data.
 //
 // The package converts YAML input to JSON before delegating to the JSON helpers,
 // which keeps one implementation of the fast, non-reflective JSON decoding
@@ -11,6 +10,8 @@
 // while preserving some YAML 1.1 behaviour for compatibility, including YAML
 // aliases and anchors, as documented at
 // https://github.com/yaml/go-yaml#compatibility.
+//
+//nolint:misspell // serialization package names and aliases are intentional.
 package yaml
 
 import (
@@ -20,7 +21,7 @@ import (
 	sigsyaml "sigs.k8s.io/yaml"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
-	jsonserialization "github.com/ARM-software/golang-utils/utils/serialization/json"
+	jsonserialization "github.com/ARM-software/golang-utils/utils/serialization/json" //nolint:misspell
 )
 
 // ToJSON converts YAML data to JSON.
@@ -40,7 +41,7 @@ func ToJSON(yaml []byte) (json []byte, err error) {
 }
 
 // Marshal encodes a value to a YAML byte slice.
-// It follows the same helper shape as serialization/json.Marshal.
+// It follows the same helper shape as the repository's JSON `Marshal` helper.
 //
 // Values are first encoded through the JSON helpers so any generated fast JSON
 // serialisers can still be used, then the resulting JSON is converted to YAML.
@@ -69,7 +70,8 @@ func MarshalWithContext(ctx context.Context, v any) (content []byte, err error) 
 }
 
 // Unmarshal decodes a YAML byte slice into a destination value.
-// It follows the same helper shape as serialization/json.Unmarshal.
+// It follows the same helper shape as the repository's JSON `Unmarshal`
+// helper.
 //
 // YAML is converted to JSON first, so the JSON helpers can retain their fast-
 // generated decoding paths and shared decoding behaviour.

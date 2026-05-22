@@ -8,7 +8,7 @@ import (
 )
 
 // Decoder reads YAML from a reader and decodes it into Go values.
-// It follows the same helper shape as serialization/json.Decoder.
+// It follows the same helper shape as the repository's JSON `Decoder`.
 //
 // Reads are context-aware, and the input is converted to JSON before the JSON
 // helpers are used, so the repository keeps a single fast decoding path.
@@ -19,13 +19,15 @@ type Decoder struct {
 }
 
 // NewDecoder creates a Decoder that reads YAML values from r.
-// It follows the same helper shape as serialization/json.NewDecoder.
+// It follows the same helper shape as the repository's JSON `NewDecoder`
+// helper.
 func NewDecoder(ctx context.Context, r io.Reader) *Decoder {
 	return &Decoder{ctx: ctx, reader: safeio.NewContextualReader(ctx, r)}
 }
 
 // Decode reads YAML from the decoder and stores the result in v.
-// It follows the same helper shape as serialization/json.Decoder.Decode.
+// It follows the same helper shape as the repository's JSON `Decoder.Decode`
+// method.
 //
 // The data is converted to JSON first, then passed to the JSON helpers, so the
 // same fast and implementation-agnostic decoding logic is reused here.

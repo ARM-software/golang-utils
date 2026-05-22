@@ -8,7 +8,7 @@ import (
 )
 
 // Encoder writes YAML values to a writer.
-// It follows the same helper shape as serialization/json.Encoder.
+// It follows the same helper shape as the repository's JSON `Encoder`.
 //
 // Writes are context-aware. Values are first encoded through the JSON helpers
 // so any generated fast JSON serialisers can still be used before converting
@@ -19,13 +19,15 @@ type Encoder struct {
 }
 
 // NewEncoder creates an Encoder that writes YAML values to w.
-// It follows the same helper shape as serialization/json.NewEncoder.
+// It follows the same helper shape as the repository's JSON `NewEncoder`
+// helper.
 func NewEncoder(ctx context.Context, w io.Writer) *Encoder {
 	return &Encoder{writer: safeio.ContextualWriter(ctx, w)}
 }
 
 // Encode writes v as YAML to the encoder's writer.
-// It follows the same helper shape as serialization/json.Encoder.Encode.
+// It follows the same helper shape as the repository's JSON `Encoder.Encode`
+// method.
 //
 // The value is first encoded through the JSON helpers, then the JSON output is
 // converted to YAML before it is written.

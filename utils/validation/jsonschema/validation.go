@@ -32,7 +32,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/reflection"
-	"github.com/ARM-software/golang-utils/utils/serialization/json"
+	"github.com/ARM-software/golang-utils/utils/serialization/json" //nolint:misspell
 )
 
 // Schema describes a schema file that can be loaded and registered for
