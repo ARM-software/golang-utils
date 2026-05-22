@@ -84,12 +84,12 @@ func newSchemaCreationFunc(schemaID *string, schema ...Schema) func(context.Cont
 	}
 }
 
-// NewJSONFileValidator returns a validator for JSON content.
+// NewJSONFileValidator returns a validator for JSON content and `.json` files.
 //
 // `schemaID` is the optional schema ID to compile when the schema is composed
 // of multiple schema documents. Otherwise, leave it as nil.
 //
-// Note: The returned validator compiles its schema set lazily and caches the result
+// The returned validator compiles its schema set lazily and caches the result
 // for reuse across subsequent validations.
 func NewJSONFileValidator(schemaID *string, schema ...Schema) (v ISchemaValidator, err error) {
 	v = &fileValidator{
@@ -100,12 +100,19 @@ func NewJSONFileValidator(schemaID *string, schema ...Schema) (v ISchemaValidato
 	return
 }
 
-// NewYAMLFileValidator returns a validator for YAML content.
+// NewJSONFileValidatorWithOptions returns a JSON validator using a Schema built
+// from the supplied options.
+func NewJSONFileValidatorWithOptions(options ...SchemaOption) (ISchemaValidator, error) {
+	return NewJSONFileValidator(nil, *NewJSONSchemaFile(options...))
+}
+
+// NewYAMLFileValidator returns a validator for YAML content and `.yaml` or
+// `.yml` files.
 //
 // `schemaID` is the optional schema ID to compile when the schema is composed
 // of multiple schema documents. Otherwise, leave it as nil.
 //
-// Note: The returned validator compiles its schema set lazily and caches the result
+// The returned validator compiles its schema set lazily and caches the result
 // for reuse across subsequent validations.
 func NewYAMLFileValidator(schemaID *string, schema ...Schema) (v ISchemaValidator, err error) {
 	v = &fileValidator{
@@ -114,4 +121,10 @@ func NewYAMLFileValidator(schemaID *string, schema ...Schema) (v ISchemaValidato
 		convertFunc:        yaml.ToJSON,
 	}
 	return
+}
+
+// NewYAMLFileValidatorWithOptions returns a YAML validator using a Schema built
+// from the supplied options.
+func NewYAMLFileValidatorWithOptions(options ...SchemaOption) (ISchemaValidator, error) {
+	return NewYAMLFileValidator(nil, *NewJSONSchemaFile(options...))
 }

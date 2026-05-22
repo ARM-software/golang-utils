@@ -24,22 +24,17 @@ var (
 
 func newValidSchema(t *testing.T, fs filesystem.FS) *Schema {
 	t.Helper()
-	return &Schema{
-		Title:      "person",
-		LocalPath:  path.Join("testdata", "person.schema.json"),
-		ID:         "https://example.com/schemas/person.schema.json",
-		Filesystem: fs,
-	}
+	return NewJSONSchemaFile(
+		WithTitle("person"),
+		WithLocalPath(path.Join("testdata", "person.schema.json")),
+		WithID("https://example.com/schemas/person.schema.json"),
+		WithFilesystem(fs),
+	)
 }
 
 func newSchema(t *testing.T, fs filesystem.FS, title string, localPath string, id string) *Schema {
 	t.Helper()
-	return &Schema{
-		Title:      title,
-		LocalPath:  localPath,
-		ID:         id,
-		Filesystem: fs,
-	}
+	return NewJSONSchemaFile(WithTitle(title), WithLocalPath(localPath), WithID(id), WithFilesystem(fs))
 }
 
 func newMissingSchema(t *testing.T, fs filesystem.FS) *Schema {
@@ -97,6 +92,26 @@ func TestSchemaValidate(t *testing.T) {
 	errortest.AssertError(t, err, commonerrors.ErrInvalid)
 }
 
+func TestNewJSONSchemaFileDefaults(t *testing.T) {
+	schema := NewJSONSchemaFile(WithTitle("person"), WithLocalPath(path.Join("testdata", "person.schema.json")))
+	require.NotNil(t, schema)
+	assert.Equal(t, "person", schema.Title)
+	assert.Equal(t, path.Join("testdata", "person.schema.json"), schema.LocalPath)
+	assert.Equal(t, path.Join("testdata", "person.schema.json"), schema.ID)
+	assert.Equal(t, filesystem.GetGlobalFileSystem(), schema.Filesystem)
+}
+
+func TestNewJSONSchemaFile(t *testing.T) {
+	schema := NewJSONSchemaFile(
+		WithTitle("person"),
+		WithLocalPath(path.Join("testdata", "person.schema.json")),
+		WithFilesystem(filesystem.GetGlobalFileSystem()),
+	)
+	require.NotNil(t, schema)
+	assert.Equal(t, "person", schema.Title)
+	assert.Equal(t, path.Join("testdata", "person.schema.json"), schema.ID)
+}
+
 func TestSchemaSpecValidate(t *testing.T) {
 	require.NoError(t, (&SchemaSpec{ID: "schema.json", Specification: []byte(`{"type":"object"}`)}).Validate())
 
@@ -133,6 +148,18 @@ func TestLoadSchemaSpec_MissingSchemaPath(t *testing.T) {
 
 func TestValidateRawJSONAgainstSchema(t *testing.T) {
 	err := ValidateRawJSONAgainstSchema(context.Background(), map[string]any{"name": "Alice", "count": 2}, nil, *newValidSchema(t, filesystem.GetGlobalFileSystem()))
+	require.NoError(t, err)
+}
+
+func TestValidateRawJSONAgainstSchemaOptions(t *testing.T) {
+	err := ValidateRawJSONAgainstSchemaOptions(
+		context.Background(),
+		map[string]any{"name": "Alice", "count": 2},
+		nil,
+		WithTitle("person"),
+		WithLocalPath(path.Join("testdata", "person.schema.json")),
+		WithFilesystem(filesystem.GetGlobalFileSystem()),
+	)
 	require.NoError(t, err)
 }
 
@@ -289,6 +316,18 @@ func TestValidateRawYAMLAgainstSchema(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestValidateRawYAMLAgainstSchemaOptions(t *testing.T) {
+	err := ValidateRawYAMLAgainstSchemaOptions(
+		context.Background(),
+		[]byte("name: Alice\ncount: 2\n"),
+		nil,
+		WithTitle("person"),
+		WithLocalPath(path.Join("testdata", "person.schema.json")),
+		WithFilesystem(filesystem.GetGlobalFileSystem()),
+	)
+	require.NoError(t, err)
+}
+
 func TestValidateRawYAMLAgainstSchema_InvalidContent(t *testing.T) {
 	err := ValidateRawYAMLAgainstSchema(context.Background(), []byte("count: two\n"), nil, *newValidSchema(t, filesystem.GetGlobalFileSystem()))
 	require.Error(t, err)
@@ -328,8 +367,42 @@ func TestSchemaGenerationOnlyRunsOnceAfterCancelledContext(t *testing.T) {
 	require.NoError(t, v.ValidateContent(context.Background(), map[string]any{"name": "Alice", "count": 2}))
 }
 
+func TestNewJSONFileValidatorWithOptions(t *testing.T) {
+	v, err := NewJSONFileValidatorWithOptions(
+		nil,
+		WithTitle("person"),
+		WithLocalPath(path.Join("testdata", "person.schema.json")),
+		WithFilesystem(filesystem.GetGlobalFileSystem()),
+	)
+	require.NoError(t, err)
+	require.NoError(t, v.ValidateContent(context.Background(), map[string]any{"name": "Alice", "count": 2}))
+}
+
+func TestNewYAMLFileValidatorWithOptions(t *testing.T) {
+	v, err := NewYAMLFileValidatorWithOptions(
+		nil,
+		WithTitle("person"),
+		WithLocalPath(path.Join("testdata", "person.schema.json")),
+		WithFilesystem(filesystem.GetGlobalFileSystem()),
+	)
+	require.NoError(t, err)
+	require.NoError(t, v.ValidateContent(context.Background(), []byte("name: Alice\ncount: 2\n")))
+}
+
 func TestValidateJSONFileAgainstSchema(t *testing.T) {
 	err := ValidateJSONFileAgainstSchema(context.Background(), path.Join("testdata", "valid.json"), nil, *newValidSchema(t, filesystem.GetGlobalFileSystem()))
+	require.NoError(t, err)
+}
+
+func TestValidateJSONFileAgainstSchemaOptions(t *testing.T) {
+	err := ValidateJSONFileAgainstSchemaOptions(
+		context.Background(),
+		path.Join("testdata", "valid.json"),
+		nil,
+		WithTitle("person"),
+		WithLocalPath(path.Join("testdata", "person.schema.json")),
+		WithFilesystem(filesystem.GetGlobalFileSystem()),
+	)
 	require.NoError(t, err)
 }
 
@@ -345,13 +418,51 @@ func TestValidateJSONFileAgainstSchemaFS(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestValidateJSONFileAgainstSchemaFSWithOptions(t *testing.T) {
+	err := ValidateJSONFileAgainstSchemaFSWithOptions(
+		context.Background(),
+		newEmbeddedFilesystem(t),
+		path.Join("testdata", "valid.json"),
+		nil,
+		WithTitle("person"),
+		WithLocalPath(path.Join("testdata", "person.schema.json")),
+		WithFilesystem(newEmbeddedFilesystem(t)),
+	)
+	require.NoError(t, err)
+}
+
 func TestValidateYAMLFileAgainstSchema(t *testing.T) {
 	err := ValidateYAMLFileAgainstSchema(context.Background(), path.Join("testdata", "valid.yaml"), nil, *newValidSchema(t, filesystem.GetGlobalFileSystem()))
 	require.NoError(t, err)
 }
 
+func TestValidateYAMLFileAgainstSchemaOptions(t *testing.T) {
+	err := ValidateYAMLFileAgainstSchemaOptions(
+		context.Background(),
+		path.Join("testdata", "valid.yaml"),
+		nil,
+		WithTitle("person"),
+		WithLocalPath(path.Join("testdata", "person.schema.json")),
+		WithFilesystem(filesystem.GetGlobalFileSystem()),
+	)
+	require.NoError(t, err)
+}
+
 func TestValidateYAMLFileAgainstSchemaFS(t *testing.T) {
 	err := ValidateYAMLFileAgainstSchemaFS(context.Background(), newEmbeddedFilesystem(t), path.Join("testdata", "valid.yaml"), nil, *newValidSchema(t, newEmbeddedFilesystem(t)))
+	require.NoError(t, err)
+}
+
+func TestValidateYAMLFileAgainstSchemaFSWithOptions(t *testing.T) {
+	err := ValidateYAMLFileAgainstSchemaFSWithOptions(
+		context.Background(),
+		newEmbeddedFilesystem(t),
+		path.Join("testdata", "valid.yaml"),
+		nil,
+		WithTitle("person"),
+		WithLocalPath(path.Join("testdata", "person.schema.json")),
+		WithFilesystem(newEmbeddedFilesystem(t)),
+	)
 	require.NoError(t, err)
 }
 

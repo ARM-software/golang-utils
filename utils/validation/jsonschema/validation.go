@@ -72,8 +72,8 @@ func (s *Schema) Validate() error {
 	return nil
 }
 
-// SchemaSpec contains the schema identifier and the raw JSON schema document
-// that will be compiled for validation.
+// SchemaSpec contains the raw JSON schema document and the identifier used to
+// register it with the JSON Schema compiler.
 type SchemaSpec struct {
 	ID            string
 	Specification []byte
@@ -106,6 +106,7 @@ func LoadSchemaSpec(ctx context.Context, schema *Schema) (*SchemaSpec, error) {
 	if schema == nil {
 		return nil, commonerrors.UndefinedVariable("schema")
 	}
+	schema = schema.Default()
 	err := schema.Validate()
 	if err != nil {
 		return nil, err
@@ -123,20 +124,26 @@ func LoadSchemaSpec(ctx context.Context, schema *Schema) (*SchemaSpec, error) {
 	}, nil
 }
 
-// ValidateRawJSONAgainstSchema validates raw JSON-compatible content against
-// the supplied schema definitions.
+// ValidateRawJSONAgainstSchema validates JSON-compatible content against the
+// supplied schema definitions.
 //
 // `schemaID` is the optional schema ID to compile when the schema is composed
 // of multiple schema documents. Otherwise, leave it as nil.
 //
-// The content may be a decoded Go value or any other value that can be passed
-// directly to the underlying JSON Schema validator.
+// The content may already be decoded into Go values, or any other value that
+// can be passed directly to the underlying JSON Schema validator.
 func ValidateRawJSONAgainstSchema(ctx context.Context, content any, schemaID *string, schema ...Schema) error {
 	v, err := NewJSONFileValidator(schemaID, schema...)
 	if err != nil {
 		return err
 	}
 	return v.ValidateContent(ctx, content)
+}
+
+// ValidateRawJSONAgainstSchemaOptions validates JSON-compatible content against
+// a Schema built from the supplied options.
+func ValidateRawJSONAgainstSchemaOptions(ctx context.Context, content any, options ...SchemaOption) error {
+	return ValidateRawJSONAgainstSchema(ctx, content, nil, *NewJSONSchemaFile(options...))
 }
 
 // ValidateRawYAMLAgainstSchema validates raw YAML bytes against the supplied
@@ -155,6 +162,12 @@ func ValidateRawYAMLAgainstSchema(ctx context.Context, content []byte, schemaID 
 	return v.ValidateContent(ctx, content)
 }
 
+// ValidateRawYAMLAgainstSchemaOptions validates raw YAML bytes against a Schema
+// built from the supplied options.
+func ValidateRawYAMLAgainstSchemaOptions(ctx context.Context, content []byte, options ...SchemaOption) error {
+	return ValidateRawYAMLAgainstSchema(ctx, content, nil, *NewJSONSchemaFile(options...))
+}
+
 // ValidateJSONFileAgainstSchemaFS validates a JSON file from the supplied
 // filesystem against the supplied schema definitions.
 //
@@ -166,6 +179,12 @@ func ValidateJSONFileAgainstSchemaFS(ctx context.Context, fileSystem filesystem.
 		return err
 	}
 	return v.ValidateFileInFS(ctx, fileSystem, filePath)
+}
+
+// ValidateJSONFileAgainstSchemaFSWithOptions validates a JSON file from the
+// supplied filesystem against a Schema built from the supplied options.
+func ValidateJSONFileAgainstSchemaFSWithOptions(ctx context.Context, fileSystem filesystem.FS, filePath string, options ...SchemaOption) error {
+	return ValidateJSONFileAgainstSchemaFS(ctx, fileSystem, filePath, nil, *NewJSONSchemaFile(options...))
 }
 
 // ValidateYAMLFileAgainstSchemaFS validates a YAML file from the supplied
@@ -181,6 +200,12 @@ func ValidateYAMLFileAgainstSchemaFS(ctx context.Context, fileSystem filesystem.
 	return v.ValidateFileInFS(ctx, fileSystem, filePath)
 }
 
+// ValidateYAMLFileAgainstSchemaFSWithOptions validates a YAML file from the
+// supplied filesystem against a Schema built from the supplied options.
+func ValidateYAMLFileAgainstSchemaFSWithOptions(ctx context.Context, fileSystem filesystem.FS, filePath string, options ...SchemaOption) error {
+	return ValidateYAMLFileAgainstSchemaFS(ctx, fileSystem, filePath, nil, *NewJSONSchemaFile(options...))
+}
+
 // ValidateJSONFileAgainstSchema validates a JSON file from the global
 // filesystem against the supplied schema definitions.
 //
@@ -194,6 +219,12 @@ func ValidateJSONFileAgainstSchema(ctx context.Context, filePath string, schemaI
 	return v.ValidateFile(ctx, filePath)
 }
 
+// ValidateJSONFileAgainstSchemaOptions validates a JSON file against a Schema
+// built from the supplied options.
+func ValidateJSONFileAgainstSchemaOptions(ctx context.Context, filePath string, options ...SchemaOption) error {
+	return ValidateJSONFileAgainstSchema(ctx, filePath, nil, *NewJSONSchemaFile(options...))
+}
+
 // ValidateYAMLFileAgainstSchema validates a YAML file from the global
 // filesystem against the supplied schema definitions.
 //
@@ -205,6 +236,12 @@ func ValidateYAMLFileAgainstSchema(ctx context.Context, filePath string, schemaI
 		return err
 	}
 	return v.ValidateFile(ctx, filePath)
+}
+
+// ValidateYAMLFileAgainstSchemaOptions validates a YAML file against a Schema
+// built from the supplied options.
+func ValidateYAMLFileAgainstSchemaOptions(ctx context.Context, filePath string, options ...SchemaOption) error {
+	return ValidateYAMLFileAgainstSchema(ctx, filePath, nil, *NewJSONSchemaFile(options...))
 }
 
 // validateAgainstSchema validates a file against a schema
@@ -285,7 +322,7 @@ func registerSchemaToCompiler(ctx context.Context, compiler *santhoshjsonschema.
 
 func schemaID(id string, localPath string) string {
 	id = strings.TrimSpace(id)
-	if id != "" {
+	if !reflection.IsEmpty(id) {
 		return id
 	}
 	return strings.TrimSpace(localPath)
