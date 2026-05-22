@@ -32,6 +32,27 @@ func newValidSchema(t *testing.T, fs filesystem.FS) *Schema {
 	}
 }
 
+func newSchema(t *testing.T, fs filesystem.FS, title string, localPath string, id string) *Schema {
+	t.Helper()
+	return &Schema{
+		Title:      title,
+		LocalPath:  localPath,
+		ID:         id,
+		Filesystem: fs,
+	}
+}
+
+func newMissingSchema(t *testing.T, fs filesystem.FS) *Schema {
+	t.Helper()
+	return newSchema(
+		t,
+		fs,
+		"missing schema",
+		path.Join("testdata", "missing.schema.json"),
+		"https://example.com/schemas/missing.schema.json",
+	)
+}
+
 func newEmbeddedFilesystem(t *testing.T) filesystem.FS {
 	t.Helper()
 	fs, err := filesystem.NewEmbedFileSystem(&embeddedFS)
@@ -66,7 +87,12 @@ func newCompoundSchemas(t *testing.T, fs filesystem.FS) []Schema {
 func TestSchemaValidate(t *testing.T) {
 	require.NoError(t, newValidSchema(t, filesystem.GetGlobalFileSystem()).Validate())
 
-	err := (&Schema{}).Validate()
+	var nilSchema *Schema
+	err := nilSchema.Validate()
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrUndefined)
+
+	err = (&Schema{}).Validate()
 	require.Error(t, err)
 	errortest.AssertError(t, err, commonerrors.ErrInvalid)
 }
@@ -74,7 +100,12 @@ func TestSchemaValidate(t *testing.T) {
 func TestSchemaSpecValidate(t *testing.T) {
 	require.NoError(t, (&SchemaSpec{ID: "schema.json", Specification: []byte(`{"type":"object"}`)}).Validate())
 
-	err := (&SchemaSpec{}).Validate()
+	var nilSpec *SchemaSpec
+	err := nilSpec.Validate()
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrUndefined)
+
+	err = (&SchemaSpec{}).Validate()
 	require.Error(t, err)
 	errortest.AssertError(t, err, commonerrors.ErrInvalid)
 }
@@ -91,6 +122,13 @@ func TestLoadSchemaSpecEmbeddedFS(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "https://example.com/schemas/person.schema.json", spec.ID)
 	assert.NotEmpty(t, spec.Specification)
+}
+
+func TestLoadSchemaSpec_MissingSchemaPath(t *testing.T) {
+	_, err := LoadSchemaSpec(context.Background(), newMissingSchema(t, filesystem.GetGlobalFileSystem()))
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrNotFound)
+	assert.ErrorContains(t, err, "failed to load JSON Schema")
 }
 
 func TestValidateRawJSONAgainstSchema(t *testing.T) {
@@ -113,6 +151,137 @@ func TestValidateRawJSONAgainstCompoundSchema(t *testing.T) {
 		newCompoundSchemas(t, filesystem.GetGlobalFileSystem())...,
 	)
 	require.NoError(t, err)
+}
+
+func TestValidateGoogleDraft202012DefsFixture(t *testing.T) {
+	// Source: https://github.com/json-schema-org/JSON-Schema-Test-Suite/blob/main/tests/draft2020-12/defs.json
+	googleSchema := newSchema(
+		t,
+		filesystem.GetGlobalFileSystem(),
+		"google defs metaschema fixture",
+		path.Join("testdata", "google_defs_metaschema.schema.json"),
+		"https://example.com/schemas/google/defs-metaschema.schema.json",
+	)
+
+	err := ValidateJSONFileAgainstSchema(
+		context.Background(),
+		path.Join("testdata", "google_defs_valid.json"),
+		nil,
+		*googleSchema,
+	)
+	require.NoError(t, err)
+
+	err = ValidateJSONFileAgainstSchema(
+		context.Background(),
+		path.Join("testdata", "google_defs_invalid.json"),
+		nil,
+		*googleSchema,
+	)
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrInvalid)
+}
+
+func TestValidateGojsonschemaIntegerFixture(t *testing.T) {
+	// Source: https://github.com/xeipuuv/gojsonschema/blob/master/testdata/remotes/integer.json
+	gojsonschemaFixture := newSchema(
+		t,
+		filesystem.GetGlobalFileSystem(),
+		"gojsonschema integer fixture",
+		path.Join("testdata", "gojsonschema_integer.schema.json"),
+		"https://example.com/schemas/gojsonschema/integer.json",
+	)
+
+	err := ValidateRawJSONAgainstSchema(context.Background(), 2, nil, *gojsonschemaFixture)
+	require.NoError(t, err)
+
+	err = ValidateRawJSONAgainstSchema(context.Background(), "2", nil, *gojsonschemaFixture)
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrInvalid)
+}
+
+func TestValidateJSONSchemaTestSuiteRequiredFixture(t *testing.T) {
+	// Source: https://github.com/json-schema-org/JSON-Schema-Test-Suite/blob/main/tests/draft2020-12/required.json
+	requiredFixture := newSchema(
+		t,
+		filesystem.GetGlobalFileSystem(),
+		"json-schema-test-suite required fixture",
+		path.Join("testdata", "json_schema_test_suite_required.schema.json"),
+		"https://example.com/schemas/json-schema-test-suite/required.schema.json",
+	)
+
+	err := ValidateJSONFileAgainstSchema(
+		context.Background(),
+		path.Join("testdata", "json_schema_test_suite_required_valid.json"),
+		nil,
+		*requiredFixture,
+	)
+	require.NoError(t, err)
+
+	err = ValidateJSONFileAgainstSchema(
+		context.Background(),
+		path.Join("testdata", "json_schema_test_suite_required_invalid.json"),
+		nil,
+		*requiredFixture,
+	)
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrInvalid)
+}
+
+func TestValidateJSONSchemaTestSuiteBooleanFalseFixture(t *testing.T) {
+	// Source: https://github.com/json-schema-org/JSON-Schema-Test-Suite/blob/main/tests/draft2020-12/boolean_schema.json
+	booleanFalseFixture := newSchema(
+		t,
+		filesystem.GetGlobalFileSystem(),
+		"json-schema-test-suite boolean false fixture",
+		path.Join("testdata", "json_schema_test_suite_boolean_false.schema.json"),
+		"https://example.com/schemas/json-schema-test-suite/boolean-false.schema.json",
+	)
+
+	err := ValidateRawJSONAgainstSchema(context.Background(), 1, nil, *booleanFalseFixture)
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrInvalid)
+
+	err = ValidateRawJSONAgainstSchema(context.Background(), map[string]any{"foo": "bar"}, nil, *booleanFalseFixture)
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrInvalid)
+}
+
+func TestValidateGojsonschemaFragmentSchemaFixture(t *testing.T) {
+	// Source: https://github.com/xeipuuv/gojsonschema/blob/master/testdata/extra/fragment_schema.json
+	fragmentFixture := newSchema(
+		t,
+		filesystem.GetGlobalFileSystem(),
+		"gojsonschema fragment schema fixture",
+		path.Join("testdata", "gojsonschema_fragment_schema.json"),
+		"https://example.com/schemas/gojsonschema/fragment_schema.json",
+	)
+
+	schemaID := "https://example.com/schemas/gojsonschema/fragment_schema.json#/definitions/x"
+	err := ValidateRawJSONAgainstSchema(context.Background(), 2, &schemaID, *fragmentFixture)
+	require.NoError(t, err)
+
+	err = ValidateRawJSONAgainstSchema(context.Background(), "2", &schemaID, *fragmentFixture)
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrInvalid)
+}
+
+func TestValidateGojsonschemaSubSchemasFixture(t *testing.T) {
+	// Source: https://github.com/xeipuuv/gojsonschema/blob/master/testdata/remotes/subSchemas.json
+	subSchemasFixture := newSchema(
+		t,
+		filesystem.GetGlobalFileSystem(),
+		"gojsonschema subSchemas fixture",
+		path.Join("testdata", "gojsonschema_subSchemas.json"),
+		"https://example.com/schemas/gojsonschema/subSchemas.json",
+	)
+
+	schemaID := "https://example.com/schemas/gojsonschema/subSchemas.json#/refToInteger"
+	err := ValidateRawJSONAgainstSchema(context.Background(), 2, &schemaID, *subSchemasFixture)
+	require.NoError(t, err)
+
+	err = ValidateRawJSONAgainstSchema(context.Background(), "2", &schemaID, *subSchemasFixture)
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrInvalid)
 }
 
 func TestValidateRawYAMLAgainstSchema(t *testing.T) {
@@ -162,6 +331,13 @@ func TestSchemaGenerationOnlyRunsOnceAfterCancelledContext(t *testing.T) {
 func TestValidateJSONFileAgainstSchema(t *testing.T) {
 	err := ValidateJSONFileAgainstSchema(context.Background(), path.Join("testdata", "valid.json"), nil, *newValidSchema(t, filesystem.GetGlobalFileSystem()))
 	require.NoError(t, err)
+}
+
+func TestValidateJSONFileAgainstSchema_MissingSchemaPath(t *testing.T) {
+	err := ValidateJSONFileAgainstSchema(context.Background(), path.Join("testdata", "valid.json"), nil, *newMissingSchema(t, filesystem.GetGlobalFileSystem()))
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrNotFound)
+	assert.ErrorContains(t, err, "failed to load JSON Schema")
 }
 
 func TestValidateJSONFileAgainstSchemaFS(t *testing.T) {

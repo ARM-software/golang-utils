@@ -119,5 +119,15 @@ require (
 
 tool (
 	github.com/dmarkham/enumer
+	github.com/mailru/easyjson/bootstrap
+	github.com/mailru/easyjson/buffer
+	github.com/mailru/easyjson/easyjson
+	github.com/mailru/easyjson/gen
+	github.com/mailru/easyjson/jlexer
+	github.com/mailru/easyjson/jwriter
+	github.com/mailru/easyjson/opt
+	github.com/mailru/easyjson/parser
+	github.com/mailru/easyjson/tests
+	github.com/pquerna/ffjson
 	go.uber.org/mock/mockgen
 )

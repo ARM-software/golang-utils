@@ -6,7 +6,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 )
 
-//go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE ISchemaValidator
+//go:generate go tool mockgen -destination=../../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/validation/$GOPACKAGE ISchemaValidator
 
 // ISchemaValidator validates content against a compiled JSON
 // Schema definition.

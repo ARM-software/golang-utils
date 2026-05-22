@@ -32,7 +32,7 @@ type pathValidationRule struct {
 	filesystem FS
 }
 
-func (r *pathValidationRule) Validate(value interface{}) error {
+func (r *pathValidationRule) Validate(value any) error {
 	err := validation.Required.When(r.condition).Validate(value)
 	if err != nil {
 		return commonerrors.WrapErrorf(commonerrors.ErrUndefined, err, "path [%v] is required", value)
@@ -97,7 +97,7 @@ type pathExistValidationRule struct {
 	filesystem FS
 }
 
-func (r *pathExistValidationRule) Validate(value interface{}) error {
+func (r *pathExistValidationRule) Validate(value any) error {
 	err := NewPathValidationRule(r.filesystem, r.condition).Validate(value)
 	if err != nil {
 		return err
@@ -135,7 +135,7 @@ type pathExtensionValidationRule struct {
 	extensions []string
 }
 
-func (r *pathExtensionValidationRule) Validate(value interface{}) error {
+func (r *pathExtensionValidationRule) Validate(value any) error {
 	err := NewPathValidationRule(r.filesystem, r.condition).Validate(value)
 	if err != nil {
 		return err

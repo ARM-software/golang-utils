@@ -65,6 +65,7 @@ func (s *Schema) Validate() error {
 		validation.Field(&s.ID, validation.Required),
 		validation.Field(&s.Filesystem, validation.Required),
 	)
+
 	if err != nil {
 		return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid json schema definition")
 	}
@@ -243,6 +244,9 @@ func generateSchemaDefinition(ctx context.Context, schemaID *string, composingSc
 		}
 		return registerSchemaToCompiler(ctx, compiler, spec)
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	schema, err = compiler.Compile(id)
 	if err != nil {
