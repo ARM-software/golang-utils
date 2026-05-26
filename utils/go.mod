@@ -29,7 +29,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/iamacarpet/go-win64api v0.0.0-20240507095429-873e84e85847
 	github.com/joho/godotenv v1.5.1
-	github.com/mailru/easyjson v0.7.7
+	github.com/mailru/easyjson v0.9.2
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/perimeterx/marshmallow v1.1.5
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
