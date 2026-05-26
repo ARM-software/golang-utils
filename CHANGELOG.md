@@ -14,6 +14,30 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.158.0" (2026-05-26)
+======================
+
+Features
+--------
+
+- :zap: add helpers for supporting `json` marshalling with better performance than `encoding/json` (#20260521144643)
+- :sparkles: add helpers for serialising yaml (#20260521162032)
+- :sparkles: add helpers to validate files against a JSON schema in `jsonschema` (#20260521183044)
+- :sparkles: `[filesystem]` Added validation rules for checking that a file path has the required extension (#20260521184825)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: codeql-action-4.35.4 (#20260515131752)
+- Dependency upgrade: v5-5.19.1 (#20260519161135)
+- Dependency upgrade: sys-0.45.0 (#20260522102515)
+- Dependency upgrade: crypto-0.52.0 (#20260522102520)
+- Dependency upgrade: net-0.55.0 (#20260522102524)
+- Dependency upgrade: spdx-0.1.4 (#20260525155040)
+- Dependency upgrade: codeql-action-4.36.0 (#20260525155205)
+
+
 "1.157.1" (2026-05-11)
 ======================
 
