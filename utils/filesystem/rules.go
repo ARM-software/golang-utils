@@ -12,30 +12,30 @@ import (
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
-// NewPathValidationRule returns a validation rule to use in configuration.
-// The rule checks whether a string is a valid not empty path.
-// `when` describes whether the rule is enforced or not.
-func NewPathValidationRule(filesystem FS, when bool) validation.Rule {
-	return &pathValidationRule{condition: when, filesystem: filesystem}
-}
-
-// NewOSPathValidationRule returns a validation rule to use in configuration.
-// The rule checks whether a string is a valid path for the operating system's
-// filesystem.
-// `when` describes whether the rule is enforced or not.
-func NewOSPathValidationRule(when bool) validation.Rule {
-	return NewPathValidationRule(GetGlobalFileSystem(), when)
-}
-
-type pathValidationRule struct {
+type filesystemValidationRule struct {
 	condition  bool
 	filesystem FS
 }
 
-func (r *pathValidationRule) Validate(value any) error {
+func (r *filesystemValidationRule) Validate(value any) error {
 	err := validation.Required.When(r.condition).Validate(value)
 	if err != nil {
-		return commonerrors.WrapErrorf(commonerrors.ErrUndefined, err, "path [%v] is required", value)
+		return commonerrors.WrapErrorf(commonerrors.ErrUndefined, err, "missing value")
+	}
+	if r.filesystem == nil {
+		return commonerrors.UndefinedVariable("filesystem to consider")
+	}
+	return nil
+}
+
+type pathValidationRule struct {
+	filesystemValidationRule
+}
+
+func (r *pathValidationRule) Validate(value any) error {
+	err := r.filesystemValidationRule.Validate(value)
+	if err != nil {
+		return err
 	}
 	if !r.condition {
 		return nil
@@ -76,29 +76,32 @@ func (r *pathValidationRule) Validate(value any) error {
 	return nil
 }
 
-// NewPathExistRule returns a validation rule to use in configuration.
-// The rule checks whether a string is a valid not empty path and actually
-// exists.
+// NewPathValidationRule returns a validation rule to use in configuration.
+// The rule checks whether a string is a valid not empty path.
 // `when` describes whether the rule is enforced or not.
-func NewPathExistRule(filesystem FS, when bool) validation.Rule {
-	return &pathExistValidationRule{filesystem: filesystem, condition: when}
+func NewPathValidationRule(filesystem FS, when bool) validation.Rule {
+	return &pathValidationRule{
+		filesystemValidationRule: filesystemValidationRule{
+			condition:  when,
+			filesystem: filesystem,
+		},
+	}
 }
 
-// NewOSPathExistRule returns a validation rule to use in configuration.
+// NewOSPathValidationRule returns a validation rule to use in configuration.
 // The rule checks whether a string is a valid path for the operating system's
-// filesystem and actually exists.
+// filesystem.
 // `when` describes whether the rule is enforced or not.
-func NewOSPathExistRule(when bool) validation.Rule {
-	return NewPathExistRule(GetGlobalFileSystem(), when)
+func NewOSPathValidationRule(when bool) validation.Rule {
+	return NewPathValidationRule(GetGlobalFileSystem(), when)
 }
 
 type pathExistValidationRule struct {
-	condition  bool
-	filesystem FS
+	pathValidationRule
 }
 
 func (r *pathExistValidationRule) Validate(value any) error {
-	err := NewPathValidationRule(r.filesystem, r.condition).Validate(value)
+	err := r.pathValidationRule.Validate(value)
 	if err != nil {
 		return err
 	}
@@ -115,11 +118,48 @@ func (r *pathExistValidationRule) Validate(value any) error {
 	return err
 }
 
+// NewPathExistRule returns a validation rule to use in configuration.
+// The rule checks whether a string is a valid not empty path and actually
+// exists.
+// `when` describes whether the rule is enforced or not.
+func NewPathExistRule(filesystem FS, when bool) validation.Rule {
+	return &pathExistValidationRule{
+		pathValidationRule: pathValidationRule{
+			filesystemValidationRule: filesystemValidationRule{
+				condition:  when,
+				filesystem: filesystem,
+			},
+		},
+	}
+}
+
+// NewOSPathExistRule returns a validation rule to use in configuration.
+// The rule checks whether a string is a valid path for the operating system's
+// filesystem and actually exists.
+// `when` describes whether the rule is enforced or not.
+func NewOSPathExistRule(when bool) validation.Rule {
+	return NewPathExistRule(GetGlobalFileSystem(), when)
+}
+
+type pathExtensionValidationRule struct {
+	pathValidationRule
+	extensions []string
+}
+
 // NewPathExtensionRule returns a validation rule that checks whether a path has
 // an extension present in the supplied list.
 // `when` describes whether the rule is enforced or not.
 func NewPathExtensionRule(filesystem FS, when bool, extensions ...string) validation.Rule {
-	return &pathExtensionValidationRule{filesystem: filesystem, condition: when, extensions: normaliseExtensions(filesystem, extensions...)}
+	return &pathExtensionValidationRule{
+		pathValidationRule: pathValidationRule{
+			filesystemValidationRule: filesystemValidationRule{
+				condition:  when,
+				filesystem: filesystem,
+			},
+		},
+		extensions: normaliseExtensions(filesystem, extensions...),
+	}
+
 }
 
 // NewOSPathExtensionRule returns a validation rule that checks whether a path
@@ -129,14 +169,8 @@ func NewOSPathExtensionRule(when bool, extensions ...string) validation.Rule {
 	return NewPathExtensionRule(GetGlobalFileSystem(), when, extensions...)
 }
 
-type pathExtensionValidationRule struct {
-	condition  bool
-	filesystem FS
-	extensions []string
-}
-
 func (r *pathExtensionValidationRule) Validate(value any) error {
-	err := NewPathValidationRule(r.filesystem, r.condition).Validate(value)
+	err := r.pathValidationRule.Validate(value)
 	if err != nil {
 		return err
 	}
