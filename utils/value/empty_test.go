@@ -134,3 +134,15 @@ func TestIsEmpty(t *testing.T) {
 		})
 	}
 }
+
+func TestIsNilInterface(t *testing.T) {
+	var nilAny any
+	var nilStringPtr *string
+	nonEmpty := "value"
+
+	assert.True(t, IsNilInterface(nil))
+	assert.True(t, IsNilInterface(nilAny))
+	assert.True(t, IsNilInterface(nilStringPtr))
+	assert.False(t, IsNilInterface(nonEmpty))
+	assert.False(t, IsNilInterface(&nonEmpty))
+}

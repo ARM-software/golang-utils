@@ -3,6 +3,7 @@ package value
 import (
 	"reflect"
 	"strings"
+	"unsafe"
 )
 
 // IsEmpty checks whether a value is empty i.e. "", nil, 0, [], {}, false, etc.
@@ -33,9 +34,18 @@ func IsEmpty(value any) bool {
 			return true
 		}
 		deref := objValue.Elem().Interface()
+		if IsNilInterface(deref) {
+			return true
+		}
 		return IsEmpty(deref)
 	default:
 		zero := reflect.Zero(objValue.Type())
 		return reflect.DeepEqual(value, zero.Interface())
 	}
+}
+
+// IsNilInterface checks whether an interface value is nil even when it has been
+// passed around as `any`.
+func IsNilInterface(i any) bool {
+	return (*[2]uintptr)(unsafe.Pointer(&i))[1] == 0
 }

@@ -196,6 +196,12 @@ func IsEmpty(value any) bool {
 	return valueUtils.IsEmpty(value)
 }
 
+// IsNilInterface checks whether an interface value is nil even when it has been
+// passed around as `any`.
+func IsNilInterface(i any) bool {
+	return valueUtils.IsNilInterface(i)
+}
+
 // ToStructPtr returns an instance of the pointer (interface) to the object obj.
 func ToStructPtr(obj reflect.Value) (val any, err error) {
 	if !obj.IsValid() {
