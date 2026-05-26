@@ -29,6 +29,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/config"
 	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/reflection"
@@ -51,6 +52,10 @@ type Schema struct {
 	ID string
 	// Filesystem is the filesystem to use to load the schema file.
 	Filesystem filesystem.FS
+
+	// Limits defines the filesystem read limits used when loading the schema
+	// file.
+	Limits filesystem.ILimits
 }
 
 // Validate checks that the schema definition contains the required fields
@@ -59,12 +64,16 @@ func (s *Schema) Validate() error {
 	if s == nil {
 		return commonerrors.UndefinedVariable("schema")
 	}
-	err := validation.ValidateStruct(s,
-		validation.Field(&s.Title, validation.Required),
-		validation.Field(&s.LocalPath, validation.Required),
-		validation.Field(&s.ID, validation.Required),
-		validation.Field(&s.Filesystem, validation.Required),
-	)
+	err := config.ValidateEmbedded(s)
+	if err == nil {
+		err = validation.ValidateStruct(s,
+			validation.Field(&s.Title, validation.Required),
+			validation.Field(&s.LocalPath, validation.Required),
+			validation.Field(&s.ID, validation.Required),
+			validation.Field(&s.Filesystem, validation.Required),
+			validation.Field(&s.Limits, validation.Required),
+		)
+	}
 
 	if err != nil {
 		return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid json schema definition")
@@ -112,7 +121,7 @@ func LoadSchemaSpec(ctx context.Context, schema *Schema) (*SchemaSpec, error) {
 		return nil, err
 	}
 
-	data, err := schema.Filesystem.ReadFileWithContext(ctx, filesystem.FilePathClean(schema.Filesystem, schema.LocalPath))
+	data, err := schema.Filesystem.ReadFileWithContextAndLimits(ctx, filesystem.FilePathClean(schema.Filesystem, schema.LocalPath), schema.Limits)
 	if err != nil {
 		return nil, commonerrors.DescribeCircumstancef(err, "failed to load JSON Schema [%v] from [%v]", schema.Title, schema.LocalPath)
 	}

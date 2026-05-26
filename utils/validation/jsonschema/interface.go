@@ -22,7 +22,13 @@ type ISchemaValidator interface {
 	// ValidateFile validates a file from the global filesystem against the
 	// compiled schema definition.
 	ValidateFile(ctx context.Context, filepath string) error
+	// ValidateFileWithLimits validates a file from the global filesystem against the
+	// compiled schema definition.
+	ValidateFileWithLimits(ctx context.Context, filepath string, fileLimits filesystem.ILimits) error
 	// ValidateFileInFS validates a file from the supplied filesystem against the
 	// compiled schema definition.
 	ValidateFileInFS(ctx context.Context, fs filesystem.FS, filepath string) error
+	// ValidateFileInFSWithLimits validates a file from the supplied filesystem against the
+	// compiled schema definition.
+	ValidateFileInFSWithLimits(ctx context.Context, fs filesystem.FS, filepath string, fileLimits filesystem.ILimits) error
 }

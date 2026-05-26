@@ -112,6 +112,17 @@ func TestNewJSONSchemaFile(t *testing.T) {
 	assert.Equal(t, path.Join("testdata", "person.schema.json"), schema.ID)
 }
 
+func TestWithFileLimits(t *testing.T) {
+	limits := filesystem.DefaultLimits()
+	schema := NewJSONSchemaFile(
+		WithTitle("person"),
+		WithLocalPath(path.Join("testdata", "person.schema.json")),
+		WithFileLimits(limits),
+	)
+	require.NotNil(t, schema)
+	assert.Equal(t, limits, schema.Limits)
+}
+
 func TestSchemaSpecValidate(t *testing.T) {
 	require.NoError(t, (&SchemaSpec{ID: "schema.json", Specification: []byte(`{"type":"object"}`)}).Validate())
 
@@ -387,6 +398,20 @@ func TestNewYAMLFileValidatorWithOptions(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.NoError(t, v.ValidateContent(context.Background(), []byte("name: Alice\ncount: 2\n")))
+}
+
+func TestNewJSONFileValidatorWithOptions_LowSchemaFileLimit(t *testing.T) {
+	v, err := NewJSONFileValidatorWithOptions(
+		WithTitle("person"),
+		WithLocalPath(path.Join("testdata", "person.schema.json")),
+		WithFilesystem(filesystem.GetGlobalFileSystem()),
+		WithFileLimits(filesystem.NewLimits(1, 1024, 1, 1, false)),
+	)
+	require.NoError(t, err)
+
+	err = v.ValidateContent(context.Background(), map[string]any{"name": "Alice", "count": 2})
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrTooLarge)
 }
 
 func TestValidateJSONFileAgainstSchema(t *testing.T) {

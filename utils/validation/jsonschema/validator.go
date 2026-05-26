@@ -19,6 +19,31 @@ type fileValidator struct {
 	convertFunc        func([]byte) ([]byte, error)
 }
 
+func (c *fileValidator) ValidateFileWithLimits(ctx context.Context, filepath string, fileLimits filesystem.ILimits) error {
+	return c.ValidateFileInFSWithLimits(ctx, filesystem.GetGlobalFileSystem(), filepath, fileLimits)
+}
+
+func (c *fileValidator) ValidateFileInFSWithLimits(ctx context.Context, fs filesystem.FS, filepath string, fileLimits filesystem.ILimits) (err error) {
+	if fs == nil {
+		err = commonerrors.UndefinedVariable("file system")
+		return
+	}
+	err = filesystem.NewPathExtensionRule(fs, true, c.expectedExtensions...).Validate(filepath)
+	if err != nil {
+		return
+	}
+	err = filesystem.NewPathExistRule(fs, true).Validate(filepath)
+	if err != nil {
+		return
+	}
+	content, err := fs.ReadFileWithContextAndLimits(ctx, filepath, fileLimits)
+	if err != nil {
+		return
+	}
+	err = c.ValidateContent(ctx, content)
+	return
+}
+
 func (c *fileValidator) ValidateContent(ctx context.Context, a any) error {
 	if bytes, ok := a.([]byte); ok {
 		if c.convertFunc != nil {
@@ -43,28 +68,11 @@ func (c *fileValidator) ValidateContent(ctx context.Context, a any) error {
 }
 
 func (c *fileValidator) ValidateFile(ctx context.Context, filepath string) error {
-	return c.ValidateFileInFS(ctx, filesystem.GetGlobalFileSystem(), filepath)
+	return c.ValidateFileWithLimits(ctx, filepath, filesystem.NoLimits())
 }
 
-func (c *fileValidator) ValidateFileInFS(ctx context.Context, fs filesystem.FS, filepath string) (err error) {
-	if fs == nil {
-		err = commonerrors.UndefinedVariable("file system")
-		return
-	}
-	err = filesystem.NewPathExtensionRule(fs, true, c.expectedExtensions...).Validate(filepath)
-	if err != nil {
-		return
-	}
-	err = filesystem.NewPathExistRule(fs, true).Validate(filepath)
-	if err != nil {
-		return
-	}
-	content, err := fs.ReadFileWithContext(ctx, filepath)
-	if err != nil {
-		return
-	}
-	err = c.ValidateContent(ctx, content)
-	return
+func (c *fileValidator) ValidateFileInFS(ctx context.Context, fs filesystem.FS, filepath string) error {
+	return c.ValidateFileInFSWithLimits(ctx, fs, filepath, filesystem.NoLimits())
 }
 
 func newSchemaCreationFunc(schemaID *string, schema ...Schema) func(context.Context) (*jsonschema.Schema, error) {

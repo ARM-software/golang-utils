@@ -82,3 +82,31 @@ func (mr *MockISchemaValidatorMockRecorder) ValidateFileInFS(ctx, fs, filepath a
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateFileInFS", reflect.TypeOf((*MockISchemaValidator)(nil).ValidateFileInFS), ctx, fs, filepath)
 }
+
+// ValidateFileInFSWithLimits mocks base method.
+func (m *MockISchemaValidator) ValidateFileInFSWithLimits(ctx context.Context, fs filesystem.FS, filepath string, fileLimits filesystem.ILimits) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ValidateFileInFSWithLimits", ctx, fs, filepath, fileLimits)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ValidateFileInFSWithLimits indicates an expected call of ValidateFileInFSWithLimits.
+func (mr *MockISchemaValidatorMockRecorder) ValidateFileInFSWithLimits(ctx, fs, filepath, fileLimits any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateFileInFSWithLimits", reflect.TypeOf((*MockISchemaValidator)(nil).ValidateFileInFSWithLimits), ctx, fs, filepath, fileLimits)
+}
+
+// ValidateFileWithLimits mocks base method.
+func (m *MockISchemaValidator) ValidateFileWithLimits(ctx context.Context, filepath string, fileLimits filesystem.ILimits) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ValidateFileWithLimits", ctx, filepath, fileLimits)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ValidateFileWithLimits indicates an expected call of ValidateFileWithLimits.
+func (mr *MockISchemaValidatorMockRecorder) ValidateFileWithLimits(ctx, filepath, fileLimits any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateFileWithLimits", reflect.TypeOf((*MockISchemaValidator)(nil).ValidateFileWithLimits), ctx, filepath, fileLimits)
+}

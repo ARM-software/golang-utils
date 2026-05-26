@@ -26,6 +26,9 @@ func (s *Schema) Default() *Schema {
 	if s.Filesystem == nil {
 		s.Filesystem = filesystem.GetGlobalFileSystem()
 	}
+	if s.Limits == nil {
+		s.Limits = filesystem.NoLimits()
+	}
 	s.ID = schemaID(s.ID, s.LocalPath)
 	return s
 }
@@ -103,6 +106,23 @@ func WithFilesystem(fs filesystem.FS) SchemaOption {
 		}
 		schema.Filesystem = fs
 		schema.LocalPath = filesystem.FilePathClean(schema.Filesystem, schema.LocalPath)
+		return schema
+	}
+}
+
+// WithFileLimits sets the filesystem read limits used when loading the Schema
+// file.
+//
+// A nil limits value falls back to filesystem.NoLimits().
+func WithFileLimits(limits filesystem.ILimits) SchemaOption {
+	return func(schema *Schema) *Schema {
+		if schema == nil {
+			schema = DefaultSchema()
+		}
+		if limits == nil {
+			limits = filesystem.NoLimits()
+		}
+		schema.Limits = limits
 		return schema
 	}
 }
