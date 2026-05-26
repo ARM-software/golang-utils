@@ -15,20 +15,16 @@ package json
 import (
 	"bytes"
 	"context"
-	"unsafe"
 
 	"github.com/mailru/easyjson"
 	"github.com/pquerna/ffjson/ffjson"
 	sigsyaml "sigs.k8s.io/yaml"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
 var nullBytes = []byte("null")
-
-func isNilInterface(i any) bool {
-	return (*[2]uintptr)(unsafe.Pointer(&i))[1] == 0
-}
 
 // Marshal encodes a value to a JSON byte slice.
 // It matches encoding/json.Marshal.
@@ -40,7 +36,7 @@ func isNilInterface(i any) bool {
 // serialisation path when generated code exists. Examples of supported
 // generators are github.com/mailru/easyjson and github.com/pquerna/ffjson.
 func Marshal(v any) ([]byte, error) {
-	if isNilInterface(v) {
+	if reflection.IsNilInterface(v) {
 		return nullBytes, nil
 	}
 
