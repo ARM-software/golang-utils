@@ -1,3 +1,4 @@
+//nolint:misspell // The package path intentionally uses "serialization".
 package frontmatter
 
 import (
