@@ -14,6 +14,24 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.159.0" (2026-05-27)
+======================
+
+Features
+--------
+
+- :sparkles: `[yaml]` Added helpers for checking valid files extensions (#20260527132139)
+- :sparkles: `[json]` Added helpers for checking valid files extensions (#20260527132146)
+- :gear: `[jsonschema]` Extend JSON Schema validation with schema options and support for schemas defined in YAML. (#20260527132214)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: easyjson-0.9.2 (#20260526175306)
+- Dependency upgrade: timberjack-1.4.5 (#20260527121614)
+
+
 "1.158.0" (2026-05-26)
 ======================
 
