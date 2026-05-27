@@ -88,6 +88,41 @@ func TestToYAML(t *testing.T) {
 	assert.Contains(t, string(output), "count: 2")
 }
 
+func TestToYAMLIntegrationInspiredByKubernetesSigsYAML(t *testing.T) {
+	// Tests inspired by https://github.com/kubernetes-sigs/yaml/blob/master/yaml_test.go
+	tests := map[string]struct {
+		json             string
+		expectedContains []string
+	}{
+		"string value": {
+			json:             `{"t":"a"}`,
+			expectedContains: []string{"t: a"},
+		},
+		"boolean value": {
+			json:             `{"t":true}`,
+			expectedContains: []string{"t: true"},
+		},
+		"array": {
+			json:             `[{"t":"a"}]`,
+			expectedContains: []string{"- t: a"},
+		},
+		"large integer": {
+			json:             `{"t":9007199254740993}`,
+			expectedContains: []string{"t: 9007199254740993"},
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			output, err := ToYAML([]byte(test.json))
+			require.NoError(t, err)
+			for _, expected := range test.expectedContains {
+				assert.Contains(t, string(output), expected)
+			}
+		})
+	}
+}
+
 func TestToYAMLInvalidJSON(t *testing.T) {
 	_, err := ToYAML([]byte(`{"name":`))
 	require.Error(t, err)
