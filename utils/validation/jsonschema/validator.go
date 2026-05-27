@@ -102,7 +102,7 @@ func newSchemaCreationFunc(schemaID *string, schema ...Schema) func(context.Cont
 func NewJSONFileValidator(schemaID *string, schema ...Schema) (v ISchemaValidator, err error) {
 	v = &fileValidator{
 		schemaCreationFunc: newSchemaCreationFunc(schemaID, schema...),
-		expectedExtensions: []string{".json"},
+		expectedExtensions: jsonserialization.JSONExtensions,
 		convertFunc:        nil,
 	}
 	return
@@ -125,7 +125,7 @@ func NewJSONFileValidatorWithOptions(options ...SchemaOption) (ISchemaValidator,
 func NewYAMLFileValidator(schemaID *string, schema ...Schema) (v ISchemaValidator, err error) {
 	v = &fileValidator{
 		schemaCreationFunc: newSchemaCreationFunc(schemaID, schema...),
-		expectedExtensions: []string{".yaml", ".yml"},
+		expectedExtensions: yaml.YAMLExtensions,
 		convertFunc:        yaml.ToJSON,
 	}
 	return

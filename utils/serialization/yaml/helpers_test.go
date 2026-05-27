@@ -88,6 +88,39 @@ func TestToJSON(t *testing.T) {
 	assert.JSONEq(t, `{"count":2,"name":"value"}`, string(output))
 }
 
+func TestToJSONIntegrationInspiredByKubernetesSigsYAML(t *testing.T) {
+	// Tests inspired by https://github.com/kubernetes-sigs/yaml/blob/master/yaml_test.go
+	tests := map[string]struct {
+		yaml string
+		json string
+	}{
+		"string value": {
+			yaml: "t: a\n",
+			json: `{"t":"a"}`,
+		},
+		"boolean value": {
+			yaml: "t: True\n",
+			json: `{"t":true}`,
+		},
+		"array": {
+			yaml: "- t: a\n",
+			json: `[{"t":"a"}]`,
+		},
+		"large integer": {
+			yaml: "t: 9007199254740993\n",
+			json: `{"t":9007199254740993}`,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			output, err := ToJSON([]byte(test.yaml))
+			require.NoError(t, err)
+			assert.JSONEq(t, test.json, string(output))
+		})
+	}
+}
+
 func TestToJSONInvalidYAML(t *testing.T) {
 	_, err := ToJSON([]byte("name: [value\n"))
 	require.Error(t, err)

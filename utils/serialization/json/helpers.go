@@ -20,11 +20,16 @@ import (
 	"github.com/pquerna/ffjson/ffjson"
 	sigsyaml "sigs.k8s.io/yaml"
 
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
-var nullBytes = []byte("null")
+var (
+	nullBytes = []byte("null")
+	// JSONExtensions is the list of file extensions that are considered JSON files.
+	JSONExtensions = []string{".json"}
+)
 
 // Marshal encodes a value to a JSON byte slice.
 // It matches encoding/json.Marshal.
@@ -97,4 +102,9 @@ func ToYAML(rawJSON []byte) (yaml []byte, err error) {
 		err = commonerrors.WrapError(commonerrors.ErrMarshalling, err, "failed converting JSON to YAML")
 	}
 	return
+}
+
+// IsJSON returns true if the extension is a JSON file
+func IsJSON(extension string) bool {
+	return collection.In(JSONExtensions, extension, collection.StringCleanCaseInsensitiveMatch)
 }

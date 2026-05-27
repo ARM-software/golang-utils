@@ -20,8 +20,14 @@ import (
 
 	sigsyaml "sigs.k8s.io/yaml"
 
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	jsonserialization "github.com/ARM-software/golang-utils/utils/serialization/json" //nolint:misspell
+)
+
+var (
+	// YAMLExtensions is the list of file extensions that are considered YAML files.
+	YAMLExtensions = []string{".yaml", ".yml"}
 )
 
 // ToJSON converts YAML data to JSON.
@@ -90,4 +96,9 @@ func Unmarshal(data []byte, v any) error {
 // the package's context-aware streaming helpers.
 func UnmarshallWithContext(ctx context.Context, data []byte, v any) error {
 	return NewDecoder(ctx, bytes.NewReader(data)).Decode(v)
+}
+
+// IsYAMLFile returns true if the given extension is a YAML file extension.
+func IsYAMLFile(extension string) bool {
+	return collection.In(YAMLExtensions, extension, collection.StringCleanCaseInsensitiveMatch)
 }

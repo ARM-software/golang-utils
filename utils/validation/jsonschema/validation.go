@@ -34,6 +34,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 	"github.com/ARM-software/golang-utils/utils/serialization/json" //nolint:misspell
+	"github.com/ARM-software/golang-utils/utils/serialization/yaml" //nolint:misspell
 )
 
 // Schema describes a schema file that can be loaded and registered for
@@ -120,10 +121,17 @@ func LoadSchemaSpec(ctx context.Context, schema *Schema) (*SchemaSpec, error) {
 	if err != nil {
 		return nil, err
 	}
+	schemaPath := filesystem.FilePathClean(schema.Filesystem, schema.LocalPath)
 
-	data, err := schema.Filesystem.ReadFileWithContextAndLimits(ctx, filesystem.FilePathClean(schema.Filesystem, schema.LocalPath), schema.Limits)
+	data, err := schema.Filesystem.ReadFileWithContextAndLimits(ctx, schemaPath, schema.Limits)
 	if err != nil {
 		return nil, commonerrors.DescribeCircumstancef(err, "failed to load JSON Schema [%v] from [%v]", schema.Title, schema.LocalPath)
+	}
+	if yaml.IsYAMLFile(filesystem.FilePathExt(schema.Filesystem, schemaPath)) {
+		data, err = yaml.ToJSON(data)
+		if err != nil {
+			return nil, commonerrors.DescribeCircumstancef(err, "failed to convert schema from YAML to JSON [%v]", schema.Title)
+		}
 	}
 
 	return &SchemaSpec{

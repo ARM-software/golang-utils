@@ -48,6 +48,15 @@ func newMissingSchema(t *testing.T, fs filesystem.FS) *Schema {
 	)
 }
 
+func newYAMLValidSchema(t *testing.T, fs filesystem.FS) *Schema {
+	t.Helper()
+	return NewJSONSchemaFile(
+		WithTitle("person yaml schema"),
+		WithLocalPath(path.Join("testdata", "person.schema.yaml")),
+		WithFilesystem(fs),
+	)
+}
+
 func newEmbeddedFilesystem(t *testing.T) filesystem.FS {
 	t.Helper()
 	fs, err := filesystem.NewEmbedFileSystem(&embeddedFS)
@@ -148,6 +157,13 @@ func TestLoadSchemaSpecEmbeddedFS(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "https://example.com/schemas/person.schema.json", spec.ID)
 	assert.NotEmpty(t, spec.Specification)
+}
+
+func TestLoadSchemaSpecYAMLSchemaFile(t *testing.T) {
+	spec, err := LoadSchemaSpec(context.Background(), newYAMLValidSchema(t, filesystem.GetGlobalFileSystem()))
+	require.NoError(t, err)
+	assert.NotEmpty(t, spec.Specification)
+	assert.JSONEq(t, `{"$id":"testdata/person.schema.yaml","type":"object","$defs":{"stringField":{"type":"string"},"integerField":{"type":"integer"}},"properties":{"name":{"type":"string"},"count":{"type":"integer"}},"required":["name"],"additionalProperties":false}`, string(spec.Specification))
 }
 
 func TestLoadSchemaSpec_MissingSchemaPath(t *testing.T) {
@@ -414,6 +430,30 @@ func TestNewJSONFileValidatorWithOptions_LowSchemaFileLimit(t *testing.T) {
 	errortest.AssertError(t, err, commonerrors.ErrTooLarge)
 }
 
+func TestValidateFileWithLimits(t *testing.T) {
+	v, err := NewJSONFileValidator(nil, *newValidSchema(t, filesystem.GetGlobalFileSystem()))
+	require.NoError(t, err)
+
+	validator, ok := v.(*fileValidator)
+	require.True(t, ok)
+
+	err = validator.ValidateFileWithLimits(context.Background(), path.Join("testdata", "valid.json"), filesystem.NewLimits(0, 1024, 1, 1, false))
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrTooLarge)
+}
+
+func TestValidateFileInFSWithLimits(t *testing.T) {
+	v, err := NewJSONFileValidator(nil, *newValidSchema(t, newEmbeddedFilesystem(t)))
+	require.NoError(t, err)
+
+	validator, ok := v.(*fileValidator)
+	require.True(t, ok)
+
+	err = validator.ValidateFileInFSWithLimits(context.Background(), newEmbeddedFilesystem(t), path.Join("testdata", "valid.json"), filesystem.NewLimits(0, 1024, 1, 1, false))
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrTooLarge)
+}
+
 func TestValidateJSONFileAgainstSchema(t *testing.T) {
 	err := ValidateJSONFileAgainstSchema(context.Background(), path.Join("testdata", "valid.json"), nil, *newValidSchema(t, filesystem.GetGlobalFileSystem()))
 	require.NoError(t, err)
@@ -458,6 +498,11 @@ func TestValidateJSONFileAgainstSchemaFSWithOptions(t *testing.T) {
 
 func TestValidateYAMLFileAgainstSchema(t *testing.T) {
 	err := ValidateYAMLFileAgainstSchema(context.Background(), path.Join("testdata", "valid.yaml"), nil, *newValidSchema(t, filesystem.GetGlobalFileSystem()))
+	require.NoError(t, err)
+}
+
+func TestValidateJSONAgainstYAMLSchema(t *testing.T) {
+	err := ValidateJSONFileAgainstSchema(context.Background(), path.Join("testdata", "valid.json"), nil, *newYAMLValidSchema(t, filesystem.GetGlobalFileSystem()))
 	require.NoError(t, err)
 }
 
