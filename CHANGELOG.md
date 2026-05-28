@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.160.0" (2026-05-28)
+======================
+
+Features
+--------
+
+- :sparkles: `[serialization]` added helpers from extracting [front matters](https://gohugo.io/content-management/front-matter/) from documents (#20260527190231)
+
+
 "1.159.0" (2026-05-27)
 ======================
 
