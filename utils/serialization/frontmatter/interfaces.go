@@ -13,6 +13,9 @@ import (
 // Implementations detect one of the configured front matter formats at the
 // start of the stream and return only the extracted front matter content.
 type IFrontMatterParser interface {
+	// Configure applies a parser option to the front matter parser.
+	Configure(...ParserOption) IFrontMatterParser
+
 	// Parse extracts the front matter from r and returns a reader containing only
 	// the extracted front matter content.
 	Parse(context.Context, io.Reader) (frontmatter io.Reader, err error)

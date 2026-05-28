@@ -13,7 +13,7 @@ import (
 //
 // Source: https://gohugo.io/content-management/front-matter/
 func NewJSONFrontmatterFormat() *frontmatter.Format {
-	return frontmatter.NewFormat(frontmatter.WithStart("{"), frontmatter.WithEnd("}"), frontmatter.WithRequiresNewLine(), frontmatter.WithUnmarshalDelimiters())
+	return frontmatter.NewFormat(frontmatter.WithStart("{"), frontmatter.WithEnd("}"), frontmatter.WithRequiresNewLine(), frontmatter.IncludeDelimitersWhenUnmarshalling())
 }
 
 // NewJSONFrontmatterFormat2 returns the JSON front matter format used by Hexo.

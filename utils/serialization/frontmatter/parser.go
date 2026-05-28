@@ -12,10 +12,6 @@ import (
 	"github.com/ARM-software/golang-utils/utils/safeio"
 )
 
-const (
-	bufferCap = 1024
-)
-
 // NewParser returns a parser for the supplied front matter formats.
 //
 // The formats are checked in order, and the first format whose opening
@@ -39,17 +35,32 @@ func NewParser(formats ...*Format) (p IFrontMatterParser, err error) {
 		return
 	}
 
-	return &parser{formats: validatedFormats}, nil
+	return &parser{formats: validatedFormats, options: DefaultParserOptions()}, nil
 }
 
-// NewParserWithOptions returns a parser using a Format built from the supplied
-// options.
-func NewParserWithOptions(options ...FormatOption) (IFrontMatterParser, error) {
+// NewParserWithFormatOptions returns a parser using a Format built from the
+// supplied format options.
+func NewParserWithFormatOptions(options ...FormatOption) (IFrontMatterParser, error) {
 	return NewParser(NewFormat(options...))
 }
 
 type parser struct {
 	formats []*Format
+	options *ParserOptions
+}
+
+// Configure applies a parser option to the parser.
+func (p *parser) Configure(options ...ParserOption) IFrontMatterParser {
+	if p == nil {
+		return (&parser{options: DefaultParserOptions()}).Configure(options...)
+	}
+	if p.options == nil {
+		p.options = DefaultParserOptions()
+	}
+	collection.ForEach(options, func(option ParserOption) {
+		p.options = p.options.Apply(option)
+	})
+	return p
 }
 
 // Extract extracts the front matter at the start of reader and returns only
@@ -74,7 +85,7 @@ func (p *parser) Parse(ctx context.Context, r io.Reader) (frontmatter io.Reader,
 	extractor := &extractor{
 		formats: p.formats,
 		reader:  bufio.NewReader(safeio.NewContextualReader(ctx, r)),
-		output:  bytes.NewBuffer(make([]byte, 0, bufferCap)),
+		output:  bytes.NewBuffer(make([]byte, 0, p.options.BufferCapacity)),
 	}
 
 	content, err := extractor.extract()
@@ -137,7 +148,7 @@ func (e *extractor) detect() (*Format, bool, error) {
 			if format.Start != line {
 				continue
 			}
-			if !format.UnmarshalDelims {
+			if !format.IncludeDelimitersWhenUnmarshalling {
 				read = e.read
 			}
 			e.start = read
@@ -164,7 +175,7 @@ func (e *extractor) capture(format *Format) (bool, error) {
 			continue
 		}
 
-		if format.UnmarshalDelims {
+		if format.IncludeDelimitersWhenUnmarshalling {
 			read = e.read
 		}
 

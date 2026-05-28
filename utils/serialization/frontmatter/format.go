@@ -23,9 +23,9 @@ type Format struct {
 	// End defines the ending delimiter of the front matter, such as `---`.
 	End string
 
-	// UnmarshalDelims specifies whether the returned front matter content should
+	// IncludeDelimitersWhenUnmarshalling specifies whether the returned front matter content should
 	// include the start and end delimiters.
-	UnmarshalDelims bool
+	IncludeDelimitersWhenUnmarshalling bool
 
 	// RequiresNewLine specifies whether an empty line must follow the ending
 	// delimiter for the front matter to be considered complete.
@@ -42,10 +42,14 @@ func DefaultFormat() *Format {
 
 // Default applies the package defaults to a Format.
 func (f *Format) Default() *Format {
-	if reflection.IsEmpty(f) {
-		f = &Format{}
+	d := f
+	if reflection.IsEmpty(d) {
+		d = &Format{
+			IncludeDelimitersWhenUnmarshalling: false,
+			RequiresNewLine:                    false,
+		}
 	}
-	return f
+	return d
 }
 
 // Apply applies a single option to a Format and then reapplies defaults.
@@ -107,13 +111,13 @@ func WithEnd(end string) FormatOption {
 	}
 }
 
-// WithUnmarshalDelimiters specifies to include the start and end delimiters.
-func WithUnmarshalDelimiters() FormatOption {
+// IncludeDelimitersWhenUnmarshalling specifies to include the start and end delimiters.
+func IncludeDelimitersWhenUnmarshalling() FormatOption {
 	return func(format *Format) *Format {
 		if format == nil {
 			format = DefaultFormat()
 		}
-		format.UnmarshalDelims = true
+		format.IncludeDelimitersWhenUnmarshalling = true
 		return format
 	}
 }

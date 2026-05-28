@@ -14,6 +14,7 @@ import (
 	io "io"
 	reflect "reflect"
 
+	frontmatter "github.com/ARM-software/golang-utils/utils/serialization/frontmatter"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -39,6 +40,24 @@ func NewMockIFrontMatterParser(ctrl *gomock.Controller) *MockIFrontMatterParser 
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockIFrontMatterParser) EXPECT() *MockIFrontMatterParserMockRecorder {
 	return m.recorder
+}
+
+// Configure mocks base method.
+func (m *MockIFrontMatterParser) Configure(arg0 ...frontmatter.ParserOption) frontmatter.IFrontMatterParser {
+	m.ctrl.T.Helper()
+	varargs := []any{}
+	for _, a := range arg0 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Configure", varargs...)
+	ret0, _ := ret[0].(frontmatter.IFrontMatterParser)
+	return ret0
+}
+
+// Configure indicates an expected call of Configure.
+func (mr *MockIFrontMatterParserMockRecorder) Configure(arg0 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Configure", reflect.TypeOf((*MockIFrontMatterParser)(nil).Configure), arg0...)
 }
 
 // Extract mocks base method.

@@ -20,7 +20,7 @@ var (
 )
 
 func TestParseYAMLFrontMatter(t *testing.T) {
-	p, err := NewParserWithOptions(
+	p, err := NewParserWithFormatOptions(
 		WithStart("---"),
 		WithEnd("---"),
 	)
@@ -35,7 +35,7 @@ func TestParseYAMLFrontMatter(t *testing.T) {
 }
 
 func TestParseTOMLFrontMatter(t *testing.T) {
-	p, err := NewParserWithOptions(
+	p, err := NewParserWithFormatOptions(
 		WithStart("+++"),
 		WithEnd("+++"),
 	)
@@ -50,10 +50,10 @@ func TestParseTOMLFrontMatter(t *testing.T) {
 }
 
 func TestParseJSONFrontMatterWithDelimiters(t *testing.T) {
-	p, err := NewParserWithOptions(
+	p, err := NewParserWithFormatOptions(
 		WithStart("{"),
 		WithEnd("}"),
-		WithUnmarshalDelimiters(),
+		IncludeDelimitersWhenUnmarshalling(),
 		WithRequiresNewLine(),
 	)
 	require.NoError(t, err)
@@ -70,7 +70,7 @@ func TestParseCRLFInspiredBySimplematterAndPositFrontmatter(t *testing.T) {
 	// Sources:
 	// - https://github.com/remcohaszing/simplematter/blob/main/test/test.ts
 	// - https://github.com/posit-dev/frontmatter/blob/main/tests/testthat/test-whitespace.R
-	p, err := NewParserWithOptions(
+	p, err := NewParserWithFormatOptions(
 		WithStart("---"),
 		WithEnd("---"),
 	)
@@ -88,7 +88,7 @@ func TestParseEmptyFrontMatterInspiredBySimplematterAndLpil(t *testing.T) {
 	// Sources:
 	// - https://github.com/remcohaszing/simplematter/blob/main/test/test.ts
 	// - https://github.com/lpil/frontmatter/blob/main/test/frontmatter_test.gleam
-	p, err := NewParserWithOptions(
+	p, err := NewParserWithFormatOptions(
 		WithStart("---"),
 		WithEnd("---"),
 	)
@@ -102,7 +102,7 @@ func TestParseEmptyFrontMatterInspiredBySimplematterAndLpil(t *testing.T) {
 }
 
 func TestParseNotFound(t *testing.T) {
-	p, err := NewParserWithOptions(
+	p, err := NewParserWithFormatOptions(
 		WithStart("---"),
 		WithEnd("---"),
 	)
@@ -114,7 +114,7 @@ func TestParseNotFound(t *testing.T) {
 }
 
 func TestParseYAMLFrontMatterWithoutTrailingNewline(t *testing.T) {
-	p, err := NewParserWithOptions(
+	p, err := NewParserWithFormatOptions(
 		WithStart("---"),
 		WithEnd("---"),
 	)
@@ -130,7 +130,7 @@ func TestParseYAMLFrontMatterWithoutTrailingNewline(t *testing.T) {
 
 func TestParseTrailingWhitespaceOnFenceInspiredByPositFrontmatter(t *testing.T) {
 	// Source: https://github.com/posit-dev/frontmatter/blob/main/tests/testthat/test-whitespace.R
-	p, err := NewParserWithOptions(
+	p, err := NewParserWithFormatOptions(
 		WithStart("---"),
 		WithEnd("---"),
 	)
@@ -148,19 +148,46 @@ func TestWithFormatOptions(t *testing.T) {
 	format := NewFormat(
 		WithStart("---json"),
 		WithEnd("---"),
-		WithUnmarshalDelimiters(),
+		IncludeDelimitersWhenUnmarshalling(),
 		WithRequiresNewLine(),
 	)
 	require.NotNil(t, format)
 	assert.Equal(t, "---json", format.Start)
 	assert.Equal(t, "---", format.End)
-	assert.True(t, format.UnmarshalDelims)
+	assert.True(t, format.IncludeDelimitersWhenUnmarshalling)
 	assert.True(t, format.RequiresNewLine)
+}
+
+func TestParserOptionsDefaults(t *testing.T) {
+	options := DefaultParserOptions()
+	require.NotNil(t, options)
+	assert.Equal(t, bufferCap, options.BufferCapacity)
+}
+
+func TestWithParserOptions(t *testing.T) {
+	options := NewParserOptions(WithBufferCapacity(2048))
+	require.NotNil(t, options)
+	assert.Equal(t, 2048, options.BufferCapacity)
+}
+
+func TestParserConfigure(t *testing.T) {
+	p, err := NewParserWithFormatOptions(
+		WithStart("---"),
+		WithEnd("---"),
+	)
+	require.NoError(t, err)
+
+	configured := p.Configure(WithBufferCapacity(2048))
+	require.NotNil(t, configured)
+
+	concrete, ok := configured.(*parser)
+	require.True(t, ok)
+	assert.Equal(t, 2048, concrete.options.BufferCapacity)
 }
 
 func TestParseCustomFormatInspiredByAdrgFrontmatter(t *testing.T) {
 	// Source: https://github.com/adrg/frontmatter/blob/master/frontmatter_test.go
-	p, err := NewParserWithOptions(
+	p, err := NewParserWithFormatOptions(
 		WithStart("..."),
 		WithEnd("..."),
 	)
@@ -178,7 +205,7 @@ func TestParseOnlyOpeningFenceInspiredByLpilAndSimplematter(t *testing.T) {
 	// Sources:
 	// - https://github.com/lpil/frontmatter/blob/main/test/frontmatter_test.gleam
 	// - https://github.com/remcohaszing/simplematter/blob/main/test/test.ts
-	p, err := NewParserWithOptions(
+	p, err := NewParserWithFormatOptions(
 		WithStart("---"),
 		WithEnd("---"),
 	)
@@ -236,7 +263,7 @@ func TestParseYAMLExampleFilesInspiredByJxsonFrontMatter(t *testing.T) {
 			data, err := exampleFiles.ReadFile("testdata/" + test.fileName)
 			require.NoError(t, err)
 
-			p, err := NewParserWithOptions(
+			p, err := NewParserWithFormatOptions(
 				WithStart(test.start),
 				WithEnd(test.end),
 			)
