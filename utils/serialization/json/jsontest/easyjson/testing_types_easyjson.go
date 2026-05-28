@@ -31,28 +31,55 @@ func easyjson84e285b8DecodeGithubComARMSoftwareGolangUtilsUtilsSerializationJson
 	for !in.IsDelim('}') {
 		key := in.UnsafeFieldName(false)
 		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
 		switch key {
 		case "Int":
-			out.Int = int(in.Int())
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Int = int(in.Int())
+			}
 		case "Int8":
-			out.Int8 = int8(in.Int8())
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Int8 = int8(in.Int8())
+			}
 		case "Int16":
-			out.Int16 = int16(in.Int16())
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Int16 = int16(in.Int16())
+			}
 		case "Int32":
-			out.Int32 = int32(in.Int32())
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Int32 = int32(in.Int32())
+			}
 		case "Int64":
-			out.Int64 = int64(in.Int64())
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Int64 = int64(in.Int64())
+			}
 		case "String":
-			out.String = string(in.String())
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.String = string(in.String())
+			}
 		case "Bool":
-			out.Bool = bool(in.Bool())
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Bool = bool(in.Bool())
+			}
 		case "Duration":
-			out.Duration = time.Duration(in.Int64())
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Duration = time.Duration(in.Int64())
+			}
 		case "SString":
 			if in.IsNull() {
 				in.Skip()
@@ -70,7 +97,11 @@ func easyjson84e285b8DecodeGithubComARMSoftwareGolangUtilsUtilsSerializationJson
 				}
 				for !in.IsDelim(']') {
 					var v1 string
-					v1 = string(in.String())
+					if in.IsNull() {
+						in.Skip()
+					} else {
+						v1 = string(in.String())
+					}
 					out.SString = append(out.SString, v1)
 					in.WantComma()
 				}
@@ -93,7 +124,11 @@ func easyjson84e285b8DecodeGithubComARMSoftwareGolangUtilsUtilsSerializationJson
 				}
 				for !in.IsDelim(']') {
 					var v2 int
-					v2 = int(in.Int())
+					if in.IsNull() {
+						in.Skip()
+					} else {
+						v2 = int(in.Int())
+					}
 					out.SInt = append(out.SInt, v2)
 					in.WantComma()
 				}
@@ -116,7 +151,11 @@ func easyjson84e285b8DecodeGithubComARMSoftwareGolangUtilsUtilsSerializationJson
 				}
 				for !in.IsDelim(']') {
 					var v3 int8
-					v3 = int8(in.Int8())
+					if in.IsNull() {
+						in.Skip()
+					} else {
+						v3 = int8(in.Int8())
+					}
 					out.SInt8 = append(out.SInt8, v3)
 					in.WantComma()
 				}
@@ -139,7 +178,11 @@ func easyjson84e285b8DecodeGithubComARMSoftwareGolangUtilsUtilsSerializationJson
 				}
 				for !in.IsDelim(']') {
 					var v4 int16
-					v4 = int16(in.Int16())
+					if in.IsNull() {
+						in.Skip()
+					} else {
+						v4 = int16(in.Int16())
+					}
 					out.SInt16 = append(out.SInt16, v4)
 					in.WantComma()
 				}
@@ -162,7 +205,11 @@ func easyjson84e285b8DecodeGithubComARMSoftwareGolangUtilsUtilsSerializationJson
 				}
 				for !in.IsDelim(']') {
 					var v5 int32
-					v5 = int32(in.Int32())
+					if in.IsNull() {
+						in.Skip()
+					} else {
+						v5 = int32(in.Int32())
+					}
 					out.SInt32 = append(out.SInt32, v5)
 					in.WantComma()
 				}
@@ -185,7 +232,11 @@ func easyjson84e285b8DecodeGithubComARMSoftwareGolangUtilsUtilsSerializationJson
 				}
 				for !in.IsDelim(']') {
 					var v6 int64
-					v6 = int64(in.Int64())
+					if in.IsNull() {
+						in.Skip()
+					} else {
+						v6 = int64(in.Int64())
+					}
 					out.SInt64 = append(out.SInt64, v6)
 					in.WantComma()
 				}
@@ -208,7 +259,11 @@ func easyjson84e285b8DecodeGithubComARMSoftwareGolangUtilsUtilsSerializationJson
 				}
 				for !in.IsDelim(']') {
 					var v7 float32
-					v7 = float32(in.Float32())
+					if in.IsNull() {
+						in.Skip()
+					} else {
+						v7 = float32(in.Float32())
+					}
 					out.SFloat32 = append(out.SFloat32, v7)
 					in.WantComma()
 				}
@@ -231,7 +286,11 @@ func easyjson84e285b8DecodeGithubComARMSoftwareGolangUtilsUtilsSerializationJson
 				}
 				for !in.IsDelim(']') {
 					var v8 float64
-					v8 = float64(in.Float64())
+					if in.IsNull() {
+						in.Skip()
+					} else {
+						v8 = float64(in.Float64())
+					}
 					out.SFloat64 = append(out.SFloat64, v8)
 					in.WantComma()
 				}
@@ -254,14 +313,22 @@ func easyjson84e285b8DecodeGithubComARMSoftwareGolangUtilsUtilsSerializationJson
 				}
 				for !in.IsDelim(']') {
 					var v9 bool
-					v9 = bool(in.Bool())
+					if in.IsNull() {
+						in.Skip()
+					} else {
+						v9 = bool(in.Bool())
+					}
 					out.SBool = append(out.SBool, v9)
 					in.WantComma()
 				}
 				in.Delim(']')
 			}
 		case "Struct":
-			(out.Struct).UnmarshalEasyJSON(in)
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				(out.Struct).UnmarshalEasyJSON(in)
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -504,14 +571,13 @@ func easyjson84e285b8DecodeGithubComARMSoftwareGolangUtilsUtilsSerializationJson
 	for !in.IsDelim('}') {
 		key := in.UnsafeFieldName(false)
 		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
 		switch key {
 		case "Image":
-			out.Image = string(in.String())
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Image = string(in.String())
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -570,18 +636,25 @@ func easyjson84e285b8DecodeGithubComARMSoftwareGolangUtilsUtilsSerializationJson
 	for !in.IsDelim('}') {
 		key := in.UnsafeFieldName(false)
 		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
 		switch key {
 		case "Number":
-			out.Number = int64(in.Int64())
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Number = int64(in.Int64())
+			}
 		case "Height":
-			out.Height = int64(in.Int64())
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Height = int64(in.Int64())
+			}
 		case "AnotherStruct":
-			(out.AnotherStruct).UnmarshalEasyJSON(in)
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				(out.AnotherStruct).UnmarshalEasyJSON(in)
+			}
 		default:
 			in.SkipRecursive()
 		}
