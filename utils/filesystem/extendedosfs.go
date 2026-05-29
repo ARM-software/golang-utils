@@ -24,13 +24,19 @@ type ExtendedOsFs struct {
 func (c *ExtendedOsFs) Remove(name string) (err error) {
 	// The following is to ensure sockets are correctly removed
 	// https://stackoverflow.com/questions/16681944/how-to-reliably-unlink-a-unix-domain-socket-in-go-programming-language
-	err = commonerrors.Ignore(ConvertFileSystemError(syscall.Unlink(name)), commonerrors.ErrNotFound)
-	err = commonerrors.IgnoreCorrespondTo(err, "is a directory")
-	if err != nil {
+	unlinkErr := commonerrors.Ignore(ConvertFileSystemError(syscall.Unlink(name)), commonerrors.ErrNotFound)
+	unlinkErr = commonerrors.IgnoreCorrespondTo(unlinkErr, "is a directory")
+
+	removeErr := commonerrors.Ignore(ConvertFileSystemError(c.OsFs.Remove(name)), commonerrors.ErrNotFound)
+
+	if unlinkErr != nil && removeErr != nil {
+		// There is a behavioural difference on Mac vs Linux where performing an Unlink on a directory causes a EPERM which
+		// falsely gives the impression of a permissions issue, but directly using Remove works. So rather than fail on the
+		// first error this will only return an error if neither strategy works.
+		err = commonerrors.Join(unlinkErr, removeErr)
 		return
 	}
 
-	err = commonerrors.Ignore(ConvertFileSystemError(c.OsFs.Remove(name)), commonerrors.ErrNotFound)
 	return
 }
 
