@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.160.1" (2026-05-29)
+======================
+
+Bugfixes
+--------
+
+- Fixed filesystem removal on macOS when deleting directories using unlink. (#202605290935)
+
+
 "1.160.0" (2026-05-28)
 ======================
 
