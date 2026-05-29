@@ -22,14 +22,14 @@ type ExtendedOsFs struct {
 }
 
 func (c *ExtendedOsFs) Remove(name string) (err error) {
-	info, err := c.OsFs.Stat(name)
+	info, err := c.Stat(name)
 	if err != nil {
 		err = ConvertFileSystemError(err)
 		return
 	}
 
 	if !info.IsDir() {
-		// The following is to ensure sockets are correctly removed
+		// The following is to ensure sockets are correctly removed (must be unlinked/closed before reuse)
 		// https://stackoverflow.com/questions/16681944/how-to-reliably-unlink-a-unix-domain-socket-in-go-programming-language
 		err = commonerrors.Ignore(ConvertFileSystemError(syscall.Unlink(name)), commonerrors.ErrNotFound)
 		if err != nil {
