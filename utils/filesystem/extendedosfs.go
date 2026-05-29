@@ -7,7 +7,6 @@ package filesystem
 
 import (
 	"context"
-	"errors"
 	"os"
 	"syscall"
 
@@ -34,7 +33,7 @@ func (c *ExtendedOsFs) Remove(name string) (err error) {
 		// There is a behavioural difference on Mac vs Linux where performing an Unlink on a directory causes a EPERM which
 		// falsely gives the impression of a permissions issue, but directly using Remove works. So rather than fail on the
 		// first error this will only return an error if neither strategy works.
-		err = errors.Join(unlinkErr, removeErr)
+		err = commonerrors.Join(unlinkErr, removeErr)
 		return
 	}
 
