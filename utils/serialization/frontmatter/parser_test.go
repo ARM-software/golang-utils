@@ -84,6 +84,24 @@ func TestParseCRLFInspiredBySimplematterAndPositFrontmatter(t *testing.T) {
 	assert.Equal(t, "title: Test\r\n", string(content))
 }
 
+func TestParseUTF8BOMYAMLFrontMatter(t *testing.T) {
+	data, err := exampleFiles.ReadFile("testdata/bom-yaml.md")
+	require.NoError(t, err)
+
+	p, err := NewParserWithFormatOptions(
+		WithStart("---"),
+		WithEnd("---"),
+	)
+	require.NoError(t, err)
+
+	frontMatter, err := p.Parse(context.Background(), strings.NewReader(string(data)))
+	require.NoError(t, err)
+
+	content, err := safeio.ReadAll(context.Background(), frontMatter)
+	require.NoError(t, err)
+	assert.Equal(t, "title: Test\ncount: 2\n", string(content))
+}
+
 func TestParseEmptyFrontMatterInspiredBySimplematterAndLpil(t *testing.T) {
 	// Sources:
 	// - https://github.com/remcohaszing/simplematter/blob/main/test/test.ts
@@ -255,6 +273,13 @@ func TestParseYAMLExampleFilesInspiredByJxsonFrontMatter(t *testing.T) {
 			start:           "---",
 			end:             "---",
 			expectedContain: "pets:",
+		},
+		{
+			name:            "bom yaml",
+			fileName:        "bom-yaml.md",
+			start:           "---",
+			end:             "---",
+			expectedContain: "title: Test",
 		},
 	}
 
