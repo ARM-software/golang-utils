@@ -5,6 +5,8 @@ import (
 	"slices"
 
 	mapset "github.com/deckarep/golang-set/v2"
+
+	"github.com/ARM-software/golang-utils/utils/field"
 )
 
 //
@@ -23,6 +25,46 @@ func UniqueEntries[T comparable](slice []T) []T {
 // The order of elements is not guaranteed.
 func Unique[T comparable](s iter.Seq[T]) []T {
 	return UniqueEntries(slices.Collect(s))
+}
+
+// UniqueBy returns the first occurrence of each unique derived key.
+//
+// This is useful when values should remain in input order while duplicates are
+// removed based on a derived property such as an ID, normalised string, or
+// computed category.
+//
+// Reference documentation:
+//   - https://underscorejs.org/#uniq
+func UniqueBy[S ~[]E, E any, K comparable](slice S, keyFunc KeyFunc[E, K]) S {
+	return UniqueBySequence(slices.Values(slice), keyFunc)
+}
+
+// UniqueByRef behaves like UniqueBy but accepts a reference-based key
+// function.
+func UniqueByRef[S ~[]E, E any, K comparable](slice S, keyFunc KeyRefFunc[E, K]) S {
+	return UniqueBy(slice, toKeyFunc(keyFunc))
+}
+
+// UniqueBySequence returns the first occurrence of each unique derived key from
+// a sequence.
+func UniqueBySequence[E any, K comparable](sequence iter.Seq[E], keyFunc KeyFunc[E, K]) []E {
+	seen := map[K]struct{}{}
+	return ReducesSequence(sequence, []E{}, func(acc []E, element E) []E {
+		key := keyFunc(element)
+		if _, found := seen[key]; found {
+			return acc
+		}
+		seen[key] = struct{}{}
+		return append(acc, element)
+	})
+}
+
+// UniqueByRefSequence behaves like UniqueBySequence but accepts a
+// reference-based key function.
+func UniqueByRefSequence[E any, K comparable](sequence iter.Seq[E], keyFunc KeyRefFunc[E, K]) []E {
+	return UniqueBySequence(sequence, func(element E) K {
+		return keyFunc(field.ToOptionalOrNilIfEmpty(element))
+	})
 }
 
 // Union returns the union of slice1 and slice2, containing only unique
