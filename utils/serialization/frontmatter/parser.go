@@ -14,8 +14,8 @@ import (
 
 // NewParser returns a parser for the supplied front matter formats.
 //
-// The formats are checked in order, and the first format whose opening
-// delimiter matches the start of the reader is used.
+// The formats are checked in order, with all formats sharing the detected
+// opening delimiter considered during the same parsing pass.
 func NewParser(formats ...*Format) (p IFrontMatterParser, err error) {
 	if reflection.IsEmpty(formats) {
 		err = commonerrors.UndefinedVariable("formats")
@@ -92,8 +92,14 @@ func (p *parser) Parse(ctx context.Context, r io.Reader) (frontmatter io.Reader,
 	if err != nil {
 		return
 	}
+
 	frontmatter = safeio.NewByteReader(ctx, content)
 	return
+}
+
+type candidateFormat struct {
+	format *Format
+	start  int
 }
 
 type extractor struct {
@@ -106,7 +112,7 @@ type extractor struct {
 }
 
 func (e *extractor) extract() ([]byte, error) {
-	format, found, err := e.detect()
+	candidates, found, err := e.detect()
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +120,7 @@ func (e *extractor) extract() ([]byte, error) {
 		return nil, commonerrors.New(commonerrors.ErrNotFound, "front matter not found")
 	}
 
-	found, err = e.capture(format)
+	start, end, found, err := e.capture(candidates)
 	if err != nil {
 		return nil, err
 	}
@@ -122,10 +128,13 @@ func (e *extractor) extract() ([]byte, error) {
 		return nil, commonerrors.New(commonerrors.ErrNotFound, "front matter not found")
 	}
 
-	return e.output.Bytes()[e.start:e.end], nil
+	e.start = start
+	e.end = end
+
+	return e.output.Bytes()[start:end], nil
 }
 
-func (e *extractor) detect() (*Format, bool, error) {
+func (e *extractor) detect() (candidates []*candidateFormat, found bool, err error) {
 	for {
 		read := e.read
 
@@ -148,54 +157,93 @@ func (e *extractor) detect() (*Format, bool, error) {
 			if format.Start != line {
 				continue
 			}
+
+			candidateStart := read
 			if !format.IncludeDelimitersWhenUnmarshalling {
-				read = e.read
+				candidateStart = e.read
 			}
-			e.start = read
-			return format, true, nil
+
+			candidates = append(candidates, &candidateFormat{format: format, start: candidateStart})
 		}
 
-		return nil, false, nil
+		if len(candidates) == 0 {
+			return nil, false, nil
+		}
+
+		return candidates, true, nil
 	}
 }
 
-func (e *extractor) capture(format *Format) (bool, error) {
+func (e *extractor) capture(candidates []*candidateFormat) (start int, end int, found bool, err error) {
 	for {
 		read := e.read
 
 		line, err := e.readLine()
 		if commonerrors.Ignore(err, commonerrors.ErrEOF) != nil {
-			return false, err
+			return 0, 0, false, err
 		}
 
-		if line != format.End {
+		matchingCandidates := matchingEndCandidates(candidates, line)
+		if len(matchingCandidates) == 0 {
 			if err != nil {
-				return false, nil
+				return 0, 0, false, nil
 			}
+
 			continue
 		}
 
-		if format.IncludeDelimitersWhenUnmarshalling {
-			read = e.read
-		}
-
-		if format.RequiresNewLine {
-			nextLine, nextErr := e.readLine()
-			nextEOF := commonerrors.Any(nextErr, commonerrors.ErrEOF)
-			if commonerrors.Ignore(nextErr, commonerrors.ErrEOF) != nil {
-				return false, nextErr
-			}
-			if nextLine != "" {
-				if nextEOF {
-					return false, nil
-				}
+		for _, candidate := range matchingCandidates {
+			if candidate.format.RequiresNewLine {
 				continue
 			}
+
+			candidateEnd := read
+			if candidate.format.IncludeDelimitersWhenUnmarshalling {
+				candidateEnd = e.read
+			}
+
+			return candidate.start, candidateEnd, true, nil
 		}
 
-		e.end = read
-		return true, nil
+		endAfterClosingLine := read
+		if matchingCandidates[0].format.IncludeDelimitersWhenUnmarshalling {
+			endAfterClosingLine = e.read
+		}
+
+		nextLine, nextErr := e.readLine()
+		nextEOF := commonerrors.Any(nextErr, commonerrors.ErrEOF)
+		if commonerrors.Ignore(nextErr, commonerrors.ErrEOF) != nil {
+			return 0, 0, false, nextErr
+		}
+
+		if nextLine != "" {
+			if nextEOF {
+				return 0, 0, false, nil
+			}
+
+			continue
+		}
+
+		candidate := matchingCandidates[0]
+		candidateEnd := endAfterClosingLine
+		if !candidate.format.IncludeDelimitersWhenUnmarshalling {
+			candidateEnd = read
+		}
+
+		return candidate.start, candidateEnd, true, nil
 	}
+}
+
+func matchingEndCandidates(candidates []*candidateFormat, line string) (matching []*candidateFormat) {
+	for _, candidate := range candidates {
+		if candidate.format.End != line {
+			continue
+		}
+
+		matching = append(matching, candidate)
+	}
+
+	return
 }
 
 func (e *extractor) readLine() (line string, err error) {
