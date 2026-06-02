@@ -55,16 +55,12 @@ func TestGroupBy(t *testing.T) {
 }
 
 func TestFrequenciesBy(t *testing.T) {
-	frequencies := FrequenciesBy([]string{"aa", "aA", "bb", "cc"}, func(element string) string {
-		return strings.ToLower(element)
-	})
+	frequencies := FrequenciesBy([]string{"aa", "aA", "bb", "cc"}, strings.ToLower)
 	assert.Equal(t, map[string]int{"aa": 2, "bb": 1, "cc": 1}, frequencies)
 	assert.Equal(t, frequencies, FrequenciesByRef([]string{"aa", "aA", "bb", "cc"}, func(element *string) string {
 		return strings.ToLower(*element)
 	}))
-	assert.Equal(t, frequencies, FrequenciesBySequence(slices.Values([]string{"aa", "aA", "bb", "cc"}), func(element string) string {
-		return strings.ToLower(element)
-	}))
+	assert.Equal(t, frequencies, FrequenciesBySequence(slices.Values([]string{"aa", "aA", "bb", "cc"}), strings.ToLower))
 	assert.Equal(t, frequencies, FrequenciesByRefSequence(slices.Values([]string{"aa", "aA", "bb", "cc"}), func(element *string) string {
 		return strings.ToLower(*element)
 	}))
