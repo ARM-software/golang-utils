@@ -44,6 +44,11 @@ func IsEmpty(value any) bool {
 	}
 }
 
+// IsNotEmpty checks whether a value is not empty. See IsEmpty for more details about what is considered empty.
+func IsNotEmpty(value any) bool {
+	return !IsEmpty(value)
+}
+
 // IsNilInterface checks whether an interface value is nil even when it has been
 // passed around as `any`.
 func IsNilInterface(i any) bool {
