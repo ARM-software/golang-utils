@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.161.0" (2026-06-02)
+======================
+
+Features
+--------
+
+- :sparkles: [reflection] Introduced a not empty helper (#20260601231830)
+- :sparkles: [collection] Added additional helpers to ease operation on collection (#20260602001604)
+
+
+Improved Documentation
+----------------------
+
+- :book: [collection] Improve documentation (#20260601232922)
+
+
 "1.160.1" (2026-05-29)
 ======================
 
