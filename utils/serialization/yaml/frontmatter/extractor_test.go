@@ -26,6 +26,12 @@ func TestExtractYAMLFrontmatterInspiredBySimplematter(t *testing.T) {
 	assert.Equal(t, "hello: yaml\n", string(content))
 }
 
+func TestExtractYAMLFrontmatterWithDocumentEndMarker(t *testing.T) {
+	content, err := ExtractYAMLFrontmatter(context.Background(), strings.NewReader("---\nhello: yaml\n...\nRest of document\n"))
+	require.NoError(t, err)
+	assert.Equal(t, "hello: yaml\n", string(content))
+}
+
 func TestExtractYAMLFrontmatterCRLFInspiredBySimplematterAndPositFrontmatter(t *testing.T) {
 	// Sources:
 	// - https://github.com/remcohaszing/simplematter/blob/main/test/test.ts
