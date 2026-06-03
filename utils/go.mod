@@ -37,7 +37,7 @@ require (
 	github.com/rs/zerolog v1.35.1
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 	github.com/sasha-s/go-deadlock v0.3.9
-	github.com/shirou/gopsutil/v4 v4.26.4
+	github.com/shirou/gopsutil/v4 v4.26.5
 	github.com/sirupsen/logrus v1.9.4
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/spf13/afero v1.15.0
