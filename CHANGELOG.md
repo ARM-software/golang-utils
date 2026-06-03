@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.161.1" (2026-06-03)
+======================
+
+Bugfixes
+--------
+
+- :bug: `[frontmatter]` Ensure that different formats with the same start fence are treated as distinct formats (#20260602103158)
+
+
 "1.161.0" (2026-06-02)
 ======================
 
