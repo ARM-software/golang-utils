@@ -7,6 +7,7 @@ import (
 )
 
 //go:generate go tool mockgen -destination=../../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/serialization/$GOPACKAGE IFrontMatterParser
+//go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/serialization/$GOPACKAGE IFrontMatterParser
 
 // IFrontMatterParser extracts front matter content from a reader.
 //

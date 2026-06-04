@@ -24,14 +24,30 @@ Few helpers may be themselves leveraging 3rd party libraries.
 
 ## Using this library
 
-To use this library, add the following line to your `go.mod`:
+Each first-level directory under `utils/` is now its own Go module.
+
+This means consumers can depend only on the subproject they need, which keeps
+the dependency footprint smaller than the previous single-module layout.
+
+To use one subproject, add it to your `go.mod` as you would any other module.
+For example:
 
 ```go
 require (
-    github.com/ARM-software/golang-utils/utils latest
+    github.com/ARM-software/golang-utils/utils/collection latest
     ...
 )
 ```
+
+and then import it directly:
+
+```go
+import "github.com/ARM-software/golang-utils/utils/collection"
+```
+
+If you need another granular subproject, follow the same pattern with its own
+module path, for example `github.com/ARM-software/golang-utils/utils/filesystem`
+or `github.com/ARM-software/golang-utils/utils/validation`.
 
 ## Releases
 
@@ -41,10 +57,12 @@ For release notes and a history of changes of all **production** releases, pleas
 
 ## Project Structure
 
-The follow described the major aspects of the project structure:
+The following describes the major aspects of the project structure:
 
 - `docs/` - Code reference documentation.
-- `utils/` - Go project source files.
+- `utils/` - The Go workspace, defined by `utils/go.work`.
+  Each first-level directory in `utils/` is a standalone Go module with its
+  own `go.mod`.
 - `changes/` - Collection of news files for unreleased changes.
 
 ## Getting Help

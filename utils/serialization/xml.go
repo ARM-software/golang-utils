@@ -4,22 +4,12 @@
  */
 package serialization //nolint:misspell
 
-import (
-	"bytes"
-	"encoding/xml"
+import serializationxml "github.com/ARM-software/golang-utils/utils/serialization/xml" //nolint:misspell
 
-	"golang.org/x/net/html/charset"
-)
-
-// UnmarshallXML was introduced instead
-// of using xml.Unmarshal() as this only supports UTF8
-// But it's been noticed that UnmarshalXml doesn't support UTF16
+// UnmarshallXML unmarshals XML bytes into value.
+//
+// This compatibility wrapper preserves the historical serialization package API
+// while delegating the actual implementation to the dedicated xml subproject.
 func UnmarshallXML(data []byte, value any) error {
-	// Read the XML file and create an in-memory model constructed from the
-	// elements in the data
-	reader := bytes.NewReader(data)
-	decoder := xml.NewDecoder(reader)
-
-	decoder.CharsetReader = charset.NewReaderLabel
-	return decoder.Decode(&value)
+	return serializationxml.UnmarshallXML(data, value)
 }
