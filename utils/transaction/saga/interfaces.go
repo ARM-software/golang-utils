@@ -4,6 +4,7 @@
 package saga
 
 //go:generate go tool mockgen -destination=../../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/transaction/$GOPACKAGE IActionArguments,IActionIdentifier,ITransactionStep,ISagaOrchestrator
+//go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/transaction/$GOPACKAGE IActionArguments,IActionIdentifier,ITransactionStep,ISagaOrchestrator
 //go:generate go tool mockgen -destination=./mock_test.go -package=saga github.com/ARM-software/golang-utils/utils/transaction/$GOPACKAGE IActionArguments,IActionIdentifier,ITransactionStep,ISagaOrchestrator
 
 import (

@@ -10,6 +10,7 @@ import (
 )
 
 //go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IEnvironmentVariable,IEnvironment
+//go:generate go tool mockgen -destination=./mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IEnvironmentVariable,IEnvironment
 
 // IEnvironmentVariable defines an environment variable to be set for the commands to run.
 type IEnvironmentVariable interface {
