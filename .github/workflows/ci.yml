@@ -10,7 +10,7 @@ on:
 
 # Set environment variables available in all jobs and steps
 env:
-  go_version: "1.25"
+  go_version: "1.25.6"
   go_cache_macOS_path: |
     ~/Library/Caches/go-build
   go_cache_windows_path: |
@@ -95,21 +95,41 @@ jobs:
           key: ${{ matrix.os }}-${{ matrix.go-module }}-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ matrix.os }}-${{ matrix.go-module }}-
+      - name: Synchronise workspace
+        run: go work sync
+        working-directory: ${{ matrix.go-module }}
+      - name: Compute workspace package patterns
+        id: workspace-packages
+        shell: pwsh
+        run: |
+          Push-Location "${{ matrix.go-module }}"
+          $work = go work edit -json | ConvertFrom-Json
+          $patterns = @($work.Use | ForEach-Object { "$($_.DiskPath)/..." })
+          "patterns=$($patterns -join ' ')" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          Pop-Location
       - if: ${{ startsWith(matrix.os, 'ubuntu') }}
         name: Linting
         uses: golangci/golangci-lint-action@v9
         with:
           version: latest
           working-directory: ${{ matrix.go-module }}
-          args: "--verbose --output.text.print-issued-lines --output.text.print-linter-name --output.tab.colors --max-issues-per-linter 0 --max-same-issues 0"
+          args: "${{ steps.workspace-packages.outputs.patterns }} --verbose --output.text.print-issued-lines --output.text.print-linter-name --output.tab.colors --max-issues-per-linter 0 --max-same-issues 0"
       - name: Build ${{ matrix.go-module }} on ${{ matrix.os }}
-        run: go build -v ./...
-        working-directory: ${{ matrix.go-module }}
+        shell: pwsh
+        run: |
+          Push-Location "${{ matrix.go-module }}"
+          $patterns = "${{ steps.workspace-packages.outputs.patterns }}" -split ' '
+          go build -v @patterns
+          Pop-Location
 
       - if: ${{ startsWith(matrix.os, 'ubuntu') }}
         name: Test [${{ matrix.go-module }} on ${{ matrix.os }}]
-        run: go test -race -cover -v -tags integration -timeout 30m -coverprofile ${{ matrix.go-module }}_coverage.out ./...
-        working-directory: ${{ matrix.go-module }}
+        shell: pwsh
+        run: |
+          Push-Location "${{ matrix.go-module }}"
+          $patterns = "${{ steps.workspace-packages.outputs.patterns }}" -split ' '
+          go test -race -cover -v -tags integration -timeout 30m -coverprofile "${{ matrix.go-module }}_coverage.out" @patterns
+          Pop-Location
 
 # FIXME: Run tests on Mac and Windows
 #      - if: ${{ startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'macOS') }}

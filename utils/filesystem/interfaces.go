@@ -16,6 +16,7 @@ import (
 )
 
 //go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IFileHash,IChowner,ILinker,File,DiskUsage,FileTimeInfo,ILock,ILimits,FS,ICloseableFS,IForceRemover,IStater,ILinkReader,ISymLinker
+//go:generate go tool mockgen -destination=./mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/$GOPACKAGE IFileHash,IChowner,ILinker,File,DiskUsage,FileTimeInfo,ILock,ILimits,FS,ICloseableFS,IForceRemover,IStater,ILinkReader,ISymLinker
 
 // IFileHash defines a file hash.
 // For reference.

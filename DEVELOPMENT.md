@@ -6,13 +6,22 @@ SPDX-License-Identifier: Apache-2.0
 ## Local Development
  
 Since this is a Go library, there is no application to run.
+
+The `utils/` directory is the Go workspace root and is defined by
+`utils/go.work`. Each first-level directory under `utils/` is also a standalone
+Go module with its own `go.mod`.
  
 ### Running tests
 
-To run all tests:
+To run all tests across the workspace:
 ```bash
-go test ./...
+cd utils
+go work sync
+go test $(go work edit -json | jq -r '.Use[].DiskPath + "/..."')
 ```
+
+To run tests for a single subproject, run the same command from that subproject
+directory, for example `utils/collection` or `utils/filesystem`.
 
 ### Mocks
 
@@ -20,7 +29,9 @@ We use the built-in mock library and use [mockgen](https://github.com/golang/moc
 
 To generate mocks:
 ```bash
-go generate ./...
+cd utils
+go work sync
+go generate $(go work edit -json | jq -r '.Use[].DiskPath + "/..."')
 ```
 
 We make use of `go:generate` comments to instruct which `mockgen` commands should be run.
@@ -35,9 +46,10 @@ It is up to the individual developer to ensure their change complies with this.
 Static analysis tools and linters are run as part of CI.
 They come from [golangci-lint](https://golangci-lint.run/). To run this locally:
 ```bash
-# Must be in a directory with a go.mod file
-cd <directory_with_go_module>
-golangci-lint run ./...
+# Run from utils/ for the workspace or from an individual submodule directory.
+cd utils
+go work sync
+golangci-lint run $(go work edit -json | jq -r '.Use[].DiskPath + "/..."')
 ``` 
 
 ### Precommit
