@@ -16,7 +16,8 @@ Go module with its own `go.mod`.
 To run all tests across the workspace:
 ```bash
 cd utils
-go test ./...
+go work sync
+go test $(go work edit -json | jq -r '.Use[].DiskPath + "/..."')
 ```
 
 To run tests for a single subproject, run the same command from that subproject
@@ -29,7 +30,8 @@ We use the built-in mock library and use [mockgen](https://github.com/golang/moc
 To generate mocks:
 ```bash
 cd utils
-go generate ./...
+go work sync
+go generate $(go work edit -json | jq -r '.Use[].DiskPath + "/..."')
 ```
 
 We make use of `go:generate` comments to instruct which `mockgen` commands should be run.
@@ -46,7 +48,8 @@ They come from [golangci-lint](https://golangci-lint.run/). To run this locally:
 ```bash
 # Run from utils/ for the workspace or from an individual submodule directory.
 cd utils
-golangci-lint run ./...
+go work sync
+golangci-lint run $(go work edit -json | jq -r '.Use[].DiskPath + "/..."')
 ``` 
 
 ### Precommit

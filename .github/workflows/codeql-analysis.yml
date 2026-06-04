@@ -46,6 +46,16 @@ jobs:
       with:
         go-version: '1.25.6'
 
+    - name: Compute workspace package patterns
+      id: workspace-packages
+      shell: pwsh
+      run: |
+        Push-Location "utils"
+        $work = go work edit -json | ConvertFrom-Json
+        $patterns = @($work.Use | ForEach-Object { "$($_.DiskPath)/..." })
+        "patterns=$($patterns -join ' ')" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+        Pop-Location
+
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4.36.1
@@ -57,8 +67,12 @@ jobs:
         # queries: ./path/to/local/query, your-org/your-repo/queries@main
 
     - name: Build workspace for analysis
-      run: go test ./... -run TestDoesNotExist
-      working-directory: utils
+      shell: pwsh
+      run: |
+        Push-Location "utils"
+        $patterns = "${{ steps.workspace-packages.outputs.patterns }}" -split ' '
+        go test @patterns -run TestDoesNotExist
+        Pop-Location
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4.36.1
