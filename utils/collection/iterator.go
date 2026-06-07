@@ -118,3 +118,10 @@ func ForAllRef[S ~[]E, E any](s S, f OperationRefFunc[E]) error {
 func ForAllSequenceRef[T any](s iter.Seq[T], f OperationRefFunc[T]) error {
 	return ForAllSequence(s, toOperationFunc(f))
 }
+
+// Reverse returns a reversed copy of s.
+func Reverse[S ~[]E, E any](s S) S {
+	clone := slices.Clone(s)
+	slices.Reverse(clone)
+	return clone
+}
