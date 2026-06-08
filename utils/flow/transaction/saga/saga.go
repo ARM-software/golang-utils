@@ -10,7 +10,7 @@ import (
 
 var _ ISagaOrchestrator = &MinimalSaga{}
 
-// NewMinimalSaga
+// NewMinimalSaga returns a new minimal saga orchestrator.
 func NewMinimalSaga(args IActionArguments) *MinimalSaga {
 	s := &MinimalSaga{args: args}
 	s.defineCompensationStore()
@@ -51,8 +51,14 @@ func (s *MinimalSaga) defineCompensationStore() {
 func (s *MinimalSaga) GetCompensation() parallelisation.IExecutionGroup[ITransactionStep] {
 	return s.compensation
 }
+
 func (s *MinimalSaga) GetTransaction() parallelisation.IExecutionGroup[ITransactionStep] {
 	return s.transaction
+}
+
+// GetArguments returns the saga arguments.
+func (s *MinimalSaga) GetArguments() IActionArguments {
+	return s.getArgs()
 }
 
 func (s *MinimalSaga) getArgs() IActionArguments {

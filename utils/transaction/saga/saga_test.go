@@ -79,7 +79,7 @@ func TestSaga_AllStepsSucceed_NewFrom(t *testing.T) {
 
 	err = norch.Execute(ctx)
 	require.NoError(t, err)
-	assert.NotEqual(t, orch.getArgs().GetIdemKey(), norch.getArgs().GetIdemKey())
+	assert.NotEqual(t, orch.GetArguments().GetIdemKey(), norch.GetArguments().GetIdemKey())
 }
 
 func TestSaga_AllStepsSucceed_Clone(t *testing.T) {

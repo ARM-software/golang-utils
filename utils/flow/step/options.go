@@ -1,4 +1,4 @@
-package pipeline
+package step
 
 import (
 	"context"
@@ -8,7 +8,9 @@ import (
 	"github.com/ARM-software/golang-utils/utils/retry"
 )
 
-// TransformFunc defines a pipeline step transformation.
+const unnamedStep = "unnamed step"
+
+// TransformFunc defines a flow step transformation.
 type TransformFunc[I any, O any] = parallelisation.TransformFunc[I, O]
 
 // CompensationFunc compensates a previously successful step.
@@ -33,7 +35,7 @@ const (
 	ErrorActionFallback
 )
 
-// StepOptions configures pipeline or step behaviour.
+// StepOptions configures step behaviour.
 type StepOptions[I, O any] struct {
 	action                ErrorAction
 	actionDefined         bool
@@ -44,30 +46,28 @@ type StepOptions[I, O any] struct {
 	transformGroupOptions []parallelisation.StoreOption
 }
 
-// StepOption configures pipeline or step behaviour.
+// StepOption configures step behaviour.
 type StepOption[I, O any] func(*StepOptions[I, O]) *StepOptions[I, O]
 
-// Options configures homogeneous pipeline or step behaviour.
+// Options configures homogeneous step behaviour.
 type Options[T any] = StepOptions[T, T]
 
-// Option configures homogeneous pipeline or step behaviour.
+// Option configures homogeneous step behaviour.
 type Option[T any] = StepOption[T, T]
 
 // GenericFallbackFunc produces a replacement result when a generic step fails.
 type GenericFallbackFunc[I any, O any] = FallbackFunc[I, O]
 
-// GenericStepOptions configures a generic pipeline step.
+// GenericStepOptions configures a generic step.
 type GenericStepOptions[I, O any] = StepOptions[I, O]
 
-// GenericStepOption configures a generic pipeline step.
+// GenericStepOption configures a generic step.
 type GenericStepOption[I, O any] = StepOption[I, O]
 
-// DefaultStepOptions returns the default pipeline or step options.
 func DefaultStepOptions[I, O any]() *StepOptions[I, O] {
 	return (&StepOptions[I, O]{}).Default()
 }
 
-// Default applies the default option values.
 func (o *StepOptions[I, O]) Default() *StepOptions[I, O] {
 	if o == nil {
 		o = &StepOptions[I, O]{}
@@ -78,7 +78,6 @@ func (o *StepOptions[I, O]) Default() *StepOptions[I, O] {
 	return o
 }
 
-// Merge merges opts into o.
 func (o *StepOptions[I, O]) Merge(opts *StepOptions[I, O]) *StepOptions[I, O] {
 	if o == nil {
 		o = DefaultStepOptions[I, O]()
@@ -106,7 +105,6 @@ func (o *StepOptions[I, O]) Merge(opts *StepOptions[I, O]) *StepOptions[I, O] {
 	return o.Default()
 }
 
-// Apply applies an option to o.
 func (o *StepOptions[I, O]) Apply(opt StepOption[I, O]) *StepOptions[I, O] {
 	if opt == nil {
 		return o.Default()
@@ -114,22 +112,18 @@ func (o *StepOptions[I, O]) Apply(opt StepOption[I, O]) *StepOptions[I, O] {
 	return opt(o).Default()
 }
 
-// MergeWithOptions merges a list of options into o.
 func (o *StepOptions[I, O]) MergeWithOptions(opts ...StepOption[I, O]) *StepOptions[I, O] {
 	return o.Merge(WithStepOptions(opts...))
 }
 
-// Overwrite resets o to defaults and merges opts into it.
 func (o *StepOptions[I, O]) Overwrite(opts *StepOptions[I, O]) *StepOptions[I, O] {
 	return o.Default().Merge(opts)
 }
 
-// WithOptions overwrites o using a list of options.
 func (o *StepOptions[I, O]) WithOptions(opts ...StepOption[I, O]) *StepOptions[I, O] {
 	return o.Overwrite(WithStepOptions(opts...))
 }
 
-// Options returns the current configuration as a reusable option set.
 func (o *StepOptions[I, O]) Options() []StepOption[I, O] {
 	return []StepOption[I, O]{
 		func(opts *StepOptions[I, O]) *StepOptions[I, O] {
@@ -142,7 +136,6 @@ func (o *StepOptions[I, O]) Options() []StepOption[I, O] {
 	}
 }
 
-// WithStepOptions constructs options from the supplied option list.
 func WithStepOptions[I, O any](options ...StepOption[I, O]) *StepOptions[I, O] {
 	resolved := DefaultStepOptions[I, O]()
 	for i := range options {
@@ -151,31 +144,23 @@ func WithStepOptions[I, O any](options ...StepOption[I, O]) *StepOptions[I, O] {
 	return resolved.Default()
 }
 
-// DefaultOptions returns the default homogeneous pipeline or step options.
 func DefaultOptions[T any]() *Options[T] {
 	return DefaultStepOptions[T, T]()
 }
 
-// WithOptions constructs homogeneous options from the supplied option list.
 func WithOptions[T any](options ...Option[T]) *Options[T] {
 	return WithStepOptions[T, T](options...)
 }
 
-// DefaultGenericStepOptions returns the default generic step options.
 func DefaultGenericStepOptions[I, O any]() *GenericStepOptions[I, O] {
 	return DefaultStepOptions[I, O]()
 }
 
-// WithGenericStepOptions constructs generic step options from the supplied
-// option list.
 func WithGenericStepOptions[I, O any](options ...GenericStepOption[I, O]) *GenericStepOptions[I, O] {
 	return WithStepOptions[I, O](options...)
 }
 
-// BreakOnFirstError stops pipeline execution when a step fails.
-func BreakOnFirstError[T any]() Option[T] {
-	return withBreakOnFirstError[T, T]()
-}
+func BreakOnFirstError[T any]() Option[T] { return withBreakOnFirstError[T, T]() }
 
 func withBreakOnFirstError[I, O any]() StepOption[I, O] {
 	return func(o *StepOptions[I, O]) *StepOptions[I, O] {
@@ -188,15 +173,9 @@ func withBreakOnFirstError[I, O any]() StepOption[I, O] {
 	}
 }
 
-// ExecuteAll continues executing later steps when a step fails.
-func ExecuteAll[T any]() Option[T] {
-	return ContinueOnError[T]()
-}
+func ExecuteAll[T any]() Option[T] { return ContinueOnError[T]() }
 
-// ContinueOnError continues to later steps when a step fails.
-func ContinueOnError[T any]() Option[T] {
-	return withContinueOnError[T, T]()
-}
+func ContinueOnError[T any]() Option[T] { return withContinueOnError[T, T]() }
 
 func withContinueOnError[I, O any]() StepOption[I, O] {
 	return func(o *StepOptions[I, O]) *StepOptions[I, O] {
@@ -209,10 +188,7 @@ func withContinueOnError[I, O any]() StepOption[I, O] {
 	}
 }
 
-// SkipStepOnError skips the failing step and continues with the current state.
-func SkipStepOnError[T any]() Option[T] {
-	return withSkipStepOnError[T, T]()
-}
+func SkipStepOnError[T any]() Option[T] { return withSkipStepOnError[T, T]() }
 
 func withSkipStepOnError[I, O any]() StepOption[I, O] {
 	return func(o *StepOptions[I, O]) *StepOptions[I, O] {
@@ -225,7 +201,6 @@ func withSkipStepOnError[I, O any]() StepOption[I, O] {
 	}
 }
 
-// FallbackOnError runs fallback when a step fails.
 func FallbackOnError[T any](fallback FallbackFunc[T, T]) Option[T] {
 	return withFallbackOnError[T, T](fallback)
 }
@@ -242,7 +217,6 @@ func withFallbackOnError[I, O any](fallback FallbackFunc[I, O]) StepOption[I, O]
 	}
 }
 
-// RetryOnError retries a failing step using the supplied retry policy.
 func RetryOnError[T any](policy *retry.RetryPolicyConfiguration) Option[T] {
 	return withRetryOnError[T, T](policy)
 }
@@ -257,7 +231,6 @@ func withRetryOnError[I, O any](policy *retry.RetryPolicyConfiguration) StepOpti
 	}
 }
 
-// WithCompensation registers a compensation function for a step.
 func WithCompensation[T any](compensation CompensationFunc[T]) Option[T] {
 	return withCompensation[T, T](compensation)
 }
@@ -272,8 +245,6 @@ func withCompensation[I, O any](compensation CompensationFunc[O]) StepOption[I, 
 	}
 }
 
-// CompensatePreviousSteps runs compensations for previously successful steps
-// when a later step fails.
 func CompensatePreviousSteps[T any]() Option[T] {
 	return withCompensatePreviousSteps[T, T]()
 }
@@ -288,13 +259,8 @@ func withCompensatePreviousSteps[I, O any]() StepOption[I, O] {
 	}
 }
 
-// JoinErrorsAndContinue collects errors and continues to later steps.
-func JoinErrorsAndContinue[T any]() Option[T] {
-	return ContinueOnError[T]()
-}
+func JoinErrorsAndContinue[T any]() Option[T] { return ContinueOnError[T]() }
 
-// WithTransformGroupOptions executes a step through a transform group using the
-// supplied parallelisation options.
 func WithTransformGroupOptions[T any](options ...parallelisation.StoreOption) Option[T] {
 	return withTransformGroupOptions[T, T](options...)
 }
@@ -309,27 +275,22 @@ func withTransformGroupOptions[I, O any](options ...parallelisation.StoreOption)
 	}
 }
 
-// WithGenericFallbackOnError runs fallback when a generic step fails.
 func WithGenericFallbackOnError[I, O any](fallback GenericFallbackFunc[I, O]) GenericStepOption[I, O] {
 	return withFallbackOnError[I, O](fallback)
 }
 
-// WithGenericRetryOnError retries a failing generic step using the supplied retry policy.
 func WithGenericRetryOnError[I, O any](policy *retry.RetryPolicyConfiguration) GenericStepOption[I, O] {
 	return withRetryOnError[I, O](policy)
 }
 
-// WithGenericCompensation registers a compensation function for a generic step.
 func WithGenericCompensation[I, O any](compensation CompensationFunc[O]) GenericStepOption[I, O] {
 	return withCompensation[I, O](compensation)
 }
 
-// WithGenericCompensatePreviousSteps runs compensations for previously successful generic steps.
 func WithGenericCompensatePreviousSteps[I, O any]() GenericStepOption[I, O] {
 	return withCompensatePreviousSteps[I, O]()
 }
 
-// WithGenericTransformGroupOptions executes a generic step through a transform group.
 func WithGenericTransformGroupOptions[I, O any](options ...parallelisation.StoreOption) GenericStepOption[I, O] {
 	return withTransformGroupOptions[I, O](options...)
 }
@@ -345,6 +306,6 @@ func executeWithRetry[I any, O any](ctx context.Context, name string, current I,
 		var runErr error
 		output, success, runErr = transform(ctx, current)
 		return runErr
-	}, "retrying pipeline step "+name, func(err error) bool { return err != nil })
+	}, "retrying step "+name, func(err error) bool { return err != nil })
 	return output, success, err
 }
