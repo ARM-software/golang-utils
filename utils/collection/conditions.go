@@ -128,10 +128,7 @@ func Any(slice []bool) bool {
 
 // AnySequence returns true if there is at least one element of the slice which is true.
 func AnySequence(seq iter.Seq[bool]) bool {
-	if seq == nil {
-		return false
-	}
-	for e := range seq {
+	for e := range sequenceOrEmpty(seq) {
 		if e {
 			return true
 		}
@@ -147,7 +144,7 @@ func AnyTrue(values ...bool) bool {
 // AnyFalseSequence returns true if there is at least one element of the sequence which is false. If the sequence is empty, it also returns true.
 func AnyFalseSequence(eq iter.Seq[bool]) bool {
 	hasElements := false
-	for e := range eq {
+	for e := range sequenceOrEmpty(eq) {
 		hasElements = true
 		if !e {
 			return true

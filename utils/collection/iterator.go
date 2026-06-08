@@ -24,6 +24,18 @@ type OperationWithoutErrorFunc[E any] func(E)
 // OperationWithoutErrorRefFunc defines an operation on a pointer that does not return an error.
 type OperationWithoutErrorRefFunc[E any] func(*E)
 
+// EmptySequence returns a sequence that yields no values.
+func EmptySequence[T any]() iter.Seq[T] {
+	return func(func(T) bool) {}
+}
+
+func sequenceOrEmpty[T any](s iter.Seq[T]) iter.Seq[T] {
+	if s == nil {
+		return EmptySequence[T]()
+	}
+	return s
+}
+
 // toOperationFunc adapts an OperationRefFunc to an OperationFunc by
 // converting the value to an optional reference.
 func toOperationFunc[E any](f OperationRefFunc[E]) OperationFunc[E] {
@@ -53,7 +65,7 @@ func convertOperationWithoutError[E any](f OperationWithoutErrorFunc[E]) Operati
 // returns a non-EOF error, iteration stops and that error is returned.
 // If f returns EOF, the EOF is ignored and iteration ends without error.
 func Each[T any](s iter.Seq[T], f OperationFunc[T]) error {
-	for e := range s {
+	for e := range sequenceOrEmpty(s) {
 		err := f(e)
 		if err != nil {
 			err = commonerrors.Ignore(err, commonerrors.ErrEOF)

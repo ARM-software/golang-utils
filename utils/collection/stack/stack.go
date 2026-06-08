@@ -3,6 +3,8 @@ package stack
 import (
 	"iter"
 	"slices"
+
+	"github.com/ARM-software/golang-utils/utils/collection"
 )
 
 // NewStack returns a stack which is not thread safe
@@ -73,6 +75,9 @@ func (s *Stack[T]) Push(value ...T) {
 }
 
 func (s *Stack[T]) PushSequence(seq iter.Seq[T]) {
+	if seq == nil {
+		seq = collection.EmptySequence[T]()
+	}
 	for v := range seq {
 		s.push(v)
 	}

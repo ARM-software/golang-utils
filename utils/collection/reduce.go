@@ -47,7 +47,7 @@ func Reduce[T1, T2 any](s []T1, accumulator T2, f ReduceFunc[T1, T2]) T2 {
 //   - https://pkg.go.dev/iter
 func ReducesSequence[T1, T2 any](s iter.Seq[T1], accumulator T2, f ReduceFunc[T1, T2]) T2 {
 	result := accumulator
-	for e := range s {
+	for e := range sequenceOrEmpty(s) {
 		result = f(result, e)
 	}
 	return result

@@ -3,6 +3,8 @@ package queue
 import (
 	"iter"
 	"slices"
+
+	"github.com/ARM-software/golang-utils/utils/collection"
 )
 
 // NewQueue returns a Queue which is not thread safe
@@ -78,6 +80,9 @@ func (s *Queue[T]) Enqueue(value ...T) {
 }
 
 func (s *Queue[T]) EnqueueSequence(seq iter.Seq[T]) {
+	if seq == nil {
+		seq = collection.EmptySequence[T]()
+	}
 	for v := range seq {
 		s.enqueue(v)
 	}
