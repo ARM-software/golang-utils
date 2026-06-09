@@ -45,7 +45,7 @@ func RangeSequence[T safecast.IConvertible](start, stop T, step *T) iter.Seq[T] 
 func rangeSequence[T safecast.IConvertible](start, stop T, step *T) (it iter.Seq[T], length int) {
 	s := field.Optional[T](step, 1)
 	if s == 0 {
-		it = func(yield func(T) bool) {}
+		it = EmptySequence[T]()
 		return
 	}
 	length = determineRangeLength[T](start, stop, s)

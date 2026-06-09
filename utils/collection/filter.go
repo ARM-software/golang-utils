@@ -129,7 +129,7 @@ func FilterRef[S ~[]E, E any](s S, f FilterRefFunc[E]) S {
 //   - https://pkg.go.dev/iter
 func FilterSequence[E any](s iter.Seq[E], f Predicate[E]) (result iter.Seq[E]) {
 	return func(yield func(E) bool) {
-		for v := range s {
+		for v := range SequenceOrEmpty(s) {
 			if f(v) && !yield(v) {
 				return
 			}
