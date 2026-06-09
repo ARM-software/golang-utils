@@ -75,10 +75,7 @@ func (s *Stack[T]) Push(value ...T) {
 }
 
 func (s *Stack[T]) PushSequence(seq iter.Seq[T]) {
-	if seq == nil {
-		seq = collection.EmptySequence[T]()
-	}
-	for v := range seq {
+	for v := range collection.SequenceOrEmpty(seq) {
 		s.push(v)
 	}
 }

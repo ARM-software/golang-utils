@@ -60,7 +60,7 @@ func MapSequence[T1 any, T2 any](s iter.Seq[T1], f MapFunc[T1, T2]) iter.Seq[T2]
 // value.
 func MapSequenceWithError[T1 any, T2 any](s iter.Seq[T1], f MapWithErrorFunc[T1, T2]) iter.Seq[T2] {
 	return func(yield func(T2) bool) {
-		for v := range sequenceOrEmpty(s) {
+		for v := range SequenceOrEmpty(s) {
 			mapped, err := f(v)
 			if err != nil || !yield(mapped) {
 				return
@@ -89,7 +89,7 @@ func MapSequenceRef[T1 any, T2 any](s iter.Seq[T1], f MapRefFunc[T1, T2]) iter.S
 // combined with validation or other error-producing transformations.
 func MapSequenceRefWithError[T1 any, T2 any](s iter.Seq[T1], f MapRefWithErrorFunc[T1, T2]) iter.Seq[T2] {
 	return func(yield func(T2) bool) {
-		for v := range sequenceOrEmpty(s) {
+		for v := range SequenceOrEmpty(s) {
 			mapped, err := f(field.ToOptionalOrNilIfEmpty(v))
 			if err != nil || mapped == nil || !yield(*mapped) {
 				return

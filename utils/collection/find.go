@@ -30,7 +30,7 @@ func Find(slice *[]string, val string) (int, bool) {
 // match exists, it returns -1 and false.
 func FindInSequence[E any](elements iter.Seq[E], predicate Predicate[E]) (int, bool) {
 	idx := atomic.NewUint64(0)
-	for e := range sequenceOrEmpty(elements) {
+	for e := range SequenceOrEmpty(elements) {
 		if predicate(e) {
 			return safecast.ToInt(idx.Load()), true
 		}

@@ -80,10 +80,7 @@ func (s *Queue[T]) Enqueue(value ...T) {
 }
 
 func (s *Queue[T]) EnqueueSequence(seq iter.Seq[T]) {
-	if seq == nil {
-		seq = collection.EmptySequence[T]()
-	}
-	for v := range seq {
+	for v := range collection.SequenceOrEmpty(seq) {
 		s.enqueue(v)
 	}
 }
