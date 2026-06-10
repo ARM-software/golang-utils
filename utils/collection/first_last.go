@@ -7,7 +7,7 @@ import (
 
 // First returns the first element of slice.
 func First[S ~[]E, E any](slice S) (element E, ok bool) {
-	return FirstSequence(slices.Values(slice))
+	return At(slice, 0)
 }
 
 // FirstRef behaves like FirstByRef.
@@ -17,7 +17,7 @@ func FirstRef[S ~[]E, E any](slice S, predicate PredicateRef[E]) (element E, ok 
 
 // FirstBy returns the first element of slice that satisfies predicate.
 func FirstBy[S ~[]E, E any](slice S, predicate Predicate[E]) (element E, ok bool) {
-	return FirstBySequence(slices.Values(slice), predicate)
+	return FirstSequence(FilterSequence(slices.Values(slice), predicate))
 }
 
 // FirstByRef returns the first element of slice that satisfies a reference-based predicate.
@@ -37,14 +37,7 @@ func FirstRefSequence[E any](seq iter.Seq[E], predicate PredicateRef[E]) (elemen
 
 // FirstBySequence returns the first element yielded by seq that satisfies predicate.
 func FirstBySequence[E any](seq iter.Seq[E], predicate Predicate[E]) (element E, ok bool) {
-	for v := range SequenceOrEmpty(seq) {
-		if predicate(v) {
-			element = v
-			ok = true
-			return
-		}
-	}
-	return
+	return FirstSequence(FilterSequence(seq, predicate))
 }
 
 // FirstByRefSequence returns the first element yielded by seq that satisfies a reference-based predicate.
@@ -54,7 +47,7 @@ func FirstByRefSequence[E any](seq iter.Seq[E], predicate PredicateRef[E]) (elem
 
 // Last returns the last element of slice.
 func Last[S ~[]E, E any](slice S) (element E, ok bool) {
-	return LastSequence(slices.Values(slice))
+	return At(slice, -1)
 }
 
 // LastRef behaves like LastByRef.
@@ -64,7 +57,7 @@ func LastRef[S ~[]E, E any](slice S, predicate PredicateRef[E]) (element E, ok b
 
 // LastBy returns the last element of slice that satisfies predicate.
 func LastBy[S ~[]E, E any](slice S, predicate Predicate[E]) (element E, ok bool) {
-	return LastBySequence(slices.Values(slice), predicate)
+	return LastSequence(FilterSequence(slices.Values(slice), predicate))
 }
 
 // LastByRef returns the last element of slice that satisfies a reference-based predicate.
@@ -74,11 +67,7 @@ func LastByRef[S ~[]E, E any](slice S, predicate PredicateRef[E]) (element E, ok
 
 // LastSequence returns the last element yielded by seq.
 func LastSequence[E any](seq iter.Seq[E]) (element E, ok bool) {
-	for v := range SequenceOrEmpty(seq) {
-		element = v
-		ok = true
-	}
-	return
+	return AtSequence(seq, -1)
 }
 
 // LastRefSequence behaves like LastByRefSequence.
@@ -88,13 +77,7 @@ func LastRefSequence[E any](seq iter.Seq[E], predicate PredicateRef[E]) (element
 
 // LastBySequence returns the last element yielded by seq that satisfies predicate.
 func LastBySequence[E any](seq iter.Seq[E], predicate Predicate[E]) (element E, ok bool) {
-	for v := range SequenceOrEmpty(seq) {
-		if predicate(v) {
-			element = v
-			ok = true
-		}
-	}
-	return
+	return LastSequence(FilterSequence(seq, predicate))
 }
 
 // LastByRefSequence returns the last element yielded by seq that satisfies a reference-based predicate.
