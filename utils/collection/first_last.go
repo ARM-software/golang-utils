@@ -27,12 +27,7 @@ func FirstByRef[S ~[]E, E any](slice S, predicate PredicateRef[E]) (element E, o
 
 // FirstSequence returns the first element yielded by seq.
 func FirstSequence[E any](seq iter.Seq[E]) (element E, ok bool) {
-	for v := range SequenceOrEmpty(seq) {
-		element = v
-		ok = true
-		return
-	}
-	return
+	return AtSequence(seq, 0)
 }
 
 // FirstRefSequence behaves like FirstByRefSequence.
