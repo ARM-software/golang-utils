@@ -64,6 +64,6 @@ func matchInSeq[E any](s iter.Seq[E], matching []Predicate[E]) bool {
 	matchingF := func(e E) bool {
 		return Match(e, matching...)
 	}
-	_, found := FindInSequence(s, matchingF)
+	_, found := FirstBySequence(s, matchingF)
 	return found
 }

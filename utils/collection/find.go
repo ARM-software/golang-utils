@@ -4,10 +4,6 @@ import (
 	"iter"
 	"slices"
 	"strings"
-
-	"go.uber.org/atomic"
-
-	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
 //
@@ -29,12 +25,10 @@ func Find(slice *[]string, val string) (int, bool) {
 // element and true when a match is found. If elements is nil or no
 // match exists, it returns -1 and false.
 func FindInSequence[E any](elements iter.Seq[E], predicate Predicate[E]) (int, bool) {
-	idx := atomic.NewUint64(0)
-	for e := range SequenceOrEmpty(elements) {
-		if predicate(e) {
-			return safecast.ToInt(idx.Load()), true
+	for index, element := range EnumerateSequence(elements) {
+		if predicate(element) {
+			return index, true
 		}
-		idx.Inc()
 	}
 	return -1, false
 }
