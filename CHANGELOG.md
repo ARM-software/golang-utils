@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.162.0" (2026-06-16)
+======================
+
+Features
+--------
+
+- :sparkles: `[collection]` Add helpers such as `First...` `Last...` (#20260610004910)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: net-0.56.0 (#20260611101315)
+- Dependency upgrade: v4-4.8.0 (#20260615101359)
+
+
 "1.161.2" (2026-06-09)
 ======================
 
