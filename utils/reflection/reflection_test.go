@@ -508,6 +508,7 @@ func TestIsEmpty(t *testing.T) {
 		test := tests[i]
 		t.Run(fmt.Sprintf("subtest #%v (%v)", i, test.value), func(t *testing.T) {
 			assert.Equal(t, test.isEmpty, IsEmpty(test.value))
+			assert.NotEqual(t, test.isEmpty, IsNotEmpty(test.value))
 			if test.isEmpty && !test.differsFromAssertEmpty {
 				assert.Empty(t, test.value)
 			} else {

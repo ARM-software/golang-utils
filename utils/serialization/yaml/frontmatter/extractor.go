@@ -16,6 +16,14 @@ func NewYAMLFrontmatterFormat() *frontmatter.Format {
 	return frontmatter.NewFormat(frontmatter.WithStart("---"), frontmatter.WithEnd("---"))
 }
 
+// NewYAMLDocumentEndFrontmatterFormat returns the YAML front matter format that
+// uses the YAML document end marker.
+//
+// Source: https://yaml.org/spec/1.2.2/#912-document-markers
+func NewYAMLDocumentEndFrontmatterFormat() *frontmatter.Format {
+	return frontmatter.NewFormat(frontmatter.WithStart("---"), frontmatter.WithEnd("..."))
+}
+
 // NewYAML2FrontmatterFormat returns the alternative YAML front matter format
 // using `---yaml` as the opening delimiter.
 //
@@ -29,7 +37,7 @@ func NewYAML2FrontmatterFormat() *frontmatter.Format {
 // The extractor tries the known YAML front matter formats in order and returns
 // only the extracted front matter bytes.
 func ExtractYAMLFrontmatter(ctx context.Context, r io.Reader) (content []byte, err error) {
-	p, err := frontmatter.NewParser(NewYAMLFrontmatterFormat(), NewYAML2FrontmatterFormat())
+	p, err := frontmatter.NewParser(NewYAMLFrontmatterFormat(), NewYAMLDocumentEndFrontmatterFormat(), NewYAML2FrontmatterFormat())
 	if err != nil {
 		err = commonerrors.DescribeCircumstance(err, "cannot create a YAML frontmatter parser")
 		return

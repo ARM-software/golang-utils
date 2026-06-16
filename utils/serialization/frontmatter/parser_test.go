@@ -249,6 +249,21 @@ func TestParseWithMultipleFormats(t *testing.T) {
 	assert.Equal(t, "title = \"Test\"\n", string(content))
 }
 
+func TestParseWithMultipleFormatsUsingSameOpeningFence(t *testing.T) {
+	yamlSeparatorFormat := NewFormat(WithStart("---"), WithEnd("---"))
+	yamlDocumentEndFormat := NewFormat(WithStart("---"), WithEnd("..."))
+
+	p, err := NewParser(yamlSeparatorFormat, yamlDocumentEndFormat)
+	require.NoError(t, err)
+
+	frontMatter, err := p.Parse(context.Background(), strings.NewReader("---\ntitle: Test\n...\nbody\n"))
+	require.NoError(t, err)
+
+	content, err := safeio.ReadAll(context.Background(), frontMatter)
+	require.NoError(t, err)
+	assert.Equal(t, "title: Test\n", string(content))
+}
+
 func TestParseYAMLExampleFilesInspiredByJxsonFrontMatter(t *testing.T) {
 	// Sources:
 	// - https://github.com/jxson/front-matter/blob/master/examples/yaml-seperator.md

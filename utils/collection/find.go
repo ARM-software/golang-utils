@@ -29,11 +29,8 @@ func Find(slice *[]string, val string) (int, bool) {
 // element and true when a match is found. If elements is nil or no
 // match exists, it returns -1 and false.
 func FindInSequence[E any](elements iter.Seq[E], predicate Predicate[E]) (int, bool) {
-	if elements == nil {
-		return -1, false
-	}
 	idx := atomic.NewUint64(0)
-	for e := range elements {
+	for e := range SequenceOrEmpty(elements) {
 		if predicate(e) {
 			return safecast.ToInt(idx.Load()), true
 		}

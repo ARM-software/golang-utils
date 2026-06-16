@@ -14,6 +14,46 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.161.2" (2026-06-09)
+======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: v4-4.26.5 (#20260603103438)
+- Dependency upgrade: codeql-action-4.36.1 (#20260603235051)
+- Dependency upgrade: codeql-action-4.36.2 (#20260605101427)
+- Fixed collection sequence helpers so nil `iter.Seq` values no longer panic and instead behave like empty sequences. (#20260608103100)
+- Dependency upgrade: sync-0.21.0 (#20260609101327)
+- Dependency upgrade: text-0.38.0 (#20260609101338)
+- Dependency upgrade: sys-0.46.0 (#20260609133240)
+
+
+"1.161.1" (2026-06-03)
+======================
+
+Bugfixes
+--------
+
+- :bug: `[frontmatter]` Ensure that different formats with the same start fence are treated as distinct formats (#20260602103158)
+
+
+"1.161.0" (2026-06-02)
+======================
+
+Features
+--------
+
+- :sparkles: [reflection] Introduced a not empty helper (#20260601231830)
+- :sparkles: [collection] Added additional helpers to ease operation on collection (#20260602001604)
+
+
+Improved Documentation
+----------------------
+
+- :book: [collection] Improve documentation (#20260601232922)
+
+
 "1.160.1" (2026-05-29)
 ======================
 

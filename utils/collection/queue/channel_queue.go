@@ -4,6 +4,7 @@ import (
 	"iter"
 	"slices"
 
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
@@ -38,6 +39,9 @@ func (q *ChanQueue[T]) Enqueue(values ...T) {
 // EnqueueSequence adds a sequence to the queue.
 // This blocks if the queue is full.
 func (q *ChanQueue[T]) EnqueueSequence(seq iter.Seq[T]) {
+	if seq == nil {
+		seq = collection.EmptySequence[T]()
+	}
 	for v := range seq {
 		q.ch <- v
 	}
