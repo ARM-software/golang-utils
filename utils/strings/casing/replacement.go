@@ -115,7 +115,7 @@ func (r *Replacer) WriteString(ctx context.Context, w io.Writer, s string) (n in
 }
 
 func splitCamelWords(value string) []string {
-	if value == "" {
+	if reflection.IsEmpty(value) {
 		return nil
 	}
 	words := strings.Split(stringcase.SnakeCase(value), "_")
