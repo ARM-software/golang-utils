@@ -16,11 +16,59 @@ import (
 	"github.com/ARM-software/golang-utils/utils/safeio"
 )
 
+var (
+	normaliseRuleTokenFunc       = collection.Combine(strings.ToLower, strings.TrimSpace)
+	normaliseRuleExceptionFunc   = collection.Combine(strings.ToLower, strings.TrimSpace)
+	normaliseRuleReplacementFunc = strings.TrimSpace
+)
+
 // Rule defines a token replacement rule for identifier-like strings.
 type Rule struct {
 	Token       string
 	Replacement string
 	Exceptions  []string
+}
+
+// IsCompatible returns whether r and other describe the same replacement rule
+// and can therefore be merged safely.
+//
+// Rules are considered compatible when they target the same token and use the
+// same replacement after normalisation. Exception lists do not need to match.
+
+// If other is empty, the rules are treated as incompatible and false is
+// returned immediately.
+func (r Rule) IsCompatible(other *Rule) bool {
+	if reflection.IsEmpty(other) {
+		return false
+	}
+	return normaliseRuleTokenFunc(r.Token) == normaliseRuleTokenFunc(other.Token) && normaliseRuleReplacementFunc(r.Replacement) == normaliseRuleReplacementFunc(other.Replacement)
+}
+
+// Merge combines compatible rules into one rule.
+//
+// If the rules are not compatible, r is returned unchanged.
+//
+// When merged, exception lists are combined and deduplicated using the same
+// normalisation semantics as the replacer.
+
+// If other is empty, r is returned unchanged.
+func (r Rule) Merge(other *Rule) Rule {
+	if reflection.IsEmpty(other) {
+		return r
+	}
+	if !r.IsCompatible(other) {
+		return r
+	}
+
+	merged := r
+	if reflection.IsEmpty(merged.Token) {
+		merged.Token = strings.TrimSpace(other.Token)
+	}
+	if reflection.IsEmpty(merged.Replacement) {
+		merged.Replacement = normaliseRuleReplacementFunc(other.Replacement)
+	}
+	merged.Exceptions = mergeRuleExceptions(r.Exceptions, other.Exceptions)
+	return merged
 }
 
 // Validate checks that the rule contains the required values.
@@ -65,19 +113,18 @@ type Replacer struct {
 
 // NewReplacer constructs a Replacer from the provided rules.
 func NewReplacer(rules ...Rule) (*Replacer, error) {
-	compiled := make(map[string]compiledRule, len(rules))
-	err := collection.Each(slices.Values(rules), func(rule Rule) error {
+	mergedRules := MergeRules(rules...)
+	compiled := make(map[string]compiledRule, len(mergedRules))
+	err := collection.Each(slices.Values(mergedRules), func(rule Rule) error {
 		if err := rule.Validate(); err != nil {
 			return err
 		}
 
 		exceptions := mapset.NewSet[string]()
-		normalised := collection.Map(rule.Exceptions, func(exception string) string {
-			return strings.ToLower(strings.TrimSpace(exception))
-		})
+		normalised := collection.Map(rule.Exceptions, normaliseRuleExceptionFunc)
 		_ = exceptions.Append(normalised...)
 
-		compiled[strings.ToLower(strings.TrimSpace(rule.Token))] = compiledRule{
+		compiled[normaliseRuleTokenFunc(rule.Token)] = compiledRule{
 			Replacement: rule.Replacement,
 			Exceptions:  exceptions,
 		}
@@ -87,6 +134,27 @@ func NewReplacer(rules ...Rule) (*Replacer, error) {
 		return nil, err
 	}
 	return &Replacer{rules: compiled}, nil
+}
+
+// MergeRules merges compatible duplicate rules and keeps the last conflicting
+// rule for a given token.
+//
+// Compatible rules share the same token and replacement and have their
+// exception lists combined. Conflicting rules do not cause an error; the later
+// rule replaces the earlier one. The order of the returned rules is not
+// guaranteed.
+func MergeRules(rules ...Rule) []Rule {
+	return collection.MergeBy(rules,
+		func(rule Rule) string {
+			return normaliseRuleTokenFunc(rule.Token)
+		},
+		func(left, right Rule) (Rule, bool) {
+			if left.IsCompatible(&right) {
+				return left.Merge(&right), true
+			}
+			return right, true
+		},
+	)
 }
 
 // Replace rewrites an identifier-like string according to the configured rules while preserving camelCase or PascalCase shape.
@@ -132,6 +200,14 @@ func splitCamelWords(value string) []string {
 		return nil
 	})
 	return parts
+}
+
+func mergeRuleExceptions(groups ...[]string) []string {
+	merged := mapset.NewSet[string]()
+	collection.ForEach(groups, func(exceptions []string) {
+		merged.Append(collection.Map(exceptions, normaliseRuleExceptionFunc)...)
+	})
+	return merged.ToSlice()
 }
 
 // transformWord rewrites one logical word inside an identifier while trying to preserve the identifier's overall shape.
