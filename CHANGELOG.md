@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.163.0" (2026-06-18)
+======================
+
+Features
+--------
+
+- :sparkles: Added a package to change string casing but handling [go initialisms](https://go.dev/wiki/CodeReviewComments#initialisms) (#20260608105000)
+
+
+Bugfixes
+--------
+
+- :bug: `[frontmatter]` Ensure that if a file starts with a byte-order mark that it is still parsable (#20260601172808)
+
+
 "1.162.0" (2026-06-16)
 ======================
 
