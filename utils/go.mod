@@ -44,6 +44,7 @@ require (
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
+	github.com/sttk/stringcase v0.3.0
 	github.com/zalando/go-keyring v0.2.8
 	go.uber.org/atomic v1.11.0
 	go.uber.org/goleak v1.3.0
