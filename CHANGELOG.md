@@ -14,6 +14,23 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.164.0" (2026-06-18)
+======================
+
+Features
+--------
+
+- :sparkles: `[collection]` Added function composition helpers including `Combine`, `CombineRef`, `CombineWithError`, and `CombineRefWithError` for composing mapping functions right-to-left. (#20260608105500)
+- :sparkles: `[collection]` Added coalescing and merging helpers including `Coalesce`, `CoalesceRef`, `MergeBy`, and `MergeByRef` for compacting adjacent values and merging grouped values. (#20260608105600)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: mongo-driver-1.17.7 (#20260618154523)
+- :bug: `[casing]` fix the merging of rules rather than silently picking the latest defined (#20260618171355)
+
+
 "1.163.0" (2026-06-18)
 ======================
 
