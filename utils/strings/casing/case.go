@@ -1,8 +1,9 @@
 package casing
 
 import (
-	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/sttk/stringcase"
+
+	"github.com/ARM-software/golang-utils/utils/collection"
 )
 
 // ToCamelCase converts value to camelCase and optionally applies a replacer to the resulting identifier. Only the first replacer is used.
