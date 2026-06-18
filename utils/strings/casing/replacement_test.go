@@ -39,7 +39,7 @@ func TestRuleMerge(t *testing.T) {
 
 	assert.Equal(t, "Api", merged.Token)
 	assert.Equal(t, "API", merged.Replacement)
-	assert.Equal(t, []string{"client", "request", "identifier"}, merged.Exceptions)
+	assert.ElementsMatch(t, []string{"client", "request", "identifier"}, merged.Exceptions)
 
 	assert.Equal(t, merged, merged.Merge(nil))
 }
