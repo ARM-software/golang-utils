@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.164.1" (2026-07-01)
+======================
+
+Bugfixes
+--------
+
+- :bug: `[jsonschema]` Added support for ignoring YAML alias and anchor helper fields during schema validation when explicitly requested. (#20260608112000)
+- Dependency upgrade: crypto-0.53.0 (#20260609101342)
+- Dependency upgrade: checkout-7 (#20260619101252)
+- Dependency upgrade: cache-6 (#20260624101305)
+- Dependency upgrade: upload-sarif-9cea5827c668a1fe7165dbce6e80c3f9cf3f83ac (#20260626101420)
+- Dependency upgrade: v4-4.9.0 (#20260629101306)
+- Dependency upgrade: v4-4.26.6 (#20260701101231)
+- Dependency upgrade: upload-sarif-628fc3f124e68b0151f0d2a5d81e864ee1e42335 (#20260701101351)
+
+
 "1.164.0" (2026-06-18)
 ======================
 
