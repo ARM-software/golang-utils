@@ -355,6 +355,50 @@ func TestValidateRawYAMLAgainstSchemaOptions(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestValidateRawYAMLAgainstSchemaOptions_IgnoreYAMLAliases(t *testing.T) {
+	content := []byte(`x-shared: &x-shared
+  count: 2
+name: Alice
+<<: *x-shared
+`)
+
+	t.Run("fails without option", func(t *testing.T) {
+		err := ValidateRawYAMLAgainstSchemaOptions(
+			context.Background(),
+			content,
+			WithTitle("person"),
+			WithLocalPath(path.Join("testdata", "person.schema.json")),
+			WithFilesystem(filesystem.GetGlobalFileSystem()),
+		)
+		require.Error(t, err)
+		errortest.AssertError(t, err, commonerrors.ErrInvalid)
+	})
+
+	t.Run("passes with option", func(t *testing.T) {
+		err := ValidateRawYAMLAgainstSchemaOptions(
+			context.Background(),
+			content,
+			WithTitle("person"),
+			WithLocalPath(path.Join("testdata", "person.schema.json")),
+			WithFilesystem(filesystem.GetGlobalFileSystem()),
+			IgnoreYAMLAliases(),
+		)
+		require.NoError(t, err)
+	})
+}
+
+func TestValidateRawJSONAgainstSchemaOptions_StripsXAliasFields(t *testing.T) {
+	err := ValidateRawJSONAgainstSchemaOptions(
+		context.Background(),
+		[]byte(`{"x-shared":{"count":2},"name":"Alice","count":2}`),
+		WithTitle("person"),
+		WithLocalPath(path.Join("testdata", "person.schema.json")),
+		WithFilesystem(filesystem.GetGlobalFileSystem()),
+		IgnoreYAMLAliases(),
+	)
+	require.NoError(t, err)
+}
+
 func TestValidateRawYAMLAgainstSchema_InvalidContent(t *testing.T) {
 	err := ValidateRawYAMLAgainstSchema(context.Background(), []byte("count: two\n"), nil, *newValidSchema(t, filesystem.GetGlobalFileSystem()))
 	require.Error(t, err)

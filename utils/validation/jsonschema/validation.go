@@ -57,6 +57,25 @@ type Schema struct {
 	// Limits defines the filesystem read limits used when loading the schema
 	// file.
 	Limits filesystem.ILimits
+	// StripXAliases removes decoded object keys using the `x-...` convention
+	// before validation.
+	//
+	// This is useful for YAML manifests that carry helper fields such as
+	// `x-aliases`, `x-anchors`, or similar extension-like structures whose only
+	// purpose is to materialise YAML anchors, aliases, or merge-like expansion
+	// before validation. Those helper fields are not part of the actual schema,
+	// and if they are left in place they can cause otherwise valid documents to
+	// fail schema validation because the schema does not declare them.
+	StripXAliases bool
+}
+
+// ShouldStripAliases returns whether extension-style alias or anchor helper
+// fields should be removed before validation.
+func (s *Schema) ShouldStripAliases() bool {
+	if s == nil {
+		return false
+	}
+	return s.StripXAliases
 }
 
 // Validate checks that the schema definition contains the required fields

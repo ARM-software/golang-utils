@@ -126,3 +126,55 @@ func WithFileLimits(limits filesystem.ILimits) SchemaOption {
 		return schema
 	}
 }
+
+// IgnoreYAMLAliases enables removal of decoded object keys that follow the
+// `x-...` convention before validation.
+//
+// This is intended for YAML documents that use extension-like helper fields to
+// hold alias or anchor material which should be ignored once the document has
+// been decoded into plain objects for schema validation.
+//
+// Example:
+//
+//	schema := NewJSONSchemaFile(
+//		WithTitle("manifest"),
+//		WithLocalPath("schema.yaml"),
+//		IgnoreYAMLAliases(),
+//	)
+//
+// For example, a document may use helper fields only to define YAML anchors and
+// merges:
+//
+//	x-shared: &x-shared
+//	  count: 2
+//	name: Alice
+//	<<: *x-shared
+//
+// After YAML decoding, `name` and `count` are the real data to validate, but
+// the extra `x-shared` field may still be present in the decoded object. If the
+// JSON Schema does not allow that helper field, validation can fail even though
+// the effective manifest content is otherwise valid. Enabling this option strips
+// such helper fields before validation.
+//
+// The option always enables this behaviour; there is no boolean argument because
+// callers can simply omit the option when they do not want alias helper fields
+// removed.
+func IgnoreYAMLAliases() SchemaOption {
+	return WithStripXAliases(true)
+}
+
+// WithStripXAliases explicitly sets whether decoded `x-...` helper fields are
+// removed before validation.
+//
+// This is the general form of the option and is useful when schema options are
+// composed dynamically and the caller wants to control the setting explicitly.
+// `IgnoreYAMLAliases()` is the convenience form for simply enabling it.
+func WithStripXAliases(enabled bool) SchemaOption {
+	return func(schema *Schema) *Schema {
+		if schema == nil {
+			schema = DefaultSchema()
+		}
+		schema.StripXAliases = enabled
+		return schema
+	}
+}
