@@ -270,6 +270,74 @@ func TestMap(t *testing.T) {
 	assert.ElementsMatch(t, num, mappedInt)
 }
 
+func TestCombine(t *testing.T) {
+	combined := Combine(
+		func(v int) int { return v * 2 },
+		func(v int) int { return v + 3 },
+		func(v int) int { return v - 1 },
+	)
+	assert.Equal(t, 24, combined(10))
+
+	assert.Equal(t, 10, Combine[int]()(10))
+}
+
+func TestCombineRef(t *testing.T) {
+	combined := CombineRef(
+		func(v *int) *int {
+			n := field.OptionalInt(v, 0) * 2
+			return field.ToOptional(n)
+		},
+		func(v *int) *int {
+			n := field.OptionalInt(v, 0) + 3
+			return field.ToOptional(n)
+		},
+	)
+	assert.Equal(t, 26, field.OptionalInt(combined(field.ToOptional(10)), 0))
+}
+
+func TestCombineWithError(t *testing.T) {
+	combined := CombineWithError(
+		func(v int) (int, error) { return v * 2, nil },
+		func(v int) (int, error) { return v + 3, nil },
+		func(v int) (int, error) { return v - 1, nil },
+	)
+	result, err := combined(10)
+	require.NoError(t, err)
+	assert.Equal(t, 24, result)
+
+	combined = CombineWithError(
+		func(v int) (int, error) { return v * 2, nil },
+		func(v int) (int, error) { return 0, commonerrors.ErrUnexpected },
+	)
+	_, err = combined(10)
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrUnexpected)
+}
+
+func TestCombineRefWithError(t *testing.T) {
+	combined := CombineRefWithError(
+		func(v *int) (*int, error) {
+			n := field.OptionalInt(v, 0) * 2
+			return field.ToOptional(n), nil
+		},
+		func(v *int) (*int, error) {
+			n := field.OptionalInt(v, 0) + 3
+			return field.ToOptional(n), nil
+		},
+	)
+	result, err := combined(field.ToOptional(10))
+	require.NoError(t, err)
+	assert.Equal(t, 26, field.OptionalInt(result, 0))
+
+	combined = CombineRefWithError(
+		func(v *int) (*int, error) { return v, nil },
+		func(v *int) (*int, error) { return nil, commonerrors.ErrUnexpected },
+	)
+	_, err = combined(field.ToOptional(10))
+	require.Error(t, err)
+	errortest.AssertError(t, err, commonerrors.ErrUnexpected)
+}
+
 func TestReduce(t *testing.T) {
 	nums := []int{1, 2, 3, 4, 5}
 	sumOfNums := Reduce(nums, 0, func(acc, n int) int {

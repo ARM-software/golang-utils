@@ -39,6 +39,111 @@ func IdentityMapFunc[T any]() MapFunc[T, T] {
 	return func(i T) T { return i }
 }
 
+// Combine composes mapping functions of the same input/output type.
+//
+// Functions are applied from right to left, so
+// `Combine(f1, f2, f3)(value)` is equivalent to `f1(f2(f3(value)))`.
+// This corresponds to the composition `f1 o f2 o f3`.
+//
+// If no functions are supplied, the identity mapping is returned.
+//
+// Reference documentation:
+//   - https://en.wikipedia.org/wiki/Function_composition
+func Combine[T any](functions ...MapFunc[T, T]) MapFunc[T, T] {
+	return func(value T) T {
+		result := value
+		ForEach(Reverse(functions), func(f MapFunc[T, T]) {
+			if f != nil {
+				result = f(result)
+			}
+		})
+		return result
+	}
+}
+
+// CombineRef composes reference-based mapping functions of the same input/output type.
+//
+// Functions are applied from right to left, so
+// `CombineRef(f1, f2, f3)(value)` is equivalent to `f1(f2(f3(value)))`.
+// This corresponds to the composition `f1 o f2 o f3`.
+//
+// If no functions are supplied, the identity mapping is returned.
+//
+// Reference documentation:
+//   - https://en.wikipedia.org/wiki/Function_composition
+func CombineRef[T any](functions ...MapRefFunc[T, T]) MapRefFunc[T, T] {
+	return func(value *T) *T {
+		result := value
+		ForEach(Reverse(functions), func(f MapRefFunc[T, T]) {
+			if f != nil {
+				result = f(result)
+			}
+		})
+		return result
+	}
+}
+
+// CombineWithError composes error-returning mapping functions of the same input/output type.
+//
+// Functions are applied from right to left, so
+// `CombineWithError(f1, f2, f3)(value)` is equivalent to `f1(f2(f3(value)))`.
+// This corresponds to the composition `f1 o f2 o f3`.
+//
+// If any function returns an error, composition stops immediately and the error
+// is returned.
+//
+// If no functions are supplied, the identity mapping is returned.
+//
+// Reference documentation:
+//   - https://en.wikipedia.org/wiki/Function_composition
+func CombineWithError[T any](functions ...MapWithErrorFunc[T, T]) MapWithErrorFunc[T, T] {
+	return func(value T) (result T, err error) {
+		result = value
+		err = Each(slices.Values(Reverse(functions)), func(f MapWithErrorFunc[T, T]) error {
+			if f == nil {
+				return nil
+			}
+			result, err = f(result)
+			return err
+		})
+		if err != nil {
+			return result, err
+		}
+		return result, nil
+	}
+}
+
+// CombineRefWithError composes reference-based error-returning mapping functions
+// of the same input/output type.
+//
+// Functions are applied from right to left, so
+// `CombineRefWithError(f1, f2, f3)(value)` is equivalent to `f1(f2(f3(value)))`.
+// This corresponds to the composition `f1 o f2 o f3`.
+//
+// If any function returns an error, composition stops immediately and the error
+// is returned.
+//
+// If no functions are supplied, the identity mapping is returned.
+//
+// Reference documentation:
+//   - https://en.wikipedia.org/wiki/Function_composition
+func CombineRefWithError[T any](functions ...MapRefWithErrorFunc[T, T]) MapRefWithErrorFunc[T, T] {
+	return func(value *T) (result *T, err error) {
+		result = value
+		err = Each(slices.Values(Reverse(functions)), func(f MapRefWithErrorFunc[T, T]) error {
+			if f == nil {
+				return nil
+			}
+			result, err = f(result)
+			return err
+		})
+		if err != nil {
+			return result, err
+		}
+		return result, nil
+	}
+}
+
 // MapSequence maps each element of s using f and returns a sequence of mapped
 // values.
 //
@@ -60,7 +165,7 @@ func MapSequence[T1 any, T2 any](s iter.Seq[T1], f MapFunc[T1, T2]) iter.Seq[T2]
 // value.
 func MapSequenceWithError[T1 any, T2 any](s iter.Seq[T1], f MapWithErrorFunc[T1, T2]) iter.Seq[T2] {
 	return func(yield func(T2) bool) {
-		for v := range s {
+		for v := range SequenceOrEmpty(s) {
 			mapped, err := f(v)
 			if err != nil || !yield(mapped) {
 				return
@@ -89,7 +194,7 @@ func MapSequenceRef[T1 any, T2 any](s iter.Seq[T1], f MapRefFunc[T1, T2]) iter.S
 // combined with validation or other error-producing transformations.
 func MapSequenceRefWithError[T1 any, T2 any](s iter.Seq[T1], f MapRefWithErrorFunc[T1, T2]) iter.Seq[T2] {
 	return func(yield func(T2) bool) {
-		for v := range s {
+		for v := range SequenceOrEmpty(s) {
 			mapped, err := f(field.ToOptionalOrNilIfEmpty(v))
 			if err != nil || mapped == nil || !yield(*mapped) {
 				return

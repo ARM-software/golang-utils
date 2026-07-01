@@ -14,6 +14,69 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.164.0" (2026-06-18)
+======================
+
+Features
+--------
+
+- :sparkles: `[collection]` Added function composition helpers including `Combine`, `CombineRef`, `CombineWithError`, and `CombineRefWithError` for composing mapping functions right-to-left. (#20260608105500)
+- :sparkles: `[collection]` Added coalescing and merging helpers including `Coalesce`, `CoalesceRef`, `MergeBy`, and `MergeByRef` for compacting adjacent values and merging grouped values. (#20260608105600)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: mongo-driver-1.17.7 (#20260618154523)
+- :bug: `[casing]` fix the merging of rules rather than silently picking the latest defined (#20260618171355)
+
+
+"1.163.0" (2026-06-18)
+======================
+
+Features
+--------
+
+- :sparkles: Added a package to change string casing but handling [go initialisms](https://go.dev/wiki/CodeReviewComments#initialisms) (#20260608105000)
+
+
+Bugfixes
+--------
+
+- :bug: `[frontmatter]` Ensure that if a file starts with a byte-order mark that it is still parsable (#20260601172808)
+
+
+"1.162.0" (2026-06-16)
+======================
+
+Features
+--------
+
+- :sparkles: `[collection]` Add helpers such as `First...` `Last...` (#20260610004910)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: net-0.56.0 (#20260611101315)
+- Dependency upgrade: v4-4.8.0 (#20260615101359)
+
+
+"1.161.2" (2026-06-09)
+======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: v4-4.26.5 (#20260603103438)
+- Dependency upgrade: codeql-action-4.36.1 (#20260603235051)
+- Dependency upgrade: codeql-action-4.36.2 (#20260605101427)
+- Fixed collection sequence helpers so nil `iter.Seq` values no longer panic and instead behave like empty sequences. (#20260608103100)
+- Dependency upgrade: sync-0.21.0 (#20260609101327)
+- Dependency upgrade: text-0.38.0 (#20260609101338)
+- Dependency upgrade: sys-0.46.0 (#20260609133240)
+
+
 "1.161.1" (2026-06-03)
 ======================
 

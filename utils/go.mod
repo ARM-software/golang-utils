@@ -13,7 +13,7 @@ require (
 	github.com/dolmen-go/contextio v1.0.0
 	github.com/evanphx/hclogr v0.2.0
 	github.com/git-pkgs/spdx v0.1.4
-	github.com/go-faker/faker/v4 v4.7.0
+	github.com/go-faker/faker/v4 v4.9.0
 	github.com/go-git/go-git/v5 v5.19.1
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
 	github.com/go-logr/logr v1.4.3
@@ -37,13 +37,14 @@ require (
 	github.com/rs/zerolog v1.35.1
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 	github.com/sasha-s/go-deadlock v0.3.9
-	github.com/shirou/gopsutil/v4 v4.26.5
+	github.com/shirou/gopsutil/v4 v4.26.6
 	github.com/sirupsen/logrus v1.9.4
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
+	github.com/sttk/stringcase v0.3.0
 	github.com/zalando/go-keyring v0.2.8
 	go.uber.org/atomic v1.11.0
 	go.uber.org/goleak v1.3.0
@@ -52,7 +53,7 @@ require (
 	golang.org/x/crypto v0.53.0
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f
 	golang.org/x/mod v0.36.0
-	golang.org/x/net v0.55.0
+	golang.org/x/net v0.56.0
 	golang.org/x/oauth2 v0.36.0
 	golang.org/x/sync v0.21.0
 	golang.org/x/sys v0.46.0
@@ -108,7 +109,7 @@ require (
 	github.com/tklauser/numcpus v0.11.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	go.mongodb.org/mongo-driver v1.17.4 // indirect
+	go.mongodb.org/mongo-driver v1.17.7 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect

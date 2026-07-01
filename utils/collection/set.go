@@ -24,7 +24,7 @@ func UniqueEntries[T comparable](slice []T) []T {
 // Unique returns the distinct values from the provided sequence.
 // The order of elements is not guaranteed.
 func Unique[T comparable](s iter.Seq[T]) []T {
-	return UniqueEntries(slices.Collect(s))
+	return UniqueEntries(slices.Collect(SequenceOrEmpty(s)))
 }
 
 // UniqueBy returns the first occurrence of each unique derived key.

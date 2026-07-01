@@ -24,6 +24,27 @@ type OperationWithoutErrorFunc[E any] func(E)
 // OperationWithoutErrorRefFunc defines an operation on a pointer that does not return an error.
 type OperationWithoutErrorRefFunc[E any] func(*E)
 
+// EmptySequence returns a sequence that yields no values.
+//
+// This is useful when APIs need to return an `iter.Seq` but have nothing to
+// produce, or when a nil sequence should be normalised to a safe empty value so
+// callers can range over it without panicking.
+func EmptySequence[T any]() iter.Seq[T] {
+	return func(func(T) bool) {}
+}
+
+// SequenceOrEmpty returns s when it is non-nil, otherwise it returns an empty
+// sequence.
+//
+// This is useful when consuming code wants a guaranteed safe `iter.Seq` value
+// that can be ranged over without needing a separate nil check.
+func SequenceOrEmpty[T any](s iter.Seq[T]) iter.Seq[T] {
+	if s == nil {
+		return EmptySequence[T]()
+	}
+	return s
+}
+
 // toOperationFunc adapts an OperationRefFunc to an OperationFunc by
 // converting the value to an optional reference.
 func toOperationFunc[E any](f OperationRefFunc[E]) OperationFunc[E] {
@@ -53,7 +74,7 @@ func convertOperationWithoutError[E any](f OperationWithoutErrorFunc[E]) Operati
 // returns a non-EOF error, iteration stops and that error is returned.
 // If f returns EOF, the EOF is ignored and iteration ends without error.
 func Each[T any](s iter.Seq[T], f OperationFunc[T]) error {
-	for e := range s {
+	for e := range SequenceOrEmpty(s) {
 		err := f(e)
 		if err != nil {
 			err = commonerrors.Ignore(err, commonerrors.ErrEOF)

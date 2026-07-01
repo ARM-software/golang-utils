@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"strings"
 
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -258,5 +259,6 @@ func (e *extractor) readLine() (line string, err error) {
 	e.read += lineSize
 	_, err = e.output.Write(lineB)
 	line = string(bytes.TrimSpace(lineB))
+	line = strings.TrimLeft(line, utf8BOM)
 	return
 }
