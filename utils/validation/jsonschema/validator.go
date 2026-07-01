@@ -3,20 +3,26 @@ package jsonschema
 
 import (
 	"context"
+	"strings"
 	"sync"
 
 	"github.com/santhosh-tekuri/jsonschema/v6"
 
+	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
+	"github.com/ARM-software/golang-utils/utils/ptr"
 	jsonserialization "github.com/ARM-software/golang-utils/utils/serialization/json" //nolint:misspell
 	"github.com/ARM-software/golang-utils/utils/serialization/yaml"                   //nolint:misspell
 )
+
+const xAliasPrefix = "x-"
 
 type fileValidator struct {
 	schemaCreationFunc func(context.Context) (*jsonschema.Schema, error)
 	expectedExtensions []string
 	convertFunc        func([]byte) ([]byte, error)
+	stripXAliases      bool
 }
 
 func (c *fileValidator) ValidateFileWithLimits(ctx context.Context, filepath string, fileLimits filesystem.ILimits) error {
@@ -60,11 +66,35 @@ func (c *fileValidator) ValidateContent(ctx context.Context, a any) error {
 		}
 		a = decoded
 	}
+	if c.stripXAliases {
+		a = stripXAliasFields(a)
+	}
 	schema, err := c.schemaCreationFunc(ctx)
 	if err != nil {
 		return err
 	}
 	return validateAgainstSchema(schema, a)
+}
+
+func stripXAliasFields(value any) any {
+	switch typed := value.(type) {
+	case map[string]any:
+		cleaned := make(map[string]any, len(typed))
+		for key, nested := range typed {
+			if strings.HasPrefix(strings.TrimSpace(key), xAliasPrefix) {
+				continue
+			}
+			cleaned[key] = stripXAliasFields(nested)
+		}
+		return cleaned
+	case []any:
+		collection.ForEachRef(typed, func(item *any) {
+			*item = stripXAliasFields(ptr.Deref(item))
+		})
+		return typed
+	default:
+		return value
+	}
 }
 
 func (c *fileValidator) ValidateFile(ctx context.Context, filepath string) error {
@@ -104,6 +134,7 @@ func NewJSONFileValidator(schemaID *string, schema ...Schema) (v ISchemaValidato
 		schemaCreationFunc: newSchemaCreationFunc(schemaID, schema...),
 		expectedExtensions: jsonserialization.JSONExtensions,
 		convertFunc:        nil,
+		stripXAliases:      collection.AnyRefFunc(schema, func(s *Schema) bool { return s.ShouldStripAliases() }),
 	}
 	return
 }
@@ -127,6 +158,7 @@ func NewYAMLFileValidator(schemaID *string, schema ...Schema) (v ISchemaValidato
 		schemaCreationFunc: newSchemaCreationFunc(schemaID, schema...),
 		expectedExtensions: yaml.YAMLExtensions,
 		convertFunc:        yaml.ToJSON,
+		stripXAliases:      collection.AnyRefFunc(schema, func(s *Schema) bool { return s.ShouldStripAliases() }),
 	}
 	return
 }
