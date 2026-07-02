@@ -69,6 +69,12 @@ func summariseErrors(errors []error) error {
 	return commonerrors.Join(collection.Filter(errors, func(err error) bool { return err != nil })...)
 }
 
+func countSuccessfulRules(errors []error) int {
+	return collection.CountBy(errors, func(err error) bool {
+		return err == nil
+	})
+}
+
 // anyRule succeeds if at least one nested rule succeeds.
 type anyRule struct {
 	compositeRule
@@ -87,9 +93,7 @@ func (r *anyRule) Validate(v any) error {
 // checkAny returns an invalid-value error if none of the evaluated rules
 // succeeded.
 func (r *anyRule) checkAny(errors []error) error {
-	if !collection.AnyFunc(errors, func(err error) bool {
-		return err == nil
-	}) {
+	if countSuccessfulRules(errors) == 0 {
 		return commonerrors.WrapError(commonerrors.ErrInvalid, summariseErrors(errors), "invalid value")
 	}
 	return nil
@@ -149,9 +153,7 @@ func (r *allRule) Validate(v any) error {
 
 // checkAll returns an invalid-value error if any evaluated rule failed.
 func (r *allRule) checkAll(errors []error) error {
-	if !collection.AllFunc(errors, func(err error) bool {
-		return err == nil
-	}) {
+	if countSuccessfulRules(errors) != len(errors) {
 		return commonerrors.WrapError(commonerrors.ErrInvalid, summariseErrors(errors), "invalid value")
 	}
 	return nil
@@ -207,11 +209,9 @@ func (r *noneRule) Validate(v any) error {
 	return r.checkNone(errors)
 }
 
-// checkNone returns an invalid-value error if all evaluated rules succeeded.
+// checkNone returns an invalid-value error if any evaluated rule succeeded.
 func (r *noneRule) checkNone(errors []error) error {
-	if collection.AllFunc(errors, func(err error) bool {
-		return err == nil
-	}) {
+	if countSuccessfulRules(errors) > 0 {
 		return commonerrors.New(commonerrors.ErrInvalid, "invalid value")
 	}
 	return nil
@@ -245,6 +245,120 @@ func NewNoneRule(rule ...validation.Rule) validation.Rule {
 // none of the provided context-aware rules succeed.
 func NewNoneRuleWithContext(rule ...validation.RuleWithContext) validation.RuleWithContext {
 	c := NewNoneCompositeRule()
+	c.AppendContextualRule(rule...)
+	return c
+}
+
+type atMostRule struct {
+	compositeRule
+	max int
+}
+
+// Validate succeeds if no more than max nested rules succeed.
+func (r *atMostRule) Validate(v any) error {
+	errors := r.verify(context.Background(), v)
+	return r.checkAtMost(errors)
+}
+
+func (r *atMostRule) checkAtMost(errors []error) error {
+	if countSuccessfulRules(errors) > r.max {
+		return commonerrors.WrapError(commonerrors.ErrInvalid, summariseErrors(errors), "invalid value")
+	}
+	return nil
+}
+
+// ValidateWithContext succeeds if no more than max nested rules succeed.
+func (r *atMostRule) ValidateWithContext(ctx context.Context, v any) error {
+	errors := r.verify(ctx, v)
+	return r.checkAtMost(errors)
+}
+
+// NewAtMostCompositeRule returns an empty composite rule that succeeds if no
+// more than max appended rules succeed.
+func NewAtMostCompositeRule(max int) ICompositeRule {
+	return &atMostRule{max: max}
+}
+
+// AtMost returns a rule that succeeds if no more than max of the provided rules
+// succeed.
+func AtMost(max int, rule ...validation.Rule) validation.Rule {
+	c := NewAtMostCompositeRule(max)
+	c.AppendRule(rule...)
+	return c
+}
+
+// AtMostWithContext returns a context-aware rule that succeeds if no more than
+// max of the provided context-aware rules succeed.
+func AtMostWithContext(max int, rule ...validation.RuleWithContext) validation.RuleWithContext {
+	c := NewAtMostCompositeRule(max)
+	c.AppendContextualRule(rule...)
+	return c
+}
+
+type exactlyRule struct {
+	compositeRule
+	want int
+}
+
+// Validate succeeds if exactly want nested rules succeed.
+func (r *exactlyRule) Validate(v any) error {
+	errors := r.verify(context.Background(), v)
+	return r.checkExactly(errors)
+}
+
+func (r *exactlyRule) checkExactly(errors []error) error {
+	if countSuccessfulRules(errors) != r.want {
+		return commonerrors.WrapError(commonerrors.ErrInvalid, summariseErrors(errors), "invalid value")
+	}
+	return nil
+}
+
+// ValidateWithContext succeeds if exactly want nested rules succeed.
+func (r *exactlyRule) ValidateWithContext(ctx context.Context, v any) error {
+	errors := r.verify(ctx, v)
+	return r.checkExactly(errors)
+}
+
+// NewExactlyCompositeRule returns an empty composite rule that succeeds if
+// exactly want appended rules succeed.
+func NewExactlyCompositeRule(want int) ICompositeRule {
+	return &exactlyRule{want: want}
+}
+
+// Exactly returns a rule that succeeds if exactly want of the provided rules
+// succeed.
+func Exactly(want int, rule ...validation.Rule) validation.Rule {
+	c := NewExactlyCompositeRule(want)
+	c.AppendRule(rule...)
+	return c
+}
+
+// ExactlyWithContext returns a context-aware rule that succeeds if exactly want
+// of the provided context-aware rules succeed.
+func ExactlyWithContext(want int, rule ...validation.RuleWithContext) validation.RuleWithContext {
+	c := NewExactlyCompositeRule(want)
+	c.AppendContextualRule(rule...)
+	return c
+}
+
+// NewOneOfCompositeRule returns an empty composite rule that succeeds if
+// exactly one appended rule succeeds.
+func NewOneOfCompositeRule() ICompositeRule {
+	return &exactlyRule{want: 1}
+}
+
+// NewOneOfRule returns a rule that succeeds only if exactly one of the
+// provided rules succeeds.
+func NewOneOfRule(rule ...validation.Rule) validation.Rule {
+	c := NewOneOfCompositeRule()
+	c.AppendRule(rule...)
+	return c
+}
+
+// NewOneOfRuleWithContext returns a context-aware rule that succeeds only if
+// exactly one of the provided context-aware rules succeeds.
+func NewOneOfRuleWithContext(rule ...validation.RuleWithContext) validation.RuleWithContext {
+	c := NewOneOfCompositeRule()
 	c.AppendContextualRule(rule...)
 	return c
 }

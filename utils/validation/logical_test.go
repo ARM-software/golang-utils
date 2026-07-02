@@ -128,7 +128,7 @@ func TestCompositeRules(t *testing.T) {
 				is.Email,
 				is.UUID,
 			),
-			valid: true,
+			valid: false,
 		},
 		{
 			value: "plain-text",
@@ -167,4 +167,18 @@ func TestCompositeRules(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCountingRules(t *testing.T) {
+	t.Run("at most", func(t *testing.T) {
+		require.NoError(t, AtMost(1, is.Email, is.UUID).Validate("user@example.com"))
+		errortest.AssertError(t, AtMost(1, validation.Required, is.Email).Validate("user@example.com"), commonerrors.ErrInvalid)
+		require.NoError(t, AtMost(0, is.Email, is.UUID).Validate("plain-text"))
+	})
+
+	t.Run("exactly", func(t *testing.T) {
+		require.NoError(t, Exactly(1, is.Email, is.UUID).Validate("user@example.com"))
+		errortest.AssertError(t, Exactly(1, validation.Required, is.Email).Validate("user@example.com"), commonerrors.ErrInvalid)
+		errortest.AssertError(t, Exactly(1, is.Email, is.UUID).Validate("plain-text"), commonerrors.ErrInvalid)
+	})
 }

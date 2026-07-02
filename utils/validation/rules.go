@@ -13,7 +13,6 @@
 package validation
 
 import (
-	"reflect"
 	"strconv"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -29,18 +28,15 @@ import (
 var IsPort = validation.By(isPort)
 
 func isPort(vRaw any) (err error) {
-	switch val := reflect.ValueOf(vRaw); val.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		err = is.Port.Validate(strconv.FormatInt(val.Int(), 10))
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		err = is.Port.Validate(strconv.FormatUint(val.Uint(), 10))
-	case reflect.String:
-		err = is.Port.Validate(val.String())
-	case reflect.Slice:
-		if b, ok := vRaw.([]byte); ok {
-			err = is.Port.Validate(string(b))
-		}
-	default:
+	if isString, str, isBytes, bs := validation.StringOrBytes(vRaw); isString {
+		err = is.Port.Validate(str)
+	} else if isBytes {
+		err = is.Port.Validate(string(bs))
+	} else if i, convErr := validation.ToInt(vRaw); convErr == nil {
+		err = is.Port.Validate(strconv.FormatInt(i, 10))
+	} else if u, convErr := validation.ToUint(vRaw); convErr == nil {
+		err = is.Port.Validate(strconv.FormatUint(u, 10))
+	} else {
 		return commonerrors.Newf(commonerrors.ErrMarshalling, "unsupported type for port validation '%T'", vRaw)
 	}
 
