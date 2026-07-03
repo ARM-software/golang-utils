@@ -128,6 +128,10 @@ func TestJSONSchemaInspiredRules(t *testing.T) {
 		re := regexp.MustCompile(`^[a-z]+$`)
 		assert.NoError(t, validation.Validate("abc", Pattern(re)))
 		assert.Error(t, validation.Validate("123", Pattern(re)))
+		assert.NoError(t, validation.Validate(3, XIntOrString()))
+		assert.NoError(t, validation.Validate("3", XIntOrString()))
+		assert.NoError(t, validation.Validate(float64(3), XIntOrString()))
+		assert.Error(t, validation.Validate(float64(3.5), XIntOrString()))
 
 		assert.NoError(t, validation.Validate("plain-text", Not(is.Email)))
 		assert.Error(t, validation.Validate("user@example.com", Not(is.Email)))

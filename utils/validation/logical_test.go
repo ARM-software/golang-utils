@@ -170,6 +170,18 @@ func TestCompositeRules(t *testing.T) {
 }
 
 func TestCountingRules(t *testing.T) {
+	t.Run("at least", func(t *testing.T) {
+		require.NoError(t, AtLeast(1, is.Email, is.UUID).Validate("user@example.com"))
+		errortest.AssertError(t, AtLeast(2, is.Email, is.UUID).Validate("user@example.com"), commonerrors.ErrInvalid)
+		require.NoError(t, AtLeast(0, is.Email, is.UUID).Validate("plain-text"))
+	})
+
+	t.Run("nof", func(t *testing.T) {
+		require.NoError(t, NOf(1, is.Email, is.UUID).Validate("user@example.com"))
+		errortest.AssertError(t, NOf(1, validation.Required, is.Email).Validate("user@example.com"), commonerrors.ErrInvalid)
+		errortest.AssertError(t, NOf(2, is.Email, is.UUID).Validate("user@example.com"), commonerrors.ErrInvalid)
+	})
+
 	t.Run("at most", func(t *testing.T) {
 		require.NoError(t, AtMost(1, is.Email, is.UUID).Validate("user@example.com"))
 		errortest.AssertError(t, AtMost(1, validation.Required, is.Email).Validate("user@example.com"), commonerrors.ErrInvalid)
@@ -180,5 +192,20 @@ func TestCountingRules(t *testing.T) {
 		require.NoError(t, Exactly(1, is.Email, is.UUID).Validate("user@example.com"))
 		errortest.AssertError(t, Exactly(1, validation.Required, is.Email).Validate("user@example.com"), commonerrors.ErrInvalid)
 		errortest.AssertError(t, Exactly(1, is.Email, is.UUID).Validate("plain-text"), commonerrors.ErrInvalid)
+	})
+
+	t.Run("implies", func(t *testing.T) {
+		require.NoError(t, Implies(is.Email, validation.Required).Validate("user@example.com"))
+		require.NoError(t, Implies(is.Email, validation.Required).Validate("plain-text"))
+		errortest.AssertError(t, Implies(validation.Required, is.Email).Validate("plain-text"), commonerrors.ErrInvalid)
+		require.NoError(t, Implies(nil, is.Email).Validate("plain-text"))
+		require.NoError(t, Implies(is.Email, nil).Validate("user@example.com"))
+	})
+
+	t.Run("if then else", func(t *testing.T) {
+		require.NoError(t, IfThenElse(is.Email, validation.Required, nil).Validate("user@example.com"))
+		require.NoError(t, IfThenElse(is.Email, nil, validation.Required).Validate("plain-text"))
+		errortest.AssertError(t, IfThenElse(is.Email, is.UUID, nil).Validate("user@example.com"), commonerrors.ErrInvalid)
+		errortest.AssertError(t, IfThenElse(is.Email, nil, is.Email).Validate("plain-text"), commonerrors.ErrInvalid)
 	})
 }

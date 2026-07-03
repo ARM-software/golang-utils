@@ -1,3 +1,9 @@
+// logical.go contains logical validation combinators.
+//
+// These helpers combine other validation rules into larger rule expressions such
+// as “any of these must pass”, “exactly one must pass”, or “if rule A passes,
+// rule B must also pass”. They complement ozzo-validation's default behaviour,
+// which normally applies multiple rules with AND semantics.
 package validation
 
 import (
@@ -339,6 +345,191 @@ func ExactlyWithContext(want int, rule ...validation.RuleWithContext) validation
 	c := NewExactlyCompositeRule(want)
 	c.AppendContextualRule(rule...)
 	return c
+}
+
+// NOf returns a rule that succeeds if exactly want of the provided rules
+// succeed.
+//
+// It is a readability-oriented alias for [Exactly].
+func NOf(want int, rule ...validation.Rule) validation.Rule {
+	return Exactly(want, rule...)
+}
+
+// NOfWithContext returns a context-aware rule that succeeds if exactly want of
+// the provided context-aware rules succeed.
+//
+// It is a readability-oriented alias for [ExactlyWithContext].
+func NOfWithContext(want int, rule ...validation.RuleWithContext) validation.RuleWithContext {
+	return ExactlyWithContext(want, rule...)
+}
+
+type atLeastRule struct {
+	compositeRule
+	min int
+}
+
+// Validate succeeds if at least min nested rules succeed.
+func (r *atLeastRule) Validate(v any) error {
+	errors := r.verify(context.Background(), v)
+	return r.checkAtLeast(errors)
+}
+
+func (r *atLeastRule) checkAtLeast(errors []error) error {
+	if countSuccessfulRules(errors) < r.min {
+		return commonerrors.WrapError(commonerrors.ErrInvalid, summariseErrors(errors), "invalid value")
+	}
+	return nil
+}
+
+// ValidateWithContext succeeds if at least min nested rules succeed.
+func (r *atLeastRule) ValidateWithContext(ctx context.Context, v any) error {
+	errors := r.verify(ctx, v)
+	return r.checkAtLeast(errors)
+}
+
+// NewAtLeastCompositeRule returns an empty composite rule that succeeds if at
+// least min appended rules succeed.
+func NewAtLeastCompositeRule(min int) ICompositeRule {
+	return &atLeastRule{min: min}
+}
+
+// AtLeast returns a rule that succeeds if at least min of the provided rules
+// succeed.
+func AtLeast(min int, rule ...validation.Rule) validation.Rule {
+	c := NewAtLeastCompositeRule(min)
+	c.AppendRule(rule...)
+	return c
+}
+
+// AtLeastWithContext returns a context-aware rule that succeeds if at least min
+// of the provided context-aware rules succeed.
+func AtLeastWithContext(min int, rule ...validation.RuleWithContext) validation.RuleWithContext {
+	c := NewAtLeastCompositeRule(min)
+	c.AppendContextualRule(rule...)
+	return c
+}
+
+// Implies returns a rule that succeeds when antecedent fails, or when both the
+// antecedent and consequent rules succeed.
+//
+// This is the logical implication combinator: `antecedent -> consequent`.
+func Implies(antecedent, consequent validation.Rule) validation.Rule {
+	return validation.By(func(value any) error {
+		if antecedent == nil || consequent == nil {
+			return nil
+		}
+		err := validation.When(antecedent.Validate(value) == nil, consequent).Validate(value)
+		if err != nil {
+			return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
+		}
+		return nil
+	})
+}
+
+type impliesWithContextRule struct {
+	antecedent validation.RuleWithContext
+	consequent validation.RuleWithContext
+}
+
+// ImpliesWithContext returns a context-aware implication rule.
+//
+// It succeeds when antecedent fails, or when both the antecedent and consequent
+// rules succeed.
+func ImpliesWithContext(antecedent, consequent validation.RuleWithContext) validation.RuleWithContext {
+	return &impliesWithContextRule{antecedent: antecedent, consequent: consequent}
+}
+
+func (r *impliesWithContextRule) ValidateWithContext(ctx context.Context, value any) error {
+	if r == nil || r.antecedent == nil || r.consequent == nil {
+		return nil
+	}
+	if err := r.antecedent.ValidateWithContext(ctx, value); err != nil {
+		return nil
+	}
+	if err := r.consequent.ValidateWithContext(ctx, value); err != nil {
+		return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
+	}
+	return nil
+}
+
+// IfThenElse returns a rule that evaluates ifRule first and then selects which
+// branch rule to apply.
+//
+// If ifRule succeeds, thenRule is applied. Otherwise elseRule is applied. A nil
+// branch is treated as a no-op branch that succeeds.
+func IfThenElse(ifRule, thenRule, elseRule validation.Rule) validation.Rule {
+	return validation.By(func(value any) error {
+		if ifRule == nil {
+			if thenRule == nil {
+				return nil
+			}
+			if err := thenRule.Validate(value); err != nil {
+				return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
+			}
+			return nil
+		}
+		if ifRule.Validate(value) == nil {
+			if thenRule == nil {
+				return nil
+			}
+			if err := thenRule.Validate(value); err != nil {
+				return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
+			}
+			return nil
+		}
+		if elseRule == nil {
+			return nil
+		}
+		if err := elseRule.Validate(value); err != nil {
+			return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
+		}
+		return nil
+	})
+}
+
+type ifThenElseWithContextRule struct {
+	ifRule   validation.RuleWithContext
+	thenRule validation.RuleWithContext
+	elseRule validation.RuleWithContext
+}
+
+// IfThenElseWithContext returns a context-aware conditional rule.
+//
+// If ifRule succeeds, thenRule is applied. Otherwise elseRule is applied. A nil
+// branch is treated as a no-op branch that succeeds.
+func IfThenElseWithContext(ifRule, thenRule, elseRule validation.RuleWithContext) validation.RuleWithContext {
+	return &ifThenElseWithContextRule{ifRule: ifRule, thenRule: thenRule, elseRule: elseRule}
+}
+
+func (r *ifThenElseWithContextRule) ValidateWithContext(ctx context.Context, value any) error {
+	if r == nil {
+		return nil
+	}
+	if r.ifRule == nil {
+		if r.thenRule == nil {
+			return nil
+		}
+		if err := r.thenRule.ValidateWithContext(ctx, value); err != nil {
+			return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
+		}
+		return nil
+	}
+	if r.ifRule.ValidateWithContext(ctx, value) == nil {
+		if r.thenRule == nil {
+			return nil
+		}
+		if err := r.thenRule.ValidateWithContext(ctx, value); err != nil {
+			return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
+		}
+		return nil
+	}
+	if r.elseRule == nil {
+		return nil
+	}
+	if err := r.elseRule.ValidateWithContext(ctx, value); err != nil {
+		return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
+	}
+	return nil
 }
 
 // NewOneOfCompositeRule returns an empty composite rule that succeeds if

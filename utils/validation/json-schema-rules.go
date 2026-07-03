@@ -41,6 +41,7 @@ var (
 	errPatternProperties    = validation.NewError("validation_pattern_properties", "contains an invalid property value for a matching property pattern")
 	errAdditionalProperties = validation.NewError("validation_additional_properties", "contains unsupported additional properties")
 	errType                 = validation.NewError("validation_type", "must be of an allowed type")
+	errIntOrString          = validation.NewError("validation_int_or_string", "must be an integer or a string")
 )
 
 // PatternProperty couples a property-name pattern with the rule that should be
@@ -609,6 +610,33 @@ func ForbiddenProperties(keys ...string) validation.Rule {
 	})
 }
 
+// XIntOrString validates the Kubernetes/OpenAPI `x-kubernetes-int-or-string`
+// style constraint.
+//
+// Example: `XIntOrString()` accepts `3`, `"3"`, and JSON-decoded integer
+// numbers represented as `float64(3)`.
+func XIntOrString() validation.Rule {
+	return validation.By(func(value any) error {
+		_, isNil := validation.Indirect(value)
+		if isNil {
+			return nil
+		}
+		if isString, _, _, _ := validation.StringOrBytes(value); isString {
+			return nil
+		}
+		if _, err := validation.ToInt(value); err == nil {
+			return nil
+		}
+		if _, err := validation.ToUint(value); err == nil {
+			return nil
+		}
+		if f, err := validation.ToFloat(value); err == nil && math.Trunc(f) == f {
+			return nil
+		}
+		return errIntOrString
+	})
+}
+
 // Enum validates that a value is one of a fixed set of allowed values.
 //
 // This is a schema-oriented alias for ozzo's `validation.In(...)` helper.
@@ -683,7 +711,7 @@ func Nullable(rule validation.Rule) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/combining#anyof
 func AnyOf(rules ...validation.Rule) validation.Rule {
-	return NewAnyRule(rules...)
+	return AtLeast(1, rules...)
 }
 
 // AllOf returns a rule that succeeds only if all nested rules succeed.
