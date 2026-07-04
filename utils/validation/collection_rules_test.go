@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"iter"
 	"regexp"
 	"testing"
 
@@ -12,6 +13,12 @@ func TestCollectionRules(t *testing.T) {
 	t.Run("array items", func(t *testing.T) {
 		assert.NoError(t, validation.Validate([]any{"a", "b"}, ArrayItems(Type("string"))))
 		assert.Error(t, validation.Validate([]any{"a", 1}, ArrayItems(Type("string"))))
+
+		seq := iter.Seq[any](func(yield func(any) bool) {
+			_ = yield("a")
+			_ = yield("b")
+		})
+		assert.NoError(t, validation.Validate(seq, ArrayItems(Type("string"))))
 	})
 
 	t.Run("map keys", func(t *testing.T) {

@@ -207,5 +207,12 @@ func TestCountingRules(t *testing.T) {
 		require.NoError(t, IfThenElse(is.Email, nil, validation.Required).Validate("plain-text"))
 		errortest.AssertError(t, IfThenElse(is.Email, is.UUID, nil).Validate("user@example.com"), commonerrors.ErrInvalid)
 		errortest.AssertError(t, IfThenElse(is.Email, nil, is.Email).Validate("plain-text"), commonerrors.ErrInvalid)
+		require.NoError(t, IfThenElse(nil, validation.Required, is.Email).Validate("value"))
+		errortest.AssertError(t, IfThenElse(nil, validation.Required, is.Email).Validate(""), commonerrors.ErrInvalid)
+		require.NoError(t, IfThenElse(nil, nil, is.Email).Validate("plain-text"))
+		require.NoError(t, IfThenElse(nil, nil, is.Email).Validate("user@example.com"))
+		require.NoError(t, IfThenElse(is.Email, nil, nil).Validate("user@example.com"))
+		require.NoError(t, IfThenElse(is.Email, nil, nil).Validate("plain-text"))
+		require.NoError(t, IfThenElse(nil, nil, nil).Validate("anything"))
 	})
 }

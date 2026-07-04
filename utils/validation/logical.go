@@ -459,32 +459,19 @@ func (r *impliesWithContextRule) ValidateWithContext(ctx context.Context, value 
 // branch is treated as a no-op branch that succeeds.
 func IfThenElse(ifRule, thenRule, elseRule validation.Rule) validation.Rule {
 	return validation.By(func(value any) error {
-		if ifRule == nil {
-			if thenRule == nil {
-				return nil
-			}
-			if err := thenRule.Validate(value); err != nil {
-				return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
-			}
-			return nil
-		}
-		if ifRule.Validate(value) == nil {
-			if thenRule == nil {
-				return nil
-			}
-			if err := thenRule.Validate(value); err != nil {
-				return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
-			}
-			return nil
-		}
-		if elseRule == nil {
-			return nil
-		}
-		if err := elseRule.Validate(value); err != nil {
+		condition := ifRule == nil || ifRule.Validate(value) == nil
+		if err := validation.When(condition, ruleIfNotNil(thenRule)...).Else(ruleIfNotNil(elseRule)...).Validate(value); err != nil {
 			return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
 		}
 		return nil
 	})
+}
+
+func ruleIfNotNil(rule validation.Rule) []validation.Rule {
+	if rule == nil {
+		return nil
+	}
+	return []validation.Rule{rule}
 }
 
 type ifThenElseWithContextRule struct {
@@ -505,31 +492,20 @@ func (r *ifThenElseWithContextRule) ValidateWithContext(ctx context.Context, val
 	if r == nil {
 		return nil
 	}
-	if r.ifRule == nil {
-		if r.thenRule == nil {
-			return nil
-		}
-		if err := r.thenRule.ValidateWithContext(ctx, value); err != nil {
-			return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
-		}
-		return nil
-	}
-	if r.ifRule.ValidateWithContext(ctx, value) == nil {
-		if r.thenRule == nil {
-			return nil
-		}
-		if err := r.thenRule.ValidateWithContext(ctx, value); err != nil {
-			return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
-		}
-		return nil
-	}
-	if r.elseRule == nil {
-		return nil
-	}
-	if err := r.elseRule.ValidateWithContext(ctx, value); err != nil {
+	condition := r.ifRule == nil || r.ifRule.ValidateWithContext(ctx, value) == nil
+	if err := validation.When(condition, contextualRuleIfNotNil(r.thenRule)...).Else(contextualRuleIfNotNil(r.elseRule)...).ValidateWithContext(ctx, value); err != nil {
 		return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
 	}
 	return nil
+}
+
+func contextualRuleIfNotNil(rule validation.RuleWithContext) []validation.Rule {
+	if rule == nil {
+		return nil
+	}
+	return []validation.Rule{validation.WithContext(func(ctx context.Context, value any) error {
+		return rule.ValidateWithContext(ctx, value)
+	})}
 }
 
 // NewOneOfCompositeRule returns an empty composite rule that succeeds if

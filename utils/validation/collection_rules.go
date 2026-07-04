@@ -2,7 +2,7 @@ package validation
 
 // collection_rules.go contains validation helpers focused on generic Go
 // collections such as arrays, slices, and maps, without using JSON Schema
-// terminology as the primary organizing principle.
+// terminology as the primary organising principle.
 
 import (
 	"reflect"
