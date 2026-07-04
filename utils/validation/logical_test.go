@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"context"
 	"testing"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -10,6 +11,18 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
+
+type testRuleWithContext func(context.Context, any) error
+
+func (r testRuleWithContext) ValidateWithContext(ctx context.Context, value any) error {
+	return r(ctx, value)
+}
+
+func wrapRuleWithContext(rule validation.Rule) validation.RuleWithContext {
+	return testRuleWithContext(func(_ context.Context, value any) error {
+		return rule.Validate(value)
+	})
+}
 
 func TestCompositeRules(t *testing.T) {
 	t.Parallel()
@@ -214,5 +227,76 @@ func TestCountingRules(t *testing.T) {
 		require.NoError(t, IfThenElse(is.Email, nil, nil).Validate("user@example.com"))
 		require.NoError(t, IfThenElse(is.Email, nil, nil).Validate("plain-text"))
 		require.NoError(t, IfThenElse(nil, nil, nil).Validate("anything"))
+	})
+}
+
+func TestContextualRules(t *testing.T) {
+	ctx := context.Background()
+	email := wrapRuleWithContext(is.Email)
+	uuid := wrapRuleWithContext(is.UUID)
+	required := wrapRuleWithContext(validation.Required)
+
+	t.Run("append contextual rule", func(t *testing.T) {
+		rule := NewAnyCompositeRule()
+		rule.AppendContextualRule(email)
+
+		require.NoError(t, rule.ValidateWithContext(ctx, "user@example.com"))
+		errortest.AssertError(t, rule.ValidateWithContext(ctx, "plain-text"), commonerrors.ErrInvalid)
+	})
+
+	t.Run("new any rule with context", func(t *testing.T) {
+		require.NoError(t, NewAnyRuleWithContext(email, uuid).ValidateWithContext(ctx, "user@example.com"))
+		errortest.AssertError(t, NewAnyRuleWithContext(email, uuid).ValidateWithContext(ctx, "plain-text"), commonerrors.ErrInvalid)
+	})
+
+	t.Run("new all rule with context", func(t *testing.T) {
+		require.NoError(t, NewAllRuleWithContext(required, email).ValidateWithContext(ctx, "user@example.com"))
+		errortest.AssertError(t, NewAllRuleWithContext(required, email).ValidateWithContext(ctx, "plain-text"), commonerrors.ErrInvalid)
+	})
+
+	t.Run("new none rule with context", func(t *testing.T) {
+		require.NoError(t, NewNoneRuleWithContext(email, uuid).ValidateWithContext(ctx, "plain-text"))
+		errortest.AssertError(t, NewNoneRuleWithContext(email, uuid).ValidateWithContext(ctx, "user@example.com"), commonerrors.ErrInvalid)
+	})
+
+	t.Run("at most with context", func(t *testing.T) {
+		require.NoError(t, AtMostWithContext(1, email, uuid).ValidateWithContext(ctx, "user@example.com"))
+		errortest.AssertError(t, AtMostWithContext(1, required, email).ValidateWithContext(ctx, "user@example.com"), commonerrors.ErrInvalid)
+	})
+
+	t.Run("exactly with context", func(t *testing.T) {
+		require.NoError(t, ExactlyWithContext(1, email, uuid).ValidateWithContext(ctx, "user@example.com"))
+		errortest.AssertError(t, ExactlyWithContext(1, required, email).ValidateWithContext(ctx, "user@example.com"), commonerrors.ErrInvalid)
+	})
+
+	t.Run("nof with context", func(t *testing.T) {
+		require.NoError(t, NOfWithContext(1, email, uuid).ValidateWithContext(ctx, "user@example.com"))
+		errortest.AssertError(t, NOfWithContext(2, email, uuid).ValidateWithContext(ctx, "user@example.com"), commonerrors.ErrInvalid)
+	})
+
+	t.Run("at least with context", func(t *testing.T) {
+		require.NoError(t, AtLeastWithContext(1, email, uuid).ValidateWithContext(ctx, "user@example.com"))
+		errortest.AssertError(t, AtLeastWithContext(2, email, uuid).ValidateWithContext(ctx, "user@example.com"), commonerrors.ErrInvalid)
+	})
+
+	t.Run("implies with context", func(t *testing.T) {
+		require.NoError(t, ImpliesWithContext(email, required).ValidateWithContext(ctx, "user@example.com"))
+		require.NoError(t, ImpliesWithContext(email, required).ValidateWithContext(ctx, "plain-text"))
+		errortest.AssertError(t, ImpliesWithContext(required, email).ValidateWithContext(ctx, "plain-text"), commonerrors.ErrInvalid)
+		require.NoError(t, ImpliesWithContext(nil, email).ValidateWithContext(ctx, "plain-text"))
+		require.NoError(t, ImpliesWithContext(email, nil).ValidateWithContext(ctx, "user@example.com"))
+	})
+
+	t.Run("if then else with context", func(t *testing.T) {
+		require.NoError(t, IfThenElseWithContext(email, required, nil).ValidateWithContext(ctx, "user@example.com"))
+		require.NoError(t, IfThenElseWithContext(email, nil, required).ValidateWithContext(ctx, "plain-text"))
+		errortest.AssertError(t, IfThenElseWithContext(email, uuid, nil).ValidateWithContext(ctx, "user@example.com"), commonerrors.ErrInvalid)
+		errortest.AssertError(t, IfThenElseWithContext(email, nil, email).ValidateWithContext(ctx, "plain-text"), commonerrors.ErrInvalid)
+		require.NoError(t, IfThenElseWithContext(nil, required, email).ValidateWithContext(ctx, "value"))
+	})
+
+	t.Run("one of with context", func(t *testing.T) {
+		require.NoError(t, NewOneOfRuleWithContext(email, uuid).ValidateWithContext(ctx, "user@example.com"))
+		errortest.AssertError(t, NewOneOfRuleWithContext(required, email).ValidateWithContext(ctx, "user@example.com"), commonerrors.ErrInvalid)
 	})
 }
