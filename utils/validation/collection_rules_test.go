@@ -25,10 +25,20 @@ func TestCollectionRules(t *testing.T) {
 		re := regexp.MustCompile(`^[a-z]+$`)
 		assert.NoError(t, validation.Validate(map[string]any{"alpha": 1}, MapKeys(Pattern(re))))
 		assert.Error(t, validation.Validate(map[string]any{"Alpha": 1}, MapKeys(Pattern(re))))
+
+		seq := iter.Seq2[string, any](func(yield func(string, any) bool) {
+			_ = yield("alpha", 1)
+		})
+		assert.NoError(t, validation.Validate(seq, MapKeys(Pattern(re))))
 	})
 
 	t.Run("map values", func(t *testing.T) {
 		assert.NoError(t, validation.Validate(map[string]any{"a": "x"}, MapValues(Type("string"))))
 		assert.Error(t, validation.Validate(map[string]any{"a": 1}, MapValues(Type("string"))))
+
+		seq := iter.Seq2[string, any](func(yield func(string, any) bool) {
+			_ = yield("a", "x")
+		})
+		assert.NoError(t, validation.Validate(seq, MapValues(Type("string"))))
 	})
 }

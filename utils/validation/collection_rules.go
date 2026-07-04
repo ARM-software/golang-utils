@@ -41,6 +41,18 @@ func MapKeys(rule validation.Rule) validation.Rule {
 // Example: `MapValues(Type("string"))` accepts `map[string]any{"a": "x"}`.
 func MapValues(rule validation.Rule) validation.Rule {
 	return validation.By(func(value any) error {
+		if props, ok, err := objectSequence2ToAccessor(value); err != nil {
+			return err
+		} else if ok {
+			return collection.Each(slices.Values(objectPropertyNamesFromAccessor(props)), func(key string) error {
+				fieldValue, found := props.value(key)
+				if !found {
+					return nil
+				}
+				return rule.Validate(fieldValue)
+			})
+		}
+
 		rv, isNil, err := objectValue(value)
 		if err != nil || isNil {
 			return err

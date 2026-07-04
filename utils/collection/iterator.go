@@ -33,6 +33,15 @@ func EmptySequence[T any]() iter.Seq[T] {
 	return func(func(T) bool) {}
 }
 
+// EmptySequence2 returns a key/value sequence that yields no pairs.
+//
+// This is useful when APIs need to return an `iter.Seq2` but have nothing to
+// produce, or when a nil key/value sequence should be normalised to a safe
+// empty value so callers can range over it without panicking.
+func EmptySequence2[K any, V any]() iter.Seq2[K, V] {
+	return func(func(K, V) bool) {}
+}
+
 // SequenceOrEmpty returns s when it is non-nil, otherwise it returns an empty
 // sequence.
 //
@@ -41,6 +50,18 @@ func EmptySequence[T any]() iter.Seq[T] {
 func SequenceOrEmpty[T any](s iter.Seq[T]) iter.Seq[T] {
 	if s == nil {
 		return EmptySequence[T]()
+	}
+	return s
+}
+
+// Sequence2OrEmpty returns s when it is non-nil, otherwise it returns an empty
+// key/value sequence.
+//
+// This is useful when consuming code wants a guaranteed safe `iter.Seq2` value
+// that can be ranged over without needing a separate nil check.
+func Sequence2OrEmpty[K any, V any](s iter.Seq2[K, V]) iter.Seq2[K, V] {
+	if s == nil {
+		return EmptySequence2[K, V]()
 	}
 	return s
 }

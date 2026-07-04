@@ -2,6 +2,7 @@ package validation
 
 import (
 	"reflect"
+	"slices"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
@@ -9,6 +10,13 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	utilreflection "github.com/ARM-software/golang-utils/utils/reflection"
 )
+
+type objectAccessor struct {
+	names           []string
+	value           func(string) (any, bool)
+	present         func(string) bool
+	presentNonEmpty func(string) bool
+}
 
 // typedSequence converts a validated input into a typed slice.
 //
@@ -85,6 +93,94 @@ func objectValue(value any) (rv reflect.Value, isNil bool, err error) {
 		return reflect.Value{}, false, errMapRequired
 	}
 	return rv, false, nil
+}
+
+// objectSequence2ToAccessor detects function-backed iter.Seq2-style values and
+// collects string-keyed properties into an accessor.
+func objectSequence2ToAccessor(value any) (*objectAccessor, bool, error) {
+	rv := reflect.ValueOf(value)
+	if !rv.IsValid() || rv.Kind() != reflect.Func {
+		return nil, false, nil
+	}
+	rt := rv.Type()
+	if rt.NumIn() != 1 || rt.NumOut() != 0 {
+		return nil, false, nil
+	}
+	yieldType := rt.In(0)
+	if yieldType.Kind() != reflect.Func || yieldType.NumIn() != 2 || yieldType.NumOut() != 1 || yieldType.Out(0).Kind() != reflect.Bool {
+		return nil, false, nil
+	}
+	items := make(map[string]any)
+	keys := make([]string, 0)
+	yield := reflect.MakeFunc(yieldType, func(args []reflect.Value) []reflect.Value {
+		key, ok := args[0].Interface().(string)
+		if !ok {
+			panic(commonerrors.Newf(commonerrors.ErrMarshalling, "unsupported object key type: %T", args[0].Interface()))
+		}
+		if _, found := items[key]; !found {
+			keys = append(keys, key)
+		}
+		items[key] = args[1].Interface()
+		return []reflect.Value{reflect.ValueOf(true)}
+	})
+	var callErr error
+	func() {
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				switch err := recovered.(type) {
+				case error:
+					callErr = err
+				default:
+					panic(recovered)
+				}
+			}
+		}()
+		rv.Call([]reflect.Value{yield})
+	}()
+	if callErr != nil {
+		return nil, true, callErr
+	}
+	return &objectAccessor{
+		names: keys,
+		value: func(key string) (any, bool) {
+			value, found := items[key]
+			return value, found
+		},
+		present: func(key string) bool {
+			_, found := items[key]
+			return found
+		},
+		presentNonEmpty: func(key string) bool {
+			value, found := items[key]
+			return found && !utilreflection.IsEmpty(value)
+		},
+	}, true, nil
+}
+
+// objectProperties extracts a uniform object accessor for map, struct, or
+// string-keyed iter.Seq2 inputs.
+func objectProperties(value any) (props *objectAccessor, isNil bool, err error) {
+	if props, ok, err := objectSequence2ToAccessor(value); ok || err != nil {
+		return props, false, err
+	}
+	rv, isNil, err := objectValue(value)
+	if err != nil || isNil {
+		return nil, isNil, err
+	}
+	keys := objectPropertyNames(rv)
+	return &objectAccessor{
+		names: keys,
+		value: func(key string) (any, bool) {
+			return objectPropertyValue(rv, key)
+		},
+		present: func(key string) bool {
+			return hasObjectProperty(rv, key)
+		},
+		presentNonEmpty: func(key string) bool {
+			value, found := objectPropertyValue(rv, key)
+			return found && !utilreflection.IsEmpty(value)
+		},
+	}, false, nil
 }
 
 // hasObjectProperty reports whether rv contains a named property.
@@ -176,4 +272,21 @@ func countPresentObjectProperties(rv reflect.Value, keys []string) int {
 	default:
 		return 0
 	}
+}
+
+// countPresentProperties counts how many of the supplied keys are present and
+// non-empty on a normalised object accessor.
+func countPresentProperties(props *objectAccessor, keys []string) int {
+	if props == nil {
+		return 0
+	}
+	return collection.CountBy(keys, props.presentNonEmpty)
+}
+
+// objectPropertyNamesFromAccessor returns the property names from props.
+func objectPropertyNamesFromAccessor(props *objectAccessor) []string {
+	if props == nil {
+		return nil
+	}
+	return slices.Clone(props.names)
 }

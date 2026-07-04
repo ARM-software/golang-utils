@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"iter"
 	"regexp"
 	"strings"
 	"testing"
@@ -79,6 +80,15 @@ func TestJSONSchemaInspiredRules(t *testing.T) {
 
 		assert.NoError(t, validation.Validate(map[string]any{"a": 1}, AdditionalProperties("a", "b")))
 		assert.Error(t, validation.Validate(map[string]any{"c": 1}, AdditionalProperties("a", "b")))
+
+		seq := iter.Seq2[string, any](func(yield func(string, any) bool) {
+			_ = yield("a", 1)
+			_ = yield("b", 2)
+		})
+		assert.NoError(t, validation.Validate(seq, RequiredProperties("a")))
+		assert.NoError(t, validation.Validate(seq, DependentRequired(map[string][]string{"a": {"b"}})))
+		assert.NoError(t, validation.Validate(seq, PropertyNames(Pattern(re))))
+		assert.NoError(t, validation.Validate(seq, AdditionalProperties("a", "b")))
 	})
 
 	t.Run("contains", func(t *testing.T) {

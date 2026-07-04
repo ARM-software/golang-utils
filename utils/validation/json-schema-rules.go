@@ -315,12 +315,12 @@ func MinProperties(min int) validation.Rule {
 func RequiredProperties(keys ...string) validation.Rule {
 	normalizedKeys := collection.UniqueEntries(keys)
 	return validation.By(func(value any) error {
-		rv, isNil, err := objectValue(value)
+		props, isNil, err := objectProperties(value)
 		if err != nil || isNil {
 			return err
 		}
 		missing := collection.CountBy(normalizedKeys, func(key string) bool {
-			return !hasObjectProperty(rv, key)
+			return !props.present(key)
 		})
 		if missing > 0 {
 			return errRequiredProperties
@@ -344,16 +344,16 @@ func DependentRequired(dependencies map[string][]string) validation.Rule {
 		normalised[key] = collection.UniqueEntries(dependents)
 	}
 	return validation.By(func(value any) error {
-		rv, isNil, err := objectValue(value)
+		props, isNil, err := objectProperties(value)
 		if err != nil || isNil {
 			return err
 		}
 		for key, dependents := range normalised {
-			if !hasObjectProperty(rv, key) {
+			if !props.present(key) {
 				continue
 			}
 			missing := collection.CountBy(dependents, func(dependent string) bool {
-				return !hasObjectProperty(rv, dependent)
+				return !props.present(dependent)
 			})
 			if missing > 0 {
 				return errDependentRequired
@@ -374,12 +374,12 @@ func DependentRequired(dependencies map[string][]string) validation.Rule {
 // Reference: https://json-schema.org/understanding-json-schema/reference/conditionals#dependentschemas
 func DependentSchemas(dependencies map[string]validation.Rule) validation.Rule {
 	return validation.By(func(value any) error {
-		rv, isNil, err := objectValue(value)
+		props, isNil, err := objectProperties(value)
 		if err != nil || isNil {
 			return err
 		}
 		for key, rule := range dependencies {
-			if !hasObjectProperty(rv, key) {
+			if !props.present(key) {
 				continue
 			}
 			if rule.Validate(value) != nil {
@@ -401,11 +401,11 @@ func DependentSchemas(dependencies map[string]validation.Rule) validation.Rule {
 // Reference: https://json-schema.org/understanding-json-schema/reference/object#property-names
 func PropertyNames(rule validation.Rule) validation.Rule {
 	return validation.By(func(value any) error {
-		rv, isNil, err := objectValue(value)
+		props, isNil, err := objectProperties(value)
 		if err != nil || isNil {
 			return err
 		}
-		for _, key := range objectPropertyNames(rv) {
+		for _, key := range objectPropertyNamesFromAccessor(props) {
 			if rule.Validate(key) != nil {
 				return errPropertyNames
 			}
@@ -425,7 +425,7 @@ func PropertyNames(rule validation.Rule) validation.Rule {
 // Reference: https://json-schema.org/understanding-json-schema/reference/object#pattern-properties
 func PatternProperties(patterns ...PatternProperty) validation.Rule {
 	return validation.By(func(value any) error {
-		rv, isNil, err := objectValue(value)
+		props, isNil, err := objectProperties(value)
 		if err != nil || isNil {
 			return err
 		}
@@ -433,11 +433,11 @@ func PatternProperties(patterns ...PatternProperty) validation.Rule {
 			if property.Pattern == nil || property.Rule == nil {
 				continue
 			}
-			for _, key := range objectPropertyNames(rv) {
+			for _, key := range objectPropertyNamesFromAccessor(props) {
 				if !property.Pattern.MatchString(key) {
 					continue
 				}
-				fieldValue, found := objectPropertyValue(rv, key)
+				fieldValue, found := props.value(key)
 				if !found {
 					continue
 				}
@@ -463,11 +463,11 @@ func PatternProperties(patterns ...PatternProperty) validation.Rule {
 func AdditionalProperties(keys ...string) validation.Rule {
 	normalizedKeys := collection.UniqueEntries(keys)
 	return validation.By(func(value any) error {
-		rv, isNil, err := objectValue(value)
+		props, isNil, err := objectProperties(value)
 		if err != nil || isNil {
 			return err
 		}
-		invalid := collection.CountBy(objectPropertyNames(rv), func(key string) bool {
+		invalid := collection.CountBy(objectPropertyNamesFromAccessor(props), func(key string) bool {
 			return !collection.In(normalizedKeys, key, collection.StringMatch)
 		})
 		if invalid > 0 {
@@ -552,11 +552,11 @@ func AtMostOneProperty(keys ...string) validation.Rule {
 func OneOfProperties(keys ...string) validation.Rule {
 	normalizedKeys := collection.UniqueEntries(keys)
 	return validation.By(func(value any) error {
-		rv, isNil, err := objectValue(value)
+		props, isNil, err := objectProperties(value)
 		if err != nil || isNil {
 			return err
 		}
-		if countPresentObjectProperties(rv, normalizedKeys) != 1 {
+		if countPresentProperties(props, normalizedKeys) != 1 {
 			return errMutuallyExclusive
 		}
 		return nil
@@ -576,11 +576,11 @@ func OneOfProperties(keys ...string) validation.Rule {
 func AtLeastOneProperty(keys ...string) validation.Rule {
 	normalizedKeys := collection.UniqueEntries(keys)
 	return validation.By(func(value any) error {
-		rv, isNil, err := objectValue(value)
+		props, isNil, err := objectProperties(value)
 		if err != nil || isNil {
 			return err
 		}
-		if countPresentObjectProperties(rv, normalizedKeys) == 0 {
+		if countPresentProperties(props, normalizedKeys) == 0 {
 			return errRequiredProperties
 		}
 		return nil
@@ -599,11 +599,11 @@ func AtLeastOneProperty(keys ...string) validation.Rule {
 func ForbiddenProperties(keys ...string) validation.Rule {
 	normalizedKeys := collection.UniqueEntries(keys)
 	return validation.By(func(value any) error {
-		rv, isNil, err := objectValue(value)
+		props, isNil, err := objectProperties(value)
 		if err != nil || isNil {
 			return err
 		}
-		if countPresentObjectProperties(rv, normalizedKeys) > 0 {
+		if countPresentProperties(props, normalizedKeys) > 0 {
 			return errAdditionalProperties
 		}
 		return nil
