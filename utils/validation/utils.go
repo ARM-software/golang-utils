@@ -249,31 +249,6 @@ func objectPropertyNames(rv reflect.Value) []string {
 	}
 }
 
-// countPresentObjectProperties counts how many of the supplied keys are present
-// and non-empty on a map or struct value.
-func countPresentObjectProperties(rv reflect.Value, keys []string) int {
-	switch rv.Kind() {
-	case reflect.Map:
-		return collection.CountBy(keys, func(key string) bool {
-			mapValue := rv.MapIndex(reflect.ValueOf(key))
-			if !mapValue.IsValid() {
-				return false
-			}
-			return !utilreflection.IsEmpty(mapValue.Interface())
-		})
-	case reflect.Struct:
-		return collection.CountBy(keys, func(key string) bool {
-			fieldValue := rv.FieldByName(key)
-			if !fieldValue.IsValid() {
-				return false
-			}
-			return !utilreflection.IsEmpty(fieldValue.Interface())
-		})
-	default:
-		return 0
-	}
-}
-
 // countPresentProperties counts how many of the supplied keys are present and
 // non-empty on a normalised object accessor.
 func countPresentProperties(props *objectAccessor, keys []string) int {
