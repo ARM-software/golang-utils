@@ -224,7 +224,7 @@ func ToInt32Ref[C IConvertible](i *C) *int32 {
 // can be used in place of direct `int` to `rune` casts when overflow-safe
 // conversion is desired.
 func ToRune[C IConvertible](i C) rune {
-	return rune(ToInt32(i))
+	return ToInt32(i)
 }
 
 // ToRuneRef attempts to convert a reference to an [IConvertible] value to a
