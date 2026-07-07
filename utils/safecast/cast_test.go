@@ -11,6 +11,15 @@ import (
 	"github.com/ARM-software/golang-utils/utils/ptr"
 )
 
+func TestToRune(t *testing.T) {
+	assert.Equal(t, rune('a'), ToRune[int]('a'))
+	assert.Equal(t, rune(math.MaxInt32), ToRune[int64](math.MaxInt32+1))
+	assert.Equal(t, rune(math.MinInt32), ToRune[int64](math.MinInt32-1))
+	require.NotNil(t, ToRuneRef(ptr.To(65)))
+	assert.Equal(t, rune('A'), ptr.From(ToRuneRef(ptr.To(65))))
+	assert.Nil(t, ToRuneRef[int](nil))
+}
+
 type testCase[C1 IConvertible, C2 IConvertible] struct {
 	name         string
 	ctype        string

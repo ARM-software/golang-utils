@@ -11,6 +11,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
 func TestMapConcurrent(t *testing.T) {
@@ -18,7 +19,7 @@ func TestMapConcurrent(t *testing.T) {
 
 	ctx := context.Background()
 	mapped, err := MapConcurrent(ctx, []int{1, 2, 3}, func(v int) string {
-		return string(rune('0' + v))
+		return string(safecast.ToRune('0' + v))
 	}, Workers(2))
 	require.NoError(t, err)
 	assert.ElementsMatch(t, []string{"1", "2", "3"}, mapped)
@@ -37,7 +38,7 @@ func TestMapConcurrentRef(t *testing.T) {
 		if v == nil {
 			return nil
 		}
-		result := string(rune('a' + *v - 1))
+		result := string(safecast.ToRune('a' + *v - 1))
 		return &result
 	}, Workers(2))
 	require.NoError(t, err)
@@ -61,7 +62,7 @@ func TestMapConcurrentSequence(t *testing.T) {
 		}
 	})
 	mapped, err := MapConcurrentSequence(ctx, sequence, func(v int) string {
-		return string(rune('0' + v))
+		return string(safecast.ToRune('0' + v))
 	}, Workers(2))
 	require.NoError(t, err)
 	assert.ElementsMatch(t, []string{"1", "2", "3"}, mapped)
