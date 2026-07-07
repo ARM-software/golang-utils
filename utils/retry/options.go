@@ -100,7 +100,7 @@ func WithExponentialBackoff(delay, maxDelay time.Duration) RetryOption {
 func WithJitterStrategy(maxJitter time.Duration) RetryOption {
 	return func(options *RetryPolicyConfiguration) *RetryPolicyConfiguration {
 		cfg := WithRetryEnabled()(options)
-		cfg.RetryWaitMax = maxJitter
+		cfg.RetryMaxJitter = maxJitter
 		return cfg
 	}
 }

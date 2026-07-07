@@ -61,23 +61,27 @@ func (cfg *RetryPolicyConfiguration) Validate() error {
 // disabled.
 func DefaultNoRetryPolicyConfiguration() *RetryPolicyConfiguration {
 	return &RetryPolicyConfiguration{
-		Enabled:            false,
-		RetryAfterDisabled: true,
-		RetryMax:           0,
-		RetryMaxJitter:     0,
+		Enabled:              false,
+		RetryMax:             0,
+		RetryAfterDisabled:   true,
+		RetryWaitMin:         0,
+		RetryWaitMax:         0,
+		RetryMaxJitter:       0,
+		BackOffEnabled:       false,
+		LinearBackOffEnabled: false,
 	}
 }
 
 // DefaultBasicRetryPolicyConfiguration returns a basic retry configuration with
-// four attempts and jitter but no backoff.
+// four attempts but no backoff or jitter.
 func DefaultBasicRetryPolicyConfiguration() *RetryPolicyConfiguration {
-	return WithOptions(WithRetryEnabled(), WithAttempts(4), WithJitterStrategy(25*time.Millisecond))(nil)
+	return WithOptions(WithRetryEnabled(), WithAttempts(4))(nil)
 }
 
 // DefaultRobustRetryPolicyConfiguration returns a basic retry configuration
 // that also honours `Retry-After`.
 func DefaultRobustRetryPolicyConfiguration() *RetryPolicyConfiguration {
-	return WithOptions(WithRetryAfterEnabled(), WithAttempts(4), WithJitterStrategy(25*time.Millisecond))(nil)
+	return WithOptions(WithRetryAfterEnabled(), WithAttempts(4))(nil)
 }
 
 // DefaultFixedBackoffRetryPolicyConfiguration returns a retry configuration with

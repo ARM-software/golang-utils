@@ -21,6 +21,9 @@ func TestDefaultRetryPolicyConfigurationByBackoffStrategy(t *testing.T) {
 				assert.True(t, cfg.Enabled)
 				assert.True(t, cfg.RetryAfterDisabled)
 				assert.False(t, cfg.BackOffEnabled)
+				assert.Zero(t, cfg.RetryWaitMin)
+				assert.Zero(t, cfg.RetryWaitMax)
+				assert.Zero(t, cfg.RetryMaxJitter)
 			},
 		},
 		{
@@ -33,6 +36,7 @@ func TestDefaultRetryPolicyConfigurationByBackoffStrategy(t *testing.T) {
 				assert.True(t, cfg.BackOffEnabled)
 				assert.True(t, cfg.LinearBackOffEnabled)
 				assert.Equal(t, cfg.RetryWaitMin, cfg.RetryWaitMax)
+				assert.Zero(t, cfg.RetryMaxJitter)
 			},
 		},
 		{
@@ -43,6 +47,9 @@ func TestDefaultRetryPolicyConfigurationByBackoffStrategy(t *testing.T) {
 				assert.True(t, cfg.Enabled)
 				assert.False(t, cfg.RetryAfterDisabled)
 				assert.False(t, cfg.BackOffEnabled)
+				assert.Zero(t, cfg.RetryWaitMin)
+				assert.Zero(t, cfg.RetryWaitMax)
+				assert.Zero(t, cfg.RetryMaxJitter)
 			},
 		},
 		{
@@ -54,6 +61,7 @@ func TestDefaultRetryPolicyConfigurationByBackoffStrategy(t *testing.T) {
 				assert.False(t, cfg.RetryAfterDisabled)
 				assert.True(t, cfg.BackOffEnabled)
 				assert.True(t, cfg.LinearBackOffEnabled)
+				assert.Zero(t, cfg.RetryMaxJitter)
 			},
 		},
 		{
@@ -64,6 +72,7 @@ func TestDefaultRetryPolicyConfigurationByBackoffStrategy(t *testing.T) {
 				assert.True(t, cfg.Enabled)
 				assert.True(t, cfg.BackOffEnabled)
 				assert.True(t, cfg.LinearBackOffEnabled)
+				assert.NotZero(t, cfg.RetryMaxJitter)
 			},
 		},
 		{
@@ -74,6 +83,7 @@ func TestDefaultRetryPolicyConfigurationByBackoffStrategy(t *testing.T) {
 				assert.True(t, cfg.Enabled)
 				assert.True(t, cfg.BackOffEnabled)
 				assert.False(t, cfg.LinearBackOffEnabled)
+				assert.NotZero(t, cfg.RetryMaxJitter)
 			},
 		},
 	}
