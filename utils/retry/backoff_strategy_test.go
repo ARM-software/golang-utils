@@ -18,7 +18,9 @@ func TestDefaultRetryPolicyConfigurationByBackoffStrategy(t *testing.T) {
 			strategy: NoBackoff,
 			assertFn: func(t *testing.T, cfg *RetryPolicyConfiguration) {
 				t.Helper()
-				assert.False(t, cfg.Enabled)
+				assert.True(t, cfg.Enabled)
+				assert.True(t, cfg.RetryAfterDisabled)
+				assert.False(t, cfg.BackOffEnabled)
 			},
 		},
 		{
@@ -28,6 +30,18 @@ func TestDefaultRetryPolicyConfigurationByBackoffStrategy(t *testing.T) {
 				t.Helper()
 				assert.True(t, cfg.Enabled)
 				assert.True(t, cfg.RetryAfterDisabled)
+				assert.True(t, cfg.BackOffEnabled)
+				assert.True(t, cfg.LinearBackOffEnabled)
+				assert.Equal(t, cfg.RetryWaitMin, cfg.RetryWaitMax)
+			},
+		},
+		{
+			name:     "no backoff but retry after",
+			strategy: NoBackoffButRetryAfter,
+			assertFn: func(t *testing.T, cfg *RetryPolicyConfiguration) {
+				t.Helper()
+				assert.True(t, cfg.Enabled)
+				assert.False(t, cfg.RetryAfterDisabled)
 				assert.False(t, cfg.BackOffEnabled)
 			},
 		},
@@ -38,7 +52,8 @@ func TestDefaultRetryPolicyConfigurationByBackoffStrategy(t *testing.T) {
 				t.Helper()
 				assert.True(t, cfg.Enabled)
 				assert.False(t, cfg.RetryAfterDisabled)
-				assert.False(t, cfg.BackOffEnabled)
+				assert.True(t, cfg.BackOffEnabled)
+				assert.True(t, cfg.LinearBackOffEnabled)
 			},
 		},
 		{

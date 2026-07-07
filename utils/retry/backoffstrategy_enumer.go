@@ -8,11 +8,11 @@ import (
 	"strings"
 )
 
-const _BackoffStrategyName = "NoBackoffFixedBackoffFixedBackoffOrRetryAfterLinearBackoffExponentialBackoff"
+const _BackoffStrategyName = "NoBackoffNoBackoffButRetryAfterFixedBackoffFixedBackoffOrRetryAfterLinearBackoffExponentialBackoff"
 
-var _BackoffStrategyIndex = [...]uint8{0, 9, 21, 45, 58, 76}
+var _BackoffStrategyIndex = [...]uint8{0, 9, 31, 43, 67, 80, 98}
 
-const _BackoffStrategyLowerName = "nobackofffixedbackofffixedbackofforretryafterlinearbackoffexponentialbackoff"
+const _BackoffStrategyLowerName = "nobackoffnobackoffbutretryafterfixedbackofffixedbackofforretryafterlinearbackoffexponentialbackoff"
 
 func (i BackoffStrategy) String() string {
 	if i < 0 || i >= BackoffStrategy(len(_BackoffStrategyIndex)-1) {
@@ -26,33 +26,37 @@ func (i BackoffStrategy) String() string {
 func _BackoffStrategyNoOp() {
 	var x [1]struct{}
 	_ = x[NoBackoff-(0)]
-	_ = x[FixedBackoff-(1)]
-	_ = x[FixedBackoffOrRetryAfter-(2)]
-	_ = x[LinearBackoff-(3)]
-	_ = x[ExponentialBackoff-(4)]
+	_ = x[NoBackoffButRetryAfter-(1)]
+	_ = x[FixedBackoff-(2)]
+	_ = x[FixedBackoffOrRetryAfter-(3)]
+	_ = x[LinearBackoff-(4)]
+	_ = x[ExponentialBackoff-(5)]
 }
 
-var _BackoffStrategyValues = []BackoffStrategy{NoBackoff, FixedBackoff, FixedBackoffOrRetryAfter, LinearBackoff, ExponentialBackoff}
+var _BackoffStrategyValues = []BackoffStrategy{NoBackoff, NoBackoffButRetryAfter, FixedBackoff, FixedBackoffOrRetryAfter, LinearBackoff, ExponentialBackoff}
 
 var _BackoffStrategyNameToValueMap = map[string]BackoffStrategy{
 	_BackoffStrategyName[0:9]:        NoBackoff,
 	_BackoffStrategyLowerName[0:9]:   NoBackoff,
-	_BackoffStrategyName[9:21]:       FixedBackoff,
-	_BackoffStrategyLowerName[9:21]:  FixedBackoff,
-	_BackoffStrategyName[21:45]:      FixedBackoffOrRetryAfter,
-	_BackoffStrategyLowerName[21:45]: FixedBackoffOrRetryAfter,
-	_BackoffStrategyName[45:58]:      LinearBackoff,
-	_BackoffStrategyLowerName[45:58]: LinearBackoff,
-	_BackoffStrategyName[58:76]:      ExponentialBackoff,
-	_BackoffStrategyLowerName[58:76]: ExponentialBackoff,
+	_BackoffStrategyName[9:31]:       NoBackoffButRetryAfter,
+	_BackoffStrategyLowerName[9:31]:  NoBackoffButRetryAfter,
+	_BackoffStrategyName[31:43]:      FixedBackoff,
+	_BackoffStrategyLowerName[31:43]: FixedBackoff,
+	_BackoffStrategyName[43:67]:      FixedBackoffOrRetryAfter,
+	_BackoffStrategyLowerName[43:67]: FixedBackoffOrRetryAfter,
+	_BackoffStrategyName[67:80]:      LinearBackoff,
+	_BackoffStrategyLowerName[67:80]: LinearBackoff,
+	_BackoffStrategyName[80:98]:      ExponentialBackoff,
+	_BackoffStrategyLowerName[80:98]: ExponentialBackoff,
 }
 
 var _BackoffStrategyNames = []string{
 	_BackoffStrategyName[0:9],
-	_BackoffStrategyName[9:21],
-	_BackoffStrategyName[21:45],
-	_BackoffStrategyName[45:58],
-	_BackoffStrategyName[58:76],
+	_BackoffStrategyName[9:31],
+	_BackoffStrategyName[31:43],
+	_BackoffStrategyName[43:67],
+	_BackoffStrategyName[67:80],
+	_BackoffStrategyName[80:98],
 }
 
 // BackoffStrategyString retrieves an enum value from the enum constants string name.

@@ -80,6 +80,19 @@ func DefaultRobustRetryPolicyConfiguration() *RetryPolicyConfiguration {
 	return WithOptions(WithRetryAfterEnabled(), WithAttempts(4), WithJitterStrategy(25*time.Millisecond))(nil)
 }
 
+// DefaultFixedBackoffRetryPolicyConfiguration returns a retry configuration with
+// four attempts and fixed backoff.
+func DefaultFixedBackoffRetryPolicyConfiguration() *RetryPolicyConfiguration {
+	return WithOptions(WithRetryEnabled(), WithAttempts(4), WithFixedBackoff(time.Second))(nil)
+}
+
+// DefaultRobustFixedBackoffRetryPolicyConfiguration returns a retry
+// configuration with four attempts and fixed backoff that also honours
+// `Retry-After`.
+func DefaultRobustFixedBackoffRetryPolicyConfiguration() *RetryPolicyConfiguration {
+	return WithOptions(WithRetryAfterEnabled(), WithAttempts(4), WithFixedBackoff(time.Second))(nil)
+}
+
 // DefaultExponentialBackoffRetryPolicyConfiguration returns a configuration for
 // retries with exponential backoff.
 func DefaultExponentialBackoffRetryPolicyConfiguration() *RetryPolicyConfiguration {
