@@ -3,16 +3,20 @@ package retry
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/avast/retry-go/v4"
 	"github.com/go-logr/logr"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/reflection"
 	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
-// RetryIf will retry fn when the value returned from retryConditionFn is true
+// RetryIf retries fn while retryConditionFn reports the returned error as
+// retriable.
+//
+// The retry timing and attempt limits are controlled by retryPolicy. If the
+// policy is disabled, fn is executed once without retrying.
 func RetryIf(ctx context.Context, logger logr.Logger, retryPolicy *RetryPolicyConfiguration, fn func() error, msgOnRetry string, retryConditionFn func(err error) bool) error {
 	if retryPolicy == nil {
 		return commonerrors.New(commonerrors.ErrUndefined, "missing retry policy configuration")
@@ -20,11 +24,16 @@ func RetryIf(ctx context.Context, logger logr.Logger, retryPolicy *RetryPolicyCo
 	if !retryPolicy.Enabled {
 		return fn()
 	}
+	hasJitter := reflection.IsNotEmpty(retryPolicy.RetryMaxJitter)
 	var retryType retry.DelayTypeFunc
 	switch {
-	case retryPolicy.LinearBackOffEnabled:
+	case retryPolicy.LinearBackOffEnabled && hasJitter:
 		retryType = retry.CombineDelay(retry.FixedDelay, retry.RandomDelay)
-	case retryPolicy.BackOffEnabled:
+	case retryPolicy.LinearBackOffEnabled && !hasJitter:
+		retryType = retry.FixedDelay
+	case retryPolicy.BackOffEnabled && hasJitter:
+		retryType = retry.CombineDelay(retry.BackOffDelay, retry.RandomDelay)
+	case retryPolicy.BackOffEnabled && !hasJitter:
 		retryType = retry.BackOffDelay
 	default:
 		retryType = retry.FixedDelay
@@ -38,7 +47,7 @@ func RetryIf(ctx context.Context, logger logr.Logger, retryPolicy *RetryPolicyCo
 			}),
 			retry.Delay(retryPolicy.RetryWaitMin),
 			retry.MaxDelay(retryPolicy.RetryWaitMax),
-			retry.MaxJitter(25*time.Millisecond),
+			retry.MaxJitter(retryPolicy.RetryMaxJitter),
 			retry.DelayType(retryType),
 			retry.Attempts(safecast.ToUint(retryPolicy.RetryMax)),
 			retry.RetryIf(retryConditionFn),
@@ -48,9 +57,9 @@ func RetryIf(ctx context.Context, logger logr.Logger, retryPolicy *RetryPolicyCo
 	)
 }
 
-// RetryOnError allows the caller to retry fn when the error returned by fn is retriable
-// as in of the type specified by retriableErr. backoff defines the maximum retries and the wait
-// interval between two retries.
+// RetryOnError retries fn when the returned error matches any of retriableErr.
+//
+// The retry timing and attempt limits are controlled by retryPolicy.
 func RetryOnError(ctx context.Context, logger logr.Logger, retryPolicy *RetryPolicyConfiguration, fn func() error, msgOnRetry string, retriableErr ...error) error {
 	return RetryIf(ctx, logger, retryPolicy, fn, msgOnRetry, func(err error) bool {
 		return commonerrors.Any(err, retriableErr...)

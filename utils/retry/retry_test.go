@@ -30,6 +30,12 @@ func TestRetryOnError(t *testing.T) {
 		{
 			policy: DefaultExponentialBackoffRetryPolicyConfiguration(),
 		},
+		{
+			policy: DefaultFixedBackoffRetryPolicyConfiguration(),
+		},
+		{
+			policy: DefaultRobustFixedBackoffRetryPolicyConfiguration(),
+		},
 	}
 	attemptCount := atomic.NewInt32(0)
 	fn := func() error {
