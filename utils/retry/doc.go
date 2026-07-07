@@ -12,6 +12,8 @@
 // outage.
 //
 // References:
+//   - Exponential backoff overview:
+//     https://en.wikipedia.org/wiki/Exponential_backoff
 //   - AWS Architecture Blog, Exponential Backoff and Jitter:
 //     https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
 //   - Google Cloud retry guidance:

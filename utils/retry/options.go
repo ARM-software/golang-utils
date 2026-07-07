@@ -82,6 +82,8 @@ func WithLinearBackoff(delay, maxDelay time.Duration) RetryOption {
 //
 // This is useful when repeated failures should quickly slow retry traffic to
 // avoid overloading a struggling dependency.
+//
+// Reference: https://en.wikipedia.org/wiki/Exponential_backoff
 func WithExponentialBackoff(delay, maxDelay time.Duration) RetryOption {
 	return func(options *RetryPolicyConfiguration) *RetryPolicyConfiguration {
 		cfg := WithRetryEnabled()(options)

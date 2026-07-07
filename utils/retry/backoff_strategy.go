@@ -35,6 +35,8 @@ const (
 	//
 	// This is useful when repeated failures should quickly reduce retry pressure
 	// on a struggling dependency.
+	//
+	// Reference: https://en.wikipedia.org/wiki/Exponential_backoff
 	ExponentialBackoff
 )
 
