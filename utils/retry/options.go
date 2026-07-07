@@ -55,7 +55,7 @@ func WithAttempts(attempts int) RetryOption {
 // the delay to grow over time.
 func WithFixedBackoff(delay time.Duration) RetryOption {
 	return func(options *RetryPolicyConfiguration) *RetryPolicyConfiguration {
-		cfg := WithLinearBackoff(delay,delay)(options)
+		cfg := WithLinearBackoff(delay, delay)(options)
 		cfg.RetryMaxJitter = 0
 		return cfg
 	}
