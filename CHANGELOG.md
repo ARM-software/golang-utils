@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.165.1" (2026-07-08)
+======================
+
+Bugfixes
+--------
+
+- :bug: `[casing]` fix toPascalCase regression (#20260708165859)
+
+
 "1.165.0" (2026-07-08)
 ======================
 
