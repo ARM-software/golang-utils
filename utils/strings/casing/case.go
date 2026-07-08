@@ -22,7 +22,7 @@ func ToCamelCase(value string, replacers ...*Replacer) string {
 func ToPascalCase(value string, replacers ...*Replacer) string {
 	result := stringcase.PascalCase(value)
 	if replacer, ok := collection.First(replacers); ok && replacer != nil {
-		if isIdentifierWithoutSeparators(value) {
+		if isIdentifierWithoutSeparators(value) && hasUppercase(value) {
 			return replacer.Replace(value)
 		}
 		return replacer.Replace(result)
@@ -55,4 +55,8 @@ func isIdentifierWithoutSeparators(value string) bool {
 	return collection.AllFunc([]rune(value), func(r rune) bool {
 		return unicode.IsLetter(r) || unicode.IsDigit(r)
 	})
+}
+
+func hasUppercase(value string) bool {
+	return collection.AnyFunc([]rune(value), unicode.IsUpper)
 }

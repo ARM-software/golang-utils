@@ -90,6 +90,17 @@ func TestCaseHelpersWithOptionalReplacer_StrcaseInspiredInitialisms(t *testing.T
 	assert.Equal(t, "hybridAESRSAEncryptedPayload", ToCamelCase("hybridAesrsaEncryptedPayload", acr))
 	assert.Equal(t, "HybridAESRSAEncryptedPayload", ToPascalCase("HybridAESRSAEncryptedPayload", acr))
 	assert.Equal(t, "HybridAESRSAEncryptedPayload", ToPascalCase("HybridAesrsaEncryptedPayload", acr))
+	assert.Equal(t, "hybrid_aesrsa_encrypted_payload", ToSnakeCase("HybridAESRSAEncryptedPayload", acr))
+	assert.Equal(t, "hybrid_aesrsa_encrypted_payload", ToSnakeCase("HybridAesrsaEncryptedPayload", acr))
+	assert.Equal(t, "hybrid-aesrsa-encrypted-payload", ToKebabCase("HybridAESRSAEncryptedPayload", acr))
+	assert.Equal(t, "hybrid-aesrsa-encrypted-payload", ToKebabCase("HybridAesrsaEncryptedPayload", acr))
+
+	portReplacer, err := NewReplacer(Rule{Token: "Port", Replacement: "Port"})
+	require.NoError(t, err)
+	assert.Equal(t, "Port", ToPascalCase("port", portReplacer))
+	assert.Equal(t, "port", ToCamelCase("port", portReplacer))
+	assert.Equal(t, "Port", ToPascalCase("Port", portReplacer))
+	assert.Equal(t, "port", ToCamelCase("Port", portReplacer))
 }
 
 func TestCaseHelpersUseOnlyFirstReplacer(t *testing.T) {
