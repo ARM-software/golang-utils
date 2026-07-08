@@ -14,6 +14,23 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.165.0" (2026-07-08)
+======================
+
+Features
+--------
+
+- :sparkles: `[Retry]` add composable retry options with jitter, retry budget, etc. to ease the definition of retry strategies. (#20260707125500)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: codeql-action-4.36.3 (#20260702101311)
+- Dependency upgrade: text-0.39.0 (#20260707101311)
+- :bug: `[casing]` fix casing helpers so adjacent acronym runs like AESRSA are preserved in existing camelCase and PascalCase identifiers instead of collapsing to Aesrsa. (#20260708153417)
+
+
 "1.164.1" (2026-07-01)
 ======================
 
