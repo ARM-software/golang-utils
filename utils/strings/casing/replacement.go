@@ -5,6 +5,7 @@ import (
 	"io"
 	"slices"
 	"strings"
+	"unicode"
 
 	mapset "github.com/deckarep/golang-set/v2"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -186,19 +187,19 @@ func splitCamelWords(value string) []string {
 	if reflection.IsEmpty(value) {
 		return nil
 	}
-	words := strings.Split(stringcase.SnakeCase(value), "_")
-	parts := make([]string, 0, len(words))
+	runes := []rune(value)
+	parts := make([]string, 0)
 	start := 0
-	_ = collection.Each(slices.Values(words), func(word string) error {
-		end := start + len(word)
-		if end > len(value) {
-			parts = words
-			return io.EOF
+	for i := 1; i < len(runes); i++ {
+		prev := runes[i-1]
+		curr := runes[i]
+		nextIsLower := i+1 < len(runes) && unicode.IsLower(runes[i+1])
+		if unicode.IsLower(prev) && unicode.IsUpper(curr) || unicode.IsDigit(prev) && unicode.IsUpper(curr) || unicode.IsUpper(prev) && unicode.IsUpper(curr) && nextIsLower {
+			parts = append(parts, string(runes[start:i]))
+			start = i
 		}
-		parts = append(parts, value[start:end])
-		start = end
-		return nil
-	})
+	}
+	parts = append(parts, string(runes[start:]))
 	return parts
 }
 
@@ -226,6 +227,9 @@ func (r *Replacer) transformWord(word string, first, firstWordLowercase bool) st
 	lower := strings.ToLower(word)
 	rule, found := r.rules[lower]
 	if !found {
+		if compound, ok := r.compoundReplacement(lower, first, firstWordLowercase); ok {
+			return compound
+		}
 		if word == strings.ToUpper(word) {
 			return word
 		}
@@ -247,4 +251,33 @@ func (r *Replacer) transformWord(word string, first, firstWordLowercase bool) st
 		return strings.ToLower(rule.Replacement)
 	}
 	return rule.Replacement
+}
+
+func (r *Replacer) compoundReplacement(lower string, first, firstWordLowercase bool) (string, bool) {
+	parts, ok := r.compoundReplacementParts(lower)
+	if !ok || len(parts) < 2 {
+		return "", false
+	}
+	if first && firstWordLowercase {
+		parts[0] = strings.ToLower(parts[0])
+	}
+	return strings.Join(parts, ""), true
+}
+
+func (r *Replacer) compoundReplacementParts(lower string) ([]string, bool) {
+	if lower == "" {
+		return nil, true
+	}
+	for token, rule := range r.rules {
+		if !strings.HasPrefix(lower, token) || rule.Exceptions.Contains(lower) {
+			continue
+		}
+		remainder := strings.TrimPrefix(lower, token)
+		tail, ok := r.compoundReplacementParts(remainder)
+		if !ok {
+			continue
+		}
+		return append([]string{rule.Replacement}, tail...), true
+	}
+	return nil, false
 }

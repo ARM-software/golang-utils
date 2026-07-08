@@ -80,6 +80,16 @@ func TestCaseHelpersWithOptionalReplacer_StrcaseInspiredInitialisms(t *testing.T
 	assert.Equal(t, "jsonBlob", ToCamelCase("json_blob", r))
 	assert.Equal(t, "JSONBlob", ToPascalCase("json_blob", r))
 	assert.Equal(t, "json_blob", ToSnakeCase("JSONBlob", r))
+
+	acr, err := NewReplacer(
+		Rule{Token: "Aes", Replacement: "AES"},
+		Rule{Token: "Rsa", Replacement: "RSA"},
+	)
+	require.NoError(t, err)
+	assert.Equal(t, "hybridAESRSAEncryptedPayload", ToCamelCase("hybridAESRSAEncryptedPayload", acr))
+	assert.Equal(t, "hybridAESRSAEncryptedPayload", ToCamelCase("hybridAesrsaEncryptedPayload", acr))
+	assert.Equal(t, "HybridAESRSAEncryptedPayload", ToPascalCase("HybridAESRSAEncryptedPayload", acr))
+	assert.Equal(t, "HybridAESRSAEncryptedPayload", ToPascalCase("HybridAesrsaEncryptedPayload", acr))
 }
 
 func TestCaseHelpersUseOnlyFirstReplacer(t *testing.T) {
