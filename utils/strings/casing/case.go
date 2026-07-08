@@ -1,9 +1,12 @@
 package casing
 
 import (
+	"unicode"
+
 	"github.com/sttk/stringcase"
 
 	"github.com/ARM-software/golang-utils/utils/collection"
+	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
 // ToCamelCase converts value to camelCase and optionally applies a replacer to the resulting identifier. Only the first replacer is used.
@@ -19,6 +22,9 @@ func ToCamelCase(value string, replacers ...*Replacer) string {
 func ToPascalCase(value string, replacers ...*Replacer) string {
 	result := stringcase.PascalCase(value)
 	if replacer, ok := collection.First(replacers); ok && replacer != nil {
+		if isIdentifierWithoutSeparators(value) {
+			return replacer.Replace(value)
+		}
 		return replacer.Replace(result)
 	}
 	return result
@@ -40,4 +46,13 @@ func ToKebabCase(value string, replacers ...*Replacer) string {
 		result = replacer.Replace(stringcase.PascalCase(value))
 	}
 	return stringcase.KebabCase(result)
+}
+
+func isIdentifierWithoutSeparators(value string) bool {
+	if reflection.IsEmpty(value) {
+		return false
+	}
+	return collection.AllFunc([]rune(value), func(r rune) bool {
+		return unicode.IsLetter(r) || unicode.IsDigit(r)
+	})
 }
