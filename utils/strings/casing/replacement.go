@@ -194,7 +194,16 @@ func splitCamelWords(value string) []string {
 		prev := runes[i-1]
 		curr := runes[i]
 		nextIsLower := i+1 < len(runes) && unicode.IsLower(runes[i+1])
-		if unicode.IsLower(prev) && unicode.IsUpper(curr) || unicode.IsDigit(prev) && unicode.IsUpper(curr) || unicode.IsUpper(prev) && unicode.IsUpper(curr) && nextIsLower {
+		acronymPluralSuffix := hasPluralInitialismSuffix(runes, i)
+		if hasLowerPrefixAcronymBoundary(runes, i) {
+			continue
+		}
+		if hasInterfacePrefixAcronymBoundary(runes, i) {
+			parts = append(parts, string(runes[start:i]))
+			start = i
+			continue
+		}
+		if unicode.IsLower(prev) && unicode.IsUpper(curr) || unicode.IsDigit(prev) && unicode.IsUpper(curr) || unicode.IsUpper(prev) && unicode.IsUpper(curr) && nextIsLower && !acronymPluralSuffix {
 			parts = append(parts, string(runes[start:i]))
 			start = i
 		}
@@ -273,6 +282,9 @@ func (r *Replacer) compoundReplacementParts(lower string) ([]string, bool) {
 			continue
 		}
 		remainder := strings.TrimPrefix(lower, token)
+		if suffix, ok := splitPluralInitialismSuffix(remainder); ok {
+			return append([]string{rule.Replacement}, suffix...), true
+		}
 		tail, ok := r.compoundReplacementParts(remainder)
 		if !ok {
 			continue

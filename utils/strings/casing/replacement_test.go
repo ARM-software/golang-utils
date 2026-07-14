@@ -82,6 +82,7 @@ func TestReplacerReplace(t *testing.T) {
 		Rule{Token: "Ai", Replacement: "AI"},
 		Rule{Token: "Api", Replacement: "API"},
 		Rule{Token: "Id", Replacement: "ID", Exceptions: []string{"identifier", "idempotent"}},
+		Rule{Token: "Url", Replacement: "URL"},
 	)
 	require.NoError(t, err)
 
@@ -98,6 +99,11 @@ func TestReplacerReplace(t *testing.T) {
 	assert.Equal(t, "", r.Replace(""))
 
 	assert.Equal(t, "AIAPI", r.Replace("AIAPI"))
+	assert.Equal(t, "IHTTP", r.Replace("IHTTP"))
+	assert.Equal(t, "URLs", r.Replace("Urls"))
+	assert.Equal(t, "userURLs", r.Replace("userUrls"))
+	assert.Equal(t, "UserURLs", r.Replace("UserUrls"))
+	assert.Equal(t, "urls", r.Replace("urls"))
 	assert.Equal(t, "HTTPAPIToken", r.Replace("HTTPApiToken"))
 	assert.Equal(t, "HTTPAPIToken", r.Replace("HTTPAPIToken"))
 }
@@ -119,6 +125,10 @@ func TestInitialismRules(t *testing.T) {
 
 	assert.Equal(t, "UserID", r.Replace("UserId"))
 	assert.Equal(t, "userID", r.Replace("userId"))
+	assert.Equal(t, "IHTTP", r.Replace("IHTTP"))
+	assert.Equal(t, "URLs", r.Replace("Urls"))
+	assert.Equal(t, "UserURLs", r.Replace("UserUrls"))
+	assert.Equal(t, "userURLs", r.Replace("userUrls"))
 	assert.Equal(t, "HTTPAPIToken", r.Replace("HttpApiToken"))
 	assert.Equal(t, "JSONBlob", r.Replace("JsonBlob"))
 }
@@ -127,5 +137,9 @@ func TestInitialismReplacer(t *testing.T) {
 	require.NotNil(t, InitialismReplacer)
 	assert.Equal(t, "UserID", InitialismReplacer.Replace("UserId"))
 	assert.Equal(t, "userID", InitialismReplacer.Replace("userId"))
+	assert.Equal(t, "IHTTP", InitialismReplacer.Replace("IHTTP"))
+	assert.Equal(t, "URLs", InitialismReplacer.Replace("Urls"))
+	assert.Equal(t, "UserURLs", InitialismReplacer.Replace("UserUrls"))
+	assert.Equal(t, "userURLs", InitialismReplacer.Replace("userUrls"))
 	assert.Equal(t, "HTTPAPIToken", InitialismReplacer.Replace("HttpApiToken"))
 }
