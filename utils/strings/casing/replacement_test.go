@@ -81,7 +81,11 @@ func TestReplacerReplace(t *testing.T) {
 	r, err := NewReplacer(
 		Rule{Token: "Ai", Replacement: "AI"},
 		Rule{Token: "Api", Replacement: "API"},
+		Rule{Token: "Http", Replacement: "HTTP"},
+		Rule{Token: "Https", Replacement: "HTTPS"},
 		Rule{Token: "Id", Replacement: "ID", Exceptions: []string{"identifier", "idempotent"}},
+		Rule{Token: "Url", Replacement: "URL"},
+		Rule{Token: "Xss", Replacement: "XSS"},
 	)
 	require.NoError(t, err)
 
@@ -98,6 +102,20 @@ func TestReplacerReplace(t *testing.T) {
 	assert.Equal(t, "", r.Replace(""))
 
 	assert.Equal(t, "AIAPI", r.Replace("AIAPI"))
+	assert.Equal(t, "https", r.Replace("https"))
+	assert.Equal(t, "HTTPS", r.Replace("Https"))
+	assert.Equal(t, "HTTPS", r.Replace("HTTPS"))
+	assert.Equal(t, "IHTTP", r.Replace("IHTTP"))
+	assert.Equal(t, "IHTTPS", r.Replace("IHTTPS"))
+	assert.Equal(t, "IHTTPS", r.Replace("IHttps"))
+	assert.Equal(t, "aHTTPClient", r.Replace("aHTTPClient"))
+	assert.Equal(t, "xss", r.Replace("xss"))
+	assert.Equal(t, "XSS", r.Replace("Xss"))
+	assert.Equal(t, "xURLValue", r.Replace("xURLValue"))
+	assert.Equal(t, "URLs", r.Replace("Urls"))
+	assert.Equal(t, "userURLs", r.Replace("userUrls"))
+	assert.Equal(t, "UserURLs", r.Replace("UserUrls"))
+	assert.Equal(t, "urls", r.Replace("urls"))
 	assert.Equal(t, "HTTPAPIToken", r.Replace("HTTPApiToken"))
 	assert.Equal(t, "HTTPAPIToken", r.Replace("HTTPAPIToken"))
 }
@@ -119,6 +137,19 @@ func TestInitialismRules(t *testing.T) {
 
 	assert.Equal(t, "UserID", r.Replace("UserId"))
 	assert.Equal(t, "userID", r.Replace("userId"))
+	assert.Equal(t, "IHTTP", r.Replace("IHTTP"))
+	assert.Equal(t, "https", r.Replace("https"))
+	assert.Equal(t, "HTTPS", r.Replace("Https"))
+	assert.Equal(t, "HTTPS", r.Replace("HTTPS"))
+	assert.Equal(t, "IHTTPS", r.Replace("IHTTPS"))
+	assert.Equal(t, "IHTTPS", r.Replace("IHttps"))
+	assert.Equal(t, "aHTTPClient", r.Replace("aHTTPClient"))
+	assert.Equal(t, "xss", r.Replace("xss"))
+	assert.Equal(t, "XSS", r.Replace("Xss"))
+	assert.Equal(t, "xURLValue", r.Replace("xURLValue"))
+	assert.Equal(t, "URLs", r.Replace("Urls"))
+	assert.Equal(t, "UserURLs", r.Replace("UserUrls"))
+	assert.Equal(t, "userURLs", r.Replace("userUrls"))
 	assert.Equal(t, "HTTPAPIToken", r.Replace("HttpApiToken"))
 	assert.Equal(t, "JSONBlob", r.Replace("JsonBlob"))
 }
@@ -127,5 +158,18 @@ func TestInitialismReplacer(t *testing.T) {
 	require.NotNil(t, InitialismReplacer)
 	assert.Equal(t, "UserID", InitialismReplacer.Replace("UserId"))
 	assert.Equal(t, "userID", InitialismReplacer.Replace("userId"))
+	assert.Equal(t, "IHTTP", InitialismReplacer.Replace("IHTTP"))
+	assert.Equal(t, "https", InitialismReplacer.Replace("https"))
+	assert.Equal(t, "HTTPS", InitialismReplacer.Replace("Https"))
+	assert.Equal(t, "HTTPS", InitialismReplacer.Replace("HTTPS"))
+	assert.Equal(t, "IHTTPS", InitialismReplacer.Replace("IHTTPS"))
+	assert.Equal(t, "IHTTPS", InitialismReplacer.Replace("IHttps"))
+	assert.Equal(t, "aHTTPClient", InitialismReplacer.Replace("aHTTPClient"))
+	assert.Equal(t, "xss", InitialismReplacer.Replace("xss"))
+	assert.Equal(t, "XSS", InitialismReplacer.Replace("Xss"))
+	assert.Equal(t, "xURLValue", InitialismReplacer.Replace("xURLValue"))
+	assert.Equal(t, "URLs", InitialismReplacer.Replace("Urls"))
+	assert.Equal(t, "UserURLs", InitialismReplacer.Replace("UserUrls"))
+	assert.Equal(t, "userURLs", InitialismReplacer.Replace("userUrls"))
 	assert.Equal(t, "HTTPAPIToken", InitialismReplacer.Replace("HttpApiToken"))
 }

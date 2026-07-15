@@ -14,6 +14,48 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.165.2" (2026-07-15)
+======================
+
+Bugfixes
+--------
+
+- :bug: Strings/casing: recognise the codebase's `I...` interface naming convention when handling acronym-prefixed identifiers such as `IHTTP`. (#20260707151500)
+- :bug: Strings/casing: improve plural initialism handling so identifiers such as `Urls` can be normalised to `URLs` where appropriate. (#20260707151600)
+- Dependency upgrade: text-0.40.0 (#20260709101319)
+- Dependency upgrade: codeql-action-4.37.0 (#20260709101326)
+- Dependency upgrade: net-0.57.0 (#20260709101336)
+- Dependency upgrade: crypto-0.54.0 (#20260709101342)
+- Dependency upgrade: sync-0.22.0 (#20260709101404)
+- Dependency upgrade: sys-0.47.0 (#20260714172504)
+
+
+"1.165.1" (2026-07-08)
+======================
+
+Bugfixes
+--------
+
+- :bug: `[casing]` fix toPascalCase regression (#20260708165859)
+
+
+"1.165.0" (2026-07-08)
+======================
+
+Features
+--------
+
+- :sparkles: `[Retry]` add composable retry options with jitter, retry budget, etc. to ease the definition of retry strategies. (#20260707125500)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: codeql-action-4.36.3 (#20260702101311)
+- Dependency upgrade: text-0.39.0 (#20260707101311)
+- :bug: `[casing]` fix casing helpers so adjacent acronym runs like AESRSA are preserved in existing camelCase and PascalCase identifiers instead of collapsing to Aesrsa. (#20260708153417)
+
+
 "1.164.1" (2026-07-01)
 ======================
 

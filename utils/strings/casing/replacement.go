@@ -182,26 +182,6 @@ func (r *Replacer) WriteString(ctx context.Context, w io.Writer, s string) (n in
 	return safeio.WriteString(ctx, w, r.Replace(s))
 }
 
-func splitCamelWords(value string) []string {
-	if reflection.IsEmpty(value) {
-		return nil
-	}
-	words := strings.Split(stringcase.SnakeCase(value), "_")
-	parts := make([]string, 0, len(words))
-	start := 0
-	_ = collection.Each(slices.Values(words), func(word string) error {
-		end := start + len(word)
-		if end > len(value) {
-			parts = words
-			return io.EOF
-		}
-		parts = append(parts, value[start:end])
-		start = end
-		return nil
-	})
-	return parts
-}
-
 func mergeRuleExceptions(groups ...[]string) []string {
 	merged := mapset.NewSet[string]()
 	collection.ForEach(groups, func(exceptions []string) {
@@ -226,6 +206,9 @@ func (r *Replacer) transformWord(word string, first, firstWordLowercase bool) st
 	lower := strings.ToLower(word)
 	rule, found := r.rules[lower]
 	if !found {
+		if compound, ok := r.buildAdjacentTokenReplacement(lower, first, firstWordLowercase); ok {
+			return compound
+		}
 		if word == strings.ToUpper(word) {
 			return word
 		}
@@ -247,4 +230,56 @@ func (r *Replacer) transformWord(word string, first, firstWordLowercase bool) st
 		return strings.ToLower(rule.Replacement)
 	}
 	return rule.Replacement
+}
+
+// buildAdjacentTokenReplacement tries to treat a single identifier word as a
+// sequence of adjacent known tokens, such as `userurls` -> `userURLs` or
+// `https` -> `HTTPS`. When that succeeds, it rebuilds the combined replacement
+// while preserving the caller's desired first-word casing.
+func (r *Replacer) buildAdjacentTokenReplacement(lower string, first, firstWordLowercase bool) (string, bool) {
+	parts, ok := r.splitAdjacentTokenReplacementParts(lower)
+	if !ok || len(parts) < 2 {
+		return "", false
+	}
+	joined := strings.Join(parts, "")
+	if first && firstWordLowercase {
+		parts[0] = strings.ToLower(parts[0])
+		return strings.Join(parts, ""), true
+	}
+	return joined, true
+}
+
+// splitAdjacentTokenReplacementParts recursively splits a lower-cased word into
+// known replacement tokens. It prefers longer prefixes first, but backtracks
+// when a longer match leaves an invalid remainder, so overlapping rules can
+// still form a valid decomposition.
+func (r *Replacer) splitAdjacentTokenReplacementParts(lower string) ([]string, bool) {
+	if lower == "" {
+		return nil, true
+	}
+	tokens := make([]string, 0, len(r.rules))
+	for token, rule := range r.rules {
+		if !strings.HasPrefix(lower, token) || rule.Exceptions.Contains(lower) {
+			continue
+		}
+		tokens = append(tokens, token)
+	}
+	slices.SortFunc(tokens, func(left, right string) int {
+		return len(right) - len(left)
+	})
+	for _, token := range tokens {
+		rule := r.rules[token]
+		remainder := strings.TrimPrefix(lower, token)
+		if suffix, ok := splitPluralInitialismSuffix(remainder); ok {
+			return append([]string{rule.Replacement}, suffix...), true
+		}
+		if suffix, ok := splitNumericInitialismSuffix(remainder); ok {
+			return append([]string{rule.Replacement}, suffix...), true
+		}
+		tail, ok := r.splitAdjacentTokenReplacementParts(remainder)
+		if ok {
+			return append([]string{rule.Replacement}, tail...), true
+		}
+	}
+	return nil, false
 }
