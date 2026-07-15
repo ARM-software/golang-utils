@@ -13,7 +13,16 @@ func hasLowerPrefixAcronymBoundary(runes []rune, index int) bool {
 	if index != 1 || len(runes) < 3 {
 		return false
 	}
-	return unicode.IsLower(runes[index-1]) && unicode.IsUpper(runes[index]) && index+1 < len(runes) && unicode.IsUpper(runes[index+1])
+	if !unicode.IsLower(runes[index-1]) || !unicode.IsUpper(runes[index]) || index+1 >= len(runes) || !unicode.IsUpper(runes[index+1]) {
+		return false
+	}
+	for i := index; i < len(runes); i++ {
+		if unicode.IsUpper(runes[i]) || unicode.IsDigit(runes[i]) {
+			continue
+		}
+		return i == len(runes)-1 && runes[i] == 's'
+	}
+	return true
 }
 
 func splitPluralInitialismSuffix(remainder string) ([]string, bool) {

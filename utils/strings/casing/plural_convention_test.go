@@ -17,7 +17,7 @@ func TestPluralConventionHelpers(t *testing.T) {
 
 	parts, ok := splitPluralInitialismSuffix("s")
 	assert.True(t, ok)
-	assert.Equal(t, []string{"s"}, parts)
+	assert.ElementsMatch(t, []string{"s"}, parts)
 
 	parts, ok = splitPluralInitialismSuffix("tail")
 	assert.False(t, ok)

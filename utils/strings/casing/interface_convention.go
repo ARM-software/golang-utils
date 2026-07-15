@@ -36,7 +36,7 @@ func normaliseInterfacePrefixedAcronym(value string, replacer *Replacer, lowerPr
 	if runes[0] != 'I' && runes[0] != 'i' {
 		return "", false
 	}
-	parts, ok := replacer.compoundReplacementParts(strings.ToLower(string(runes[1:])))
+	parts, ok := replacer.splitAdjacentTokenReplacementParts(strings.ToLower(string(runes[1:])))
 	if !ok || len(parts) == 0 {
 		return "", false
 	}

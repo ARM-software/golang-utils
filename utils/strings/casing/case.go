@@ -2,12 +2,10 @@ package casing
 
 import (
 	"strings"
-	"unicode"
 
 	"github.com/sttk/stringcase"
 
 	"github.com/ARM-software/golang-utils/utils/collection"
-	"github.com/ARM-software/golang-utils/utils/reflection"
 )
 
 // ToCamelCase converts value to camelCase and optionally applies a replacer to the resulting identifier. Only the first replacer is used.
@@ -17,7 +15,11 @@ func ToCamelCase(value string, replacers ...*Replacer) string {
 			return normalised
 		}
 		if isIdentifierWithoutSeparators(value) {
-			return lowerFirstWord(replaceIdentifierWords(value, replacer))
+			replaced := replaceIdentifierWords(value, replacer, true)
+			if strings.ToLower(value) == value && isUpperInitialismOrPlural(replaced) {
+				return strings.ToLower(replaced)
+			}
+			return lowerFirstWord(replaced)
 		}
 		result := stringcase.CamelCase(prepareCaseInput(value))
 		return replacer.Replace(result)
@@ -32,7 +34,7 @@ func ToPascalCase(value string, replacers ...*Replacer) string {
 			return normalised
 		}
 		if isIdentifierWithoutSeparators(value) {
-			return replaceIdentifierWords(value, replacer)
+			return replaceIdentifierWords(value, replacer, false)
 		}
 		result := stringcase.PascalCase(prepareCaseInput(value))
 		return replacer.Replace(result)
@@ -48,14 +50,17 @@ func ToSnakeCase(value string, replacers ...*Replacer) string {
 			return strings.ToLower(normalised)
 		}
 		if isIdentifierWithoutSeparators(value) {
-			result = replaceIdentifierWords(value, replacer)
+			result = replaceIdentifierWords(value, replacer, startsWithLowercase(value))
 		} else {
 			result = replacer.Replace(stringcase.PascalCase(prepareCaseInput(value)))
 		}
 		if isInterfacePrefixedAcronym(result) {
 			return strings.ToLower(result)
 		}
-		return strings.ToLower(strings.Join(splitCamelWords(result), "_"))
+		if parts, ok := splitLeadingLetterCompound(result, replacer); ok {
+			return formSnakeCasedWords(parts)
+		}
+		return formSnakeCasedWords(splitCamelWords(result))
 	}
 	return stringcase.SnakeCase(result)
 }
@@ -68,62 +73,17 @@ func ToKebabCase(value string, replacers ...*Replacer) string {
 			return strings.ToLower(normalised)
 		}
 		if isIdentifierWithoutSeparators(value) {
-			result = replaceIdentifierWords(value, replacer)
+			result = replaceIdentifierWords(value, replacer, startsWithLowercase(value))
 		} else {
 			result = replacer.Replace(stringcase.PascalCase(prepareCaseInput(value)))
 		}
 		if isInterfacePrefixedAcronym(result) {
 			return strings.ToLower(result)
 		}
-		return strings.ToLower(strings.Join(splitCamelWords(result), "-"))
+		if parts, ok := splitLeadingLetterCompound(result, replacer); ok {
+			return formKebabCasedWords(parts)
+		}
+		return formKebabCasedWords(splitCamelWords(result))
 	}
 	return stringcase.KebabCase(result)
-}
-
-func prepareCaseInput(value string) string {
-	if !isIdentifierWithoutSeparators(value) || !hasUppercase(value) {
-		return value
-	}
-	parts := splitCamelWords(value)
-	if len(parts) <= 1 {
-		return value
-	}
-	return strings.Join(parts, "_")
-}
-
-func isIdentifierWithoutSeparators(value string) bool {
-	if reflection.IsEmpty(value) {
-		return false
-	}
-	return collection.AllFunc([]rune(value), func(r rune) bool {
-		return unicode.IsLetter(r) || unicode.IsDigit(r)
-	})
-}
-
-func hasUppercase(value string) bool {
-	return collection.AnyFunc([]rune(value), unicode.IsUpper)
-}
-
-func replaceIdentifierWords(value string, replacer *Replacer) string {
-	if parts, ok := replacer.compoundReplacementParts(strings.ToLower(value)); ok && len(parts) > 0 {
-		return strings.Join(parts, "")
-	}
-	parts := splitCamelWords(value)
-	if len(parts) == 0 {
-		return value
-	}
-	var builder strings.Builder
-	collection.ForEach(parts, func(part string) {
-		builder.WriteString(replacer.transformWord(part, builder.Len() == 0, false))
-	})
-	return builder.String()
-}
-
-func lowerFirstWord(value string) string {
-	parts := splitCamelWords(value)
-	if len(parts) == 0 {
-		return value
-	}
-	parts[0] = strings.ToLower(parts[0])
-	return strings.Join(parts, "")
 }
