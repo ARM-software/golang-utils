@@ -329,6 +329,27 @@ func RequiredProperties(keys ...string) validation.Rule {
 	})
 }
 
+// RequiredPropertiesBy resolves strings, `[]string`, or field references such
+// as `&cfg.Name` against the validated value and applies [RequiredProperties]
+// using the resulting property names.
+//
+// String and `[]string` arguments are treated as literal keys. Field pointers
+// are resolved back to their struct field names.
+//
+// Example:
+//
+//	cfg := &Config{}
+//	err := validation.Validate(cfg, RequiredPropertiesBy(&cfg.Name, &cfg.Enabled, &cfg.Mode))
+func RequiredPropertiesBy(keys ...any) validation.Rule {
+	return validation.By(func(value any) error {
+		normalizedKeys, err := propertyNamesForValue(value, keys...)
+		if err != nil {
+			return err
+		}
+		return RequiredProperties(normalizedKeys...).Validate(value)
+	})
+}
+
 // DependentRequired validates the JSON Schema `dependentRequired` constraint.
 //
 // For each trigger property key in dependencies, if that property is present,
@@ -363,6 +384,24 @@ func DependentRequired(dependencies map[string][]string) validation.Rule {
 	})
 }
 
+// DependentRequiredBy resolves dependency trigger keys from strings or field
+// references and dependent properties from strings, `[]string`, or field
+// references before applying [DependentRequired].
+//
+// Example:
+//
+//	cfg := &Config{}
+//	err := validation.Validate(cfg, DependentRequiredBy(map[any]any{&cfg.Username: []any{&cfg.Password, &cfg.Scheme}}))
+func DependentRequiredBy(dependencies map[any]any) validation.Rule {
+	return validation.By(func(value any) error {
+		normalised, err := propertyDependenciesForValue(value, dependencies)
+		if err != nil {
+			return err
+		}
+		return DependentRequired(normalised).Validate(value)
+	})
+}
+
 // DependentSchemas validates the JSON Schema `dependentSchemas` constraint.
 //
 // For each trigger property key in dependencies, if that property is present,
@@ -387,6 +426,23 @@ func DependentSchemas(dependencies map[string]validation.Rule) validation.Rule {
 			}
 		}
 		return nil
+	})
+}
+
+// DependentSchemasBy resolves dependency trigger properties from strings or
+// field references before applying [DependentSchemas].
+//
+// Example:
+//
+//	cfg := &Config{}
+//	err := validation.Validate(cfg, DependentSchemasBy(map[any]validation.Rule{&cfg.Username: RequiredPropertiesBy(&cfg.Password)}))
+func DependentSchemasBy(dependencies map[any]validation.Rule) validation.Rule {
+	return validation.By(func(value any) error {
+		normalised, err := propertyRulesForValue(value, dependencies)
+		if err != nil {
+			return err
+		}
+		return DependentSchemas(normalised).Validate(value)
 	})
 }
 
@@ -477,6 +533,24 @@ func AdditionalProperties(keys ...string) validation.Rule {
 	})
 }
 
+// AdditionalPropertiesBy resolves strings, `[]string`, or field references
+// against the validated value and applies [AdditionalProperties] using the
+// resulting names.
+//
+// Example:
+//
+//	cfg := &Config{}
+//	err := validation.Validate(cfg, AdditionalPropertiesBy(&cfg.Name, &cfg.Enabled, &cfg.Mode))
+func AdditionalPropertiesBy(keys ...any) validation.Rule {
+	return validation.By(func(value any) error {
+		normalizedKeys, err := propertyNamesForValue(value, keys...)
+		if err != nil {
+			return err
+		}
+		return AdditionalProperties(normalizedKeys...).Validate(value)
+	})
+}
+
 // MutuallyExclusiveWith validates that at most one of the named keys or fields
 // is set in a map or struct value.
 //
@@ -525,6 +599,24 @@ func MutuallyExclusiveWith(keys ...string) validation.Rule {
 	})
 }
 
+// MutuallyExclusiveWithBy resolves strings, `[]string`, or field references
+// against the validated value and applies [MutuallyExclusiveWith] using the
+// resulting property names.
+//
+// Example:
+//
+//	cfg := &Config{}
+//	err := validation.Validate(cfg, MutuallyExclusiveWithBy(&cfg.Token, &cfg.Username, &cfg.APIKey))
+func MutuallyExclusiveWithBy(keys ...any) validation.Rule {
+	return validation.By(func(value any) error {
+		normalizedKeys, err := propertyNamesForValue(value, keys...)
+		if err != nil {
+			return err
+		}
+		return MutuallyExclusiveWith(normalizedKeys...).Validate(value)
+	})
+}
+
 // AtMostOneProperty validates that no more than one of the named keys or fields
 // is set in a map or struct value.
 //
@@ -537,6 +629,23 @@ func MutuallyExclusiveWith(keys ...string) validation.Rule {
 // OpenAPI reference: https://spec.openapis.org/oas/latest.html#schema-object
 func AtMostOneProperty(keys ...string) validation.Rule {
 	return MutuallyExclusiveWith(keys...)
+}
+
+// AtMostOnePropertyBy resolves strings, `[]string`, or field references against
+// the validated value and applies [AtMostOneProperty].
+//
+// Example:
+//
+//	cfg := &Config{}
+//	err := validation.Validate(cfg, AtMostOnePropertyBy(&cfg.Token, &cfg.Username, &cfg.APIKey))
+func AtMostOnePropertyBy(keys ...any) validation.Rule {
+	return validation.By(func(value any) error {
+		normalizedKeys, err := propertyNamesForValue(value, keys...)
+		if err != nil {
+			return err
+		}
+		return AtMostOneProperty(normalizedKeys...).Validate(value)
+	})
 }
 
 // OneOfProperties validates that exactly one of the named keys or fields is set
@@ -560,6 +669,23 @@ func OneOfProperties(keys ...string) validation.Rule {
 			return errMutuallyExclusive
 		}
 		return nil
+	})
+}
+
+// OneOfPropertiesBy resolves strings, `[]string`, or field references against
+// the validated value and applies [OneOfProperties].
+//
+// Example:
+//
+//	cfg := &Config{}
+//	err := validation.Validate(cfg, OneOfPropertiesBy(&cfg.Token, &cfg.Username, &cfg.APIKey))
+func OneOfPropertiesBy(keys ...any) validation.Rule {
+	return validation.By(func(value any) error {
+		normalizedKeys, err := propertyNamesForValue(value, keys...)
+		if err != nil {
+			return err
+		}
+		return OneOfProperties(normalizedKeys...).Validate(value)
 	})
 }
 
@@ -587,6 +713,23 @@ func AtLeastOneProperty(keys ...string) validation.Rule {
 	})
 }
 
+// AtLeastOnePropertyBy resolves strings, `[]string`, or field references
+// against the validated value and applies [AtLeastOneProperty].
+//
+// Example:
+//
+//	cfg := &Config{}
+//	err := validation.Validate(cfg, AtLeastOnePropertyBy(&cfg.Token, &cfg.Username, &cfg.APIKey))
+func AtLeastOnePropertyBy(keys ...any) validation.Rule {
+	return validation.By(func(value any) error {
+		normalizedKeys, err := propertyNamesForValue(value, keys...)
+		if err != nil {
+			return err
+		}
+		return AtLeastOneProperty(normalizedKeys...).Validate(value)
+	})
+}
+
 // ForbiddenProperties validates that none of the named keys or fields is set in
 // a map or struct value.
 //
@@ -607,6 +750,23 @@ func ForbiddenProperties(keys ...string) validation.Rule {
 			return errAdditionalProperties
 		}
 		return nil
+	})
+}
+
+// ForbiddenPropertiesBy resolves strings, `[]string`, or field references
+// against the validated value and applies [ForbiddenProperties].
+//
+// Example:
+//
+//	cfg := &Config{}
+//	err := validation.Validate(cfg, ForbiddenPropertiesBy(&cfg.Debug, &cfg.InternalOnly))
+func ForbiddenPropertiesBy(keys ...any) validation.Rule {
+	return validation.By(func(value any) error {
+		normalizedKeys, err := propertyNamesForValue(value, keys...)
+		if err != nil {
+			return err
+		}
+		return ForbiddenProperties(normalizedKeys...).Validate(value)
 	})
 }
 

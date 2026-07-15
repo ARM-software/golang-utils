@@ -265,3 +265,157 @@ func objectPropertyNamesFromAccessor(props *objectAccessor) []string {
 	}
 	return slices.Clone(props.names)
 }
+
+// referencedStructValue extracts the addressable struct instance used to resolve
+// field references such as `&cfg.Name` back to property names.
+//
+// This intentionally stays close to the logic ozzo-validation uses internally
+// for `Field(&value.Name, ...)` lookups in `struct.go`, but that helper is not
+// exposed by ozzo so this package reimplements the same idea for the `...By`
+// property rules.
+//
+// References:
+//   - https://github.com/go-ozzo/ozzo-validation/blob/34bd5476bd5bb4884aee8252974da4cd4e878a75/struct.go#L75
+//   - https://github.com/go-ozzo/ozzo-validation/blob/34bd5476bd5bb4884aee8252974da4cd4e878a75/struct.go#L134
+func referencedStructValue(value any) (rv reflect.Value, isNil bool, err error) {
+	rv = reflect.ValueOf(value)
+	if !rv.IsValid() {
+		return reflect.Value{}, true, nil
+	}
+	if rv.Kind() == reflect.Interface {
+		if rv.IsNil() {
+			return reflect.Value{}, true, nil
+		}
+		rv = rv.Elem()
+	}
+	if rv.Kind() != reflect.Pointer {
+		return reflect.Value{}, false, commonerrors.New(commonerrors.ErrInvalid, "field-reference rules require a pointer to a struct value")
+	}
+	if rv.IsNil() {
+		return reflect.Value{}, true, nil
+	}
+	rv = rv.Elem()
+	if rv.Kind() != reflect.Struct {
+		return reflect.Value{}, false, errMapRequired
+	}
+	return rv, false, nil
+}
+
+func propertyNamesForValue(value any, keys ...any) (result []string, err error) {
+	if len(keys) == 0 {
+		return nil, nil
+	}
+	result = collection.Reduce(keys, []string(nil), func(acc []string, key any) []string {
+		names, subErr := propertyNamesForSpecifier(value, key)
+		if subErr != nil {
+			err = subErr
+			return acc
+		}
+		return append(acc, names...)
+	})
+	if err != nil {
+		return nil, err
+	}
+	return collection.UniqueEntries(result), nil
+}
+
+func propertyNamesForSpecifier(value any, key any) ([]string, error) {
+	if name, ok := key.(string); ok {
+		return []string{name}, nil
+	}
+	if names, ok := key.([]string); ok {
+		return slices.Clone(names), nil
+	}
+	if values, ok := key.([]any); ok {
+		return propertyNamesForValue(value, values...)
+	}
+	name, err := propertyNameForValue(value, key)
+	if err != nil {
+		return nil, err
+	}
+	return []string{name}, nil
+}
+
+func propertyNameForValue(value any, key any) (string, error) {
+	if name, ok := key.(string); ok {
+		return name, nil
+	}
+	rv, isNil, err := referencedStructValue(value)
+	if err != nil || isNil {
+		return "", err
+	}
+	return structFieldNameFromReference(rv, reflect.ValueOf(key))
+}
+
+// structFieldNameFromReference mirrors ozzo-validation's unexported
+// `findStructField` lookup closely: it compares the pointer address of the
+// referenced field, walks fields in reverse order, verifies the field type, and
+// descends into anonymous embedded structs.
+func structFieldNameFromReference(rv reflect.Value, refValue reflect.Value) (string, error) {
+	if !refValue.IsValid() || refValue.Kind() != reflect.Pointer || refValue.IsNil() {
+		referenceType := "<invalid>"
+		if refValue.IsValid() {
+			referenceType = refValue.Type().String()
+		}
+		return "", commonerrors.Newf(commonerrors.ErrInvalid, "property reference must be a non-nil field pointer, string, or []string, got %s", referenceType)
+	}
+	if field := findStructFieldByReference(rv, refValue); field != nil {
+		return field.Name, nil
+	}
+	return "", commonerrors.Newf(commonerrors.ErrInvalid, "property reference %T does not match any field on %T", refValue.Interface(), rv.Interface())
+}
+
+func findStructFieldByReference(structValue reflect.Value, fieldValue reflect.Value) *reflect.StructField {
+	ptr := fieldValue.Pointer()
+	for i := structValue.NumField() - 1; i >= 0; i-- {
+		sf := structValue.Type().Field(i)
+		if ptr == structValue.Field(i).UnsafeAddr() && sf.Type == fieldValue.Elem().Type() {
+			return &sf
+		}
+		if !sf.Anonymous {
+			continue
+		}
+		fi := structValue.Field(i)
+		if sf.Type.Kind() == reflect.Pointer {
+			if fi.IsNil() {
+				continue
+			}
+			fi = fi.Elem()
+		}
+		if fi.Kind() != reflect.Struct {
+			continue
+		}
+		if field := findStructFieldByReference(fi, fieldValue); field != nil {
+			return field
+		}
+	}
+	return nil
+}
+
+func propertyDependenciesForValue(value any, dependencies map[any]any) (map[string][]string, error) {
+	normalised := make(map[string][]string, len(dependencies))
+	for key, dependents := range dependencies {
+		name, err := propertyNameForValue(value, key)
+		if err != nil {
+			return nil, err
+		}
+		names, err := propertyNamesForSpecifier(value, dependents)
+		if err != nil {
+			return nil, err
+		}
+		normalised[name] = collection.UniqueEntries(names)
+	}
+	return normalised, nil
+}
+
+func propertyRulesForValue(value any, rules map[any]validation.Rule) (map[string]validation.Rule, error) {
+	normalised := make(map[string]validation.Rule, len(rules))
+	for key, rule := range rules {
+		name, err := propertyNameForValue(value, key)
+		if err != nil {
+			return nil, err
+		}
+		normalised[name] = rule
+	}
+	return normalised, nil
+}

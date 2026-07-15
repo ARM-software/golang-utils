@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ARM-software/golang-utils/utils/collection"
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/field"
 )
 
@@ -163,5 +165,68 @@ func TestJSONSchemaInspiredRules(t *testing.T) {
 
 		assert.NoError(t, validation.Validate("hello", NotEmpty()))
 		assert.Error(t, validation.Validate("   ", NotEmpty()))
+	})
+}
+
+func TestJSONSchemaInspiredRulesFieldReferences(t *testing.T) {
+	type fields struct {
+		A int
+		B int
+		C int
+	}
+
+	t.Run("required and additional properties", func(t *testing.T) {
+		value := &fields{A: 1, B: 2}
+		assert.NoError(t, validation.Validate(value, RequiredPropertiesBy(&value.A, &value.B)))
+		assert.NoError(t, validation.Validate(value, RequiredPropertiesBy([]string{"A", "B"})))
+		assert.Error(t, validation.Validate(value, RequiredPropertiesBy(&value.A, &value.C)))
+		assert.NoError(t, validation.Validate(value, AdditionalPropertiesBy(&value.A, "B", &value.C)))
+		assert.NoError(t, validation.Validate(value, AdditionalPropertiesBy([]string{"A", "B", "C"})))
+		assert.Error(t, validation.Validate(value, AdditionalPropertiesBy(&value.A)))
+	})
+
+	t.Run("dependent properties and schemas", func(t *testing.T) {
+		value := &fields{A: 1, B: 2, C: 3}
+		assert.NoError(t, validation.Validate(value, DependentRequiredBy(map[any]any{&value.A: []any{&value.B, &value.C}})))
+		assert.Error(t, validation.Validate(&fields{A: 1, B: 2}, DependentRequiredBy(map[any]any{&value.A: []any{&value.B, &value.C}})))
+		assert.NoError(t, validation.Validate(value, DependentSchemasBy(map[any]validation.Rule{&value.A: RequiredPropertiesBy(&value.B)})))
+		assert.Error(t, validation.Validate(&fields{A: 1}, DependentSchemasBy(map[any]validation.Rule{&value.A: RequiredPropertiesBy(&value.B)})))
+	})
+
+	t.Run("exclusive variants", func(t *testing.T) {
+		value := &fields{A: 1}
+		assert.NoError(t, validation.Validate(value, MutuallyExclusiveWithBy(&value.A, &value.B)))
+		assert.NoError(t, validation.Validate(value, AtMostOnePropertyBy(&value.A, &value.B)))
+		assert.NoError(t, validation.Validate(value, OneOfPropertiesBy(&value.A, &value.B)))
+		assert.NoError(t, validation.Validate(value, AtLeastOnePropertyBy(&value.A, &value.B)))
+		assert.NoError(t, validation.Validate(value, ForbiddenPropertiesBy(&value.B, &value.C)))
+
+		value.B = 2
+		assert.Error(t, validation.Validate(value, MutuallyExclusiveWithBy(&value.A, &value.B)))
+		assert.Error(t, validation.Validate(value, AtMostOnePropertyBy(&value.A, &value.B)))
+		assert.Error(t, validation.Validate(value, OneOfPropertiesBy(&value.A, &value.B)))
+		assert.Error(t, validation.Validate(value, ForbiddenPropertiesBy(&value.A, &value.B)))
+
+		assert.Error(t, validation.Validate(&fields{}, OneOfPropertiesBy(&value.A, &value.B)))
+		assert.Error(t, validation.Validate(&fields{}, AtLeastOnePropertyBy(&value.A, &value.B)))
+	})
+
+	t.Run("unmatched reference", func(t *testing.T) {
+		value := &fields{A: 1}
+		other := &fields{}
+		err := validation.Validate(value, RequiredPropertiesBy(&other.A))
+		errortest.AssertError(t, err, commonerrors.ErrInvalid)
+	})
+
+	t.Run("embedded field reference", func(t *testing.T) {
+		type embedded struct {
+			B int
+		}
+		type withEmbedded struct {
+			embedded
+			A int
+		}
+		value := &withEmbedded{embedded: embedded{B: 2}, A: 1}
+		assert.NoError(t, validation.Validate(value, RequiredPropertiesBy(&value.B, &value.A)))
 	})
 }
