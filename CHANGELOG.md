@@ -14,6 +14,22 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.165.2" (2026-07-15)
+======================
+
+Bugfixes
+--------
+
+- :bug: Strings/casing: recognise the codebase's `I...` interface naming convention when handling acronym-prefixed identifiers such as `IHTTP`. (#20260707151500)
+- :bug: Strings/casing: improve plural initialism handling so identifiers such as `Urls` can be normalised to `URLs` where appropriate. (#20260707151600)
+- Dependency upgrade: text-0.40.0 (#20260709101319)
+- Dependency upgrade: codeql-action-4.37.0 (#20260709101326)
+- Dependency upgrade: net-0.57.0 (#20260709101336)
+- Dependency upgrade: crypto-0.54.0 (#20260709101342)
+- Dependency upgrade: sync-0.22.0 (#20260709101404)
+- Dependency upgrade: sys-0.47.0 (#20260714172504)
+
+
 "1.165.1" (2026-07-08)
 ======================
 
