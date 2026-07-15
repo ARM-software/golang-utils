@@ -5,7 +5,6 @@ import (
 	"io"
 	"slices"
 	"strings"
-	"unicode"
 
 	mapset "github.com/deckarep/golang-set/v2"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -183,26 +182,6 @@ func (r *Replacer) WriteString(ctx context.Context, w io.Writer, s string) (n in
 	return safeio.WriteString(ctx, w, r.Replace(s))
 }
 
-func splitCamelWords(value string) []string {
-	if reflection.IsEmpty(value) {
-		return nil
-	}
-	runes := []rune(value)
-	parts := make([]string, 0)
-	start := 0
-	for i := 1; i < len(runes); i++ {
-		prev := runes[i-1]
-		curr := runes[i]
-		nextIsLower := i+1 < len(runes) && unicode.IsLower(runes[i+1])
-		if unicode.IsLower(prev) && unicode.IsUpper(curr) || unicode.IsDigit(prev) && unicode.IsUpper(curr) || unicode.IsUpper(prev) && unicode.IsUpper(curr) && nextIsLower {
-			parts = append(parts, string(runes[start:i]))
-			start = i
-		}
-	}
-	parts = append(parts, string(runes[start:]))
-	return parts
-}
-
 func mergeRuleExceptions(groups ...[]string) []string {
 	merged := mapset.NewSet[string]()
 	collection.ForEach(groups, func(exceptions []string) {
@@ -227,7 +206,7 @@ func (r *Replacer) transformWord(word string, first, firstWordLowercase bool) st
 	lower := strings.ToLower(word)
 	rule, found := r.rules[lower]
 	if !found {
-		if compound, ok := r.compoundReplacement(lower, first, firstWordLowercase); ok {
+		if compound, ok := r.buildAdjacentTokenReplacement(lower, first, firstWordLowercase); ok {
 			return compound
 		}
 		if word == strings.ToUpper(word) {
@@ -253,31 +232,54 @@ func (r *Replacer) transformWord(word string, first, firstWordLowercase bool) st
 	return rule.Replacement
 }
 
-func (r *Replacer) compoundReplacement(lower string, first, firstWordLowercase bool) (string, bool) {
-	parts, ok := r.compoundReplacementParts(lower)
+// buildAdjacentTokenReplacement tries to treat a single identifier word as a
+// sequence of adjacent known tokens, such as `userurls` -> `userURLs` or
+// `https` -> `HTTPS`. When that succeeds, it rebuilds the combined replacement
+// while preserving the caller's desired first-word casing.
+func (r *Replacer) buildAdjacentTokenReplacement(lower string, first, firstWordLowercase bool) (string, bool) {
+	parts, ok := r.splitAdjacentTokenReplacementParts(lower)
 	if !ok || len(parts) < 2 {
 		return "", false
 	}
+	joined := strings.Join(parts, "")
 	if first && firstWordLowercase {
 		parts[0] = strings.ToLower(parts[0])
+		return strings.Join(parts, ""), true
 	}
-	return strings.Join(parts, ""), true
+	return joined, true
 }
 
-func (r *Replacer) compoundReplacementParts(lower string) ([]string, bool) {
+// splitAdjacentTokenReplacementParts recursively splits a lower-cased word into
+// known replacement tokens. It prefers longer prefixes first, but backtracks
+// when a longer match leaves an invalid remainder, so overlapping rules can
+// still form a valid decomposition.
+func (r *Replacer) splitAdjacentTokenReplacementParts(lower string) ([]string, bool) {
 	if lower == "" {
 		return nil, true
 	}
+	tokens := make([]string, 0, len(r.rules))
 	for token, rule := range r.rules {
 		if !strings.HasPrefix(lower, token) || rule.Exceptions.Contains(lower) {
 			continue
 		}
+		tokens = append(tokens, token)
+	}
+	slices.SortFunc(tokens, func(left, right string) int {
+		return len(right) - len(left)
+	})
+	for _, token := range tokens {
+		rule := r.rules[token]
 		remainder := strings.TrimPrefix(lower, token)
-		tail, ok := r.compoundReplacementParts(remainder)
-		if !ok {
-			continue
+		if suffix, ok := splitPluralInitialismSuffix(remainder); ok {
+			return append([]string{rule.Replacement}, suffix...), true
 		}
-		return append([]string{rule.Replacement}, tail...), true
+		if suffix, ok := splitNumericInitialismSuffix(remainder); ok {
+			return append([]string{rule.Replacement}, suffix...), true
+		}
+		tail, ok := r.splitAdjacentTokenReplacementParts(remainder)
+		if ok {
+			return append([]string{rule.Replacement}, tail...), true
+		}
 	}
 	return nil, false
 }

@@ -64,8 +64,11 @@ func TestCaseHelpersWithOptionalReplacer_StrcaseInspiredInitialisms(t *testing.T
 	r, err := NewReplacer(
 		Rule{Token: "Api", Replacement: "API"},
 		Rule{Token: "Http", Replacement: "HTTP"},
+		Rule{Token: "Https", Replacement: "HTTPS"},
 		Rule{Token: "Id", Replacement: "ID"},
 		Rule{Token: "Json", Replacement: "JSON"},
+		Rule{Token: "Url", Replacement: "URL"},
+		Rule{Token: "Xss", Replacement: "XSS"},
 	)
 	require.NoError(t, err)
 
@@ -76,6 +79,67 @@ func TestCaseHelpersWithOptionalReplacer_StrcaseInspiredInitialisms(t *testing.T
 	assert.Equal(t, "httpStatusCode", ToCamelCase("http_status_code", r))
 	assert.Equal(t, "HTTPStatusCode", ToPascalCase("http_status_code", r))
 	assert.Equal(t, "http_status_code", ToSnakeCase("HTTPStatusCode", r))
+	assert.Equal(t, "https", ToCamelCase("https", r))
+	assert.Equal(t, "HTTPS", ToPascalCase("https", r))
+	assert.Equal(t, "HTTPS", ToPascalCase("Https", r))
+	assert.Equal(t, "HTTPS", ToPascalCase("HTTPS", r))
+	assert.Equal(t, "iHTTPS", ToCamelCase("IHTTPS", r))
+	assert.Equal(t, "IHTTPS", ToPascalCase("IHTTPS", r))
+	assert.Equal(t, "IHTTPS", ToPascalCase("IHttps", r))
+	assert.Equal(t, "ihttps", ToSnakeCase("IHTTPS", r))
+	assert.Equal(t, "ihttps", ToKebabCase("IHTTPS", r))
+	assert.Equal(t, "aHTTPClient", ToCamelCase("aHTTPClient", r))
+	assert.Equal(t, "AHTTPClient", ToPascalCase("aHTTPClient", r))
+	assert.Equal(t, "iHTTP", ToCamelCase("IHTTP", r))
+	assert.Equal(t, "iHTTP", ToCamelCase("ihttp", r))
+	assert.Equal(t, "iHTTP", ToCamelCase("iHttp", r))
+	assert.Equal(t, "iHTTP2", ToCamelCase("IHTTP2", r))
+	assert.Equal(t, "iHTTP2", ToCamelCase("ihttp2", r))
+	assert.Equal(t, "iHTTP2", ToCamelCase("iHttp2", r))
+	assert.Equal(t, "IHTTP", ToPascalCase("IHTTP", r))
+	assert.Equal(t, "IHTTP", ToPascalCase("iHTTP", r))
+	assert.Equal(t, "IHTTP", ToPascalCase("ihttp", r))
+	assert.Equal(t, "IHTTP", ToPascalCase("iHttp", r))
+	assert.Equal(t, "IHTTP2", ToPascalCase("IHTTP2", r))
+	assert.Equal(t, "IHTTP2", ToPascalCase("ihttp2", r))
+	assert.Equal(t, "IHTTP2", ToPascalCase("iHttp2", r))
+	assert.Equal(t, "ihttp", ToSnakeCase("IHTTP", r))
+	assert.Equal(t, "ihttp", ToSnakeCase("iHTTP", r))
+	assert.Equal(t, "ihttp", ToSnakeCase("iHttp", r))
+	assert.Equal(t, "ihttp2", ToSnakeCase("IHTTP2", r))
+	assert.Equal(t, "ihttp2", ToSnakeCase("iHTTP2", r))
+	assert.Equal(t, "ihttp2", ToSnakeCase("iHttp2", r))
+	assert.Equal(t, "ihttp", ToKebabCase("IHTTP", r))
+	assert.Equal(t, "ihttp", ToKebabCase("iHTTP", r))
+	assert.Equal(t, "ihttp", ToKebabCase("iHttp", r))
+	assert.Equal(t, "ihttp2", ToKebabCase("IHTTP2", r))
+	assert.Equal(t, "ihttp2", ToKebabCase("iHTTP2", r))
+	assert.Equal(t, "ihttp2", ToKebabCase("iHttp2", r))
+	assert.Equal(t, "URLs", ToPascalCase("urls", r))
+	assert.Equal(t, "URLs", ToPascalCase("uRLs", r))
+	assert.Equal(t, "urls", ToCamelCase("urls", r))
+	assert.Equal(t, "URLs", ToPascalCase("Urls", r))
+	assert.Equal(t, "xss", ToCamelCase("xss", r))
+	assert.Equal(t, "XSS", ToPascalCase("xss", r))
+	assert.Equal(t, "xss", ToSnakeCase("XSS", r))
+	assert.Equal(t, "xss", ToKebabCase("XSS", r))
+	assert.Equal(t, "xURLValue", ToCamelCase("xURLValue", r))
+	assert.Equal(t, "XURLValue", ToPascalCase("xURLValue", r))
+	assert.Equal(t, "x_url_value", ToSnakeCase("xURLValue", r))
+	assert.Equal(t, "x-url-value", ToKebabCase("xURLValue", r))
+	assert.Equal(t, "userURLs", ToCamelCase("userUrls", r))
+	assert.Equal(t, "userURLs", ToCamelCase("userURLs", r))
+	assert.Equal(t, "userURLs", ToCamelCase("UserUrls", r))
+	assert.Equal(t, "userURLs", ToCamelCase("UserURLs", r))
+	assert.Equal(t, "userURLs", ToCamelCase("user_urls", r))
+	assert.Equal(t, "UserURLs", ToPascalCase("userUrls", r))
+	assert.Equal(t, "UserURLs", ToPascalCase("userURLs", r))
+	assert.Equal(t, "UserURLs", ToPascalCase("UserUrls", r))
+	assert.Equal(t, "UserURLs", ToPascalCase("UserURLs", r))
+	assert.Equal(t, "UserURLs", ToPascalCase("user_urls", r))
+	assert.Equal(t, "user_urls", ToSnakeCase("UserURLs", r))
+	assert.Equal(t, "user-urls", ToKebabCase("UserURLs", r))
+	assert.Equal(t, "urls", ToSnakeCase("URLs", r))
 
 	assert.Equal(t, "jsonBlob", ToCamelCase("json_blob", r))
 	assert.Equal(t, "JSONBlob", ToPascalCase("json_blob", r))
@@ -110,4 +174,37 @@ func TestCaseHelpersUseOnlyFirstReplacer(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "APIClient", ToPascalCase("api_client", first, second))
+}
+
+func TestCaseHelpersCompoundTransformations(t *testing.T) {
+	r, err := NewReplacer(
+		Rule{Token: "Http", Replacement: "HTTP"},
+		Rule{Token: "Https", Replacement: "HTTPS"},
+		Rule{Token: "Url", Replacement: "URL"},
+	)
+	require.NoError(t, err)
+
+	assert.Equal(t, "itthps", ToSnakeCase(ToCamelCase("itthps")))
+	assert.Equal(t, "itthps", ToSnakeCase(ToPascalCase("itthps")))
+	assert.Equal(t, "i_tthps", ToSnakeCase(ToCamelCase("i_tthps")))
+	assert.Equal(t, "i_tthps", ToSnakeCase(ToPascalCase("i_tthps")))
+	assert.Equal(t, "ihttps", ToSnakeCase(ToCamelCase("i_https", r), r))
+	assert.Equal(t, "ihttps", ToSnakeCase(ToPascalCase("i_https", r), r))
+	assert.Equal(t, "user_urls", ToSnakeCase(ToCamelCase("user_urls", r), r))
+	assert.Equal(t, "user_urls", ToSnakeCase(ToPascalCase("user_urls", r), r))
+	assert.Equal(t, "x-url-value", ToKebabCase(ToCamelCase("x_url_value", r), r))
+	assert.Equal(t, "x_url_value", ToSnakeCase(ToPascalCase("x_url_value", r), r))
+}
+
+func TestCaseHelpersOverlappingCompoundRulesBacktrack(t *testing.T) {
+	r, err := NewReplacer(
+		Rule{Token: "A", Replacement: "A"},
+		Rule{Token: "Ab", Replacement: "AB"},
+		Rule{Token: "Bc", Replacement: "BC"},
+	)
+	require.NoError(t, err)
+
+	assert.Equal(t, "ABC", r.Replace("Abc"))
+	assert.Equal(t, "aBC", ToCamelCase("abc", r))
+	assert.Equal(t, "ABC", ToPascalCase("abc", r))
 }
