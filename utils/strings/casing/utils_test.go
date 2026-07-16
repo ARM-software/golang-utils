@@ -30,6 +30,28 @@ func TestSplitCamelWords(t *testing.T) {
 	assert.ElementsMatch(t, []string{"User", "Urls"}, splitCamelWords("UserUrls"))
 	assert.ElementsMatch(t, []string{"a", "HTTP", "Client"}, splitCamelWords("aHTTPClient"))
 	assert.ElementsMatch(t, []string{"x", "URL", "Value"}, splitCamelWords("xURLValue"))
+	assert.ElementsMatch(t, []string{"No", "Keyring"}, splitCamelWords("NoKeyring"))
+}
+
+func TestSplitLeadingLetterCompoundAvoidsPascalCaseWords(t *testing.T) {
+	r, err := NewReplacer(InitialismRules...)
+	require.NoError(t, err)
+
+	parts, ok := splitLeadingLetterCompound("aHTTPClient", r)
+	require.True(t, ok)
+	assert.Equal(t, []string{"a", "HTTP", "Client"}, parts)
+
+	parts, ok = splitLeadingLetterCompound("xURLValue", r)
+	require.True(t, ok)
+	assert.Equal(t, []string{"x", "URL", "Value"}, parts)
+
+	parts, ok = splitLeadingLetterCompound("NoKeyring", r)
+	assert.False(t, ok)
+	assert.Nil(t, parts)
+
+	parts, ok = splitLeadingLetterCompound("nOKeyring", r)
+	assert.False(t, ok)
+	assert.Nil(t, parts)
 }
 
 func TestFormSnakeCasedWords(t *testing.T) {
