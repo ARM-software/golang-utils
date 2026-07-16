@@ -28,7 +28,7 @@ type InMemorySummaryLogger struct {
 
 // GetSummary returns the accumulated summary content.
 func (s *InMemorySummaryLogger) GetSummary() string {
-	if l, ok := s.baseSummaryLogger.Loggers.(*baselogs.StringLoggers); ok {
+	if l, ok := s.Loggers.(*baselogs.StringLoggers); ok {
 		return l.GetLogContent()
 	}
 	return ""

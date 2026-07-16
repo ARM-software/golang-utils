@@ -23,6 +23,6 @@ func (b *baseSummaryLogger) WriteString(content string) error {
 // WriteStringF appends formatted summary content and ensures it ends with a
 // newline.
 func (b *baseSummaryLogger) WriteStringF(format string, values ...any) error {
-	b.Loggers.Log(strings.TrimRight(fmt.Sprintf(format, values...), "\r\n"))
+	b.Log(strings.TrimRight(fmt.Sprintf(format, values...), "\r\n"))
 	return nil
 }

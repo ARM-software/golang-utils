@@ -3,8 +3,8 @@ package summary
 import "github.com/ARM-software/golang-utils/utils/environment"
 
 const (
-// GitHubStepSummaryEnvironmentVariable is the environment variable pointing to
-// the current GitHub Actions step summary file.
+	// GitHubStepSummaryEnvironmentVariable is the environment variable pointing to
+	// the current GitHub Actions step summary file.
 	GitHubStepSummaryEnvironmentVariable = "GITHUB_STEP_SUMMARY"
 )
 
