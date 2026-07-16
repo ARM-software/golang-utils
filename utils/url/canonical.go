@@ -7,10 +7,11 @@ import (
 	"slices"
 	"strings"
 
+	"golang.org/x/net/idna"
+
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
-	"golang.org/x/net/idna"
 )
 
 var defaultSchemePorts = map[string]string{

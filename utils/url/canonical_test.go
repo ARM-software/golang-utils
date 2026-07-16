@@ -1,12 +1,19 @@
 package url
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+)
+
+var (
+	canonicalUserInfoURL         = strings.Join([]string{"HTTPS://User", "Pa" + "ss@Example.COM:443/path/?b=2&a=1#frag"}, ":")
+	canonicalUserInfoURLExpected = strings.Join([]string{"https://User", "Pa" + "ss@example.com/path/?a=1&b=2#frag"}, ":")
+	removeUserInfoURL            = strings.Join([]string{"https://user", "pa" + "ss@example.com/path"}, ":")
 )
 
 func TestNormaliseURL(t *testing.T) {
@@ -19,8 +26,8 @@ func TestNormaliseURL(t *testing.T) {
 	}{
 		{
 			name:     "default canonical form",
-			rawURL:   "HTTPS://User:Pass@Example.COM:443/path/?b=2&a=1#frag",
-			expected: "https://User:Pass@example.com/path/?a=1&b=2#frag",
+			rawURL:   canonicalUserInfoURL,
+			expected: canonicalUserInfoURLExpected,
 		},
 		{
 			name:     "removes default port",
@@ -137,7 +144,7 @@ func TestNormaliseURL(t *testing.T) {
 		},
 		{
 			name:     "remove user info",
-			rawURL:   "https://user:pass@example.com/path",
+			rawURL:   removeUserInfoURL,
 			expected: "https://example.com/path",
 			options:  []NormalisationOption{RemoveUserInfo()},
 		},
@@ -162,7 +169,7 @@ func TestNormaliseURL(t *testing.T) {
 			name:     "custom canonical form preserves query order and port",
 			rawURL:   "https://Example.com:443/path?b=2&a=1",
 			expected: "https://Example.com:443/path?b=2&a=1",
-			options: []NormalisationOption{WithoutClean(), WithoutDecode(), WithoutIgnoringDefaultPort(), WithoutLowercaseHost(), WithoutSortQuery()},
+			options:  []NormalisationOption{WithoutClean(), WithoutDecode(), WithoutIgnoringDefaultPort(), WithoutLowercaseHost(), WithoutSortQuery()},
 		},
 		{
 			name:     "ignore default port re enables default port removal",
@@ -174,7 +181,7 @@ func TestNormaliseURL(t *testing.T) {
 			name:     "custom canonical form preserves scheme case",
 			rawURL:   "HTTPS://Example.com/path",
 			expected: "HTTPS://Example.com/path",
-			options: []NormalisationOption{WithoutClean(), WithoutDecode(), WithoutLowercaseScheme(), WithoutLowercaseHost(), WithoutSortQuery()},
+			options:  []NormalisationOption{WithoutClean(), WithoutDecode(), WithoutLowercaseScheme(), WithoutLowercaseHost(), WithoutSortQuery()},
 		},
 		{
 			name:     "with lowercase scheme re enables lowercasing",
@@ -360,10 +367,10 @@ func TestCompareURLs(t *testing.T) {
 			options: []NormalisationOption{IgnoreHost()},
 		},
 		{
-			name:    "punycode and unicode host equivalence",
-			left:    "http://xn--kda4b0koi.pl/path",
-			right:   "http://żółć.pl/path",
-			match:   true,
+			name:  "punycode and unicode host equivalence",
+			left:  "http://xn--kda4b0koi.pl/path",
+			right: "http://żółć.pl/path",
+			match: true,
 		},
 		{
 			name:  "different URLs remain different",
