@@ -482,6 +482,23 @@ func CompareURLs(url1, url2 string, options ...NormalisationOption) (match bool,
 	return
 }
 
+// CompareForSorting adapts [Compare] to the callback shape expected by
+// [slices.SortFunc]. If either URL cannot be normalised, it falls back to
+// comparing the original strings directly.
+//
+// Example:
+//
+//	slices.SortFunc(urls, CompareForSorting(RemoveWWW(), IgnoreScheme()))
+func CompareForSorting(options ...NormalisationOption) func(left, right string) int {
+	return func(left, right string) int {
+		result, err := Compare(left, right, options...)
+		if err != nil {
+			return strings.Compare(left, right)
+		}
+		return result
+	}
+}
+
 func canonicalHost(parsed *netUrl.URL, form *NormalisationOptions) string {
 	hostname := parsed.Hostname()
 	port := parsed.Port()

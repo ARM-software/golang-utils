@@ -1,6 +1,7 @@
 package url
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -428,4 +429,23 @@ func TestCompare(t *testing.T) {
 			assert.Equal(t, test.result, result)
 		})
 	}
+}
+
+func TestCompareForSorting(t *testing.T) {
+	urls := []string{
+		"https://www.example.com/b",
+		"http://example.com/a",
+		"https://example.com/c",
+	}
+
+	slices.SortFunc(urls, CompareForSorting(RemoveWWW(), IgnoreScheme()))
+	assert.Equal(t, []string{
+		"http://example.com/a",
+		"https://www.example.com/b",
+		"https://example.com/c",
+	}, urls)
+
+	urls = []string{"http://%zz", "https://example.com/a"}
+	slices.SortFunc(urls, CompareForSorting())
+	assert.Equal(t, []string{"http://%zz", "https://example.com/a"}, urls)
 }
