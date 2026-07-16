@@ -19,6 +19,7 @@ type ISummaryLogger interface {
 	// WriteLineF appends formatted summary content and ensures it ends with a
 	// newline.
 	WriteLineF(format string, values ...any) error
-	// Clear removes any currently accumulated summary content.
-	Clear() error
 }
+
+
+
