@@ -33,6 +33,13 @@ func NewFileOnlyLogger(logFile string, loggerSource string) (loggers Loggers, er
 	return NewLogrusLoggerWithFileHook(underlying, loggerSource, logFile)
 }
 
+// NewTextFileOnlyLogger creates a logger to a file such as NewFileLogger but logs are only sent to a file in plain text and will not be printed to StdErr or StdOut.
+func NewTextFileOnlyLogger(logFile string, loggerSource string) (loggers Loggers, err error) {
+	underlying := logrus.New()
+	underlying.SetOutput(io.Discard)
+	return NewLogrusLoggerWithTextFileHook(underlying, loggerSource, logFile)
+}
+
 // CreateFileLogger creates a logger to a file
 //
 // Deprecated: Use NewFileLogger instead

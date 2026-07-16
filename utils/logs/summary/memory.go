@@ -4,7 +4,8 @@ import baselogs "github.com/ARM-software/golang-utils/utils/logs"
 
 var _ ISummaryLogger = &InMemorySummaryLogger{}
 
-// NewInMemorySummaryLogger creates an in-memory summary logger.
+// NewInMemorySummaryLogger creates an in-memory summary logger backed by the
+// repository's plain string logger.
 func NewInMemorySummaryLogger(loggerSource string) (logger *InMemorySummaryLogger, err error) {
 	bLogger, err := baselogs.NewPlainStringLogger()
 	if err != nil {
@@ -20,10 +21,12 @@ func NewInMemorySummaryLogger(loggerSource string) (logger *InMemorySummaryLogge
 	return
 }
 
+// InMemorySummaryLogger stores summary content in memory.
 type InMemorySummaryLogger struct {
 	baseSummaryLogger
 }
 
+// GetSummary returns the accumulated summary content.
 func (s *InMemorySummaryLogger) GetSummary() string {
 	if l, ok := s.baseSummaryLogger.Loggers.(*baselogs.StringLoggers); ok {
 		return l.GetLogContent()

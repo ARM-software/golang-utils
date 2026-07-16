@@ -9,24 +9,20 @@ import (
 
 var _ ISummaryLogger = &baseSummaryLogger{}
 
+// baseSummaryLogger adapts a standard logger pair to the summary logger
+// interface.
 type baseSummaryLogger struct {
 	baselogs.Loggers
 }
 
+// WriteString appends summary content and ensures it ends with a newline.
 func (b *baseSummaryLogger) WriteString(content string) error {
 	return b.WriteStringF("%v", content)
 }
 
+// WriteStringF appends formatted summary content and ensures it ends with a
+// newline.
 func (b *baseSummaryLogger) WriteStringF(format string, values ...any) error {
-	b.Loggers.Log(fmt.Sprintf(format, values...))
-	return nil
-}
-
-func (b *baseSummaryLogger) WriteLine(content string) error {
-	return b.WriteLineF("%v", content)
-}
-
-func (b *baseSummaryLogger) WriteLineF(format string, values ...any) error {
-	b.Loggers.Log(strings.TrimRight(fmt.Sprintf(format, values...), "\r\n") + "\n")
+	b.Loggers.Log(strings.TrimRight(fmt.Sprintf(format, values...), "\r\n"))
 	return nil
 }

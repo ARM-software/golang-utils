@@ -3,14 +3,16 @@ package summary
 import "github.com/ARM-software/golang-utils/utils/environment"
 
 const (
-	// GitHubStepSummaryEnvironmentVariable is the environment variable pointing to
-	// the current GitHub Actions step summary file.
+// GitHubStepSummaryEnvironmentVariable is the environment variable pointing to
+// the current GitHub Actions step summary file.
 	GitHubStepSummaryEnvironmentVariable = "GITHUB_STEP_SUMMARY"
 )
 
-// NewGitHubSummaryLogger creates a summary logger backed by the GitHub Actions
-// from `GITHUB_STEP_SUMMARY`.
-// GitHub renders the resulting file as Markdown.
+// NewGitHubSummaryLogger creates a summary logger backed by the file path stored
+// in `GITHUB_STEP_SUMMARY`.
+//
+// GitHub renders that file as Markdown on the workflow summary page.
+//
 // Reference:
 //   - https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#adding-a-job-summary
 func NewGitHubSummaryLogger(loggerSource string) (logger *FileSummaryLogger, err error) {

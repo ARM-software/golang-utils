@@ -4,22 +4,18 @@ import (
 	baselogs "github.com/ARM-software/golang-utils/utils/logs"
 )
 
-// ISummaryLogger extends [logs.Loggers] with summary-specific operations.
+//go:generate go tool mockgen -source=./interfaces.go -destination=../../mocks/mock_summary.go -package=mocks
+
+// ISummaryLogger extends [logs.Loggers] with operations for appending
+// human-readable summary content.
+//
+// The summary API writes plain strings. Implementations may render or persist
+// those strings in richer formats such as Markdown.
 type ISummaryLogger interface {
 	baselogs.Loggers
-	// WriteString appends raw summary content exactly as supplied. It does not add
-	// an end-of-line marker automatically. Destinations may render the string
-	// using Markdown syntax.
+	// WriteString appends summary content and ensures it ends with a newline.
 	WriteString(content string) error
-	// WriteStringF appends formatted summary content exactly as supplied. It does
-	// not add an end-of-line marker automatically.
-	WriteStringF(format string, values ...any) error
-	// WriteLine appends summary content and ensures it ends with a newline.
-	WriteLine(content string) error
-	// WriteLineF appends formatted summary content and ensures it ends with a
+	// WriteStringF appends formatted summary content and ensures it ends with a
 	// newline.
-	WriteLineF(format string, values ...any) error
+	WriteStringF(format string, values ...any) error
 }
-
-
-
