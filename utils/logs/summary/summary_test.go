@@ -1,7 +1,6 @@
 package summary
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -10,64 +9,81 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/filesystem"
+	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
-func TestGitHubWriter(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "summary.md")
-	writer, err := NewGitHubWriter(path)
-	require.NoError(t, err)
-
-	require.NoError(t, writer.WriteMarkdown("## Summary\n"))
-	require.NoError(t, writer.WriteMarkdown("- entry\n"))
-
-	content, err := os.ReadFile(path)
-	require.NoError(t, err)
-	assert.Equal(t, "## Summary\n- entry\n", string(content))
-
-	require.NoError(t, writer.Clear())
-	content, err = os.ReadFile(path)
-	require.NoError(t, err)
-	assert.Empty(t, string(content))
-}
-
-func TestGitHubWriterFromEnvironment(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "summary.md")
-	t.Setenv(GitHubStepSummaryEnvironmentVariable, path)
-
-	writer, err := NewGitHubWriterFromEnvironment()
-	require.NoError(t, err)
-	require.NoError(t, writer.WriteMarkdown("hello\n"))
-
-	content, err := os.ReadFile(path)
-	require.NoError(t, err)
-	assert.Equal(t, "hello\n", string(content))
-
-	t.Setenv(GitHubStepSummaryEnvironmentVariable, "")
-	_, err = NewGitHubWriterFromEnvironment()
-	errortest.AssertError(t, err, commonerrors.ErrUndefined)
-}
-
-func TestSummaryLogger(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "summary.md")
-	logger, err := NewGitHubLogger(path, "summary-test")
+func TestSummaryLoggerInMemory(t *testing.T) {
+	logger, err := NewInMemorySummaryLogger("summary-test")
 	require.NoError(t, err)
 	require.NoError(t, logger.SetLogSource("build"))
 
 	logger.Log("hello")
 	logger.LogError("boom")
-	require.NoError(t, logger.WriteMarkdown("## Raw\n"))
+	require.NoError(t, logger.WriteString("## Raw"))
+	require.NoError(t, logger.WriteStringF(" %s", "section"))
+	require.NoError(t, logger.WriteLine("line"))
+	require.NoError(t, logger.WriteLineF("- %s", "formatted"))
+	require.NoError(t, logger.Flush())
 
-	content, err := os.ReadFile(path)
-	require.NoError(t, err)
-	assert.Equal(t, "[build] hello\n[build] ERROR: boom\n## Raw\n", string(content))
+	expected := "[build] hello" + platform.LineSeparator() +
+		"[build] ERROR: boom" + platform.LineSeparator() +
+		"## Raw sectionline" + platform.LineSeparator() +
+		"- formatted" + platform.LineSeparator()
+	assert.Equal(t, expected, logger.Content())
 
 	require.NoError(t, logger.Clear())
-	content, err = os.ReadFile(path)
+	assert.Empty(t, logger.Content())
+}
+
+func TestFileSummaryLogger(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "summary.md")
+	logger, err := NewFileSummaryLogger(path, "summary-test")
 	require.NoError(t, err)
-	assert.Empty(t, string(content))
+	require.NoError(t, logger.SetLogSource("build"))
+
+	logger.Log("hello")
+	logger.LogError("boom")
+	require.NoError(t, logger.WriteLine("## Raw"))
+	require.NoError(t, logger.WriteLineF("- %s", "formatted"))
+	require.NoError(t, logger.Flush())
+
+	content, err := filesystem.ReadFile(path)
+	require.NoError(t, err)
+	expected := "[build] hello" + platform.LineSeparator() +
+		"[build] ERROR: boom" + platform.LineSeparator() +
+		"## Raw" + platform.LineSeparator() +
+		"- formatted" + platform.LineSeparator()
+	assert.Equal(t, expected, string(content))
+
+	require.NoError(t, logger.Clear())
+	fileInfo, err := filesystem.Stat(path)
+	require.NoError(t, err)
+	assert.Zero(t, fileInfo.Size())
+	assert.Empty(t, logger.Content())
+
+	require.NoError(t, logger.Close())
+}
+
+func TestGitHubSummaryLoggerFromEnvironment(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "summary.md")
+	t.Setenv(GitHubStepSummaryEnvironmentVariable, path)
+
+	logger, err := NewGitHubSummaryLoggerFromEnvironment("summary-test")
+	require.NoError(t, err)
+	require.NoError(t, logger.WriteLine("hello"))
+	require.NoError(t, logger.Close())
+
+	content, err := filesystem.ReadFile(path)
+	require.NoError(t, err)
+	assert.Equal(t, "hello"+platform.LineSeparator(), string(content))
+
+	t.Setenv(GitHubStepSummaryEnvironmentVariable, "")
+	_, err = NewGitHubSummaryLoggerFromEnvironment("summary-test")
+	errortest.AssertError(t, err, commonerrors.ErrUndefined)
 }
 
 func TestSummaryLoggerValidation(t *testing.T) {
-	_, err := NewLogger(nil, "summary-test")
-	errortest.AssertError(t, err, commonerrors.ErrNoLogger)
+	logger := &SummaryLogger{}
+	errortest.AssertError(t, logger.Check(), commonerrors.ErrNoLogger)
 }

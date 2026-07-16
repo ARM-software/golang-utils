@@ -1,19 +1,23 @@
 // Package summary provides summary-oriented loggers and writers.
 //
 // Unlike regular streaming loggers, summary loggers target destinations that
-// accumulate a rendered summary, typically in Markdown. This is useful for CI
-// systems and similar environments where a concise human-readable report should
-// be presented separately from raw logs.
+// accumulate a rendered summary. This is useful when a concise human-readable
+// report should be presented separately from raw logs, for example in CI
+// systems, automated reports, or workflow dashboards.
 //
-// One important use case is GitHub Actions job summaries, which are written to
-// the file referenced by `GITHUB_STEP_SUMMARY` and rendered as GitHub-flavoured
-// Markdown on the workflow run summary page.
+// Summary outputs are typically append-oriented and support a richer format than
+// plain line logs. This makes them suitable for status sections, bullet lists,
+// result tables, and other compact outputs that are easier to scan than a full
+// log stream. The package APIs write plain strings; destinations may interpret
+// those strings as Markdown or another rendered format.
+//
+// The package provides two concrete implementations:
+//   - an in-memory summary logger backed by the repository's plain string logger
+//   - a file-backed summary logger that flushes accumulated summary content to a file
 //
 // References:
-//   - GitHub Actions job summaries:
-//     https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#adding-a-job-summary
-//   - go-githubactions package summary helpers:
-//     https://pkg.go.dev/github.com/sethvargo/go-githubactions
-//   - actions-go/toolkit summary builder:
-//     https://pkg.go.dev/github.com/actions-go/toolkit/core
+//   - CommonMark specification:
+//     https://spec.commonmark.org/
+//   - Markdown guide:
+//     https://www.markdownguide.org/basic-syntax/
 package summary
