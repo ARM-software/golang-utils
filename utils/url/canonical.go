@@ -440,21 +440,22 @@ func NormaliseURL(rawURL string, options ...NormalisationOption) (normalised str
 	return
 }
 
-// CompareURLs canonicalises both URLs with the same normalisation options and
-// reports whether the resulting forms are equal.
+// Compare canonicalises both URLs with the same normalisation options and
+// returns an ordering result equivalent to [strings.Compare].
 //
 // Example:
 //
-//	match, err := CompareURLs("https://www.example.com/path", "https://example.com/path", RemoveWWW())
-//	// match == true
+//	result, err := Compare("https://www.example.com/path", "https://example.com/path", RemoveWWW())
+//	// result == 0
 //
-//	match, err = CompareURLs("https://api.example.com/v1/users", "/v1/users", IgnoreScheme(), IgnoreHost())
-//	// match == true
+//	result, err = Compare("https://api.example.com/v1/users", "/v1/users", IgnoreScheme(), IgnoreHost())
+//	// result == 0
 //
 // References:
 //   - RFC 3986: https://datatracker.ietf.org/doc/html/rfc3986
+//   - RFC 3986 section 6: https://www.rfc-editor.org/info/rfc3986/#section-6
 //   - URL normalisation overview: https://en.wikipedia.org/wiki/URL_normalization
-func CompareURLs(url1, url2 string, options ...NormalisationOption) (match bool, err error) {
+func Compare(url1, url2 string, options ...NormalisationOption) (result int, err error) {
 	left, err := NormaliseURL(url1, options...)
 	if err != nil {
 		return
@@ -463,7 +464,21 @@ func CompareURLs(url1, url2 string, options ...NormalisationOption) (match bool,
 	if err != nil {
 		return
 	}
-	match = left == right
+	result = strings.Compare(left, right)
+	return
+}
+
+// CompareURLs canonicalises both URLs with the same normalisation options and
+// reports whether the resulting forms are equal.
+//
+// Reference:
+//   - https://www.rfc-editor.org/info/rfc3986/#section-6
+func CompareURLs(url1, url2 string, options ...NormalisationOption) (match bool, err error) {
+	result, err := Compare(url1, url2, options...)
+	if err != nil {
+		return
+	}
+	match = result == 0
 	return
 }
 

@@ -389,3 +389,43 @@ func TestCompareURLs(t *testing.T) {
 		})
 	}
 }
+
+func TestCompare(t *testing.T) {
+	tests := []struct {
+		name    string
+		left    string
+		right   string
+		result  int
+		options []NormalisationOption
+		err     error
+	}{
+		{
+			name:   "equal after normalisation",
+			left:   "https://example.com:443/path?b=2&a=1",
+			right:  "https://EXAMPLE.com/path?a=1&b=2",
+			result: 0,
+		},
+		{
+			name:   "left sorts before right",
+			left:   "https://example.com/a",
+			right:  "https://example.com/b",
+			result: -1,
+		},
+		{
+			name:    "url and endpoint compare equally",
+			left:    "https://api.example.com/v1/users",
+			right:   "/v1/users",
+			result:  0,
+			options: []NormalisationOption{IgnoreScheme(), IgnoreHost()},
+		},
+	}
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			result, err := Compare(test.left, test.right, test.options...)
+			errortest.AssertError(t, err, test.err)
+			assert.Equal(t, test.result, result)
+		})
+	}
+}
