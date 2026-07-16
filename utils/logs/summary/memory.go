@@ -6,6 +6,9 @@ var _ ISummaryLogger = &InMemorySummaryLogger{}
 
 // NewInMemorySummaryLogger creates an in-memory summary logger backed by the
 // repository's plain string logger.
+//
+// This is useful in tests and in flows that need to build up summary content
+// before deciding where to render or persist it.
 func NewInMemorySummaryLogger(loggerSource string) (logger *InMemorySummaryLogger, err error) {
 	bLogger, err := baselogs.NewPlainStringLogger()
 	if err != nil {
@@ -15,15 +18,13 @@ func NewInMemorySummaryLogger(loggerSource string) (logger *InMemorySummaryLogge
 	if err != nil {
 		return
 	}
-	logger = &InMemorySummaryLogger{baseSummaryLogger{
-		Loggers: bLogger,
-	}}
+	logger = &InMemorySummaryLogger{SummaryLogger: *NewSummaryLogger(bLogger)}
 	return
 }
 
 // InMemorySummaryLogger stores summary content in memory.
 type InMemorySummaryLogger struct {
-	baseSummaryLogger
+	SummaryLogger
 }
 
 // GetSummary returns the accumulated summary content.

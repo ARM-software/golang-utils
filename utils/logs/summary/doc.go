@@ -9,7 +9,7 @@
 // The package writes plain strings, so the destination can render the content
 // directly or interpret it using Markdown. This is helpful for status sections,
 // bullet lists, check results, and short report content that should stay easy
-// to scan.
+// to scan while remaining separate from verbose diagnostic output.
 //
 // References:
 //   - CommonMark specification: https://spec.commonmark.org/
