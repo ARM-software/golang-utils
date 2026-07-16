@@ -1,7 +1,6 @@
 package annotations
 
 import (
-
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	baselogs "github.com/ARM-software/golang-utils/utils/logs"
 	"github.com/ARM-software/golang-utils/utils/reflection"
@@ -48,9 +47,9 @@ func (l *AnnotationLogger) WriteAnnotation(annotation *Annotation) error {
 	line := l.formatter.Format(annotation)
 	switch annotation.Severity {
 	case SeverityError:
-		l.Loggers.LogError(line)
+		l.LogError(line)
 	default:
-		l.Loggers.Log(line)
+		l.Log(line)
 	}
 	return nil
 }

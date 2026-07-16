@@ -3,9 +3,10 @@ package annotations
 import (
 	"testing"
 
-	baselogs "github.com/ARM-software/golang-utils/utils/logs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	baselogs "github.com/ARM-software/golang-utils/utils/logs"
 )
 
 func TestTeamCityFormatter(t *testing.T) {
