@@ -313,16 +313,48 @@ func MinProperties(min int) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/object#required
 func RequiredProperties(keys ...string) validation.Rule {
-	normalizedKeys := collection.UniqueEntries(keys)
+	normalisedKeys := collection.UniqueEntries(keys)
 	return validation.By(func(value any) error {
 		props, isNil, err := objectProperties(value)
 		if err != nil || isNil {
 			return err
 		}
-		missing := collection.CountBy(normalizedKeys, func(key string) bool {
+		missing := collection.CountBy(normalisedKeys, func(key string) bool {
 			return !props.present(key)
 		})
 		if missing > 0 {
+			return errRequiredProperties
+		}
+		return nil
+	})
+}
+
+// RequiredItems validates that a collection contains items matching all of the
+// supplied reference items.
+//
+// The comparison key for both the validated items and the reference items is
+// derived with keyFunc.
+//
+// Example: `RequiredItems(func(value string) string { return value }, "a", "b")`
+// rejects `[]string{"a"}`.
+func RequiredItems[T any, K comparable](keyFunc collection.KeyFunc[T, K], items ...T) validation.Rule {
+	normalisedKeys := collection.UniqueEntries(collection.Map(items, keyFunc))
+	return RequiredItemKeys(keyFunc, normalisedKeys...)
+}
+
+// RequiredItemKeys validates that a collection contains items matching all of
+// the supplied keys derived by keyFunc.
+//
+// Example: `RequiredItemKeys(func(value user) string { return value.Role }, "admin", "editor")`
+// rejects `[]user{{Role: "admin"}}`.
+func RequiredItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], keys ...K) validation.Rule {
+	normalisedKeys := collection.UniqueEntries(keys)
+	return validation.By(func(value any) error {
+		itemsByKey, isNil, err := keyedItemsByKey(value, keyFunc)
+		if err != nil || isNil {
+			return err
+		}
+		if countPresentKeys(itemsByKey, normalisedKeys) != len(normalisedKeys) {
 			return errRequiredProperties
 		}
 		return nil
@@ -342,11 +374,11 @@ func RequiredProperties(keys ...string) validation.Rule {
 //	err := validation.Validate(cfg, RequiredPropertiesBy(&cfg.Name, &cfg.Enabled, &cfg.Mode))
 func RequiredPropertiesBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		normalizedKeys, err := propertyNamesForValue(value, keys...)
+		normalisedKeys, err := propertyNamesForValue(value, keys...)
 		if err != nil {
 			return err
 		}
-		return RequiredProperties(normalizedKeys...).Validate(value)
+		return RequiredProperties(normalisedKeys...).Validate(value)
 	})
 }
 
@@ -377,6 +409,47 @@ func DependentRequired(dependencies map[string][]string) validation.Rule {
 				return !props.present(dependent)
 			})
 			if missing > 0 {
+				return errDependentRequired
+			}
+		}
+		return nil
+	})
+}
+
+// DependentRequiredItems validates that if a collection contains an item
+// matching a trigger item then it also contains items matching each dependent
+// item.
+//
+// Example: `DependentRequiredItems(func(value string) string { return value }, map[string][]string{"a": {"b"}})`
+// rejects `[]string{"a"}`.
+func DependentRequiredItems[T comparable, K comparable](keyFunc collection.KeyFunc[T, K], dependencies map[T][]T) validation.Rule {
+	normalised := make(map[K][]K, len(dependencies))
+	for item, dependents := range dependencies {
+		normalised[keyFunc(item)] = collection.UniqueEntries(collection.Map(dependents, keyFunc))
+	}
+	return DependentRequiredItemKeys(keyFunc, normalised)
+}
+
+// DependentRequiredItemKeys validates that if a collection contains an item for
+// a trigger key then it also contains items for each dependent key.
+//
+// Example: `DependentRequiredItemKeys(func(value user) string { return value.Role }, map[string][]string{"admin": {"editor"}})`
+// rejects `[]user{{Role: "admin"}}`.
+func DependentRequiredItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], dependencies map[K][]K) validation.Rule {
+	normalised := make(map[K][]K, len(dependencies))
+	for key, dependents := range dependencies {
+		normalised[key] = collection.UniqueEntries(dependents)
+	}
+	return validation.By(func(value any) error {
+		itemsByKey, isNil, err := keyedItemsByKey(value, keyFunc)
+		if err != nil || isNil {
+			return err
+		}
+		for key, dependents := range normalised {
+			if _, found := itemsByKey[key]; !found {
+				continue
+			}
+			if countPresentKeys(itemsByKey, dependents) != len(dependents) {
 				return errDependentRequired
 			}
 		}
@@ -517,15 +590,50 @@ func PatternProperties(patterns ...PatternProperty) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/object#additional-properties
 func AdditionalProperties(keys ...string) validation.Rule {
-	normalizedKeys := collection.UniqueEntries(keys)
+	normalisedKeys := collection.UniqueEntries(keys)
 	return validation.By(func(value any) error {
 		props, isNil, err := objectProperties(value)
 		if err != nil || isNil {
 			return err
 		}
 		invalid := collection.CountBy(objectPropertyNamesFromAccessor(props), func(key string) bool {
-			return !collection.In(normalizedKeys, key, collection.StringMatch)
+			return !collection.In(normalisedKeys, key, collection.StringMatch)
 		})
+		if invalid > 0 {
+			return errAdditionalProperties
+		}
+		return nil
+	})
+}
+
+// AdditionalItems validates that a collection contains no item whose derived
+// key lies outside the supplied reference item set.
+//
+// Example: `AdditionalItems(func(value string) string { return value }, "a", "b")`
+// rejects `[]string{"c"}`.
+func AdditionalItems[T any, K comparable](keyFunc collection.KeyFunc[T, K], items ...T) validation.Rule {
+	normalisedKeys := collection.UniqueEntries(collection.Map(items, keyFunc))
+	return AdditionalItemKeys(keyFunc, normalisedKeys...)
+}
+
+// AdditionalItemKeys validates that a collection contains no item whose derived
+// key lies outside the supplied key set.
+//
+// Example: `AdditionalItemKeys(func(value user) string { return value.Role }, "admin", "editor")`
+// rejects `[]user{{Role: "viewer"}}`.
+func AdditionalItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], keys ...K) validation.Rule {
+	normalisedKeys := collection.UniqueEntries(keys)
+	return validation.By(func(value any) error {
+		itemsByKey, isNil, err := keyedItemsByKey(value, keyFunc)
+		if err != nil || isNil {
+			return err
+		}
+		invalid := 0
+		for key := range itemsByKey {
+			if !collection.AnyFunc(normalisedKeys, func(expected K) bool { return expected == key }) {
+				invalid++
+			}
+		}
 		if invalid > 0 {
 			return errAdditionalProperties
 		}
@@ -543,11 +651,11 @@ func AdditionalProperties(keys ...string) validation.Rule {
 //	err := validation.Validate(cfg, AdditionalPropertiesBy(&cfg.Name, &cfg.Enabled, &cfg.Mode))
 func AdditionalPropertiesBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		normalizedKeys, err := propertyNamesForValue(value, keys...)
+		normalisedKeys, err := propertyNamesForValue(value, keys...)
 		if err != nil {
 			return err
 		}
-		return AdditionalProperties(normalizedKeys...).Validate(value)
+		return AdditionalProperties(normalisedKeys...).Validate(value)
 	})
 }
 
@@ -564,7 +672,7 @@ func AdditionalPropertiesBy(keys ...any) validation.Rule {
 // Example: `MutuallyExclusiveWith("A", "B")` rejects a value where both `A`
 // and `B` are non-empty.
 func MutuallyExclusiveWith(keys ...string) validation.Rule {
-	normalizedKeys := collection.UniqueEntries(keys)
+	normalisedKeys := collection.UniqueEntries(keys)
 	return validation.By(func(value any) error {
 		rv, isNil, err := objectValue(value)
 		if err != nil || isNil {
@@ -573,7 +681,7 @@ func MutuallyExclusiveWith(keys ...string) validation.Rule {
 		count := 0
 		switch rv.Kind() {
 		case reflect.Map:
-			count = collection.CountBy(normalizedKeys, func(key string) bool {
+			count = collection.CountBy(normalisedKeys, func(key string) bool {
 				mapValue := rv.MapIndex(reflect.ValueOf(key))
 				if !mapValue.IsValid() {
 					return false
@@ -581,7 +689,7 @@ func MutuallyExclusiveWith(keys ...string) validation.Rule {
 				return !utilreflection.IsEmpty(mapValue.Interface())
 			})
 		case reflect.Struct:
-			count = collection.CountBy(normalizedKeys, func(key string) bool {
+			count = collection.CountBy(normalisedKeys, func(key string) bool {
 				fieldValue := rv.FieldByName(key)
 				if !fieldValue.IsValid() {
 					return false
@@ -598,6 +706,35 @@ func MutuallyExclusiveWith(keys ...string) validation.Rule {
 	})
 }
 
+// MutuallyExclusiveItems validates that a collection contains items matching at
+// most one of the supplied reference items.
+//
+// Example: `MutuallyExclusiveItems(func(value string) string { return value }, "a", "b")`
+// rejects `[]string{"a", "b"}`.
+func MutuallyExclusiveItems[T any, K comparable](keyFunc collection.KeyFunc[T, K], items ...T) validation.Rule {
+	normalisedKeys := collection.UniqueEntries(collection.Map(items, keyFunc))
+	return MutuallyExclusiveItemKeys(keyFunc, normalisedKeys...)
+}
+
+// MutuallyExclusiveItemKeys validates that a collection contains items matching
+// at most one of the supplied keys.
+//
+// Example: `MutuallyExclusiveItemKeys(func(value user) string { return value.Role }, "admin", "editor")`
+// rejects `[]user{{Role: "admin"}, {Role: "editor"}}`.
+func MutuallyExclusiveItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], keys ...K) validation.Rule {
+	normalisedKeys := collection.UniqueEntries(keys)
+	return validation.By(func(value any) error {
+		itemsByKey, isNil, err := keyedItemsByKey(value, keyFunc)
+		if err != nil || isNil {
+			return err
+		}
+		if countPresentKeys(itemsByKey, normalisedKeys) > 1 {
+			return errMutuallyExclusive
+		}
+		return nil
+	})
+}
+
 // MutuallyExclusiveWithBy resolves strings, `[]string`, or field references
 // against the validated value and applies [MutuallyExclusiveWith] using the
 // resulting property names.
@@ -608,11 +745,11 @@ func MutuallyExclusiveWith(keys ...string) validation.Rule {
 //	err := validation.Validate(cfg, MutuallyExclusiveWithBy(&cfg.Token, &cfg.Username, &cfg.APIKey))
 func MutuallyExclusiveWithBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		normalizedKeys, err := propertyNamesForValue(value, keys...)
+		normalisedKeys, err := propertyNamesForValue(value, keys...)
 		if err != nil {
 			return err
 		}
-		return MutuallyExclusiveWith(normalizedKeys...).Validate(value)
+		return MutuallyExclusiveWith(normalisedKeys...).Validate(value)
 	})
 }
 
@@ -630,6 +767,24 @@ func AtMostOneProperty(keys ...string) validation.Rule {
 	return MutuallyExclusiveWith(keys...)
 }
 
+// AtMostOneItem validates that a collection contains items matching no more
+// than one of the supplied reference items.
+//
+// Example: `AtMostOneItem(func(value string) string { return value }, "a", "b")`
+// rejects `[]string{"a", "b"}`.
+func AtMostOneItem[T any, K comparable](keyFunc collection.KeyFunc[T, K], items ...T) validation.Rule {
+	return MutuallyExclusiveItems(keyFunc, items...)
+}
+
+// AtMostOneItemKey validates that a collection contains items matching no more
+// than one of the supplied keys.
+//
+// Example: `AtMostOneItemKey(func(value user) string { return value.Role }, "admin", "editor")`
+// rejects `[]user{{Role: "admin"}, {Role: "editor"}}`.
+func AtMostOneItemKey[T any, K comparable](keyFunc collection.KeyFunc[T, K], keys ...K) validation.Rule {
+	return MutuallyExclusiveItemKeys(keyFunc, keys...)
+}
+
 // AtMostOnePropertyBy resolves strings, `[]string`, or field references against
 // the validated value and applies [AtMostOneProperty].
 //
@@ -639,11 +794,11 @@ func AtMostOneProperty(keys ...string) validation.Rule {
 //	err := validation.Validate(cfg, AtMostOnePropertyBy(&cfg.Token, &cfg.Username, &cfg.APIKey))
 func AtMostOnePropertyBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		normalizedKeys, err := propertyNamesForValue(value, keys...)
+		normalisedKeys, err := propertyNamesForValue(value, keys...)
 		if err != nil {
 			return err
 		}
-		return AtMostOneProperty(normalizedKeys...).Validate(value)
+		return AtMostOneProperty(normalisedKeys...).Validate(value)
 	})
 }
 
@@ -658,13 +813,43 @@ func AtMostOnePropertyBy(keys ...any) validation.Rule {
 //
 // OpenAPI reference: https://spec.openapis.org/oas/latest.html#schema-object
 func OneOfProperties(keys ...string) validation.Rule {
-	normalizedKeys := collection.UniqueEntries(keys)
+	normalisedKeys := collection.UniqueEntries(keys)
 	return validation.By(func(value any) error {
 		props, isNil, err := objectProperties(value)
 		if err != nil || isNil {
 			return err
 		}
-		if countPresentProperties(props, normalizedKeys) != 1 {
+		if countPresentProperties(props, normalisedKeys) != 1 {
+			return errMutuallyExclusive
+		}
+		return nil
+	})
+}
+
+// OneOfItems validates that a collection contains items matching exactly one of
+// the supplied reference items.
+//
+// Example: `OneOfItems(func(value string) string { return value }, "a", "b")`
+// accepts `[]string{"a"}` and rejects both `[]string{}` and `[]string{"a", "b"}`.
+func OneOfItems[T any, K comparable](keyFunc collection.KeyFunc[T, K], items ...T) validation.Rule {
+	normalisedKeys := collection.UniqueEntries(collection.Map(items, keyFunc))
+	return OneOfItemKeys(keyFunc, normalisedKeys...)
+}
+
+// OneOfItemKeys validates that a collection contains items matching exactly one
+// of the supplied keys.
+//
+// Example: `OneOfItemKeys(func(value user) string { return value.Role }, "admin", "editor")`
+// accepts `[]user{{Role: "admin"}}` and rejects both `[]user{}` and
+// `[]user{{Role: "admin"}, {Role: "editor"}}`.
+func OneOfItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], keys ...K) validation.Rule {
+	normalisedKeys := collection.UniqueEntries(keys)
+	return validation.By(func(value any) error {
+		itemsByKey, isNil, err := keyedItemsByKey(value, keyFunc)
+		if err != nil || isNil {
+			return err
+		}
+		if countPresentKeys(itemsByKey, normalisedKeys) != 1 {
 			return errMutuallyExclusive
 		}
 		return nil
@@ -680,11 +865,11 @@ func OneOfProperties(keys ...string) validation.Rule {
 //	err := validation.Validate(cfg, OneOfPropertiesBy(&cfg.Token, &cfg.Username, &cfg.APIKey))
 func OneOfPropertiesBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		normalizedKeys, err := propertyNamesForValue(value, keys...)
+		normalisedKeys, err := propertyNamesForValue(value, keys...)
 		if err != nil {
 			return err
 		}
-		return OneOfProperties(normalizedKeys...).Validate(value)
+		return OneOfProperties(normalisedKeys...).Validate(value)
 	})
 }
 
@@ -699,13 +884,42 @@ func OneOfPropertiesBy(keys ...any) validation.Rule {
 //
 // OpenAPI reference: https://spec.openapis.org/oas/latest.html#schema-object
 func AtLeastOneProperty(keys ...string) validation.Rule {
-	normalizedKeys := collection.UniqueEntries(keys)
+	normalisedKeys := collection.UniqueEntries(keys)
 	return validation.By(func(value any) error {
 		props, isNil, err := objectProperties(value)
 		if err != nil || isNil {
 			return err
 		}
-		if countPresentProperties(props, normalizedKeys) == 0 {
+		if countPresentProperties(props, normalisedKeys) == 0 {
+			return errRequiredProperties
+		}
+		return nil
+	})
+}
+
+// AtLeastOneItem validates that a collection contains an item matching at least
+// one of the supplied reference items.
+//
+// Example: `AtLeastOneItem(func(value string) string { return value }, "a", "b")`
+// rejects `[]string{}`.
+func AtLeastOneItem[T any, K comparable](keyFunc collection.KeyFunc[T, K], items ...T) validation.Rule {
+	normalisedKeys := collection.UniqueEntries(collection.Map(items, keyFunc))
+	return AtLeastOneItemKey(keyFunc, normalisedKeys...)
+}
+
+// AtLeastOneItemKey validates that a collection contains an item matching at
+// least one of the supplied keys.
+//
+// Example: `AtLeastOneItemKey(func(value user) string { return value.Role }, "admin", "editor")`
+// rejects `[]user{}`.
+func AtLeastOneItemKey[T any, K comparable](keyFunc collection.KeyFunc[T, K], keys ...K) validation.Rule {
+	normalisedKeys := collection.UniqueEntries(keys)
+	return validation.By(func(value any) error {
+		itemsByKey, isNil, err := keyedItemsByKey(value, keyFunc)
+		if err != nil || isNil {
+			return err
+		}
+		if countPresentKeys(itemsByKey, normalisedKeys) == 0 {
 			return errRequiredProperties
 		}
 		return nil
@@ -721,11 +935,11 @@ func AtLeastOneProperty(keys ...string) validation.Rule {
 //	err := validation.Validate(cfg, AtLeastOnePropertyBy(&cfg.Token, &cfg.Username, &cfg.APIKey))
 func AtLeastOnePropertyBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		normalizedKeys, err := propertyNamesForValue(value, keys...)
+		normalisedKeys, err := propertyNamesForValue(value, keys...)
 		if err != nil {
 			return err
 		}
-		return AtLeastOneProperty(normalizedKeys...).Validate(value)
+		return AtLeastOneProperty(normalisedKeys...).Validate(value)
 	})
 }
 
@@ -739,13 +953,42 @@ func AtLeastOnePropertyBy(keys ...any) validation.Rule {
 //
 // OpenAPI reference: https://spec.openapis.org/oas/latest.html#schema-object
 func ForbiddenProperties(keys ...string) validation.Rule {
-	normalizedKeys := collection.UniqueEntries(keys)
+	normalisedKeys := collection.UniqueEntries(keys)
 	return validation.By(func(value any) error {
 		props, isNil, err := objectProperties(value)
 		if err != nil || isNil {
 			return err
 		}
-		if countPresentProperties(props, normalizedKeys) > 0 {
+		if countPresentProperties(props, normalisedKeys) > 0 {
+			return errAdditionalProperties
+		}
+		return nil
+	})
+}
+
+// ForbiddenItems validates that a collection contains no items matching any of
+// the supplied reference items.
+//
+// Example: `ForbiddenItems(func(value string) string { return value }, "debug")`
+// rejects `[]string{"debug"}`.
+func ForbiddenItems[T any, K comparable](keyFunc collection.KeyFunc[T, K], items ...T) validation.Rule {
+	normalisedKeys := collection.UniqueEntries(collection.Map(items, keyFunc))
+	return ForbiddenItemKeys(keyFunc, normalisedKeys...)
+}
+
+// ForbiddenItemKeys validates that a collection contains no items matching any
+// of the supplied keys.
+//
+// Example: `ForbiddenItemKeys(func(value user) string { return value.Role }, "debug")`
+// rejects `[]user{{Role: "debug"}}`.
+func ForbiddenItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], keys ...K) validation.Rule {
+	normalisedKeys := collection.UniqueEntries(keys)
+	return validation.By(func(value any) error {
+		itemsByKey, isNil, err := keyedItemsByKey(value, keyFunc)
+		if err != nil || isNil {
+			return err
+		}
+		if countPresentKeys(itemsByKey, normalisedKeys) > 0 {
 			return errAdditionalProperties
 		}
 		return nil
@@ -761,11 +1004,11 @@ func ForbiddenProperties(keys ...string) validation.Rule {
 //	err := validation.Validate(cfg, ForbiddenPropertiesBy(&cfg.Debug, &cfg.InternalOnly))
 func ForbiddenPropertiesBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		normalizedKeys, err := propertyNamesForValue(value, keys...)
+		normalisedKeys, err := propertyNamesForValue(value, keys...)
 		if err != nil {
 			return err
 		}
-		return ForbiddenProperties(normalizedKeys...).Validate(value)
+		return ForbiddenProperties(normalisedKeys...).Validate(value)
 	})
 }
 

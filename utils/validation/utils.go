@@ -145,6 +145,30 @@ func invalidTypedNilValue(value any, invalid error, allowedNilKinds ...reflect.K
 	return nil
 }
 
+// keyedItemsByKey converts a validated collection into a key-indexed map using
+// keyFunc.
+func keyedItemsByKey[T any, K comparable](value any, keyFunc collection.KeyFunc[T, K]) (itemsByKey map[K]T, isNil bool, err error) {
+	items, err := typedSequence[T](value)
+	if err != nil {
+		return nil, false, err
+	}
+	if items == nil {
+		return nil, true, nil
+	}
+	return collection.IndexBy(items, keyFunc), false, nil
+}
+
+// countPresentKeys counts how many of keys are present in itemsByKey.
+func countPresentKeys[K comparable, V any](itemsByKey map[K]V, keys []K) int {
+	if len(itemsByKey) == 0 {
+		return 0
+	}
+	return collection.CountBy(keys, func(key K) bool {
+		_, found := itemsByKey[key]
+		return found
+	})
+}
+
 // objectSequence2ToAccessor detects function-backed iter.Seq2-style values and
 // collects string-keyed properties into an accessor.
 func objectSequence2ToAccessor(value any) (*objectAccessor, bool, error) {

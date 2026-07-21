@@ -162,6 +162,61 @@ func TestJSONSchemaInspiredRules(t *testing.T) {
 		errortest.AssertErrorDescription(t, validation.Validate(nilFunc, MutuallyExclusiveWith("A", "B")), "must be a map")
 	})
 
+	t.Run("item keys", func(t *testing.T) {
+		keyFunc := func(value string) string { return value }
+		assert.NoError(t, validation.Validate([]string{"a", "b"}, RequiredItems(keyFunc, "a", "b")))
+		assert.Error(t, validation.Validate([]string{"a"}, RequiredItems(keyFunc, "a", "b")))
+		assert.NoError(t, validation.Validate([]string{"a", "b"}, DependentRequiredItems(keyFunc, map[string][]string{"a": {"b"}})))
+		assert.Error(t, validation.Validate([]string{"a"}, DependentRequiredItems(keyFunc, map[string][]string{"a": {"b"}})))
+		assert.NoError(t, validation.Validate([]string{"a"}, AdditionalItems(keyFunc, "a", "b")))
+		assert.Error(t, validation.Validate([]string{"c"}, AdditionalItems(keyFunc, "a", "b")))
+		assert.NoError(t, validation.Validate([]string{"a"}, MutuallyExclusiveItems(keyFunc, "a", "b")))
+		assert.Error(t, validation.Validate([]string{"a", "b"}, MutuallyExclusiveItems(keyFunc, "a", "b")))
+		assert.NoError(t, validation.Validate([]string{"a"}, AtMostOneItem(keyFunc, "a", "b")))
+		assert.Error(t, validation.Validate([]string{"a", "b"}, AtMostOneItem(keyFunc, "a", "b")))
+		assert.NoError(t, validation.Validate([]string{"a"}, OneOfItems(keyFunc, "a", "b")))
+		assert.Error(t, validation.Validate([]string{}, OneOfItems(keyFunc, "a", "b")))
+		assert.Error(t, validation.Validate([]string{"a", "b"}, OneOfItems(keyFunc, "a", "b")))
+		assert.NoError(t, validation.Validate([]string{"a"}, AtLeastOneItem(keyFunc, "a", "b")))
+		assert.Error(t, validation.Validate([]string{}, AtLeastOneItem(keyFunc, "a", "b")))
+		assert.NoError(t, validation.Validate([]string{"a"}, ForbiddenItems(keyFunc, "b")))
+		assert.Error(t, validation.Validate([]string{"a"}, ForbiddenItems(keyFunc, "a")))
+
+		seq := iter.Seq[string](func(yield func(string) bool) {
+			_ = yield("a")
+			_ = yield("b")
+		})
+		assert.NoError(t, validation.Validate(seq, RequiredItems(keyFunc, "a", "b")))
+
+		errortest.AssertErrorDescription(t, validation.Validate("abc", MutuallyExclusiveItems(keyFunc, "a", "b")), "must be an array or slice")
+	})
+
+	t.Run("item key strings", func(t *testing.T) {
+		type valueT struct {
+			i int
+			j string
+		}
+		keyFunc := func(value valueT) string { return value.j }
+
+		assert.NoError(t, validation.Validate([]valueT{{i: 0, j: "a"}}, AtMostOneItemKey(keyFunc, "a", "b")))
+		assert.Error(t, validation.Validate([]valueT{{i: 0, j: "a"}, {i: 1, j: "b"}}, AtMostOneItemKey(keyFunc, "a", "b")))
+		assert.NoError(t, validation.Validate([]valueT{{i: 0, j: "a"}, {i: 1, j: "b"}}, RequiredItemKeys(keyFunc, "a", "b")))
+		assert.Error(t, validation.Validate([]valueT{{i: 0, j: "a"}}, RequiredItemKeys(keyFunc, "a", "b")))
+		assert.NoError(t, validation.Validate([]valueT{{i: 0, j: "a"}, {i: 1, j: "b"}}, DependentRequiredItemKeys(keyFunc, map[string][]string{"a": {"b"}})))
+		assert.Error(t, validation.Validate([]valueT{{i: 0, j: "a"}}, DependentRequiredItemKeys(keyFunc, map[string][]string{"a": {"b"}})))
+		assert.NoError(t, validation.Validate([]valueT{{i: 0, j: "a"}}, AdditionalItemKeys(keyFunc, "a", "b")))
+		assert.Error(t, validation.Validate([]valueT{{i: 0, j: "c"}}, AdditionalItemKeys(keyFunc, "a", "b")))
+		assert.NoError(t, validation.Validate([]valueT{{i: 0, j: "a"}}, MutuallyExclusiveItemKeys(keyFunc, "a", "b")))
+		assert.Error(t, validation.Validate([]valueT{{i: 0, j: "a"}, {i: 1, j: "b"}}, MutuallyExclusiveItemKeys(keyFunc, "a", "b")))
+		assert.NoError(t, validation.Validate([]valueT{{i: 0, j: "a"}}, OneOfItemKeys(keyFunc, "a", "b")))
+		assert.Error(t, validation.Validate([]valueT{}, OneOfItemKeys(keyFunc, "a", "b")))
+		assert.Error(t, validation.Validate([]valueT{{i: 0, j: "a"}, {i: 1, j: "b"}}, OneOfItemKeys(keyFunc, "a", "b")))
+		assert.NoError(t, validation.Validate([]valueT{{i: 0, j: "a"}}, AtLeastOneItemKey(keyFunc, "a", "b")))
+		assert.Error(t, validation.Validate([]valueT{}, AtLeastOneItemKey(keyFunc, "a", "b")))
+		assert.NoError(t, validation.Validate([]valueT{{i: 0, j: "a"}}, ForbiddenItemKeys(keyFunc, "b")))
+		assert.Error(t, validation.Validate([]valueT{{i: 0, j: "a"}}, ForbiddenItemKeys(keyFunc, "a")))
+	})
+
 	t.Run("schema terminology aliases", func(t *testing.T) {
 		assert.NoError(t, validation.Validate("blue", Enum("red", "blue")))
 		assert.Error(t, validation.Validate("green", Enum("red", "blue")))
