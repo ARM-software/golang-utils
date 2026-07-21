@@ -34,11 +34,24 @@ func typedSequence[T any](value any) ([]T, error) {
 			return cast, nil
 		})
 	}
+	rv := reflect.ValueOf(value)
+	if !rv.IsValid() {
+		return nil, nil
+	}
+	if matchesAnyKind(rv.Kind(), reflect.Func, reflect.Map, reflect.String) {
+		return nil, errArrayOrSliceRequired
+	}
+	if err := invalidTypedNilValue(value, errArrayOrSliceRequired, reflect.Array, reflect.Slice); err != nil {
+		return nil, err
+	}
+	if matchesAnyKind(rv.Kind(), reflect.Pointer) && rv.IsNil() {
+		return nil, nil
+	}
 	v, isNil := validation.Indirect(value)
 	if isNil {
 		return nil, nil
 	}
-	rv := reflect.ValueOf(v)
+	rv = reflect.ValueOf(v)
 	if rv.Kind() != reflect.Array && rv.Kind() != reflect.Slice {
 		return nil, errArrayOrSliceRequired
 	}
@@ -59,7 +72,7 @@ func typedSequence[T any](value any) ([]T, error) {
 // signature.
 func sequenceToSlice(value any) ([]any, bool) {
 	rv := reflect.ValueOf(value)
-	if !rv.IsValid() || rv.Kind() != reflect.Func {
+	if !rv.IsValid() || !matchesAnyKind(rv.Kind(), reflect.Func) {
 		return nil, false
 	}
 	rt := rv.Type()
@@ -67,8 +80,11 @@ func sequenceToSlice(value any) ([]any, bool) {
 		return nil, false
 	}
 	yieldType := rt.In(0)
-	if yieldType.Kind() != reflect.Func || yieldType.NumIn() != 1 || yieldType.NumOut() != 1 || yieldType.Out(0).Kind() != reflect.Bool {
+	if !matchesAnyKind(yieldType.Kind(), reflect.Func) || yieldType.NumIn() != 1 || yieldType.NumOut() != 1 || !matchesAnyKind(yieldType.Out(0).Kind(), reflect.Bool) {
 		return nil, false
+	}
+	if rv.IsNil() {
+		return nil, true
 	}
 	items := make([]any, 0)
 	yield := reflect.MakeFunc(yieldType, func(args []reflect.Value) []reflect.Value {
@@ -84,22 +100,56 @@ func sequenceToSlice(value any) ([]any, bool) {
 // It follows pointer/interface indirection using ozzo-validation utilities and
 // returns an error when the resulting value is neither a map nor a struct.
 func objectValue(value any) (rv reflect.Value, isNil bool, err error) {
+	rv = reflect.ValueOf(value)
+	if !rv.IsValid() {
+		return reflect.Value{}, true, nil
+	}
+	err = invalidTypedNilValue(value, errMapRequired, reflect.Map, reflect.Struct)
+	if err != nil {
+		return reflect.Value{}, false, err
+	}
+	if matchesAnyKind(rv.Kind(), reflect.Pointer) && rv.IsNil() {
+		return reflect.Value{}, true, nil
+	}
 	v, isNil := validation.Indirect(value)
 	if isNil {
 		return reflect.Value{}, true, nil
 	}
 	rv = reflect.ValueOf(v)
-	if rv.Kind() != reflect.Map && rv.Kind() != reflect.Struct {
+	if !matchesAnyKind(rv.Kind(), reflect.Map, reflect.Struct) {
 		return reflect.Value{}, false, errMapRequired
 	}
 	return rv, false, nil
+}
+
+// matchesAnyKind reports whether kind is one of the supplied reflect kinds.
+func matchesAnyKind(kind reflect.Kind, kinds ...reflect.Kind) bool {
+	return collection.AnyFunc(kinds, func(candidate reflect.Kind) bool {
+		return candidate == kind
+	})
+}
+
+// invalidTypedNilValue reports an invalid error for typed nil values whose
+// underlying kind is not among the allowed nil kinds.
+func invalidTypedNilValue(value any, invalid error, allowedNilKinds ...reflect.Kind) error {
+	rv := reflect.ValueOf(value)
+	if !rv.IsValid() {
+		return nil
+	}
+	if matchesAnyKind(rv.Kind(), reflect.Func) && rv.IsNil() {
+		return invalid
+	}
+	if matchesAnyKind(rv.Kind(), reflect.Pointer) && rv.IsNil() && !matchesAnyKind(rv.Type().Elem().Kind(), allowedNilKinds...) {
+		return invalid
+	}
+	return nil
 }
 
 // objectSequence2ToAccessor detects function-backed iter.Seq2-style values and
 // collects string-keyed properties into an accessor.
 func objectSequence2ToAccessor(value any) (*objectAccessor, bool, error) {
 	rv := reflect.ValueOf(value)
-	if !rv.IsValid() || rv.Kind() != reflect.Func {
+	if !rv.IsValid() || !matchesAnyKind(rv.Kind(), reflect.Func) {
 		return nil, false, nil
 	}
 	rt := rv.Type()
@@ -107,8 +157,11 @@ func objectSequence2ToAccessor(value any) (*objectAccessor, bool, error) {
 		return nil, false, nil
 	}
 	yieldType := rt.In(0)
-	if yieldType.Kind() != reflect.Func || yieldType.NumIn() != 2 || yieldType.NumOut() != 1 || yieldType.Out(0).Kind() != reflect.Bool {
+	if !matchesAnyKind(yieldType.Kind(), reflect.Func) || yieldType.NumIn() != 2 || yieldType.NumOut() != 1 || !matchesAnyKind(yieldType.Out(0).Kind(), reflect.Bool) {
 		return nil, false, nil
+	}
+	if rv.IsNil() {
+		return nil, false, errMapRequired
 	}
 	items := make(map[string]any)
 	keys := make([]string, 0)

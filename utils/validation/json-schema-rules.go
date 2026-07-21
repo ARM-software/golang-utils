@@ -566,11 +566,10 @@ func AdditionalPropertiesBy(keys ...any) validation.Rule {
 func MutuallyExclusiveWith(keys ...string) validation.Rule {
 	normalizedKeys := collection.UniqueEntries(keys)
 	return validation.By(func(value any) error {
-		v, isNil := validation.Indirect(value)
-		if isNil {
-			return nil
+		rv, isNil, err := objectValue(value)
+		if err != nil || isNil {
+			return err
 		}
-		rv := reflect.ValueOf(v)
 		count := 0
 		switch rv.Kind() {
 		case reflect.Map:

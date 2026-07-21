@@ -46,6 +46,16 @@ func TestJSONSchemaInspiredRules(t *testing.T) {
 	t.Run("items", func(t *testing.T) {
 		assert.NoError(t, validation.Validate([]any{"a", 1}, PrefixItems(Type("string"), Type("integer"))))
 		assert.Error(t, validation.Validate([]any{1, "a"}, PrefixItems(Type("string"), Type("integer"))))
+		errortest.AssertErrorDescription(t, validation.Validate("abc", PrefixItems(Type("string"))), "must be an array or slice")
+
+		var stringPtr *string
+		errortest.AssertErrorDescription(t, validation.Validate(stringPtr, PrefixItems(Type("string"))), "must be an array or slice")
+
+		var nilFunc func() = nil
+		errortest.AssertErrorDescription(t, validation.Validate(nilFunc, PrefixItems(Type("string"))), "must be an array or slice")
+
+		var nilMap map[int]string
+		errortest.AssertErrorDescription(t, validation.Validate(nilMap, UniqueItems[string](func(item string) string { return item })), "must be an array or slice")
 		assert.NoError(t, validation.Validate([]int{1, 2}, MaxItems(2)))
 		assert.Error(t, validation.Validate([]int{1, 2, 3}, MaxItems(2)))
 		assert.NoError(t, validation.Validate([]int{1, 2}, MinItems(2)))
@@ -91,6 +101,12 @@ func TestJSONSchemaInspiredRules(t *testing.T) {
 		assert.NoError(t, validation.Validate(seq, DependentRequired(map[string][]string{"a": {"b"}})))
 		assert.NoError(t, validation.Validate(seq, PropertyNames(Pattern(re))))
 		assert.NoError(t, validation.Validate(seq, AdditionalProperties("a", "b")))
+
+		var stringPtr *string
+		errortest.AssertErrorDescription(t, validation.Validate(stringPtr, RequiredProperties("a")), "must be a map")
+
+		var nilFunc func() = nil
+		errortest.AssertErrorDescription(t, validation.Validate(nilFunc, AdditionalProperties("a", "b")), "must be a map")
 	})
 
 	t.Run("contains", func(t *testing.T) {
@@ -100,6 +116,16 @@ func TestJSONSchemaInspiredRules(t *testing.T) {
 		assert.Error(t, validation.Validate([]string{"a", "b"}, MinContains(2, Const("a"))))
 		assert.NoError(t, validation.Validate([]string{"a", "b"}, MaxContains(1, Const("a"))))
 		assert.Error(t, validation.Validate([]string{"a", "a"}, MaxContains(1, Const("a"))))
+		errortest.AssertErrorDescription(t, validation.Validate("abc", Contains(Const("a"))), "must be an array or slice")
+
+		var stringPtr *string
+		errortest.AssertErrorDescription(t, validation.Validate(stringPtr, MinContains(1, Const("a"))), "must be an array or slice")
+
+		var nilFunc func() = nil
+		errortest.AssertErrorDescription(t, validation.Validate(nilFunc, MaxContains(1, Const("a"))), "must be an array or slice")
+
+		var nilMap map[int]string
+		errortest.AssertErrorDescription(t, validation.Validate(nilMap, Contains(Const("a"))), "must be an array or slice")
 	})
 
 	t.Run("mutually exclusive", func(t *testing.T) {
@@ -128,6 +154,12 @@ func TestJSONSchemaInspiredRules(t *testing.T) {
 		assert.Error(t, validation.Validate(fields{}, AtLeastOneProperty("A", "B")))
 		assert.NoError(t, validation.Validate(fields{A: 1}, ForbiddenProperties("B")))
 		assert.Error(t, validation.Validate(fields{A: 1}, ForbiddenProperties("A")))
+
+		var stringPtr *string
+		errortest.AssertErrorDescription(t, validation.Validate(stringPtr, MutuallyExclusiveWith("A", "B")), "must be a map")
+
+		var nilFunc func() = nil
+		errortest.AssertErrorDescription(t, validation.Validate(nilFunc, MutuallyExclusiveWith("A", "B")), "must be a map")
 	})
 
 	t.Run("schema terminology aliases", func(t *testing.T) {
