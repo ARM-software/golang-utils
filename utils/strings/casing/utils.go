@@ -141,7 +141,7 @@ func isUpperInitialismOrPlural(value string) bool {
 
 func splitLeadingLetterCompound(value string, replacer *Replacer) ([]string, bool) {
 	runes := []rune(value)
-	if replacer == nil || len(runes) < 2 || !unicode.IsLetter(runes[0]) {
+	if replacer == nil || len(runes) < 2 || !unicode.IsLetter(runes[0]) || !unicode.IsUpper(runes[1]) {
 		return nil, false
 	}
 	leadingParts := splitCamelWords(value)
@@ -152,6 +152,9 @@ func splitLeadingLetterCompound(value string, replacer *Replacer) ([]string, boo
 	}
 	tailWords := splitCamelWords(string(runes[1:]))
 	if len(tailWords) < 2 {
+		return nil, false
+	}
+	if len([]rune(tailWords[0])) < 2 {
 		return nil, false
 	}
 	firstTail := replacer.transformWord(tailWords[0], true, false)

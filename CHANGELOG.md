@@ -14,6 +14,24 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.166.1" (2026-07-16)
+======================
+
+Bugfixes
+--------
+
+- :bug: `[casing]` fix regression in acronym-aware casing so normal PascalCase names like NoKeyring do not become NOKeyring (#20260716125731)
+
+
+"1.166.0" (2026-07-16)
+======================
+
+Features
+--------
+
+- :sparkles: `[URL]` add configurable URL canonicalisation and comparison helpers for normalised matching. (#202607161530)
+
+
 "1.165.2" (2026-07-15)
 ======================
 

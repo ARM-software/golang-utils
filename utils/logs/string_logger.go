@@ -51,6 +51,14 @@ func (l *StringLoggers) GetLogContent() string {
 	return l.LogWriter.GetFullContent()
 }
 
+func (l *StringLoggers) LogWithoutNewLine(output ...interface{}) {
+	l.Output.Print(output...)
+}
+
+func (l *StringLoggers) LogErrorWithoutNewLine(output ...interface{}) {
+	l.Error.Print(output...)
+}
+
 // Close closes the logger
 func (l *StringLoggers) Close() (err error) {
 	err = l.LogWriter.Close()
