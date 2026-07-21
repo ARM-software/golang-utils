@@ -6,7 +6,6 @@ package validation
 
 import (
 	"reflect"
-	"slices"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
@@ -22,7 +21,7 @@ func ArrayItems(rule validation.Rule) validation.Rule {
 		if err != nil || items == nil {
 			return err
 		}
-		return collection.Each(slices.Values(items), func(item any) error {
+		return collection.EachSlice(items, func(item any) error {
 			return rule.Validate(item)
 		})
 	})
@@ -44,7 +43,7 @@ func MapValues(rule validation.Rule) validation.Rule {
 		if props, ok, err := objectSequence2ToAccessor(value); err != nil {
 			return err
 		} else if ok {
-			return collection.Each(slices.Values(objectPropertyNamesFromAccessor(props)), func(key string) error {
+			return collection.EachSlice(objectPropertyNamesFromAccessor(props), func(key string) error {
 				fieldValue, found := props.value(key)
 				if !found {
 					return nil
@@ -60,7 +59,7 @@ func MapValues(rule validation.Rule) validation.Rule {
 		if rv.Kind() != reflect.Map {
 			return errMapRequired
 		}
-		return collection.Each(slices.Values(objectPropertyNames(rv)), func(key string) error {
+		return collection.EachSlice(objectPropertyNames(rv), func(key string) error {
 			fieldValue, found := objectPropertyValue(rv, key)
 			if !found {
 				return nil

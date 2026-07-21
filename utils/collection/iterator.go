@@ -110,10 +110,23 @@ func EachRef[T any](s iter.Seq[T], f OperationRefFunc[T]) error {
 	return Each(s, toOperationFunc(f))
 }
 
+// EachSlice iterates over a slice and invokes f for each element. If f returns
+// a non-EOF error, iteration stops and that error is returned. If f returns
+// EOF, the EOF is ignored and iteration ends without error.
+func EachSlice[S ~[]E, E any](s S, f OperationFunc[E]) error {
+	return Each[E](slices.Values(s), f)
+}
+
+// EachSliceRef behaves like EachSlice but invokes f with a reference to each
+// element.
+func EachSliceRef[S ~[]E, E any](s S, f OperationRefFunc[E]) error {
+	return EachSlice(s, toOperationFunc(f))
+}
+
 // ForEach invokes f on every element of the provided slice. Any error
 // returned by f is ignored.
 func ForEach[S ~[]E, E any](s S, f OperationWithoutErrorFunc[E]) {
-	_ = Each[E](slices.Values(s), convertOperationWithoutError(f))
+	_ = EachSlice(s, convertOperationWithoutError(f))
 }
 
 // ForEachValues invokes f for each value passed in values.

@@ -21,7 +21,6 @@ package jsonschema
 
 import (
 	"context"
-	"slices"
 	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -310,7 +309,7 @@ func generateSchemaDefinition(ctx context.Context, schemaID *string, composingSc
 	id := field.OptionalString(schemaID, composingSchemas[0].ID)
 
 	compiler := santhoshjsonschema.NewCompiler()
-	err = collection.EachRef[Schema](slices.Values(composingSchemas), func(schema *Schema) error {
+	err = collection.EachSliceRef(composingSchemas, func(schema *Schema) error {
 		spec, subErr := LoadSchemaSpec(ctx, schema)
 		if subErr != nil {
 			return subErr
