@@ -25,8 +25,8 @@ func TestTimeRules(t *testing.T) {
 	})
 
 	t.Run("timestamp", func(t *testing.T) {
-		assert.NoError(t, validation.Validate("2024-01-01T00:00:00Z", IsTimestamp))
-		assert.Error(t, validation.Validate("2024-01-01", IsTimestamp))
+		assert.NoError(t, validation.Validate("2024-01-01T00:00:00Z", IsRFC3339Timestamp))
+		assert.Error(t, validation.Validate("2024-01-01", IsRFC3339Timestamp))
 		minTime := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 		maxTime := time.Date(2024, 12, 31, 0, 0, 0, 0, time.UTC)
 		assert.NoError(t, validation.Validate("2024-06-01T00:00:00Z", TimestampMinimum(minTime)))

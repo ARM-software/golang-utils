@@ -62,8 +62,12 @@ type PatternProperty struct {
 func Type(types ...string) validation.Rule {
 	normalised := collection.Map(types, strings.ToLower)
 	return validation.By(func(value any) error {
+		original := reflect.ValueOf(value)
 		v, isNil := validation.Indirect(value)
 		if isNil {
+			if original.IsValid() && original.Kind() == reflect.Func {
+				return errType
+			}
 			if collection.In(normalised, "null", collection.StringCaseInsensitiveMatch) {
 				return nil
 			}
@@ -76,9 +80,11 @@ func Type(types ...string) validation.Rule {
 			case "string":
 				return kind == reflect.String
 			case "number":
-				return collection.In([]reflect.Kind{reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr, reflect.Float32, reflect.Float64}, kind, func(a, b reflect.Kind) (bool, error) { return a == b, nil })
+				_, ok := jsonSchemaNumber(v)
+				return ok
 			case "integer":
-				return collection.In([]reflect.Kind{reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr}, kind, func(a, b reflect.Kind) (bool, error) { return a == b, nil })
+				_, ok := jsonSchemaInteger(v)
+				return ok
 			case "object":
 				return kind == reflect.Map || kind == reflect.Struct
 			case "array":
@@ -104,7 +110,48 @@ func Type(types ...string) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/numeric#multiples
 func MultipleOf(base any) validation.Rule {
-	return validation.MultipleOf(base)
+	return validation.By(func(value any) error {
+		candidate, isNil := validation.Indirect(value)
+		if isNil {
+			return nil
+		}
+		baseValue, _ := validation.Indirect(base)
+		if !utilreflection.IsNotEmpty(baseValue) {
+			return commonerrors.New(commonerrors.ErrInvalid, "multipleOf base must be strictly positive")
+		}
+		// Ozzo's MultipleOf can be reused safely for positive integer bases, but a
+		// custom path is still required for JSON Schema compatibility because ozzo
+		// does not support decimal bases and does not reject invalid bases such as
+		// zero or negative values before attempting the calculation.
+		if baseInt, err := validation.ToInt(baseValue); err == nil {
+			if baseInt <= 0 {
+				return commonerrors.New(commonerrors.ErrInvalid, "multipleOf base must be strictly positive")
+			}
+			return validation.MultipleOf(baseInt).Validate(candidate)
+		}
+		if baseUint, err := validation.ToUint(baseValue); err == nil {
+			if baseUint == 0 {
+				return commonerrors.New(commonerrors.ErrInvalid, "multipleOf base must be strictly positive")
+			}
+			return validation.MultipleOf(baseUint).Validate(candidate)
+		}
+		divisor, ok := jsonSchemaNumber(baseValue)
+		if !ok {
+			return commonerrors.Newf(commonerrors.ErrInvalid, "type not supported: %T", baseValue)
+		}
+		if divisor <= 0 {
+			return commonerrors.New(commonerrors.ErrInvalid, "multipleOf base must be strictly positive")
+		}
+		multiple, ok := jsonSchemaNumber(candidate)
+		if !ok {
+			return commonerrors.Newf(commonerrors.ErrInvalid, "cannot convert %T to number", candidate)
+		}
+		quotient := multiple / divisor
+		if math.Abs(quotient-math.Round(quotient)) <= 1e-12 {
+			return nil
+		}
+		return validation.ErrMultipleOfInvalid.SetParams(map[string]any{"base": base})
+	})
 }
 
 // Maximum validates the JSON Schema `maximum` constraint.
@@ -113,7 +160,7 @@ func MultipleOf(base any) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/numeric#range
 func Maximum(max any) validation.Rule {
-	return validation.Max(max)
+	return thresholdRule(max, false, false)
 }
 
 // ExclusiveMaximum validates the JSON Schema `exclusive_maximum` constraint.
@@ -122,7 +169,7 @@ func Maximum(max any) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/numeric#range
 func ExclusiveMaximum(max any) validation.Rule {
-	return validation.Max(max).Exclusive()
+	return thresholdRule(max, false, true)
 }
 
 // Minimum validates the JSON Schema `minimum` constraint.
@@ -131,7 +178,7 @@ func ExclusiveMaximum(max any) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/numeric#range
 func Minimum(min any) validation.Rule {
-	return validation.Min(min)
+	return thresholdRule(min, true, false)
 }
 
 // ExclusiveMinimum validates the JSON Schema `exclusive_minimum` constraint.
@@ -140,7 +187,7 @@ func Minimum(min any) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/numeric#range
 func ExclusiveMinimum(min any) validation.Rule {
-	return validation.Min(min).Exclusive()
+	return thresholdRule(min, true, true)
 }
 
 // MaxLength validates the JSON Schema `max_length` constraint.
@@ -150,7 +197,10 @@ func ExclusiveMinimum(min any) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/string#length
 func MaxLength(max int) validation.Rule {
-	return RuneLengthRule(nil, field.ToOptionalInt(max))
+	if max < 0 {
+		return fail(commonerrors.Newf(commonerrors.ErrInvalid, "maxLength must be non-negative, got %d", max))
+	}
+	return stringLengthKeywordRule(nil, field.ToOptionalInt(max))
 }
 
 // MinLength validates the JSON Schema `min_length` constraint.
@@ -160,7 +210,10 @@ func MaxLength(max int) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/string#length
 func MinLength(min int) validation.Rule {
-	return RuneLengthRule(field.ToOptionalInt(min), nil)
+	if min < 0 {
+		return fail(commonerrors.Newf(commonerrors.ErrInvalid, "minLength must be non-negative, got %d", min))
+	}
+	return stringLengthKeywordRule(field.ToOptionalInt(min), nil)
 }
 
 // MaxItems validates the JSON Schema `max_items` constraint.
@@ -169,7 +222,10 @@ func MinLength(min int) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/array#length
 func MaxItems(max int) validation.Rule {
-	return LengthRule(nil, field.ToOptionalInt(max))
+	if max < 0 {
+		return fail(commonerrors.Newf(commonerrors.ErrInvalid, "maxItems must be non-negative, got %d", max))
+	}
+	return itemLengthKeywordRule(nil, field.ToOptionalInt(max))
 }
 
 // MinItems validates the JSON Schema `min_items` constraint.
@@ -178,7 +234,10 @@ func MaxItems(max int) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/array#length
 func MinItems(min int) validation.Rule {
-	return LengthRule(field.ToOptionalInt(min), nil)
+	if min < 0 {
+		return fail(commonerrors.Newf(commonerrors.ErrInvalid, "minItems must be non-negative, got %d", min))
+	}
+	return itemLengthKeywordRule(field.ToOptionalInt(min), nil)
 }
 
 // PrefixItems validates the JSON Schema `prefixItems` constraint.
@@ -214,6 +273,9 @@ func PrefixItems(rules ...validation.Rule) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/array#contains
 func Contains(rule validation.Rule) validation.Rule {
+	if rule == nil {
+		return fail(commonerrors.New(commonerrors.ErrInvalid, "contains rule must not be nil"))
+	}
 	return MinContains(1, rule)
 }
 
@@ -224,6 +286,12 @@ func Contains(rule validation.Rule) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/array#contains
 func MinContains(min int, rule validation.Rule) validation.Rule {
+	if min < 0 {
+		return fail(commonerrors.Newf(commonerrors.ErrInvalid, "minContains must be non-negative, got %d", min))
+	}
+	if rule == nil {
+		return fail(commonerrors.New(commonerrors.ErrInvalid, "contains rule must not be nil"))
+	}
 	return validation.By(func(value any) error {
 		items, err := typedSequence[any](value)
 		if err != nil || items == nil {
@@ -246,6 +314,12 @@ func MinContains(min int, rule validation.Rule) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/array#contains
 func MaxContains(max int, rule validation.Rule) validation.Rule {
+	if max < 0 {
+		return fail(commonerrors.Newf(commonerrors.ErrInvalid, "maxContains must be non-negative, got %d", max))
+	}
+	if rule == nil {
+		return fail(commonerrors.New(commonerrors.ErrInvalid, "contains rule must not be nil"))
+	}
 	return validation.By(func(value any) error {
 		items, err := typedSequence[any](value)
 		if err != nil || items == nil {
@@ -272,12 +346,19 @@ func MaxContains(max int, rule validation.Rule) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/array#uniqueness
 func UniqueItems[T any, K comparable](keyFunc collection.KeyFunc[T, K]) validation.Rule {
+	if keyFunc == nil {
+		return fail(commonerrors.New(commonerrors.ErrInvalid, "unique item key function must not be nil"))
+	}
 	return validation.By(func(value any) error {
 		items, err := typedSequence[T](value)
 		if err != nil || items == nil {
 			return err
 		}
-		if len(collection.UniqueBy(items, keyFunc)) != len(items) {
+		unique, err := uniqueByKeySafe(items, keyFunc)
+		if err != nil {
+			return err
+		}
+		if len(unique) != len(items) {
 			return errUniqueItems
 		}
 		return nil
@@ -290,7 +371,10 @@ func UniqueItems[T any, K comparable](keyFunc collection.KeyFunc[T, K]) validati
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/object#size
 func MaxProperties(max int) validation.Rule {
-	return LengthRule(nil, field.ToOptionalInt(max))
+	if max < 0 {
+		return fail(commonerrors.Newf(commonerrors.ErrInvalid, "maxProperties must be non-negative, got %d", max))
+	}
+	return propertyLengthKeywordRule(nil, field.ToOptionalInt(max))
 }
 
 // MinProperties validates the JSON Schema `min_properties` constraint.
@@ -299,7 +383,10 @@ func MaxProperties(max int) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/object#size
 func MinProperties(min int) validation.Rule {
-	return LengthRule(field.ToOptionalInt(min), nil)
+	if min < 0 {
+		return fail(commonerrors.Newf(commonerrors.ErrInvalid, "minProperties must be non-negative, got %d", min))
+	}
+	return propertyLengthKeywordRule(field.ToOptionalInt(min), nil)
 }
 
 // RequiredProperties validates the JSON Schema `required` constraint for object
@@ -338,7 +425,10 @@ func RequiredProperties(keys ...string) validation.Rule {
 // Example: `RequiredItems(func(value string) string { return value }, "a", "b")`
 // rejects `[]string{"a"}`.
 func RequiredItems[T any, K comparable](keyFunc collection.KeyFunc[T, K], items ...T) validation.Rule {
-	normalisedKeys := collection.UniqueEntries(collection.Map(items, keyFunc))
+	normalisedKeys, err := uniqueKeysSafe(collection.Map(items, keyFunc))
+	if err != nil {
+		return fail(err)
+	}
 	return RequiredItemKeys(keyFunc, normalisedKeys...)
 }
 
@@ -348,7 +438,10 @@ func RequiredItems[T any, K comparable](keyFunc collection.KeyFunc[T, K], items 
 // Example: `RequiredItemKeys(func(value user) string { return value.Role }, "admin", "editor")`
 // rejects `[]user{{Role: "admin"}}`.
 func RequiredItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], keys ...K) validation.Rule {
-	normalisedKeys := collection.UniqueEntries(keys)
+	normalisedKeys, err := uniqueKeysSafe(keys)
+	if err != nil {
+		return fail(err)
+	}
 	return validation.By(func(value any) error {
 		itemsByKey, isNil, err := keyedItemsByKey(value, keyFunc)
 		if err != nil || isNil {
@@ -374,11 +467,15 @@ func RequiredItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], key
 //	err := validation.Validate(cfg, RequiredPropertiesBy(&cfg.Name, &cfg.Enabled, &cfg.Mode))
 func RequiredPropertiesBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		normalisedKeys, err := propertyNamesForValue(value, keys...)
+		replayableValue, err := replayableValidationValue(value)
 		if err != nil {
 			return err
 		}
-		return RequiredProperties(normalisedKeys...).Validate(value)
+		normalisedKeys, err := propertyNamesForValue(replayableValue, keys...)
+		if err != nil {
+			return err
+		}
+		return RequiredProperties(normalisedKeys...).Validate(replayableValue)
 	})
 }
 
@@ -425,7 +522,15 @@ func DependentRequired(dependencies map[string][]string) validation.Rule {
 func DependentRequiredItems[T comparable, K comparable](keyFunc collection.KeyFunc[T, K], dependencies map[T][]T) validation.Rule {
 	normalised := make(map[K][]K, len(dependencies))
 	for item, dependents := range dependencies {
-		normalised[keyFunc(item)] = collection.UniqueEntries(collection.Map(dependents, keyFunc))
+		key := keyFunc(item)
+		if err := ensureHashableDynamicKey(any(key)); err != nil {
+			return fail(err)
+		}
+		merged, err := uniqueKeysSafe(append(normalised[key], collection.Map(dependents, keyFunc)...))
+		if err != nil {
+			return fail(err)
+		}
+		normalised[key] = merged
 	}
 	return DependentRequiredItemKeys(keyFunc, normalised)
 }
@@ -438,7 +543,14 @@ func DependentRequiredItems[T comparable, K comparable](keyFunc collection.KeyFu
 func DependentRequiredItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], dependencies map[K][]K) validation.Rule {
 	normalised := make(map[K][]K, len(dependencies))
 	for key, dependents := range dependencies {
-		normalised[key] = collection.UniqueEntries(dependents)
+		if err := ensureHashableDynamicKey(any(key)); err != nil {
+			return fail(err)
+		}
+		merged, err := uniqueKeysSafe(dependents)
+		if err != nil {
+			return fail(err)
+		}
+		normalised[key] = merged
 	}
 	return validation.By(func(value any) error {
 		itemsByKey, isNil, err := keyedItemsByKey(value, keyFunc)
@@ -467,11 +579,15 @@ func DependentRequiredItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T
 //	err := validation.Validate(cfg, DependentRequiredBy(map[any]any{&cfg.Username: []any{&cfg.Password, &cfg.Scheme}}))
 func DependentRequiredBy(dependencies map[any]any) validation.Rule {
 	return validation.By(func(value any) error {
-		normalised, err := propertyDependenciesForValue(value, dependencies)
+		replayableValue, err := replayableValidationValue(value)
 		if err != nil {
 			return err
 		}
-		return DependentRequired(normalised).Validate(value)
+		normalised, err := propertyDependenciesForValue(replayableValue, dependencies)
+		if err != nil {
+			return err
+		}
+		return DependentRequired(normalised).Validate(replayableValue)
 	})
 }
 
@@ -486,7 +602,11 @@ func DependentRequiredBy(dependencies map[any]any) validation.Rule {
 // Reference: https://json-schema.org/understanding-json-schema/reference/conditionals#dependentschemas
 func DependentSchemas(dependencies map[string]validation.Rule) validation.Rule {
 	return validation.By(func(value any) error {
-		props, isNil, err := objectProperties(value)
+		replayableValue, err := replayableValidationValue(value)
+		if err != nil {
+			return err
+		}
+		props, isNil, err := objectProperties(replayableValue)
 		if err != nil || isNil {
 			return err
 		}
@@ -494,7 +614,7 @@ func DependentSchemas(dependencies map[string]validation.Rule) validation.Rule {
 			if !props.present(key) {
 				continue
 			}
-			if rule.Validate(value) != nil {
+			if rule.Validate(replayableValue) != nil {
 				return errDependentSchemas
 			}
 		}
@@ -511,11 +631,15 @@ func DependentSchemas(dependencies map[string]validation.Rule) validation.Rule {
 //	err := validation.Validate(cfg, DependentSchemasBy(map[any]validation.Rule{&cfg.Username: RequiredPropertiesBy(&cfg.Password)}))
 func DependentSchemasBy(dependencies map[any]validation.Rule) validation.Rule {
 	return validation.By(func(value any) error {
-		normalised, err := propertyRulesForValue(value, dependencies)
+		replayableValue, err := replayableValidationValue(value)
 		if err != nil {
 			return err
 		}
-		return DependentSchemas(normalised).Validate(value)
+		normalised, err := propertyRulesForValue(replayableValue, dependencies)
+		if err != nil {
+			return err
+		}
+		return DependentSchemas(normalised).Validate(replayableValue)
 	})
 }
 
@@ -529,6 +653,9 @@ func DependentSchemasBy(dependencies map[any]validation.Rule) validation.Rule {
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/object#property-names
 func PropertyNames(rule validation.Rule) validation.Rule {
+	if rule == nil {
+		return fail(commonerrors.New(commonerrors.ErrInvalid, "propertyNames rule must not be nil"))
+	}
 	return validation.By(func(value any) error {
 		props, isNil, err := objectProperties(value)
 		if err != nil || isNil {
@@ -612,7 +739,10 @@ func AdditionalProperties(keys ...string) validation.Rule {
 // Example: `AdditionalItems(func(value string) string { return value }, "a", "b")`
 // rejects `[]string{"c"}`.
 func AdditionalItems[T any, K comparable](keyFunc collection.KeyFunc[T, K], items ...T) validation.Rule {
-	normalisedKeys := collection.UniqueEntries(collection.Map(items, keyFunc))
+	normalisedKeys, err := uniqueKeysSafe(collection.Map(items, keyFunc))
+	if err != nil {
+		return fail(err)
+	}
 	return AdditionalItemKeys(keyFunc, normalisedKeys...)
 }
 
@@ -622,7 +752,10 @@ func AdditionalItems[T any, K comparable](keyFunc collection.KeyFunc[T, K], item
 // Example: `AdditionalItemKeys(func(value user) string { return value.Role }, "admin", "editor")`
 // rejects `[]user{{Role: "viewer"}}`.
 func AdditionalItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], keys ...K) validation.Rule {
-	normalisedKeys := collection.UniqueEntries(keys)
+	normalisedKeys, err := uniqueKeysSafe(keys)
+	if err != nil {
+		return fail(err)
+	}
 	return validation.By(func(value any) error {
 		itemsByKey, isNil, err := keyedItemsByKey(value, keyFunc)
 		if err != nil || isNil {
@@ -651,11 +784,15 @@ func AdditionalItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], k
 //	err := validation.Validate(cfg, AdditionalPropertiesBy(&cfg.Name, &cfg.Enabled, &cfg.Mode))
 func AdditionalPropertiesBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		normalisedKeys, err := propertyNamesForValue(value, keys...)
+		replayableValue, err := replayableValidationValue(value)
 		if err != nil {
 			return err
 		}
-		return AdditionalProperties(normalisedKeys...).Validate(value)
+		normalisedKeys, err := propertyNamesForValue(replayableValue, keys...)
+		if err != nil {
+			return err
+		}
+		return AdditionalProperties(normalisedKeys...).Validate(replayableValue)
 	})
 }
 
@@ -682,8 +819,8 @@ func MutuallyExclusiveWith(keys ...string) validation.Rule {
 		switch rv.Kind() {
 		case reflect.Map:
 			count = collection.CountBy(normalisedKeys, func(key string) bool {
-				mapValue := rv.MapIndex(reflect.ValueOf(key))
-				if !mapValue.IsValid() {
+				mapValue, found := utilreflection.MapPropertyValue(rv, key)
+				if !found {
 					return false
 				}
 				return !utilreflection.IsEmpty(mapValue.Interface())
@@ -691,7 +828,7 @@ func MutuallyExclusiveWith(keys ...string) validation.Rule {
 		case reflect.Struct:
 			count = collection.CountBy(normalisedKeys, func(key string) bool {
 				fieldValue := rv.FieldByName(key)
-				if !fieldValue.IsValid() {
+				if !fieldValue.IsValid() || !fieldValue.CanInterface() {
 					return false
 				}
 				return !utilreflection.IsEmpty(fieldValue.Interface())
@@ -712,7 +849,10 @@ func MutuallyExclusiveWith(keys ...string) validation.Rule {
 // Example: `MutuallyExclusiveItems(func(value string) string { return value }, "a", "b")`
 // rejects `[]string{"a", "b"}`.
 func MutuallyExclusiveItems[T any, K comparable](keyFunc collection.KeyFunc[T, K], items ...T) validation.Rule {
-	normalisedKeys := collection.UniqueEntries(collection.Map(items, keyFunc))
+	normalisedKeys, err := uniqueKeysSafe(collection.Map(items, keyFunc))
+	if err != nil {
+		return fail(err)
+	}
 	return MutuallyExclusiveItemKeys(keyFunc, normalisedKeys...)
 }
 
@@ -722,7 +862,10 @@ func MutuallyExclusiveItems[T any, K comparable](keyFunc collection.KeyFunc[T, K
 // Example: `MutuallyExclusiveItemKeys(func(value user) string { return value.Role }, "admin", "editor")`
 // rejects `[]user{{Role: "admin"}, {Role: "editor"}}`.
 func MutuallyExclusiveItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], keys ...K) validation.Rule {
-	normalisedKeys := collection.UniqueEntries(keys)
+	normalisedKeys, err := uniqueKeysSafe(keys)
+	if err != nil {
+		return fail(err)
+	}
 	return validation.By(func(value any) error {
 		itemsByKey, isNil, err := keyedItemsByKey(value, keyFunc)
 		if err != nil || isNil {
@@ -745,11 +888,15 @@ func MutuallyExclusiveItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T
 //	err := validation.Validate(cfg, MutuallyExclusiveWithBy(&cfg.Token, &cfg.Username, &cfg.APIKey))
 func MutuallyExclusiveWithBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		normalisedKeys, err := propertyNamesForValue(value, keys...)
+		replayableValue, err := replayableValidationValue(value)
 		if err != nil {
 			return err
 		}
-		return MutuallyExclusiveWith(normalisedKeys...).Validate(value)
+		normalisedKeys, err := propertyNamesForValue(replayableValue, keys...)
+		if err != nil {
+			return err
+		}
+		return MutuallyExclusiveWith(normalisedKeys...).Validate(replayableValue)
 	})
 }
 
@@ -794,11 +941,15 @@ func AtMostOneItemKey[T any, K comparable](keyFunc collection.KeyFunc[T, K], key
 //	err := validation.Validate(cfg, AtMostOnePropertyBy(&cfg.Token, &cfg.Username, &cfg.APIKey))
 func AtMostOnePropertyBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		normalisedKeys, err := propertyNamesForValue(value, keys...)
+		replayableValue, err := replayableValidationValue(value)
 		if err != nil {
 			return err
 		}
-		return AtMostOneProperty(normalisedKeys...).Validate(value)
+		normalisedKeys, err := propertyNamesForValue(replayableValue, keys...)
+		if err != nil {
+			return err
+		}
+		return AtMostOneProperty(normalisedKeys...).Validate(replayableValue)
 	})
 }
 
@@ -832,7 +983,10 @@ func OneOfProperties(keys ...string) validation.Rule {
 // Example: `OneOfItems(func(value string) string { return value }, "a", "b")`
 // accepts `[]string{"a"}` and rejects both `[]string{}` and `[]string{"a", "b"}`.
 func OneOfItems[T any, K comparable](keyFunc collection.KeyFunc[T, K], items ...T) validation.Rule {
-	normalisedKeys := collection.UniqueEntries(collection.Map(items, keyFunc))
+	normalisedKeys, err := uniqueKeysSafe(collection.Map(items, keyFunc))
+	if err != nil {
+		return fail(err)
+	}
 	return OneOfItemKeys(keyFunc, normalisedKeys...)
 }
 
@@ -843,7 +997,10 @@ func OneOfItems[T any, K comparable](keyFunc collection.KeyFunc[T, K], items ...
 // accepts `[]user{{Role: "admin"}}` and rejects both `[]user{}` and
 // `[]user{{Role: "admin"}, {Role: "editor"}}`.
 func OneOfItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], keys ...K) validation.Rule {
-	normalisedKeys := collection.UniqueEntries(keys)
+	normalisedKeys, err := uniqueKeysSafe(keys)
+	if err != nil {
+		return fail(err)
+	}
 	return validation.By(func(value any) error {
 		itemsByKey, isNil, err := keyedItemsByKey(value, keyFunc)
 		if err != nil || isNil {
@@ -865,11 +1022,15 @@ func OneOfItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], keys .
 //	err := validation.Validate(cfg, OneOfPropertiesBy(&cfg.Token, &cfg.Username, &cfg.APIKey))
 func OneOfPropertiesBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		normalisedKeys, err := propertyNamesForValue(value, keys...)
+		replayableValue, err := replayableValidationValue(value)
 		if err != nil {
 			return err
 		}
-		return OneOfProperties(normalisedKeys...).Validate(value)
+		normalisedKeys, err := propertyNamesForValue(replayableValue, keys...)
+		if err != nil {
+			return err
+		}
+		return OneOfProperties(normalisedKeys...).Validate(replayableValue)
 	})
 }
 
@@ -903,7 +1064,10 @@ func AtLeastOneProperty(keys ...string) validation.Rule {
 // Example: `AtLeastOneItem(func(value string) string { return value }, "a", "b")`
 // rejects `[]string{}`.
 func AtLeastOneItem[T any, K comparable](keyFunc collection.KeyFunc[T, K], items ...T) validation.Rule {
-	normalisedKeys := collection.UniqueEntries(collection.Map(items, keyFunc))
+	normalisedKeys, err := uniqueKeysSafe(collection.Map(items, keyFunc))
+	if err != nil {
+		return fail(err)
+	}
 	return AtLeastOneItemKey(keyFunc, normalisedKeys...)
 }
 
@@ -913,7 +1077,10 @@ func AtLeastOneItem[T any, K comparable](keyFunc collection.KeyFunc[T, K], items
 // Example: `AtLeastOneItemKey(func(value user) string { return value.Role }, "admin", "editor")`
 // rejects `[]user{}`.
 func AtLeastOneItemKey[T any, K comparable](keyFunc collection.KeyFunc[T, K], keys ...K) validation.Rule {
-	normalisedKeys := collection.UniqueEntries(keys)
+	normalisedKeys, err := uniqueKeysSafe(keys)
+	if err != nil {
+		return fail(err)
+	}
 	return validation.By(func(value any) error {
 		itemsByKey, isNil, err := keyedItemsByKey(value, keyFunc)
 		if err != nil || isNil {
@@ -935,11 +1102,15 @@ func AtLeastOneItemKey[T any, K comparable](keyFunc collection.KeyFunc[T, K], ke
 //	err := validation.Validate(cfg, AtLeastOnePropertyBy(&cfg.Token, &cfg.Username, &cfg.APIKey))
 func AtLeastOnePropertyBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		normalisedKeys, err := propertyNamesForValue(value, keys...)
+		replayableValue, err := replayableValidationValue(value)
 		if err != nil {
 			return err
 		}
-		return AtLeastOneProperty(normalisedKeys...).Validate(value)
+		normalisedKeys, err := propertyNamesForValue(replayableValue, keys...)
+		if err != nil {
+			return err
+		}
+		return AtLeastOneProperty(normalisedKeys...).Validate(replayableValue)
 	})
 }
 
@@ -972,7 +1143,10 @@ func ForbiddenProperties(keys ...string) validation.Rule {
 // Example: `ForbiddenItems(func(value string) string { return value }, "debug")`
 // rejects `[]string{"debug"}`.
 func ForbiddenItems[T any, K comparable](keyFunc collection.KeyFunc[T, K], items ...T) validation.Rule {
-	normalisedKeys := collection.UniqueEntries(collection.Map(items, keyFunc))
+	normalisedKeys, err := uniqueKeysSafe(collection.Map(items, keyFunc))
+	if err != nil {
+		return fail(err)
+	}
 	return ForbiddenItemKeys(keyFunc, normalisedKeys...)
 }
 
@@ -982,7 +1156,10 @@ func ForbiddenItems[T any, K comparable](keyFunc collection.KeyFunc[T, K], items
 // Example: `ForbiddenItemKeys(func(value user) string { return value.Role }, "debug")`
 // rejects `[]user{{Role: "debug"}}`.
 func ForbiddenItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], keys ...K) validation.Rule {
-	normalisedKeys := collection.UniqueEntries(keys)
+	normalisedKeys, err := uniqueKeysSafe(keys)
+	if err != nil {
+		return fail(err)
+	}
 	return validation.By(func(value any) error {
 		itemsByKey, isNil, err := keyedItemsByKey(value, keyFunc)
 		if err != nil || isNil {
@@ -1004,11 +1181,15 @@ func ForbiddenItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], ke
 //	err := validation.Validate(cfg, ForbiddenPropertiesBy(&cfg.Debug, &cfg.InternalOnly))
 func ForbiddenPropertiesBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		normalisedKeys, err := propertyNamesForValue(value, keys...)
+		replayableValue, err := replayableValidationValue(value)
 		if err != nil {
 			return err
 		}
-		return ForbiddenProperties(normalisedKeys...).Validate(value)
+		normalisedKeys, err := propertyNamesForValue(replayableValue, keys...)
+		if err != nil {
+			return err
+		}
+		return ForbiddenProperties(normalisedKeys...).Validate(replayableValue)
 	})
 }
 
@@ -1019,20 +1200,20 @@ func ForbiddenPropertiesBy(keys ...any) validation.Rule {
 // numbers represented as `float64(3)`.
 func XIntOrString() validation.Rule {
 	return validation.By(func(value any) error {
-		_, isNil := validation.Indirect(value)
-		if isNil {
+		if validation.NotNil.Validate(value) != nil {
+			return errIntOrString
+		}
+		candidate, _ := validation.Indirect(value)
+		if isString, _, _, _ := validation.StringOrBytes(candidate); isString {
 			return nil
 		}
-		if isString, _, _, _ := validation.StringOrBytes(value); isString {
+		if _, err := validation.ToInt(candidate); err == nil {
 			return nil
 		}
-		if _, err := validation.ToInt(value); err == nil {
+		if _, err := validation.ToUint(candidate); err == nil {
 			return nil
 		}
-		if _, err := validation.ToUint(value); err == nil {
-			return nil
-		}
-		if f, err := validation.ToFloat(value); err == nil && math.Trunc(f) == f {
+		if f, err := validation.ToFloat(candidate); err == nil && !math.IsInf(f, 0) && !math.IsNaN(f) && math.Trunc(f) == f {
 			return nil
 		}
 		return errIntOrString
@@ -1041,33 +1222,68 @@ func XIntOrString() validation.Rule {
 
 // Enum validates that a value is one of a fixed set of allowed values.
 //
-// This is a schema-oriented alias for ozzo's `validation.In(...)` helper.
+// Unlike ozzo's `validation.In(...)`, this helper does not treat empty values as
+// automatically valid. It follows JSON Schema `enum` semantics instead.
 // Example: `Enum("red", "blue")` accepts `"blue"` and rejects `"green"`.
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/enum
 func Enum(values ...any) validation.Rule {
-	return validation.In(values...)
+	return validation.By(func(value any) error {
+		candidate, isNil := validation.Indirect(value)
+		if isNil {
+			candidate = nil
+		}
+		if collection.AnyFunc(values, func(expected any) bool {
+			return jsonSchemaEqualValues(candidate, expected)
+		}) {
+			return nil
+		}
+		return commonerrors.WrapError(commonerrors.ErrInvalid, validation.NewError("validation_enum", "must be one of the allowed values"), "invalid value")
+	})
 }
 
 // Const validates that a value is exactly equal to expected.
 //
+// This uses the same equality semantics as [Enum], including numeric equality
+// across compatible JSON-style number representations.
 // This is useful for schema-style validations where one field must have a fixed
 // discriminator or version value.
 // Example: `Const("v1")` accepts `"v1"` and rejects `"v2"`.
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/const
 func Const(expected any) validation.Rule {
-	return validation.In(expected)
+	return Enum(expected)
 }
 
-// Pattern validates that a string or byte slice matches re.
+// Pattern validates the JSON Schema `pattern` constraint.
 //
-// This is a schema-oriented alias for ozzo's regexp rule.
+// JSON Schema applies `pattern` only to string instances. Non-string values are
+// ignored rather than rejected. Unlike ozzo's `validation.Match(...)`, empty
+// strings are still validated against the supplied regexp.
 // Example: `Pattern(regexp.MustCompile("^[a-z]+$"))` accepts `"abc"`.
 //
 // Reference: https://json-schema.org/understanding-json-schema/reference/string#regular-expressions
 func Pattern(re *regexp.Regexp) validation.Rule {
-	return validation.Match(re)
+	if re == nil {
+		return fail(commonerrors.New(commonerrors.ErrInvalid, "pattern regexp must not be nil"))
+	}
+	return validation.By(func(value any) error {
+		candidate, isNil := validation.Indirect(value)
+		if isNil {
+			return nil
+		}
+		isString, str, _, _ := validation.StringOrBytes(candidate)
+		if !isString {
+			return nil
+		}
+		if str == "" {
+			if re.MatchString(str) {
+				return nil
+			}
+			return validation.ErrMatchInvalid
+		}
+		return validation.Match(re).Validate(str)
+	})
 }
 
 // Not returns a rule that succeeds only if rule fails.
@@ -1095,12 +1311,11 @@ func Not(rule validation.Rule) validation.Rule {
 //     https://spec.openapis.org/oas/v3.0.3.html#schema-object
 func Nullable(rule validation.Rule) validation.Rule {
 	return validation.By(func(value any) error {
-		_, isNil := validation.Indirect(value)
-		if isNil {
+		if validation.Nil.Validate(value) == nil {
 			return nil
 		}
 		if rule == nil {
-			return nil
+			return commonerrors.New(commonerrors.ErrInvalid, "nullable rule must not be nil")
 		}
 		return rule.Validate(value)
 	})
@@ -1169,10 +1384,28 @@ func NotEmpty() validation.Rule {
 // Example: `LengthRule(field.ToOptionalInt(1), field.ToOptionalInt(3))`
 // accepts strings, slices, arrays, and maps whose length is between one and
 // three inclusive.
+//
+// References:
+//   - JSON Schema string length:
+//     https://json-schema.org/understanding-json-schema/reference/string#length
+//   - JSON Schema array length:
+//     https://json-schema.org/understanding-json-schema/reference/array#length
+//   - JSON Schema object size:
+//     https://json-schema.org/understanding-json-schema/reference/object#size
 func LengthRule(min, max *int) validation.Rule {
-	lengthRule := validation.Length(field.OptionalInt(min, 0), field.OptionalInt(max, math.MaxInt))
-	runeLengthRule := validation.RuneLength(field.OptionalInt(min, 0), field.OptionalInt(max, math.MaxInt))
+	minimum := field.OptionalInt(min, 0)
+	maximum := field.OptionalInt(max, math.MaxInt)
+	lengthRule := validation.Length(minimum, maximum)
+	runeLengthRule := validation.RuneLength(minimum, maximum)
 	return validation.By(func(value any) error {
+		// Ozzo's length rules short-circuit empty values as valid before applying
+		// the bounds. For JSON Schema-style minimum constraints we need empty
+		// strings, slices, and maps to fail when the minimum is positive.
+		// References:
+		//   - https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4#Length
+		if minimum > 0 && validation.IsEmpty(value) {
+			return commonerrors.New(commonerrors.ErrInvalid, "the length must be no less than the minimum")
+		}
 		v, isNil := validation.Indirect(value)
 		if !isNil {
 			if isString, _, _, _ := validation.StringOrBytes(v); isString {
@@ -1190,6 +1423,111 @@ func LengthRule(min, max *int) validation.Rule {
 //
 // Example: `RuneLengthRule(nil, field.ToOptionalInt(2))` accepts `éé` and
 // rejects `ééé`.
+//
+// Reference:
+//   - JSON Schema string length:
+//     https://json-schema.org/understanding-json-schema/reference/string#length
 func RuneLengthRule(min, max *int) validation.Rule {
-	return validation.RuneLength(field.OptionalInt(min, 0), field.OptionalInt(max, math.MaxInt))
+	minimum := field.OptionalInt(min, 0)
+	maximum := field.OptionalInt(max, math.MaxInt)
+	rule := validation.RuneLength(minimum, maximum)
+	return validation.By(func(value any) error {
+		// Like LengthRule above, this guards the JSON Schema expectation that a
+		// positive minimum rejects empty values instead of treating them as
+		// automatically valid.
+		// References:
+		//   - https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4#RuneLength
+		if minimum > 0 && validation.IsEmpty(value) {
+			return commonerrors.New(commonerrors.ErrInvalid, "the length must be no less than the minimum")
+		}
+		return rule.Validate(value)
+	})
+}
+
+func stringLengthKeywordRule(min, max *int) validation.Rule {
+	rule := RuneLengthRule(min, max)
+	return validation.By(func(value any) error {
+		candidate, isNil := validation.Indirect(value)
+		if isNil {
+			return nil
+		}
+		isString, _, _, _ := validation.StringOrBytes(candidate)
+		if !isString {
+			return nil
+		}
+		return rule.Validate(candidate)
+	})
+}
+
+func itemLengthKeywordRule(min, max *int) validation.Rule {
+	rule := LengthRule(min, max)
+	return validation.By(func(value any) error {
+		items, err := typedSequence[any](value)
+		if err != nil {
+			if commonerrors.Any(err, errArrayOrSliceRequired) || commonerrors.CorrespondTo(err, errArrayOrSliceRequired.Error()) {
+				return nil
+			}
+			return err
+		}
+		if items == nil {
+			return nil
+		}
+		return rule.Validate(items)
+	})
+}
+
+func propertyLengthKeywordRule(min, max *int) validation.Rule {
+	rule := LengthRule(min, max)
+	return validation.By(func(value any) error {
+		props, isNil, err := objectProperties(value)
+		if err != nil {
+			if commonerrors.Any(err, errMapRequired) || commonerrors.CorrespondTo(err, errMapRequired.Error()) {
+				return nil
+			}
+			return err
+		}
+		if isNil {
+			return nil
+		}
+		return rule.Validate(objectPropertyNamesFromAccessor(props))
+	})
+}
+
+// jsonSchemaEqualValues compares two values using JSON Schema-style equality.
+// Numeric values are compared by numeric value rather than exact Go type.
+func jsonSchemaEqualValues(left, right any) bool {
+	if left == nil || right == nil {
+		return left == right
+	}
+	if leftNumber, ok := jsonSchemaNumber(left); ok {
+		if rightNumber, ok := jsonSchemaNumber(right); ok {
+			return leftNumber == rightNumber
+		}
+	}
+	return reflect.DeepEqual(left, right)
+}
+
+// jsonSchemaNumber converts a JSON-number-like value into a float64 for schema
+// equality checks.
+func jsonSchemaNumber(value any) (float64, bool) {
+	if v, err := validation.ToInt(value); err == nil {
+		return float64(v), true
+	}
+	if v, err := validation.ToUint(value); err == nil {
+		return float64(v), true
+	}
+	if v, err := validation.ToFloat(value); err == nil {
+		if math.IsNaN(v) || math.IsInf(v, 0) {
+			return 0, false
+		}
+		return v, true
+	}
+	return 0, false
+}
+
+func jsonSchemaInteger(value any) (float64, bool) {
+	if number, ok := jsonSchemaNumber(value); ok && math.Trunc(number) == number {
+		return number, true
+	}
+	return 0, false
 }

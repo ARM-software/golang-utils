@@ -6,6 +6,7 @@ package reflection
 
 import (
 	"reflect"
+	"strings"
 	"unsafe"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -116,6 +117,105 @@ func SetStructField(structure any, fieldName string, value any) error {
 	}
 	// This means the field was updated without errors
 	return nil
+}
+
+// MapPropertyValue returns the value stored under key when rv is a map whose
+// key type can safely represent the supplied string key.
+func MapPropertyValue(rv reflect.Value, key string) (reflect.Value, bool) {
+	if rv.Kind() != reflect.Map {
+		return reflect.Value{}, false
+	}
+	lookupKey, ok := MapLookupKey(rv.Type().Key(), key)
+	if !ok {
+		return reflect.Value{}, false
+	}
+	value := rv.MapIndex(lookupKey)
+	if !value.IsValid() {
+		return reflect.Value{}, false
+	}
+	return value, true
+}
+
+// StructPropertyValue returns the exported struct field named key when it can be
+// accessed safely without panicking.
+func StructPropertyValue(rv reflect.Value, key string) (reflect.Value, bool) {
+	if rv.Kind() != reflect.Struct {
+		return reflect.Value{}, false
+	}
+	field, found := StructFieldByPropertyName(rv.Type(), key)
+	if !found || !field.IsExported() {
+		return reflect.Value{}, false
+	}
+	fieldValue, err := rv.FieldByIndexErr(field.Index)
+	if err != nil || !fieldValue.IsValid() || !fieldValue.CanInterface() {
+		return reflect.Value{}, false
+	}
+	return fieldValue, true
+}
+
+// StructFieldByPropertyName resolves key to an exported struct field using the
+// Go field name first and then the `json` tag name when present.
+func StructFieldByPropertyName(rt reflect.Type, key string) (reflect.StructField, bool) {
+	for _, field := range reflect.VisibleFields(rt) {
+		if !field.IsExported() {
+			continue
+		}
+		if field.Name == key {
+			return field, true
+		}
+		if tag, ok := jsonTagName(field); ok && tag == key {
+			return field, true
+		}
+	}
+	return reflect.StructField{}, false
+}
+
+// StructPropertyNames returns the exported property names exposed by rt using
+// `json` tag names when present and Go field names otherwise.
+func StructPropertyNames(rt reflect.Type) []string {
+	if rt.Kind() != reflect.Struct {
+		return nil
+	}
+	result := make([]string, 0)
+	for _, field := range reflect.VisibleFields(rt) {
+		if !field.IsExported() {
+			continue
+		}
+		if tag, ok := jsonTagName(field); ok {
+			result = append(result, tag)
+			continue
+		}
+		result = append(result, field.Name)
+	}
+	return result
+}
+
+// MapLookupKey converts a string property name into a reflected map key value
+// when the map key type is compatible with strings.
+func MapLookupKey(keyType reflect.Type, key string) (reflect.Value, bool) {
+	stringKey := reflect.ValueOf(key)
+	if stringKey.Type().AssignableTo(keyType) {
+		return stringKey, true
+	}
+	if stringKey.Type().ConvertibleTo(keyType) {
+		return stringKey.Convert(keyType), true
+	}
+	if keyType.Kind() == reflect.Interface {
+		return stringKey, true
+	}
+	return reflect.Value{}, false
+}
+
+func jsonTagName(field reflect.StructField) (string, bool) {
+	tag := field.Tag.Get("json")
+	if tag == "" || tag == "-" {
+		return "", false
+	}
+	parts := strings.Split(tag, ",")
+	if len(parts) == 0 || parts[0] == "" {
+		return "", false
+	}
+	return parts[0], true
 }
 
 // InheritsFrom uses reflection to find if a struct "inherits" from a certain type.

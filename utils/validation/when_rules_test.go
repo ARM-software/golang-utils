@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"regexp"
 	"testing"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -24,7 +25,9 @@ func TestWhenRules(t *testing.T) {
 			Name string
 		}
 		cfg := &config{Mode: "strict"}
-		rule := WhenFieldEquals(&cfg.Mode, "strict", RequiredPropertiesBy(&cfg.Name))
+		rule := WhenFieldEquals(&cfg.Mode, "strict", PatternProperties(
+			PatternProperty{Pattern: regexp.MustCompile(`^Name$`), Rule: MinLength(1)},
+		))
 		err := validation.Validate(cfg, rule)
 		require.Error(t, err)
 
@@ -48,7 +51,9 @@ func TestWhenRules(t *testing.T) {
 			Name string
 		}
 		cfg := &config{Mode: "STRICT"}
-		rule := WhenFieldMatches(&cfg.Mode, "strict", collection.StringCaseInsensitiveMatch, RequiredPropertiesBy(&cfg.Name))
+		rule := WhenFieldMatches(&cfg.Mode, "strict", collection.StringCaseInsensitiveMatch, PatternProperties(
+			PatternProperty{Pattern: regexp.MustCompile(`^Name$`), Rule: MinLength(1)},
+		))
 		err := validation.Validate(cfg, rule)
 		require.Error(t, err)
 

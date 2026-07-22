@@ -33,7 +33,11 @@ func WhenPropertyMatches[T any](key string, expected T, match collection.MatchFu
 		return rule != nil
 	})
 	return validation.By(func(value any) error {
-		props, isNil, err := objectProperties(value)
+		replayableValue, err := replayableValidationValue(value)
+		if err != nil {
+			return err
+		}
+		props, isNil, err := objectProperties(replayableValue)
 		if err != nil || isNil {
 			return err
 		}
@@ -49,7 +53,7 @@ func WhenPropertyMatches[T any](key string, expected T, match collection.MatchFu
 		if err != nil {
 			return err
 		}
-		return validation.When(condition, filteredRules...).Validate(value)
+		return validation.When(condition, filteredRules...).Validate(replayableValue)
 	})
 }
 
@@ -71,10 +75,14 @@ func WhenFieldMatches[T any](field any, expected T, match collection.MatchFunc[T
 		return rule != nil
 	})
 	return validation.By(func(value any) error {
-		fieldName, err := propertyNameForValue(value, field)
+		replayableValue, err := replayableValidationValue(value)
 		if err != nil {
 			return err
 		}
-		return WhenPropertyMatches(fieldName, expected, match, filteredRules...).Validate(value)
+		fieldName, err := propertyNameForValue(replayableValue, field)
+		if err != nil {
+			return err
+		}
+		return WhenPropertyMatches(fieldName, expected, match, filteredRules...).Validate(replayableValue)
 	})
 }

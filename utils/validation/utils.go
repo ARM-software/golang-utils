@@ -3,7 +3,9 @@ package validation
 import (
 	"reflect"
 	"slices"
+	"time"
 
+	mapset "github.com/deckarep/golang-set/v2"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	"github.com/ARM-software/golang-utils/utils/collection"
@@ -80,7 +82,7 @@ func sequenceToSlice(value any) ([]any, bool) {
 		return nil, false
 	}
 	yieldType := rt.In(0)
-	if !matchesAnyKind(yieldType.Kind(), reflect.Func) || yieldType.NumIn() != 1 || yieldType.NumOut() != 1 || !matchesAnyKind(yieldType.Out(0).Kind(), reflect.Bool) {
+	if !matchesAnyKind(yieldType.Kind(), reflect.Func) || yieldType.NumIn() != 1 || yieldType.NumOut() != 1 || yieldType.Out(0) != reflect.TypeOf(true) {
 		return nil, false
 	}
 	if rv.IsNil() {
@@ -93,6 +95,63 @@ func sequenceToSlice(value any) ([]any, bool) {
 	})
 	rv.Call([]reflect.Value{yield})
 	return items, true
+}
+
+// objectSequence2ToMap detects function-backed iter.Seq2-style values and
+// collects string-keyed properties into a replayable map representation.
+func objectSequence2ToMap(value any) (items map[string]any, keys []string, ok bool, isNil bool, err error) {
+	rv := reflect.ValueOf(value)
+	if !rv.IsValid() || !matchesAnyKind(rv.Kind(), reflect.Func) {
+		return nil, nil, false, false, nil
+	}
+	rt := rv.Type()
+	if rt.NumIn() != 1 || rt.NumOut() != 0 {
+		return nil, nil, false, false, nil
+	}
+	yieldType := rt.In(0)
+	if !matchesAnyKind(yieldType.Kind(), reflect.Func) || yieldType.NumIn() != 2 || yieldType.NumOut() != 1 || yieldType.Out(0) != reflect.TypeOf(true) || yieldType.In(0).Kind() != reflect.String {
+		return nil, nil, false, false, nil
+	}
+	if rv.IsNil() {
+		return nil, nil, true, true, nil
+	}
+	items = make(map[string]any)
+	keys = make([]string, 0)
+	yield := reflect.MakeFunc(yieldType, func(args []reflect.Value) []reflect.Value {
+		key := args[0].String()
+		if _, found := items[key]; !found {
+			keys = append(keys, key)
+		}
+		items[key] = args[1].Interface()
+		return []reflect.Value{reflect.ValueOf(true)}
+	})
+	rv.Call([]reflect.Value{yield})
+	if err != nil {
+		return nil, nil, true, false, err
+	}
+	return items, keys, true, false, nil
+}
+
+// replayableValidationValue eagerly materialises supported iterator-backed
+// values so nested validations can safely reuse the same logical input without
+// exhausting a single-use iterator.
+func replayableValidationValue(value any) (any, error) {
+	if items, _, ok, isNil, err := objectSequence2ToMap(value); ok || err != nil {
+		if isNil {
+			return nil, nil
+		}
+		return items, err
+	}
+	if items, ok := sequenceToSlice(value); ok {
+		return items, nil
+	}
+	return value, nil
+}
+
+func fail(err error) validation.Rule {
+	return validation.By(func(value any) error {
+		return err
+	})
 }
 
 // objectValue extracts a reflect.Value for map or struct inputs.
@@ -139,8 +198,14 @@ func invalidTypedNilValue(value any, invalid error, allowedNilKinds ...reflect.K
 	if matchesAnyKind(rv.Kind(), reflect.Func) && rv.IsNil() {
 		return invalid
 	}
-	if matchesAnyKind(rv.Kind(), reflect.Pointer) && rv.IsNil() && !matchesAnyKind(rv.Type().Elem().Kind(), allowedNilKinds...) {
-		return invalid
+	if matchesAnyKind(rv.Kind(), reflect.Pointer) && rv.IsNil() {
+		typeOfValue := rv.Type()
+		for typeOfValue.Kind() == reflect.Pointer {
+			typeOfValue = typeOfValue.Elem()
+		}
+		if !matchesAnyKind(typeOfValue.Kind(), allowedNilKinds...) {
+			return invalid
+		}
 	}
 	return nil
 }
@@ -155,7 +220,11 @@ func keyedItemsByKey[T any, K comparable](value any, keyFunc collection.KeyFunc[
 	if items == nil {
 		return nil, true, nil
 	}
-	return collection.IndexBy(items, keyFunc), false, nil
+	itemsByKey, err = indexByKeySafe(items, keyFunc)
+	if err != nil {
+		return nil, false, err
+	}
+	return itemsByKey, false, nil
 }
 
 // countPresentKeys counts how many of keys are present in itemsByKey.
@@ -169,53 +238,173 @@ func countPresentKeys[K comparable, V any](itemsByKey map[K]V, keys []K) int {
 	})
 }
 
+func ensureHashableDynamicKey(key any) error {
+	if key == nil {
+		return nil
+	}
+	typeOfKey := reflect.TypeOf(key)
+	if typeOfKey == nil || typeOfKey.Comparable() {
+		return nil
+	}
+	return commonerrors.Newf(commonerrors.ErrInvalid, "derived key must be hashable, got %T", key)
+}
+
+func uniqueKeysSafe[K comparable](keys []K) ([]K, error) {
+	seen := mapset.NewSet[K]()
+	result := make([]K, 0, len(keys))
+	err := collection.ForAll(keys, func(key K) error {
+		if err := ensureHashableDynamicKey(any(key)); err != nil {
+			return err
+		}
+		if seen.Contains(key) {
+			return nil
+		}
+		seen.Add(key)
+		result = append(result, key)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func uniqueByKeySafe[T any, K comparable](items []T, keyFunc collection.KeyFunc[T, K]) ([]T, error) {
+	seen := mapset.NewSet[K]()
+	result := make([]T, 0, len(items))
+	err := collection.ForAll(items, func(item T) error {
+		key := keyFunc(item)
+		if err := ensureHashableDynamicKey(any(key)); err != nil {
+			return err
+		}
+		if seen.Contains(key) {
+			return nil
+		}
+		seen.Add(key)
+		result = append(result, item)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func indexByKeySafe[T any, K comparable](items []T, keyFunc collection.KeyFunc[T, K]) (map[K]T, error) {
+	result := make(map[K]T, len(items))
+	err := collection.ForAll(items, func(item T) error {
+		key := keyFunc(item)
+		if err := ensureHashableDynamicKey(any(key)); err != nil {
+			return err
+		}
+		result[key] = item
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// thresholdRule implements the numeric and timestamp threshold logic shared by
+// minimum/maximum style helpers.
+func thresholdRule(threshold any, minimum, exclusive bool) validation.Rule {
+	return validation.By(func(value any) error {
+		// Ozzo's threshold rules such as Min, Max, and their Exclusive variants
+		// cannot be used directly here because they treat zero-like values as empty
+		// and therefore valid before comparison. JSON Schema minimum and maximum
+		// constraints must still evaluate numeric zero, so the comparison is
+		// performed explicitly while still reusing ozzo's threshold error objects.
+		value, isNil := validation.Indirect(value)
+		if isNil {
+			return nil
+		}
+		rv := reflect.ValueOf(threshold)
+		switch rv.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			fallthrough
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+			fallthrough
+		case reflect.Float32, reflect.Float64:
+			thresholdNumber, ok := jsonSchemaNumber(threshold)
+			if !ok {
+				return commonerrors.Newf(commonerrors.ErrInvalid, "type not supported: %T", threshold)
+			}
+			candidate, ok := jsonSchemaNumber(value)
+			if !ok {
+				return commonerrors.Newf(commonerrors.ErrInvalid, "cannot convert %T to number", value)
+			}
+			if compareThreshold(candidate, thresholdNumber, minimum, exclusive) {
+				return nil
+			}
+		case reflect.Struct:
+			thresholdValue, ok := threshold.(time.Time)
+			if !ok {
+				return commonerrors.Newf(commonerrors.ErrInvalid, "type not supported: %v", rv.Type())
+			}
+			candidate, ok := value.(time.Time)
+			if !ok {
+				return commonerrors.Newf(commonerrors.ErrInvalid, "cannot convert %T to time.Time", value)
+			}
+			if compareTimeThreshold(candidate, thresholdValue, minimum, exclusive) {
+				return nil
+			}
+		default:
+			return commonerrors.Newf(commonerrors.ErrInvalid, "type not supported: %v", rv.Type())
+		}
+		if minimum {
+			if exclusive {
+				return validation.ErrMinGreaterThanRequired.SetParams(map[string]any{"threshold": threshold})
+			}
+			return validation.ErrMinGreaterEqualThanRequired.SetParams(map[string]any{"threshold": threshold})
+		}
+		if exclusive {
+			return validation.ErrMaxLessThanRequired.SetParams(map[string]any{"threshold": threshold})
+		}
+		return validation.ErrMaxLessEqualThanRequired.SetParams(map[string]any{"threshold": threshold})
+	})
+}
+
+// compareThreshold applies inclusive or exclusive minimum/maximum semantics to
+// primitive numeric values.
+func compareThreshold[T int64 | uint64 | float64](candidate, threshold T, minimum, exclusive bool) bool {
+	if minimum {
+		if exclusive {
+			return candidate > threshold
+		}
+		return candidate >= threshold
+	}
+	if exclusive {
+		return candidate < threshold
+	}
+	return candidate <= threshold
+}
+
+// compareTimeThreshold applies inclusive or exclusive minimum/maximum semantics
+// to time values.
+func compareTimeThreshold(candidate, threshold time.Time, minimum, exclusive bool) bool {
+	if minimum {
+		if exclusive {
+			return candidate.After(threshold)
+		}
+		return candidate.After(threshold) || candidate.Equal(threshold)
+	}
+	if exclusive {
+		return candidate.Before(threshold)
+	}
+	return candidate.Before(threshold) || candidate.Equal(threshold)
+}
+
 // objectSequence2ToAccessor detects function-backed iter.Seq2-style values and
 // collects string-keyed properties into an accessor.
-func objectSequence2ToAccessor(value any) (*objectAccessor, bool, error) {
-	rv := reflect.ValueOf(value)
-	if !rv.IsValid() || !matchesAnyKind(rv.Kind(), reflect.Func) {
-		return nil, false, nil
+
+func objectSequence2ToAccessor(value any) (*objectAccessor, bool, bool, error) {
+	items, keys, ok, isNil, err := objectSequence2ToMap(value)
+	if !ok || err != nil {
+		return nil, ok, isNil, err
 	}
-	rt := rv.Type()
-	if rt.NumIn() != 1 || rt.NumOut() != 0 {
-		return nil, false, nil
-	}
-	yieldType := rt.In(0)
-	if !matchesAnyKind(yieldType.Kind(), reflect.Func) || yieldType.NumIn() != 2 || yieldType.NumOut() != 1 || !matchesAnyKind(yieldType.Out(0).Kind(), reflect.Bool) {
-		return nil, false, nil
-	}
-	if rv.IsNil() {
-		return nil, false, errMapRequired
-	}
-	items := make(map[string]any)
-	keys := make([]string, 0)
-	yield := reflect.MakeFunc(yieldType, func(args []reflect.Value) []reflect.Value {
-		key, ok := args[0].Interface().(string)
-		if !ok {
-			panic(commonerrors.Newf(commonerrors.ErrMarshalling, "unsupported object key type: %T", args[0].Interface()))
-		}
-		if _, found := items[key]; !found {
-			keys = append(keys, key)
-		}
-		items[key] = args[1].Interface()
-		return []reflect.Value{reflect.ValueOf(true)}
-	})
-	var callErr error
-	func() {
-		defer func() {
-			if recovered := recover(); recovered != nil {
-				switch err := recovered.(type) {
-				case error:
-					callErr = err
-				default:
-					panic(recovered)
-				}
-			}
-		}()
-		rv.Call([]reflect.Value{yield})
-	}()
-	if callErr != nil {
-		return nil, true, callErr
+	if isNil {
+		return nil, true, true, nil
 	}
 	return &objectAccessor{
 		names: keys,
@@ -231,14 +420,14 @@ func objectSequence2ToAccessor(value any) (*objectAccessor, bool, error) {
 			value, found := items[key]
 			return found && !utilreflection.IsEmpty(value)
 		},
-	}, true, nil
+	}, true, false, nil
 }
 
 // objectProperties extracts a uniform object accessor for map, struct, or
 // string-keyed iter.Seq2 inputs.
 func objectProperties(value any) (props *objectAccessor, isNil bool, err error) {
-	if props, ok, err := objectSequence2ToAccessor(value); ok || err != nil {
-		return props, false, err
+	if props, ok, isNil, err := objectSequence2ToAccessor(value); ok || err != nil {
+		return props, isNil, err
 	}
 	rv, isNil, err := objectValue(value)
 	if err != nil || isNil {
@@ -268,10 +457,11 @@ func objectProperties(value any) (props *objectAccessor, isNil bool, err error) 
 func hasObjectProperty(rv reflect.Value, key string) bool {
 	switch rv.Kind() {
 	case reflect.Map:
-		return rv.MapIndex(reflect.ValueOf(key)).IsValid()
+		_, found := utilreflection.MapPropertyValue(rv, key)
+		return found
 	case reflect.Struct:
-		fieldValue := rv.FieldByName(key)
-		return fieldValue.IsValid() && !utilreflection.IsEmpty(fieldValue.Interface())
+		_, found := utilreflection.StructPropertyValue(rv, key)
+		return found
 	default:
 		return false
 	}
@@ -284,14 +474,14 @@ func hasObjectProperty(rv reflect.Value, key string) bool {
 func objectPropertyValue(rv reflect.Value, key string) (any, bool) {
 	switch rv.Kind() {
 	case reflect.Map:
-		value := rv.MapIndex(reflect.ValueOf(key))
-		if !value.IsValid() {
+		value, found := utilreflection.MapPropertyValue(rv, key)
+		if !found {
 			return nil, false
 		}
 		return value.Interface(), true
 	case reflect.Struct:
-		fieldValue := rv.FieldByName(key)
-		if !fieldValue.IsValid() {
+		fieldValue, found := utilreflection.StructPropertyValue(rv, key)
+		if !found {
 			return nil, false
 		}
 		return fieldValue.Interface(), true
@@ -300,6 +490,8 @@ func objectPropertyValue(rv reflect.Value, key string) (any, bool) {
 	}
 }
 
+// mapPropertyValue returns the value stored under key when rv is a map whose key
+// type can safely represent the supplied string key.
 // objectPropertyNames returns the set of property names exposed by a map or
 // struct.
 //
@@ -309,18 +501,23 @@ func objectPropertyNames(rv reflect.Value) []string {
 	switch rv.Kind() {
 	case reflect.Map:
 		keys := rv.MapKeys()
-		return collection.Filter(collection.Map(keys, func(key reflect.Value) string {
-			if key.Kind() != reflect.String {
-				return ""
+		return collection.Reduce(keys, []string{}, func(result []string, key reflect.Value) []string {
+			if matchesAnyKind(key.Kind(), reflect.String) {
+				return append(result, key.String())
 			}
-			return key.String()
-		}), func(key string) bool { return key != "" })
+			if matchesAnyKind(key.Kind(), reflect.Interface) {
+				if key.IsNil() {
+					return result
+				}
+				inner := key.Elem()
+				if matchesAnyKind(inner.Kind(), reflect.String) {
+					return append(result, inner.String())
+				}
+			}
+			return result
+		})
 	case reflect.Struct:
-		result := make([]string, 0, rv.NumField())
-		for i := 0; i < rv.NumField(); i++ {
-			result = append(result, rv.Type().Field(i).Name)
-		}
-		return result
+		return utilreflection.StructPropertyNames(rv.Type())
 	default:
 		return nil
 	}
@@ -436,18 +633,23 @@ func structFieldNameFromReference(rv reflect.Value, refValue reflect.Value) (str
 		}
 		return "", commonerrors.Newf(commonerrors.ErrInvalid, "property reference must be a non-nil field pointer, string, or []string, got %s", referenceType)
 	}
-	if field := findStructFieldByReference(rv, refValue); field != nil {
-		return field.Name, nil
+	fields := findStructFieldsByReference(rv, refValue)
+	if len(fields) == 1 {
+		return fields[0].Name, nil
+	}
+	if len(fields) > 1 {
+		return "", commonerrors.Newf(commonerrors.ErrInvalid, "property reference %T ambiguously matches multiple fields on %T", refValue.Interface(), rv.Interface())
 	}
 	return "", commonerrors.Newf(commonerrors.ErrInvalid, "property reference %T does not match any field on %T", refValue.Interface(), rv.Interface())
 }
 
-func findStructFieldByReference(structValue reflect.Value, fieldValue reflect.Value) *reflect.StructField {
+func findStructFieldsByReference(structValue reflect.Value, fieldValue reflect.Value) []reflect.StructField {
 	ptr := fieldValue.Pointer()
+	result := make([]reflect.StructField, 0)
 	for i := structValue.NumField() - 1; i >= 0; i-- {
 		sf := structValue.Type().Field(i)
 		if ptr == structValue.Field(i).UnsafeAddr() && sf.Type == fieldValue.Elem().Type() {
-			return &sf
+			result = append(result, sf)
 		}
 		if !sf.Anonymous {
 			continue
@@ -462,11 +664,9 @@ func findStructFieldByReference(structValue reflect.Value, fieldValue reflect.Va
 		if fi.Kind() != reflect.Struct {
 			continue
 		}
-		if field := findStructFieldByReference(fi, fieldValue); field != nil {
-			return field
-		}
+		result = append(result, findStructFieldsByReference(fi, fieldValue)...)
 	}
-	return nil
+	return result
 }
 
 func propertyDependenciesForValue(value any, dependencies map[any]any) (map[string][]string, error) {
@@ -480,7 +680,7 @@ func propertyDependenciesForValue(value any, dependencies map[any]any) (map[stri
 		if err != nil {
 			return nil, err
 		}
-		normalised[name] = collection.UniqueEntries(names)
+		normalised[name] = collection.UniqueEntries(append(normalised[name], names...))
 	}
 	return normalised, nil
 }
@@ -491,6 +691,10 @@ func propertyRulesForValue(value any, rules map[any]validation.Rule) (map[string
 		name, err := propertyNameForValue(value, key)
 		if err != nil {
 			return nil, err
+		}
+		if existing, found := normalised[name]; found {
+			normalised[name] = NewAllRule(existing, rule)
+			continue
 		}
 		normalised[name] = rule
 	}

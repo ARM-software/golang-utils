@@ -1,7 +1,7 @@
 package validation
 
 // time_rules.go contains validation helpers related to durations and timestamps,
-// including both parsing helpers (`IsDuration`, `IsTimestamp`) and threshold/
+// including both parsing helpers (`IsDuration`, `IsRFC3339Timestamp`) and threshold/
 // equality rules for time-oriented values.
 
 import (
@@ -158,8 +158,8 @@ var IsDuration = validation.NewStringRule(func(value string) bool {
 	return err == nil
 }, "must be a valid duration")
 
-// IsTimestamp validates whether a string or byte slice is a valid RFC3339 timestamp.
-var IsTimestamp = validation.NewStringRule(func(value string) bool {
+// IsRFC3339Timestamp validates whether a string or byte slice is a valid RFC3339 timestamp.
+var IsRFC3339Timestamp = validation.NewStringRule(func(value string) bool {
 	if _, err := time.Parse(time.RFC3339, value); err == nil {
 		return true
 	}

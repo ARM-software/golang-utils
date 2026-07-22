@@ -42,13 +42,17 @@ type compositeRule struct {
 
 // AppendRule adds one or more non-contextual rules to the composite rule.
 func (r *compositeRule) AppendRule(rule ...validation.Rule) {
-	r.rules = append(r.rules, rule...)
+	r.rules = append(r.rules, collection.Filter(rule, func(item validation.Rule) bool {
+		return item != nil
+	})...)
 }
 
 // AppendContextualRule adds one or more context-aware rules to the
 // composite rule.
 func (r *compositeRule) AppendContextualRule(rule ...validation.RuleWithContext) {
-	r.rulesWithContext = append(r.rulesWithContext, rule...)
+	r.rulesWithContext = append(r.rulesWithContext, collection.Filter(rule, func(item validation.RuleWithContext) bool {
+		return item != nil
+	})...)
 }
 
 // verify evaluates all configured rules against v and returns one error per
@@ -303,64 +307,88 @@ func AtMostWithContext(max int, rule ...validation.RuleWithContext) validation.R
 
 type exactlyRule struct {
 	compositeRule
-	want int
+	n int
 }
 
-// Validate succeeds if exactly want nested rules succeed.
+// Validate succeeds if exactly `n` nested rules succeed.
 func (r *exactlyRule) Validate(v any) error {
 	errors := r.verify(context.Background(), v)
 	return r.checkExactly(errors)
 }
 
 func (r *exactlyRule) checkExactly(errors []error) error {
-	if countSuccessfulRules(errors) != r.want {
+	if countSuccessfulRules(errors) != r.n {
 		return commonerrors.WrapError(commonerrors.ErrInvalid, summariseErrors(errors), "invalid value")
 	}
 	return nil
 }
 
-// ValidateWithContext succeeds if exactly want nested rules succeed.
+// ValidateWithContext succeeds if exactly `n` nested rules succeed.
 func (r *exactlyRule) ValidateWithContext(ctx context.Context, v any) error {
 	errors := r.verify(ctx, v)
 	return r.checkExactly(errors)
 }
 
 // NewExactlyCompositeRule returns an empty composite rule that succeeds if
-// exactly want appended rules succeed.
-func NewExactlyCompositeRule(want int) ICompositeRule {
-	return &exactlyRule{want: want}
+// exactly `n` appended rules succeed.
+func NewExactlyCompositeRule(n int) ICompositeRule {
+	return &exactlyRule{n: n}
 }
 
-// Exactly returns a rule that succeeds if exactly want of the provided rules
+// Exactly returns a rule that succeeds if exactly `n` of the provided rules
 // succeed.
-func Exactly(want int, rule ...validation.Rule) validation.Rule {
-	c := NewExactlyCompositeRule(want)
+func Exactly(n int, rule ...validation.Rule) validation.Rule {
+	c := NewExactlyCompositeRule(n)
 	c.AppendRule(rule...)
 	return c
 }
 
-// ExactlyWithContext returns a context-aware rule that succeeds if exactly want
+// ExactlyWithContext returns a context-aware rule that succeeds if exactly `n`
 // of the provided context-aware rules succeed.
-func ExactlyWithContext(want int, rule ...validation.RuleWithContext) validation.RuleWithContext {
-	c := NewExactlyCompositeRule(want)
+func ExactlyWithContext(n int, rule ...validation.RuleWithContext) validation.RuleWithContext {
+	c := NewExactlyCompositeRule(n)
 	c.AppendContextualRule(rule...)
 	return c
 }
 
-// NOf returns a rule that succeeds if exactly want of the provided rules
+// NOf returns a rule that succeeds only if exactly `n` of the provided rules
 // succeed.
 //
+// In other words, this is an “N of these rules must pass” combinator.
+//
+// Example: `NOf(1, is.Email, is.UUID)` accepts a valid email or a valid UUID,
+// but rejects values that satisfy neither rule and values that satisfy more than
+// one rule.
+//
+// References:
+//   - Exactly-one style constraints in validation logic:
+//     https://en.wikipedia.org/wiki/Exclusive_or
+//   - JSON Schema oneOf (related concept):
+//     https://json-schema.org/understanding-json-schema/reference/combining#oneof
+//
 // It is a readability-oriented alias for [Exactly].
-func NOf(want int, rule ...validation.Rule) validation.Rule {
-	return Exactly(want, rule...)
+func NOf(n int, rule ...validation.Rule) validation.Rule {
+	return Exactly(n, rule...)
 }
 
-// NOfWithContext returns a context-aware rule that succeeds if exactly want of
-// the provided context-aware rules succeed.
+// NOfWithContext returns a context-aware rule that succeeds only if exactly
+// `n` of the provided context-aware rules succeed.
+//
+// In other words, this is the context-aware form of “N of these rules must
+// pass”.
+//
+// Example: `NOfWithContext(1, emailRule, uuidRule)` accepts a value only when
+// exactly one of the supplied contextual rules succeeds.
+//
+// References:
+//   - Exactly-one style constraints in validation logic:
+//     https://en.wikipedia.org/wiki/Exclusive_or
+//   - JSON Schema oneOf (related concept):
+//     https://json-schema.org/understanding-json-schema/reference/combining#oneof
 //
 // It is a readability-oriented alias for [ExactlyWithContext].
-func NOfWithContext(want int, rule ...validation.RuleWithContext) validation.RuleWithContext {
-	return ExactlyWithContext(want, rule...)
+func NOfWithContext(n int, rule ...validation.RuleWithContext) validation.RuleWithContext {
+	return ExactlyWithContext(n, rule...)
 }
 
 type atLeastRule struct {
@@ -418,7 +446,11 @@ func Implies(antecedent, consequent validation.Rule) validation.Rule {
 		if antecedent == nil || consequent == nil {
 			return nil
 		}
-		err := validation.When(antecedent.Validate(value) == nil, consequent).Validate(value)
+		replayableValue, err := replayableValidationValue(value)
+		if err != nil {
+			return err
+		}
+		err = validation.When(antecedent.Validate(replayableValue) == nil, consequent).Validate(replayableValue)
 		if err != nil {
 			return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
 		}
@@ -443,10 +475,14 @@ func (r *impliesWithContextRule) ValidateWithContext(ctx context.Context, value 
 	if r == nil || r.antecedent == nil || r.consequent == nil {
 		return nil
 	}
-	if err := r.antecedent.ValidateWithContext(ctx, value); err != nil {
+	replayableValue, err := replayableValidationValue(value)
+	if err != nil {
+		return err
+	}
+	if err := r.antecedent.ValidateWithContext(ctx, replayableValue); err != nil {
 		return nil
 	}
-	if err := r.consequent.ValidateWithContext(ctx, value); err != nil {
+	if err := r.consequent.ValidateWithContext(ctx, replayableValue); err != nil {
 		return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
 	}
 	return nil
@@ -459,8 +495,12 @@ func (r *impliesWithContextRule) ValidateWithContext(ctx context.Context, value 
 // branch is treated as a no-op branch that succeeds.
 func IfThenElse(ifRule, thenRule, elseRule validation.Rule) validation.Rule {
 	return validation.By(func(value any) error {
-		condition := ifRule == nil || ifRule.Validate(value) == nil
-		if err := validation.When(condition, ruleIfNotNil(thenRule)...).Else(ruleIfNotNil(elseRule)...).Validate(value); err != nil {
+		replayableValue, err := replayableValidationValue(value)
+		if err != nil {
+			return err
+		}
+		condition := ifRule == nil || ifRule.Validate(replayableValue) == nil
+		if err := validation.When(condition, ruleIfNotNil(thenRule)...).Else(ruleIfNotNil(elseRule)...).Validate(replayableValue); err != nil {
 			return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
 		}
 		return nil
@@ -492,8 +532,12 @@ func (r *ifThenElseWithContextRule) ValidateWithContext(ctx context.Context, val
 	if r == nil {
 		return nil
 	}
-	condition := r.ifRule == nil || r.ifRule.ValidateWithContext(ctx, value) == nil
-	if err := validation.When(condition, contextualRuleIfNotNil(r.thenRule)...).Else(contextualRuleIfNotNil(r.elseRule)...).ValidateWithContext(ctx, value); err != nil {
+	replayableValue, err := replayableValidationValue(value)
+	if err != nil {
+		return err
+	}
+	condition := r.ifRule == nil || r.ifRule.ValidateWithContext(ctx, replayableValue) == nil
+	if err := validation.When(condition, contextualRuleIfNotNil(r.thenRule)...).Else(contextualRuleIfNotNil(r.elseRule)...).ValidateWithContext(ctx, replayableValue); err != nil {
 		return commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid value")
 	}
 	return nil
@@ -511,7 +555,7 @@ func contextualRuleIfNotNil(rule validation.RuleWithContext) []validation.Rule {
 // NewOneOfCompositeRule returns an empty composite rule that succeeds if
 // exactly one appended rule succeeds.
 func NewOneOfCompositeRule() ICompositeRule {
-	return &exactlyRule{want: 1}
+	return &exactlyRule{n: 1}
 }
 
 // NewOneOfRule returns a rule that succeeds only if exactly one of the

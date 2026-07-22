@@ -393,6 +393,55 @@ func TestInheritsFrom(t *testing.T) {
 	}
 }
 
+func TestPropertyReflectionHelpers(t *testing.T) {
+	t.Run("map property value", func(t *testing.T) {
+		value := faker.Word()
+		type namedString string
+		mapValue, found := MapPropertyValue(reflect.ValueOf(map[string]any{"alpha": value}), "alpha")
+		require.True(t, found)
+		assert.Equal(t, value, mapValue.Interface())
+
+		mapValue, found = MapPropertyValue(reflect.ValueOf(map[namedString]any{"alpha": value}), "alpha")
+		require.True(t, found)
+		assert.Equal(t, value, mapValue.Interface())
+
+		mapValue, found = MapPropertyValue(reflect.ValueOf(map[any]any{"": value}), "")
+		require.True(t, found)
+		assert.Equal(t, value, mapValue.Interface())
+
+		_, found = MapPropertyValue(reflect.ValueOf(map[int]string{1: value}), "alpha")
+		assert.False(t, found)
+	})
+
+	t.Run("struct property value and names", func(t *testing.T) {
+		type embedded struct{ Value string }
+		type sample struct {
+			*embedded
+			Name       string `json:"name"`
+			Plain      string
+			unexported string
+		}
+
+		value := sample{Name: "alice", Plain: "plain", unexported: "hidden"}
+
+		fieldValue, found := StructPropertyValue(reflect.ValueOf(value), "name")
+		require.True(t, found)
+		assert.Equal(t, "alice", fieldValue.Interface())
+
+		fieldValue, found = StructPropertyValue(reflect.ValueOf(value), "Plain")
+		require.True(t, found)
+		assert.Equal(t, "plain", fieldValue.Interface())
+
+		_, found = StructPropertyValue(reflect.ValueOf(value), "unexported")
+		assert.False(t, found)
+
+		_, found = StructPropertyValue(reflect.ValueOf(sample{}), "Value")
+		assert.False(t, found)
+
+		assert.ElementsMatch(t, []string{"name", "Plain", "Value"}, StructPropertyNames(reflect.TypeOf(value)))
+	})
+}
+
 func TestIsEmpty(t *testing.T) {
 	type testInterface interface {
 	}
