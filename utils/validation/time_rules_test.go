@@ -22,6 +22,13 @@ func TestTimeRules(t *testing.T) {
 		assert.Error(t, validation.Validate("5s", DurationExclusiveMaximum(5*time.Second)))
 		assert.NoError(t, validation.Validate("5s", DurationConst(5*time.Second)))
 		assert.Error(t, validation.Validate("6s", DurationConst(5*time.Second)))
+
+		// Parsing failures currently return nil because each rule exits on !ok.
+		assert.Error(t, validation.Validate("not-a-duration", DurationMinimum(5*time.Second)))
+		assert.Error(t, validation.Validate("not-a-duration", DurationExclusiveMinimum(5*time.Second)))
+		assert.Error(t, validation.Validate("not-a-duration", DurationMaximum(5*time.Second)))
+		assert.Error(t, validation.Validate("not-a-duration", DurationExclusiveMaximum(5*time.Second)))
+		assert.Error(t, validation.Validate("not-a-duration", DurationConst(5*time.Second)))
 	})
 
 	t.Run("timestamp", func(t *testing.T) {

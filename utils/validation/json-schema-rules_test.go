@@ -48,6 +48,9 @@ func TestJSONSchemaInspiredRules(t *testing.T) {
 		require.NoError(t, json.Unmarshal([]byte(`1`), &jsonInteger))
 		assert.NoError(t, validation.Validate(jsonInteger, Type("integer")))
 		assert.NoError(t, validation.Validate(jsonInteger, Type("number")))
+		// JSON numbers decoded into any are float64 which breaks the MultipleOf as it can't compare int and float
+		require.NoError(t, json.Unmarshal([]byte(`10`), &jsonInteger))
+		assert.NoError(t, validation.Validate(jsonInteger, MultipleOf(5)))
 
 		assert.NoError(t, validation.Validate(10, MultipleOf(5)))
 		assert.Error(t, validation.Validate(11, MultipleOf(5)))
@@ -568,6 +571,20 @@ func TestJSONSchemaInspiredRules(t *testing.T) {
 		assert.NoError(t, validation.Validate("hello", NotEmpty()))
 		assert.Error(t, validation.Validate("   ", NotEmpty()))
 	})
+}
+
+// Integers above 2^53 cannot all be represented exactly as float64 because IEEE-754 float64 has 53 bits of integer precision. Above 2^53, representable values aren't always representisentable https://en.wikipedia.org/wiki/Double-precision_floating-point_format#Precision_limitations_on_integer_values spacing would be 2^(n-52) I think it would be better to reject greater than 2^53 for floats
+func TestMaximumPreservesLargeIntegerPrecision(t *testing.T) {
+	maximum := uint64(1 << 53)
+	larger := maximum + 1
+
+	assert.Error(t, validation.Validate(larger, Maximum(maximum)))
+	assert.NoError(t, validation.Validate(maximum, ExclusiveMaximum(larger)))
+	assert.Error(t, validation.Validate(maximum, Minimum(larger)))
+	assert.NoError(t, validation.Validate(larger, ExclusiveMinimum(maximum)))
+	assert.Error(t, validation.Validate(larger, Enum(maximum)))
+	assert.Error(t, validation.Validate(larger, Const(maximum)))
+	assert.Error(t, validation.Validate(larger, MultipleOf(float64(2))))
 }
 
 func TestJSONSchemaInspiredRulesFieldReferences(t *testing.T) {

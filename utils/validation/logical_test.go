@@ -2,6 +2,7 @@ package validation
 
 import (
 	"context"
+	"iter"
 	"testing"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -182,6 +183,25 @@ func TestCompositeRules(t *testing.T) {
 	}
 }
 
+// Some sequences are consumed after one iteration. Composite rules will break it. You mention it on utils/validation/utils.go:135 but don't consider it here
+func TestCompositeRulesWithChannelSequence(t *testing.T) {
+	items := make(chan any, 1)
+	items <- "not-an-integer"
+	close(items)
+
+	sequence := iter.Seq[any](func(yield func(any) bool) {
+		for item := range items {
+			if !yield(item) {
+				return
+			}
+		}
+	})
+
+	err := AllOf(MinItems(1), ArrayItems(Type("integer"))).Validate(sequence)
+
+	require.Error(t, err)
+}
+
 func TestCountingRules(t *testing.T) {
 	t.Run("at least", func(t *testing.T) {
 		require.NoError(t, AtLeast(1, is.Email, is.UUID).Validate("user@example.com"))
@@ -228,6 +248,20 @@ func TestCountingRules(t *testing.T) {
 		require.NoError(t, IfThenElse(is.Email, nil, nil).Validate("plain-text"))
 		require.NoError(t, IfThenElse(nil, nil, nil).Validate("anything"))
 	})
+}
+
+// context cancellation returns a validation error not a cancelled
+func TestAtMostWithContextPropagatesCancellation(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	rule := testRuleWithContext(func(ctx context.Context, _ any) error {
+		return ctx.Err()
+	})
+
+	err := AtMostWithContext(0, rule).ValidateWithContext(ctx, "value")
+
+	require.ErrorIs(t, err, context.Canceled)
 }
 
 func TestContextualRules(t *testing.T) {
