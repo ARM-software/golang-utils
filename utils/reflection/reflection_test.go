@@ -41,6 +41,12 @@ type TestTypeWithTitleAsPointer struct {
 	Title   *string
 }
 
+type stringerKey string
+
+func (k stringerKey) String() string {
+	return string(k)
+}
+
 func TestGetUnexportedField(t *testing.T) {
 	testValue1 := "field1"
 	testValue2 := "field2"
@@ -406,6 +412,10 @@ func TestPropertyReflectionHelpers(t *testing.T) {
 		assert.Equal(t, value, mapValue.Interface())
 
 		mapValue, found = MapPropertyValue(reflect.ValueOf(map[any]any{"": value}), "")
+		require.True(t, found)
+		assert.Equal(t, value, mapValue.Interface())
+
+		mapValue, found = MapPropertyValue(reflect.ValueOf(map[fmt.Stringer]any{stringerKey("alpha"): value}), "alpha")
 		require.True(t, found)
 		assert.Equal(t, value, mapValue.Interface())
 

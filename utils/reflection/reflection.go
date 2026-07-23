@@ -5,6 +5,7 @@
 package reflection
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"unsafe"
@@ -119,25 +120,55 @@ func SetStructField(structure any, fieldName string, value any) error {
 	return nil
 }
 
-// MapPropertyValue returns the value stored under key when rv is a map whose
-// key type can safely represent the supplied string key.
+// MapPropertyValue returns the value stored under key when rv is a map whose key
+// type can be matched safely from the supplied string key.
+//
+// It supports maps keyed by strings, named string types, and interface key
+// types whose stored key values either are strings or implement
+// [fmt.Stringer].
+//
+// The returned value is the reflected map element. The `found` flag reports
+// whether a matching key exists and the element can be accessed safely.
+//
+// Example:
+//
+//	value, found := MapPropertyValue(reflect.ValueOf(map[string]any{"name": "alice"}), "name")
 func MapPropertyValue(rv reflect.Value, key string) (reflect.Value, bool) {
 	if rv.Kind() != reflect.Map {
 		return reflect.Value{}, false
 	}
 	lookupKey, ok := MapLookupKey(rv.Type().Key(), key)
-	if !ok {
-		return reflect.Value{}, false
+	if ok {
+		value := rv.MapIndex(lookupKey)
+		if value.IsValid() {
+			return value, true
+		}
 	}
-	value := rv.MapIndex(lookupKey)
-	if !value.IsValid() {
-		return reflect.Value{}, false
+	if rv.Type().Key().Kind() == reflect.Interface {
+		for _, existingKey := range rv.MapKeys() {
+			if mapKeyStringValue(existingKey) == key {
+				value := rv.MapIndex(existingKey)
+				if value.IsValid() {
+					return value, true
+				}
+			}
+		}
 	}
-	return value, true
+	return reflect.Value{}, false
 }
 
-// StructPropertyValue returns the exported struct field named key when it can be
-// accessed safely without panicking.
+// StructPropertyValue returns the exported struct property named key when it can
+// be accessed safely without panicking.
+//
+// The property name may be either the Go field name or the `json` tag name when
+// one is defined.
+//
+// The returned value is the reflected field value. The `found` flag reports
+// whether a matching exported field exists and can be interfaced safely.
+//
+// Example:
+//
+//	value, found := StructPropertyValue(reflect.ValueOf(cfg), "name")
 func StructPropertyValue(rv reflect.Value, key string) (reflect.Value, bool) {
 	if rv.Kind() != reflect.Struct {
 		return reflect.Value{}, false
@@ -155,6 +186,10 @@ func StructPropertyValue(rv reflect.Value, key string) (reflect.Value, bool) {
 
 // StructFieldByPropertyName resolves key to an exported struct field using the
 // Go field name first and then the `json` tag name when present.
+//
+// Example:
+//
+//	field, found := StructFieldByPropertyName(reflect.TypeOf(cfg), "name")
 func StructFieldByPropertyName(rt reflect.Type, key string) (reflect.StructField, bool) {
 	for _, field := range reflect.VisibleFields(rt) {
 		if !field.IsExported() {
@@ -172,6 +207,10 @@ func StructFieldByPropertyName(rt reflect.Type, key string) (reflect.StructField
 
 // StructPropertyNames returns the exported property names exposed by rt using
 // `json` tag names when present and Go field names otherwise.
+//
+// Example:
+//
+//	names := StructPropertyNames(reflect.TypeOf(cfg))
 func StructPropertyNames(rt reflect.Type) []string {
 	if rt.Kind() != reflect.Struct {
 		return nil
@@ -191,7 +230,11 @@ func StructPropertyNames(rt reflect.Type) []string {
 }
 
 // MapLookupKey converts a string property name into a reflected map key value
-// when the map key type is compatible with strings.
+// when the map key type is directly compatible with strings.
+//
+// Interface-typed maps may still require a fallback scan of existing keys when
+// the stored dynamic key type is a named string type or another string-like
+// implementation such as [fmt.Stringer]. See [MapPropertyValue].
 func MapLookupKey(keyType reflect.Type, key string) (reflect.Value, bool) {
 	stringKey := reflect.ValueOf(key)
 	if stringKey.Type().AssignableTo(keyType) {
@@ -200,10 +243,31 @@ func MapLookupKey(keyType reflect.Type, key string) (reflect.Value, bool) {
 	if stringKey.Type().ConvertibleTo(keyType) {
 		return stringKey.Convert(keyType), true
 	}
-	if keyType.Kind() == reflect.Interface {
+	if keyType.Kind() == reflect.Interface && stringKey.Type().Implements(keyType) {
 		return stringKey, true
 	}
 	return reflect.Value{}, false
+}
+
+func mapKeyStringValue(key reflect.Value) string {
+	if !key.IsValid() {
+		return ""
+	}
+	if key.Kind() == reflect.Interface {
+		if key.IsNil() {
+			return ""
+		}
+		key = key.Elem()
+	}
+	if key.Kind() == reflect.String {
+		return key.String()
+	}
+	if key.CanInterface() {
+		if stringer, ok := key.Interface().(fmt.Stringer); ok && stringer != nil {
+			return stringer.String()
+		}
+	}
+	return ""
 }
 
 func jsonTagName(field reflect.StructField) (string, bool) {
