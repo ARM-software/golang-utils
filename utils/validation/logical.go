@@ -61,15 +61,23 @@ func (r *compositeRule) AppendContextualRule(rule ...validation.RuleWithContext)
 // Context-aware rules are evaluated with the provided context. Non-contextual
 // rules are evaluated only while the context remains valid.
 func (r *compositeRule) verify(context context.Context, v any) (verification []error) {
-	verification = collection.Map[validation.RuleWithContext, error](r.rulesWithContext, func(sr validation.RuleWithContext) error {
-		return sr.ValidateWithContext(context, v)
+	replayableValue, err := replayableValidationValue(v)
+	if err != nil {
+		return []error{err}
+	}
+	verification = collection.Map[validation.RuleWithContext, error](collection.Filter(r.rulesWithContext, func(rule validation.RuleWithContext) bool {
+		return rule != nil
+	}), func(sr validation.RuleWithContext) error {
+		return sr.ValidateWithContext(context, replayableValue)
 	})
-	verification = append(verification, collection.Map[validation.Rule, error](r.rules, func(sr validation.Rule) error {
+	verification = append(verification, collection.Map[validation.Rule, error](collection.Filter(r.rules, func(rule validation.Rule) bool {
+		return rule != nil
+	}), func(sr validation.Rule) error {
 		err := parallelisation.DetermineContextError(context)
 		if err != nil {
 			return err
 		}
-		return sr.Validate(v)
+		return sr.Validate(replayableValue)
 	})...)
 	return
 }
@@ -83,6 +91,16 @@ func countSuccessfulRules(errors []error) int {
 	return collection.CountBy(errors, func(err error) bool {
 		return err == nil
 	})
+}
+
+func firstContextError(errors []error) error {
+	err, ok := collection.FirstBy(errors, func(err error) bool {
+		return commonerrors.Any(err, context.Canceled, context.DeadlineExceeded)
+	})
+	if ok {
+		return err
+	}
+	return nil
 }
 
 // anyRule succeeds if at least one nested rule succeeds.
@@ -103,6 +121,9 @@ func (r *anyRule) Validate(v any) error {
 // checkAny returns an invalid-value error if none of the evaluated rules
 // succeeded.
 func (r *anyRule) checkAny(errors []error) error {
+	if err := firstContextError(errors); err != nil {
+		return err
+	}
 	if countSuccessfulRules(errors) == 0 {
 		return commonerrors.WrapError(commonerrors.ErrInvalid, summariseErrors(errors), "invalid value")
 	}
@@ -163,6 +184,9 @@ func (r *allRule) Validate(v any) error {
 
 // checkAll returns an invalid-value error if any evaluated rule failed.
 func (r *allRule) checkAll(errors []error) error {
+	if err := firstContextError(errors); err != nil {
+		return err
+	}
 	if countSuccessfulRules(errors) != len(errors) {
 		return commonerrors.WrapError(commonerrors.ErrInvalid, summariseErrors(errors), "invalid value")
 	}
@@ -221,6 +245,9 @@ func (r *noneRule) Validate(v any) error {
 
 // checkNone returns an invalid-value error if any evaluated rule succeeded.
 func (r *noneRule) checkNone(errors []error) error {
+	if err := firstContextError(errors); err != nil {
+		return err
+	}
 	if countSuccessfulRules(errors) > 0 {
 		return commonerrors.New(commonerrors.ErrInvalid, "invalid value")
 	}
@@ -271,6 +298,9 @@ func (r *atMostRule) Validate(v any) error {
 }
 
 func (r *atMostRule) checkAtMost(errors []error) error {
+	if err := firstContextError(errors); err != nil {
+		return err
+	}
 	if countSuccessfulRules(errors) > r.max {
 		return commonerrors.WrapError(commonerrors.ErrInvalid, summariseErrors(errors), "invalid value")
 	}
@@ -317,6 +347,9 @@ func (r *exactlyRule) Validate(v any) error {
 }
 
 func (r *exactlyRule) checkExactly(errors []error) error {
+	if err := firstContextError(errors); err != nil {
+		return err
+	}
 	if countSuccessfulRules(errors) != r.n {
 		return commonerrors.WrapError(commonerrors.ErrInvalid, summariseErrors(errors), "invalid value")
 	}
@@ -403,6 +436,9 @@ func (r *atLeastRule) Validate(v any) error {
 }
 
 func (r *atLeastRule) checkAtLeast(errors []error) error {
+	if err := firstContextError(errors); err != nil {
+		return err
+	}
 	if countSuccessfulRules(errors) < r.min {
 		return commonerrors.WrapError(commonerrors.ErrInvalid, summariseErrors(errors), "invalid value")
 	}

@@ -42,6 +42,15 @@ var (
 	errAdditionalProperties = validation.NewError("validation_additional_properties", "contains unsupported additional properties")
 	errType                 = validation.NewError("validation_type", "must be of an allowed type")
 	errIntOrString          = validation.NewError("validation_int_or_string", "must be an integer or a string")
+	errEnum                 = validation.NewError("validation_enum", "must be one of the allowed values")
+	errContainsRuleNil      = commonerrors.New(commonerrors.ErrInvalid, "contains rule must not be nil")
+	errPositiveMultipleOf   = commonerrors.New(commonerrors.ErrInvalid, "multipleOf base must be strictly positive")
+	errUniqueItemKeyFuncNil = commonerrors.New(commonerrors.ErrInvalid, "unique item key function must not be nil")
+	errPropertyNamesRuleNil = commonerrors.New(commonerrors.ErrInvalid, "propertyNames rule must not be nil")
+	errPatternRegexpNil     = commonerrors.New(commonerrors.ErrInvalid, "pattern regexp must not be nil")
+	errNullableRuleNil      = commonerrors.New(commonerrors.ErrInvalid, "nullable rule must not be nil")
+	errNotEmpty             = commonerrors.New(commonerrors.ErrInvalid, "cannot be empty")
+	errLengthBelowMinimum   = commonerrors.New(commonerrors.ErrInvalid, "the length must be no less than the minimum")
 )
 
 // PatternProperty couples a property-name pattern with the rule that should be
@@ -80,7 +89,7 @@ func Type(types ...string) validation.Rule {
 			case "string":
 				return kind == reflect.String
 			case "number":
-				_, ok := jsonSchemaNumber(v)
+				_, ok := safeJSONNumber(v)
 				return ok
 			case "integer":
 				_, ok := jsonSchemaInteger(v)
@@ -117,34 +126,35 @@ func MultipleOf(base any) validation.Rule {
 		}
 		baseValue, _ := validation.Indirect(base)
 		if !utilreflection.IsNotEmpty(baseValue) {
-			return commonerrors.New(commonerrors.ErrInvalid, "multipleOf base must be strictly positive")
+			return errPositiveMultipleOf
 		}
 		// Ozzo's MultipleOf can be reused safely for positive integer bases, but a
 		// custom path is still required for JSON Schema compatibility because ozzo
 		// does not support decimal bases and does not reject invalid bases such as
 		// zero or negative values before attempting the calculation.
-		if baseInt, err := validation.ToInt(baseValue); err == nil {
+		candidateKind := reflect.ValueOf(candidate).Kind()
+		if baseInt, err := validation.ToInt(baseValue); err == nil && candidateKind != reflect.Float32 && candidateKind != reflect.Float64 {
 			if baseInt <= 0 {
-				return commonerrors.New(commonerrors.ErrInvalid, "multipleOf base must be strictly positive")
+				return errPositiveMultipleOf
 			}
 			return validation.MultipleOf(baseInt).Validate(candidate)
 		}
-		if baseUint, err := validation.ToUint(baseValue); err == nil {
+		if baseUint, err := validation.ToUint(baseValue); err == nil && candidateKind != reflect.Float32 && candidateKind != reflect.Float64 {
 			if baseUint == 0 {
-				return commonerrors.New(commonerrors.ErrInvalid, "multipleOf base must be strictly positive")
+				return errPositiveMultipleOf
 			}
 			return validation.MultipleOf(baseUint).Validate(candidate)
 		}
-		divisor, ok := jsonSchemaNumber(baseValue)
+		divisor, ok := safeJSONNumber(baseValue)
 		if !ok {
-			return commonerrors.Newf(commonerrors.ErrInvalid, "type not supported: %T", baseValue)
+			return invalidNumberType(baseValue)
 		}
 		if divisor <= 0 {
-			return commonerrors.New(commonerrors.ErrInvalid, "multipleOf base must be strictly positive")
+			return errPositiveMultipleOf
 		}
-		multiple, ok := jsonSchemaNumber(candidate)
+		multiple, ok := safeJSONNumber(candidate)
 		if !ok {
-			return commonerrors.Newf(commonerrors.ErrInvalid, "cannot convert %T to number", candidate)
+			return invalidNumberConversion(candidate)
 		}
 		quotient := multiple / divisor
 		if math.Abs(quotient-math.Round(quotient)) <= 1e-12 {
@@ -274,7 +284,7 @@ func PrefixItems(rules ...validation.Rule) validation.Rule {
 // Reference: https://json-schema.org/understanding-json-schema/reference/array#contains
 func Contains(rule validation.Rule) validation.Rule {
 	if rule == nil {
-		return fail(commonerrors.New(commonerrors.ErrInvalid, "contains rule must not be nil"))
+		return fail(errContainsRuleNil)
 	}
 	return MinContains(1, rule)
 }
@@ -290,7 +300,7 @@ func MinContains(min int, rule validation.Rule) validation.Rule {
 		return fail(commonerrors.Newf(commonerrors.ErrInvalid, "minContains must be non-negative, got %d", min))
 	}
 	if rule == nil {
-		return fail(commonerrors.New(commonerrors.ErrInvalid, "contains rule must not be nil"))
+		return fail(errContainsRuleNil)
 	}
 	return validation.By(func(value any) error {
 		items, err := typedSequence[any](value)
@@ -318,7 +328,7 @@ func MaxContains(max int, rule validation.Rule) validation.Rule {
 		return fail(commonerrors.Newf(commonerrors.ErrInvalid, "maxContains must be non-negative, got %d", max))
 	}
 	if rule == nil {
-		return fail(commonerrors.New(commonerrors.ErrInvalid, "contains rule must not be nil"))
+		return fail(errContainsRuleNil)
 	}
 	return validation.By(func(value any) error {
 		items, err := typedSequence[any](value)
@@ -347,7 +357,7 @@ func MaxContains(max int, rule validation.Rule) validation.Rule {
 // Reference: https://json-schema.org/understanding-json-schema/reference/array#uniqueness
 func UniqueItems[T any, K comparable](keyFunc collection.KeyFunc[T, K]) validation.Rule {
 	if keyFunc == nil {
-		return fail(commonerrors.New(commonerrors.ErrInvalid, "unique item key function must not be nil"))
+		return fail(errUniqueItemKeyFuncNil)
 	}
 	return validation.By(func(value any) error {
 		items, err := typedSequence[T](value)
@@ -654,7 +664,7 @@ func DependentSchemasBy(dependencies map[any]validation.Rule) validation.Rule {
 // Reference: https://json-schema.org/understanding-json-schema/reference/object#property-names
 func PropertyNames(rule validation.Rule) validation.Rule {
 	if rule == nil {
-		return fail(commonerrors.New(commonerrors.ErrInvalid, "propertyNames rule must not be nil"))
+		return fail(errPropertyNamesRuleNil)
 	}
 	return validation.By(func(value any) error {
 		props, isNil, err := objectProperties(value)
@@ -1238,7 +1248,7 @@ func Enum(values ...any) validation.Rule {
 		}) {
 			return nil
 		}
-		return commonerrors.WrapError(commonerrors.ErrInvalid, validation.NewError("validation_enum", "must be one of the allowed values"), "invalid value")
+		return commonerrors.WrapError(commonerrors.ErrInvalid, errEnum, "invalid value")
 	})
 }
 
@@ -1265,7 +1275,7 @@ func Const(expected any) validation.Rule {
 // Reference: https://json-schema.org/understanding-json-schema/reference/string#regular-expressions
 func Pattern(re *regexp.Regexp) validation.Rule {
 	if re == nil {
-		return fail(commonerrors.New(commonerrors.ErrInvalid, "pattern regexp must not be nil"))
+		return fail(errPatternRegexpNil)
 	}
 	return validation.By(func(value any) error {
 		candidate, isNil := validation.Indirect(value)
@@ -1315,7 +1325,7 @@ func Nullable(rule validation.Rule) validation.Rule {
 			return nil
 		}
 		if rule == nil {
-			return commonerrors.New(commonerrors.ErrInvalid, "nullable rule must not be nil")
+			return errNullableRuleNil
 		}
 		return rule.Validate(value)
 	})
@@ -1368,7 +1378,7 @@ func NotEmpty() validation.Rule {
 		if utilreflection.IsNotEmpty(value) {
 			return nil
 		}
-		return commonerrors.New(commonerrors.ErrInvalid, "cannot be empty")
+		return errNotEmpty
 	})
 }
 
@@ -1404,7 +1414,7 @@ func LengthRule(min, max *int) validation.Rule {
 		// References:
 		//   - https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4#Length
 		if minimum > 0 && validation.IsEmpty(value) {
-			return commonerrors.New(commonerrors.ErrInvalid, "the length must be no less than the minimum")
+			return errLengthBelowMinimum
 		}
 		v, isNil := validation.Indirect(value)
 		if !isNil {
@@ -1438,7 +1448,7 @@ func RuneLengthRule(min, max *int) validation.Rule {
 		// References:
 		//   - https://pkg.go.dev/github.com/go-ozzo/ozzo-validation/v4#RuneLength
 		if minimum > 0 && validation.IsEmpty(value) {
-			return commonerrors.New(commonerrors.ErrInvalid, "the length must be no less than the minimum")
+			return errLengthBelowMinimum
 		}
 		return rule.Validate(value)
 	})
@@ -1499,34 +1509,16 @@ func jsonSchemaEqualValues(left, right any) bool {
 	if left == nil || right == nil {
 		return left == right
 	}
-	if leftNumber, ok := jsonSchemaNumber(left); ok {
-		if rightNumber, ok := jsonSchemaNumber(right); ok {
+	if leftNumber, ok := safeJSONNumber(left); ok {
+		if rightNumber, ok := safeJSONNumber(right); ok {
 			return leftNumber == rightNumber
 		}
 	}
 	return reflect.DeepEqual(left, right)
 }
 
-// jsonSchemaNumber converts a JSON-number-like value into a float64 for schema
-// equality checks.
-func jsonSchemaNumber(value any) (float64, bool) {
-	if v, err := validation.ToInt(value); err == nil {
-		return float64(v), true
-	}
-	if v, err := validation.ToUint(value); err == nil {
-		return float64(v), true
-	}
-	if v, err := validation.ToFloat(value); err == nil {
-		if math.IsNaN(v) || math.IsInf(v, 0) {
-			return 0, false
-		}
-		return v, true
-	}
-	return 0, false
-}
-
 func jsonSchemaInteger(value any) (float64, bool) {
-	if number, ok := jsonSchemaNumber(value); ok && math.Trunc(number) == number {
+	if number, ok := safeJSONNumber(value); ok && math.Trunc(number) == number {
 		return number, true
 	}
 	return 0, false

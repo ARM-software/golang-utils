@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"math"
 	"reflect"
 	"slices"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	utilreflection "github.com/ARM-software/golang-utils/utils/reflection"
+	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
 type objectAccessor struct {
@@ -249,6 +251,14 @@ func ensureHashableDynamicKey(key any) error {
 	return commonerrors.Newf(commonerrors.ErrInvalid, "derived key must be hashable, got %T", key)
 }
 
+func invalidNumberType(value any) error {
+	return commonerrors.Newf(commonerrors.ErrInvalid, "type not supported: %T", value)
+}
+
+func invalidNumberConversion(value any) error {
+	return commonerrors.Newf(commonerrors.ErrInvalid, "cannot convert %T to number", value)
+}
+
 func uniqueKeysSafe[K comparable](keys []K) ([]K, error) {
 	seen := mapset.NewSet[K]()
 	result := make([]K, 0, len(keys))
@@ -322,17 +332,55 @@ func thresholdRule(threshold any, minimum, exclusive bool) validation.Rule {
 		rv := reflect.ValueOf(threshold)
 		switch rv.Kind() {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			fallthrough
-		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-			fallthrough
-		case reflect.Float32, reflect.Float64:
-			thresholdNumber, ok := jsonSchemaNumber(threshold)
-			if !ok {
-				return commonerrors.Newf(commonerrors.ErrInvalid, "type not supported: %T", threshold)
+			if candidate, err := validation.ToInt(value); err == nil {
+				if compareThreshold(candidate, rv.Int(), minimum, exclusive) {
+					return nil
+				}
+				break
 			}
-			candidate, ok := jsonSchemaNumber(value)
+			thresholdNumber, ok := safeJSONNumber(threshold)
 			if !ok {
-				return commonerrors.Newf(commonerrors.ErrInvalid, "cannot convert %T to number", value)
+				return invalidNumberType(threshold)
+			}
+			candidate, ok := safeJSONNumber(value)
+			if !ok {
+				return invalidNumberConversion(value)
+			}
+			if compareThreshold(candidate, thresholdNumber, minimum, exclusive) {
+				return nil
+			}
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+			if candidate, err := validation.ToUint(value); err == nil {
+				if compareThreshold(candidate, rv.Uint(), minimum, exclusive) {
+					return nil
+				}
+				break
+			}
+			thresholdNumber, ok := safeJSONNumber(threshold)
+			if !ok {
+				return invalidNumberType(threshold)
+			}
+			candidate, ok := safeJSONNumber(value)
+			if !ok {
+				return invalidNumberConversion(value)
+			}
+			if compareThreshold(candidate, thresholdNumber, minimum, exclusive) {
+				return nil
+			}
+		case reflect.Float32, reflect.Float64:
+			if candidate, err := validation.ToFloat(value); err == nil {
+				if compareThreshold(candidate, rv.Float(), minimum, exclusive) {
+					return nil
+				}
+				break
+			}
+			thresholdNumber, ok := safeJSONNumber(threshold)
+			if !ok {
+				return invalidNumberType(threshold)
+			}
+			candidate, ok := safeJSONNumber(value)
+			if !ok {
+				return invalidNumberConversion(value)
 			}
 			if compareThreshold(candidate, thresholdNumber, minimum, exclusive) {
 				return nil
@@ -340,7 +388,7 @@ func thresholdRule(threshold any, minimum, exclusive bool) validation.Rule {
 		case reflect.Struct:
 			thresholdValue, ok := threshold.(time.Time)
 			if !ok {
-				return commonerrors.Newf(commonerrors.ErrInvalid, "type not supported: %v", rv.Type())
+				return invalidNumberType(threshold)
 			}
 			candidate, ok := value.(time.Time)
 			if !ok {
@@ -350,7 +398,7 @@ func thresholdRule(threshold any, minimum, exclusive bool) validation.Rule {
 				return nil
 			}
 		default:
-			return commonerrors.Newf(commonerrors.ErrInvalid, "type not supported: %v", rv.Type())
+			return invalidNumberType(threshold)
 		}
 		if minimum {
 			if exclusive {
@@ -393,6 +441,42 @@ func compareTimeThreshold(candidate, threshold time.Time, minimum, exclusive boo
 		return candidate.Before(threshold)
 	}
 	return candidate.Before(threshold) || candidate.Equal(threshold)
+}
+
+// safeJSONNumber converts a JSON-number-like value into a float64 only when the
+// conversion preserves the intended comparison semantics.
+//
+// Integer values outside the exact IEEE-754 float64 integer range are rejected
+// so JSON Schema-style equality and threshold comparisons do not silently lose
+// precision.
+//
+// References:
+//   - JSON Schema numeric types:
+//     https://json-schema.org/understanding-json-schema/reference/numeric
+//   - IEEE 754 binary64 precision limits:
+//     https://en.wikipedia.org/wiki/Double-precision_floating-point_format#Precision_limitations_on_integer_values
+func safeJSONNumber(value any) (float64, bool) {
+	maxExactInt := safecast.ToInt64(math.Exp2(53))
+	maxExactUint := safecast.ToUint64(math.Exp2(53))
+	if v, err := validation.ToInt(value); err == nil {
+		if v > maxExactInt || v < -maxExactInt {
+			return 0, false
+		}
+		return safecast.ToFloat64(v), true
+	}
+	if v, err := validation.ToUint(value); err == nil {
+		if v > maxExactUint {
+			return 0, false
+		}
+		return safecast.ToFloat64(v), true
+	}
+	if v, err := validation.ToFloat(value); err == nil {
+		if math.IsNaN(v) || math.IsInf(v, 0) {
+			return 0, false
+		}
+		return v, true
+	}
+	return 0, false
 }
 
 // objectSequence2ToAccessor detects function-backed iter.Seq2-style values and

@@ -12,15 +12,45 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
+const (
+	errInvalidDurationDescription                = "must be a valid duration"
+	errDurationBelowMinimumDescription           = "must be a valid duration greater than or equal to the minimum"
+	errDurationBelowExclusiveMinimumDescription  = "must be a valid duration greater than the minimum"
+	errDurationAboveMaximumDescription           = "must be a valid duration less than or equal to the maximum"
+	errDurationAboveExclusiveMaximumDescription  = "must be a valid duration less than the maximum"
+	errUnexpectedDurationDescription             = "must be the expected duration"
+	errInvalidTimestampDescription               = "must be a valid timestamp"
+	errTimestampBelowMinimumDescription          = "must be a valid timestamp greater than or equal to the minimum"
+	errTimestampBelowExclusiveMinimumDescription = "must be a valid timestamp greater than the minimum"
+	errTimestampAboveMaximumDescription          = "must be a valid timestamp less than or equal to the maximum"
+	errTimestampAboveExclusiveMaximumDescription = "must be a valid timestamp less than the maximum"
+	errUnexpectedTimestampDescription            = "must be the expected timestamp"
+)
+
+var (
+	errInvalidDuration                = commonerrors.New(commonerrors.ErrInvalid, errInvalidDurationDescription)
+	errDurationBelowMinimum           = commonerrors.New(commonerrors.ErrInvalid, errDurationBelowMinimumDescription)
+	errDurationBelowExclusiveMinimum  = commonerrors.New(commonerrors.ErrInvalid, errDurationBelowExclusiveMinimumDescription)
+	errDurationAboveMaximum           = commonerrors.New(commonerrors.ErrInvalid, errDurationAboveMaximumDescription)
+	errDurationAboveExclusiveMaximum  = commonerrors.New(commonerrors.ErrInvalid, errDurationAboveExclusiveMaximumDescription)
+	errUnexpectedDuration             = commonerrors.New(commonerrors.ErrInvalid, errUnexpectedDurationDescription)
+	errInvalidTimestamp               = commonerrors.New(commonerrors.ErrInvalid, errInvalidTimestampDescription)
+	errTimestampBelowMinimum          = commonerrors.New(commonerrors.ErrInvalid, errTimestampBelowMinimumDescription)
+	errTimestampBelowExclusiveMinimum = commonerrors.New(commonerrors.ErrInvalid, errTimestampBelowExclusiveMinimumDescription)
+	errTimestampAboveMaximum          = commonerrors.New(commonerrors.ErrInvalid, errTimestampAboveMaximumDescription)
+	errTimestampAboveExclusiveMaximum = commonerrors.New(commonerrors.ErrInvalid, errTimestampAboveExclusiveMaximumDescription)
+	errUnexpectedTimestamp            = commonerrors.New(commonerrors.ErrInvalid, errUnexpectedTimestampDescription)
+)
+
 // DurationMinimum validates that a duration value is greater than or equal to min.
 func DurationMinimum(min time.Duration) validation.Rule {
 	return validation.By(func(value any) error {
 		d, ok := durationValue(value)
 		if !ok {
-			return nil
+			return errInvalidDuration
 		}
 		if d < min {
-			return commonerrors.New(commonerrors.ErrInvalid, "must be a valid duration greater than or equal to the minimum")
+			return errDurationBelowMinimum
 		}
 		return nil
 	})
@@ -31,10 +61,10 @@ func DurationExclusiveMinimum(min time.Duration) validation.Rule {
 	return validation.By(func(value any) error {
 		d, ok := durationValue(value)
 		if !ok {
-			return nil
+			return errInvalidDuration
 		}
 		if d <= min {
-			return commonerrors.New(commonerrors.ErrInvalid, "must be a valid duration greater than the minimum")
+			return errDurationBelowExclusiveMinimum
 		}
 		return nil
 	})
@@ -45,10 +75,10 @@ func DurationMaximum(max time.Duration) validation.Rule {
 	return validation.By(func(value any) error {
 		d, ok := durationValue(value)
 		if !ok {
-			return nil
+			return errInvalidDuration
 		}
 		if d > max {
-			return commonerrors.New(commonerrors.ErrInvalid, "must be a valid duration less than or equal to the maximum")
+			return errDurationAboveMaximum
 		}
 		return nil
 	})
@@ -59,10 +89,10 @@ func DurationExclusiveMaximum(max time.Duration) validation.Rule {
 	return validation.By(func(value any) error {
 		d, ok := durationValue(value)
 		if !ok {
-			return nil
+			return errInvalidDuration
 		}
 		if d >= max {
-			return commonerrors.New(commonerrors.ErrInvalid, "must be a valid duration less than the maximum")
+			return errDurationAboveExclusiveMaximum
 		}
 		return nil
 	})
@@ -73,10 +103,10 @@ func DurationConst(expected time.Duration) validation.Rule {
 	return validation.By(func(value any) error {
 		d, ok := durationValue(value)
 		if !ok {
-			return nil
+			return errInvalidDuration
 		}
 		if d != expected {
-			return commonerrors.New(commonerrors.ErrInvalid, "must be the expected duration")
+			return errUnexpectedDuration
 		}
 		return nil
 	})
@@ -87,10 +117,10 @@ func TimestampMinimum(min time.Time) validation.Rule {
 	return validation.By(func(value any) error {
 		ts, ok := timestampValue(value)
 		if !ok {
-			return nil
+			return errInvalidTimestamp
 		}
 		if ts.Before(min) {
-			return commonerrors.New(commonerrors.ErrInvalid, "must be a valid timestamp greater than or equal to the minimum")
+			return errTimestampBelowMinimum
 		}
 		return nil
 	})
@@ -101,10 +131,10 @@ func TimestampExclusiveMinimum(min time.Time) validation.Rule {
 	return validation.By(func(value any) error {
 		ts, ok := timestampValue(value)
 		if !ok {
-			return nil
+			return errInvalidTimestamp
 		}
 		if !ts.After(min) {
-			return commonerrors.New(commonerrors.ErrInvalid, "must be a valid timestamp greater than the minimum")
+			return errTimestampBelowExclusiveMinimum
 		}
 		return nil
 	})
@@ -115,10 +145,10 @@ func TimestampMaximum(max time.Time) validation.Rule {
 	return validation.By(func(value any) error {
 		ts, ok := timestampValue(value)
 		if !ok {
-			return nil
+			return errInvalidTimestamp
 		}
 		if ts.After(max) {
-			return commonerrors.New(commonerrors.ErrInvalid, "must be a valid timestamp less than or equal to the maximum")
+			return errTimestampAboveMaximum
 		}
 		return nil
 	})
@@ -129,10 +159,10 @@ func TimestampExclusiveMaximum(max time.Time) validation.Rule {
 	return validation.By(func(value any) error {
 		ts, ok := timestampValue(value)
 		if !ok {
-			return nil
+			return errInvalidTimestamp
 		}
 		if !ts.Before(max) {
-			return commonerrors.New(commonerrors.ErrInvalid, "must be a valid timestamp less than the maximum")
+			return errTimestampAboveExclusiveMaximum
 		}
 		return nil
 	})
@@ -143,10 +173,10 @@ func TimestampConst(expected time.Time) validation.Rule {
 	return validation.By(func(value any) error {
 		ts, ok := timestampValue(value)
 		if !ok {
-			return nil
+			return errInvalidTimestamp
 		}
 		if !ts.Equal(expected) {
-			return commonerrors.New(commonerrors.ErrInvalid, "must be the expected timestamp")
+			return errUnexpectedTimestamp
 		}
 		return nil
 	})
@@ -156,7 +186,7 @@ func TimestampConst(expected time.Time) validation.Rule {
 var IsDuration = validation.NewStringRule(func(value string) bool {
 	_, err := time.ParseDuration(value)
 	return err == nil
-}, "must be a valid duration")
+}, errInvalidDurationDescription)
 
 // IsRFC3339Timestamp validates whether a string or byte slice is a valid RFC3339 timestamp.
 var IsRFC3339Timestamp = validation.NewStringRule(func(value string) bool {
@@ -167,7 +197,7 @@ var IsRFC3339Timestamp = validation.NewStringRule(func(value string) bool {
 		return true
 	}
 	return false
-}, "must be a valid timestamp")
+}, errInvalidTimestampDescription)
 
 func durationValue(value any) (time.Duration, bool) {
 	if value == nil {

@@ -466,8 +466,8 @@ func TestJSONSchemaInspiredRules(t *testing.T) {
 		}
 		keyFunc := func(value valueT) string { return value.j }
 		keyA := faker.Word()
-		keyB := faker.Word()
-		keyC := faker.Word()
+		keyB := keyA + "-" + faker.Word()
+		keyC := keyB + "-" + faker.Word()
 
 		assert.NoError(t, validation.Validate([]valueT{{i: 0, j: keyA}}, AtMostOneItemKey(keyFunc, keyA, keyB)))
 		assert.Error(t, validation.Validate([]valueT{{i: 0, j: keyA}, {i: 1, j: keyB}}, AtMostOneItemKey(keyFunc, keyA, keyB)))
@@ -573,9 +573,9 @@ func TestJSONSchemaInspiredRules(t *testing.T) {
 	})
 }
 
-// Integers above 2^53 cannot all be represented exactly as float64 because IEEE-754 float64 has 53 bits of integer precision. Above 2^53, representable values aren't always representisentable https://en.wikipedia.org/wiki/Double-precision_floating-point_format#Precision_limitations_on_integer_values spacing would be 2^(n-52) I think it would be better to reject greater than 2^53 for floats
+// Integers above 2^53 cannot all be represented exactly as float64 because IEEE-754 float64 has 53 bits of integer precision.
 func TestMaximumPreservesLargeIntegerPrecision(t *testing.T) {
-	maximum := uint64(1 << 53)
+	maximum := uint64(math.Exp2(53))
 	larger := maximum + 1
 
 	assert.Error(t, validation.Validate(larger, Maximum(maximum)))
