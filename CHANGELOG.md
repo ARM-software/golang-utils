@@ -14,6 +14,30 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.167.0" (2026-07-23)
+======================
+
+Features
+--------
+
+- :sparkles: `[Logs/summary]` add in-memory and file-backed summary loggers, including GitHub summary support. (#202607161620)
+- :sparkles: `[reflection]` add helpers for safe reflected property lookup across structs and maps, including JSON-tag-aware field resolution. (#202607161731)
+- :sparkles: `[validation]` Added JSON-Schema-oriented validation helpers for numbers, strings, arrays, objects, combinators, and property relationships. See https://json-schema.org/understanding-json-schema/. (#20260608114500)
+- :sparkles: `[parallelisation]` add MapConcurrent, MapConcurrentRef, and MapConcurrentSequence helpers. (#20260707123000)
+- Logs: add the logs/summary package with summary loggers and GitHub Actions job summary support. (#20260707143000)
+
+
+Bugfixes
+--------
+
+- :bug: `[validation]` Fixed `NewNoneRule` so it now correctly fails when any nested rule succeeds. (#20260608114600)
+- Dependency upgrade: setup-go-7 (#20260716124746)
+- Dependency upgrade: codeql-action-4.37.1 (#20260717101309)
+- Dependency upgrade: setup-python-7 (#20260720101212)
+- Dependency upgrade: logr-1.4.4 (#20260721101310)
+- Dependency upgrade: codeql-action-4.37.3 (#20260722101436)
+
+
 "1.166.1" (2026-07-16)
 ======================
 
