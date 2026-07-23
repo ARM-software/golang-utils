@@ -1,0 +1,1 @@
+:sparkles: `[validation]` Added JSON-Schema-oriented validation helpers for numbers, strings, arrays, objects, combinators, and property relationships. See https://json-schema.org/understanding-json-schema/.
