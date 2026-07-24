@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.168.0" (2026-07-24)
+======================
+
+Features
+--------
+
+- :sparkles: `[Logs/annotations]` add structured CI annotation loggers for GitHub, Azure DevOps, and TeamCity, with adapters for logs.Loggers. (#202607161700)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: scorecard-action-2.4.4 (#20260724101455)
+
+
 "1.167.0" (2026-07-23)
 ======================
 
