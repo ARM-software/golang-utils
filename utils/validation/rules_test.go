@@ -125,3 +125,27 @@ func TestIsPathParameter(t *testing.T) {
 		})
 	}
 }
+
+func TestIsURI(t *testing.T) {
+	tests := []struct {
+		input    any
+		expected bool
+	}{
+		{"https://example.com/path", true},
+		{"mailto:user@example.com", true},
+		{[]byte("/relative/path?x=1"), true},
+		{"http://exa mple.com", false},
+	}
+
+	for i := range tests {
+		test := tests[i]
+		t.Run("", func(t *testing.T) {
+			err := validation.Validate(test.input, IsURI)
+			if test.expected {
+				require.NoError(t, err)
+			} else {
+				errortest.AssertErrorDescription(t, err, "must be a valid URI")
+			}
+		})
+	}
+}

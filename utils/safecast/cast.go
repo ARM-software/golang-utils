@@ -218,6 +218,21 @@ func ToInt32Ref[C IConvertible](i *C) *int32 {
 	return CastRef(i, ToInt32[C])
 }
 
+// ToRune attempts to convert an [IConvertible] value to a rune.
+//
+// This helper clamps the input to the range of int32 before converting, so it
+// can be used in place of direct `int` to `rune` casts when overflow-safe
+// conversion is desired.
+func ToRune[C IConvertible](i C) rune {
+	return ToInt32(i)
+}
+
+// ToRuneRef attempts to convert a reference to an [IConvertible] value to a
+// reference to a rune. A nil input returns nil.
+func ToRuneRef[C IConvertible](i *C) *rune {
+	return CastRef(i, ToRune[C])
+}
+
 // ToUint32 attempts to convert an [IConvertible] value to a uint32.
 // If the converted value falls outside the range of uint32,
 // the nearest boundary value is returned instead.

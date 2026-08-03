@@ -7,6 +7,8 @@
 package logs
 
 import (
+	"bytes"
+
 	"github.com/rifflock/lfshook"
 	"github.com/sirupsen/logrus"
 
@@ -24,8 +26,25 @@ func NewLogrusLogger(logrusL *logrus.Logger, loggerSource string) (loggers Logge
 	return NewLogrLogger(logrimp.NewLogrusLogger(logrusL), loggerSource)
 }
 
-// NewLogrusLoggerWithFileHook returns a logger which uses a logrus logger (https://github.com/Sirupsen/logrus) and writes the logs to `logFilePath`
+// NewLogrusLoggerWithFileHook returns a logger which uses a logrus logger (https://github.com/Sirupsen/logrus) and writes the logs to `logFilePath` as JSON entries
 func NewLogrusLoggerWithFileHook(logrusL *logrus.Logger, loggerSource string, logFilePath string) (loggers Loggers, err error) {
+	return newLogrusLoggerWithFileHook(logrusL, loggerSource, logFilePath, &logrus.JSONFormatter{})
+}
+
+// NewLogrusLoggerWithTextFileHook returns a logger which uses a logrus logger (https://github.com/Sirupsen/logrus) and writes the logs to `logFilePath` as plain text
+func NewLogrusLoggerWithTextFileHook(logrusL *logrus.Logger, loggerSource string, logFilePath string) (loggers Loggers, err error) {
+	return newLogrusLoggerWithFileHook(logrusL, loggerSource, logFilePath, &plainTextFormatter{})
+}
+
+type plainTextFormatter struct{}
+
+func (f *plainTextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
+	var b bytes.Buffer
+	b.WriteString(entry.Message)
+	return b.Bytes(), nil
+}
+
+func newLogrusLoggerWithFileHook(logrusL *logrus.Logger, loggerSource string, logFilePath string, f logrus.Formatter) (loggers Loggers, err error) {
 	if logrusL == nil {
 		err = commonerrors.ErrNoLogger
 		return
@@ -40,7 +59,7 @@ func NewLogrusLoggerWithFileHook(logrusL *logrus.Logger, loggerSource string, lo
 	}
 	logrusL.Hooks.Add(lfshook.NewHook(
 		pathMap,
-		&logrus.JSONFormatter{},
+		f,
 	))
 	return NewLogrusLogger(logrusL, loggerSource)
 }

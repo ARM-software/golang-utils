@@ -14,6 +14,105 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.168.0" (2026-07-24)
+======================
+
+Features
+--------
+
+- :sparkles: `[Logs/annotations]` add structured CI annotation loggers for GitHub, Azure DevOps, and TeamCity, with adapters for logs.Loggers. (#202607161700)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: scorecard-action-2.4.4 (#20260724101455)
+
+
+"1.167.0" (2026-07-23)
+======================
+
+Features
+--------
+
+- :sparkles: `[Logs/summary]` add in-memory and file-backed summary loggers, including GitHub summary support. (#202607161620)
+- :sparkles: `[reflection]` add helpers for safe reflected property lookup across structs and maps, including JSON-tag-aware field resolution. (#202607161731)
+- :sparkles: `[validation]` Added JSON-Schema-oriented validation helpers for numbers, strings, arrays, objects, combinators, and property relationships. See https://json-schema.org/understanding-json-schema/. (#20260608114500)
+- :sparkles: `[parallelisation]` add MapConcurrent, MapConcurrentRef, and MapConcurrentSequence helpers. (#20260707123000)
+- Logs: add the logs/summary package with summary loggers and GitHub Actions job summary support. (#20260707143000)
+
+
+Bugfixes
+--------
+
+- :bug: `[validation]` Fixed `NewNoneRule` so it now correctly fails when any nested rule succeeds. (#20260608114600)
+- Dependency upgrade: setup-go-7 (#20260716124746)
+- Dependency upgrade: codeql-action-4.37.1 (#20260717101309)
+- Dependency upgrade: setup-python-7 (#20260720101212)
+- Dependency upgrade: logr-1.4.4 (#20260721101310)
+- Dependency upgrade: codeql-action-4.37.3 (#20260722101436)
+
+
+"1.166.1" (2026-07-16)
+======================
+
+Bugfixes
+--------
+
+- :bug: `[casing]` fix regression in acronym-aware casing so normal PascalCase names like NoKeyring do not become NOKeyring (#20260716125731)
+
+
+"1.166.0" (2026-07-16)
+======================
+
+Features
+--------
+
+- :sparkles: `[URL]` add configurable URL canonicalisation and comparison helpers for normalised matching. (#202607161530)
+
+
+"1.165.2" (2026-07-15)
+======================
+
+Bugfixes
+--------
+
+- :bug: Strings/casing: recognise the codebase's `I...` interface naming convention when handling acronym-prefixed identifiers such as `IHTTP`. (#20260707151500)
+- :bug: Strings/casing: improve plural initialism handling so identifiers such as `Urls` can be normalised to `URLs` where appropriate. (#20260707151600)
+- Dependency upgrade: text-0.40.0 (#20260709101319)
+- Dependency upgrade: codeql-action-4.37.0 (#20260709101326)
+- Dependency upgrade: net-0.57.0 (#20260709101336)
+- Dependency upgrade: crypto-0.54.0 (#20260709101342)
+- Dependency upgrade: sync-0.22.0 (#20260709101404)
+- Dependency upgrade: sys-0.47.0 (#20260714172504)
+
+
+"1.165.1" (2026-07-08)
+======================
+
+Bugfixes
+--------
+
+- :bug: `[casing]` fix toPascalCase regression (#20260708165859)
+
+
+"1.165.0" (2026-07-08)
+======================
+
+Features
+--------
+
+- :sparkles: `[Retry]` add composable retry options with jitter, retry budget, etc. to ease the definition of retry strategies. (#20260707125500)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: codeql-action-4.36.3 (#20260702101311)
+- Dependency upgrade: text-0.39.0 (#20260707101311)
+- :bug: `[casing]` fix casing helpers so adjacent acronym runs like AESRSA are preserved in existing camelCase and PascalCase identifiers instead of collapsing to Aesrsa. (#20260708153417)
+
+
 "1.164.1" (2026-07-01)
 ======================
 

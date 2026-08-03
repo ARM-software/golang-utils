@@ -4,11 +4,64 @@ import (
 	"strings"
 	"testing"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
+	"github.com/ARM-software/golang-utils/utils/reflection"
 )
+
+func TestUrl_IsURI(t *testing.T) {
+	tests := []struct {
+		name  string
+		value any
+		err   string
+	}{
+		{name: "absolute URL", value: "https://example.com/path?a=1"},
+		{name: "mailto URI", value: "mailto:user@example.com"},
+		{name: "relative URI reference", value: "/api/v1/resources?id=1"},
+		{name: "byte slice", value: []byte("urn:isbn:0451450523")},
+		{name: "empty", value: ""},
+		{name: "invalid", value: "http://exa mple.com", err: errURIInvalid.Error()},
+	}
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			err := validation.Validate(test.value, IsURI)
+			if reflection.IsEmpty(test.err) {
+				assert.NoError(t, err)
+				return
+			}
+			errortest.AssertErrorDescription(t, err, test.err)
+		})
+	}
+}
+
+func TestUrl_IsPathParameterRule(t *testing.T) {
+	tests := []struct {
+		name  string
+		value any
+		err   string
+	}{
+		{name: "valid string", value: "{abc}"},
+		{name: "valid bytes", value: []byte("{abc%5F1}")},
+		{name: "invalid", value: "abc", err: errPathParameterInvalid.Error()},
+	}
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(test.name, func(t *testing.T) {
+			err := validation.Validate(test.value, IsPathParameter)
+			if reflection.IsEmpty(test.err) {
+				assert.NoError(t, err)
+				return
+			}
+			errortest.AssertErrorDescription(t, err, test.err)
+		})
+	}
+}
 
 func TestUrl_MatchesPathParameterSyntax(t *testing.T) {
 	tests := []struct {

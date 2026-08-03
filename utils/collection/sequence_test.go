@@ -17,6 +17,14 @@ func TestEmptySequence(t *testing.T) {
 	assert.Empty(t, slices.Collect(EmptySequence[int]()))
 }
 
+func TestEmptySequence2(t *testing.T) {
+	pairs := make(map[int]string)
+	for key, value := range EmptySequence2[int, string]() {
+		pairs[key] = value
+	}
+	assert.Empty(t, pairs)
+}
+
 func TestMapSequenceNil(t *testing.T) {
 	var seq iter.Seq[int]
 	assert.Empty(t, slices.Collect(MapSequence(seq, func(v int) int { return v + 1 })))
@@ -38,4 +46,13 @@ func TestEachNilSequence(t *testing.T) {
 func TestUniqueNilSequence(t *testing.T) {
 	var seq iter.Seq[int]
 	assert.Empty(t, Unique(seq))
+}
+
+func TestSequence2OrEmptyNil(t *testing.T) {
+	var seq iter.Seq2[int, string]
+	pairs := make(map[int]string)
+	for key, value := range Sequence2OrEmpty(seq) {
+		pairs[key] = value
+	}
+	assert.Empty(t, pairs)
 }

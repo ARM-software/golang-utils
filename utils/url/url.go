@@ -6,6 +6,9 @@ import (
 	"regexp"
 	"strings"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
+
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
@@ -17,7 +20,22 @@ const (
 )
 
 // Section 3.3 of RFC3986 details valid characters for path segments (see https://datatracker.ietf.org/doc/html/rfc3986#section-3.3)
-var validPathRegex = regexp.MustCompile(`^(?:[A-Za-z0-9._~\-!$&'()*+,;=:@{}]|%[0-9A-Fa-f]{2})+$`)
+var (
+	validPathRegex          = regexp.MustCompile(`^(?:[A-Za-z0-9._~\-!$&'()*+,;=:@{}]|%[0-9A-Fa-f]{2})+$`)
+	errPathParameterInvalid = validation.NewError("validation_is_path_parameter", "invalid path parameter")
+	errURIInvalid           = validation.NewError("validation_is_uri", "must be a valid URI")
+
+	// IsPathParameter validates OpenAPI-style path parameter segments such as
+	// `{id}`.
+	IsPathParameter = validation.NewStringRuleWithError(isPathParameter, errPathParameterInvalid)
+
+	// IsURI validates URI strings and byte slices.
+	//
+	// The rule accepts full URLs handled by `is.URL` as well as other valid URI
+	// forms accepted by `net/url.ParseRequestURI`, such as `mailto:` URIs and
+	// request-target-style relative URI references.
+	IsURI = validation.NewStringRuleWithError(isURI, errURIInvalid)
+)
 
 // PathSegmentMatcherFunc defines the signature for path segment matcher functions.
 type PathSegmentMatcherFunc = func(segmentA, segmentB string) (match bool, err error)
@@ -138,10 +156,10 @@ func MatchingPathSegments(pathA, pathB string, matcherFn PathSegmentMatcherFunc)
 		return
 	}
 
-	for i := range pathBSegments {
-		match, err = matcherFn(pathASegments[i], pathBSegments[i])
+	for pathASegment, pathBSegment := range collection.Zip(pathASegments, pathBSegments) {
+		match, err = matcherFn(pathASegment, pathBSegment)
 		if err != nil {
-			err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "an error occurred during execution of the matcher function for path segments %q and %q", pathASegments[i], pathBSegments[i])
+			err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "an error occurred during execution of the matcher function for path segments %q and %q", pathASegment, pathBSegment)
 			return
 		}
 
@@ -164,4 +182,19 @@ func SplitPath(p string) []string {
 	p = path.Clean(p)
 	p = strings.Trim(p, defaultPathSeparator)
 	return collection.ParseListWithCleanup(p, defaultPathSeparator)
+}
+
+func isURI(value string) bool {
+	if reflection.IsEmpty(value) {
+		return false
+	}
+	if is.URL.Validate(value) == nil {
+		return true
+	}
+	_, err := netUrl.ParseRequestURI(value)
+	return err == nil
+}
+
+func isPathParameter(value string) bool {
+	return ValidatePathParameter(value) == nil
 }

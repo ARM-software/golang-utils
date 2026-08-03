@@ -370,6 +370,22 @@ func TestForEach(t *testing.T) {
 		}))
 		assert.ElementsMatch(t, visited, list)
 	})
+	t.Run("eachslice", func(t *testing.T) {
+		var visited []int
+		require.NoError(t, EachSlice(list, func(i int) error {
+			visited = append(visited, i)
+			return nil
+		}))
+		assert.ElementsMatch(t, visited, list)
+	})
+	t.Run("eachsliceref", func(t *testing.T) {
+		var visited []int
+		require.NoError(t, EachSliceRef(list, func(i *int) error {
+			visited = append(visited, field.OptionalInt(i, 0))
+			return nil
+		}))
+		assert.ElementsMatch(t, visited, list)
+	})
 }
 
 func TestForEachSequence(t *testing.T) {

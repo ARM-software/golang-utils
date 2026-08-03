@@ -12,16 +12,16 @@ require (
 	github.com/djherbis/times v1.6.0
 	github.com/dolmen-go/contextio v1.0.0
 	github.com/evanphx/hclogr v0.2.0
-	github.com/git-pkgs/spdx v0.1.4
+	github.com/git-pkgs/spdx v0.2.0
 	github.com/go-faker/faker/v4 v4.9.0
 	github.com/go-git/go-git/v5 v5.19.1
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
-	github.com/go-logr/logr v1.4.3
+	github.com/go-logr/logr v1.4.4
 	github.com/go-logr/stdr v1.2.2
 	github.com/go-logr/zapr v1.3.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
-	github.com/gofrs/uuid/v5 v5.4.0
+	github.com/gofrs/uuid/v5 v5.5.0
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-hclog v1.6.3
@@ -50,14 +50,14 @@ require (
 	go.uber.org/goleak v1.3.0
 	go.uber.org/mock v0.6.0
 	go.uber.org/zap v1.28.0
-	golang.org/x/crypto v0.53.0
+	golang.org/x/crypto v0.54.0
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f
 	golang.org/x/mod v0.37.0
-	golang.org/x/net v0.56.0
+	golang.org/x/net v0.57.0
 	golang.org/x/oauth2 v0.36.0
-	golang.org/x/sync v0.21.0
-	golang.org/x/sys v0.46.0
-	golang.org/x/text v0.39.0
+	golang.org/x/sync v0.22.0
+	golang.org/x/sys v0.47.0
+	golang.org/x/text v0.40.0
 	sigs.k8s.io/yaml v1.6.0
 )
 
