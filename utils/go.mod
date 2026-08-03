@@ -12,7 +12,7 @@ require (
 	github.com/djherbis/times v1.6.0
 	github.com/dolmen-go/contextio v1.0.0
 	github.com/evanphx/hclogr v0.2.0
-	github.com/git-pkgs/spdx v0.1.4
+	github.com/git-pkgs/spdx v0.2.0
 	github.com/go-faker/faker/v4 v4.9.0
 	github.com/go-git/go-git/v5 v5.19.2
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
@@ -21,7 +21,7 @@ require (
 	github.com/go-logr/zapr v1.3.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
-	github.com/gofrs/uuid/v5 v5.4.0
+	github.com/gofrs/uuid/v5 v5.5.0
 	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-hclog v1.6.3
