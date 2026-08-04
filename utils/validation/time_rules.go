@@ -5,6 +5,7 @@ package validation
 // equality rules for time-oriented values.
 
 import (
+	"reflect"
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -40,6 +41,7 @@ var (
 	errTimestampAboveMaximum          = commonerrors.New(commonerrors.ErrInvalid, errTimestampAboveMaximumDescription)
 	errTimestampAboveExclusiveMaximum = commonerrors.New(commonerrors.ErrInvalid, errTimestampAboveExclusiveMaximumDescription)
 	errUnexpectedTimestamp            = commonerrors.New(commonerrors.ErrInvalid, errUnexpectedTimestampDescription)
+	timestampNotEmptyRule             = TimestampExclusiveMinimum(time.Time{})
 )
 
 // DurationMinimum validates that a duration value is greater than or equal to min.
@@ -182,26 +184,55 @@ func TimestampConst(expected time.Time) validation.Rule {
 	})
 }
 
-// IsDuration validates whether a string or byte slice is a valid Go duration.
-var IsDuration = validation.NewStringRule(func(value string) bool {
-	_, err := time.ParseDuration(value)
-	return err == nil
-}, errInvalidDurationDescription)
+// IsDuration validates whether a value is a valid Go duration.
+//
+// It accepts duration strings and byte slices, as well as `time.Duration`
+// values and their pointer forms.
+var IsDuration = validation.By(func(value any) error {
+	if _, ok := durationValue(value); ok {
+		return nil
+	}
+	return errInvalidDuration
+})
 
-// IsRFC3339Timestamp validates whether a string or byte slice is a valid RFC3339 timestamp.
-var IsRFC3339Timestamp = validation.NewStringRule(func(value string) bool {
-	if _, err := time.Parse(time.RFC3339, value); err == nil {
-		return true
+// NilTimestampOrNotEmpty validates that a timestamp value is either nil or a
+// non-zero valid timestamp.
+var NilTimestampOrNotEmpty = validation.By(func(value any) error {
+	_, isNil := validation.Indirect(value)
+	if isNil {
+		return nil
 	}
-	if _, err := time.Parse(time.RFC3339Nano, value); err == nil {
-		return true
+	return timestampNotEmptyRule.Validate(value)
+})
+
+// IsRFC3339Timestamp validates whether a value is a valid RFC3339 timestamp.
+//
+// It accepts RFC3339/RFC3339Nano strings and byte slices, as well as
+// `time.Time` values and their pointer forms.
+var IsRFC3339Timestamp = validation.By(func(value any) error {
+	if _, ok := timestampValue(value); ok {
+		return nil
 	}
-	return false
-}, errInvalidTimestampDescription)
+	return errInvalidTimestamp
+})
 
 func durationValue(value any) (time.Duration, bool) {
 	if value == nil {
 		return 0, false
+	}
+	rv := reflect.ValueOf(value)
+	for rv.IsValid() {
+		kind := rv.Kind()
+		if kind != reflect.Pointer && kind != reflect.Interface {
+			break
+		}
+		if rv.IsNil() {
+			return 0, false
+		}
+		rv = rv.Elem()
+	}
+	if rv.IsValid() {
+		value = rv.Interface()
 	}
 	if d, ok := value.(time.Duration); ok {
 		return d, true
@@ -219,6 +250,20 @@ func durationValue(value any) (time.Duration, bool) {
 func timestampValue(value any) (time.Time, bool) {
 	if value == nil {
 		return time.Time{}, false
+	}
+	rv := reflect.ValueOf(value)
+	for rv.IsValid() {
+		kind := rv.Kind()
+		if kind != reflect.Pointer && kind != reflect.Interface {
+			break
+		}
+		if rv.IsNil() {
+			return time.Time{}, false
+		}
+		rv = rv.Elem()
+	}
+	if rv.IsValid() {
+		value = rv.Interface()
 	}
 	if ts, ok := value.(time.Time); ok {
 		return ts, true
