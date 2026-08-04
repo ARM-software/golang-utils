@@ -14,6 +14,18 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.168.1" (2026-08-04)
+======================
+
+Bugfixes
+--------
+
+- :recycle: `[validation]` Time validation now supports optional `time.Duration` and `time.Time` pointers consistently, accepts RFC3339 timestamp strings and optional string pointers, and adds a `NilTimestampOrNotEmpty` helper for optional timestamp fields. (#202607251610)
+- Dependency upgrade: codeql-action-4.37.4 (#20260730101302)
+- Dependency upgrade: v5-5.5.0 (#20260730101326)
+- Dependency upgrade: spdx-0.2.0 (#20260803101237)
+
+
 "1.168.0" (2026-07-24)
 ======================
 
