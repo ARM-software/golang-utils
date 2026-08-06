@@ -90,6 +90,13 @@ func newCompoundSchemas(t *testing.T, fs filesystem.FS) []Schema {
 
 func TestSchemaValidate(t *testing.T) {
 	require.NoError(t, newValidSchema(t, filesystem.GetGlobalFileSystem()).Validate())
+	require.NoError(t, (&Schema{
+		Title:      "person",
+		LocalPath:  path.Join("testdata", "person.schema.json"),
+		ID:         path.Join("testdata", "person.schema.json"),
+		Filesystem: filesystem.GetGlobalFileSystem(),
+		Limits:     filesystem.NoLimits(),
+	}).Validate())
 
 	var nilSchema *Schema
 	err := nilSchema.Validate()
@@ -353,6 +360,18 @@ func TestValidateRawYAMLAgainstSchemaOptions(t *testing.T) {
 		WithFilesystem(filesystem.GetGlobalFileSystem()),
 	)
 	require.NoError(t, err)
+}
+
+func TestDefaultSchemaSetsDefaultLimits(t *testing.T) {
+	schema := DefaultSchema()
+	require.NotNil(t, schema)
+	require.NotNil(t, schema.Limits)
+	assert.False(t, schema.Limits.Apply())
+	assert.Equal(t, filesystem.NoLimits().GetMaxFileSize(), schema.Limits.GetMaxFileSize())
+	assert.Equal(t, filesystem.NoLimits().GetMaxTotalSize(), schema.Limits.GetMaxTotalSize())
+	assert.Equal(t, filesystem.NoLimits().GetMaxFileCount(), schema.Limits.GetMaxFileCount())
+	assert.Equal(t, filesystem.NoLimits().GetMaxDepth(), schema.Limits.GetMaxDepth())
+	assert.Equal(t, filesystem.NoLimits().ApplyRecursively(), schema.Limits.ApplyRecursively())
 }
 
 func TestValidateRawYAMLAgainstSchemaOptions_IgnoreYAMLAliases(t *testing.T) {

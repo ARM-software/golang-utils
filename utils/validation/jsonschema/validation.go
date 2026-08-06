@@ -90,7 +90,13 @@ func (s *Schema) Validate() error {
 			validation.Field(&s.LocalPath, validation.Required),
 			validation.Field(&s.ID, validation.Required),
 			validation.Field(&s.Filesystem, validation.Required),
-			validation.Field(&s.Limits, validation.Required),
+			// Ensure filesystem.NoLimits() remains valid while still rejecting a nil limits interface.
+			validation.Field(&s.Limits, validation.By(func(_ any) error {
+				if s.Limits == nil {
+					return validation.ErrRequired
+				}
+				return nil
+			})),
 		)
 	}
 
