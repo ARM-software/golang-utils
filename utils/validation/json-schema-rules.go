@@ -473,19 +473,91 @@ func RequiredItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], key
 //
 // Example:
 //
-//	cfg := &Config{}
-//	err := validation.Validate(cfg, RequiredPropertiesBy(&cfg.Name, &cfg.Enabled, &cfg.Mode))
+//	payload := map[string]any{"name": "alice", "enabled": true}
+//	err := validation.Validate(payload, RequiredPropertiesBy("name", "enabled", "mode"))
+//
+// This helper is best suited to property-oriented validation of maps or decoded
+// object content where the question is whether properties exist at all. For
+// struct validation where fields are always present but their values must be
+// non-empty, prefer [RequiredFieldsBy]. That is especially true when the struct
+// has its own `Validate()` method and the rule is composed inside that method.
 func RequiredPropertiesBy(keys ...any) validation.Rule {
+	return validation.By(func(value any) error {
+		return propertyRuleBy(value, "RequiredPropertiesBy", "RequiredFieldsBy", keys, func(replayableValue any, names []string) error {
+			return RequiredProperties(names...).Validate(replayableValue)
+		})
+	})
+}
+
+// RequiredFieldsBy resolves strings, `[]string`, or field references such as
+// `&cfg.Name` and validates that each resolved field value is non-empty.
+//
+// This is the value-oriented counterpart to [RequiredPropertiesBy]. It is useful
+// when the object shape is fixed (for example a struct) and the validation should
+// require actual values rather than mere property presence.
+//
+// Example:
+//
+//	cfg := &Config{}
+//	err := validation.Validate(cfg, RequiredFieldsBy(&cfg.Name, &cfg.Mode))
+//
+// This rejects `cfg` when either `cfg.Name` or `cfg.Mode` is empty, even though
+// those struct fields are always present on the object.
+func RequiredFieldsBy(fields ...any) validation.Rule {
+	return validation.By(func(value any) error {
+		return fieldValueRuleBy(value, fields, requireResolvedFields)
+	})
+}
+
+// FieldDependencyBy resolves field references on the validated value and
+// requires the dependent fields to be non-empty whenever the source field is
+// present.
+//
+// Example:
+//
+//	cfg := &Config{}
+//	err := validation.Validate(cfg, FieldDependencyBy(map[any][]any{&cfg.SummaryFile: {&cfg.Summary}}))
+//
+// This rejects `cfg` when `cfg.SummaryFile` is non-empty but `cfg.Summary` is
+// empty.
+func FieldDependencyBy(dependencies map[any][]any) validation.Rule {
 	return validation.By(func(value any) error {
 		replayableValue, err := replayableValidationValue(value)
 		if err != nil {
 			return err
 		}
-		normalisedKeys, err := propertyNamesForValue(replayableValue, keys...)
-		if err != nil {
+		props, isNil, err := objectProperties(replayableValue)
+		if err != nil || isNil {
 			return err
 		}
-		return RequiredProperties(normalisedKeys...).Validate(replayableValue)
+		validationErrors := validation.Errors{}
+		for field, dependentFields := range dependencies {
+			fieldName, err := propertyNameForValue(replayableValue, field)
+			if err != nil {
+				return err
+			}
+			actual, found := props.value(fieldName)
+			if !found || utilreflection.IsEmpty(actual) {
+				continue
+			}
+			dependentNames, err := propertyNamesForValue(replayableValue, dependentFields...)
+			if err != nil {
+				return err
+			}
+			if err := requireResolvedFields(props, dependentNames); err != nil {
+				if ve, ok := err.(validation.Errors); ok {
+					for key, value := range ve {
+						validationErrors[key] = value
+					}
+					continue
+				}
+				return err
+			}
+		}
+		if len(validationErrors) > 0 {
+			return validationErrors
+		}
+		return nil
 	})
 }
 
@@ -585,19 +657,24 @@ func DependentRequiredItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T
 //
 // Example:
 //
-//	cfg := &Config{}
-//	err := validation.Validate(cfg, DependentRequiredBy(map[any]any{&cfg.Username: []any{&cfg.Password, &cfg.Scheme}}))
+//	payload := map[string]any{"username": "alice"}
+//	err := validation.Validate(payload, DependentRequiredBy(map[any]any{"username": []any{"password", "scheme"}}))
+//
+// This helper is best suited to property-oriented validation of maps or decoded
+// object content where dependencies are expressed in terms of property
+// existence. For struct validation where dependencies should be based on
+// non-empty field values, prefer [FieldDependencyBy]. That is especially true
+// when the struct has its own `Validate()` method and the rule is composed
+// inside that method.
 func DependentRequiredBy(dependencies map[any]any) validation.Rule {
 	return validation.By(func(value any) error {
-		replayableValue, err := replayableValidationValue(value)
-		if err != nil {
-			return err
-		}
-		normalised, err := propertyDependenciesForValue(replayableValue, dependencies)
-		if err != nil {
-			return err
-		}
-		return DependentRequired(normalised).Validate(replayableValue)
+		return propertyRuleBy(value, "DependentRequiredBy", "FieldDependencyBy", dependencySpecifiers(dependencies), func(replayableValue any, _ []string) error {
+			normalised, err := propertyDependenciesForValue(replayableValue, dependencies)
+			if err != nil {
+				return err
+			}
+			return DependentRequired(normalised).Validate(replayableValue)
+		})
 	})
 }
 
@@ -794,15 +871,9 @@ func AdditionalItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], k
 //	err := validation.Validate(cfg, AdditionalPropertiesBy(&cfg.Name, &cfg.Enabled, &cfg.Mode))
 func AdditionalPropertiesBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		replayableValue, err := replayableValidationValue(value)
-		if err != nil {
-			return err
-		}
-		normalisedKeys, err := propertyNamesForValue(replayableValue, keys...)
-		if err != nil {
-			return err
-		}
-		return AdditionalProperties(normalisedKeys...).Validate(replayableValue)
+		return propertyRuleBy(value, "", "", keys, func(replayableValue any, names []string) error {
+			return AdditionalProperties(names...).Validate(replayableValue)
+		})
 	})
 }
 
@@ -894,19 +965,29 @@ func MutuallyExclusiveItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T
 //
 // Example:
 //
-//	cfg := &Config{}
-//	err := validation.Validate(cfg, MutuallyExclusiveWithBy(&cfg.Token, &cfg.Username, &cfg.APIKey))
+//	payload := map[string]any{"token": "abc", "apiKey": "def"}
+//	err := validation.Validate(payload, MutuallyExclusiveWithBy("token", "username", "apiKey"))
+//
+// This helper is best suited to property-oriented validation of maps or decoded
+// object content. For struct validation where exclusivity should be based on
+// non-empty field values, prefer [MutuallyExclusiveFieldsBy]. That is
+// especially true when the struct has its own `Validate()` method and the rule
+// is composed inside that method.
 func MutuallyExclusiveWithBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		replayableValue, err := replayableValidationValue(value)
-		if err != nil {
-			return err
-		}
-		normalisedKeys, err := propertyNamesForValue(replayableValue, keys...)
-		if err != nil {
-			return err
-		}
-		return MutuallyExclusiveWith(normalisedKeys...).Validate(replayableValue)
+		return propertyRuleBy(value, "MutuallyExclusiveWithBy", "MutuallyExclusiveFieldsBy", keys, func(replayableValue any, names []string) error {
+			return MutuallyExclusiveWith(names...).Validate(replayableValue)
+		})
+	})
+}
+
+// MutuallyExclusiveFieldsBy resolves field references on the validated value
+// and validates that at most one of the resolved field values is non-empty.
+func MutuallyExclusiveFieldsBy(fields ...any) validation.Rule {
+	return validation.By(func(value any) error {
+		return fieldValueRuleBy(value, fields, func(props *objectAccessor, names []string) error {
+			return checkResolvedFieldCardinality(props, names, -1, 1)
+		})
 	})
 }
 
@@ -951,15 +1032,19 @@ func AtMostOneItemKey[T any, K comparable](keyFunc collection.KeyFunc[T, K], key
 //	err := validation.Validate(cfg, AtMostOnePropertyBy(&cfg.Token, &cfg.Username, &cfg.APIKey))
 func AtMostOnePropertyBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		replayableValue, err := replayableValidationValue(value)
-		if err != nil {
-			return err
-		}
-		normalisedKeys, err := propertyNamesForValue(replayableValue, keys...)
-		if err != nil {
-			return err
-		}
-		return AtMostOneProperty(normalisedKeys...).Validate(replayableValue)
+		return propertyRuleBy(value, "AtMostOnePropertyBy", "MutuallyExclusiveFieldsBy", keys, func(replayableValue any, names []string) error {
+			return AtMostOneProperty(names...).Validate(replayableValue)
+		})
+	})
+}
+
+// OneOfFieldsBy resolves field references on the validated value and validates
+// that exactly one of the resolved field values is non-empty.
+func OneOfFieldsBy(fields ...any) validation.Rule {
+	return validation.By(func(value any) error {
+		return fieldValueRuleBy(value, fields, func(props *objectAccessor, names []string) error {
+			return checkResolvedFieldCardinality(props, names, 1, 1)
+		})
 	})
 }
 
@@ -1032,15 +1117,9 @@ func OneOfItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], keys .
 //	err := validation.Validate(cfg, OneOfPropertiesBy(&cfg.Token, &cfg.Username, &cfg.APIKey))
 func OneOfPropertiesBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		replayableValue, err := replayableValidationValue(value)
-		if err != nil {
-			return err
-		}
-		normalisedKeys, err := propertyNamesForValue(replayableValue, keys...)
-		if err != nil {
-			return err
-		}
-		return OneOfProperties(normalisedKeys...).Validate(replayableValue)
+		return propertyRuleBy(value, "OneOfPropertiesBy", "OneOfFieldsBy", keys, func(replayableValue any, names []string) error {
+			return OneOfProperties(names...).Validate(replayableValue)
+		})
 	})
 }
 
@@ -1112,15 +1191,19 @@ func AtLeastOneItemKey[T any, K comparable](keyFunc collection.KeyFunc[T, K], ke
 //	err := validation.Validate(cfg, AtLeastOnePropertyBy(&cfg.Token, &cfg.Username, &cfg.APIKey))
 func AtLeastOnePropertyBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		replayableValue, err := replayableValidationValue(value)
-		if err != nil {
-			return err
-		}
-		normalisedKeys, err := propertyNamesForValue(replayableValue, keys...)
-		if err != nil {
-			return err
-		}
-		return AtLeastOneProperty(normalisedKeys...).Validate(replayableValue)
+		return propertyRuleBy(value, "AtLeastOnePropertyBy", "AtLeastOneFieldBy", keys, func(replayableValue any, names []string) error {
+			return AtLeastOneProperty(names...).Validate(replayableValue)
+		})
+	})
+}
+
+// AtLeastOneFieldBy resolves field references on the validated value and
+// validates that at least one of the resolved field values is non-empty.
+func AtLeastOneFieldBy(fields ...any) validation.Rule {
+	return validation.By(func(value any) error {
+		return fieldValueRuleBy(value, fields, func(props *objectAccessor, names []string) error {
+			return checkResolvedFieldCardinality(props, names, 1, -1)
+		})
 	})
 }
 
@@ -1187,19 +1270,27 @@ func ForbiddenItemKeys[T any, K comparable](keyFunc collection.KeyFunc[T, K], ke
 //
 // Example:
 //
-//	cfg := &Config{}
-//	err := validation.Validate(cfg, ForbiddenPropertiesBy(&cfg.Debug, &cfg.InternalOnly))
+//	payload := map[string]any{"debug": true}
+//	err := validation.Validate(payload, ForbiddenPropertiesBy("debug", "internalOnly"))
+//
+// This helper is best suited to property-oriented validation of maps or decoded
+// object content. For struct validation where forbiddenness should be based on
+// non-empty field values, prefer [ForbiddenFieldsBy]. That is especially true
+// when the struct has its own `Validate()` method and the rule is composed
+// inside that method.
 func ForbiddenPropertiesBy(keys ...any) validation.Rule {
 	return validation.By(func(value any) error {
-		replayableValue, err := replayableValidationValue(value)
-		if err != nil {
-			return err
-		}
-		normalisedKeys, err := propertyNamesForValue(replayableValue, keys...)
-		if err != nil {
-			return err
-		}
-		return ForbiddenProperties(normalisedKeys...).Validate(replayableValue)
+		return propertyRuleBy(value, "ForbiddenPropertiesBy", "ForbiddenFieldsBy", keys, func(replayableValue any, names []string) error {
+			return ForbiddenProperties(names...).Validate(replayableValue)
+		})
+	})
+}
+
+// ForbiddenFieldsBy resolves field references on the validated value and
+// validates that all resolved field values are empty.
+func ForbiddenFieldsBy(fields ...any) validation.Rule {
+	return validation.By(func(value any) error {
+		return fieldValueRuleBy(value, fields, forbidResolvedFields)
 	})
 }
 
