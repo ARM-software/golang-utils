@@ -1,1 +1,0 @@
-:sparkles: [validation] Added value-oriented field helpers because property-oriented rules are clearer for maps than structs, and struct `Validate()` implementations needed readable cross-field validation without recursive helper composition traps.

@@ -1,1 +1,0 @@
-:sparkles: [validation] Added non-recursive value-oriented helpers such as `WhenFieldEqualsValue`, `RequiredFieldsBy`, `FieldDependencyBy`, `MutuallyExclusiveFieldsBy`, and `ForbiddenFieldsBy` for clearer cross-field validation.

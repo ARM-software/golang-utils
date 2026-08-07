@@ -1,1 +1,0 @@
-:bug: [validation] Replace safe library uses of raw ozzo `validation.Required` with the shared state-oriented `utils/validation.Required`, while keeping intentional non-empty or non-zero cases on ozzo or legacy semantics so zero-valued but present fields are validated consistently.

@@ -14,6 +14,35 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.169.0" (2026-08-07)
+======================
+
+Features
+--------
+
+- :sparkles: [validation] Added when-rule helpers for not-equals, empty, and not-empty checks across property- and field-based validation. (#202608062230)
+- :sparkles: [validation] Added non-recursive value-oriented helpers such as `WhenFieldEqualsValue`, `RequiredFieldsBy`, `FieldDependencyBy`, `MutuallyExclusiveFieldsBy`, and `ForbiddenFieldsBy` for clearer cross-field validation. (#202608070910)
+- :sparkles: [validation] Added value-oriented field helpers because property-oriented rules are clearer for maps than structs, and struct `Validate()` implementations needed readable cross-field validation without recursive helper composition traps. (#202608071000)
+- :sparkles: `[validation]` Add state-oriented validation rules for zero, emptiness, nil, and legacy required semantics, including a struct-friendly `IsRequired` that preserves pre-v4.4 ozzo behaviour. (#202608071215)
+- :bug: [validation] Replace safe library uses of raw ozzo `validation.Required` with the shared state-oriented `utils/validation.Required`, while keeping intentional non-empty or non-zero cases on ozzo or legacy semantics so zero-valued but present fields are validated consistently. (#202608071730)
+
+
+Bugfixes
+--------
+
+- :bug: [jsonschema] Default schema options now keep `filesystem.NoLimits()` while schema validation only requires non-nil limits, so no-limit schemas no longer fail with missing `Limits`. (#202608062145)
+- :bug: [validation] Added regression coverage pinning the current `validation.Required` behaviour for zero-valued structs so future ozzo upgrades do not silently change repository validation semantics. (#202608071140)
+- :bug: [validation] Added a state-style `Required` rule to avoid OpenAPI validation issues where valid zero values such as false and numeric zero were incorrectly excluded, while still rejecting nil values, empty strings, and zero `time.Time{}`. See `utils/validation/state_rules.go` for the `Required` definition. (#202608071235)
+- Dependency upgrade: upload-sarif-c1e7c7a0de342c642bc11d2219ba7a3cb2281f19 (#20260707160538)
+- Dependency upgrade: timberjack-1.4.6 (#20260804101310)
+- Dependency upgrade: v4-4.26.7 (#20260804101341)
+- Dependency upgrade: upload-sarif-6a90bf1f5426d0c367cad0b2000f3b721bab3122 (#20260805101538)
+- Dependency upgrade: v6-6.0.3 (#20260806101347)
+- Dependency upgrade: codeql-action-4.37.5 (#20260806101652)
+- Dependency upgrade: v5-5.5.1 (#20260807101334)
+- Dependency upgrade: spdx-0.3.0 (#20260807101355)
+
+
 "1.168.1" (2026-08-04)
 ======================
 
