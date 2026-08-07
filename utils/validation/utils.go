@@ -502,7 +502,7 @@ func objectSequence2ToAccessor(value any) (*objectAccessor, bool, bool, error) {
 		},
 		presentNonEmpty: func(key string) bool {
 			value, found := items[key]
-			return found && !utilreflection.IsEmpty(value)
+			return found && isNotEmptyValue(value)
 		},
 	}, true, false, nil
 }
@@ -528,7 +528,7 @@ func objectProperties(value any) (props *objectAccessor, isNil bool, err error) 
 		},
 		presentNonEmpty: func(key string) bool {
 			value, found := objectPropertyValue(rv, key)
-			return found && !utilreflection.IsEmpty(value)
+			return found && isNotEmptyValue(value)
 		},
 	}, false, nil
 }
@@ -675,6 +675,135 @@ func propertyNamesForValue(value any, keys ...any) (result []string, err error) 
 		return nil, err
 	}
 	return collection.UniqueEntries(result), nil
+}
+
+func hasFieldReferenceSpecifier(keys ...any) bool {
+	return collection.AnyFunc(keys, func(key any) bool {
+		switch typed := key.(type) {
+		case string, []string:
+			return false
+		case []any:
+			return hasFieldReferenceSpecifier(typed...)
+		default:
+			return true
+		}
+	})
+}
+
+func valueImplementsValidate(value any) bool {
+	type validatable interface{ Validate() error }
+	if value == nil {
+		return false
+	}
+	_, ok := value.(validatable)
+	return ok
+}
+
+func rejectPropertyStyleFieldReferencesOnValidatable(value any, helperName string, replacement string, specifiers ...any) error {
+	if !hasFieldReferenceSpecifier(specifiers...) || !valueImplementsValidate(value) {
+		return nil
+	}
+	return commonerrors.Newf(commonerrors.ErrInvalid, "%s is property-oriented and should not be used with field references on a struct that implements Validate(); use %s instead", helperName, replacement)
+}
+
+func dependencySpecifiers(dependencies map[any]any) []any {
+	result := make([]any, 0, len(dependencies)*2)
+	for key, values := range dependencies {
+		result = append(result, key)
+		result = append(result, values)
+	}
+	return result
+}
+
+type propertyRuleEvaluator func(replayableValue any, names []string) error
+
+func propertyRuleBy(value any, helperName string, replacement string, specifiers []any, evaluator propertyRuleEvaluator) error {
+	replayableValue, err := replayableValidationValue(value)
+	if err != nil {
+		return err
+	}
+	if replacement != "" {
+		if err := rejectPropertyStyleFieldReferencesOnValidatable(replayableValue, helperName, replacement, specifiers...); err != nil {
+			return err
+		}
+	}
+	normalisedKeys, err := propertyNamesForValue(replayableValue, specifiers...)
+	if err != nil {
+		return err
+	}
+	return evaluator(replayableValue, normalisedKeys)
+}
+
+type fieldValueRuleEvaluator func(props *objectAccessor, names []string) error
+
+func fieldValueRuleBy(value any, fields []any, evaluator fieldValueRuleEvaluator) error {
+	replayableValue, err := replayableValidationValue(value)
+	if err != nil {
+		return err
+	}
+	props, isNil, err := objectProperties(replayableValue)
+	if err != nil || isNil {
+		return err
+	}
+	normalisedFields, err := propertyNamesForValue(replayableValue, fields...)
+	if err != nil {
+		return err
+	}
+	return evaluator(props, normalisedFields)
+}
+
+func countPresentResolvedFields(props *objectAccessor, names []string) int {
+	if props == nil {
+		return 0
+	}
+	return collection.CountBy(names, func(name string) bool {
+		return props.presentNonEmpty(name)
+	})
+}
+
+func requireResolvedFields(props *objectAccessor, names []string) error {
+	if props == nil {
+		return nil
+	}
+	validationErrors := collection.Reduce(names, validation.Errors{}, func(acc validation.Errors, name string) validation.Errors {
+		actual, found := props.value(name)
+		if !found {
+			acc[name] = validation.ErrRequired
+			return acc
+		}
+		if err := validateRequiredValue(actual); err != nil {
+			acc[name] = err
+		}
+		return acc
+	})
+	if len(validationErrors) > 0 {
+		return validationErrors
+	}
+	return nil
+}
+
+func forbidResolvedFields(props *objectAccessor, names []string) error {
+	if countPresentResolvedFields(props, names) > 0 {
+		return errAdditionalProperties
+	}
+	return nil
+}
+
+func checkResolvedFieldCardinality(props *objectAccessor, names []string, minCount int, maxCount int) error {
+	count := countPresentResolvedFields(props, names)
+	if minCount >= 0 && count < minCount {
+		if minCount == 1 {
+			return errRequiredProperties
+		}
+		return errMutuallyExclusive
+	}
+	if maxCount >= 0 && count > maxCount {
+		return errMutuallyExclusive
+	}
+	if minCount == 1 && maxCount == 1 && count != 1 {
+		return errMutuallyExclusive
+	}
+	return nil
 }
 
 func propertyNamesForSpecifier(value any, key any) ([]string, error) {

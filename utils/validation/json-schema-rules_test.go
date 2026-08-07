@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-faker/faker/v4"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -19,6 +20,22 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/field"
 )
+
+type validatableRequiredPropertiesFields struct {
+	Name string
+}
+
+func (v *validatableRequiredPropertiesFields) Validate() error { return nil }
+
+type validatablePropertyOrientedFields struct {
+	Summary     string
+	SummaryFile string
+	Token       string
+	APIKey      string
+	Debug       string
+}
+
+func (v *validatablePropertyOrientedFields) Validate() error { return nil }
 
 func TestJSONSchemaInspiredRules(t *testing.T) {
 	invalidCollectionInputs := []struct {
@@ -602,6 +619,184 @@ func TestJSONSchemaInspiredRulesFieldReferences(t *testing.T) {
 		assert.NoError(t, validation.Validate(value, AdditionalPropertiesBy(&value.A, "B", &value.C)))
 		assert.NoError(t, validation.Validate(value, AdditionalPropertiesBy([]string{"A", "B", "C"})))
 		assert.Error(t, validation.Validate(value, AdditionalPropertiesBy(&value.A)))
+	})
+
+	t.Run("required properties rejects field references on validatable struct", func(t *testing.T) {
+		value := &validatableRequiredPropertiesFields{Name: "alice"}
+		err := validation.Validate(value, RequiredPropertiesBy(&value.Name))
+		errortest.AssertError(t, err, commonerrors.ErrInvalid)
+		errortest.AssertErrorDescription(t, err, "use RequiredFieldsBy instead")
+	})
+
+	t.Run("other property-oriented helpers reject field references on validatable struct", func(t *testing.T) {
+		t.Run("dependent required", func(t *testing.T) {
+			value := &validatablePropertyOrientedFields{}
+			err := validation.Validate(value, DependentRequiredBy(map[any]any{&value.SummaryFile: []any{&value.Summary}}))
+			errortest.AssertError(t, err, commonerrors.ErrInvalid)
+			errortest.AssertErrorDescription(t, err, "use FieldDependencyBy instead")
+		})
+
+		t.Run("mutually exclusive", func(t *testing.T) {
+			value := &validatablePropertyOrientedFields{}
+			err := validation.Validate(value, MutuallyExclusiveWithBy(&value.Token, &value.APIKey))
+			errortest.AssertError(t, err, commonerrors.ErrInvalid)
+			errortest.AssertErrorDescription(t, err, "use MutuallyExclusiveFieldsBy instead")
+		})
+
+		t.Run("at most one", func(t *testing.T) {
+			value := &validatablePropertyOrientedFields{}
+			err := validation.Validate(value, AtMostOnePropertyBy(&value.Token, &value.APIKey))
+			errortest.AssertError(t, err, commonerrors.ErrInvalid)
+			errortest.AssertErrorDescription(t, err, "use MutuallyExclusiveFieldsBy instead")
+		})
+
+		t.Run("one of", func(t *testing.T) {
+			value := &validatablePropertyOrientedFields{}
+			err := validation.Validate(value, OneOfPropertiesBy(&value.Token, &value.APIKey))
+			errortest.AssertError(t, err, commonerrors.ErrInvalid)
+			errortest.AssertErrorDescription(t, err, "use OneOfFieldsBy instead")
+		})
+
+		t.Run("at least one", func(t *testing.T) {
+			value := &validatablePropertyOrientedFields{}
+			err := validation.Validate(value, AtLeastOnePropertyBy(&value.Token, &value.APIKey))
+			errortest.AssertError(t, err, commonerrors.ErrInvalid)
+			errortest.AssertErrorDescription(t, err, "use AtLeastOneFieldBy instead")
+		})
+
+		t.Run("forbidden", func(t *testing.T) {
+			value := &validatablePropertyOrientedFields{}
+			err := validation.Validate(value, ForbiddenPropertiesBy(&value.Debug))
+			errortest.AssertError(t, err, commonerrors.ErrInvalid)
+			errortest.AssertErrorDescription(t, err, "use ForbiddenFieldsBy instead")
+		})
+	})
+
+	t.Run("required properties still supports property-oriented maps", func(t *testing.T) {
+		payload := map[string]any{"name": "alice"}
+		err := validation.Validate(payload, RequiredPropertiesBy("name"))
+		require.NoError(t, err)
+	})
+
+	t.Run("required fields", func(t *testing.T) {
+		type stringFields struct {
+			Name string
+			Mode string
+			Note string
+		}
+
+		value := &stringFields{Name: "alice", Mode: "strict"}
+		assert.NoError(t, validation.Validate(value, RequiredFieldsBy(&value.Name, &value.Mode)))
+		assert.NoError(t, validation.Validate(value, RequiredFieldsBy([]string{"Name", "Mode"})))
+
+		value.Mode = ""
+		err := validation.Validate(value, RequiredFieldsBy(&value.Name, &value.Mode))
+		require.Error(t, err)
+		errortest.AssertErrorDescription(t, err, "Mode")
+
+		other := &stringFields{}
+		err = validation.Validate(value, RequiredFieldsBy(&other.Name))
+		errortest.AssertError(t, err, commonerrors.ErrInvalid)
+	})
+
+	t.Run("required fields allow valid zero values", func(t *testing.T) {
+		type zeroValueFields struct {
+			Enabled bool
+			Count   int
+			When    time.Time
+			Name    string
+		}
+
+		value := &zeroValueFields{Enabled: false, Count: 0}
+		assert.NoError(t, validation.Validate(value, RequiredFieldsBy(&value.Enabled, &value.Count)))
+
+		err := validation.Validate(value, RequiredFieldsBy(&value.Name))
+		require.Error(t, err)
+		errortest.AssertErrorDescription(t, err, "Name")
+
+		err = validation.Validate(value, RequiredFieldsBy(&value.When))
+		require.Error(t, err)
+		errortest.AssertErrorDescription(t, err, "When")
+	})
+
+	t.Run("field dependency, exclusivity, and forbidden fields", func(t *testing.T) {
+		type stringFields struct {
+			Summary     string
+			SummaryFile string
+			Token       string
+			APIKey      string
+			Debug       string
+		}
+
+		value := &stringFields{Summary: "file", SummaryFile: "summary.md"}
+		assert.NoError(t, validation.Validate(value, FieldDependencyBy(map[any][]any{&value.SummaryFile: []any{&value.Summary}})))
+
+		value = &stringFields{SummaryFile: "summary.md"}
+		err := validation.Validate(value, FieldDependencyBy(map[any][]any{&value.SummaryFile: []any{&value.Summary}}))
+		require.Error(t, err)
+		errortest.AssertErrorDescription(t, err, "Summary")
+
+		value = &stringFields{Token: "token"}
+		assert.NoError(t, validation.Validate(value, MutuallyExclusiveFieldsBy(&value.Token, &value.APIKey)))
+		value.APIKey = "key"
+		assert.Error(t, validation.Validate(value, MutuallyExclusiveFieldsBy(&value.Token, &value.APIKey)))
+
+		value = &stringFields{}
+		assert.NoError(t, validation.Validate(value, ForbiddenFieldsBy(&value.Debug)))
+		value.Debug = "enabled"
+		assert.Error(t, validation.Validate(value, ForbiddenFieldsBy(&value.Debug)))
+
+		value = &stringFields{Token: "token"}
+		assert.NoError(t, validation.Validate(value, OneOfFieldsBy(&value.Token, &value.APIKey)))
+		value.APIKey = "key"
+		assert.Error(t, validation.Validate(value, OneOfFieldsBy(&value.Token, &value.APIKey)))
+
+		value = &stringFields{}
+		assert.Error(t, validation.Validate(value, AtLeastOneFieldBy(&value.Token, &value.APIKey)))
+		value.Token = "token"
+		assert.NoError(t, validation.Validate(value, AtLeastOneFieldBy(&value.Token, &value.APIKey)))
+	})
+
+	t.Run("value-oriented field rules do not recurse inside Validate", func(t *testing.T) {
+		recursionErr := commonerrors.New(commonerrors.ErrUnexpected, "recursive validate call")
+		type config struct {
+			Summary     string
+			SummaryFile string
+			Token       string
+			APIKey      string
+			Debug       string
+			validating  bool
+		}
+		validateConfig := func(cfg *config) error {
+			if cfg.validating {
+				return recursionErr
+			}
+			cfg.validating = true
+			defer func() {
+				cfg.validating = false
+			}()
+			return NewAllRule(
+				FieldDependencyBy(map[any][]any{&cfg.SummaryFile: []any{&cfg.Summary}}),
+				MutuallyExclusiveFieldsBy(&cfg.Token, &cfg.APIKey),
+				ForbiddenFieldsBy(&cfg.Debug),
+			).Validate(cfg)
+		}
+
+		cfg := &config{SummaryFile: "summary.md"}
+		err := validateConfig(cfg)
+		require.Error(t, err)
+		errortest.AssertErrorDescription(t, err, "Summary")
+		assert.False(t, commonerrors.Any(err, commonerrors.ErrUnexpected))
+
+		cfg = &config{Token: "token", APIKey: "key"}
+		err = validateConfig(cfg)
+		require.Error(t, err)
+		assert.False(t, commonerrors.Any(err, commonerrors.ErrUnexpected))
+
+		cfg = &config{Debug: "enabled"}
+		err = validateConfig(cfg)
+		require.Error(t, err)
+		assert.False(t, commonerrors.Any(err, commonerrors.ErrUnexpected))
 	})
 
 	t.Run("dependent properties and schemas", func(t *testing.T) {
