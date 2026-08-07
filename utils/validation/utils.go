@@ -771,7 +771,7 @@ func requireResolvedFields(props *objectAccessor, names []string) error {
 			acc[name] = validation.ErrRequired
 			return acc
 		}
-		if err := validation.Required.Validate(actual); err != nil {
+		if err := validateRequiredValue(actual); err != nil {
 			acc[name] = err
 		}
 		return acc

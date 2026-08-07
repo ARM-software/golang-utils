@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-faker/faker/v4"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -696,6 +697,26 @@ func TestJSONSchemaInspiredRulesFieldReferences(t *testing.T) {
 		other := &stringFields{}
 		err = validation.Validate(value, RequiredFieldsBy(&other.Name))
 		errortest.AssertError(t, err, commonerrors.ErrInvalid)
+	})
+
+	t.Run("required fields allow valid zero values", func(t *testing.T) {
+		type zeroValueFields struct {
+			Enabled bool
+			Count   int
+			When    time.Time
+			Name    string
+		}
+
+		value := &zeroValueFields{Enabled: false, Count: 0}
+		assert.NoError(t, validation.Validate(value, RequiredFieldsBy(&value.Enabled, &value.Count)))
+
+		err := validation.Validate(value, RequiredFieldsBy(&value.Name))
+		require.Error(t, err)
+		errortest.AssertErrorDescription(t, err, "Name")
+
+		err = validation.Validate(value, RequiredFieldsBy(&value.When))
+		require.Error(t, err)
+		errortest.AssertErrorDescription(t, err, "When")
 	})
 
 	t.Run("field dependency, exclusivity, and forbidden fields", func(t *testing.T) {

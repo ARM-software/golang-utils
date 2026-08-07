@@ -68,6 +68,37 @@ func TestStateRules(t *testing.T) {
 		errortest.AssertErrorDescription(t, validation.Validate(nilString, IsNotNil), ErrNotNilRequired.Error())
 	})
 
+	t.Run("Required", func(t *testing.T) {
+		var nilString *string
+		var nilSlice []string
+		var nilMap map[string]string
+		emptyString := ""
+		spaceString := "   "
+		spaceStringPtr := &spaceString
+		zeroTime := time.Time{}
+		zeroTimePtr := &zeroTime
+		zeroInt := 0
+		falseBool := false
+		emptySlice := []string{}
+		emptyMap := map[string]string{}
+
+		errortest.AssertErrorDescription(t, validation.Validate(nil, Required), validation.ErrRequired.Error())
+		errortest.AssertErrorDescription(t, validation.Validate(nilString, Required), validation.ErrRequired.Error())
+		errortest.AssertErrorDescription(t, validation.Validate(nilSlice, Required), validation.ErrRequired.Error())
+		errortest.AssertErrorDescription(t, validation.Validate(nilMap, Required), validation.ErrRequired.Error())
+		errortest.AssertErrorDescription(t, validation.Validate(emptyString, Required), validation.ErrRequired.Error())
+		errortest.AssertErrorDescription(t, validation.Validate(spaceString, Required), validation.ErrRequired.Error())
+		errortest.AssertErrorDescription(t, validation.Validate(spaceStringPtr, Required), validation.ErrRequired.Error())
+		errortest.AssertErrorDescription(t, validation.Validate(zeroTime, Required), validation.ErrRequired.Error())
+		errortest.AssertErrorDescription(t, validation.Validate(zeroTimePtr, Required), validation.ErrRequired.Error())
+
+		require.NoError(t, validation.Validate(zeroInt, Required))
+		require.NoError(t, validation.Validate(falseBool, Required))
+		require.NoError(t, validation.Validate(zeroStruct{}, Required))
+		require.NoError(t, validation.Validate(emptySlice, Required))
+		require.NoError(t, validation.Validate(emptyMap, Required))
+	})
+
 	t.Run("IsNotNilAndNotEmpty", func(t *testing.T) {
 		var nilString *string
 		emptyString := ""

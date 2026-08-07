@@ -90,6 +90,53 @@ var IsNil = validation.Nil.ErrorObject(ErrNilRequired)
 // IsNotNil validates that a value is not nil.
 var IsNotNil = validation.NotNil.ErrorObject(ErrNotNilRequired)
 
+// Required validates that a value is present for state-style configuration use.
+//
+// Unlike ozzo's `validation.Required`, this rule treats zero-valued structs,
+// `false`, and numeric zero values as present. It rejects nil values, empty
+// strings, and zero `time.Time{}` values.
+//
+// This better aligns runtime value validation with the intent behind JSON Schema
+// and OpenAPI `required`, where a field may be required even though its valid
+// value can legitimately be `false`, `0`, or another zero value. In Go, once a
+// property has been decoded into a struct field, this rule can be used to
+// enforce that required-ness without incorrectly rejecting those valid zero
+// values.
+//
+// It should be noted that JSON Schema and OpenAPI `required` remain
+// property-level concepts describing
+// whether an object must define a named property, rather than whether an
+// already-selected Go value should count as present.
+//
+// References:
+//   - JSON Schema object required properties:
+//     https://json-schema.org/understanding-json-schema/reference/object#required-properties
+//   - OpenAPI Schema Object required:
+//     https://spec.openapis.org/oas/latest.html#schema-object
+var Required = validation.By(validateRequiredValue)
+
+func validateRequiredValue(value any) error {
+	// Nil pointers, nil maps, and nil slices are all considered missing here.
+	if isNilValue(value) {
+		return validation.ErrRequired
+	}
+	v, isNil := validation.Indirect(value)
+	if isNil {
+		return validation.ErrRequired
+	}
+	// Zero time values are treated as missing even though other zero-valued structs
+	// are accepted as present.
+	if t, ok := v.(time.Time); ok && t.IsZero() {
+		return validation.ErrRequired
+	}
+	// Empty strings remain missing, but other zero values such as false, 0, and
+	// empty non-nil maps/slices are accepted as present.
+	if str, ok := v.(string); ok && isEmptyValue(str) {
+		return validation.ErrRequired
+	}
+	return nil
+}
+
 // IsNotNilAndNotEmpty validates that a value is both non-nil and non-empty.
 var IsNotNilAndNotEmpty = validation.By(func(value any) error {
 	if err := IsNotNil.Validate(value); err != nil {
