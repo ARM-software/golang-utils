@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-cleanhttp"
 
 	"github.com/ARM-software/golang-utils/utils/config"
+	validationRules "github.com/ARM-software/golang-utils/utils/validation"
 )
 
 // HTTPClientConfiguration defines the client configuration. It can be used to tweak low level transport
@@ -62,7 +63,7 @@ func (cfg *HTTPClientConfiguration) Validate() error {
 	return validation.ValidateStruct(cfg,
 		validation.Field(&cfg.MaxIdleConns, validation.Min(0)),
 		validation.Field(&cfg.MaxIdleConnsPerHost, validation.Max(cfg.MaxIdleConns)),
-		validation.Field(&cfg.IdleConnTimeout, validation.Required),
+		validation.Field(&cfg.IdleConnTimeout, validationRules.Required),
 		validation.Field(&cfg.RetryPolicy, validation.Required),
 	)
 

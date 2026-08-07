@@ -8,6 +8,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/config"
+	validationRules "github.com/ARM-software/golang-utils/utils/validation"
 )
 
 type HybridAESRSAEncryptedPayload struct {
@@ -26,9 +27,9 @@ func (p *HybridAESRSAEncryptedPayload) Validate() (err error) {
 	}
 
 	return validation.ValidateStruct(p,
-		validation.Field(&p.CipherText, validation.Required),
-		validation.Field(&p.EncryptedKey, validation.Required),
-		validation.Field(&p.Nonce, validation.Required),
+		validation.Field(&p.CipherText, validationRules.Required),
+		validation.Field(&p.EncryptedKey, validationRules.Required),
+		validation.Field(&p.Nonce, validationRules.Required),
 	)
 }
 

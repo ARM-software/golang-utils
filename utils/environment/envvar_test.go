@@ -14,6 +14,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/platform"
+	validationRules "github.com/ARM-software/golang-utils/utils/validation"
 )
 
 func TestEnvVar_Validate(t *testing.T) {
@@ -73,20 +74,20 @@ func TestEnvVar_Validate(t *testing.T) {
 			key:         faker.Word(),
 			name:        "variable value compliant with one rule",
 			value:       faker.Sentence(),
-			valueRules:  []validation.Rule{validation.Required},
+			valueRules:  []validation.Rule{validationRules.Required},
 			expectError: false,
 		},
 		{
 			key:         faker.Word(),
 			name:        "variable value compliant with several rules",
 			value:       faker.Word(),
-			valueRules:  []validation.Rule{validation.Required, is.Alphanumeric},
+			valueRules:  []validation.Rule{validationRules.Required, is.Alphanumeric},
 			expectError: false,
 		},
 		{
 			key:         faker.Word(),
 			name:        "non compliant variable value",
-			valueRules:  []validation.Rule{validation.Required},
+			valueRules:  []validation.Rule{validationRules.Required},
 			expectError: true,
 		},
 	}

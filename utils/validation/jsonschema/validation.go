@@ -34,6 +34,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/reflection"
 	"github.com/ARM-software/golang-utils/utils/serialization/json" //nolint:misspell
 	"github.com/ARM-software/golang-utils/utils/serialization/yaml" //nolint:misspell
+	validationRules "github.com/ARM-software/golang-utils/utils/validation"
 )
 
 // Schema describes a schema file that can be loaded and registered for
@@ -86,17 +87,11 @@ func (s *Schema) Validate() error {
 	err := config.ValidateEmbedded(s)
 	if err == nil {
 		err = validation.ValidateStruct(s,
-			validation.Field(&s.Title, validation.Required),
-			validation.Field(&s.LocalPath, validation.Required),
-			validation.Field(&s.ID, validation.Required),
-			validation.Field(&s.Filesystem, validation.Required),
-			// Ensure filesystem.NoLimits() remains valid while still rejecting a nil limits interface.
-			validation.Field(&s.Limits, validation.By(func(_ any) error {
-				if s.Limits == nil {
-					return validation.ErrRequired
-				}
-				return nil
-			})),
+			validation.Field(&s.Title, validationRules.Required),
+			validation.Field(&s.LocalPath, validationRules.Required),
+			validation.Field(&s.ID, validationRules.Required),
+			validation.Field(&s.Filesystem, validationRules.Required),
+			validation.Field(&s.Limits, validationRules.Required),
 		)
 	}
 
@@ -122,7 +117,7 @@ func (s *SchemaSpec) Validate() error {
 		return commonerrors.UndefinedVariable("schema specification")
 	}
 	err := validation.ValidateStruct(s,
-		validation.Field(&s.ID, validation.Required),
+		validation.Field(&s.ID, validationRules.Required),
 		validation.Field(&s.Specification, validation.Required),
 	)
 	if err != nil {

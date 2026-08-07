@@ -7,6 +7,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/config"
 	"github.com/ARM-software/golang-utils/utils/reflection"
+	validationRules "github.com/ARM-software/golang-utils/utils/validation"
 )
 
 // Format describes how a front matter block is detected and extracted.
@@ -78,8 +79,8 @@ func (f *Format) Validate() error {
 	err := config.ValidateEmbedded(f)
 	if err == nil {
 		err = validation.ValidateStruct(f,
-			validation.Field(&f.Start, validation.Required),
-			validation.Field(&f.End, validation.Required),
+			validation.Field(&f.Start, validationRules.Required),
+			validation.Field(&f.End, validationRules.Required),
 		)
 	}
 

@@ -20,6 +20,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/safecast"
+	validationRules "github.com/ARM-software/golang-utils/utils/validation"
 )
 
 var (
@@ -53,7 +54,7 @@ const (
 )
 
 func isWindowsVarName(value string) bool {
-	if validation.Required.Validate(value) != nil {
+	if validationRules.Required.Validate(value) != nil {
 		return false
 	}
 	regex := regexp.MustCompile(WindowsVariableNameRegexString)
@@ -61,7 +62,7 @@ func isWindowsVarName(value string) bool {
 }
 
 func isUnixVarName(value string) bool {
-	if validation.Required.Validate(value) != nil {
+	if validationRules.Required.Validate(value) != nil {
 		return false
 	}
 	regex := regexp.MustCompile(UnixVariableNameRegexString)

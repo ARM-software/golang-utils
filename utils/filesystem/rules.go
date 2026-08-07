@@ -10,6 +10,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
+	validationRules "github.com/ARM-software/golang-utils/utils/validation"
 )
 
 type filesystemValidationRule struct {
@@ -18,7 +19,7 @@ type filesystemValidationRule struct {
 }
 
 func (r *filesystemValidationRule) Validate(value any) error {
-	err := validation.Required.When(r.condition).Validate(value)
+	err := validation.When(r.condition, validationRules.Required).Validate(value)
 	if err != nil {
 		return commonerrors.WrapErrorf(commonerrors.ErrUndefined, err, "missing value")
 	}

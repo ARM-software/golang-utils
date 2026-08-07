@@ -12,6 +12,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/config"
 	"github.com/ARM-software/golang-utils/utils/reflection"
+	validationRules "github.com/ARM-software/golang-utils/utils/validation"
 )
 
 // SSHAuthConfig holds SSH-specific authentication configuration.
@@ -53,7 +54,7 @@ func (s *SSHAuthConfig) Validate() error {
 	return validation.ValidateStruct(s,
 		// PrivateKeyPath is required when SSH is configured without the agent
 		validation.Field(&s.PrivateKeyPath,
-			validation.When(s.isConfigured() && !s.UseAgent, validation.Required),
+			validation.When(s.isConfigured() && !s.UseAgent, validationRules.Required),
 		),
 		// KnownHostsFile and UseInsecureHostKey are mutually exclusive
 		validation.Field(&s.KnownHostsFile,
@@ -180,7 +181,7 @@ func (c *GitActionConfig) Validate() error {
 		return err
 	}
 	return validation.ValidateStruct(c,
-		validation.Field(&c.URL, validation.Required),
+		validation.Field(&c.URL, validationRules.Required),
 	)
 }
 

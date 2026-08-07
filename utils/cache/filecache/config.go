@@ -6,6 +6,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	configUtils "github.com/ARM-software/golang-utils/utils/config"
+	validationRules "github.com/ARM-software/golang-utils/utils/validation"
 )
 
 type FileCacheConfig struct {
@@ -23,7 +24,7 @@ func (cfg *FileCacheConfig) Validate() error {
 	}
 
 	return validation.ValidateStruct(cfg,
-		validation.Field(&cfg.CachePath, validation.Required),
+		validation.Field(&cfg.CachePath, validationRules.Required),
 		validation.Field(&cfg.GarbageCollectionPeriod, validation.Required),
 		validation.Field(&cfg.TTL, validation.Required),
 	)

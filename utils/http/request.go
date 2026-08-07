@@ -11,6 +11,7 @@ import (
 	configUtils "github.com/ARM-software/golang-utils/utils/config"
 	"github.com/ARM-software/golang-utils/utils/http/schemes"
 	"github.com/ARM-software/golang-utils/utils/reflection"
+	validationRules "github.com/ARM-software/golang-utils/utils/validation"
 )
 
 const (
@@ -71,8 +72,8 @@ func (cfg *Auth) Validate() (err error) {
 		return
 	}
 	return validation.ValidateStruct(cfg,
-		validation.Field(&cfg.Scheme, validation.When(cfg.Enforced, validation.Required, validation.In(inAuthSchemes...))),
-		validation.Field(&cfg.AccessToken, validation.Required.When(cfg.Enforced)),
+		validation.Field(&cfg.Scheme, validation.When(cfg.Enforced, validationRules.Required, validation.In(inAuthSchemes...))),
+		validation.Field(&cfg.AccessToken, validation.When(cfg.Enforced, validationRules.Required)),
 	)
 }
 
@@ -116,7 +117,7 @@ func (cfg *Target) Validate() (err error) {
 	}
 
 	return validation.ValidateStruct(cfg,
-		validation.Field(&cfg.Host, validation.Required, is.URL),
+		validation.Field(&cfg.Host, validationRules.Required, is.URL),
 		validation.Field(&cfg.Port, is.UTFNumeric, is.Port),
 	)
 }
@@ -136,8 +137,8 @@ func (cfg *RequestConfiguration) Validate() (err error) {
 	}
 
 	return validation.ValidateStruct(cfg,
-		validation.Field(&cfg.Host, validation.Required),
-		validation.Field(&cfg.UserAgent, validation.Required),
+		validation.Field(&cfg.Host, validationRules.Required),
+		validation.Field(&cfg.UserAgent, validationRules.Required),
 		validation.Field(&cfg.Authorisation, validation.Required),
 		validation.Field(&cfg.Retries, validation.Required),
 	)
