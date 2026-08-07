@@ -198,8 +198,7 @@ var IsDuration = validation.By(func(value any) error {
 // NilTimestampOrNotEmpty validates that a timestamp value is either nil or a
 // non-zero valid timestamp.
 var NilTimestampOrNotEmpty = validation.By(func(value any) error {
-	_, isNil := validation.Indirect(value)
-	if isNil {
+	if isNilValue(value) {
 		return nil
 	}
 	return timestampNotEmptyRule.Validate(value)
