@@ -22,6 +22,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/keyring"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 	"github.com/ARM-software/golang-utils/utils/serialization/maps" //nolint:misspell
+	validationRules "github.com/ARM-software/golang-utils/utils/validation"
 )
 
 const (
@@ -182,7 +183,7 @@ type LoadingOptions struct {
 
 func (o *LoadingOptions) Validate() (err error) {
 	return WrapValidationError(nil, validation.ValidateStruct(o,
-		validation.Field(&o.viperSession, validation.Required),
+		validation.Field(&o.viperSession, validationRules.Required),
 	))
 }
 

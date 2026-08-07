@@ -11,6 +11,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/platform"
+	validationRules "github.com/ARM-software/golang-utils/utils/validation"
 )
 
 var (
@@ -67,7 +68,7 @@ func (e *EnvVar) String() string {
 }
 
 func (e *EnvVar) Validate() (err error) {
-	err = validation.Validate(e.GetKey(), validation.Required, IsEnvironmentVariableKey)
+	err = validation.Validate(e.GetKey(), validationRules.Required, IsEnvironmentVariableKey)
 	if err != nil {
 		err = commonerrors.WrapErrorf(commonerrors.ErrInvalid, err, "environment variable name `%v` is not valid", e.GetKey())
 		return

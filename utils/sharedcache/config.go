@@ -6,6 +6,7 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
 	configUtils "github.com/ARM-software/golang-utils/utils/config"
+	validationRules "github.com/ARM-software/golang-utils/utils/validation"
 )
 
 type Configuration struct {
@@ -23,7 +24,7 @@ func (cfg *Configuration) Validate() error {
 	}
 
 	return validation.ValidateStruct(cfg,
-		validation.Field(&cfg.RemoteStoragePath, validation.Required),
+		validation.Field(&cfg.RemoteStoragePath, validationRules.Required),
 	)
 }
 

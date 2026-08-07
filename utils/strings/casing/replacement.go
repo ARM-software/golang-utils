@@ -14,6 +14,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
 	"github.com/ARM-software/golang-utils/utils/safeio"
+	validationRules "github.com/ARM-software/golang-utils/utils/validation"
 )
 
 var (
@@ -74,8 +75,8 @@ func (r Rule) Merge(other *Rule) Rule {
 // Validate checks that the rule contains the required values.
 func (r *Rule) Validate() (err error) {
 	err = validation.ValidateStruct(r,
-		validation.Field(&r.Token, validation.Required),
-		validation.Field(&r.Replacement, validation.Required),
+		validation.Field(&r.Token, validationRules.Required),
+		validation.Field(&r.Replacement, validationRules.Required),
 	)
 	if err != nil {
 		err = commonerrors.WrapError(commonerrors.ErrInvalid, err, "invalid replacement rule")
