@@ -49,7 +49,6 @@ var (
 	errPropertyNamesRuleNil = commonerrors.New(commonerrors.ErrInvalid, "propertyNames rule must not be nil")
 	errPatternRegexpNil     = commonerrors.New(commonerrors.ErrInvalid, "pattern regexp must not be nil")
 	errNullableRuleNil      = commonerrors.New(commonerrors.ErrInvalid, "nullable rule must not be nil")
-	errNotEmpty             = commonerrors.New(commonerrors.ErrInvalid, "cannot be empty")
 	errLengthBelowMinimum   = commonerrors.New(commonerrors.ErrInvalid, "the length must be no less than the minimum")
 )
 
