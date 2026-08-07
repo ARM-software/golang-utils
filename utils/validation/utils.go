@@ -502,7 +502,7 @@ func objectSequence2ToAccessor(value any) (*objectAccessor, bool, bool, error) {
 		},
 		presentNonEmpty: func(key string) bool {
 			value, found := items[key]
-			return found && !utilreflection.IsEmpty(value)
+			return found && isNotEmptyValue(value)
 		},
 	}, true, false, nil
 }
@@ -528,7 +528,7 @@ func objectProperties(value any) (props *objectAccessor, isNil bool, err error) 
 		},
 		presentNonEmpty: func(key string) bool {
 			value, found := objectPropertyValue(rv, key)
-			return found && !utilreflection.IsEmpty(value)
+			return found && isNotEmptyValue(value)
 		},
 	}, false, nil
 }
@@ -757,8 +757,7 @@ func countPresentResolvedFields(props *objectAccessor, names []string) int {
 		return 0
 	}
 	return collection.CountBy(names, func(name string) bool {
-		actual, found := props.value(name)
-		return found && utilreflection.IsNotEmpty(actual)
+		return props.presentNonEmpty(name)
 	})
 }
 

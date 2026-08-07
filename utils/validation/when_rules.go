@@ -301,8 +301,8 @@ func WhenFieldNotInValues(field any, expected []any, rules ...validation.Rule) v
 //
 // Example:
 //
-// 	cfg := &Config{}
-// 	err := validation.Validate(cfg, WhenFieldAbsent(&cfg.Token, RequiredFieldsBy(&cfg.Username)))
+//	cfg := &Config{}
+//	err := validation.Validate(cfg, WhenFieldAbsent(&cfg.Token, RequiredFieldsBy(&cfg.Username)))
 //
 // This requires `cfg.Username` whenever `cfg.Token` is empty.
 func WhenFieldAbsent(field any, rules ...validation.Rule) validation.Rule {
@@ -318,8 +318,8 @@ func WhenFieldAbsent(field any, rules ...validation.Rule) validation.Rule {
 //
 // Example:
 //
-// 	cfg := &Config{}
-// 	err := validation.Validate(cfg, WhenFieldPresent(&cfg.Token, ForbiddenFieldsBy(&cfg.Username)))
+//	cfg := &Config{}
+//	err := validation.Validate(cfg, WhenFieldPresent(&cfg.Token, ForbiddenFieldsBy(&cfg.Username)))
 //
 // This rejects `cfg.Username` whenever `cfg.Token` is non-empty.
 func WhenFieldPresent(field any, rules ...validation.Rule) validation.Rule {

@@ -1301,7 +1301,7 @@ func ForbiddenFieldsBy(fields ...any) validation.Rule {
 // numbers represented as `float64(3)`.
 func XIntOrString() validation.Rule {
 	return validation.By(func(value any) error {
-		if validation.NotNil.Validate(value) != nil {
+		if isNilValue(value) {
 			return errIntOrString
 		}
 		candidate, _ := validation.Indirect(value)
@@ -1412,7 +1412,7 @@ func Not(rule validation.Rule) validation.Rule {
 //     https://spec.openapis.org/oas/v3.0.3.html#schema-object
 func Nullable(rule validation.Rule) validation.Rule {
 	return validation.By(func(value any) error {
-		if validation.Nil.Validate(value) == nil {
+		if isNilValue(value) {
 			return nil
 		}
 		if rule == nil {
@@ -1458,19 +1458,6 @@ func NoneOf(rules ...validation.Rule) validation.Rule {
 // Reference: https://json-schema.org/understanding-json-schema/reference/combining#oneof
 func OneOf(rules ...validation.Rule) validation.Rule {
 	return NewOneOfRule(rules...)
-}
-
-// NotEmpty validates that a value is not empty according to the repository's
-// reflection-based emptiness semantics.
-//
-// Example: `NotEmpty()` rejects `"   "`.
-func NotEmpty() validation.Rule {
-	return validation.By(func(value any) error {
-		if utilreflection.IsNotEmpty(value) {
-			return nil
-		}
-		return errNotEmpty
-	})
 }
 
 // LengthRule returns an ozzo length rule with optional minimum and maximum
