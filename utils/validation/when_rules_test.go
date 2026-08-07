@@ -178,8 +178,7 @@ func TestWhenRules(t *testing.T) {
 			SummaryFile string
 			validating  bool
 		}
-		var validateConfig func(*config) error
-		validateConfig = func(cfg *config) error {
+		validateConfig := func(cfg *config) error {
 			if cfg.validating {
 				return recursionErr
 			}

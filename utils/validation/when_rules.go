@@ -232,8 +232,8 @@ func WhenFieldEqualsValue(field any, expected any, rules ...validation.Rule) val
 //
 // Example:
 //
-// 	cfg := &Config{}
-// 	err := validation.Validate(cfg, WhenFieldNotEqualsValue(&cfg.Mode, "strict", RequiredFieldsBy(&cfg.Profile)))
+//	cfg := &Config{}
+//	err := validation.Validate(cfg, WhenFieldNotEqualsValue(&cfg.Mode, "strict", RequiredFieldsBy(&cfg.Profile)))
 //
 // This requires `cfg.Profile` whenever `cfg.Mode != "strict"`.
 func WhenFieldNotEqualsValue(field any, expected any, rules ...validation.Rule) validation.Rule {
@@ -252,8 +252,8 @@ func WhenFieldNotEquals(field any, expected any, rules ...validation.Rule) valid
 //
 // Example:
 //
-// 	cfg := &Config{}
-// 	err := validation.Validate(cfg, WhenFieldInValues(&cfg.Mode, []any{"strict", "relaxed"}, RequiredFieldsBy(&cfg.Profile)))
+//	cfg := &Config{}
+//	err := validation.Validate(cfg, WhenFieldInValues(&cfg.Mode, []any{"strict", "relaxed"}, RequiredFieldsBy(&cfg.Profile)))
 //
 // This requires `cfg.Profile` whenever `cfg.Mode` is either `strict` or
 // `relaxed`.
@@ -275,8 +275,8 @@ func WhenFieldInValues(field any, expected []any, rules ...validation.Rule) vali
 //
 // Example:
 //
-// 	cfg := &Config{}
-// 	err := validation.Validate(cfg, WhenFieldNotInValues(&cfg.Mode, []any{"strict", "relaxed"}, RequiredFieldsBy(&cfg.FallbackProfile)))
+//	cfg := &Config{}
+//	err := validation.Validate(cfg, WhenFieldNotInValues(&cfg.Mode, []any{"strict", "relaxed"}, RequiredFieldsBy(&cfg.FallbackProfile)))
 //
 // This requires `cfg.FallbackProfile` whenever `cfg.Mode` is neither `strict`
 // nor `relaxed`.
