@@ -221,7 +221,7 @@ func TestConvertMapToCommaSeparatedListStable(t *testing.T) {
 func TestStringConversionHelpersUseStringConverter(t *testing.T) {
 	assert.Equal(t, "stringer:value,text:42", ConvertSliceToCommaSeparatedList([]any{stringerValue("value"), textValue(42)}))
 	assert.ElementsMatch(t, []string{"key", "stringer:value"}, ConvertMapToSlice(map[string]any{"key": stringerValue("value")}))
-	assert.ElementsMatch(t, []string{"key", "text:42"}, ConvertMapToPairSlice(map[string]any{"key": textValue(42)}, "="))
+	assert.ElementsMatch(t, []string{"key=text:42"}, ConvertMapToPairSlice(map[string]any{"key": textValue(42)}, "="))
 	assert.ElementsMatch(t, []any{"key", stringerValue("value")}, ConvertMapToLoggerValues(map[string]any{"key": stringerValue("value")}))
 }
 

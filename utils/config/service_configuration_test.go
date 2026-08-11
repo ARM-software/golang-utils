@@ -825,8 +825,7 @@ func TestGenerateEnvFile_WithConverterError(t *testing.T) {
 	prefix := "test"
 	converterErr := errors.New("boom")
 
-	_, err := DetermineConfigurationEnvironmentVariables(prefix, configTest, value.ValueConverterFunc(func(ctx context.Context, value any) (any, error) {
-		_ = ctx
+	_, err := DetermineConfigurationEnvironmentVariables(prefix, configTest, value.ValueConverterFunc(func(_ context.Context, value any) (any, error) {
 		if _, ok := value.(time.Duration); ok {
 			return nil, converterErr
 		}

@@ -31,18 +31,20 @@ const (
 // verbatim in derived configuration views.
 //
 // These are tag keys checked via `reflect.StructTag.Lookup`, not field names.
-// For example, this list is intended to match tags such as
-// ``Password string `mask:"redact"``` or ``Email string `pii:"true"```, not
-// field names like `Password`, `Secret`, or `Token` on their own.
+// For example, this list is intended to match fields tagged like
+// `mask:"redact"` or `pii:"true"`, not field names like `Password`,
+// `Secret`, or `Token` on their own.
 //
 // Recognising these tags helps reduce accidental disclosure of credentials,
 // secrets, PII, and other confidential data in logs, environment-variable
 // dumps, debug output, support bundles, and similar human-readable output.
+// See https://en.wikipedia.org/wiki/Personal_data for general background on PII
+// and related personal-data concepts.
 //
 // There is no standard Go struct tag for sensitive data. Some libraries use
 // tags such as `sensitive`, `pii`, `sens`, `mask`, or `redact`, while major
 // logging APIs such as `log/slog`, zap, and zerolog commonly address the
-// problem through custom value or object marshaling instead.
+// problem through custom value or object marshalling instead.
 //
 // This mechanism can support privacy and data-protection controls such as data
 // minimisation and pseudonymisation, but tagging or masking a field does not by
@@ -78,8 +80,7 @@ func NewValueTypeConverter(converter reflection.IValueConverter) value.IValueCon
 // NewValueMatchingConverter applies match to values of type T and replaces the
 // value with the resulting boolean match outcome.
 func NewValueMatchingConverter[T any](match collection.MatchingFunction[T]) value.IValueConverter {
-	return value.ValueConverterFunc(func(ctx context.Context, value any) (any, error) {
-		_ = ctx
+	return value.ValueConverterFunc(func(_ context.Context, value any) (any, error) {
 		if match == nil {
 			return value, nil
 		}
@@ -90,6 +91,22 @@ func NewValueMatchingConverter[T any](match collection.MatchingFunction[T]) valu
 		}
 
 		return match(typedValue), nil
+	})
+}
+
+// NewFieldNameConverter returns a converter that applies converter when the
+// source configuration field name matches.
+//
+// It uses the Go struct field name recorded in the conversion context. When the
+// field name does not match, or no field metadata is available, the original
+// input value is preserved.
+func NewFieldNameConverter(match collection.MatchingFunction[string], converter value.IValueConverter) value.IValueConverter {
+	return value.ValueConverterFunc(func(ctx context.Context, input any) (any, error) {
+		fieldContext, ok := currentConfigFieldContext(ctx)
+		if !ok || match == nil || converter == nil || !match(fieldContext.fieldName) {
+			return input, nil
+		}
+		return converter.ConvertValue(ctx, input)
 	})
 }
 
@@ -136,6 +153,27 @@ func NewFieldTagSecretConverter(tagNames ...string) value.IValueConverter {
 		}
 		return input, nil
 	})
+}
+
+// NewFieldNameSecretConverter returns a converter that masks values when the
+// source configuration field name matches a caller-supplied predicate.
+//
+// This supports name-based detection of sensitive fields using conventions such
+// as `Password`, `Secret`, `APIKey`, `AccessToken`, or `PrivateKey`, even when
+// the source type does not carry explicit sensitivity tags.
+//
+// The approach mirrors redaction layers often built around structured logging
+// libraries such as `log/slog`, Zap, Logrus, and Zerolog, where field or
+// attribute names are inspected to decide which values should be masked. Those
+// logging libraries do not generally apply name-based redaction by default; the
+// policy is usually implemented in handlers, hooks, formatters, middleware, or
+// application-level wrappers.
+//
+// Name-based matching is best treated as a defence-in-depth heuristic rather
+// than a primary classification mechanism, and is most effective when used
+// alongside explicit sensitivity annotations such as struct tags.
+func NewFieldNameSecretConverter(match collection.MatchingFunction[string]) value.IValueConverter {
+	return NewFieldNameConverter(match, SecretConverter)
 }
 
 // CommonFieldTagSecretConverter masks values whose source configuration field

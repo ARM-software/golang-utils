@@ -35,8 +35,7 @@ func Converter(converter IValueConverter, to reflect.Type, value any) (any, erro
 // NewValueTypeConverter adapts a reflection-style converter into a plain value
 // converter.
 func NewValueTypeConverter(converter IValueConverter) valueUtils.IValueConverter {
-	return valueUtils.ValueConverterFunc(func(ctx context.Context, value any) (any, error) {
-		_ = ctx
+	return valueUtils.ValueConverterFunc(func(_ context.Context, value any) (any, error) {
 		return Converter(converter, reflect.TypeOf((*any)(nil)).Elem(), value)
 	})
 }

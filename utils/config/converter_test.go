@@ -132,3 +132,44 @@ func TestFieldTagSecretConverters(t *testing.T) {
 		assert.Equal(t, configValue.Nested.Visible, defaults["TEST_NESTED_VISIBLE"])
 	})
 }
+
+func TestFieldNameConverters(t *testing.T) {
+	configValue := &taggedSecretConfig{
+		Username: faker.Username(),
+		Password: faker.Password(),
+		APIKey:   faker.UUIDDigit(),
+		Nested: taggedSecretNestedConfig{
+			Token:   faker.UUIDHyphenated(),
+			Visible: faker.Word(),
+		},
+	}
+
+	t.Run("generic converter", func(t *testing.T) {
+		defaults, err := DetermineConfigurationEnvironmentVariables("test", configValue, NewFieldNameConverter(func(fieldName string) bool {
+			return fieldName == "Password" || fieldName == "APIKey"
+		}, SecretConverter))
+		require.NoError(t, err)
+		maskedPassword, err := SecretConverter.ConvertValue(context.Background(), configValue.Password)
+		require.NoError(t, err)
+		maskedAPIKey, err := SecretConverter.ConvertValue(context.Background(), configValue.APIKey)
+		require.NoError(t, err)
+
+		assert.Equal(t, configValue.Username, defaults["TEST_USERNAME"])
+		assert.Equal(t, maskedPassword, defaults["TEST_PASSWORD"])
+		assert.Equal(t, maskedAPIKey, defaults["TEST_API_KEY"])
+		assert.Equal(t, configValue.Nested.Token, defaults["TEST_NESTED_TOKEN"])
+	})
+
+	t.Run("secret converter", func(t *testing.T) {
+		defaults, err := DetermineConfigurationEnvironmentVariables("test", configValue, NewFieldNameSecretConverter(func(fieldName string) bool {
+			return fieldName == "Token"
+		}))
+		require.NoError(t, err)
+		maskedToken, err := SecretConverter.ConvertValue(context.Background(), configValue.Nested.Token)
+		require.NoError(t, err)
+
+		assert.Equal(t, configValue.Password, defaults["TEST_PASSWORD"])
+		assert.Equal(t, maskedToken, defaults["TEST_NESTED_TOKEN"])
+		assert.Equal(t, configValue.Nested.Visible, defaults["TEST_NESTED_VISIBLE"])
+	})
+}

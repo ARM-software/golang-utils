@@ -34,8 +34,7 @@ func (f ValueConverterFunc) ConvertValue(ctx context.Context, value any) (any, e
 // IdentityConverter returns values unchanged.
 //
 // It ignores ctx and always succeeds.
-var IdentityConverter IValueConverter = ValueConverterFunc(func(ctx context.Context, value any) (any, error) {
-	_ = ctx
+var IdentityConverter IValueConverter = ValueConverterFunc(func(_ context.Context, value any) (any, error) {
 	return value, nil
 })
 
@@ -47,8 +46,7 @@ var IdentityConverter IValueConverter = ValueConverterFunc(func(ctx context.Cont
 // Nil pointer and interface receivers do not have custom methods invoked; they
 // are rendered as `<nil>` instead. When [encoding.TextMarshaler] returns an
 // error, that error is propagated to the caller.
-var StringConverter IValueConverter = ValueConverterFunc(func(ctx context.Context, value any) (any, error) {
-	_ = ctx
+var StringConverter IValueConverter = ValueConverterFunc(func(_ context.Context, value any) (any, error) {
 	if stringer, ok := value.(fmt.Stringer); ok && !isNilMethodReceiver(value) {
 		return stringer.String(), nil
 	}
