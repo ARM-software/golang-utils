@@ -5,6 +5,7 @@
 package collection
 
 import (
+	"fmt"
 	"maps"
 	"testing"
 
@@ -15,6 +16,18 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
+
+type stringerValue string
+
+func (s stringerValue) String() string {
+	return "stringer:" + string(s)
+}
+
+type textValue int
+
+func (t textValue) MarshalText() ([]byte, error) {
+	return []byte(fmt.Sprintf("text:%d", t)), nil
+}
 
 func TestParseCommaSeparatedListWordsOnly(t *testing.T) {
 	t.Run("simple", func(t *testing.T) {
@@ -203,6 +216,13 @@ func TestConvertMapToCommaSeparatedListStable(t *testing.T) {
 	for range 100 {
 		assert.Equal(t, expected, ConvertMapToOrderedCommaSeparatedList(testMap))
 	}
+}
+
+func TestStringConversionHelpersUseStringConverter(t *testing.T) {
+	assert.Equal(t, "stringer:value,text:42", ConvertSliceToCommaSeparatedList([]any{stringerValue("value"), textValue(42)}))
+	assert.ElementsMatch(t, []string{"key", "stringer:value"}, ConvertMapToSlice(map[string]any{"key": stringerValue("value")}))
+	assert.ElementsMatch(t, []string{"key", "text:42"}, ConvertMapToPairSlice(map[string]any{"key": textValue(42)}, "="))
+	assert.ElementsMatch(t, []any{"key", stringerValue("value")}, ConvertMapToLoggerValues(map[string]any{"key": stringerValue("value")}))
 }
 
 func TestConvertListOfPairsToMapWithOptions(t *testing.T) {

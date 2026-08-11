@@ -6,6 +6,7 @@ package collection
 
 import (
 	"cmp"
+	"context"
 	"fmt"
 	"maps"
 	"slices"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
+	valueUtils "github.com/ARM-software/golang-utils/utils/value"
 )
 
 type PairSplitMode int
@@ -187,7 +189,7 @@ func ConvertSliceToCommaSeparatedList[T any](slice []T) string {
 	}
 	sliceOfStrings := make([]string, 0, len(slice))
 	for i := range slice {
-		sliceOfStrings = append(sliceOfStrings, fmt.Sprintf("%v", slice[i]))
+		sliceOfStrings = append(sliceOfStrings, toStringValue(slice[i]))
 	}
 
 	return strings.Join(sliceOfStrings, ",")
@@ -200,7 +202,7 @@ func ConvertMapToSlice[K comparable, V any](pairs map[K]V) []string {
 	}
 	slice := make([]string, 0, len(pairs)*2)
 	for key, value := range pairs {
-		slice = append(slice, fmt.Sprintf("%v", key), fmt.Sprintf("%v", value))
+		slice = append(slice, toStringValue(key), toStringValue(value))
 	}
 	return slice
 }
@@ -212,7 +214,7 @@ func ConvertMapToLoggerValues[K comparable, V any](pairs map[K]V) []any {
 	}
 	slice := make([]any, 0, len(pairs)*2)
 	for key, value := range pairs {
-		slice = append(slice, fmt.Sprintf("%v", key), value)
+		slice = append(slice, toStringValue(key), value)
 	}
 	return slice
 }
@@ -224,7 +226,7 @@ func ConvertMapToPairSlice[K comparable, V any](pairs map[K]V, pairSeparator str
 	}
 	slice := make([]string, 0, len(pairs)*2)
 	for key, value := range pairs {
-		slice = append(slice, fmt.Sprintf("%v%v%v", key, pairSeparator, value))
+		slice = append(slice, fmt.Sprintf("%s%s%s", toStringValue(key), pairSeparator, toStringValue(value)))
 	}
 	return slice
 }
@@ -246,9 +248,17 @@ func ConvertMapToOrderedSlice[K cmp.Ordered, V any](pairs map[K]V) []string {
 	}
 	slice := make([]string, 0, len(pairs)*2)
 	for _, key := range slices.Sorted(maps.Keys(pairs)) {
-		slice = append(slice, fmt.Sprintf("%v", key), fmt.Sprintf("%v", pairs[key]))
+		slice = append(slice, toStringValue(key), toStringValue(pairs[key]))
 	}
 	return slice
+}
+
+func toStringValue(value any) string {
+	converted, err := valueUtils.StringConverter.ConvertValue(context.Background(), value)
+	if err != nil {
+		return fmt.Sprint(value)
+	}
+	return converted.(string)
 }
 
 // ConvertMapToOrderedCommaSeparatedList converts a map to a commar-separated list and ensures that the ordering will always be the same

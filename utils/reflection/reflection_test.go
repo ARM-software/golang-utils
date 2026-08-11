@@ -5,6 +5,7 @@
 package reflection
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"testing"
@@ -287,6 +288,44 @@ func TestSetStructField_FieldAndValueDifferentTypes(t *testing.T) {
 	errortest.AssertError(t, err, commonerrors.ErrConflict)
 }
 
+func TestConverter(t *testing.T) {
+	stringType := reflect.TypeOf("")
+	var sources []reflect.Type
+
+	value, err := Converter(func(from reflect.Type, to reflect.Type, value any) (any, error) {
+		sources = append(sources, from)
+		if from == reflect.TypeOf(time.Second) && to == stringType {
+			return value.(time.Duration).String(), nil
+		}
+		return value, nil
+	}, stringType, time.Second)
+	require.NoError(t, err)
+	assert.Equal(t, "1s", value)
+	assert.Equal(t, []reflect.Type{reflect.TypeOf(time.Second)}, sources)
+
+	value, err = Converter(func(from reflect.Type, to reflect.Type, value any) (any, error) {
+		assert.Nil(t, from)
+		assert.Equal(t, stringType, to)
+		assert.Nil(t, value)
+		return "", nil
+	}, stringType, nil)
+	require.NoError(t, err)
+	assert.Equal(t, "", value)
+}
+
+func TestNewValueTypeConverter_NilValue(t *testing.T) {
+	converter := NewValueTypeConverter(func(from reflect.Type, to reflect.Type, value any) (any, error) {
+		assert.Nil(t, from)
+		assert.Equal(t, reflect.TypeOf((*any)(nil)).Elem(), to)
+		assert.Nil(t, value)
+		return "", nil
+	})
+
+	value, err := converter.ConvertValue(context.Background(), nil)
+	require.NoError(t, err)
+	assert.Equal(t, "", value)
+}
+
 func TestInheritsFrom(t *testing.T) {
 	type A0 interface {
 		test()
@@ -449,6 +488,37 @@ func TestPropertyReflectionHelpers(t *testing.T) {
 		assert.False(t, found)
 
 		assert.ElementsMatch(t, []string{"name", "Plain", "Value"}, StructPropertyNames(reflect.TypeOf(value)))
+	})
+
+	t.Run("struct field tag values", func(t *testing.T) {
+		type sample struct {
+			Name   string  `json:"name,omitempty" yaml:"name" mask:"visible"`
+			Secret *string `json:"secret,omitempty" yaml:"secret" mask:"redact"`
+			Plain  string
+		}
+
+		secret := faker.Password()
+		value := sample{Name: faker.Name(), Secret: &secret, Plain: faker.Word()}
+		var nilSample *sample
+
+		assert.True(t, StructTypeHasFieldPropertyName(reflect.TypeOf(value), "Name", "name"))
+		assert.True(t, StructTypeHasFieldPropertyName(reflect.TypeOf(&value), "secret", "secret"))
+		assert.True(t, StructTypeHasFieldTagValue(reflect.TypeOf(value), "Name", "mask", "visible"))
+		assert.True(t, StructTypeHasFieldTag(reflect.TypeOf(value), "Name", "mask"))
+		assert.True(t, StructPropertyHasTagValue(reflect.ValueOf(value), "Name", "mask", "visible"))
+		assert.True(t, StructPropertyHasTagValue(reflect.ValueOf(&value), "secret", "mask", "redact"))
+		assert.True(t, StructPropertyHasTag(reflect.ValueOf(&value), "secret", "mask"))
+		assert.True(t, StructPropertyHasTagValue(reflect.ValueOf([]sample{value}), "secret", "mask", "redact"))
+		assert.True(t, StructPropertyHasTag(reflect.ValueOf([]sample{value}), "secret", "mask"))
+		assert.True(t, StructPropertyHasTagValue(reflect.ValueOf(map[string]*sample{"value": &value}), "secret", "mask", "redact"))
+		assert.True(t, StructPropertyHasTag(reflect.ValueOf(map[string]*sample{"value": &value}), "secret", "mask"))
+		assert.False(t, StructTypeHasFieldPropertyName(reflect.TypeOf(value), "Plain", "redact"))
+		assert.False(t, StructTypeHasFieldTagValue(reflect.TypeOf(value), "Plain", "mask", "redact"))
+		assert.False(t, StructTypeHasFieldTag(reflect.TypeOf(value), "Plain", "mask"))
+		assert.False(t, StructPropertyHasTagValue(reflect.ValueOf(nilSample), "secret", "mask", "redact"))
+		assert.False(t, StructPropertyHasTag(reflect.ValueOf(nilSample), "secret", "mask"))
+		assert.False(t, StructPropertyHasTagValue(reflect.ValueOf([]struct{ Plain string }{{Plain: faker.Word()}}), "secret", "mask", "redact"))
+		assert.False(t, StructPropertyHasTag(reflect.ValueOf([]struct{ Plain string }{{Plain: faker.Word()}}), "secret", "mask"))
 	})
 }
 

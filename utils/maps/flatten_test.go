@@ -14,7 +14,21 @@ import (
 
 var randomNumber = faker.RandomUnixTime()
 
+type stringValue string
+
+func (s stringValue) String() string {
+	return "stringer:" + string(s)
+}
+
+type textValue int
+
+func (t textValue) MarshalText() ([]byte, error) {
+	return []byte(fmt.Sprintf("text:%d", t)), nil
+}
+
 func TestFlatten(t *testing.T) {
+	stringerWord := faker.Word()
+
 	cases := []struct {
 		Input  map[string]any
 		Output map[string]string
@@ -37,6 +51,14 @@ func TestFlatten(t *testing.T) {
 			Output: map[string]string{
 				"foo": "bar",
 				"bar": "baz",
+			},
+		},
+		{
+			Input: map[string]any{
+				"foo": stringValue(stringerWord),
+			},
+			Output: map[string]string{
+				"foo": "stringer:" + string(stringValue(stringerWord)),
 			},
 		},
 
@@ -217,6 +239,14 @@ func TestFlatten2(t *testing.T) {
 			},
 			Output: map[string]string{
 				"foo.SomeDuration": (56 * time.Minute).String(),
+			},
+		},
+		{
+			Input: map[string]any{
+				"foo": textValue(42),
+			},
+			Output: map[string]string{
+				"foo": "text:42",
 			},
 		},
 	}

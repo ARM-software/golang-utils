@@ -1,14 +1,14 @@
 package maps
 
 import (
+	"context"
 	"fmt"
 	"reflect"
-	"strconv"
 	"time"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/reflection"
-	"github.com/ARM-software/golang-utils/utils/safecast"
+	valueUtils "github.com/ARM-software/golang-utils/utils/value"
 )
 
 // Flatten takes a structure and turns into a flat maps[string]string.
@@ -41,24 +41,20 @@ func flatten(result map[string]string, prefix string, v reflect.Value) (err erro
 	}
 	switch v.Kind() {
 	case reflect.Bool:
-		if v.Bool() {
-			result[prefix] = "true"
-		} else {
-			result[prefix] = "false"
-		}
+		return flattenStringValue(result, prefix, v.Interface())
 	case reflect.Int64:
 		switch v.Type() {
 		case reflect.TypeOf(time.Duration(5)):
-			result[prefix] = v.Interface().(time.Duration).String()
+			return flattenStringValue(result, prefix, v.Interface())
 		default:
-			result[prefix] = strconv.FormatInt(safecast.ToInt64(v.Int()), 10)
+			return flattenStringValue(result, prefix, v.Interface())
 		}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
-		result[prefix] = strconv.FormatInt(safecast.ToInt64(v.Int()), 10)
+		return flattenStringValue(result, prefix, v.Interface())
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		result[prefix] = strconv.FormatUint(safecast.ToUint64(v.Uint()), 10)
+		return flattenStringValue(result, prefix, v.Interface())
 	case reflect.Float64, reflect.Float32:
-		result[prefix] = strconv.FormatFloat(v.Float(), 'g', -1, 64)
+		return flattenStringValue(result, prefix, v.Interface())
 	case reflect.Map:
 		err = flattenMap(result, prefix, v)
 		if err != nil {
@@ -82,7 +78,7 @@ func flatten(result map[string]string, prefix string, v reflect.Value) (err erro
 			}
 		}
 	case reflect.String:
-		result[prefix] = v.String()
+		return flattenStringValue(result, prefix, v.Interface())
 	case reflect.Invalid:
 		result[prefix] = ""
 	case reflect.Pointer:
@@ -98,6 +94,15 @@ func flatten(result map[string]string, prefix string, v reflect.Value) (err erro
 		}
 	}
 	return
+}
+
+func flattenStringValue(result map[string]string, prefix string, raw any) error {
+	converted, err := valueUtils.StringConverter.ConvertValue(context.Background(), raw)
+	if err != nil {
+		return err
+	}
+	result[prefix] = converted.(string)
+	return nil
 }
 
 func flattenMap(result Map, prefix string, v reflect.Value) (err error) {

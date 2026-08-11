@@ -8,6 +8,7 @@ package config
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -23,6 +24,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/reflection"
 	"github.com/ARM-software/golang-utils/utils/serialization/maps" //nolint:misspell
 	validationRules "github.com/ARM-software/golang-utils/utils/validation"
+	valueUtils "github.com/ARM-software/golang-utils/utils/value"
 )
 
 const (
@@ -529,25 +531,61 @@ func linkFlagKeysToStructureKeys(viperSession *viper.Viper, envVarPrefix string)
 	}
 }
 
-func flattenDefaultsMap(m map[string]interface{}) map[string]interface{} {
-	output := make(map[string]interface{})
+func flattenDefaultsMap(ctx context.Context, m map[string]any, source reflect.Value, converters ...valueUtils.IValueConverter) (map[string]any, error) {
+	output := make(map[string]any)
 	for key, value := range m {
+		childSource, fieldOwner, fieldName, _ := configSourceField(source, key)
 		switch child := value.(type) {
-		case map[string]interface{}:
-			next := flattenDefaultsMap(child)
+		case map[string]any:
+			next, err := flattenDefaultsMap(ctx, child, childSource, converters...)
+			if err != nil {
+				return nil, err
+			}
 			for nextKey, nextValue := range next {
 				output[strings.ToUpper(fmt.Sprintf("%s_%s", key, nextKey))] = nextValue
 			}
 		default:
+			converterContext := ctx
+			if fieldOwner.IsValid() && fieldName != "" {
+				converterContext = withConfigFieldContext(converterContext, fieldOwner, fieldName)
+			}
+			if err := collection.EachSlice(converters, func(converter valueUtils.IValueConverter) error {
+				var err error
+				value, err = converter.ConvertValue(converterContext, value)
+				if err != nil {
+					return commonerrors.WrapError(commonerrors.ErrInvalid, err, fmt.Sprintf("failed to convert default value for %q", strings.ToUpper(key)))
+				}
+				return nil
+			}); err != nil {
+				return nil, err
+			}
 			output[strings.ToUpper(key)] = value
 		}
 	}
-	return output
+	return output, nil
 }
 
 // DetermineConfigurationEnvironmentVariables returns all the environment variables corresponding to a configuration structure as well as all the default values currently set.
-func DetermineConfigurationEnvironmentVariables(appName string, configurationToDecode IServiceConfiguration) (defaults map[string]interface{}, err error) {
-	withoutPrefix := make(map[string]interface{})
+//
+// Optional [valueUtils.IValueConverter] values are applied to each flattened leaf value before the final
+// prefixed map is returned. This is useful when certain source types should be
+// emitted differently in the environment-variable view, for example to unwrap or
+// redact secret-like types, or to apply type-based matching logic before
+// returning the final value.
+//
+// Value converters may either wrap a type-driven [reflection.IValueConverter]
+// through [NewValueTypeConverter], which follows the same runtime type pattern as
+// [mapstructure.DecodeHookFuncType], or map concrete values to boolean match
+// results through [NewValueMatchingConverter].
+func DetermineConfigurationEnvironmentVariables(appName string, configurationToDecode IServiceConfiguration, converters ...valueUtils.IValueConverter) (defaults map[string]any, err error) {
+	return DetermineConfigurationEnvironmentVariablesWithContext(context.Background(), appName, configurationToDecode, converters...)
+}
+
+// DetermineConfigurationEnvironmentVariablesWithContext returns all the
+// environment variables corresponding to a configuration structure as well as
+// all the default values currently set.
+func DetermineConfigurationEnvironmentVariablesWithContext(ctx context.Context, appName string, configurationToDecode IServiceConfiguration, converters ...valueUtils.IValueConverter) (defaults map[string]any, err error) {
+	withoutPrefix := make(map[string]any)
 	if reflection.IsEmpty(configurationToDecode) {
 		err = commonerrors.UndefinedVariable("configuration to decode")
 		return
@@ -557,12 +595,77 @@ func DetermineConfigurationEnvironmentVariables(appName string, configurationToD
 	if err != nil {
 		return
 	}
-	withoutPrefix = flattenDefaultsMap(withoutPrefix)
+	withoutPrefix, err = flattenDefaultsMap(ctx, withoutPrefix, reflect.ValueOf(configurationToDecode), converters...)
+	if err != nil {
+		return nil, err
+	}
 
-	defaults = make(map[string]interface{})
+	defaults = make(map[string]any)
 	for key, value := range withoutPrefix {
 		newKey := fmt.Sprintf("%s_%s", strings.ToUpper(appName), key)
 		defaults[newKey] = value
 	}
 	return
+}
+
+func configSourceField(source reflect.Value, key string) (child reflect.Value, owner reflect.Value, fieldName string, found bool) {
+	for source.IsValid() && (source.Kind() == reflect.Pointer || source.Kind() == reflect.Interface) {
+		if source.IsNil() {
+			return
+		}
+		source = source.Elem()
+	}
+	if !source.IsValid() {
+		return
+	}
+	switch source.Kind() {
+	case reflect.Struct:
+		field, ok := configStructFieldByKey(source.Type(), key)
+		if !ok {
+			return
+		}
+		fieldValue, err := source.FieldByIndexErr(field.Index)
+		if err != nil || !fieldValue.IsValid() {
+			return
+		}
+		return fieldValue, source, field.Name, true
+	case reflect.Map:
+		if source.Type().Key().Kind() != reflect.String {
+			return
+		}
+		fieldValue := source.MapIndex(reflect.ValueOf(key))
+		if !fieldValue.IsValid() {
+			return
+		}
+		return fieldValue, reflect.Value{}, "", true
+	default:
+		return
+	}
+}
+
+func configStructFieldByKey(rt reflect.Type, key string) (reflect.StructField, bool) {
+	for _, field := range reflect.VisibleFields(rt) {
+		if !field.IsExported() {
+			continue
+		}
+		if field.Name == key {
+			return field, true
+		}
+		if tag, ok := configStructTagName(field, "mapstructure"); ok && tag == key {
+			return field, true
+		}
+	}
+	return reflect.StructField{}, false
+}
+
+func configStructTagName(field reflect.StructField, tagName string) (string, bool) {
+	tag := field.Tag.Get(tagName)
+	if tag == "" || tag == "-" {
+		return "", false
+	}
+	parts := strings.Split(tag, ",")
+	if len(parts) == 0 || parts[0] == "" {
+		return "", false
+	}
+	return parts[0], true
 }
