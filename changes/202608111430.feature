@@ -1,0 +1,1 @@
+:lock: `[config]` Added tag-aware configuration masking converters that can automatically obfuscate sensitive values based on common field tags such as `mask`, `sensitive`, `secret`, `password`, `censored`, `redact`, `pii`, and `sens`.

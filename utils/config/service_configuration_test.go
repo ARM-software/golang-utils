@@ -12,6 +12,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 	"time"
 
@@ -27,6 +28,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/keyring"
 	mapstest "github.com/ARM-software/golang-utils/utils/serialization/maps/testing" //nolint:misspell
+	"github.com/ARM-software/golang-utils/utils/value"
 )
 
 var (
@@ -83,6 +85,11 @@ type DeepConfig struct {
 	TestConfigDeep ConfigurationTest `mapstructure:"deep_config"`
 }
 
+type NullableConfiguration struct {
+	Name     string  `mapstructure:"name"`
+	Optional *string `mapstructure:"optional"`
+}
+
 func DefaultDeepConfiguration() *DeepConfig {
 	return &DeepConfig{
 		TestString:     expectedString,
@@ -100,6 +107,10 @@ func (cfg *DeepConfig) Validate() error {
 	return validation.ValidateStruct(cfg,
 		validation.Field(&cfg.TestConfigDeep, validation.Required),
 	)
+}
+
+func (cfg *NullableConfiguration) Validate() error {
+	return nil
 }
 
 func (cfg *ConfigurationTest) Validate() error {
@@ -739,6 +750,110 @@ func TestGenerateEnvFile_Nested(t *testing.T) {
 	for key, value := range vars {
 		require.Equal(t, value, testValues[key])
 	}
+}
+
+func TestGenerateEnvFile_WithConverters(t *testing.T) {
+	configTest := DefaultDeepConfiguration()
+	prefix := "test"
+
+	vars, err := DetermineConfigurationEnvironmentVariables(prefix, configTest, NewValueTypeConverter(func(from reflect.Type, to reflect.Type, value any) (any, error) {
+		if from == reflect.TypeOf(time.Second) && to == reflect.TypeOf((*any)(nil)).Elem() {
+			return value.(time.Duration).String(), nil
+		}
+		return value, nil
+	}))
+	require.NoError(t, err)
+
+	require.Equal(t, configTest.TestConfigDeep.TestTime.String(), vars["TEST_DEEP_CONFIG_DUMMY_TIME"])
+	require.Equal(t, configTest.TestConfigDeep.TestConfig.HealthCheckPeriod.String(), vars["TEST_DEEP_CONFIG_DUMMYCONFIG_HEALTHCHECK_PERIOD"])
+	require.Equal(t, configTest.TestConfigDeep.TestConfig2.HealthCheckPeriod.String(), vars["TEST_DEEP_CONFIG_DUMMY_CONFIG_HEALTHCHECK_PERIOD"])
+	require.Equal(t, configTest.TestString, vars["TEST_DUMMY_STRING"])
+}
+
+func TestGenerateEnvFile_WithConverters_NilValue(t *testing.T) {
+	configTest := &NullableConfiguration{Name: expectedString}
+	prefix := "test"
+
+	vars, err := DetermineConfigurationEnvironmentVariables(prefix, configTest, NewValueTypeConverter(func(from reflect.Type, to reflect.Type, value any) (any, error) {
+		if from != reflect.TypeOf((*string)(nil)) {
+			return value, nil
+		}
+		assert.Equal(t, reflect.TypeOf((*any)(nil)).Elem(), to)
+		rv := reflect.ValueOf(value)
+		assert.Equal(t, reflect.Pointer, rv.Kind())
+		assert.True(t, rv.IsNil())
+		return "<nil>", nil
+	}))
+	require.NoError(t, err)
+
+	require.Equal(t, "<nil>", vars["TEST_OPTIONAL"])
+	require.Equal(t, expectedString, vars["TEST_NAME"])
+	_, exists := vars["TEST_OPTIONAL"]
+	require.True(t, exists)
+}
+
+func TestGenerateEnvFile_WithMatchingConverters(t *testing.T) {
+	configTest := DefaultDeepConfiguration()
+	prefix := "test"
+
+	vars, err := DetermineConfigurationEnvironmentVariables(prefix, configTest, NewValueMatchingConverter(func(value time.Duration) bool {
+		return value >= time.Second
+	}))
+	require.NoError(t, err)
+
+	require.Equal(t, true, vars["TEST_DEEP_CONFIG_DUMMY_TIME"])
+	require.Equal(t, true, vars["TEST_DEEP_CONFIG_DUMMYCONFIG_HEALTHCHECK_PERIOD"])
+	require.Equal(t, true, vars["TEST_DEEP_CONFIG_DUMMY_CONFIG_HEALTHCHECK_PERIOD"])
+	require.Equal(t, expectedString, vars["TEST_DUMMY_STRING"])
+}
+
+func TestGenerateEnvFile_WithMatchingConverters_NilValue(t *testing.T) {
+	configTest := &NullableConfiguration{Name: expectedString}
+	prefix := "test"
+
+	vars, err := DetermineConfigurationEnvironmentVariables(prefix, configTest, NewValueMatchingConverter(func(value *string) bool {
+		return value == nil
+	}))
+	require.NoError(t, err)
+
+	require.Equal(t, true, vars["TEST_OPTIONAL"])
+	require.Equal(t, expectedString, vars["TEST_NAME"])
+}
+
+func TestGenerateEnvFile_WithConverterError(t *testing.T) {
+	configTest := DefaultDeepConfiguration()
+	prefix := "test"
+	converterErr := errors.New("boom")
+
+	_, err := DetermineConfigurationEnvironmentVariables(prefix, configTest, value.ValueConverterFunc(func(_ context.Context, value any) (any, error) {
+		if _, ok := value.(time.Duration); ok {
+			return nil, converterErr
+		}
+		return value, nil
+	}))
+
+	errortest.RequireError(t, err, commonerrors.ErrInvalid)
+	errortest.RequireErrorDescription(t, err, "failed to convert default value")
+	errortest.RequireErrorDescription(t, err, "boom")
+}
+
+func TestGenerateEnvFile_WithConverterContext(t *testing.T) {
+	configTest := DefaultDeepConfiguration()
+	prefix := "test"
+	type contextKey string
+	const key contextKey = "marker"
+
+	vars, err := DetermineConfigurationEnvironmentVariablesWithContext(context.WithValue(context.Background(), key, "seen"), prefix, configTest, value.ValueConverterFunc(func(ctx context.Context, value any) (any, error) {
+		if ctx.Value(key) == "seen" {
+			if _, ok := value.(time.Duration); ok {
+				return "context-aware", nil
+			}
+		}
+		return value, nil
+	}))
+	require.NoError(t, err)
+
+	require.Equal(t, "context-aware", vars["TEST_DEEP_CONFIG_DUMMY_TIME"])
 }
 
 func TestGenerateEnvFile_Undefined(t *testing.T) {

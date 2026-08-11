@@ -5,6 +5,7 @@
 package reflection
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
@@ -13,6 +14,31 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	valueUtils "github.com/ARM-software/golang-utils/utils/value"
 )
+
+// IValueConverter transforms a value from its runtime source type into a new target type.
+type IValueConverter func(reflect.Type, reflect.Type, any) (any, error)
+
+// Converter resolves the runtime source type for value and applies the provided converter.
+func Converter(converter IValueConverter, to reflect.Type, value any) (any, error) {
+	if converter == nil {
+		return value, nil
+	}
+
+	var from reflect.Type
+	if value != nil {
+		from = reflect.TypeOf(value)
+	}
+
+	return converter(from, to, value)
+}
+
+// NewValueTypeConverter adapts a reflection-style converter into a plain value
+// converter.
+func NewValueTypeConverter(converter IValueConverter) valueUtils.IValueConverter {
+	return valueUtils.ValueConverterFunc(func(_ context.Context, value any) (any, error) {
+		return Converter(converter, reflect.TypeOf((*any)(nil)).Elem(), value)
+	})
+}
 
 func GetUnexportedStructureField(structure any, fieldName string) any {
 	return GetStructureField(fetchStructureField(structure, fieldName))
@@ -191,18 +217,185 @@ func StructPropertyValue(rv reflect.Value, key string) (reflect.Value, bool) {
 //
 //	field, found := StructFieldByPropertyName(reflect.TypeOf(cfg), "name")
 func StructFieldByPropertyName(rt reflect.Type, key string) (reflect.StructField, bool) {
-	for _, field := range reflect.VisibleFields(rt) {
-		if !field.IsExported() {
-			continue
-		}
-		if field.Name == key {
-			return field, true
-		}
-		if tag, ok := jsonTagName(field); ok && tag == key {
-			return field, true
+	rt, ok := indirectStructType(rt)
+	if !ok {
+		return reflect.StructField{}, false
+	}
+	return structFieldByNameOrTag(rt, key, "json")
+}
+
+// StructTypeHasFieldTagValue reports whether the exported field identified by
+// key on rt defines tagName with expectedValue.
+//
+// Concept: use this when you have a struct type and want to check a specific tag
+// key/value pair on one of its exported fields, for example whether a field has
+// `mask:"redact"`.
+//
+// The field may be identified by its Go field name or by a property name taken
+// from common serialisation tags such as `json` and `yaml`, for example the
+// property name `name` resolving the field tagged `json:"name,omitempty"`.
+//
+// Example:
+//
+//	ok := StructTypeHasFieldTagValue(reflect.TypeOf(cfg), "Password", "mask", "redact")
+func StructTypeHasFieldTagValue(rt reflect.Type, key, tagName, expectedValue string) bool {
+	rt, ok := indirectStructType(rt)
+	if !ok {
+		return false
+	}
+	field, found := structFieldByNameOrTag(rt, key, lookupStructTagNames(tagName)...)
+	if !found {
+		return false
+	}
+	tagValue, ok := structTagValue(field, tagName)
+	return ok && tagValue == expectedValue
+}
+
+// StructTypeHasFieldTag reports whether the exported field identified by key on
+// rt defines tagName.
+//
+// Concept: use this when you only care whether a tag key exists on a field,
+// regardless of its value.
+//
+// The field may be identified by its Go field name or by a property name taken
+// from common serialisation tags such as `json` and `yaml`, for example the
+// property name `name` resolving the field tagged `json:"name,omitempty"`.
+//
+// Example:
+//
+//	ok := StructTypeHasFieldTag(reflect.TypeOf(cfg), "Password", "mask")
+func StructTypeHasFieldTag(rt reflect.Type, key, tagName string) bool {
+	rt, ok := indirectStructType(rt)
+	if !ok {
+		return false
+	}
+	field, found := structFieldByNameOrTag(rt, key, lookupStructTagNames(tagName)...)
+	if !found {
+		return false
+	}
+	return structTagDefined(field, tagName)
+}
+
+// StructTypeHasFieldPropertyName reports whether the exported field identified
+// by key is exposed under propertyName through either its `json` or `yaml` tag.
+//
+// Concept: use this when you want to check the external serialised property name
+// of a field without naming a specific tag key.
+//
+// The field may be identified by its Go field name or by an existing `json` or
+// `yaml` property name.
+//
+// Example:
+//
+//	ok := StructTypeHasFieldPropertyName(reflect.TypeOf(cfg), "Password", "password")
+func StructTypeHasFieldPropertyName(rt reflect.Type, key, propertyName string) bool {
+	rt, ok := indirectStructType(rt)
+	if !ok {
+		return false
+	}
+	field, found := structFieldByNameOrTag(rt, key, "json", "yaml")
+	if !found {
+		return false
+	}
+	for _, tagName := range []string{"json", "yaml"} {
+		tagValue, ok := structTagValue(field, tagName)
+		if ok && tagValue == propertyName {
+			return true
 		}
 	}
-	return reflect.StructField{}, false
+	return false
+}
+
+// StructPropertyHasTagValue reports whether the exported field identified by key
+// on rv defines tagName with expectedValue.
+//
+// Concept: use this when you have a runtime value rather than a type and want
+// to check a specific tag key/value pair. Collection values return true when any
+// contained item resolves to a matching struct field.
+//
+// rv may be a struct value, a non-nil pointer/interface resolving to a struct
+// value, or a slice/array/map whose items are checked until any matching field
+// is found.
+//
+// Example:
+//
+//	ok := StructPropertyHasTagValue(reflect.ValueOf(cfg), "password", "mask", "redact")
+func StructPropertyHasTagValue(rv reflect.Value, key, tagName, expectedValue string) bool {
+	for rv.IsValid() {
+		if rv.Kind() != reflect.Pointer && rv.Kind() != reflect.Interface {
+			break
+		}
+		if rv.IsNil() {
+			return false
+		}
+		rv = rv.Elem()
+	}
+	if !rv.IsValid() {
+		return false
+	}
+	switch rv.Kind() {
+	case reflect.Struct:
+		return StructTypeHasFieldTagValue(rv.Type(), key, tagName, expectedValue)
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < rv.Len(); i++ {
+			if StructPropertyHasTagValue(rv.Index(i), key, tagName, expectedValue) {
+				return true
+			}
+		}
+	case reflect.Map:
+		for _, mapKey := range rv.MapKeys() {
+			if StructPropertyHasTagValue(rv.MapIndex(mapKey), key, tagName, expectedValue) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// StructPropertyHasTag reports whether the exported field identified by key on
+// rv defines tagName.
+//
+// Concept: use this when you have a runtime value rather than a type and want
+// to check only whether a tag key exists. Collection values return true when any
+// contained item resolves to a matching struct field.
+//
+// rv may be a struct value, a non-nil pointer/interface resolving to a struct
+// value, or a slice/array/map whose items are checked until any matching field
+// is found.
+//
+// Example:
+//
+//	ok := StructPropertyHasTag(reflect.ValueOf(cfg), "password", "mask")
+func StructPropertyHasTag(rv reflect.Value, key, tagName string) bool {
+	for rv.IsValid() {
+		if rv.Kind() != reflect.Pointer && rv.Kind() != reflect.Interface {
+			break
+		}
+		if rv.IsNil() {
+			return false
+		}
+		rv = rv.Elem()
+	}
+	if !rv.IsValid() {
+		return false
+	}
+	switch rv.Kind() {
+	case reflect.Struct:
+		return StructTypeHasFieldTag(rv.Type(), key, tagName)
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < rv.Len(); i++ {
+			if StructPropertyHasTag(rv.Index(i), key, tagName) {
+				return true
+			}
+		}
+	case reflect.Map:
+		for _, mapKey := range rv.MapKeys() {
+			if StructPropertyHasTag(rv.MapIndex(mapKey), key, tagName) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // StructPropertyNames returns the exported property names exposed by rt using
@@ -212,7 +405,8 @@ func StructFieldByPropertyName(rt reflect.Type, key string) (reflect.StructField
 //
 //	names := StructPropertyNames(reflect.TypeOf(cfg))
 func StructPropertyNames(rt reflect.Type) []string {
-	if rt.Kind() != reflect.Struct {
+	rt, ok := indirectStructType(rt)
+	if !ok {
 		return nil
 	}
 	result := make([]string, 0)
@@ -271,7 +465,14 @@ func mapKeyStringValue(key reflect.Value) string {
 }
 
 func jsonTagName(field reflect.StructField) (string, bool) {
-	tag := field.Tag.Get("json")
+	return structTagValue(field, "json")
+}
+
+func structTagValue(field reflect.StructField, tagName string) (string, bool) {
+	if tagName == "" {
+		return "", false
+	}
+	tag := field.Tag.Get(tagName)
 	if tag == "" || tag == "-" {
 		return "", false
 	}
@@ -280,6 +481,61 @@ func jsonTagName(field reflect.StructField) (string, bool) {
 		return "", false
 	}
 	return parts[0], true
+}
+
+func structTagDefined(field reflect.StructField, tagName string) bool {
+	if tagName == "" {
+		return false
+	}
+	_, ok := field.Tag.Lookup(tagName)
+	return ok
+}
+
+func structFieldByNameOrTag(rt reflect.Type, key string, tagNames ...string) (reflect.StructField, bool) {
+	for _, field := range reflect.VisibleFields(rt) {
+		if !field.IsExported() {
+			continue
+		}
+		if field.Name == key {
+			return field, true
+		}
+		for _, tagName := range tagNames {
+			if tag, ok := structTagValue(field, tagName); ok && tag == key {
+				return field, true
+			}
+		}
+	}
+	return reflect.StructField{}, false
+}
+
+func indirectStructType(rt reflect.Type) (reflect.Type, bool) {
+	for rt != nil && (rt.Kind() == reflect.Pointer || rt.Kind() == reflect.Interface) {
+		rt = rt.Elem()
+	}
+	if rt == nil || rt.Kind() != reflect.Struct {
+		return nil, false
+	}
+	return rt, true
+}
+
+func lookupStructTagNames(tagNames ...string) []string {
+	result := []string{"json", "yaml"}
+	for _, tagName := range tagNames {
+		if tagName == "" || stringSliceContains(result, tagName) {
+			continue
+		}
+		result = append(result, tagName)
+	}
+	return result
+}
+
+func stringSliceContains(values []string, target string) bool {
+	for _, value := range values {
+		if value == target {
+			return true
+		}
+	}
+	return false
 }
 
 // InheritsFrom uses reflection to find if a struct "inherits" from a certain type.
