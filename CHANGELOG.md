@@ -14,6 +14,31 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.170.0" (2026-08-11)
+======================
+
+Features
+--------
+
+- :sparkles: `[value]` Added context-aware value converters, including `IdentityConverter` and `StringConverter` with `fmt.Stringer`, `encoding.TextMarshaler`, and fallback string formatting support. (#202608111300)
+- :sparkles: `[reflection]` Added `NewValueTypeConverter` to adapt reflection-based converters into the shared value-converter interface. (#202608111301)
+- :sparkles: `[config]` Added context-aware default-value converters for environment variable generation, including `SecretConverter` for masking sensitive values. (#202608111302)
+- :sparkles: `[reflection]` Added helpers to detect field tag values on structs, struct pointers, and collection values containing tagged struct items. (#202608111345)
+- :lock: `[config]` Added tag-aware configuration masking converters that can automatically obfuscate sensitive values based on common field tags such as `mask`, `sensitive`, `secret`, `password`, `censored`, `redact`, `pii`, and `sens`. (#202608111430)
+
+
+Bugfixes
+--------
+
+- Dependency upgrade: upload-sarif-7d9249f5a57288b8a472ddd9cc3ece1921f7dc38 (#20260807125603)
+
+
+Misc
+----
+
+- #202608111330
+
+
 "1.169.0" (2026-08-07)
 ======================
 
