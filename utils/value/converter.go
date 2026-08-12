@@ -5,6 +5,12 @@ import (
 	"encoding"
 	"fmt"
 	"reflect"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
 )
 
 // IValueConverter converts a value before it is consumed by a caller.
@@ -40,28 +46,117 @@ var IdentityConverter IValueConverter = ValueConverterFunc(func(_ context.Contex
 
 // StringConverter converts values to strings.
 //
-// It prefers [fmt.Stringer] when available, then [encoding.TextMarshaler], and
-// otherwise falls back to [fmt.Sprint].
-//
-// Nil pointer and interface receivers do not have custom methods invoked; they
-// are rendered as `<nil>` instead. When [encoding.TextMarshaler] returns an
-// error, that error is propagated to the caller.
+// Nil interface and pointer values are rendered as `<nil>`. For non-nil
+// values, it prefers [fmt.Stringer], then [encoding.TextMarshaler]. If neither
+// applies, scalar values use the same formatting as flattening, structs use `%+v`,
+// arrays and slices stringify each item recursively, maps stringify each key and
+// value recursively, pointers use `<pointer> -> <converted pointed value>`, and
+// everything else falls back to [fmt.Sprint]. Errors returned by
+// [encoding.TextMarshaler.MarshalText] are propagated to the caller.
 var StringConverter IValueConverter = ValueConverterFunc(func(_ context.Context, value any) (any, error) {
-	if stringer, ok := value.(fmt.Stringer); ok && !isNilMethodReceiver(value) {
-		return stringer.String(), nil
-	}
-	if textMarshaler, ok := value.(encoding.TextMarshaler); ok && !isNilMethodReceiver(value) {
-		text, err := textMarshaler.MarshalText()
-		if err != nil {
-			return nil, err
-		}
-		return string(text), nil
-	}
+	return stringifyValue(value)
+})
+
+func stringifyValue(value any) (string, error) {
 	if isNilMethodReceiver(value) {
 		return fmt.Sprint(nil), nil
 	}
+
+	rv := reflect.ValueOf(value)
+
+	if stringer, ok := value.(fmt.Stringer); ok {
+		return stringer.String(), nil
+	}
+	if textMarshaler, ok := value.(encoding.TextMarshaler); ok {
+		text, err := textMarshaler.MarshalText()
+		if err != nil {
+			return "", commonerrors.WrapError(commonerrors.ErrMarshalling, err, "failed to marshal value as text")
+		}
+		return string(text), nil
+	}
+
+	switch rv.Kind() {
+	case reflect.Bool:
+		return strconv.FormatBool(rv.Bool()), nil
+	case reflect.Int64:
+		if rv.Type() == reflect.TypeOf(time.Duration(0)) {
+			return value.(time.Duration).String(), nil
+		}
+		return strconv.FormatInt(rv.Int(), 10), nil
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
+		return strconv.FormatInt(rv.Int(), 10), nil
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return strconv.FormatUint(rv.Uint(), 10), nil
+	case reflect.Float32, reflect.Float64:
+		return strconv.FormatFloat(rv.Float(), 'g', -1, 64), nil
+	case reflect.String:
+		return rv.String(), nil
+	}
+
+	if rv.Kind() == reflect.Struct {
+		return fmt.Sprintf("%+v", value), nil
+	}
+	if rv.Kind() == reflect.Array || rv.Kind() == reflect.Slice {
+		return stringifyList(rv)
+	}
+	if rv.Kind() == reflect.Map {
+		return stringifyMap(rv)
+	}
+	if rv.Kind() == reflect.Pointer {
+		converted, err := stringifyValue(rv.Elem().Interface())
+		if err != nil {
+			return "", err
+		}
+
+		return fmt.Sprintf("%p -> %v", value, converted), nil
+	}
+
 	return fmt.Sprint(value), nil
-})
+}
+
+func stringifyList(rv reflect.Value) (string, error) {
+	items := make([]string, 0, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		converted, err := stringifyValue(rv.Index(i).Interface())
+		if err != nil {
+			return "", err
+		}
+		items = append(items, converted)
+	}
+
+	return fmt.Sprintf("[%s]", strings.Join(items, ", ")), nil
+}
+
+func stringifyMap(rv reflect.Value) (string, error) {
+	type item struct {
+		key   string
+		value string
+	}
+
+	items := make([]item, 0, rv.Len())
+	for _, key := range rv.MapKeys() {
+		convertedKey, err := stringifyValue(key.Interface())
+		if err != nil {
+			return "", err
+		}
+		convertedValue, err := stringifyValue(rv.MapIndex(key).Interface())
+		if err != nil {
+			return "", err
+		}
+		items = append(items, item{key: convertedKey, value: convertedValue})
+	}
+
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].key < items[j].key
+	})
+
+	parts := make([]string, 0, len(items))
+	for i := range items {
+		parts = append(parts, fmt.Sprintf("%s:%s", items[i].key, items[i].value))
+	}
+
+	return fmt.Sprintf("map{%s}", strings.Join(parts, ", ")), nil
+}
 
 func isNilMethodReceiver(value any) bool {
 	rv := reflect.ValueOf(value)
