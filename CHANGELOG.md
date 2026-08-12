@@ -14,6 +14,16 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.170.1" (2026-08-12)
+======================
+
+Bugfixes
+--------
+
+- :recycle: `[value]` Fix a regression introduced by switching flatten-map string conversion to `StringConverter` by restoring flatten-map scalar formatting, keeping `fmt.Stringer` and `encoding.TextMarshaler` precedence, wrapping text-marshalling failures as `commonerrors.ErrMarshalling`, and documenting pointer and struct fallback output. (#202608121215)
+- Dependency upgrade: upload-sarif-c16c0f3f2812ec4bb3750a5ed64873fe2ce0fbef (#20260812101700)
+
+
 "1.170.0" (2026-08-11)
 ======================
 
