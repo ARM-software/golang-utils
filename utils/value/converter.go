@@ -5,7 +5,9 @@ import (
 	"encoding"
 	"fmt"
 	"reflect"
+	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
@@ -47,8 +49,9 @@ var IdentityConverter IValueConverter = ValueConverterFunc(func(_ context.Contex
 // Nil interface and pointer values are rendered as `<nil>`. For non-nil
 // values, it prefers [fmt.Stringer], then [encoding.TextMarshaler]. If neither
 // applies, scalar values use the same formatting as flattening, structs use `%+v`,
-// pointers use `<pointer> -> <converted pointed value>`, and everything else
-// falls back to [fmt.Sprint]. Errors returned by
+// arrays and slices stringify each item recursively, maps stringify each key and
+// value recursively, pointers use `<pointer> -> <converted pointed value>`, and
+// everything else falls back to [fmt.Sprint]. Errors returned by
 // [encoding.TextMarshaler.MarshalText] are propagated to the caller.
 var StringConverter IValueConverter = ValueConverterFunc(func(_ context.Context, value any) (any, error) {
 	return stringifyValue(value)
@@ -93,6 +96,12 @@ func stringifyValue(value any) (string, error) {
 	if rv.Kind() == reflect.Struct {
 		return fmt.Sprintf("%+v", value), nil
 	}
+	if rv.Kind() == reflect.Array || rv.Kind() == reflect.Slice {
+		return stringifyList(rv)
+	}
+	if rv.Kind() == reflect.Map {
+		return stringifyMap(rv)
+	}
 	if rv.Kind() == reflect.Pointer {
 		converted, err := stringifyValue(rv.Elem().Interface())
 		if err != nil {
@@ -103,6 +112,50 @@ func stringifyValue(value any) (string, error) {
 	}
 
 	return fmt.Sprint(value), nil
+}
+
+func stringifyList(rv reflect.Value) (string, error) {
+	items := make([]string, 0, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		converted, err := stringifyValue(rv.Index(i).Interface())
+		if err != nil {
+			return "", err
+		}
+		items = append(items, converted)
+	}
+
+	return fmt.Sprintf("[%s]", strings.Join(items, ", ")), nil
+}
+
+func stringifyMap(rv reflect.Value) (string, error) {
+	type item struct {
+		key   string
+		value string
+	}
+
+	items := make([]item, 0, rv.Len())
+	for _, key := range rv.MapKeys() {
+		convertedKey, err := stringifyValue(key.Interface())
+		if err != nil {
+			return "", err
+		}
+		convertedValue, err := stringifyValue(rv.MapIndex(key).Interface())
+		if err != nil {
+			return "", err
+		}
+		items = append(items, item{key: convertedKey, value: convertedValue})
+	}
+
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].key < items[j].key
+	})
+
+	parts := make([]string, 0, len(items))
+	for i := range items {
+		parts = append(parts, fmt.Sprintf("%s:%s", items[i].key, items[i].value))
+	}
+
+	return fmt.Sprintf("map{%s}", strings.Join(parts, ", ")), nil
 }
 
 func isNilMethodReceiver(value any) bool {

@@ -189,6 +189,35 @@ func TestStringConverter(t *testing.T) {
 		assert.Equal(t, fmt.Sprintf("%p -> %v", input, fmt.Sprintf("%+v", *input)), converted)
 	})
 
+	t.Run("slice uses item string representations", func(t *testing.T) {
+		item := &plainStruct{Name: "value", Count: 2}
+		input := []any{"alpha", item, (*plainStruct)(nil)}
+
+		converted, err := StringConverter.ConvertValue(context.Background(), input)
+		require.NoError(t, err)
+		assert.Equal(t, fmt.Sprintf("[alpha, %p -> {Name:value Count:2}, <nil>]", item), converted)
+	})
+
+	t.Run("array uses item string representations", func(t *testing.T) {
+		input := [3]any{"alpha", int8(2), plainStruct{Name: "value", Count: 2}} //nolint:gosec // G115: testing
+
+		converted, err := StringConverter.ConvertValue(context.Background(), input)
+		require.NoError(t, err)
+		assert.Equal(t, "[alpha, 2, {Name:value Count:2}]", converted)
+	})
+
+	t.Run("map uses key and value string representations", func(t *testing.T) {
+		item := &plainStruct{Name: "value", Count: 2}
+		input := map[string]any{
+			"alpha": item,
+			"beta":  (*plainStruct)(nil),
+		}
+
+		converted, err := StringConverter.ConvertValue(context.Background(), input)
+		require.NoError(t, err)
+		assert.Equal(t, fmt.Sprintf("map{alpha:%p -> {Name:value Count:2}, beta:<nil>}", item), converted)
+	})
+
 	t.Run("nil plain pointer falls back to nil", func(t *testing.T) {
 		var input *plainStruct
 

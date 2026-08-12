@@ -8,6 +8,9 @@ import (
 	"github.com/go-faker/faker/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
 
 type secretStringer string
@@ -85,7 +88,8 @@ func TestSecretConverter(t *testing.T) {
 	t.Run("marshal error", func(t *testing.T) {
 		_, err := SecretConverter.ConvertValue(context.Background(), secretFailingTextValue{value: "secret"})
 		require.Error(t, err)
-		assert.EqualError(t, err, "boom")
+		errortest.AssertError(t, err, commonerrors.ErrMarshalling)
+		errortest.AssertErrorDescription(t, err, "boom")
 	})
 }
 
