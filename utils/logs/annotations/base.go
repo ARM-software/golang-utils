@@ -35,7 +35,7 @@ func NewLogger(baseLogger baselogs.Loggers, formatter IFormatter) (*AnnotationLo
 	if genericLogger, ok := baseLogger.(baselogs.ILoggerWithUnderlyingWriters); ok {
 		logger.annotationWriter, _ = genericLogger.Writers()
 	} else {
-		baseLogger.Log("the chosen logger does not provide support for annotations, stdout will be used for annotations")
+		baseLogger.Log(":warning: the chosen logger does not provide support for annotations, stdout will be used for annotations")
 	}
 
 	return logger, nil
