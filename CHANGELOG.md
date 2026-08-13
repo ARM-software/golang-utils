@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.170.2" (2026-08-13)
+======================
+
+Bugfixes
+--------
+
+- :bug: `annotations` Ensure that annotation behavior aligns with what the CI platforms expect with annotations prefixing the entire log line (#20260813115747)
+
+
 "1.170.1" (2026-08-12)
 ======================
 
