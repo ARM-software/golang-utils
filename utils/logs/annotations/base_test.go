@@ -52,3 +52,40 @@ func TestAnnotationLoggerFromLoggers(t *testing.T) {
 		base.GetLogContent(),
 	)
 }
+
+func TestAnnotationLoggerWritesWithoutLoggerMetadata(t *testing.T) {
+	tests := []struct {
+		name      string
+		newLogger func(baseLogger baselogs.Loggers) (*AnnotationLogger, error)
+		expected  string
+	}{
+		{
+			name:      "GitHub",
+			newLogger: NewGitHubLogger,
+			expected:  "::warning::warn\n",
+		},
+		{
+			name:      "Azure DevOps",
+			newLogger: NewAzureDevOpsLogger,
+			expected:  "##vso[task.logissue type=warning]warn\n",
+		},
+		{
+			name:      "TeamCity",
+			newLogger: NewTeamCityLogger,
+			expected:  "##teamcity[message text='warn' status='WARNING']\n",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			base, err := baselogs.NewStringLogger("CI")
+			require.NoError(t, err)
+
+			logger, err := test.newLogger(base)
+			require.NoError(t, err)
+			require.NoError(t, logger.WriteWarning("warn"))
+
+			assert.Equal(t, test.expected, base.GetLogContent())
+		})
+	}
+}
