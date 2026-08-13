@@ -6,8 +6,34 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/ARM-software/golang-utils/utils/commonerrors"
+	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	baselogs "github.com/ARM-software/golang-utils/utils/logs"
 )
+
+func TestNewLoggerRejectsInvalidLogger(t *testing.T) {
+	tests := []struct {
+		name       string
+		baseLogger baselogs.Loggers
+	}{
+		{
+			name: "undefined logger",
+		},
+		{
+			name:       "generic logger without underlying loggers",
+			baseLogger: &baselogs.GenericLoggers{},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			logger, err := NewLogger(test.baseLogger, GitHubFormatter{})
+
+			errortest.RequireError(t, err, commonerrors.ErrNoLogger)
+			assert.Nil(t, logger)
+		})
+	}
+}
 
 func TestAnnotationLoggerFromLoggers(t *testing.T) {
 	base, err := baselogs.NewPlainStringLogger()

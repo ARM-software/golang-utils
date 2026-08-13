@@ -45,6 +45,11 @@ type WriterWithSource interface {
 	SetSource(source string) error
 }
 
+// ILoggerWithUnderlyingWriters provides access to the underlying log writers
+type ILoggerWithUnderlyingWriters interface {
+	Writers() (outputWriter, errorWriter io.Writer)
+}
+
 // StdLogger is the subset of the Go stdlib log.Logger API.
 type StdLogger interface {
 	// Output is the same as log.Output and log.Logger.Output.

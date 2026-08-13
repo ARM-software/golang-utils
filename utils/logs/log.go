@@ -6,6 +6,7 @@ package logs
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"strings"
 	"sync"
@@ -42,6 +43,10 @@ func (l *GenericLoggers) Log(output ...interface{}) {
 
 func (l *GenericLoggers) LogError(err ...interface{}) {
 	l.Error.Println(err...)
+}
+
+func (l *GenericLoggers) Writers() (outputWriter, errorWriter io.Writer) {
+	return l.Output.Writer(), l.Error.Writer()
 }
 
 // Close closes the logger
