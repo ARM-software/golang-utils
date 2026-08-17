@@ -15,6 +15,11 @@ func TestHttpClientConfiguration(t *testing.T) {
 	require.NoError(t, configTest.Validate())
 }
 
+func TestHttpClientConfiguration_EmptyConfig(t *testing.T) {
+	configTest := &HTTPClientConfiguration{}
+	require.NoError(t, configTest.Validate())
+}
+
 func TestFastHttpClientConfiguration(t *testing.T) {
 	configTest := FastHTTPClientConfiguration()
 	require.NoError(t, configTest.Validate())

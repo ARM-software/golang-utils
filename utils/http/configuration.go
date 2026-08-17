@@ -64,7 +64,7 @@ func (cfg *HTTPClientConfiguration) Validate() error {
 		validation.Field(&cfg.MaxIdleConns, validation.Min(0)),
 		validation.Field(&cfg.MaxIdleConnsPerHost, validation.Max(cfg.MaxIdleConns)),
 		validation.Field(&cfg.IdleConnTimeout, validationRules.Required),
-		validation.Field(&cfg.RetryPolicy, validation.Required),
+		validation.Field(&cfg.RetryPolicy, validationRules.Required),
 	)
 
 }

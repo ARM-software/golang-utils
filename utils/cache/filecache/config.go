@@ -25,8 +25,8 @@ func (cfg *FileCacheConfig) Validate() error {
 
 	return validation.ValidateStruct(cfg,
 		validation.Field(&cfg.CachePath, validationRules.Required),
-		validation.Field(&cfg.GarbageCollectionPeriod, validation.Required),
-		validation.Field(&cfg.TTL, validation.Required),
+		validation.Field(&cfg.GarbageCollectionPeriod, validationRules.Required),
+		validation.Field(&cfg.TTL, validationRules.Required),
 	)
 }
 
