@@ -14,6 +14,21 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.170.3" (2026-08-18)
+======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: text-0.41.0 (#20260817101501)
+- Dependency upgrade: net-0.58.0 (#20260817101511)
+- Dependency upgrade: spdx-0.3.1 (#20260817101518)
+- Dependency upgrade: testify-1.12.0 (#20260817101526)
+- :boom: Restore local required validation rules for remaining HTTP and file cache config fields after the ozzo-validation behaviour change. (#20260817103000)
+- Dependency upgrade: stringcase-1.0.0 (#20260818090655)
+- Dependency upgrade: logrus-1.10.0 (#20260818101350)
+
+
 "1.170.2" (2026-08-13)
 ======================
 
