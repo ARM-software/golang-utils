@@ -139,8 +139,8 @@ func (cfg *RequestConfiguration) Validate() (err error) {
 	return validation.ValidateStruct(cfg,
 		validation.Field(&cfg.Host, validationRules.Required),
 		validation.Field(&cfg.UserAgent, validationRules.Required),
-		validation.Field(&cfg.Authorisation, validation.Required),
-		validation.Field(&cfg.Retries, validation.Required),
+		validation.Field(&cfg.Authorisation, validationRules.Required),
+		validation.Field(&cfg.Retries, validationRules.Required),
 	)
 }
 
