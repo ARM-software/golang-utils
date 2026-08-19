@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.170.4" (2026-08-19)
+======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: codeql-action-4.37.6 (#20260818152436)
+
+
 "1.170.3" (2026-08-18)
 ======================
 
