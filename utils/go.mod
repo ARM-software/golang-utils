@@ -1,6 +1,6 @@
 module github.com/ARM-software/golang-utils/utils
 
-go 1.25.6
+go 1.26.0
 
 require (
 	github.com/DeRuina/timberjack v1.4.6
@@ -50,7 +50,7 @@ require (
 	go.uber.org/goleak v1.3.0
 	go.uber.org/mock v0.6.0
 	go.uber.org/zap v1.28.0
-	golang.org/x/crypto v0.55.0
+	golang.org/x/crypto v0.56.0
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f
 	golang.org/x/mod v0.38.0
 	golang.org/x/net v0.58.0
