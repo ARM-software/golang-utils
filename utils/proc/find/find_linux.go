@@ -50,12 +50,14 @@ func parseProcess(ctx context.Context, entry string) (p proc.IProcess, err error
 		return
 	}
 
-	pid, err := strconv.Atoi(strings.Trim(strings.TrimSuffix(strings.TrimPrefix(entry, procFS), fmt.Sprintf("%v", procDataFile)), "/"))
+	pidStr := strings.Trim(strings.TrimSuffix(strings.TrimPrefix(entry, procFS), fmt.Sprintf("%v", procDataFile)), "/")
+	pid32, err := strconv.ParseInt(pidStr, 10, 32)
 	if err != nil {
 		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "%v '%v'", invalidPIDErr, entry)
 		return
 	}
 
+	pid := int(pid32)
 	p, err = proc.FindProcess(ctx, pid)
 	if err != nil {
 		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not find process '%v'", pid)
