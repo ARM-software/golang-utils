@@ -106,12 +106,12 @@ func NewRollingFilesLogger(logFile string, loggerSource string, options ...FileL
 		return
 	}
 	l := &timberjack.Logger{
-		Filename:   logFile,
-		MaxSize:    safecast.ToInt(opts.maxFileSize / sizeUnits.MiB),
-		MaxAge:     safecast.ToInt(opts.maxAge.Hours() / 24),
-		MaxBackups: opts.maxBackups,
-		LocalTime:  false,
-		Compress:   false,
+		Filename:    logFile,
+		MaxSize:     safecast.ToInt(opts.maxFileSize / sizeUnits.MiB),
+		MaxAge:      safecast.ToInt(opts.maxAge.Hours() / 24),
+		MaxBackups:  opts.maxBackups,
+		LocalTime:   false,
+		Compression: "none",
 	}
 	closerStore := parallelisation.NewCloserStore(false)
 	closerStore.RegisterCloser(l)
