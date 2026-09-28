@@ -1,6 +1,7 @@
 package aesrsa
 
 import (
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
+	"github.com/ARM-software/golang-utils/utils/safeio"
 )
 
 // ParsePEMBlock will parse the first PEM block found within path
@@ -106,14 +108,18 @@ func DecryptHybridAESRSAEncryptedPayloadFromBytes(block []byte, payload *HybridA
 	return
 }
 
+func readRandomBytes(size int) (b []byte, err error) {
+	b, err = safeio.ReadAtMost(context.Background(), rand.Reader, int64(size), int64(size))
+	return
+}
+
 func encryptWithRSAKey(rsaPub *rsa.PublicKey, payload []byte) (encrypted *HybridAESRSAEncryptedPayload, err error) {
 	if rsaPub == nil {
 		err = commonerrors.New(commonerrors.ErrUndefined, "rsa public key is undefined")
 		return
 	}
 
-	aesKey := make([]byte, 32)
-	_, err = rand.Read(aesKey)
+	aesKey, err := readRandomBytes(32)
 	if err != nil {
 		err = commonerrors.WrapError(commonerrors.ErrUnexpected, err, "failed generating AES key")
 		return
@@ -131,8 +137,7 @@ func encryptWithRSAKey(rsaPub *rsa.PublicKey, payload []byte) (encrypted *Hybrid
 		return
 	}
 
-	nonce := make([]byte, aesGCM.NonceSize())
-	_, err = rand.Read(nonce)
+	nonce, err := readRandomBytes(aesGCM.NonceSize())
 	if err != nil {
 		err = commonerrors.WrapError(commonerrors.ErrUnexpected, err, "failed to generate nonce")
 		return
