@@ -53,6 +53,7 @@ func parseProcess(ctx context.Context, entry string) (p proc.IProcess, err error
 
 	pidStr := strings.Trim(strings.TrimSuffix(strings.TrimPrefix(entry, procFS), fmt.Sprintf("%v", procDataFile)), "/")
 	// Bound the PID to int32 before handing it to proc.FindProcess, whose downstream API uses int32.
+	// gopsutil accepts int32 PIDs: https://github.com/shirou/gopsutil/blob/81236e0193191e972dfdf1e15cc1ae53764dc1e0/process/process_posix.go#L103.
 	// Linux documents pid_t as signed (https://man7.org/linux/man-pages/man3/pid_t.3type.html)
 	// and defines __kernel_pid_t as int (https://github.com/torvalds/linux/blob/master/include/uapi/asm-generic/posix_types.h).
 	// See also https://github.com/ARM-software/golang-utils/security/code-scanning/126 and https://pkg.go.dev/strconv#ParseInt.
