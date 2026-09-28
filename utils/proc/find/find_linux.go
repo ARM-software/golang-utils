@@ -14,6 +14,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 	"github.com/ARM-software/golang-utils/utils/proc"
+	"github.com/ARM-software/golang-utils/utils/safecast"
 )
 
 const (
@@ -51,13 +52,15 @@ func parseProcess(ctx context.Context, entry string) (p proc.IProcess, err error
 	}
 
 	pidStr := strings.Trim(strings.TrimSuffix(strings.TrimPrefix(entry, procFS), fmt.Sprintf("%v", procDataFile)), "/")
+	// Bound the PID to int32 before handing it to proc.FindProcess, whose downstream API uses int32.
+	// See https://github.com/ARM-software/golang-utils/security/code-scanning/126 and https://pkg.go.dev/strconv#ParseInt.
 	pid32, err := strconv.ParseInt(pidStr, 10, 32)
 	if err != nil {
-		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "%v '%v'", invalidPIDErr, entry)
+		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "%v '%v': PID '%v' must be a signed 32-bit decimal integer", invalidPIDErr, entry, pidStr)
 		return
 	}
 
-	pid := int(pid32)
+	pid := safecast.ToInt(pid32)
 	p, err = proc.FindProcess(ctx, pid)
 	if err != nil {
 		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "could not find process '%v'", pid)
