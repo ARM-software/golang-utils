@@ -53,7 +53,9 @@ func parseProcess(ctx context.Context, entry string) (p proc.IProcess, err error
 
 	pidStr := strings.Trim(strings.TrimSuffix(strings.TrimPrefix(entry, procFS), fmt.Sprintf("%v", procDataFile)), "/")
 	// Bound the PID to int32 before handing it to proc.FindProcess, whose downstream API uses int32.
-	// See https://github.com/ARM-software/golang-utils/security/code-scanning/126 and https://pkg.go.dev/strconv#ParseInt.
+	// Linux documents pid_t as signed (https://man7.org/linux/man-pages/man3/pid_t.3type.html)
+	// and defines __kernel_pid_t as int (https://github.com/torvalds/linux/blob/master/include/uapi/asm-generic/posix_types.h).
+	// See also https://github.com/ARM-software/golang-utils/security/code-scanning/126 and https://pkg.go.dev/strconv#ParseInt.
 	pid32, err := strconv.ParseInt(pidStr, 10, 32)
 	if err != nil {
 		err = commonerrors.WrapErrorf(commonerrors.ErrUnexpected, err, "%v '%v': PID '%v' must be a signed 32-bit decimal integer", invalidPIDErr, entry, pidStr)
