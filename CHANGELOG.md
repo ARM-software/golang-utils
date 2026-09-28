@@ -14,6 +14,20 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.170.5" (2026-09-28)
+======================
+
+Bugfixes
+--------
+
+- Dependency upgrade: testify-1.12.1 (#20260820101329)
+- Dependency upgrade: codeql-action-4.37.8 (#20260824101403)
+- Dependency upgrade: timberjack-1.4.7 (#20260827101353)
+- Dependency upgrade: v4-4.26.8 (#20260901101724)
+- Dependency upgrade: logrus-1.10.1 (#20260928133442)
+- Dependency upgrade: v4-4.2.0 (#20260928133543)
+
+
 "1.170.4" (2026-08-19)
 ======================
 
