@@ -14,6 +14,15 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+"1.170.6" (2026-09-28)
+======================
+
+Bugfixes
+--------
+
+- :lock: `[proc/find]` Reject PIDs outside int32 before lookup; previously oversized values were clamped to MaxInt32, potentially returning the wrong process or an incorrect not-found result ([code-scanning alert 126](https://github.com/ARM-software/golang-utils/security/code-scanning/126)). (#998)
+
+
 "1.170.5" (2026-09-28)
 ======================
 
