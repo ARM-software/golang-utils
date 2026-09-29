@@ -46,7 +46,7 @@ require (
 	github.com/stretchr/testify v1.12.1
 	github.com/sttk/stringcase v1.0.0
 	github.com/zalando/go-keyring v0.2.8
-	go.uber.org/atomic v1.11.0
+	go.uber.org/atomic v1.12.0
 	go.uber.org/goleak v1.3.0
 	go.uber.org/mock v0.6.0
 	go.uber.org/zap v1.28.0
