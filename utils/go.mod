@@ -14,7 +14,7 @@ require (
 	github.com/evanphx/hclogr v0.2.0
 	github.com/git-pkgs/spdx v0.3.1
 	github.com/go-faker/faker/v4 v4.9.0
-	github.com/go-git/go-git/v5 v5.19.1
+	github.com/go-git/go-git/v5 v5.19.2
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a
 	github.com/go-logr/logr v1.4.4
 	github.com/go-logr/stdr v1.2.2
