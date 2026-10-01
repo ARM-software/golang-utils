@@ -28,7 +28,7 @@ jobs:
           python-version: '3.11' 
       - uses: FranzDiebold/github-env-vars-action@v2
       - name: Install CI/CD tools
-        run: pip install continuous-delivery-scripts>=2.7 && pip list
+        run: python -m pip install --upgrade continuous-delivery-scripts && pip list
       - name: Install goreleaser
         uses: goreleaser/goreleaser-action@v7
         with:
@@ -37,6 +37,9 @@ jobs:
           version: latest
       - name: Install Syft
         uses: anchore/sbom-action/download-syft@v0
+      - name: Download Go dependencies
+        run: go mod download
+        working-directory: utils
       - name: Tag and release
         run: cd-tag-and-release -b ${CI_ACTION_REF_NAME} -t ${{ github.event.inputs.release_type }} -vv
         env:
