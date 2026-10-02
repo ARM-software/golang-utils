@@ -14,6 +14,18 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+1.170.7 (2026-10-02)
+
+# Bugfixes
+
+- Dependency upgrade: atomic-1.12.0 (#20260929101312891857534)
+- Dependency upgrade: timberjack-1.4.8 (#20260929101326111645236)
+
+# Misc
+
+- #202610011200, #202610021136
+
+
 "1.170.6" (2026-09-28)
 ======================
 
