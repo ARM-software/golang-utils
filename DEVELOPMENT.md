@@ -77,10 +77,15 @@ The CI supports three release flows:
 
 1. Navigate to the [GitHub Actions](https://github.com/ARM-software/golang-utils/actions/workflows/release.yml) page.
 2. Select the **Run Workflow** button and type which kind of release you would like to make (i.e. release, beta or development).
+3. `cd-tag-and-release` regenerates `docs/` and writes the release-time TPIP output as part of the release flow.
 
 ### Version Numbers
 
 The version number will be automatically calculated, based on the news files.
+
+## Third-party IP checks
+
+Pull requests now run `cd-check-licence-compliance` in CI so TPIP issues are caught before merge.
 
 # Detecting secrets
 

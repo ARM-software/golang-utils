@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-python@v7
       - uses: FranzDiebold/github-env-vars-action@v2
       - name: Install CI/CD tools
-        run: pip install continuous-delivery-scripts && pip list
+        run: python -m pip install --upgrade continuous-delivery-scripts && pip list
       - name: Assert news
         run: cd-assert-news -b ${CI_ACTION_REF_NAME}
         env:
@@ -39,6 +39,27 @@ jobs:
         if: ${{ failure() }}
         run: |
           echo "::error:: News file missing (See CONTRIBUTING.md guide for details)."
+
+  tpip:
+    name: Check third-party IP
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ env.go_version }}
+      - uses: actions/setup-python@v7
+      - name: Install CI/CD tools
+        run: python -m pip install --upgrade continuous-delivery-scripts && pip list
+      - name: Download Go dependencies
+        run: go mod download
+        working-directory: utils
+      - name: Check third-party IP
+        run: cd-check-licence-compliance
 
   detect-secrets:
     name: Check for secrets

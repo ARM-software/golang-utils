@@ -59,7 +59,7 @@ tool.
 
 You can also use the [continuous delivery tools](https://github.com/ARMmbed/continuous-delivery-scripts) to generate those files.
 ```bash
-  pip install continuous-delivery-scripts
+  pip install --upgrade continuous-delivery-scripts
   cd-create-news-file --type <change type> "<message>"
 ```
 
