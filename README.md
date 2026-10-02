@@ -9,7 +9,7 @@ SPDX-License-Identifier: Apache-2.0
 [![CI](https://github.com/ARM-software/golang-utils/actions/workflows/ci.yml/badge.svg)](https://github.com/ARM-software/golang-utils/actions/workflows/ci.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/ARM-software/golang-utils/utils.svg)](https://pkg.go.dev/github.com/ARM-software/golang-utils/utils)
 [![Documentation](https://badgen.net/badge/Documentation/GitHub%20Pages/blue?icon=github)](https://arm-software.github.io/golang-utils)
-[![Go Report Card](https://goreportcard.com/badge/github.com/ARM-software/golang-utils)](https://goreportcard.com/report/github.com/ARM-software/golang-utils)
+[![Compliance](https://badgen.net/badge/License%20Report/compliant/green?icon=libraries)](https://arm-software.github.io/golang-utils/third_party_IP_report.html)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/6531/badge)](https://bestpractices.coreinfrastructure.org/projects/6531)
 ![Scorecard](https://img.shields.io/ossf-scorecard/github.com/ARM-software/golang-utils?label=openssf%20scorecard&style=flat)
 
