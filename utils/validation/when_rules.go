@@ -14,6 +14,7 @@ import (
 )
 
 type propertyConditionFunc func(actual any, found bool) (bool, error)
+type valueConditionFunc func(actual any) (bool, error)
 
 func filteredWhenRules(rules []validation.Rule) []validation.Rule {
 	return collection.Filter(rules, func(rule validation.Rule) bool {
@@ -60,6 +61,73 @@ func whenField(field any, propertyRule func(fieldName string) validation.Rule) v
 		}
 		return propertyRule(fieldName).Validate(replayableValue)
 	})
+}
+
+func whenValue(condition valueConditionFunc, rules ...validation.Rule) validation.Rule {
+	filteredRules := filteredWhenRules(rules)
+	return validation.By(func(value any) error {
+		matched, err := condition(value)
+		if err != nil {
+			return err
+		}
+		return evaluateConditionalRules(value, matched, filteredRules)
+	})
+}
+
+// WhenPresent applies rules when the validated field value is present.
+//
+// A value is considered present when it is not empty according to
+// `reflection.IsNotEmpty`.
+//
+// This helper is intended for field-level composition such as:
+//
+//	validation.Field(&cfg.TargetedGo, WhenPresent(is.Semver))
+func WhenPresent(rules ...validation.Rule) validation.Rule {
+	return whenValue(func(actual any) (bool, error) {
+		return utilreflection.IsNotEmpty(actual), nil
+	}, rules...)
+}
+
+// WhenAbsent applies rules when the validated field value is absent.
+//
+// A value is considered absent when it is empty according to
+// `reflection.IsEmpty`.
+func WhenAbsent(rules ...validation.Rule) validation.Rule {
+	return whenValue(func(actual any) (bool, error) {
+		return utilreflection.IsEmpty(actual), nil
+	}, rules...)
+}
+
+// WhenEqualsValue applies rules when the validated field value equals expected.
+func WhenEqualsValue(expected any, rules ...validation.Rule) validation.Rule {
+	return whenValue(func(actual any) (bool, error) {
+		return reflect.DeepEqual(actual, expected), nil
+	}, rules...)
+}
+
+// WhenNotEqualsValue applies rules when the validated field value does not equal expected.
+func WhenNotEqualsValue(expected any, rules ...validation.Rule) validation.Rule {
+	return whenValue(func(actual any) (bool, error) {
+		return !reflect.DeepEqual(actual, expected), nil
+	}, rules...)
+}
+
+// WhenInValues applies rules when the validated field value equals any of the expected values.
+func WhenInValues(expected []any, rules ...validation.Rule) validation.Rule {
+	return whenValue(func(actual any) (bool, error) {
+		return collection.AnyFunc(expected, func(candidate any) bool {
+			return reflect.DeepEqual(actual, candidate)
+		}), nil
+	}, rules...)
+}
+
+// WhenNotInValues applies rules when the validated field value equals none of the expected values.
+func WhenNotInValues(expected []any, rules ...validation.Rule) validation.Rule {
+	return whenValue(func(actual any) (bool, error) {
+		return !collection.AnyFunc(expected, func(candidate any) bool {
+			return reflect.DeepEqual(actual, candidate)
+		}), nil
+	}, rules...)
 }
 
 // WhenPropertyEquals applies rules when the value stored under key equals expected.

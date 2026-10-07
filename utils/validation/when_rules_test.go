@@ -147,6 +147,57 @@ func TestWhenRules(t *testing.T) {
 		assert.NoError(t, validation.Validate(presentCfg, presentRule))
 	})
 
+	t.Run("field value helpers", func(t *testing.T) {
+		type config struct {
+			Mode    string
+			Target  *string
+			Profile string
+		}
+
+		cfg := &config{}
+		err := validation.ValidateStruct(cfg,
+			validation.Field(&cfg.Target, WhenPresent(MinLength(3))),
+			validation.Field(&cfg.Profile, WhenAbsent(validation.Required)),
+		)
+		require.Error(t, err)
+
+		profile := "ok"
+		cfg.Profile = profile
+		require.NoError(t, validation.ValidateStruct(cfg,
+			validation.Field(&cfg.Target, WhenPresent(MinLength(3))),
+			validation.Field(&cfg.Profile, WhenAbsent(validation.Required)),
+		))
+
+		target := "go"
+		cfg.Target = &target
+		err = validation.ValidateStruct(cfg,
+			validation.Field(&cfg.Target, WhenPresent(MinLength(3))),
+		)
+		require.Error(t, err)
+
+		target = "go1.26"
+		cfg.Target = &target
+		require.NoError(t, validation.ValidateStruct(cfg,
+			validation.Field(&cfg.Target, WhenPresent(MinLength(3))),
+		))
+
+		cfg.Mode = "strict"
+		require.NoError(t, validation.ValidateStruct(cfg,
+			validation.Field(&cfg.Mode, WhenEqualsValue("strict", validation.In("strict", "relaxed"))),
+			validation.Field(&cfg.Mode, WhenInValues([]any{"strict", "relaxed"}, validation.In("strict", "relaxed"))),
+		))
+
+		cfg.Mode = "archive"
+		err = validation.ValidateStruct(cfg,
+			validation.Field(&cfg.Mode, WhenNotEqualsValue("strict", validation.In("strict", "relaxed"))),
+		)
+		require.Error(t, err)
+
+		require.NoError(t, validation.ValidateStruct(cfg,
+			validation.Field(&cfg.Mode, WhenNotInValues([]any{"strict", "relaxed"}, validation.In("archive", "preview"))),
+		))
+	})
+
 	t.Run("field in and not in values", func(t *testing.T) {
 		type config struct {
 			Mode string
