@@ -13,12 +13,14 @@ Depend on the specific submodule that provides the package you import.
 Examples:
 
 ```bash
-go get github.com/ARM-software/golang-utils/utils/http@v1.170.7
-go get github.com/ARM-software/golang-utils/utils/filesystem@v1.170.7
-go get github.com/ARM-software/golang-utils/utils/validation@v1.170.7
+go get github.com/ARM-software/golang-utils/utils/http@latest
+go get github.com/ARM-software/golang-utils/utils/filesystem@latest
+go get github.com/ARM-software/golang-utils/utils/validation@latest
 ```
 
 The `github.com/ARM-software/golang-utils/utils` module remains in the repository as an umbrella module for compatibility and tooling, but new consumers should depend on the narrower submodule they actually import.
+Submodule tags start with the next CDS project release; `v1.170.7` and earlier
+published only the original umbrella module.
 
 ## Workspace structure
 
@@ -33,11 +35,15 @@ CI and local multi-module workflows discover modules from `go.work` with `go wor
 
 Internal module dependencies must follow this pattern:
 
-1. Add a normal `require` on the repository release version, for example `github.com/ARM-software/golang-utils/utils/commonerrors v1.170.7`.
+1. Add a normal `require` on the repository release version, for example `github.com/ARM-software/golang-utils/utils/commonerrors v1.170.7` while preparing the first multi-module release.
 2. Add a local `replace` pointing at the sibling checkout path, for example `replace github.com/ARM-software/golang-utils/utils/commonerrors => ../commonerrors`.
 3. Keep `replace` directives suitable for local development with `GOWORK=off`.
 
-This keeps local development working before publication while still giving CDS a versioned dependency graph to prepare for release.
+This keeps local development working before publication. The release workflow uses
+`cd-determine-version` and `prepare_go_release.py` to update these requirements
+to the shared CDS project version before `cd-tag-and-release` tags the modules.
+Go consumers ignore dependency modules' local `replace` directives and resolve
+the versioned requirements from the published CDS tags.
 
 ## Adding a new module
 
@@ -87,4 +93,6 @@ CDS remains the only project release mechanism.
 - All modules share the same repository release version.
 - Submodules are not versioned or released independently.
 - `cd-tag-and-release` remains the release entry point.
-- The versioned internal `require` directives give CDS the metadata it needs to prepare multi-module releases and update internal dependencies consistently.
+- The release workflow updates versioned internal `require` directives with
+  `prepare_go_release.py` before invoking `cd-tag-and-release`; CDS remains the
+  sole tagging and publication mechanism for the project.

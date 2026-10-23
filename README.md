@@ -29,12 +29,14 @@ Each top-level consumable package under `utils/` is now its own Go module.
 Use the narrowest module that matches the package you import. For example:
 
 ```bash
-go get github.com/ARM-software/golang-utils/utils/collection@v1.170.7
-go get github.com/ARM-software/golang-utils/utils/http@v1.170.7
-go get github.com/ARM-software/golang-utils/utils/validation@v1.170.7
+go get github.com/ARM-software/golang-utils/utils/collection@latest
+go get github.com/ARM-software/golang-utils/utils/http@latest
+go get github.com/ARM-software/golang-utils/utils/validation@latest
 ```
 
 The `github.com/ARM-software/golang-utils/utils` module is kept as a lightweight umbrella module for compatibility and tooling, but it is not the recommended dependency target for new consumers.
+The first submodule tags will be published by the next CDS project release;
+older releases such as `v1.170.7` only contain the original umbrella module.
 
 See [GO_MODULES.md](GO_MODULES.md) for consumer and developer guidance.
 
