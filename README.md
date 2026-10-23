@@ -36,7 +36,7 @@ go get github.com/ARM-software/golang-utils/utils/validation@v1.170.7
 
 The `github.com/ARM-software/golang-utils/utils` module is kept as a lightweight umbrella module for compatibility and tooling, but it is not the recommended dependency target for new consumers.
 
-See [docs/go-modules.md](docs/go-modules.md) for consumer and developer guidance.
+See [GO_MODULES.md](GO_MODULES.md) for consumer and developer guidance.
 
 ## Releases
 

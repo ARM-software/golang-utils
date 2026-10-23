@@ -16,7 +16,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 )
 
-//go:embed *
+//go:embed testdata
 var testContent embed.FS
 
 const testFile1Content = "this is a text file with some content"

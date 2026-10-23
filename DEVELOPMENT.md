@@ -9,7 +9,7 @@ Since this is a Go library, there is no application to run.
 
 The repository root `go.work` defines the workspace. The `utils/` directory contains the umbrella module plus the individual submodules.
 
-Detailed multi-module guidance lives in [docs/go-modules.md](docs/go-modules.md).
+Detailed multi-module guidance lives in [GO_MODULES.md](GO_MODULES.md).
  
 ### Running tests
 
@@ -120,7 +120,7 @@ When adding a new module, also update:
 1. `go.work`
 2. `.github/dependabot.yml`
 3. Any module-level `go:generate` tool declarations
-4. Documentation in [docs/go-modules.md](docs/go-modules.md)
+4. Documentation in [GO_MODULES.md](GO_MODULES.md)
 
 ## Third-party IP checks
 
