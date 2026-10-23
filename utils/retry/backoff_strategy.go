@@ -6,7 +6,7 @@ package retry
 // trying again, and if they wait, how that delay changes over time.
 type BackoffStrategy int
 
-//go:generate go tool enumer -type=BackoffStrategy -text -json -yaml
+//go:generate go run github.com/dmarkham/enumer -type=BackoffStrategy -text -json -yaml
 
 const (
 	// NoBackoff performs basic retries but applies no backoff strategy between

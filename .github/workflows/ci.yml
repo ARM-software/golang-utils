@@ -8,22 +8,14 @@ on:
   pull_request:
     branches: [ master ]
 
-# Set environment variables available in all jobs and steps
 env:
-  go_version: "1.25.6"
-  go_cache_macOS_path: |
-    ~/Library/Caches/go-build
-  go_cache_windows_path: |
-    %LocalAppData%\go-build
-  go_cache_ubuntu_path: |
-    ~/.cache/go-build  
+  go_version: "1.26.1"
+
 jobs:
- # Check that a news file has been added to this branch when a PR is created
   assert-news:
     name: Assert news files (See CONTRIBUTING.md)
     runs-on: ubuntu-latest
     steps:
-      # Checkout with full history for to allow compare with base branch
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
@@ -52,12 +44,26 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version: ${{ env.go_version }}
+          cache: true
       - uses: actions/setup-python@v7
       - name: Install CI/CD tools
         run: python -m pip install --upgrade continuous-delivery-scripts && pip list
-      - name: Download Go dependencies
-        run: go mod download
-        working-directory: utils
+      - name: Sync workspace
+        run: go work sync
+      - name: Download Go dependencies for every module
+        shell: pwsh
+        run: |
+          $work = go work edit -json | ConvertFrom-Json
+          foreach ($module in @($work.Use | ForEach-Object { $_.DiskPath } | Sort-Object)) {
+            Push-Location $module
+            $env:GOWORK = 'off'
+            go mod download
+            if ($LASTEXITCODE -ne 0) {
+              Pop-Location
+              exit $LASTEXITCODE
+            }
+            Pop-Location
+          }
       - name: Check third-party IP
         run: cd-check-licence-compliance
 
@@ -65,26 +71,139 @@ jobs:
     name: Check for secrets
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/setup-python@v7
-    - name: Install tools
-      run: pip install detect-secrets[gibberish]==1.5.0 && pip list
-    - uses: actions/checkout@v7
-      with:
-        fetch-depth: 0
-    # FIXME; GitLeaks now requires a licence.
-    #- name: Check for secrets using gitleaks
-    #  uses: zricethezav/gitleaks-action@master
-    #  with:
-    #    config-path: .gitleaks.toml
-    - name: Check for secrets using detect-secrets
-      run: git ls-files -z | xargs -0 detect-secrets-hook --baseline .secrets.baseline --exclude-files '.*go\.sum$' --exclude-files '.*\.html$' --exclude-files '.*\.properties$' --exclude-files 'ci.yml'
-      working-directory: .
+      - uses: actions/setup-python@v7
+      - name: Install tools
+        run: pip install detect-secrets[gibberish]==1.5.0 && pip list
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Check for secrets using detect-secrets
+        run: git ls-files -z | xargs -0 detect-secrets-hook --baseline .secrets.baseline --exclude-files '.*go\.sum$' --exclude-files '.*\.html$' --exclude-files '.*\.properties$' --exclude-files 'ci.yml'
 
-  build-and-test:
+  verify-go-modules:
+    name: Generate, lint, test, and cover Go modules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ env.go_version }}
+          cache: true
+      - name: Sync workspace
+        run: go work sync
+      - name: Install Go CI tools
+        shell: pwsh
+        run: |
+          go install gotest.tools/gotestsum@latest
+          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+          Add-Content -Path $env:GITHUB_PATH -Value ((go env GOPATH) + '/bin')
+      - name: Discover modules
+        id: modules
+        shell: pwsh
+        run: |
+          $modules = @((go work edit -json | ConvertFrom-Json).Use | ForEach-Object { $_.DiskPath } | Sort-Object)
+          "count=$($modules.Count)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "json=$($modules | ConvertTo-Json -Compress)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      - name: Run generate, lint, tests, and coverage
+        shell: pwsh
+        run: |
+          $modules = '${{ steps.modules.outputs.json }}' | ConvertFrom-Json
+          $root = Get-Location
+          $junitDir = Join-Path $root 'artifacts/junit'
+          $coverageDir = Join-Path $root 'artifacts/coverage'
+          New-Item -ItemType Directory -Force -Path $junitDir | Out-Null
+          New-Item -ItemType Directory -Force -Path $coverageDir | Out-Null
+          $results = @()
+          $failed = $false
+          foreach ($module in $modules) {
+            $moduleKey = $module.TrimStart('./').Replace('/', '__')
+            $junitFile = Join-Path $junitDir ($moduleKey + '.xml')
+            $coverageFile = Join-Path $coverageDir ($moduleKey + '.out')
+            $result = [ordered]@{ Module = $module; Generate = 'pass'; Lint = 'pass'; Test = 'pass' }
+            Push-Location $module
+            $env:GOWORK = 'off'
+            go generate ./...
+            if ($LASTEXITCODE -ne 0) {
+              $result.Generate = 'fail'
+              $result.Lint = 'skipped'
+              $result.Test = 'skipped'
+              $failed = $true
+              Pop-Location
+              $results += [pscustomobject]$result
+              continue
+            }
+            golangci-lint run ./... --verbose --output.text.print-issued-lines --output.text.print-linter-name --output.tab.colors --max-issues-per-linter 0 --max-same-issues 0
+            if ($LASTEXITCODE -ne 0) {
+              $result.Lint = 'fail'
+              $failed = $true
+            }
+            gotestsum --format standard-verbose --junitfile $junitFile -- -race -covermode=atomic -coverprofile $coverageFile -tags integration -timeout 30m ./...
+            if ($LASTEXITCODE -ne 0) {
+              $result.Test = 'fail'
+              $failed = $true
+            }
+            if (-not (Test-Path -LiteralPath $coverageFile)) {
+              Set-Content -LiteralPath $coverageFile -Value 'mode: atomic'
+            }
+            Pop-Location
+            $results += [pscustomobject]$result
+          }
+          $combinedCoverage = Join-Path $coverageDir 'combined.out'
+          Set-Content -LiteralPath $combinedCoverage -Value 'mode: atomic'
+          foreach ($coverageFile in Get-ChildItem -LiteralPath $coverageDir -Filter '*.out' | Sort-Object Name) {
+            if ($coverageFile.Name -eq 'combined.out') {
+              continue
+            }
+            $lines = Get-Content -LiteralPath $coverageFile.FullName
+            if ($lines.Count -gt 1) {
+              Add-Content -LiteralPath $combinedCoverage -Value $lines[1..($lines.Count - 1)]
+            }
+          }
+          $coverageSummary = 'coverage unavailable'
+          if ((Get-Item -LiteralPath $combinedCoverage).Length -gt 13) {
+            $coverageSummary = (go tool cover -func=$combinedCoverage | Select-Object -Last 1).Trim()
+          }
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Go modules checked'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
+          foreach ($module in $modules) {
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ("- ``$module``")
+          }
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Module results'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '| Module | Generate | Lint | Test |'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '| --- | --- | --- | --- |'
+          foreach ($result in $results) {
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ("| ``$($result.Module)`` | $($result.Generate) | $($result.Lint) | $($result.Test) |")
+          }
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Coverage'
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ("- $coverageSummary")
+          if ($failed) {
+            exit 1
+          }
+      - name: Upload JUnit reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-xml
+          path: artifacts/junit/*.xml
+          if-no-files-found: error
+      - name: Upload coverage artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: artifacts/coverage/*.out
+          if-no-files-found: error
+
+  build-all-modules:
+    name: Build all modules
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
-        go-module: [utils]
         multi-platform:
           - ${{ github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch' }}
         exclude:
@@ -92,7 +211,6 @@ jobs:
             multi-platform: false
           - os: windows-latest
             multi-platform: false
-    name: Build and test
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -100,59 +218,26 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version: ${{ env.go_version }}
-
-      - if: ${{ startsWith(matrix.os, 'macOS') }}
-        run: echo "CACHE_PATH=${{ env.go_cache_macOS_path }}" >> $GITHUB_ENV
-      - if: ${{ startsWith(matrix.os, 'windows') }}
-        run: echo "CACHE_PATH=${{ env.go_cache_windows_path }}" >> $GITHUB_ENV
-      - if: ${{ startsWith(matrix.os, 'ubuntu') }}
-        run: echo "CACHE_PATH=${{ env.go_cache_ubuntu_path }}" >> $GITHUB_ENV
-      - name: Load Go Dependency Cache
-        uses: actions/cache@v6
-        with:
-          path: |
-            ${{ env.CACHE_PATH }}
-            ~/go/pkg/mod
-          key: ${{ matrix.os }}-${{ matrix.go-module }}-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ matrix.os }}-${{ matrix.go-module }}-
-      - name: Synchronise workspace
+          cache: true
+      - name: Sync workspace
         run: go work sync
-        working-directory: ${{ matrix.go-module }}
-      - name: Compute workspace package patterns
-        id: workspace-packages
+      - name: Discover modules
+        id: modules
         shell: pwsh
         run: |
-          Push-Location "${{ matrix.go-module }}"
-          $work = go work edit -json | ConvertFrom-Json
-          $patterns = @($work.Use | ForEach-Object { "$($_.DiskPath)/..." })
-          "patterns=$($patterns -join ' ')" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          Pop-Location
-      - if: ${{ startsWith(matrix.os, 'ubuntu') }}
-        name: Linting
-        uses: golangci/golangci-lint-action@v9
-        with:
-          version: latest
-          working-directory: ${{ matrix.go-module }}
-          args: "${{ steps.workspace-packages.outputs.patterns }} --verbose --output.text.print-issued-lines --output.text.print-linter-name --output.tab.colors --max-issues-per-linter 0 --max-same-issues 0"
-      - name: Build ${{ matrix.go-module }} on ${{ matrix.os }}
+          $modules = @((go work edit -json | ConvertFrom-Json).Use | ForEach-Object { $_.DiskPath } | Sort-Object)
+          "json=$($modules | ConvertTo-Json -Compress)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      - name: Build modules on ${{ matrix.os }}
         shell: pwsh
         run: |
-          Push-Location "${{ matrix.go-module }}"
-          $patterns = "${{ steps.workspace-packages.outputs.patterns }}" -split ' '
-          go build -v @patterns
-          Pop-Location
-
-      - if: ${{ startsWith(matrix.os, 'ubuntu') }}
-        name: Test [${{ matrix.go-module }} on ${{ matrix.os }}]
-        shell: pwsh
-        run: |
-          Push-Location "${{ matrix.go-module }}"
-          $patterns = "${{ steps.workspace-packages.outputs.patterns }}" -split ' '
-          go test -race -cover -v -tags integration -timeout 30m -coverprofile "${{ matrix.go-module }}_coverage.out" @patterns
-          Pop-Location
-
-# FIXME: Run tests on Mac and Windows
-#      - if: ${{ startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'macOS') }}
-#        run: go test -race -cover -v ./...
-#        working-directory: ${{ matrix.go-module }}
+          $modules = '${{ steps.modules.outputs.json }}' | ConvertFrom-Json
+          foreach ($module in $modules) {
+            Push-Location $module
+            $env:GOWORK = 'off'
+            go build -v ./...
+            if ($LASTEXITCODE -ne 0) {
+              Pop-Location
+              exit $LASTEXITCODE
+            }
+            Pop-Location
+          }

@@ -8,7 +8,7 @@ import (
 // Severity identifies the severity of an annotation.
 type Severity int
 
-//go:generate go tool enumer -type=Severity -text -json -yaml
+//go:generate go run github.com/dmarkham/enumer -type=Severity -text -json -yaml
 
 const (
 	SeverityError Severity = iota

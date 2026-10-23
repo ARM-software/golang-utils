@@ -4,7 +4,7 @@ SPDX-License-Identifier: Apache-2.0
 -->
 # Golang utilities
 
-[![Go Badge](https://img.shields.io/badge/go-v1.25-blue)](https://golang.org/)
+[![Go Badge](https://img.shields.io/badge/go-v1.26-blue)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CI](https://github.com/ARM-software/golang-utils/actions/workflows/ci.yml/badge.svg)](https://github.com/ARM-software/golang-utils/actions/workflows/ci.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/ARM-software/golang-utils/utils.svg)](https://pkg.go.dev/github.com/ARM-software/golang-utils/utils)
@@ -24,30 +24,19 @@ Few helpers may be themselves leveraging 3rd party libraries.
 
 ## Using this library
 
-Each first-level directory under `utils/` is now its own Go module.
+Each top-level consumable package under `utils/` is now its own Go module.
 
-This means consumers can depend only on the subproject they need, which keeps
-the dependency footprint smaller than the previous single-module layout.
+Use the narrowest module that matches the package you import. For example:
 
-To use one subproject, add it to your `go.mod` as you would any other module.
-For example:
-
-```go
-require (
-    github.com/ARM-software/golang-utils/utils/collection latest
-    ...
-)
+```bash
+go get github.com/ARM-software/golang-utils/utils/collection@v1.170.7
+go get github.com/ARM-software/golang-utils/utils/http@v1.170.7
+go get github.com/ARM-software/golang-utils/utils/validation@v1.170.7
 ```
 
-and then import it directly:
+The `github.com/ARM-software/golang-utils/utils` module is kept as a lightweight umbrella module for compatibility and tooling, but it is not the recommended dependency target for new consumers.
 
-```go
-import "github.com/ARM-software/golang-utils/utils/collection"
-```
-
-If you need another granular subproject, follow the same pattern with its own
-module path, for example `github.com/ARM-software/golang-utils/utils/filesystem`
-or `github.com/ARM-software/golang-utils/utils/validation`.
+See [docs/go-modules.md](docs/go-modules.md) for consumer and developer guidance.
 
 ## Releases
 
@@ -60,9 +49,8 @@ For release notes and a history of changes of all **production** releases, pleas
 The following describes the major aspects of the project structure:
 
 - `docs/` - Code reference documentation.
-- `utils/` - The Go workspace, defined by `utils/go.work`.
-  Each first-level directory in `utils/` is a standalone Go module with its
-  own `go.mod`.
+- `go.work` - Repository-wide Go workspace definition.
+- `utils/` - Umbrella module plus the repository's Go submodules.
 - `changes/` - Collection of news files for unreleased changes.
 
 ## Getting Help

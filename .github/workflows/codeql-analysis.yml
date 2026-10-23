@@ -15,10 +15,12 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    # The branches below must be a subset of the branches above
     branches: [ master ]
   schedule:
     - cron: '41 20 * * 5'
+
+env:
+  go_version: "1.26.1"
 
 jobs:
   analyze:
@@ -33,46 +35,39 @@ jobs:
       fail-fast: false
       matrix:
         language: [ 'go' ]
-        # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python' ]
-        # Learn more:
-        # https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#changing-the-languages-that-are-analyzed
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v7
+      - name: Checkout repository
+        uses: actions/checkout@v7
 
-    - name: Set up Go
-      uses: actions/setup-go@v6
-      with:
-        go-version: '1.25.6'
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ env.go_version }}
+          cache: true
 
-    - name: Compute workspace package patterns
-      id: workspace-packages
-      shell: pwsh
-      run: |
-        Push-Location "utils"
-        $work = go work edit -json | ConvertFrom-Json
-        $patterns = @($work.Use | ForEach-Object { "$($_.DiskPath)/..." })
-        "patterns=$($patterns -join ' ')" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-        Pop-Location
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4.37.8
+        with:
+          languages: ${{ matrix.language }}
 
-    # Initializes the CodeQL tools for scanning.
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v4.37.8
-      with:
-        languages: ${{ matrix.language }}
-        # If you wish to specify custom queries, you can do so here or in a config file.
-        # By default, queries listed here will override any specified in a config file.
-        # Prefix the list here with "+" to use these queries and those in the config file.
-        # queries: ./path/to/local/query, your-org/your-repo/queries@main
+      - name: Sync workspace
+        run: go work sync
 
-    - name: Build workspace for analysis
-      shell: pwsh
-      run: |
-        Push-Location "utils"
-        $patterns = "${{ steps.workspace-packages.outputs.patterns }}" -split ' '
-        go test @patterns -run TestDoesNotExist
-        Pop-Location
+      - name: Build modules for analysis
+        shell: pwsh
+        run: |
+          $work = go work edit -json | ConvertFrom-Json
+          foreach ($module in @($work.Use | ForEach-Object { $_.DiskPath } | Sort-Object)) {
+            Push-Location $module
+            $env:GOWORK = 'off'
+            go test ./... -run TestDoesNotExist
+            if ($LASTEXITCODE -ne 0) {
+              Pop-Location
+              exit $LASTEXITCODE
+            }
+            Pop-Location
+          }
 
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v4.37.8
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4.37.8

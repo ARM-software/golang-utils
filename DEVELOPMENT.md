@@ -7,31 +7,43 @@ SPDX-License-Identifier: Apache-2.0
  
 Since this is a Go library, there is no application to run.
 
-The `utils/` directory is the Go workspace root and is defined by
-`utils/go.work`. Each first-level directory under `utils/` is also a standalone
-Go module with its own `go.mod`.
+The repository root `go.work` defines the workspace. The `utils/` directory contains the umbrella module plus the individual submodules.
+
+Detailed multi-module guidance lives in [docs/go-modules.md](docs/go-modules.md).
  
 ### Running tests
 
-To run all tests across the workspace:
-```bash
-cd utils
+To run all checks across every module from the repository root:
+
+```powershell
 go work sync
-go test $(go work edit -json | jq -r '.Use[].DiskPath + "/..."')
+$modules = @((go work edit -json | ConvertFrom-Json).Use | ForEach-Object { $_.DiskPath })
+foreach ($module in $modules) {
+  Push-Location $module
+  $env:GOWORK = 'off'
+  go generate ./...
+  golangci-lint run ./...
+  gotestsum -- -race -covermode=atomic -coverprofile coverage.out -tags integration -timeout 30m ./...
+  Pop-Location
+}
 ```
 
-To run tests for a single subproject, run the same command from that subproject
-directory, for example `utils/collection` or `utils/filesystem`.
+To run checks for a single module, run the same commands from that module directory with `GOWORK=off`.
 
 ### Mocks
 
 We use the built-in mock library and use [mockgen](https://github.com/golang/mock#running-mockgen) to generate the mock implementation of Interfaces for testing.
 
 To generate mocks:
-```bash
-cd utils
+```powershell
 go work sync
-go generate $(go work edit -json | jq -r '.Use[].DiskPath + "/..."')
+$modules = @((go work edit -json | ConvertFrom-Json).Use | ForEach-Object { $_.DiskPath })
+foreach ($module in $modules) {
+  Push-Location $module
+  $env:GOWORK = 'off'
+  go generate ./...
+  Pop-Location
+}
 ```
 
 We make use of `go:generate` comments to instruct which `mockgen` commands should be run.
@@ -45,11 +57,15 @@ It is up to the individual developer to ensure their change complies with this.
 
 Static analysis tools and linters are run as part of CI.
 They come from [golangci-lint](https://golangci-lint.run/). To run this locally:
-```bash
-# Run from utils/ for the workspace or from an individual submodule directory.
-cd utils
+```powershell
 go work sync
-golangci-lint run $(go work edit -json | jq -r '.Use[].DiskPath + "/..."')
+$modules = @((go work edit -json | ConvertFrom-Json).Use | ForEach-Object { $_.DiskPath })
+foreach ($module in $modules) {
+  Push-Location $module
+  $env:GOWORK = 'off'
+  golangci-lint run ./...
+  Pop-Location
+}
 ``` 
 
 ### Precommit
@@ -90,10 +106,21 @@ The CI supports three release flows:
 1. Navigate to the [GitHub Actions](https://github.com/ARM-software/golang-utils/actions/workflows/release.yml) page.
 2. Select the **Run Workflow** button and type which kind of release you would like to make (i.e. release, beta or development).
 3. `cd-tag-and-release` regenerates `docs/` and writes the release-time TPIP output as part of the release flow.
+4. CDS remains the single release mechanism for the whole repository even though the repository now contains multiple modules.
+5. Internal module `require` directives are versioned for CDS release preparation, while local `replace` directives keep unreleased sibling modules consumable with `GOWORK=off`.
 
 ### Version Numbers
 
 The version number will be automatically calculated, based on the news files.
+
+### Adding a module
+
+When adding a new module, also update:
+
+1. `go.work`
+2. `.github/dependabot.yml`
+3. Any module-level `go:generate` tool declarations
+4. Documentation in [docs/go-modules.md](docs/go-modules.md)
 
 ## Third-party IP checks
 
