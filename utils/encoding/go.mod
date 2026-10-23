@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/go-faker/faker/v4 v4.7.0
-	github.com/go-ozzo/ozzo-validation/v4 v4.4.1
+	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/stretchr/testify v1.12.1
 )
 

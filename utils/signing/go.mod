@@ -8,11 +8,8 @@ require (
 )
 
 require (
-	github.com/bombsimon/logrusr/v4 v4.2.0 // indirect
-	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/sirupsen/logrus v1.10.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect

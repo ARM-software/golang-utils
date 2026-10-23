@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/deckarep/golang-set/v2 v2.9.0
 	github.com/go-git/go-git/v5 v5.19.1
-	github.com/go-ozzo/ozzo-validation/v4 v4.4.1
+	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/stretchr/testify v1.12.1
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.58.0

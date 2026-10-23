@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/go-faker/faker/v4 v4.7.0
-	github.com/go-ozzo/ozzo-validation/v4 v4.4.1
+	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/iamacarpet/go-win64api v0.0.0-20240507095429-873e84e85847
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/shirou/gopsutil/v4 v4.26.5

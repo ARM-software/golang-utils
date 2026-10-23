@@ -3,7 +3,7 @@ module github.com/ARM-software/golang-utils/utils/url
 go 1.26.0
 
 require (
-	github.com/go-ozzo/ozzo-validation/v4 v4.4.1
+	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/stretchr/testify v1.12.1
 	golang.org/x/net v0.61.0
 )
