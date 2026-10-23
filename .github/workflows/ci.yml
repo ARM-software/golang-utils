@@ -124,7 +124,6 @@ jobs:
             $coverageFile = Join-Path $coverageDir ($moduleKey + '.out')
             $result = [ordered]@{ Module = $module; Generate = 'pass'; Lint = 'pass'; Test = 'pass' }
             Push-Location $module
-            $env:GOWORK = 'off'
             go generate ./...
             if ($LASTEXITCODE -ne 0) {
               $result.Generate = 'fail'
@@ -236,7 +235,6 @@ jobs:
           $modules = '${{ steps.modules.outputs.json }}' | ConvertFrom-Json
           foreach ($module in $modules) {
             Push-Location $module
-            $env:GOWORK = 'off'
             go build -v ./...
             if ($LASTEXITCODE -ne 0) {
               Pop-Location
