@@ -9,41 +9,34 @@ Since this is a Go library, there is no application to run.
 
 The repository root `go.work` defines the workspace. The `utils/` directory contains the umbrella module plus the individual submodules.
 
-Detailed multi-module guidance lives in [GO_MODULES.md](GO_MODULES.md).
+Detailed multi-module guidance lives in the [Go modules guide](guides/go-modules.md).
  
 ### Running tests
 
 To run all checks across every module from the repository root:
 
-```powershell
+```bash
 go work sync
-$modules = @((go work edit -json | ConvertFrom-Json).Use | ForEach-Object { $_.DiskPath })
-foreach ($module in $modules) {
-  Push-Location $module
-  $env:GOWORK = 'off'
-  go generate ./...
-  golangci-lint run ./...
-  gotestsum -- -race -covermode=atomic -coverprofile coverage.out -tags integration -timeout 30m ./...
-  Pop-Location
-}
+go work edit -json |
+  sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p' |
+  while IFS= read -r module; do
+    (cd "$module" && go generate ./... && golangci-lint run ./... && go test ./...)
+  done
 ```
 
-To run checks for a single module, run the same commands from that module directory with `GOWORK=off`.
+CI's `go-multimodules` action writes per-module JUnit XML and coverage to
+`artifacts/`. To run checks for one module, run the Go commands from its
+directory with `GOWORK=off`.
 
 ### Mocks
 
 We use the built-in mock library and use [mockgen](https://github.com/golang/mock#running-mockgen) to generate the mock implementation of Interfaces for testing.
 
 To generate mocks:
-```powershell
-go work sync
-$modules = @((go work edit -json | ConvertFrom-Json).Use | ForEach-Object { $_.DiskPath })
-foreach ($module in $modules) {
-  Push-Location $module
-  $env:GOWORK = 'off'
-  go generate ./...
-  Pop-Location
-}
+```bash
+for module in $(go work edit -json | sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p'); do
+  (cd "$module" && go generate ./...)
+done
 ```
 
 We make use of `go:generate` comments to instruct which `mockgen` commands should be run.
@@ -57,15 +50,10 @@ It is up to the individual developer to ensure their change complies with this.
 
 Static analysis tools and linters are run as part of CI.
 They come from [golangci-lint](https://golangci-lint.run/). To run this locally:
-```powershell
-go work sync
-$modules = @((go work edit -json | ConvertFrom-Json).Use | ForEach-Object { $_.DiskPath })
-foreach ($module in $modules) {
-  Push-Location $module
-  $env:GOWORK = 'off'
-  golangci-lint run ./...
-  Pop-Location
-}
+```bash
+for module in $(go work edit -json | sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p'); do
+  (cd "$module" && golangci-lint run ./...)
+done
 ``` 
 
 ### Precommit
@@ -106,8 +94,8 @@ The CI supports three release flows:
 1. Navigate to the [GitHub Actions](https://github.com/ARM-software/golang-utils/actions/workflows/release.yml) page.
 2. Select the **Run Workflow** button and type which kind of release you would like to make (i.e. release, beta or development).
 3. `cd-tag-and-release` regenerates `docs/` and writes the release-time TPIP output as part of the release flow.
-4. CDS remains the single release mechanism for the whole repository even though the repository now contains multiple modules.
-5. Internal module `require` directives are versioned for CDS release preparation, while local `replace` directives keep unreleased sibling modules consumable with `GOWORK=off`.
+4. [CDS](https://github.com/ARMmbed/continuous-delivery-scripts) remains the single release mechanism for the whole repository even though the repository now contains multiple modules.
+5. Internal module `require` directives are versioned for [CDS](https://github.com/ARMmbed/continuous-delivery-scripts) release preparation, while local `replace` directives keep unreleased sibling modules consumable with `GOWORK=off`.
 
 ### Version Numbers
 
@@ -120,7 +108,7 @@ When adding a new module, also update:
 1. `go.work`
 2. `.github/dependabot.yml`
 3. Any module-level `go:generate` tool declarations
-4. Documentation in [GO_MODULES.md](GO_MODULES.md)
+4. Documentation in [guides/go-modules.md](guides/go-modules.md)
 
 ## Third-party IP checks
 

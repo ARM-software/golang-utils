@@ -31,7 +31,7 @@ normal process to make a change is as follows:
 5. Push to your fork.
 6. Submit a pull request.
 
-If your change adds or restructures a Go module, also update the repository `go.work`, `.github/dependabot.yml`, and the guidance in [GO_MODULES.md](GO_MODULES.md).
+If your change adds or restructures a Go module, also update the repository `go.work`, `.github/dependabot.yml`, and the [Go modules guide](guides/go-modules.md).
 
 We will review the proposed change as soon as we can and, if needed, give feedback. Please bear in mind that the tools
 are complex and cover a large number of use cases. This means we may ask for changes not only to ensure

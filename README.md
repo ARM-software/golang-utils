@@ -34,11 +34,13 @@ go get github.com/ARM-software/golang-utils/utils/http@latest
 go get github.com/ARM-software/golang-utils/utils/validation@latest
 ```
 
-The `github.com/ARM-software/golang-utils/utils` module is kept as a lightweight umbrella module for compatibility and tooling, but it is not the recommended dependency target for new consumers.
-The first submodule tags will be published by the next CDS project release;
-older releases such as `v1.170.7` only contain the original umbrella module.
+> **Compatibility note:** The `github.com/ARM-software/golang-utils/utils`
+> module remains a lightweight umbrella for compatibility and tooling. New
+> consumers should depend on an individual submodule. The first submodule tags
+> will be published by the next [CDS](https://github.com/ARMmbed/continuous-delivery-scripts)
+> project release; `v1.170.7` and earlier contain only the original umbrella module.
 
-See [GO_MODULES.md](GO_MODULES.md) for consumer and developer guidance.
+See the [Go modules guide](guides/go-modules.md) for consumer and developer guidance.
 
 ## Releases
 

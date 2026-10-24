@@ -10,6 +10,7 @@ on:
 
 env:
   go_version: "1.26.1"
+  python_version: '3.11'
 
 jobs:
   assert-news:
@@ -20,6 +21,8 @@ jobs:
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.python_version }}
       - uses: FranzDiebold/github-env-vars-action@v2
       - name: Install CI/CD tools
         run: python -m pip install --upgrade continuous-delivery-scripts && pip list
@@ -47,24 +50,16 @@ jobs:
           cache: true
           cache-dependency-path: '**/go.sum'
       - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.python_version }}
       - name: Install CI/CD tools
         run: python -m pip install --upgrade continuous-delivery-scripts && pip list
       - name: Sync workspace
         run: go work sync
       - name: Download Go dependencies for every module
-        shell: pwsh
-        run: |
-          $work = go work edit -json | ConvertFrom-Json
-          foreach ($module in @($work.Use | ForEach-Object { $_.DiskPath } | Sort-Object)) {
-            Push-Location $module
-            $env:GOWORK = 'off'
-            go mod download
-            if ($LASTEXITCODE -ne 0) {
-              Pop-Location
-              exit $LASTEXITCODE
-            }
-            Pop-Location
-          }
+        uses: ./.github/actions/go-multimodules
+        with:
+          task: download
       - name: Check third-party IP
         run: cd-check-licence-compliance
 
@@ -73,6 +68,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.python_version }}
       - name: Install tools
         run: pip install detect-secrets[gibberish]==1.5.0 && pip list
       - uses: actions/checkout@v7
@@ -95,110 +92,14 @@ jobs:
       - name: Sync workspace
         run: go work sync
       - name: Install Go CI tools
-        shell: pwsh
         run: |
           go install gotest.tools/gotestsum@latest
           go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
-          Add-Content -Path $env:GITHUB_PATH -Value ((go env GOPATH) + '/bin')
-      - name: Discover modules
-        id: modules
-        shell: pwsh
-        run: |
-          $modules = @((go work edit -json | ConvertFrom-Json).Use | ForEach-Object { $_.DiskPath } | Sort-Object)
-          "count=$($modules.Count)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          "json=$($modules | ConvertTo-Json -Compress)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
       - name: Run generate, lint, tests, and coverage
-        shell: pwsh
-        run: |
-          $modules = '${{ steps.modules.outputs.json }}' | ConvertFrom-Json
-          $root = Get-Location
-          $junitDir = Join-Path $root 'artifacts/junit'
-          $coverageDir = Join-Path $root 'artifacts/coverage'
-          New-Item -ItemType Directory -Force -Path $junitDir | Out-Null
-          New-Item -ItemType Directory -Force -Path $coverageDir | Out-Null
-          $results = @()
-          $failed = $false
-          foreach ($module in $modules) {
-            $moduleKey = $module.TrimStart('./').Replace('/', '__')
-            $junitFile = Join-Path $junitDir ($moduleKey + '.xml')
-            $coverageFile = Join-Path $coverageDir ($moduleKey + '.out')
-            $result = [ordered]@{ Module = $module; Generate = 'pass'; Lint = 'pass'; Test = 'pass' }
-            Push-Location $module
-            go generate ./...
-            if ($LASTEXITCODE -ne 0) {
-              $result.Generate = 'fail'
-              $result.Lint = 'skipped'
-              $result.Test = 'skipped'
-              $failed = $true
-              Pop-Location
-              $results += [pscustomobject]$result
-              continue
-            }
-            golangci-lint run ./... --verbose --output.text.print-issued-lines --output.text.print-linter-name --output.tab.colors --max-issues-per-linter 0 --max-same-issues 0
-            if ($LASTEXITCODE -ne 0) {
-              $result.Lint = 'fail'
-              $failed = $true
-            }
-            gotestsum --format standard-verbose --junitfile $junitFile -- -race -covermode=atomic -coverprofile $coverageFile -tags integration -timeout 30m ./...
-            if ($LASTEXITCODE -ne 0) {
-              $result.Test = 'fail'
-              $failed = $true
-            }
-            if (-not (Test-Path -LiteralPath $coverageFile)) {
-              Set-Content -LiteralPath $coverageFile -Value 'mode: atomic'
-            }
-            Pop-Location
-            $results += [pscustomobject]$result
-          }
-          $combinedCoverage = Join-Path $coverageDir 'combined.out'
-          Set-Content -LiteralPath $combinedCoverage -Value 'mode: atomic'
-          foreach ($coverageFile in Get-ChildItem -LiteralPath $coverageDir -Filter '*.out' | Sort-Object Name) {
-            if ($coverageFile.Name -eq 'combined.out') {
-              continue
-            }
-            $lines = Get-Content -LiteralPath $coverageFile.FullName
-            if ($lines.Count -gt 1) {
-              Add-Content -LiteralPath $combinedCoverage -Value $lines[1..($lines.Count - 1)]
-            }
-          }
-          $coverageSummary = 'coverage unavailable'
-          if ((Get-Item -LiteralPath $combinedCoverage).Length -gt 13) {
-            $coverageSummary = (go tool cover "-func=$combinedCoverage" | Select-Object -Last 1).Trim()
-          }
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Go modules checked'
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
-          foreach ($module in $modules) {
-            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ("- ``$module``")
-          }
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Module results'
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '| Module | Generate | Lint | Test |'
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '| --- | --- | --- | --- |'
-          foreach ($result in $results) {
-            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ("| ``$($result.Module)`` | $($result.Generate) | $($result.Lint) | $($result.Test) |")
-          }
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '## Coverage'
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ''
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ("- $coverageSummary")
-          if ($failed) {
-            exit 1
-          }
-      - name: Upload JUnit reports
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/go-multimodules
         with:
-          name: junit-xml
-          path: artifacts/junit/*.xml
-          if-no-files-found: error
-      - name: Upload coverage artifacts
-        if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: artifacts/coverage/*.out
-          if-no-files-found: error
+          task: verify
 
   build-all-modules:
     name: Build all modules
@@ -223,22 +124,7 @@ jobs:
           cache-dependency-path: '**/go.sum'
       - name: Sync workspace
         run: go work sync
-      - name: Discover modules
-        id: modules
-        shell: pwsh
-        run: |
-          $modules = @((go work edit -json | ConvertFrom-Json).Use | ForEach-Object { $_.DiskPath } | Sort-Object)
-          "json=$($modules | ConvertTo-Json -Compress)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
       - name: Build modules on ${{ matrix.os }}
-        shell: pwsh
-        run: |
-          $modules = '${{ steps.modules.outputs.json }}' | ConvertFrom-Json
-          foreach ($module in $modules) {
-            Push-Location $module
-            go build -v ./...
-            if ($LASTEXITCODE -ne 0) {
-              Pop-Location
-              exit $LASTEXITCODE
-            }
-            Pop-Location
-          }
+        uses: ./.github/actions/go-multimodules
+        with:
+          task: build

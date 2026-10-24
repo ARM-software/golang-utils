@@ -56,18 +56,9 @@ jobs:
         run: go work sync
 
       - name: Build modules for analysis
-        shell: pwsh
-        run: |
-          $work = go work edit -json | ConvertFrom-Json
-          foreach ($module in @($work.Use | ForEach-Object { $_.DiskPath } | Sort-Object)) {
-            Push-Location $module
-            go test ./... -run TestDoesNotExist
-            if ($LASTEXITCODE -ne 0) {
-              Pop-Location
-              exit $LASTEXITCODE
-            }
-            Pop-Location
-          }
+        uses: ./.github/actions/go-multimodules
+        with:
+          task: analyze
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4.37.8

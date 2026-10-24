@@ -18,9 +18,11 @@ go get github.com/ARM-software/golang-utils/utils/filesystem@latest
 go get github.com/ARM-software/golang-utils/utils/validation@latest
 ```
 
-The `github.com/ARM-software/golang-utils/utils` module remains in the repository as an umbrella module for compatibility and tooling, but new consumers should depend on the narrower submodule they actually import.
-Submodule tags start with the next CDS project release; `v1.170.7` and earlier
-published only the original umbrella module.
+> **Compatibility note:** The `github.com/ARM-software/golang-utils/utils`
+> module remains a lightweight umbrella for compatibility and tooling. New
+> consumers should depend on the narrower submodule they actually import.
+> Submodule tags start with the next [CDS] project release; `v1.170.7` and
+> earlier published only the original umbrella module.
 
 ## Workspace structure
 
@@ -29,7 +31,8 @@ published only the original umbrella module.
 - Each top-level consumable package under `utils/` has its own `go.mod`.
 - Shared helper packages that are reused across module boundaries also have their own `go.mod` when keeping them separate prevents test-only dependencies from leaking into production modules.
 
-CI and local multi-module workflows discover modules from `go.work` with `go work edit -json`.
+CI uses the reusable Go multimodules action to discover modules from `go.work`.
+It checks that every `go.mod` is listed.
 
 ## Internal dependencies
 
@@ -39,11 +42,11 @@ Internal module dependencies must follow this pattern:
 2. Add a local `replace` pointing at the sibling checkout path, for example `replace github.com/ARM-software/golang-utils/utils/commonerrors => ../commonerrors`.
 3. Keep `replace` directives suitable for local development with `GOWORK=off`.
 
-This keeps local development working before publication. The release workflow uses
-`cd-determine-version` and `prepare_go_release.py` to update these requirements
-to the shared CDS project version before `cd-tag-and-release` tags the modules.
-Go consumers ignore dependency modules' local `replace` directives and resolve
-the versioned requirements from the published CDS tags.
+This keeps local development working before publication. [CDS] 4.8.0+ is responsible
+for preparing the versioned internal requirements and tagging all workspace
+modules as part of the single project release. Go consumers ignore dependency
+modules' local `replace` directives and resolve versioned requirements from
+published [CDS] tags.
 
 ## Adding a new module
 
@@ -61,22 +64,26 @@ If the module root would otherwise contain no Go source file, add a small `doc.g
 
 From the repository root:
 
-```powershell
+```bash
 go work sync
-$modules = @((go work edit -json | ConvertFrom-Json).Use | ForEach-Object { $_.DiskPath })
-foreach ($module in $modules) {
-  Push-Location $module
-  $env:GOWORK = 'off'
-  go generate ./...
-  golangci-lint run ./...
-  gotestsum -- -race -covermode=atomic -coverprofile coverage.out -tags integration -timeout 30m ./...
-  Pop-Location
-}
+go work edit -json |
+  sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p' |
+  while IFS= read -r module; do
+    (cd "$module" && go generate ./... && golangci-lint run ./... && go test ./...)
+  done
 ```
+
+The composite action's `verify` task runs those checks with `gotestsum`, then
+produces per-module JUnit XML and coverage profiles under `artifacts/`. Local
+commands use Bash on Linux and macOS; on Windows, use WSL with Go and
+`golangci-lint` installed.
+To confirm that one module builds without workspace resolution, run
+`GOWORK=off go test ./...` from its directory.
 
 ## CI behaviour
 
-The CI workflow:
+The CI workflows call the local [Go multimodules composite action](https://github.com/ARM-software/golang-utils/blob/master/.github/actions/go-multimodules/README.md)
+with `uses: ./.github/actions/go-multimodules`. It:
 
 1. Reads the module list from the repository `go.work`.
 2. Runs `go generate` per module.
@@ -84,15 +91,28 @@ The CI workflow:
 4. Runs tests per module with `gotestsum` and writes one JUnit XML file per module.
 5. Writes one coverage profile per module and merges them into a combined profile.
 6. Uploads JUnit and coverage artifacts.
-7. Publishes a GitHub Actions summary listing the modules checked and the combined coverage result.
+7. Publishes a GitHub Actions summary listing each module's coverage, failed
+   test cases, and links to the JUnit and coverage artifacts.
 
-## CDS releases
+To reuse the action in another Go repository, check out that repository, set up
+Go, install `gotestsum` and `golangci-lint` for the `verify`
+task, then reference
+`ARM-software/golang-utils/.github/actions/go-multimodules@<commit-sha>` with
+`task: verify`. The action uses the caller's `go.work` when present, or discovers
+`go.mod` files directly otherwise. Set `artifact-prefix` when several copies
+run in one workflow. The action's
+[README](https://github.com/ARM-software/golang-utils/tree/master/.github/actions/go-multimodules)
+contains a complete YAML example.
 
-CDS remains the only project release mechanism.
+## [CDS] releases
+
+[CDS] remains the only project release mechanism.
 
 - All modules share the same repository release version.
 - Submodules are not versioned or released independently.
 - `cd-tag-and-release` remains the release entry point.
-- The release workflow updates versioned internal `require` directives with
-  `prepare_go_release.py` before invoking `cd-tag-and-release`; CDS remains the
-  sole tagging and publication mechanism for the project.
+- In [CDS] 4.8.0+, `cd-tag-and-release` updates versioned internal `require`
+  directives and includes them in the shared release commit before tagging
+  and publication. The repository's `release.yml` requires this version.
+
+[CDS]: https://github.com/ARMmbed/continuous-delivery-scripts
