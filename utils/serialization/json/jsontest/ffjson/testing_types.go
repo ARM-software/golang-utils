@@ -7,7 +7,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/collection"
 )
 
-//go:generate go tool ffjson $GOFILE
+//go:generate go tool github.com/pquerna/ffjson -force-regenerate $GOFILE
 
 type TestingStruct struct {
 	Int      int

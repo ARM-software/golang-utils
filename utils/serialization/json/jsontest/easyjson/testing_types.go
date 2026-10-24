@@ -7,7 +7,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/collection"
 )
 
-//go:generate go tool easyjson -all $GOFILE
+//go:generate go tool github.com/mailru/easyjson/easyjson -all $GOFILE
 
 type TestingStruct struct {
 	Int      int

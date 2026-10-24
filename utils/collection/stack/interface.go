@@ -3,6 +3,7 @@ package stack
 import "iter"
 
 //go:generate go tool mockgen -destination=../../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/collection/$GOPACKAGE IStack
+//go:generate go tool mockgen -destination=../mocks/mock_$GOPACKAGE.go -package=mocks github.com/ARM-software/golang-utils/utils/collection/$GOPACKAGE IStack
 
 // IStack specifies the behaviour of a last-in, first-out (LIFO) collection.
 // it is inspired by the work of https://github.com/hayageek/threadsafe/ and https://github.com/golang-collections/collections
