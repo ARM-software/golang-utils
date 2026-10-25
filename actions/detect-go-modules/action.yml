@@ -1,0 +1,52 @@
+name: Detect Go modules
+description: Discover all Go modules from go.work or the repository layout and fail when workspace entries are missing.
+outputs:
+  modules:
+    description: Newline-delimited module directories, relative to the repository root.
+    value: ${{ steps.detect.outputs.modules }}
+  modules-json:
+    description: JSON array of module directories for matrix and reusable workflows.
+    value: ${{ steps.detect.outputs.modules-json }}
+runs:
+  using: composite
+  steps:
+    - name: Discover and validate modules
+      id: detect
+      shell: bash
+      run: |
+        set -euo pipefail
+        cd "$GITHUB_WORKSPACE"
+        found="$(mktemp)"
+        modules="$(mktemp)"
+        trap 'rm -f "$found" "$modules"' EXIT
+        find . -type f -name go.mod -not -path './.git/*' -not -path './artifacts/*' -print |
+          sed 's@/go.mod$@@' | LC_ALL=C sort > "$found"
+        if [[ -f go.work ]]; then
+          workspace="$(go work edit -json)"
+          printf '%s\n' "$workspace" |
+            sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p' |
+            LC_ALL=C sort > "$modules"
+        else
+          cp "$found" "$modules"
+        fi
+        if [[ ! -s "$modules" ]] || ! diff -u "$found" "$modules"; then
+          echo 'go.work must enumerate every go.mod directory' >&2
+          exit 1
+        fi
+
+        json='['
+        while IFS= read -r module; do
+          escaped="${module//\\/\\\\}"
+          escaped="${escaped//\"/\\\"}"
+          if [[ "$json" != '[' ]]; then json+=','; fi
+          json+="\"$escaped\""
+        done < "$modules"
+        json+=']'
+        {
+          printf 'modules<<GO_MODULE_PATHS\n'
+          cat "$modules"
+          printf 'GO_MODULE_PATHS\n'
+          printf 'modules-json=%s\n' "$json"
+        } >> "$GITHUB_OUTPUT"
+        echo "Discovered $(wc -l < "$modules") Go modules"
+        cat "$modules"

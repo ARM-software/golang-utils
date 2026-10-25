@@ -82,8 +82,8 @@ To confirm that one module builds without workspace resolution, run
 
 ## CI behaviour
 
-The CI workflows call the local [Go multimodules composite action](https://github.com/ARM-software/golang-utils/blob/master/.github/actions/go-multimodules/README.md)
-with `uses: ./.github/actions/go-multimodules`. It:
+The CI workflows call the local [Go multimodules composite action](action-go-multimodules.md)
+with `uses: $/actions/go-multimodules`. It:
 
 1. Reads the module list from the repository `go.work`.
 2. Runs `go generate` per module.
@@ -94,15 +94,9 @@ with `uses: ./.github/actions/go-multimodules`. It:
 7. Publishes a GitHub Actions summary listing each module's coverage, failed
    test cases, and links to the JUnit and coverage artifacts.
 
-To reuse the action in another Go repository, check out that repository, set up
-Go, install `gotestsum` and `golangci-lint` for the `verify`
-task, then reference
-`ARM-software/golang-utils/.github/actions/go-multimodules@<commit-sha>` with
-`task: verify`. The action uses the caller's `go.work` when present, or discovers
-`go.mod` files directly otherwise. Set `artifact-prefix` when several copies
-run in one workflow. The action's
-[README](https://github.com/ARM-software/golang-utils/tree/master/.github/actions/go-multimodules)
-contains a complete YAML example.
+See the [Go multimodules action guide](action-go-multimodules.md) for a full
+example using the action from another repository, including the difference
+between `$` and a repository-qualified `uses:` reference.
 
 ## [CDS] releases
 

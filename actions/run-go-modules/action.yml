@@ -1,0 +1,72 @@
+name: Run a command in Go modules
+description: Build, download, analyze, generate, or lint every discovered Go module.
+inputs:
+  task:
+    description: 'build, download, analyze, generate, or lint'
+    required: true
+  modules:
+    description: Optional newline-delimited module directories from detect-go-modules; discovers all when omitted.
+    required: false
+    default: ''
+  results-file:
+    description: Optional repository-relative TSV file recording each module's pass, fail, or skipped status.
+    required: false
+    default: ''
+  skip-results-file:
+    description: Optional TSV results file; skip modules whose earlier task did not pass.
+    required: false
+    default: ''
+runs:
+  using: composite
+  steps:
+    - name: Discover modules when not provided
+      if: ${{ inputs.modules == '' }}
+      id: detect
+      uses: $/actions/detect-go-modules
+    - name: Run task in each module
+      shell: bash
+      env:
+        MODULES: ${{ inputs.modules || steps.detect.outputs.modules }}
+        GO_MODULE_TASK: ${{ inputs.task }}
+        RESULTS_FILE: ${{ inputs.results-file }}
+        SKIP_RESULTS_FILE: ${{ inputs.skip-results-file }}
+      run: |
+        set -euo pipefail
+        cd "$GITHUB_WORKSPACE"
+        case "$GO_MODULE_TASK" in
+          build|download|analyze|generate|lint) ;;
+          *) echo "Unknown Go module task: $GO_MODULE_TASK" >&2; exit 2 ;;
+        esac
+        if [[ -z "$MODULES" ]]; then echo 'No Go modules supplied or detected' >&2; exit 1; fi
+        if [[ -n "$RESULTS_FILE" ]]; then
+          mkdir -p "$(dirname "$RESULTS_FILE")"
+          : > "$RESULTS_FILE"
+        fi
+        if [[ -n "$SKIP_RESULTS_FILE" && ! -f "$SKIP_RESULTS_FILE" ]]; then
+          echo "Missing prerequisite results: $SKIP_RESULTS_FILE" >&2
+          exit 1
+        fi
+        failed=0
+        while IFS= read -r module; do
+          [[ -n "$module" ]] || continue
+          status=pass
+          if [[ -n "$SKIP_RESULTS_FILE" ]]; then
+            earlier="$(awk -F '\t' -v module="$module" '$1 == module { print $2; exit }' "$SKIP_RESULTS_FILE")"
+            if [[ "$earlier" != pass ]]; then status=skipped; fi
+          fi
+          if [[ "$status" != skipped ]]; then
+            echo "$GO_MODULE_TASK $module"
+            case "$GO_MODULE_TASK" in
+              build) (cd "$module" && go build -v ./...) || status=fail ;;
+              download) (cd "$module" && GOWORK=off go mod download) || status=fail ;;
+              analyze) (cd "$module" && go test ./... -run TestDoesNotExist) || status=fail ;;
+              generate) (cd "$module" && go generate ./...) || status=fail ;;
+              lint) (cd "$module" && golangci-lint run ./... --verbose --output.text.print-issued-lines --output.text.print-linter-name --output.tab.colors --max-issues-per-linter 0 --max-same-issues 0) || status=fail ;;
+            esac
+          else
+            echo "$GO_MODULE_TASK $module: skipped (prerequisite failed)"
+          fi
+          if [[ -n "$RESULTS_FILE" ]]; then printf '%s\t%s\n' "$module" "$status" >> "$RESULTS_FILE"; fi
+          if [[ "$status" == fail || "$status" == skipped ]]; then failed=1; fi
+        done <<< "$MODULES"
+        exit "$failed"

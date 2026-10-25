@@ -1,0 +1,58 @@
+name: Go multimodules
+description: Discover, generate, lint, build and test every Go module with reusable actions and combined coverage.
+inputs:
+  task:
+    description: 'list, build, download, analyze, generate, lint, or verify'
+    required: false
+    default: verify
+  artifact-prefix:
+    description: Prefix for JUnit and coverage artifacts (including any separator).
+    required: false
+    default: ''
+outputs:
+  modules-json:
+    description: JSON array of discovered Go module directories.
+    value: ${{ steps.detect.outputs.modules-json }}
+runs:
+  using: composite
+  steps:
+    - name: Discover all modules
+      id: detect
+      uses: $/actions/detect-go-modules
+    - name: List modules
+      if: ${{ inputs.task == 'list' }}
+      shell: bash
+      env:
+        MODULES: ${{ steps.detect.outputs.modules }}
+      run: printf '%s\n' "$MODULES"
+    - name: Run selected task
+      if: ${{ inputs.task != 'verify' && inputs.task != 'list' }}
+      uses: $/actions/run-go-modules
+      with:
+        task: ${{ inputs.task }}
+        modules: ${{ steps.detect.outputs.modules }}
+    - name: Generate every module
+      if: ${{ inputs.task == 'verify' }}
+      continue-on-error: true
+      uses: $/actions/run-go-modules
+      with:
+        task: generate
+        modules: ${{ steps.detect.outputs.modules }}
+        results-file: artifacts/generate.tsv
+    - name: Lint every generated module
+      if: ${{ always() && inputs.task == 'verify' }}
+      continue-on-error: true
+      uses: $/actions/run-go-modules
+      with:
+        task: lint
+        modules: ${{ steps.detect.outputs.modules }}
+        results-file: artifacts/lint.tsv
+        skip-results-file: artifacts/generate.tsv
+    - name: Test modules, merge coverage and publish reports
+      if: ${{ always() && inputs.task == 'verify' }}
+      uses: $/actions/test-go-modules
+      with:
+        modules: ${{ steps.detect.outputs.modules }}
+        generation-results: artifacts/generate.tsv
+        lint-results: artifacts/lint.tsv
+        artifact-prefix: ${{ inputs.artifact-prefix }}

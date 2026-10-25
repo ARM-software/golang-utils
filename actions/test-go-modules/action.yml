@@ -1,65 +1,44 @@
-name: Go multimodules
-description: Discover all Go modules, run checks, and publish per-module JUnit and coverage reports.
+name: Test Go modules and merge coverage
+description: Run gotestsum per module, merge coverage, upload JUnit and coverage artifacts, and summarize failures.
 inputs:
-  task:
-    description: 'list, build, download, analyze, generate, lint, or verify'
+  modules:
+    description: Optional newline-delimited module directories from detect-go-modules; discovers all when omitted.
     required: false
-    default: verify
+    default: ''
+  generation-results:
+    description: Optional repository-relative TSV results from run-go-modules generate; skip modules whose generation failed.
+    required: false
+    default: ''
+  lint-results:
+    description: Optional repository-relative TSV results from run-go-modules lint.
+    required: false
+    default: ''
   artifact-prefix:
     description: Prefix for uploaded JUnit and coverage artifacts (including any separator).
     required: false
     default: ''
+outputs:
+  combined-coverage:
+    description: Combined statement coverage percentage, or n/a when no statements are coverable.
+    value: ${{ steps.tests.outputs.combined-coverage }}
 runs:
   using: composite
   steps:
-    - name: Run Go module task
+    - name: Discover modules when not provided
+      if: ${{ inputs.modules == '' }}
+      id: detect
+      uses: $/actions/detect-go-modules
+    - name: Test modules and merge coverage
+      id: tests
       shell: bash
       env:
-        GO_MODULE_TASK: ${{ inputs.task }}
+        MODULES: ${{ inputs.modules || steps.detect.outputs.modules }}
+        GENERATION_RESULTS: ${{ inputs.generation-results }}
+        LINT_RESULTS: ${{ inputs.lint-results }}
       run: |
         set -euo pipefail
         cd "$GITHUB_WORKSPACE"
-        case "$GO_MODULE_TASK" in
-          list|build|download|analyze|generate|lint|verify) ;;
-          *) echo "Unknown Go module task: $GO_MODULE_TASK" >&2; exit 2 ;;
-        esac
-
-        found="$(mktemp)"
-        modules="$(mktemp)"
-        trap 'rm -f "$found" "$modules"' EXIT
-        find . -type f -name go.mod -not -path './.git/*' -not -path './artifacts/*' -print |
-          sed 's@/go.mod$@@' | LC_ALL=C sort > "$found"
-        if [[ -f go.work ]]; then
-          workspace="$(go work edit -json)"
-          printf '%s\n' "$workspace" |
-            sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p' |
-            LC_ALL=C sort > "$modules"
-        else
-          cp "$found" "$modules"
-        fi
-        if [[ ! -s "$modules" ]] || ! diff -u "$found" "$modules"; then
-          echo 'go.work must enumerate every go.mod directory' >&2
-          exit 1
-        fi
-
-        if [[ "$GO_MODULE_TASK" == list ]]; then
-          cat "$modules"
-          exit 0
-        fi
-        if [[ "$GO_MODULE_TASK" != verify ]]; then
-          while IFS= read -r module; do
-            echo "$GO_MODULE_TASK $module"
-            case "$GO_MODULE_TASK" in
-              build) (cd "$module" && go build -v ./...) ;;
-              download) (cd "$module" && GOWORK=off go mod download) ;;
-              analyze) (cd "$module" && go test ./... -run TestDoesNotExist) ;;
-              generate) (cd "$module" && go generate ./...) ;;
-              lint) (cd "$module" && golangci-lint run ./...) ;;
-            esac
-          done < "$modules"
-          exit 0
-        fi
-
+        if [[ -z "$MODULES" ]]; then echo 'No Go modules supplied or detected' >&2; exit 1; fi
         artifacts="$PWD/artifacts"
         mkdir -p "$artifacts/junit" "$artifacts/coverage"
         rm -f "$artifacts/junit/"*.xml "$artifacts/coverage/"*.out "$artifacts/module-results.tsv" "$artifacts/failed-tests.tsv"
@@ -69,22 +48,35 @@ runs:
         : > "$failures"
         failed=0
         while IFS= read -r module; do
-          echo "verify $module"
+          [[ -n "$module" ]] || continue
+          echo "test $module"
           key="${module#./}"
           key="${key//\//__}"
           if [[ "$key" == . ]]; then key=root; fi
           junit="$artifacts/junit/$key.xml"
           profile="$artifacts/coverage/$key.out"
-          generate=pass lint=pass test=pass coverage='not available'
-          if ! (cd "$module" && go generate ./...); then
-            generate=fail lint=skipped test=skipped
-            printf '%s\t%s\n' "$module" 'Tests skipped because generation failed' >> "$failures"
-            failed=1
-          else
-            if ! (cd "$module" && golangci-lint run ./... --verbose --output.text.print-issued-lines --output.text.print-linter-name --output.tab.colors --max-issues-per-linter 0 --max-same-issues 0); then
-              lint=fail
-              failed=1
+          generation='not requested'
+          lint='not requested'
+          if [[ -n "$GENERATION_RESULTS" ]]; then
+            generation=missing
+            if [[ -f "$GENERATION_RESULTS" ]]; then
+              generation="$(awk -F '\t' -v module="$module" '$1 == module { print $2; exit }' "$GENERATION_RESULTS")"
+              if [[ -z "$generation" ]]; then generation=missing; fi
             fi
+          fi
+          if [[ -n "$LINT_RESULTS" ]]; then
+            lint=missing
+            if [[ -f "$LINT_RESULTS" ]]; then
+              lint="$(awk -F '\t' -v module="$module" '$1 == module { print $2; exit }' "$LINT_RESULTS")"
+              if [[ -z "$lint" ]]; then lint=missing; fi
+            fi
+          fi
+          if [[ "$generation" == fail || "$generation" == skipped || "$generation" == missing || "$lint" == fail || "$lint" == skipped || "$lint" == missing ]]; then failed=1; fi
+          test=pass coverage='not available'
+          if [[ "$generation" == fail || "$generation" == skipped || "$generation" == missing ]]; then
+            test=skipped
+            printf '%s\t%s\n' "$module" 'Tests skipped because generation failed' >> "$failures"
+          else
             if ! (cd "$module" && gotestsum --format standard-verbose --junitfile "$junit" -- -race -covermode=atomic -coverprofile "$profile" -tags integration -timeout 30m ./...); then
               test=fail
               failed=1
@@ -119,12 +111,13 @@ runs:
               failed=1
             fi
           fi
-          printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$module" "$generate" "$lint" "$test" "$coverage" "$key.xml" "$key.out" >> "$results"
-        done < "$modules"
+          printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$module" "$generation" "$lint" "$test" "$coverage" "$key.xml" "$key.out" >> "$results"
+        done <<< "$MODULES"
 
         combined="$artifacts/coverage/combined.out"
         printf 'mode: atomic\n' > "$combined"
         while IFS= read -r module; do
+          [[ -n "$module" ]] || continue
           key="${module#./}"
           key="${key//\//__}"
           if [[ "$key" == . ]]; then key=root; fi
@@ -136,7 +129,7 @@ runs:
             fi
             awk 'NR > 1' "$profile" >> "$combined"
           fi
-        done < "$modules"
+        done <<< "$MODULES"
         total='n/a (no covered statements)'
         if [[ $(wc -l < "$combined") -gt 1 ]]; then
           if total="$(go tool cover "-func=$combined" | awk '$1=="total:" {print $NF}')" && [[ -n "$total" ]]; then
@@ -147,9 +140,10 @@ runs:
           fi
         fi
         printf '%s\n' "$total" > "$artifacts/combined-coverage.txt"
+        printf 'combined-coverage=%s\n' "$total" >> "$GITHUB_OUTPUT"
         exit "$failed"
     - name: Upload JUnit reports
-      if: ${{ always() && inputs.task == 'verify' }}
+      if: ${{ always() }}
       id: junit
       uses: actions/upload-artifact@v4
       with:
@@ -157,15 +151,15 @@ runs:
         path: ${{ github.workspace }}/artifacts/junit/*.xml
         if-no-files-found: error
     - name: Upload coverage profiles
-      if: ${{ always() && inputs.task == 'verify' }}
+      if: ${{ always() }}
       id: coverage
       uses: actions/upload-artifact@v4
       with:
         name: "${{ inputs.artifact-prefix }}coverage"
         path: ${{ github.workspace }}/artifacts/coverage/*.out
         if-no-files-found: error
-    - name: Publish Go module summary
-      if: ${{ always() && inputs.task == 'verify' }}
+    - name: Publish module summary
+      if: ${{ always() }}
       shell: bash
       env:
         JUNIT_ARTIFACT_URL: ${{ steps.junit.outputs.artifact-url }}
@@ -183,7 +177,7 @@ runs:
           printf 'Modules checked: **%s**\n\n' "$count" >> "$summary"
           printf '| Module | Generate | Lint | Tests | Coverage | JUnit XML | Coverage profile |\n' >> "$summary"
           printf '| --- | --- | --- | --- | --- | --- | --- |\n' >> "$summary"
-          while IFS=$'\t' read -r module generate lint test coverage junit_name profile_name; do
+          while IFS=$'\t' read -r module generation lint test coverage junit_name profile_name; do
             junit_report='not generated'
             profile_report='not generated'
             if [[ -f "$artifacts/junit/$junit_name" ]]; then
@@ -194,7 +188,7 @@ runs:
               profile_report="$profile_name (upload unavailable)"
               if [[ -n "$COVERAGE_ARTIFACT_URL" ]]; then profile_report="[$profile_name]($COVERAGE_ARTIFACT_URL)"; fi
             fi
-            printf '| `%s` | %s | %s | %s | %s | %s | %s |\n' "$module" "$generate" "$lint" "$test" "$coverage" "$junit_report" "$profile_report" >> "$summary"
+            printf '| `%s` | %s | %s | %s | %s | %s | %s |\n' "$module" "$generation" "$lint" "$test" "$coverage" "$junit_report" "$profile_report" >> "$summary"
           done < "$artifacts/module-results.tsv"
           printf '\n### Failed tests\n\n' >> "$summary"
           if [[ -s "$artifacts/failed-tests.tsv" ]]; then

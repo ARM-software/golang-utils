@@ -1,10 +1,12 @@
 # Go multimodules composite action
 
-This action discovers every `go.mod` from `go.work` (or, if there is no
-workspace, from the repository layout), checks that no module is omitted, and
-runs the requested task in each module. It is a self-contained composite
-action with inline Bash and standard Go tooling, so it can also be referenced
-from another Go repository.
+This action orchestrates the individually reusable
+[`detect-go-modules`](../detect-go-modules/README.md),
+[`run-go-modules`](../run-go-modules/README.md), and
+[`test-go-modules`](../test-go-modules/README.md) composite actions. It checks
+that no module is omitted and keeps generation, lint, tests, JUnit and coverage
+reporting consistent across the repository. Each action may also be called
+independently from another Go repository.
 
 Tasks: `list`, `build`, `download`, `analyze`, `generate`, `lint`, `verify`.
 `verify` runs generation, lint and `gotestsum` tests, uploads per-module JUnit
@@ -22,12 +24,17 @@ Callers must check out the repository, set up Go, and install
     go install gotest.tools/gotestsum@latest
     go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
     echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
-- uses: ARM-software/golang-utils/.github/actions/go-multimodules@<commit-sha>
+- uses: ARM-software/golang-utils/actions/go-multimodules@<commit-sha>
   with:
     task: verify
     artifact-prefix: '${{ github.job }}-'
 ```
 
 Use a pinned commit SHA for the remote action reference. Within this repository,
-use `uses: ./.github/actions/go-multimodules` after checkout. `artifact-prefix` is
+use `uses: $/actions/go-multimodules`. `artifact-prefix` is
 optional; its default keeps the artifact names `junit-xml` and `coverage`.
+
+`modules-json` is available as an output for callers that need a matrix or
+another workflow step. For separate-action examples, task modes, and how `$`
+resolves across repositories, see
+the [Go multimodules action guide](../../guides/action-go-multimodules.md).
