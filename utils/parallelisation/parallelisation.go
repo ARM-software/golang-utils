@@ -202,9 +202,7 @@ func RunActionWithTimeout(blockingAction func(stop chan bool) error, timeout tim
 	}
 	if !completed.Load() {
 		// Wait for the action to finish without replacing the timeout error.
-		select {
-		case <-channel:
-		}
+		<-channel //nolint:errcheck // The timeout error takes precedence over a late action error.
 	}
 	return
 }
@@ -251,9 +249,7 @@ func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Durati
 		timeoutCancel()
 		<-cancelCtx.Done()
 		// The context error takes precedence over the action error.
-		select {
-		case <-channel:
-		}
+		<-channel //nolint:errcheck // The context error takes precedence over a late action error.
 		return DetermineContextError(timeoutContext)
 	}
 }
