@@ -142,7 +142,8 @@ additional tags.
 
 `verify` calls the granular generation, lint and test actions in order. The
 test action uploads one JUnit XML file and one coverage profile per module,
-plus `combined.out`. Its GitHub Actions summary shows every module's generate,
+plus a project-wide `combined.xml` JUnit report and `combined.out` coverage
+profile. Its GitHub Actions summary shows every module's generate,
 lint and test status, per-module coverage, failed test names, and links to the
 uploaded reports. Artifact uploads and the summary also run when verification
 fails, so available failure reports remain accessible.

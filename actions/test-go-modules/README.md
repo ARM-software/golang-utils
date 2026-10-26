@@ -1,8 +1,9 @@
 # Test Go modules and merge coverage
 
 `test-go-modules` runs `gotestsum` separately in every Go module, emits one
-JUnit XML and coverage profile per module, combines the coverage profiles,
-uploads both report artifacts, and publishes a linked Actions step summary.
+JUnit XML and coverage profile per module, combines the JUnit reports into
+`combined.xml` and the coverage profiles into `combined.out`, uploads both
+report artifacts, and publishes a linked Actions step summary.
 It can be used without the top-level `go-multimodules` action.
 
 | Input | Required | Description |
@@ -16,7 +17,9 @@ It can be used without the top-level `go-multimodules` action.
 Tests run with `-tags integration` by default. The `combined-coverage` output
 contains the overall statement-coverage percentage. A test failure causes the
 action to fail, but available JUnit and coverage artifacts are still uploaded,
-and the summary lists failing tests.
+and the summary lists failing tests. The combined JUnit report includes all
+available per-module test suites, including failures and skips; the original
+module reports remain in the same `junit-xml` artifact.
 
 To run this action from another repository, check out that repository and
 set up Go and [`gotestsum`](../setup-gotestsum/README.md):

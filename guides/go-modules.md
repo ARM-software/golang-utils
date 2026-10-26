@@ -75,9 +75,9 @@ go work edit -json |
 ```
 
 The composite action's `verify` task runs those checks with `gotestsum`, then
-produces per-module JUnit XML and coverage profiles under `artifacts/`. Local
-commands use Bash on Linux and macOS; on Windows, use WSL with Go and
-`golangci-lint` installed.
+produces per-module JUnit XML and coverage profiles, plus combined reports,
+under `artifacts/`. Local commands use Bash on Linux and macOS; on Windows, use
+WSL with Go and `golangci-lint` installed.
 To confirm that one module builds without workspace resolution, run
 `GOWORK=off go test ./...` from its directory.
 
@@ -89,7 +89,7 @@ with `uses: $/actions/go-multimodules`. It:
 1. Reads the module list from the repository `go.work`.
 2. Runs `go generate` per module.
 3. Runs `golangci-lint` per module.
-4. Runs tests per module with `gotestsum` and writes one JUnit XML file per module.
+4. Runs tests per module with `gotestsum` and writes per-module and combined JUnit XML reports.
 5. Writes one coverage profile per module and merges them into a combined profile.
 6. Uploads JUnit and coverage artifacts.
 7. Publishes a GitHub Actions summary listing each module's coverage, failed

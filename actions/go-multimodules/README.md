@@ -9,8 +9,8 @@ reporting consistent across the repository. Each action may also be called
 independently from another Go repository.
 
 Tasks: `list`, `build`, `download`, `analyze`, `generate`, `lint`, `verify`.
-`verify` runs generation, lint and `gotestsum` tests, uploads per-module JUnit
-and coverage reports plus merged coverage, and writes the Actions summary.
+`verify` runs generation, lint and `gotestsum` tests, uploads per-module and
+combined JUnit and coverage reports, and writes the Actions summary.
 Applicable tasks use the `integration` build tag by default; callers can
 override it with `build-tags`.
 

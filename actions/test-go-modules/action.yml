@@ -1,5 +1,5 @@
 name: Test Go modules and merge coverage
-description: Run gotestsum per module, merge coverage, upload JUnit and coverage artifacts, and summarize failures.
+description: Run gotestsum per module, combine JUnit and coverage reports, upload artifacts, and summarize failures.
 inputs:
   build-tags:
     description: Go build tags for every test invocation.
@@ -119,6 +119,8 @@ runs:
           printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$module" "$generation" "$lint" "$test" "$coverage" "$key.xml" "$key.out" >> "$results"
         done <<< "$MODULES"
 
+        if ! go run "$GITHUB_ACTION_PATH/merge-junit.go" "$artifacts/junit" "$artifacts/junit/combined.xml"; then failed=1; fi
+
         combined="$artifacts/coverage/combined.out"
         printf 'mode: atomic\n' > "$combined"
         while IFS= read -r module; do
@@ -221,6 +223,6 @@ runs:
           fi
         fi
         printf '\n' >> "$summary"
-        if [[ -n "$JUNIT_ARTIFACT_URL" ]]; then printf '[Download all per-module JUnit XML reports](%s)\n' "$JUNIT_ARTIFACT_URL" >> "$summary"; fi
+        if [[ -n "$JUNIT_ARTIFACT_URL" ]]; then printf '[Download combined.xml and per-module JUnit XML reports](%s)\n' "$JUNIT_ARTIFACT_URL" >> "$summary"; fi
         if [[ -n "$COVERAGE_ARTIFACT_URL" ]]; then printf '[Download per-module and combined coverage](%s)\n' "$COVERAGE_ARTIFACT_URL" >> "$summary"; fi
         printf '\n[Open the complete workflow run](https://github.com/%s/actions/runs/%s)\n' "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" >> "$summary"
