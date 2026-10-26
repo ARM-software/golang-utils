@@ -39,9 +39,9 @@ func UnmarshallXML(data []byte, value any) error {
 // StripLeadingXMLHeaderComment removes a generated leading XML comment block
 // when it contains the repository copyright or SPDX header markers.
 //
-// This is intended for XML-like fixtures or serialized content where an
+// This is intended for XML-like fixtures or serialised content where an
 // automated header insertion step prepends a license comment before the real
-// document content. Comments that do not contain the recognized header markers
+// document content. Comments that do not contain the recognised header markers
 // are preserved unchanged.
 func StripLeadingXMLHeaderComment(data []byte) []byte {
 	commentStart := bytes.Index(data, xmlCommentStart)
