@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package safecast
 
 func greaterThanUpperBoundary[C1 IConvertible, C2 IConvertible](value C1, upperBoundary C2) (greater bool) {

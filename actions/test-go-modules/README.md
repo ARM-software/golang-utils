@@ -1,3 +1,7 @@
+<!--
+Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+SPDX-License-Identifier: Apache-2.0
+-->
 # Test Go modules and merge coverage
 
 `test-go-modules` runs `gotestsum` separately in every Go module, emits one
