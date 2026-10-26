@@ -8,8 +8,7 @@ The [`go-multimodules` composite action](https://github.com/ARM-software/golang-
 orchestrates independently reusable actions for discovery, per-module commands,
 and tests/coverage. They read `go.work` when present; otherwise they find
 `go.mod` files directly. If a workspace omits a module, discovery fails rather
-than silently skipping it. All actions use Bash and standard Go tooling; they
-do not require Python.
+than silently skipping it. All actions use Bash and standard Go tooling. Some specific actions may rely on additional tools and dependencies though.
 
 ## Call it from this repository
 
@@ -21,7 +20,7 @@ This repository's workflows use:
     task: build
 ```
 
-As in OTG Service Workflows, `$/actions/...` resolves an action from the
+`$/actions/...` resolves an action from the
 **repository containing the workflow**, at the **same revision** as that
 workflow. This keeps the workflow and action together when a reusable workflow
 is called by another repository. It also lets a pull request exercise its own
@@ -34,7 +33,7 @@ Use it for the complete pipeline, or call any of its components on their own.
 ## Call it from another repository
 
 Use a repository-qualified reference in the other repository's workflow. Pin
-it to a full commit SHA available in `ARM-software/golang-utils`:
+it to a full commit SHA or a version number available in `ARM-software/golang-utils`:
 
 ```yaml
 name: Go modules
@@ -65,7 +64,7 @@ jobs:
           artifact-prefix: '${{ github.job }}-'
 ```
 
-Replace `<full-commit-sha>` with a real commit SHA from this repository. The
+Replace `<full-commit-sha>` with a real commit SHA or a version number from this repository. The
 `$/actions/...` reference is for actions **in the workflow's repository**; in
 the example above it would point at the calling repository, so the
 repository-qualified reference is required instead. `artifact-prefix` is
@@ -126,7 +125,7 @@ complete example above):
 ```
 
 The TSV results allow later stages to report generation and lint failures
-without concealing test results. Use the same pinned SHA for every component
+without concealing test results. Use the same pinned SHA/version for every component
 so their interfaces stay in sync. Build, analysis, generation, lint, and tests
 include the `integration` build tag by default; `download` and discovery do not
 compile tagged packages. Override `build-tags` if the calling project needs

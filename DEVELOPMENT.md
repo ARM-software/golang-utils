@@ -68,6 +68,13 @@ If you want to manually run all pre-commit hooks on a repository without creatin
 
 To run individual hooks use `pre-commit run <hook_id>`.
 
+# Migrations
+
+This section covers what to do when a migration is needed. The goal of this
+library is to preserve backward compatibility and avoid breaking changes, so
+existing users should not have to migrate to keep their code working. See the
+[migration guides](guides/migrations/index.md) for specific transitions.
+
 # Dependency upgrades
 
 For dependency upgrades, dependabot is relied upon and news files are auto-generated in order to document such change. Nonetheless, due to a change in [GitHub actions](https://github.blog/changelog/2021-02-19-github-actions-workflows-triggered-by-dependabot-prs-will-run-with-read-only-permissions), secrets are not available in the build triggered by the pull request unless they are [re-run manually](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/automating-dependabot-with-github-actions#manually-re-running-a-workflow). So please re-run every dependabot PR CI jobs.

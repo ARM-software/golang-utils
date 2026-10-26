@@ -23,6 +23,7 @@ go get github.com/ARM-software/golang-utils/utils/validation@latest
 > consumers should depend on the narrower submodule they actually import.
 > Submodule tags start with the next [CDS] project release; `v1.170.7` and
 > earlier published only the original umbrella module.
+> If using dependabot, the upgrade and change should be transparent.
 
 ## Workspace structure
 

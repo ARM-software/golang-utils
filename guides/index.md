@@ -7,5 +7,5 @@ Use these task guides alongside the generated Go API reference.
 - [Reusable Go multimodules actions](action-go-multimodules.md): choose the
   orchestrator or individual discovery, tool setup, command, and test/coverage actions for
   this repository or another Go project.
-- [British-spelled serialisation packages](serialisation.md): new import paths,
-  existing compatible imports, and migration guidance.
+- [Migration guides](migrations/index.md): supported transitions, starting with
+  the serialisation packages.

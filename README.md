@@ -35,11 +35,6 @@ go get github.com/ARM-software/golang-utils/utils/serialisation@latest
 go get github.com/ARM-software/golang-utils/utils/validation@latest
 ```
 
-Import the British-spelled serialisation packages, for example
-`github.com/ARM-software/golang-utils/utils/serialisation/xml`.
-The original `utils/serialization/...` import paths remain available for
-existing consumers; see the [serialisation migration guide](guides/serialisation.md).
-
 > **Compatibility note:** The `github.com/ARM-software/golang-utils/utils`
 > module remains a lightweight umbrella for compatibility and tooling. New
 > consumers should depend on an individual submodule. The first submodule tags

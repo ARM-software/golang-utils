@@ -2,9 +2,9 @@
 Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
 SPDX-License-Identifier: Apache-2.0
 -->
-# Use British-spelled serialisation packages
+# Use serialisation packages
 
-Use the British-spelled `github.com/ARM-software/golang-utils/utils/serialisation`
+Use `github.com/ARM-software/golang-utils/utils/serialisation`
 module for new applications. After the next project-wide
 [CDS](https://github.com/ARMmbed/continuous-delivery-scripts) release, add it
 to a Go project with:
@@ -30,17 +30,14 @@ spelling applies to the JSON, YAML, maps, slice and frontmatter subpackages:
 | `/serialisation/yaml/frontmatter` | `/serialization/yaml/frontmatter` |
 | `/serialisation/maps/testing` | `/serialization/maps/testing` |
 
-The historical US-spelled packages remain available so existing imports do
-not need to change immediately. Their `doc.go` files mark them as deprecated
-and point to the matching British-spelled packages. In particular, the old
+The legacy packages remain available so existing imports do
+not need to change immediately. Their `doc.go` files mark them as deprecated though
+and point to the newly created packages. In particular, the old
 `serialization/xml` package delegates to `serialisation/xml`; legacy
 compatibility tests cover the old XML, JSON, YAML and map import paths.
 
 When migrating, change the import path and verify that any package-specific
-types used together also come from the new import path. The two families have
-distinct Go package identities, even when their APIs are otherwise equivalent.
+types used together also come from the new import path.
 
 Both module paths are listed in `go.work` and participate in one [CDS](https://github.com/ARMmbed/continuous-delivery-scripts)
-release. Internal modules use versioned `require` directives and local
-`replace` directives during development; the legacy module's replacement for
-the British module supports its XML compatibility wrapper in a checkout.
+release.
