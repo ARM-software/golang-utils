@@ -24,14 +24,19 @@ runs:
       shell: bash
       env:
         MODULES: ${{ steps.detect.outputs.modules }}
-      run: printf '%s\n' "$MODULES"
+      run: |
+        printf '%s\n' "$MODULES"
+        {
+          printf '## Discovered Go modules\n\n'
+          printf '```\n%s\n```\n' "$MODULES"
+        } >> "$GITHUB_STEP_SUMMARY"
     - name: Run selected task
       if: ${{ inputs.task != 'verify' && inputs.task != 'list' }}
       uses: $/actions/run-go-modules
       with:
         task: ${{ inputs.task }}
         modules: ${{ steps.detect.outputs.modules }}
-    - name: Generate every module
+    - name: Generate action in every module
       if: ${{ inputs.task == 'verify' }}
       continue-on-error: true
       uses: $/actions/run-go-modules
