@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package frontmatter
 
 import (
@@ -154,6 +158,17 @@ func (e *extractor) detect() (candidates []*candidateFormat, found bool, err err
 			continue
 		}
 
+		commentEnded, commentErr := e.skipLeadingHTMLComment(line)
+		if commentErr != nil {
+			return nil, false, commentErr
+		}
+		if commentEnded {
+			if err != nil {
+				return nil, false, nil
+			}
+			continue
+		}
+
 		for _, format := range e.formats {
 			if format.Start != line {
 				continue
@@ -172,6 +187,28 @@ func (e *extractor) detect() (candidates []*candidateFormat, found bool, err err
 		}
 
 		return candidates, true, nil
+	}
+}
+
+func (e *extractor) skipLeadingHTMLComment(line string) (bool, error) {
+	if line != "<!--" && !strings.HasPrefix(line, "<!-- ") {
+		return false, nil
+	}
+	if strings.HasSuffix(line, "-->") {
+		return true, nil
+	}
+
+	for {
+		nextLine, err := e.readLine()
+		if strings.HasSuffix(nextLine, "-->") {
+			return true, nil
+		}
+		if commonerrors.Ignore(err, commonerrors.ErrEOF) != nil {
+			return false, err
+		}
+		if err != nil {
+			return false, nil
+		}
 	}
 }
 

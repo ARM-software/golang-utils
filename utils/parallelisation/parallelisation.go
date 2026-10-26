@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020-2022 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
 
@@ -201,7 +201,8 @@ func RunActionWithTimeout(blockingAction func(stop chan bool) error, timeout tim
 		err = commonerrors.ErrTimeout
 	}
 	if !completed.Load() {
-		<-channel
+		// Wait for the action to finish without replacing the timeout error.
+		<-channel //nolint:errcheck // The timeout error takes precedence over a late action error.
 	}
 	return
 }
@@ -247,7 +248,8 @@ func RunActionWithTimeoutAndCancelStore(ctx context.Context, timeout time.Durati
 		actionCancel()
 		timeoutCancel()
 		<-cancelCtx.Done()
-		<-channel
+		// The context error takes precedence over the action error.
+		<-channel //nolint:errcheck // The context error takes precedence over a late action error.
 		return DetermineContextError(timeoutContext)
 	}
 }
