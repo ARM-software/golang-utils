@@ -1,3 +1,7 @@
+<!--
+Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+SPDX-License-Identifier: Apache-2.0
+-->
 # Safecast
 
 the purpose of this utilities is to perform safe number conversion in go similarly to [go-safecast](https://github.com/ccoVeille/go-safecast) from which they are inspired from.

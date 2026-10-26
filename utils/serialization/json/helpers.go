@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2020-2026 Arm Limited or its affiliates and Contributors. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 // Package json mirrors the standard library's encoding/json helpers while
 // adding two service-focused behaviours:
 //   - stream helpers are context aware, so long reads and writes can be
