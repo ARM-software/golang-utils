@@ -74,6 +74,8 @@ This section covers what to do when a migration is needed. The goal of this
 library is to preserve backward compatibility and avoid breaking changes, so
 existing users should not have to migrate to keep their code working. See the
 [migration guides](guides/migrations/index.md) for specific transitions.
+For module splits or import-path changes, follow the
+[backward-compatible module refactoring guide](guides/migrations/refactoring-go-modules.md).
 
 # Dependency upgrades
 

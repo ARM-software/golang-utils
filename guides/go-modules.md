@@ -63,6 +63,10 @@ published [CDS] tags.
 
 If the module root would otherwise contain no Go source file, add a small `doc.go` so Go tooling can still address the module cleanly.
 
+When splitting an existing package into a module, follow the
+[backward-compatible module refactoring guide](migrations/refactoring-go-modules.md)
+to preserve consumer imports and dependencies.
+
 ## Running checks across all modules
 
 From the repository root:
