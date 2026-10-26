@@ -149,11 +149,12 @@ additional tags.
 `verify` calls the granular generation, lint and test actions in order. The
 test action uploads one JUnit XML file and one coverage profile per module,
 plus a project-wide `combined.out` coverage profile. Test results are rendered
-in the workflow summary via `EnricoMi/publish-unit-test-result-action`, while
-the local summary keeps every module's generate, lint and test status,
-per-module coverage, and links to the uploaded reports. Artifact uploads and
-summaries also run when verification fails, so available failure reports remain
-accessible.
+in the workflow summary and, for same-repository pull requests, PR comments via
+`EnricoMi/publish-unit-test-result-action`. The JUnit artifact keeps the raw
+per-module XML plus EnricoMi's combined JSON report, while the local summary
+keeps every module's generate, lint and test status, per-module coverage, and
+links to the uploaded reports. Artifact uploads and summaries also run when
+verification fails, so available failure reports remain accessible.
 
 Set up Go before using any task. For `verify` or `lint`, install
 `golangci-lint`; for `verify`, also install `gotestsum`. GitHub-hosted runners

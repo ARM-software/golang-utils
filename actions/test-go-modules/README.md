@@ -23,9 +23,10 @@ contains the overall statement-coverage percentage. A test failure causes the
 action to fail, but available JUnit and coverage artifacts are still uploaded.
 The JUnit artifact contains the original per-module reports, while the job
 summary includes parsed test results plus a compact module and coverage table.
-Grant the job `checks: write` if you want same-repository pushes and pull
-requests to also receive a GitHub check run; fork pull requests still fall back
-to the job summary only.
+The same artifact also stores EnricoMi's combined JSON report.
+Grant the job `checks: write` and `pull-requests: write` if you want
+same-repository pushes and pull requests to receive a GitHub check run and PR
+comment; fork pull requests still fall back to the job summary only.
 
 To run this action from another repository, check out that repository and
 set up Go and [`gotestsum`](../setup-gotestsum/README.md):

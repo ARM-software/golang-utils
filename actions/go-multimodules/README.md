@@ -15,8 +15,10 @@ independently from another Go repository.
 Tasks: `list`, `build`, `download`, `analyze`, `generate`, `lint`, `verify`.
 `verify` runs generation, lint and `gotestsum` tests, uploads per-module JUnit
 and coverage reports plus combined coverage, and writes the Actions summary.
-Grant the calling job `checks: write` if you want same-repository pushes and
-pull requests to also receive a GitHub check run for the parsed JUnit results.
+The JUnit artifact also contains EnricoMi's combined JSON report.
+Grant the calling job `checks: write` and `pull-requests: write` if you want
+same-repository pushes and pull requests to also receive a GitHub check run and
+PR comment for the parsed JUnit results.
 Applicable tasks use the `integration` build tag by default; callers can
 override it with `build-tags`.
 
@@ -49,7 +51,7 @@ can prepare the tools:
 
 Use a pinned commit SHA for the remote action reference. Within this repository,
 use `uses: $/actions/go-multimodules`. `artifact-prefix` is
-optional; its default keeps the artifact names `junit-xml` and `coverage`.
+optional; its default keeps the artifact names `junit-reports` and `coverage`.
 
 `modules-json` is available as an output for callers that need a matrix or
 another workflow step. For separate-action examples, task modes, and how `$`

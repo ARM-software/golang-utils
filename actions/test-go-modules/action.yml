@@ -134,8 +134,9 @@ runs:
       uses: EnricoMi/publish-unit-test-result-action@v2
       with:
         files: artifacts/junit/*.xml
+        json_file: artifacts/junit/combined-report.json
         check_name: Go multimodules tests
-        comment_mode: off
+        comment_mode: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && 'always' || 'off' }}
         check_run: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
         compare_to_earlier_commit: false
         action_fail: false
@@ -144,8 +145,8 @@ runs:
       id: junit
       uses: actions/upload-artifact@v4
       with:
-        name: "${{ inputs.artifact-prefix }}junit-xml"
-        path: ${{ github.workspace }}/artifacts/junit/*.xml
+        name: "${{ inputs.artifact-prefix }}junit-reports"
+        path: ${{ github.workspace }}/artifacts/junit
         if-no-files-found: error
     - name: Upload coverage profiles
       if: ${{ always() }}
@@ -197,6 +198,6 @@ runs:
           fi
         fi
         printf '\n' >> "$summary"
-        if [[ -n "$JUNIT_ARTIFACT_URL" ]]; then printf '[Download per-module JUnit XML reports](%s)\n' "$JUNIT_ARTIFACT_URL" >> "$summary"; fi
+        if [[ -n "$JUNIT_ARTIFACT_URL" ]]; then printf '[Download per-module JUnit XML reports and the combined JSON report](%s)\n' "$JUNIT_ARTIFACT_URL" >> "$summary"; fi
         if [[ -n "$COVERAGE_ARTIFACT_URL" ]]; then printf '[Download per-module and combined coverage](%s)\n' "$COVERAGE_ARTIFACT_URL" >> "$summary"; fi
         printf '\n[Open the complete workflow run](https://github.com/%s/actions/runs/%s)\n' "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" >> "$summary"
