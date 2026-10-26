@@ -122,3 +122,35 @@ replace github.com/ARM-software/golang-utils/utils/value => ../../value
 replace github.com/ARM-software/golang-utils/utils/serialisation => ../../serialisation
 
 replace github.com/ARM-software/golang-utils/utils/serialisation/maps/testing => ../../serialisation/maps/testing
+
+replace github.com/ARM-software/golang-utils/utils/encryption/aesrsa => ../../encryption/aesrsa
+
+replace github.com/ARM-software/golang-utils/utils/http/headers => ../../http/headers
+
+replace github.com/ARM-software/golang-utils/utils/http/proxy => ../../http/proxy
+
+replace github.com/ARM-software/golang-utils/utils/http/schemes => ../../http/schemes
+
+replace github.com/ARM-software/golang-utils/utils/logs/annotations => ../../logs/annotations
+
+replace github.com/ARM-software/golang-utils/utils/logs/logrimp => ../../logs/logrimp
+
+replace github.com/ARM-software/golang-utils/utils/logs/summary => ../../logs/summary
+
+replace github.com/ARM-software/golang-utils/utils/serialisation/json/frontmatter => ../../serialisation/json/frontmatter
+
+replace github.com/ARM-software/golang-utils/utils/serialisation/yaml/frontmatter => ../../serialisation/yaml/frontmatter
+
+replace github.com/ARM-software/golang-utils/utils/serialization/json/frontmatter => ../../serialization/json/frontmatter
+
+replace github.com/ARM-software/golang-utils/utils/serialization/yaml/frontmatter => ../../serialization/yaml/frontmatter
+
+replace github.com/ARM-software/golang-utils/utils/strings/casing => ../../strings/casing
+
+replace github.com/ARM-software/golang-utils/utils/subprocess/command => ../../subprocess/command
+
+replace github.com/ARM-software/golang-utils/utils/subprocess/supervisor => ../../subprocess/supervisor
+
+replace github.com/ARM-software/golang-utils/utils/units/multiplication => ../../units/multiplication
+
+replace github.com/ARM-software/golang-utils/utils/units/size => ../../units/size

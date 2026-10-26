@@ -22,8 +22,6 @@ require (
 	github.com/ARM-software/golang-utils/utils/resource v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/safeio v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/strings v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/subprocess v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/units v1.170.7 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/avast/retry-go/v4 v4.7.0 // indirect
 	github.com/bmatcuk/doublestar/v3 v3.0.0 // indirect
@@ -50,6 +48,7 @@ require (
 	github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7 // indirect
+	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.9 // indirect
 	github.com/scjalliance/comshim v0.0.0-20190308082608-cf06d2532c4e // indirect
@@ -73,6 +72,7 @@ require (
 	golang.org/x/exp v0.0.0-20260603202125-055de637280b // indirect
 	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
@@ -88,6 +88,9 @@ require (
 	github.com/ARM-software/golang-utils/utils/ptr v1.170.7
 	github.com/ARM-software/golang-utils/utils/reflection v1.170.7
 	github.com/ARM-software/golang-utils/utils/safecast v1.170.7
+	github.com/ARM-software/golang-utils/utils/subprocess/command v1.170.7 // indirect
+	github.com/ARM-software/golang-utils/utils/units/multiplication v1.170.7 // indirect
+	github.com/ARM-software/golang-utils/utils/units/size v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/url v1.170.7
 	github.com/ARM-software/golang-utils/utils/value v1.170.7
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
@@ -196,3 +199,35 @@ replace github.com/ARM-software/golang-utils/utils/units => ../units
 replace github.com/ARM-software/golang-utils/utils/serialisation => ../serialisation
 
 replace github.com/ARM-software/golang-utils/utils/serialisation/maps/testing => ../serialisation/maps/testing
+
+replace github.com/ARM-software/golang-utils/utils/encryption/aesrsa => ../encryption/aesrsa
+
+replace github.com/ARM-software/golang-utils/utils/http/headers => ../http/headers
+
+replace github.com/ARM-software/golang-utils/utils/http/proxy => ../http/proxy
+
+replace github.com/ARM-software/golang-utils/utils/http/schemes => ../http/schemes
+
+replace github.com/ARM-software/golang-utils/utils/logs/annotations => ../logs/annotations
+
+replace github.com/ARM-software/golang-utils/utils/logs/logrimp => ../logs/logrimp
+
+replace github.com/ARM-software/golang-utils/utils/logs/summary => ../logs/summary
+
+replace github.com/ARM-software/golang-utils/utils/serialisation/json/frontmatter => ../serialisation/json/frontmatter
+
+replace github.com/ARM-software/golang-utils/utils/serialisation/yaml/frontmatter => ../serialisation/yaml/frontmatter
+
+replace github.com/ARM-software/golang-utils/utils/serialization/json/frontmatter => ../serialization/json/frontmatter
+
+replace github.com/ARM-software/golang-utils/utils/serialization/yaml/frontmatter => ../serialization/yaml/frontmatter
+
+replace github.com/ARM-software/golang-utils/utils/strings/casing => ../strings/casing
+
+replace github.com/ARM-software/golang-utils/utils/subprocess/command => ../subprocess/command
+
+replace github.com/ARM-software/golang-utils/utils/subprocess/supervisor => ../subprocess/supervisor
+
+replace github.com/ARM-software/golang-utils/utils/units/multiplication => ../units/multiplication
+
+replace github.com/ARM-software/golang-utils/utils/units/size => ../units/size

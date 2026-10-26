@@ -30,6 +30,10 @@ spelling applies to the JSON, YAML, maps, slice and frontmatter subpackages:
 | `/serialisation/yaml/frontmatter` | `/serialization/yaml/frontmatter` |
 | `/serialisation/maps/testing` | `/serialization/maps/testing` |
 
+The JSON and YAML frontmatter subpackages are separate Go modules. Depend on
+the specific module you import, for example
+`go get github.com/ARM-software/golang-utils/utils/serialisation/json/frontmatter@latest`.
+
 The legacy packages remain available so existing imports do
 not need to change immediately. Their `doc.go` files mark them as deprecated though
 and point to the newly created packages. In particular, the old

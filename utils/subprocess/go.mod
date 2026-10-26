@@ -9,7 +9,6 @@ require (
 	go.uber.org/atomic v1.11.0
 	go.uber.org/goleak v1.3.0
 	go.uber.org/mock v0.6.0
-	golang.org/x/sync v0.24.0
 )
 
 require (
@@ -27,7 +26,6 @@ require (
 	github.com/ARM-software/golang-utils/utils/resource v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/serialisation v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/strings v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/units v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/url v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/validation v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/value v1.170.7 // indirect
@@ -91,6 +89,7 @@ require (
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/exp v0.0.0-20260603202125-055de637280b // indirect
 	golang.org/x/net v0.61.0 // indirect
+	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 )
 
@@ -99,12 +98,16 @@ require (
 	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.170.7
 	github.com/ARM-software/golang-utils/utils/filesystem v1.170.7
 	github.com/ARM-software/golang-utils/utils/logs v1.170.7
+	github.com/ARM-software/golang-utils/utils/logs/logrimp v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/logs/logstest v1.170.7
 	github.com/ARM-software/golang-utils/utils/parallelisation v1.170.7
 	github.com/ARM-software/golang-utils/utils/platform v1.170.7
 	github.com/ARM-software/golang-utils/utils/proc v1.170.7
-	github.com/ARM-software/golang-utils/utils/safecast v1.170.7
+	github.com/ARM-software/golang-utils/utils/safecast v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/safeio v1.170.7
+	github.com/ARM-software/golang-utils/utils/subprocess/command v1.170.7
+	github.com/ARM-software/golang-utils/utils/units/multiplication v1.170.7 // indirect
+	github.com/ARM-software/golang-utils/utils/units/size v1.170.7 // indirect
 	github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe // indirect
 	golang.org/x/mod v0.41.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
@@ -210,3 +213,35 @@ replace github.com/ARM-software/golang-utils/utils/value => ../value
 replace github.com/ARM-software/golang-utils/utils/serialisation => ../serialisation
 
 replace github.com/ARM-software/golang-utils/utils/serialisation/maps/testing => ../serialisation/maps/testing
+
+replace github.com/ARM-software/golang-utils/utils/encryption/aesrsa => ../encryption/aesrsa
+
+replace github.com/ARM-software/golang-utils/utils/http/headers => ../http/headers
+
+replace github.com/ARM-software/golang-utils/utils/http/proxy => ../http/proxy
+
+replace github.com/ARM-software/golang-utils/utils/http/schemes => ../http/schemes
+
+replace github.com/ARM-software/golang-utils/utils/logs/annotations => ../logs/annotations
+
+replace github.com/ARM-software/golang-utils/utils/logs/logrimp => ../logs/logrimp
+
+replace github.com/ARM-software/golang-utils/utils/logs/summary => ../logs/summary
+
+replace github.com/ARM-software/golang-utils/utils/serialisation/json/frontmatter => ../serialisation/json/frontmatter
+
+replace github.com/ARM-software/golang-utils/utils/serialisation/yaml/frontmatter => ../serialisation/yaml/frontmatter
+
+replace github.com/ARM-software/golang-utils/utils/serialization/json/frontmatter => ../serialization/json/frontmatter
+
+replace github.com/ARM-software/golang-utils/utils/serialization/yaml/frontmatter => ../serialization/yaml/frontmatter
+
+replace github.com/ARM-software/golang-utils/utils/strings/casing => ../strings/casing
+
+replace github.com/ARM-software/golang-utils/utils/subprocess/command => ../subprocess/command
+
+replace github.com/ARM-software/golang-utils/utils/subprocess/supervisor => ../subprocess/supervisor
+
+replace github.com/ARM-software/golang-utils/utils/units/multiplication => ../units/multiplication
+
+replace github.com/ARM-software/golang-utils/utils/units/size => ../units/size
