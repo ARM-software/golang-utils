@@ -69,7 +69,7 @@ go work sync
 go work edit -json |
   sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p' |
   while IFS= read -r module; do
-    (cd "$module" && go generate ./... && golangci-lint run ./... && go test ./...)
+    (cd "$module" && go generate -tags integration ./... && golangci-lint run --build-tags integration ./... && go test -tags integration ./...)
   done
 ```
 

@@ -7,14 +7,16 @@ It can be used without the top-level `go-multimodules` action.
 
 | Input | Required | Description |
 | --- | --- | --- |
+| `build-tags` | No | Go test build tags; defaults to `integration`. |
 | `modules` | No | Newline-delimited module directories from `detect-go-modules`; omit to discover all. |
 | `generation-results` | No | Repository-relative TSV from a preceding `run-go-modules` generate task. Failed generation skips that module's tests. |
 | `lint-results` | No | Repository-relative TSV from a preceding lint task, for the summary. |
 | `artifact-prefix` | No | Prefix for JUnit and coverage artifact names. |
 
-The `combined-coverage` output contains the overall statement-coverage
-percentage. A test failure causes the action to fail, but available JUnit and
-coverage artifacts are still uploaded, and the summary lists failing tests.
+Tests run with `-tags integration` by default. The `combined-coverage` output
+contains the overall statement-coverage percentage. A test failure causes the
+action to fail, but available JUnit and coverage artifacts are still uploaded,
+and the summary lists failing tests.
 
 To run this action from another repository, check out that repository, set up
 Go, install `gotestsum` and make it available on `PATH`:
@@ -29,6 +31,7 @@ Go, install `gotestsum` and make it available on `PATH`:
     echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 - uses: ARM-software/golang-utils/actions/test-go-modules@<full-commit-sha>
   with:
+    build-tags: integration
     artifact-prefix: '${{ github.job }}-'
 ```
 

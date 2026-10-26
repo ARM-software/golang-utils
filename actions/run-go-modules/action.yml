@@ -4,6 +4,10 @@ inputs:
   task:
     description: 'build, download, analyze, generate, or lint'
     required: true
+  build-tags:
+    description: Go build tags for build, analyze, generate, and lint (download does not compile packages).
+    required: false
+    default: integration
   modules:
     description: Optional newline-delimited module directories from detect-go-modules; discovers all when omitted.
     required: false
@@ -28,6 +32,7 @@ runs:
       env:
         MODULES: ${{ inputs.modules || steps.detect.outputs.modules }}
         GO_MODULE_TASK: ${{ inputs.task }}
+        BUILD_TAGS: ${{ inputs.build-tags }}
         RESULTS_FILE: ${{ inputs.results-file }}
         SKIP_RESULTS_FILE: ${{ inputs.skip-results-file }}
       run: |
@@ -57,11 +62,11 @@ runs:
           if [[ "$status" != skipped ]]; then
             echo "$GO_MODULE_TASK $module"
             case "$GO_MODULE_TASK" in
-              build) (cd "$module" && go build -v ./...) || status=fail ;;
+              build) (cd "$module" && go build -tags "$BUILD_TAGS" -v ./...) || status=fail ;;
               download) (cd "$module" && GOWORK=off go mod download) || status=fail ;;
-              analyze) (cd "$module" && go test ./... -run TestDoesNotExist) || status=fail ;;
-              generate) (cd "$module" && go generate ./...) || status=fail ;;
-              lint) (cd "$module" && golangci-lint run ./... --verbose --output.text.print-issued-lines --output.text.print-linter-name --output.tab.colors --max-issues-per-linter 0 --max-same-issues 0) || status=fail ;;
+              analyze) (cd "$module" && go test -tags "$BUILD_TAGS" ./... -run TestDoesNotExist) || status=fail ;;
+              generate) (cd "$module" && go generate -tags "$BUILD_TAGS" ./...) || status=fail ;;
+              lint) (cd "$module" && golangci-lint run ./... --build-tags "$BUILD_TAGS" --verbose --output.text.print-issued-lines --output.text.print-linter-name --output.tab.colors --max-issues-per-linter 0 --max-same-issues 0) || status=fail ;;
             esac
           else
             echo "$GO_MODULE_TASK $module: skipped (prerequisite failed)"

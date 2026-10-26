@@ -11,6 +11,8 @@ independently from another Go repository.
 Tasks: `list`, `build`, `download`, `analyze`, `generate`, `lint`, `verify`.
 `verify` runs generation, lint and `gotestsum` tests, uploads per-module JUnit
 and coverage reports plus merged coverage, and writes the Actions summary.
+Applicable tasks use the `integration` build tag by default; callers can
+override it with `build-tags`.
 
 Callers must check out the repository, set up Go, and install
 `gotestsum` and `golangci-lint` when running `verify`. For example:
@@ -27,6 +29,7 @@ Callers must check out the repository, set up Go, and install
 - uses: ARM-software/golang-utils/actions/go-multimodules@<commit-sha>
   with:
     task: verify
+    build-tags: integration
     artifact-prefix: '${{ github.job }}-'
 ```
 

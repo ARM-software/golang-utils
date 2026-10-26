@@ -20,7 +20,7 @@ go work sync
 go work edit -json |
   sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p' |
   while IFS= read -r module; do
-    (cd "$module" && go generate ./... && golangci-lint run ./... && go test ./...)
+    (cd "$module" && go generate -tags integration ./... && golangci-lint run --build-tags integration ./... && go test -tags integration ./...)
   done
 ```
 
@@ -35,7 +35,7 @@ We use the built-in mock library and use [mockgen](https://github.com/golang/moc
 To generate mocks:
 ```bash
 for module in $(go work edit -json | sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p'); do
-  (cd "$module" && go generate ./...)
+  (cd "$module" && go generate -tags integration ./...)
 done
 ```
 
@@ -52,7 +52,7 @@ Static analysis tools and linters are run as part of CI.
 They come from [golangci-lint](https://golangci-lint.run/). To run this locally:
 ```bash
 for module in $(go work edit -json | sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p'); do
-  (cd "$module" && golangci-lint run ./...)
+  (cd "$module" && golangci-lint run --build-tags integration ./...)
 done
 ``` 
 

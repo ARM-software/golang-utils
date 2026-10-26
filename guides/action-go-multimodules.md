@@ -57,6 +57,7 @@ jobs:
       - uses: ARM-software/golang-utils/actions/go-multimodules@<full-commit-sha>
         with:
           task: verify
+          build-tags: integration
           artifact-prefix: '${{ github.job }}-'
 ```
 
@@ -72,9 +73,9 @@ upload reports in the same run.
 | Action | Standalone purpose | Useful inputs and outputs |
 | --- | --- | --- |
 | [`detect-go-modules`](https://github.com/ARM-software/golang-utils/tree/master/actions/detect-go-modules) | Verify that no module is omitted. | Outputs `modules` (newline-delimited) and `modules-json` for a matrix. |
-| [`run-go-modules`](https://github.com/ARM-software/golang-utils/tree/master/actions/run-go-modules) | Run one task across all modules. | Set `task` to `generate`, `lint`, `build`, `download`, or `analyze`; optionally supply `modules`, `results-file`, and `skip-results-file`. |
-| [`test-go-modules`](https://github.com/ARM-software/golang-utils/tree/master/actions/test-go-modules) | Test modules with `gotestsum`, merge coverage and publish reports. | Optionally supply `modules`, `generation-results`, `lint-results`, and `artifact-prefix`; outputs `combined-coverage`. |
-| [`go-multimodules`](https://github.com/ARM-software/golang-utils/tree/master/actions/go-multimodules) | Compose discovery, generation, lint and testing in one call. | Set `task` (default `verify`); outputs `modules-json`. |
+| [`run-go-modules`](https://github.com/ARM-software/golang-utils/tree/master/actions/run-go-modules) | Run one task across all modules. | Set `task` to `generate`, `lint`, `build`, `download`, or `analyze`; optionally supply `modules`, `results-file`, `skip-results-file`, and `build-tags`. |
+| [`test-go-modules`](https://github.com/ARM-software/golang-utils/tree/master/actions/test-go-modules) | Test modules with `gotestsum`, merge coverage and publish reports. | Optionally supply `modules`, `generation-results`, `lint-results`, `artifact-prefix`, and `build-tags`; outputs `combined-coverage`. |
+| [`go-multimodules`](https://github.com/ARM-software/golang-utils/tree/master/actions/go-multimodules) | Compose discovery, generation, lint and testing in one call. | Set `task` (default `verify`) and optionally `build-tags`; outputs `modules-json`. |
 
 The individual actions can be used independently. If `modules` is omitted,
 `run-go-modules` and `test-go-modules` call the discovery action themselves.
@@ -93,6 +94,7 @@ following steps after checkout, Go setup, and installation of `gotestsum` and
   uses: ARM-software/golang-utils/actions/run-go-modules@<full-commit-sha>
   with:
     task: generate
+    build-tags: integration
     modules: ${{ steps.modules.outputs.modules }}
     results-file: artifacts/generate.tsv
 - id: lint
@@ -101,6 +103,7 @@ following steps after checkout, Go setup, and installation of `gotestsum` and
   uses: ARM-software/golang-utils/actions/run-go-modules@<full-commit-sha>
   with:
     task: lint
+    build-tags: integration
     modules: ${{ steps.modules.outputs.modules }}
     results-file: artifacts/lint.tsv
     skip-results-file: artifacts/generate.tsv
@@ -108,6 +111,7 @@ following steps after checkout, Go setup, and installation of `gotestsum` and
   if: ${{ always() }}
   uses: ARM-software/golang-utils/actions/test-go-modules@<full-commit-sha>
   with:
+    build-tags: integration
     modules: ${{ steps.modules.outputs.modules }}
     generation-results: artifacts/generate.tsv
     lint-results: artifacts/lint.tsv
@@ -116,7 +120,10 @@ following steps after checkout, Go setup, and installation of `gotestsum` and
 
 The TSV results allow later stages to report generation and lint failures
 without concealing test results. Use the same pinned SHA for every component
-so their interfaces stay in sync.
+so their interfaces stay in sync. Build, analysis, generation, lint, and tests
+include the `integration` build tag by default; `download` and discovery do not
+compile tagged packages. Override `build-tags` if the calling project needs
+additional tags.
 
 ## Tasks and reports
 

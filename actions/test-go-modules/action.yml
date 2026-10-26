@@ -1,6 +1,10 @@
 name: Test Go modules and merge coverage
 description: Run gotestsum per module, merge coverage, upload JUnit and coverage artifacts, and summarize failures.
 inputs:
+  build-tags:
+    description: Go build tags for every test invocation.
+    required: false
+    default: integration
   modules:
     description: Optional newline-delimited module directories from detect-go-modules; discovers all when omitted.
     required: false
@@ -33,6 +37,7 @@ runs:
       shell: bash
       env:
         MODULES: ${{ inputs.modules || steps.detect.outputs.modules }}
+        BUILD_TAGS: ${{ inputs.build-tags }}
         GENERATION_RESULTS: ${{ inputs.generation-results }}
         LINT_RESULTS: ${{ inputs.lint-results }}
       run: |
@@ -77,7 +82,7 @@ runs:
             test=skipped
             printf '%s\t%s\n' "$module" 'Tests skipped because generation failed' >> "$failures"
           else
-            if ! (cd "$module" && gotestsum --format standard-verbose --junitfile "$junit" -- -race -covermode=atomic -coverprofile "$profile" -tags integration -timeout 30m ./...); then
+            if ! (cd "$module" && gotestsum --format standard-verbose --junitfile "$junit" -- -race -covermode=atomic -coverprofile "$profile" -tags "$BUILD_TAGS" -timeout 30m ./...); then
               test=fail
               failed=1
               if [[ -f "$junit" ]]; then
