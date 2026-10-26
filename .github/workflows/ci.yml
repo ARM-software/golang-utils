@@ -70,13 +70,13 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.python_version }}
-      - name: Install tools
-        run: pip install detect-secrets[gibberish]==1.5.0 && pip list
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - name: Check for secrets using detect-secrets
-        run: git ls-files -z | xargs -0 detect-secrets-hook --baseline .secrets.baseline --exclude-files '.*go\.sum$' --exclude-files '.*\.html$' --exclude-files '.*\.properties$' --exclude-files 'ci.yml'
+      - name: Install CI/CD tools
+        run: python -m pip install --upgrade 'continuous-delivery-scripts>=4.8.0' && pip list
+      - name: Check for secrets with CDS
+        run: cd-detect-secrets
 
   verify-go-modules:
     name: Generate, lint, test, and cover Go modules
@@ -91,11 +91,15 @@ jobs:
           cache-dependency-path: '**/go.sum'
       - name: Sync workspace
         run: go work sync
-      - name: Install Go CI tools
-        run: |
-          go install gotest.tools/gotestsum@latest
-          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
-          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+      - name: Set up golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: latest
+          install-only: true
+      - name: Set up gotestsum
+        uses: $/actions/setup-gotestsum
+        with:
+          version: v1.13.0
       - name: Run generate, lint, tests, and coverage
         uses: $/actions/go-multimodules
         with:

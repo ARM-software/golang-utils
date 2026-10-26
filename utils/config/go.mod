@@ -3,6 +3,8 @@ module github.com/ARM-software/golang-utils/utils/config
 go 1.26.0
 
 require (
+	github.com/ARM-software/golang-utils/utils/serialisation v1.170.7
+	github.com/ARM-software/golang-utils/utils/serialisation/maps/testing v1.170.7
 	github.com/go-faker/faker/v4 v4.7.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
@@ -28,7 +30,6 @@ require (
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe // indirect
-	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/sasha-s/go-deadlock v0.3.9 // indirect
 	github.com/zalando/go-keyring v0.2.8 // indirect
 	go.mongodb.org/mongo-driver v1.17.4 // indirect
@@ -43,8 +44,6 @@ require (
 	github.com/ARM-software/golang-utils/utils/field v1.170.7
 	github.com/ARM-software/golang-utils/utils/keyring v1.170.7
 	github.com/ARM-software/golang-utils/utils/reflection v1.170.7
-	github.com/ARM-software/golang-utils/utils/serialization v1.170.7
-	github.com/ARM-software/golang-utils/utils/serialization/maps/testing v1.170.7
 	github.com/ARM-software/golang-utils/utils/validation v1.170.7
 	github.com/ARM-software/golang-utils/utils/value v1.170.7
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
@@ -157,3 +156,7 @@ replace github.com/ARM-software/golang-utils/utils/transaction => ../transaction
 replace github.com/ARM-software/golang-utils/utils/units => ../units
 
 replace github.com/ARM-software/golang-utils/utils/url => ../url
+
+replace github.com/ARM-software/golang-utils/utils/serialisation => ../serialisation
+
+replace github.com/ARM-software/golang-utils/utils/serialisation/maps/testing => ../serialisation/maps/testing

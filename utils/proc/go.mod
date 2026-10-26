@@ -25,7 +25,7 @@ require (
 	github.com/ARM-software/golang-utils/utils/reflection v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/resource v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/safeio v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/serialization v1.170.7 // indirect
+	github.com/ARM-software/golang-utils/utils/serialisation v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/strings v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/units v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/url v1.170.7 // indirect
@@ -65,7 +65,6 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe // indirect
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5 // indirect
-	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/rs/zerolog v1.35.1 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.9 // indirect
@@ -212,3 +211,7 @@ replace github.com/ARM-software/golang-utils/utils/url => ../url
 replace github.com/ARM-software/golang-utils/utils/validation => ../validation
 
 replace github.com/ARM-software/golang-utils/utils/value => ../value
+
+replace github.com/ARM-software/golang-utils/utils/serialisation => ../serialisation
+
+replace github.com/ARM-software/golang-utils/utils/serialisation/maps/testing => ../serialisation/maps/testing

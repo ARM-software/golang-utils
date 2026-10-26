@@ -8,7 +8,6 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/stretchr/testify v1.12.1
 	go.uber.org/mock v0.6.0
-	golang.org/x/net v0.61.0
 	sigs.k8s.io/yaml v1.6.0
 )
 
@@ -52,7 +51,6 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
-	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.9 // indirect
 	github.com/scjalliance/comshim v0.0.0-20190308082608-cf06d2532c4e // indirect
@@ -74,9 +72,9 @@ require (
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/exp v0.0.0-20260603202125-055de637280b // indirect
+	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
 
 require (
@@ -89,6 +87,7 @@ require (
 	github.com/ARM-software/golang-utils/utils/reflection v1.170.7
 	github.com/ARM-software/golang-utils/utils/safecast v1.170.7
 	github.com/ARM-software/golang-utils/utils/safeio v1.170.7
+	github.com/ARM-software/golang-utils/utils/serialisation v1.170.7
 	github.com/ARM-software/golang-utils/utils/serialization/maps/testing v1.170.7
 	github.com/ARM-software/golang-utils/utils/validation v1.170.7
 	github.com/josharian/intern v1.0.0 // indirect
@@ -100,16 +99,7 @@ require (
 )
 
 tool (
-	github.com/mailru/easyjson
-	github.com/mailru/easyjson/bootstrap
-	github.com/mailru/easyjson/buffer
 	github.com/mailru/easyjson/easyjson
-	github.com/mailru/easyjson/gen
-	github.com/mailru/easyjson/jlexer
-	github.com/mailru/easyjson/jwriter
-	github.com/mailru/easyjson/opt
-	github.com/mailru/easyjson/parser
-	github.com/mailru/easyjson/tests
 	github.com/pquerna/ffjson
 	go.uber.org/mock/mockgen
 )
@@ -207,3 +197,7 @@ replace github.com/ARM-software/golang-utils/utils/units => ../units
 replace github.com/ARM-software/golang-utils/utils/url => ../url
 
 replace github.com/ARM-software/golang-utils/utils/value => ../value
+
+replace github.com/ARM-software/golang-utils/utils/serialisation => ../serialisation
+
+replace github.com/ARM-software/golang-utils/utils/serialisation/maps/testing => ../serialisation/maps/testing

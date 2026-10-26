@@ -3,6 +3,7 @@ module github.com/ARM-software/golang-utils/utils/validation
 go 1.26.0
 
 require (
+	github.com/ARM-software/golang-utils/utils/serialisation v1.170.7
 	github.com/deckarep/golang-set/v2 v2.9.0
 	github.com/go-faker/faker/v4 v4.7.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
@@ -49,7 +50,6 @@ require (
 	github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7 // indirect
-	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.9 // indirect
 	github.com/scjalliance/comshim v0.0.0-20190308082608-cf06d2532c4e // indirect
@@ -73,7 +73,6 @@ require (
 	golang.org/x/exp v0.0.0-20260603202125-055de637280b // indirect
 	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
@@ -89,7 +88,6 @@ require (
 	github.com/ARM-software/golang-utils/utils/ptr v1.170.7
 	github.com/ARM-software/golang-utils/utils/reflection v1.170.7
 	github.com/ARM-software/golang-utils/utils/safecast v1.170.7
-	github.com/ARM-software/golang-utils/utils/serialization v1.170.7
 	github.com/ARM-software/golang-utils/utils/url v1.170.7
 	github.com/ARM-software/golang-utils/utils/value v1.170.7
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
@@ -194,3 +192,7 @@ replace github.com/ARM-software/golang-utils/utils/subprocess => ../subprocess
 replace github.com/ARM-software/golang-utils/utils/transaction => ../transaction
 
 replace github.com/ARM-software/golang-utils/utils/units => ../units
+
+replace github.com/ARM-software/golang-utils/utils/serialisation => ../serialisation
+
+replace github.com/ARM-software/golang-utils/utils/serialisation/maps/testing => ../serialisation/maps/testing

@@ -1,4 +1,3 @@
-//nolint:misspell // serialization package names and aliases are intentional.
 package jsonschema
 
 import (
@@ -12,8 +11,8 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/ptr"
-	jsonserialization "github.com/ARM-software/golang-utils/utils/serialization/json" //nolint:misspell
-	"github.com/ARM-software/golang-utils/utils/serialization/yaml"                   //nolint:misspell
+	jsonserialisation "github.com/ARM-software/golang-utils/utils/serialisation/json"
+	"github.com/ARM-software/golang-utils/utils/serialisation/yaml"
 )
 
 const xAliasPrefix = "x-"
@@ -60,7 +59,7 @@ func (c *fileValidator) ValidateContent(ctx context.Context, a any) error {
 			}
 		}
 		var decoded any
-		err := jsonserialization.UnmarshallWithContext(ctx, bytes, &decoded)
+		err := jsonserialisation.UnmarshallWithContext(ctx, bytes, &decoded)
 		if err != nil {
 			return commonerrors.WrapError(commonerrors.ErrMarshalling, err, "failed to decode JSON content")
 		}
@@ -132,7 +131,7 @@ func newSchemaCreationFunc(schemaID *string, schema ...Schema) func(context.Cont
 func NewJSONFileValidator(schemaID *string, schema ...Schema) (v ISchemaValidator, err error) {
 	v = &fileValidator{
 		schemaCreationFunc: newSchemaCreationFunc(schemaID, schema...),
-		expectedExtensions: jsonserialization.JSONExtensions,
+		expectedExtensions: jsonserialisation.JSONExtensions,
 		convertFunc:        nil,
 		stripXAliases:      collection.AnyRefFunc(schema, func(s *Schema) bool { return s.ShouldStripAliases() }),
 	}

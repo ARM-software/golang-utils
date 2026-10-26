@@ -27,7 +27,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
 	"github.com/ARM-software/golang-utils/utils/commonerrors/errortest"
 	"github.com/ARM-software/golang-utils/utils/keyring"
-	mapstest "github.com/ARM-software/golang-utils/utils/serialization/maps/testing" //nolint:misspell
+	mapstest "github.com/ARM-software/golang-utils/utils/serialisation/maps/testing"
 	"github.com/ARM-software/golang-utils/utils/value"
 )
 

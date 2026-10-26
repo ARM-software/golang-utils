@@ -5,8 +5,8 @@ import (
 	"io"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
-	"github.com/ARM-software/golang-utils/utils/serialization/frontmatter" //nolint:misspell
-	"github.com/ARM-software/golang-utils/utils/serialization/yaml"        //nolint:misspell
+	"github.com/ARM-software/golang-utils/utils/serialization/frontmatter" //nolint:misspell,staticcheck // Preserve the legacy API.
+	"github.com/ARM-software/golang-utils/utils/serialization/yaml"        //nolint:misspell,staticcheck // Preserve the legacy API.
 )
 
 // NewYAMLFrontmatterFormat returns the YAML front matter format used by Hugo.

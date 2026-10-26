@@ -5,8 +5,8 @@ import (
 	"io"
 
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
-	"github.com/ARM-software/golang-utils/utils/serialization/frontmatter"            //nolint:misspell
-	jsonserialization "github.com/ARM-software/golang-utils/utils/serialization/json" //nolint:misspell
+	"github.com/ARM-software/golang-utils/utils/serialization/frontmatter"            //nolint:misspell,staticcheck // Preserve the legacy API.
+	jsonserialization "github.com/ARM-software/golang-utils/utils/serialization/json" //nolint:misspell,staticcheck // Preserve the legacy API.
 )
 
 // NewJSONFrontmatterFormat returns the JSON front matter format used by Hugo.

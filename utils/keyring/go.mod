@@ -3,6 +3,7 @@ module github.com/ARM-software/golang-utils/utils/keyring
 go 1.26.0
 
 require (
+	github.com/ARM-software/golang-utils/utils/serialisation v1.170.7
 	github.com/go-faker/faker/v4 v4.7.0
 	github.com/stretchr/testify v1.12.1
 	github.com/zalando/go-keyring v0.2.8
@@ -32,7 +33,6 @@ require (
 	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.170.7
 	github.com/ARM-software/golang-utils/utils/parallelisation v1.170.7
 	github.com/ARM-software/golang-utils/utils/reflection v1.170.7
-	github.com/ARM-software/golang-utils/utils/serialization v1.170.7
 	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	golang.org/x/sys v0.49.0 // indirect
@@ -132,3 +132,7 @@ replace github.com/ARM-software/golang-utils/utils/url => ../url
 replace github.com/ARM-software/golang-utils/utils/validation => ../validation
 
 replace github.com/ARM-software/golang-utils/utils/value => ../value
+
+replace github.com/ARM-software/golang-utils/utils/serialisation => ../serialisation
+
+replace github.com/ARM-software/golang-utils/utils/serialisation/maps/testing => ../serialisation/maps/testing

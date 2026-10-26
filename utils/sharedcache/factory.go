@@ -7,7 +7,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 )
 
-//go:generate go run github.com/dmarkham/enumer -type=CacheType -text -json -yaml
+//go:generate go tool enumer -type=CacheType -text -json -yaml
 type CacheType int
 
 const (

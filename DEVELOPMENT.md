@@ -30,7 +30,9 @@ directory with `GOWORK=off`.
 
 ### Mocks
 
-We use the built-in mock library and use [mockgen](https://github.com/golang/mock#running-mockgen) to generate the mock implementation of Interfaces for testing.
+We use [go.uber.org/mock/mockgen](https://github.com/uber-go/mock) to generate
+mock implementations of interfaces. Each module declares only the generators
+it needs in its `go.mod` `tool` block; `go:generate` runs them via `go tool`.
 
 To generate mocks:
 ```bash
@@ -39,7 +41,8 @@ for module in $(go work edit -json | sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*
 done
 ```
 
-We make use of `go:generate` comments to instruct which `mockgen` commands should be run.
+We use `go:generate` directives for `mockgen`, `enumer`, `easyjson`, and
+`ffjson` in the modules that need them.
  
 ### Coding style
  
@@ -116,11 +119,14 @@ Pull requests now run `cd-check-licence-compliance` in CI so TPIP issues are cau
 
 # Detecting secrets
 
-So that no secrets are committed back to the repository, a combination of two tools are run in CI:
-- [GitLeaks]() : Scans the git history for usual secrets (e.g. AWS keys, etc.)
-- [detect-secrets](https://github.com/Yelp/detect-secrets): Scans only the current state of the repository for anything which can look like secrets (strings with high entropy)
+CI calls [CDS](https://github.com/ARMmbed/continuous-delivery-scripts)'s
+`cd-detect-secrets`, which checks tracked files with
+[detect-secrets](https://github.com/Yelp/detect-secrets) against the project's
+recorded baseline. Run `cd-detect-secrets` locally after installing CDS to
+perform the same check.
 
-For the latter, False positive keys are stored in the [baseline](./.secrets.baseline) which `detect-secrets` checks against when it runs
+False positives are recorded in the [baseline](./.secrets.baseline), which
+`detect-secrets` checks when it runs.
 
 ## Baseline & False positives
 

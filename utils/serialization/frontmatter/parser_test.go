@@ -94,7 +94,7 @@ func TestParseUTF8BOMYAMLFrontMatter(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	frontMatter, err := p.Parse(context.Background(), strings.NewReader(string(data)))
+	frontMatter, err := p.Parse(context.Background(), strings.NewReader(strings.ReplaceAll(string(data), "\r\n", "\n")))
 	require.NoError(t, err)
 
 	content, err := safeio.ReadAll(context.Background(), frontMatter)

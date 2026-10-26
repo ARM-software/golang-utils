@@ -4,7 +4,7 @@
  */
 package serialization //nolint:misspell
 
-import serializationxml "github.com/ARM-software/golang-utils/utils/serialization/xml" //nolint:misspell
+import serializationxml "github.com/ARM-software/golang-utils/utils/serialization/xml" //nolint:misspell,staticcheck // Preserve the legacy wrapper.
 
 // UnmarshallXML unmarshals XML bytes into value.
 //

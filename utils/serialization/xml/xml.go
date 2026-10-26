@@ -4,12 +4,7 @@
  */
 package xml
 
-import (
-	"bytes"
-	"encoding/xml"
-
-	"golang.org/x/net/html/charset"
-)
+import serialisationxml "github.com/ARM-software/golang-utils/utils/serialisation/xml"
 
 // UnmarshallXML unmarshals XML bytes into value.
 //
@@ -17,8 +12,5 @@ import (
 // decoder is configured with a charset reader, which allows non-UTF-8 XML
 // encodings to be handled.
 func UnmarshallXML(data []byte, value any) error {
-	reader := bytes.NewReader(data)
-	decoder := xml.NewDecoder(reader)
-	decoder.CharsetReader = charset.NewReaderLabel
-	return decoder.Decode(&value)
+	return serialisationxml.UnmarshallXML(data, value)
 }

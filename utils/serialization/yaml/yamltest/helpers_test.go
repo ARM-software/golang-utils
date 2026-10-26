@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ARM-software/golang-utils/utils/filesystem"
-	yamlserialization "github.com/ARM-software/golang-utils/utils/serialization/yaml" //nolint:misspell
+	yamlserialization "github.com/ARM-software/golang-utils/utils/serialization/yaml" //nolint:misspell,staticcheck // Verify the legacy API.
 	"github.com/ARM-software/golang-utils/utils/serialization/yaml/yamltest/nofast"   //nolint:misspell
 )
 

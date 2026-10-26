@@ -17,7 +17,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/platform"
 )
 
-//go:generate go run github.com/dmarkham/enumer -type=FilesystemType -text -json -yaml
+//go:generate go tool enumer -type=FilesystemType -text -json -yaml
 
 type FilesystemType int
 

@@ -122,3 +122,7 @@ replace github.com/ARM-software/golang-utils/utils/units => ../units
 replace github.com/ARM-software/golang-utils/utils/validation => ../validation
 
 replace github.com/ARM-software/golang-utils/utils/value => ../value
+
+replace github.com/ARM-software/golang-utils/utils/serialisation => ../serialisation
+
+replace github.com/ARM-software/golang-utils/utils/serialisation/maps/testing => ../serialisation/maps/testing

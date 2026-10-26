@@ -32,8 +32,8 @@ import (
 	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/filesystem"
 	"github.com/ARM-software/golang-utils/utils/reflection"
-	"github.com/ARM-software/golang-utils/utils/serialization/json" //nolint:misspell
-	"github.com/ARM-software/golang-utils/utils/serialization/yaml" //nolint:misspell
+	"github.com/ARM-software/golang-utils/utils/serialisation/json"
+	"github.com/ARM-software/golang-utils/utils/serialisation/yaml"
 	validationRules "github.com/ARM-software/golang-utils/utils/validation"
 )
 

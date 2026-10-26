@@ -18,7 +18,7 @@ require (
 	github.com/ARM-software/golang-utils/utils/maps v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/parallelisation v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/ptr v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/serialization v1.170.7 // indirect
+	github.com/ARM-software/golang-utils/utils/serialisation v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/url v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/validation v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/value v1.170.7 // indirect
@@ -42,7 +42,6 @@ require (
 	github.com/pascaldekloe/name v1.0.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/petermattis/goid v0.0.0-20250813065127-a731cc31b4fe // indirect
-	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.9 // indirect
 	github.com/sirupsen/logrus v1.10.2 // indirect
@@ -171,3 +170,7 @@ replace github.com/ARM-software/golang-utils/utils/url => ../url
 replace github.com/ARM-software/golang-utils/utils/validation => ../validation
 
 replace github.com/ARM-software/golang-utils/utils/value => ../value
+
+replace github.com/ARM-software/golang-utils/utils/serialisation => ../serialisation
+
+replace github.com/ARM-software/golang-utils/utils/serialisation/maps/testing => ../serialisation/maps/testing

@@ -33,7 +33,7 @@ require (
 	github.com/ARM-software/golang-utils/utils/ptr v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/resource v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/safeio v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/serialization v1.170.7 // indirect
+	github.com/ARM-software/golang-utils/utils/serialisation v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/strings v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/subprocess v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/url v1.170.7 // indirect
@@ -212,3 +212,7 @@ replace github.com/ARM-software/golang-utils/utils/url => ../url
 replace github.com/ARM-software/golang-utils/utils/validation => ../validation
 
 replace github.com/ARM-software/golang-utils/utils/value => ../value
+
+replace github.com/ARM-software/golang-utils/utils/serialisation => ../serialisation
+
+replace github.com/ARM-software/golang-utils/utils/serialisation/maps/testing => ../serialisation/maps/testing

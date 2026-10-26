@@ -15,17 +15,23 @@ Applicable tasks use the `integration` build tag by default; callers can
 override it with `build-tags`.
 
 Callers must check out the repository, set up Go, and install
-`gotestsum` and `golangci-lint` when running `verify`. For example:
+`gotestsum` and `golangci-lint` when running `verify`. The
+[`setup-gotestsum`](../setup-gotestsum/README.md) action and official
+[`golangci-lint-action`](https://github.com/golangci/golangci-lint-action)
+can prepare the tools:
 
 ```yaml
 - uses: actions/checkout@v7
 - uses: actions/setup-go@v7
   with:
     go-version: '1.26.1'
-- run: |
-    go install gotest.tools/gotestsum@latest
-    go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
-    echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+- uses: golangci/golangci-lint-action@v9
+  with:
+    version: latest
+    install-only: true
+- uses: ARM-software/golang-utils/actions/setup-gotestsum@<commit-sha>
+  with:
+    version: v1.13.0
 - uses: ARM-software/golang-utils/actions/go-multimodules@<commit-sha>
   with:
     task: verify

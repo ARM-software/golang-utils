@@ -10,6 +10,7 @@ require (
 	github.com/ARM-software/golang-utils/utils/logs v1.170.7
 	github.com/ARM-software/golang-utils/utils/parallelisation v1.170.7
 	github.com/ARM-software/golang-utils/utils/proc v1.170.7
+	github.com/ARM-software/golang-utils/utils/serialisation v1.170.7
 	github.com/ARM-software/golang-utils/utils/serialization v1.170.7
 	github.com/ARM-software/golang-utils/utils/transaction v1.170.7
 	github.com/bmatcuk/doublestar/v3 v3.0.0
@@ -203,3 +204,7 @@ replace github.com/ARM-software/golang-utils/utils/url => ../url
 replace github.com/ARM-software/golang-utils/utils/validation => ../validation
 
 replace github.com/ARM-software/golang-utils/utils/value => ../value
+
+replace github.com/ARM-software/golang-utils/utils/serialisation => ../serialisation
+
+replace github.com/ARM-software/golang-utils/utils/serialisation/maps/testing => ../serialisation/maps/testing

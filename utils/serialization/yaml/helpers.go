@@ -22,7 +22,7 @@ import (
 
 	"github.com/ARM-software/golang-utils/utils/collection"
 	"github.com/ARM-software/golang-utils/utils/commonerrors"
-	jsonserialization "github.com/ARM-software/golang-utils/utils/serialization/json" //nolint:misspell
+	jsonserialization "github.com/ARM-software/golang-utils/utils/serialization/json" //nolint:misspell,staticcheck // Preserve the legacy API.
 )
 
 var (

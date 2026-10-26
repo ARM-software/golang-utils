@@ -54,7 +54,8 @@ published [CDS] tags.
 2. Add a `go.mod` whose module path matches the import path.
 3. Add the module path to the repository `go.work`.
 4. Add versioned `require` plus local `replace` directives for internal dependencies.
-5. If the module contains `go:generate` directives, declare only the needed tools in that module.
+5. If the module contains `go:generate` directives, use `go tool` and declare
+   only the needed tools in that module's `tool` block.
 6. Update `.github/dependabot.yml` so the new `go.mod` directory is covered.
 7. Ensure CI still discovers the module from `go.work`.
 

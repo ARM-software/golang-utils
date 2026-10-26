@@ -25,7 +25,9 @@ For example, generate in every module of another repository:
     build-tags: integration
 ```
 
-For `lint`, install `golangci-lint` first. `build`, `analyze`, and `generate`
+For `lint`, install `golangci-lint` first with
+[`golangci-lint-action`](https://github.com/golangci/golangci-lint-action)
+using `install-only: true`. `build`, `analyze`, and `generate`
 pass `-tags integration` by default, while lint passes
 `--build-tags integration`. `download` uses `GOWORK=off` to
 exercise each module's own metadata. The action checks all selected modules

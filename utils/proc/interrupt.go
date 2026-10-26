@@ -13,7 +13,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/parallelisation"
 )
 
-//go:generate go run github.com/dmarkham/enumer -type=InterruptType -text -json -yaml
+//go:generate go tool enumer -type=InterruptType -text -json -yaml
 type InterruptType int
 
 const (

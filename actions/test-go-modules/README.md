@@ -18,17 +18,15 @@ contains the overall statement-coverage percentage. A test failure causes the
 action to fail, but available JUnit and coverage artifacts are still uploaded,
 and the summary lists failing tests.
 
-To run this action from another repository, check out that repository, set up
-Go, install `gotestsum` and make it available on `PATH`:
+To run this action from another repository, check out that repository and
+set up Go and [`gotestsum`](../setup-gotestsum/README.md):
 
 ```yaml
 - uses: actions/checkout@v7
 - uses: actions/setup-go@v7
   with:
     go-version: '1.26.1'
-- run: |
-    go install gotest.tools/gotestsum@latest
-    echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+- uses: ARM-software/golang-utils/actions/setup-gotestsum@<full-commit-sha>
 - uses: ARM-software/golang-utils/actions/test-go-modules@<full-commit-sha>
   with:
     build-tags: integration
