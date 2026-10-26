@@ -4,12 +4,12 @@
  */
 package serialization //nolint:misspell
 
-import serializationxml "github.com/ARM-software/golang-utils/utils/serialization/xml" //nolint:misspell,staticcheck // Preserve the legacy wrapper.
+import serialisation "github.com/ARM-software/golang-utils/utils/serialisation"
 
 // UnmarshallXML unmarshals XML bytes into value.
 //
 // This compatibility wrapper preserves the historical serialisation package API
 // while delegating the actual implementation to the dedicated xml subproject.
 func UnmarshallXML(data []byte, value any) error {
-	return serializationxml.UnmarshallXML(data, value)
+	return serialisation.UnmarshallXML(data, value)
 }

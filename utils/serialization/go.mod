@@ -3,12 +3,12 @@ module github.com/ARM-software/golang-utils/utils/serialization
 go 1.26.0
 
 require (
+	github.com/ARM-software/golang-utils/utils/serialisation/maps/testing v1.170.7
 	github.com/go-faker/faker/v4 v4.7.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/stretchr/testify v1.12.1
 	go.uber.org/mock v0.6.0
-	sigs.k8s.io/yaml v1.6.0
 )
 
 require (
@@ -73,36 +73,29 @@ require (
 	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
+	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.170.7
+	github.com/ARM-software/golang-utils/utils/collection v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/commonerrors v1.170.7
 	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.170.7
-	github.com/ARM-software/golang-utils/utils/config v1.170.7
+	github.com/ARM-software/golang-utils/utils/config v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/filesystem v1.170.7
-	github.com/ARM-software/golang-utils/utils/maps v1.170.7
-	github.com/ARM-software/golang-utils/utils/reflection v1.170.7
-	github.com/ARM-software/golang-utils/utils/safecast v1.170.7
+	github.com/ARM-software/golang-utils/utils/maps v1.170.7 // indirect
+	github.com/ARM-software/golang-utils/utils/reflection v1.170.7 // indirect
+	github.com/ARM-software/golang-utils/utils/safecast v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/safeio v1.170.7
 	github.com/ARM-software/golang-utils/utils/serialisation v1.170.7
 	github.com/ARM-software/golang-utils/utils/serialization/maps/testing v1.170.7
 	github.com/ARM-software/golang-utils/utils/subprocess/command v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/units/multiplication v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/units/size v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/validation v1.170.7
+	github.com/ARM-software/golang-utils/utils/validation v1.170.7 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
-	github.com/mailru/easyjson v0.9.2
-	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
-	golang.org/x/mod v0.41.0 // indirect
+	github.com/mailru/easyjson v0.9.2 // indirect
+	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7 // indirect
 	golang.org/x/sync v0.24.0 // indirect
-	golang.org/x/tools v0.51.0 // indirect
-)
-
-tool (
-	github.com/mailru/easyjson/easyjson
-	github.com/pquerna/ffjson
-	go.uber.org/mock/mockgen
 )
 
 replace github.com/ARM-software/golang-utils/utils/collection => ../collection

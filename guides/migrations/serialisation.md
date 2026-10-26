@@ -34,14 +34,14 @@ The JSON and YAML frontmatter subpackages are separate Go modules. Depend on
 the specific module you import, for example
 `go get github.com/ARM-software/golang-utils/utils/serialisation/json/frontmatter@latest`.
 
-The legacy packages remain available so existing imports do
-not need to change immediately. Their `doc.go` files mark them as deprecated though
-and point to the newly created packages. In particular, the old
-`serialization/xml` package delegates to `serialisation/xml`; legacy
-compatibility tests cover the old XML, JSON, YAML and map import paths.
+The legacy packages remain available so existing imports do not need to change
+immediately. Their `doc.go` files mark them as deprecated and point to the new
+packages. All legacy helpers delegate to their `serialisation` counterparts;
+exported types are aliases of the canonical types, including the frontmatter
+format and parser types. Values can be used across the two import paths without
+conversion.
 
-When migrating, change the import path and verify that any package-specific
-types used together also come from the new import path.
+When migrating, change the import path to its `serialisation` equivalent.
 
 Both module paths are listed in `go.work` and participate in one [CDS](https://github.com/ARMmbed/continuous-delivery-scripts)
 release.

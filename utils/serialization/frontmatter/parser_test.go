@@ -179,7 +179,7 @@ func TestWithFormatOptions(t *testing.T) {
 func TestParserOptionsDefaults(t *testing.T) {
 	options := DefaultParserOptions()
 	require.NotNil(t, options)
-	assert.Equal(t, bufferCap, options.BufferCapacity)
+	assert.Equal(t, 1024, options.BufferCapacity)
 }
 
 func TestWithParserOptions(t *testing.T) {
@@ -198,9 +198,10 @@ func TestParserConfigure(t *testing.T) {
 	configured := p.Configure(WithBufferCapacity(2048))
 	require.NotNil(t, configured)
 
-	concrete, ok := configured.(*parser)
-	require.True(t, ok)
-	assert.Equal(t, 2048, concrete.options.BufferCapacity)
+	assert.Same(t, p, configured)
+	content, err := configured.Extract(context.Background(), strings.NewReader("---\ntitle: Test\n---\n"))
+	require.NoError(t, err)
+	assert.Equal(t, "title: Test\n", string(content))
 }
 
 func TestParseCustomFormatInspiredByAdrgFrontmatter(t *testing.T) {

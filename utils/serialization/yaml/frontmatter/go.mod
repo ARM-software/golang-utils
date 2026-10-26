@@ -8,7 +8,8 @@ require (
 	github.com/ARM-software/golang-utils/utils/commonerrors v1.170.7
 	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.170.7
 	github.com/ARM-software/golang-utils/utils/reflection v1.170.7
-	github.com/ARM-software/golang-utils/utils/serialization v1.170.7
+	github.com/ARM-software/golang-utils/utils/serialisation v1.170.7
+	github.com/ARM-software/golang-utils/utils/serialisation/yaml/frontmatter v1.170.7
 	github.com/stretchr/testify v1.12.1
 )
 
@@ -23,7 +24,6 @@ require (
 	github.com/ARM-software/golang-utils/utils/ptr v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/safecast v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/safeio v1.170.7 // indirect
-	github.com/ARM-software/golang-utils/utils/serialisation v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/url v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/validation v1.170.7 // indirect
 	github.com/ARM-software/golang-utils/utils/value v1.170.7 // indirect
