@@ -1,0 +1,64 @@
+name: Licensing
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+  schedule:
+    - cron: '17 3 * * *'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  licensing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          ref: ${{ github.event.pull_request.head.sha || github.event.repository.default_branch }}
+          fetch-depth: 0
+          token: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository && github.token || secrets.ARM_SOFTWARE_TOKEN || github.token }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Install CDS
+        run: python -m pip install --upgrade 'continuous-delivery-scripts>=4.8.0'
+      - name: Update copyright headers
+        id: licensing
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd-license-files
+          if [[ -n "$(git status --porcelain --untracked-files=all)" ]]; then
+            if ! git grep -q -F ':robot: Update copyright headers' -- 'changes/*.misc'; then
+              cd-create-news-file --type misc ':robot: Update copyright headers'
+            fi
+            echo 'changed=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Commit changes to the PR branch
+        if: ${{ steps.licensing.outputs.changed == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+        env:
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          git add -A
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m ':robot: Chores: licensing'
+          git push origin "HEAD:refs/heads/$PR_BRANCH"
+      - name: Report changes on a fork PR
+        if: ${{ steps.licensing.outputs.changed == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+        run: |
+          echo '::error::Copyright headers need updating on the fork PR branch; the repository token cannot push to a fork.'
+          exit 1
+      - name: Create or update licensing PR
+        if: ${{ steps.licensing.outputs.changed == 'true' && github.event_name != 'pull_request' }}
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.ARM_SOFTWARE_TOKEN || github.token }}
+          branch: automation/licensing
+          base: ${{ github.event.repository.default_branch }}
+          title: ':robot: Chores: licensing'
+          commit-message: ':robot: Chores: licensing'
+          body: |
+            Update copyright headers with `cd-license-files` and add a misc news fragment.
