@@ -1,5 +1,5 @@
 name: Test Go modules and merge coverage
-description: Run gotestsum per module, combine JUnit and coverage reports, upload artifacts, and summarize failures.
+description: Run gotestsum per module, combine coverage reports, upload artifacts, and publish JUnit test results.
 inputs:
   build-tags:
     description: Go build tags for every test invocation.
@@ -46,11 +46,9 @@ runs:
         if [[ -z "$MODULES" ]]; then echo 'No Go modules supplied or detected' >&2; exit 1; fi
         artifacts="$PWD/artifacts"
         mkdir -p "$artifacts/junit" "$artifacts/coverage"
-        rm -f "$artifacts/junit/"*.xml "$artifacts/coverage/"*.out "$artifacts/module-results.tsv" "$artifacts/failed-tests.tsv"
+        rm -f "$artifacts/junit/"*.xml "$artifacts/coverage/"*.out "$artifacts/module-results.tsv"
         results="$artifacts/module-results.tsv"
-        failures="$artifacts/failed-tests.tsv"
         : > "$results"
-        : > "$failures"
         failed=0
         while IFS= read -r module; do
           [[ -n "$module" ]] || continue
@@ -80,26 +78,10 @@ runs:
           test=pass coverage='not available'
           if [[ "$generation" == fail || "$generation" == skipped || "$generation" == missing ]]; then
             test=skipped
-            printf '%s\t%s\n' "$module" 'Tests skipped because generation failed' >> "$failures"
           else
             if ! (cd "$module" && gotestsum --format standard-verbose --junitfile "$junit" -- -race -covermode=atomic -coverprofile "$profile" -tags "$BUILD_TAGS" -timeout 30m ./...); then
               test=fail
               failed=1
-              if [[ -f "$junit" ]]; then
-                awk -v module="$module" '
-                  /<testcase[[:space:]]/ {
-                    classname=$0; sub(/.*classname="/, "", classname); sub(/".*/, "", classname)
-                    name=$0; sub(/.* name="/, "", name); sub(/".*/, "", name)
-                    testcase=classname "/" name
-                  }
-                  /<(failure|error)([[:space:]>])/ && testcase != "" {
-                    print module "\t" testcase; found=1
-                  }
-                  END { if (!found) print module "\tNo failed test case in JUnit (see test log)" }
-                ' "$junit" >> "$failures"
-              else
-                printf '%s\t%s\n' "$module" 'JUnit report unavailable (see test log)' >> "$failures"
-              fi
             fi
             if [[ ! -f "$junit" ]]; then failed=1; fi
             if [[ -f "$profile" ]]; then
@@ -118,8 +100,6 @@ runs:
           fi
           printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$module" "$generation" "$lint" "$test" "$coverage" "$key.xml" "$key.out" >> "$results"
         done <<< "$MODULES"
-
-        if ! go run "$GITHUB_ACTION_PATH/merge-junit.go" "$artifacts/junit" "$artifacts/junit/combined.xml"; then failed=1; fi
 
         combined="$artifacts/coverage/combined.out"
         printf 'mode: atomic\n' > "$combined"
@@ -149,6 +129,16 @@ runs:
         printf '%s\n' "$total" > "$artifacts/combined-coverage.txt"
         printf 'combined-coverage=%s\n' "$total" >> "$GITHUB_OUTPUT"
         exit "$failed"
+    - name: Publish JUnit test results
+      if: ${{ always() }}
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      with:
+        files: artifacts/junit/*.xml
+        check_name: Go multimodules tests
+        comment_mode: off
+        check_run: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+        compare_to_earlier_commit: false
+        action_fail: false
     - name: Upload JUnit reports
       if: ${{ always() }}
       id: junit
@@ -165,7 +155,7 @@ runs:
         name: "${{ inputs.artifact-prefix }}coverage"
         path: ${{ github.workspace }}/artifacts/coverage/*.out
         if-no-files-found: error
-    - name: Publish module summary
+    - name: Publish module and coverage summary
       if: ${{ always() }}
       shell: bash
       env:
@@ -197,22 +187,6 @@ runs:
             fi
             printf '| `%s` | %s | %s | %s | %s | %s | %s |\n' "$module" "$generation" "$lint" "$test" "$coverage" "$junit_report" "$profile_report" >> "$summary"
           done < "$artifacts/module-results.tsv"
-          printf '\n### Failed tests\n\n' >> "$summary"
-          if [[ -s "$artifacts/failed-tests.tsv" ]]; then
-            while IFS=$'\t' read -r module name; do
-              key="${module#./}"
-              key="${key//\//__}"
-              if [[ "$key" == . ]]; then key=root; fi
-              junit_link='JUnit report unavailable'
-              if [[ -n "$JUNIT_ARTIFACT_URL" && -f "$artifacts/junit/$key.xml" ]]; then
-                junit_link="[JUnit: $key.xml]($JUNIT_ARTIFACT_URL)"
-              fi
-              name="${name//|/\\|}"
-              printf -- '- `%s`: `%s` - %s\n' "$module" "$name" "$junit_link" >> "$summary"
-            done < "$artifacts/failed-tests.tsv"
-          else
-            printf 'None.\n' >> "$summary"
-          fi
           printf '\n### Combined coverage\n\n' >> "$summary"
           total='coverage unavailable'
           if [[ -f "$artifacts/combined-coverage.txt" ]]; then total="$(cat "$artifacts/combined-coverage.txt")"; fi
@@ -223,6 +197,6 @@ runs:
           fi
         fi
         printf '\n' >> "$summary"
-        if [[ -n "$JUNIT_ARTIFACT_URL" ]]; then printf '[Download combined.xml and per-module JUnit XML reports](%s)\n' "$JUNIT_ARTIFACT_URL" >> "$summary"; fi
+        if [[ -n "$JUNIT_ARTIFACT_URL" ]]; then printf '[Download per-module JUnit XML reports](%s)\n' "$JUNIT_ARTIFACT_URL" >> "$summary"; fi
         if [[ -n "$COVERAGE_ARTIFACT_URL" ]]; then printf '[Download per-module and combined coverage](%s)\n' "$COVERAGE_ARTIFACT_URL" >> "$summary"; fi
         printf '\n[Open the complete workflow run](https://github.com/%s/actions/runs/%s)\n' "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" >> "$summary"

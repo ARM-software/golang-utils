@@ -25,8 +25,9 @@ go work edit -json |
 ```
 
 CI's `go-multimodules` action writes per-module JUnit XML and coverage to
-`artifacts/`. To run checks for one module, run the Go commands from its
-directory with `GOWORK=off`.
+`artifacts/`, then publishes parsed JUnit results in the workflow summary. To
+run checks for one module, run the Go commands from its directory with
+`GOWORK=off`.
 
 ### Mocks
 

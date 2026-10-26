@@ -42,6 +42,9 @@ on: [push, pull_request]
 jobs:
   verify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
@@ -145,11 +148,12 @@ additional tags.
 
 `verify` calls the granular generation, lint and test actions in order. The
 test action uploads one JUnit XML file and one coverage profile per module,
-plus a project-wide `combined.xml` JUnit report and `combined.out` coverage
-profile. Its GitHub Actions summary shows every module's generate,
-lint and test status, per-module coverage, failed test names, and links to the
-uploaded reports. Artifact uploads and the summary also run when verification
-fails, so available failure reports remain accessible.
+plus a project-wide `combined.out` coverage profile. Test results are rendered
+in the workflow summary via `EnricoMi/publish-unit-test-result-action`, while
+the local summary keeps every module's generate, lint and test status,
+per-module coverage, and links to the uploaded reports. Artifact uploads and
+summaries also run when verification fails, so available failure reports remain
+accessible.
 
 Set up Go before using any task. For `verify` or `lint`, install
 `golangci-lint`; for `verify`, also install `gotestsum`. GitHub-hosted runners

@@ -1,0 +1,1 @@
+:sparkles: [actions] Simplify multimodule Go test reporting by publishing per-module JUnit results with `publish-unit-test-result-action` while keeping uploaded coverage artifacts and combined coverage output.
