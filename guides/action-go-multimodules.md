@@ -49,6 +49,8 @@ jobs:
         with:
           go-version: '1.26.1' # Choose the version required by your modules.
           cache-dependency-path: '**/go.sum'
+      - uses: ARM-software/golang-utils/actions/sync-go-workspace@<full-commit-sha>
+        if: ${{ hashFiles('go.work') != '' }}
       - uses: golangci/golangci-lint-action@v9
         with:
           version: latest
@@ -75,6 +77,7 @@ upload reports in the same run.
 | Action | Standalone purpose | Useful inputs and outputs |
 | --- | --- | --- |
 | [`detect-go-modules`](https://github.com/ARM-software/golang-utils/tree/master/actions/detect-go-modules) | Verify that no module is omitted. | Outputs `modules` (newline-delimited) and `modules-json` for a matrix. |
+| [`sync-go-workspace`](https://github.com/ARM-software/golang-utils/tree/master/actions/sync-go-workspace) | Run `go work sync` at the checked-out repository root. | No inputs; requires Go and `go.work`. |
 | [`setup-gotestsum`](https://github.com/ARM-software/golang-utils/tree/master/actions/setup-gotestsum) | Install the `gotestsum` test runner and put it on `PATH`. | `version` defaults to `v1.13.0`. |
 | [`run-go-modules`](https://github.com/ARM-software/golang-utils/tree/master/actions/run-go-modules) | Run one task across all modules. | Set `task` to `generate`, `lint`, `build`, `download`, or `analyze`; optionally supply `modules`, `results-file`, `skip-results-file`, and `build-tags`. |
 | [`test-go-modules`](https://github.com/ARM-software/golang-utils/tree/master/actions/test-go-modules) | Test modules with `gotestsum`, merge coverage and publish reports. | Optionally supply `modules`, `generation-results`, `lint-results`, `artifact-prefix`, and `build-tags`; outputs `combined-coverage`. |
@@ -86,8 +89,9 @@ In this repository use `$/actions/<name>` to call each action; from another
 repository use `ARM-software/golang-utils/actions/<name>@<full-commit-sha>`.
 
 For example, to choose the stages separately in another repository, add the
-following steps after checkout, Go setup, and the `setup-gotestsum` and
-`golangci-lint-action` installation steps (as in the complete example above):
+following steps after checkout, Go setup, optional workspace sync, and the
+`setup-gotestsum` and `golangci-lint-action` installation steps (as in the
+complete example above):
 
 ```yaml
 - id: modules

@@ -25,6 +25,8 @@ can prepare the tools:
 - uses: actions/setup-go@v7
   with:
     go-version: '1.26.1'
+- uses: ARM-software/golang-utils/actions/sync-go-workspace@<commit-sha>
+  if: ${{ hashFiles('go.work') != '' }}
 - uses: golangci/golangci-lint-action@v9
   with:
     version: latest

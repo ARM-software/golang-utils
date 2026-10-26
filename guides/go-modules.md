@@ -31,8 +31,9 @@ go get github.com/ARM-software/golang-utils/utils/validation@latest
 - Each top-level consumable package under `utils/` has its own `go.mod`.
 - Shared helper packages that are reused across module boundaries also have their own `go.mod` when keeping them separate prevents test-only dependencies from leaking into production modules.
 
-CI uses the reusable Go multimodules action to discover modules from `go.work`.
-It checks that every `go.mod` is listed.
+CI uses the reusable `sync-go-workspace` action to run `go work sync`, then the
+Go multimodules action to discover modules from `go.work`. It checks that every
+`go.mod` is listed.
 
 ## Internal dependencies
 
