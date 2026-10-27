@@ -3,7 +3,7 @@ module github.com/ARM-software/golang-utils/utils/commonerrors
 go 1.26.0
 
 require (
-	github.com/go-faker/faker/v4 v4.7.0
+	github.com/go-faker/faker/v4 v4.12.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/stretchr/testify v1.12.1
 	go.uber.org/goleak v1.3.0
