@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/ARM-software/golang-utils/utils/serialisation v1.170.7
 	github.com/ARM-software/golang-utils/utils/serialisation/maps/testing v1.170.7
-	github.com/go-faker/faker/v4 v4.7.0
+	github.com/go-faker/faker/v4 v4.12.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/joho/godotenv v1.5.1
