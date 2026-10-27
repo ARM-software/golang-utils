@@ -12,7 +12,7 @@ fostering a welcoming community, please see our Code of Conduct, which can be fo
 There are several ways to contribute:
 
 - Raise an issue found via [GitHub Issues](https://github.com/ARM-software/golang-utils/issues).
-- Open an [pull request](https://github.com/ARM-software/golang-utils/pulls) to:
+- Open a [pull request](https://github.com/ARM-software/golang-utils/pulls) to:
   - Provide a fix.
   - Add an enhancement feature.
   - Correct, update or add documentation.
@@ -30,6 +30,8 @@ normal process to make a change is as follows:
 4. Write a [good commit message](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html).
 5. Push to your fork.
 6. Submit a pull request.
+
+If your change adds or restructures a Go module, also update the repository `go.work`, `.github/dependabot.yml`, and the [Go modules guide](guides/go-modules.md).
 
 We will review the proposed change as soon as we can and, if needed, give feedback. Please bear in mind that the tools
 are complex and cover a large number of use cases. This means we may ask for changes not only to ensure

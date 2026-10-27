@@ -22,7 +22,7 @@ import (
 	"github.com/ARM-software/golang-utils/utils/field"
 	"github.com/ARM-software/golang-utils/utils/keyring"
 	"github.com/ARM-software/golang-utils/utils/reflection"
-	"github.com/ARM-software/golang-utils/utils/serialization/maps" //nolint:misspell
+	"github.com/ARM-software/golang-utils/utils/serialisation/maps"
 	validationRules "github.com/ARM-software/golang-utils/utils/validation"
 	valueUtils "github.com/ARM-software/golang-utils/utils/value"
 )

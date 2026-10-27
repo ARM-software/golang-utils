@@ -1,0 +1,41 @@
+name: Lint GitHub Actions and local actions
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  lint-workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Resolve local action references for actionlint
+        shell: bash
+        run: |
+          find .github/workflows actions -type f \( -name '*.yml' -o -name '*.yaml' \) \
+            -exec sed -i 's|uses: \$/actions/|uses: ./actions/|g' {} +
+      - name: Lint workflows
+        uses: docker://rhysd/actionlint:1.7.12
+      - name: Lint local actions
+        shell: bash
+        run: |
+          set -euo pipefail
+          found=0
+          for action in actions/*/action.yml actions/*/action.yaml; do
+            [[ -f "$action" ]] || continue
+            found=1
+            action_dir="$(dirname "$action")"
+            echo "Linting $action_dir"
+            {
+              printf 'on: workflow_dispatch\njobs:\n  check:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: ./%s\n' "$action_dir"
+              if [[ "$action_dir" == actions/run-go-modules ]]; then
+                printf '        with:\n          task: build\n'
+              fi
+            } | docker run --rm -i -v "$GITHUB_WORKSPACE:/repo:ro" -w /repo \
+              rhysd/actionlint:1.7.12 -stdin-filename .github/workflows/lint-actions.yml -
+          done
+          if [[ "$found" != 1 ]]; then echo 'No local actions found' >&2; exit 1; fi

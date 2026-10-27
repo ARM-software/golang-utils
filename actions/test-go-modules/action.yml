@@ -1,0 +1,275 @@
+name: Test Go modules and merge coverage
+description: Run gotestsum per module, combine coverage reports, upload artifacts, and publish JUnit test results.
+inputs:
+  build-tags:
+    description: Go build tags for every test invocation.
+    required: false
+    default: integration
+  modules:
+    description: Optional newline-delimited module directories from detect-go-modules; discovers all when omitted.
+    required: false
+    default: ''
+  generation-results:
+    description: Optional repository-relative TSV results from run-go-modules generate; skip modules whose generation failed.
+    required: false
+    default: ''
+  lint-results:
+    description: Optional repository-relative TSV results from run-go-modules lint.
+    required: false
+    default: ''
+  artifact-prefix:
+    description: Prefix for uploaded JUnit and coverage artifacts (including any separator).
+    required: false
+    default: ''
+outputs:
+  combined-coverage:
+    description: Combined statement coverage percentage, or n/a when no statements are coverable.
+    value: ${{ steps.merge.outputs.combined-coverage }}
+runs:
+  using: composite
+  steps:
+    - name: Discover modules when not provided
+      if: ${{ inputs.modules == '' }}
+      id: detect
+      uses: $/actions/detect-go-modules
+    - name: Prepare report directories
+      id: prepare
+      shell: bash
+      env:
+        MODULES: ${{ inputs.modules || steps.detect.outputs.modules }}
+      run: |
+        set -euo pipefail
+        cd "$GITHUB_WORKSPACE"
+        if [[ -z "$MODULES" ]]; then echo 'No Go modules supplied or detected' >&2; exit 1; fi
+        mkdir -p artifacts/junit artifacts/coverage
+        rm -f artifacts/junit/*.xml artifacts/coverage/*.out artifacts/module-tests.tsv artifacts/module-results.tsv artifacts/combined-coverage.txt
+        : > artifacts/module-tests.tsv
+        : > artifacts/module-results.tsv
+    - name: Test modules
+      id: tests
+      continue-on-error: true
+      shell: bash
+      env:
+        MODULES: ${{ inputs.modules || steps.detect.outputs.modules }}
+        BUILD_TAGS: ${{ inputs.build-tags }}
+        GENERATION_RESULTS: ${{ inputs.generation-results }}
+        LINT_RESULTS: ${{ inputs.lint-results }}
+      run: |
+        set -euo pipefail
+        cd "$GITHUB_WORKSPACE"
+        artifacts="$PWD/artifacts"
+        results="$artifacts/module-tests.tsv"
+        failed=0
+        while IFS= read -r module; do
+          [[ -n "$module" ]] || continue
+          echo "test $module"
+          key="${module#./}"
+          key="${key//\//__}"
+          if [[ "$key" == . ]]; then key=root; fi
+          junit="$artifacts/junit/$key.xml"
+          profile="$artifacts/coverage/$key.out"
+          generation='not requested'
+          lint='not requested'
+          if [[ -n "$GENERATION_RESULTS" ]]; then
+            generation=missing
+            if [[ -f "$GENERATION_RESULTS" ]]; then
+              generation="$(awk -F '\t' -v module="$module" '$1 == module { print $2; exit }' "$GENERATION_RESULTS")"
+              if [[ -z "$generation" ]]; then generation=missing; fi
+            fi
+          fi
+          if [[ -n "$LINT_RESULTS" ]]; then
+            lint=missing
+            if [[ -f "$LINT_RESULTS" ]]; then
+              lint="$(awk -F '\t' -v module="$module" '$1 == module { print $2; exit }' "$LINT_RESULTS")"
+              if [[ -z "$lint" ]]; then lint=missing; fi
+            fi
+          fi
+          if [[ "$generation" == fail || "$generation" == skipped || "$generation" == missing || "$lint" == fail || "$lint" == skipped || "$lint" == missing ]]; then failed=1; fi
+          test=pass
+          if [[ "$generation" == fail || "$generation" == skipped || "$generation" == missing ]]; then
+            test=skipped
+          else
+            if ! (cd "$module" && gotestsum --format standard-verbose --junitfile "$junit" -- -race -covermode=atomic -coverprofile "$profile" -tags "$BUILD_TAGS" -timeout 30m ./...); then
+              test=fail
+              failed=1
+            fi
+            if [[ ! -f "$junit" ]]; then failed=1; fi
+          fi
+          printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$module" "$generation" "$lint" "$test" "$key.xml" "$key.out" >> "$results"
+        done <<< "$MODULES"
+        exit "$failed"
+    - name: Measure module coverage
+      id: measure
+      if: ${{ always() && steps.prepare.outcome == 'success' }}
+      continue-on-error: true
+      shell: bash
+      run: |
+        set -euo pipefail
+        cd "$GITHUB_WORKSPACE"
+        artifacts="$PWD/artifacts"
+        failed=0
+        while IFS=$'\t' read -r module generation lint test junit_name profile_name; do
+          coverage='not available'
+          if [[ "$generation" != fail && "$generation" != skipped && "$generation" != missing ]]; then
+            profile="$artifacts/coverage/$profile_name"
+            if [[ -f "$profile" ]]; then
+              if [[ $(wc -l < "$profile") -le 1 ]]; then
+                coverage='n/a (no statements)'
+              elif coverage="$(cd "$module" && go tool cover "-func=$profile" | awk '$1=="total:" {print $NF}')" && [[ -n "$coverage" ]]; then
+                :
+              else
+                coverage='unavailable (invalid profile)'
+                failed=1
+              fi
+            else
+              coverage='missing profile'
+              failed=1
+            fi
+          fi
+          printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$module" "$generation" "$lint" "$test" "$coverage" "$junit_name" "$profile_name" >> "$artifacts/module-results.tsv"
+        done < "$artifacts/module-tests.tsv"
+        exit "$failed"
+    - name: Merge coverage profiles
+      id: merge
+      if: ${{ always() && steps.prepare.outcome == 'success' }}
+      continue-on-error: true
+      shell: bash
+      env:
+        MODULES: ${{ inputs.modules || steps.detect.outputs.modules }}
+      run: |
+        set -euo pipefail
+        cd "$GITHUB_WORKSPACE"
+        artifacts="$PWD/artifacts"
+        failed=0
+        combined="$artifacts/coverage/combined.out"
+        printf 'mode: atomic\n' > "$combined"
+        while IFS= read -r module; do
+          [[ -n "$module" ]] || continue
+          key="${module#./}"
+          key="${key//\//__}"
+          if [[ "$key" == . ]]; then key=root; fi
+          profile="$artifacts/coverage/$key.out"
+          if [[ -f "$profile" ]]; then
+            if [[ "$(head -n 1 "$profile")" != 'mode: atomic' ]]; then
+              failed=1
+              continue
+            fi
+            awk 'NR > 1' "$profile" >> "$combined"
+          fi
+        done <<< "$MODULES"
+        total='n/a (no covered statements)'
+        if [[ $(wc -l < "$combined") -gt 1 ]]; then
+          if total="$(go tool cover "-func=$combined" | awk '$1=="total:" {print $NF}')" && [[ -n "$total" ]]; then
+            :
+          else
+            total='unavailable (invalid combined profile)'
+            failed=1
+          fi
+        fi
+        printf '%s\n' "$total" > "$artifacts/combined-coverage.txt"
+        printf 'combined-coverage=%s\n' "$total" >> "$GITHUB_OUTPUT"
+        exit "$failed"
+    - name: Publish JUnit test results
+      if: ${{ always() }}
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      with:
+        files: artifacts/junit/*.xml
+        json_file: artifacts/junit/combined-report.json
+        check_name: Go multimodules tests
+        comment_mode: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && 'always' || 'off' }}
+        check_run: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+        compare_to_earlier_commit: false
+        action_fail: false
+    - name: Upload JUnit reports
+      if: ${{ always() }}
+      id: junit
+      uses: actions/upload-artifact@v4
+      with:
+        name: "${{ inputs.artifact-prefix }}junit-reports"
+        path: ${{ github.workspace }}/artifacts/junit
+        if-no-files-found: error
+    - name: Upload coverage profiles
+      if: ${{ always() }}
+      id: coverage
+      uses: actions/upload-artifact@v4
+      with:
+        name: "${{ inputs.artifact-prefix }}coverage"
+        path: ${{ github.workspace }}/artifacts/coverage/*.out
+        if-no-files-found: error
+    - name: Publish module summary
+      if: ${{ always() }}
+      shell: bash
+      env:
+        JUNIT_ARTIFACT_URL: ${{ steps.junit.outputs.artifact-url }}
+        COVERAGE_ARTIFACT_URL: ${{ steps.coverage.outputs.artifact-url }}
+      run: |
+        set -euo pipefail
+        cd "$GITHUB_WORKSPACE"
+        artifacts="$PWD/artifacts"
+        summary="$GITHUB_STEP_SUMMARY"
+        printf '## Go multimodules verification\n\n' >> "$summary"
+        if [[ ! -s "$artifacts/module-results.tsv" ]]; then
+          printf 'Module results were not produced; see the workflow log.\n\n' >> "$summary"
+        else
+          count="$(wc -l < "$artifacts/module-results.tsv")"
+          printf 'Modules checked: **%s**\n\n' "$count" >> "$summary"
+          printf '| Module | Generate | Lint | Tests | Coverage | JUnit XML | Coverage profile |\n' >> "$summary"
+          printf '| --- | --- | --- | --- | --- | --- | --- |\n' >> "$summary"
+          while IFS=$'\t' read -r module generation lint test coverage junit_name profile_name; do
+            junit_report='not generated'
+            profile_report='not generated'
+            if [[ -f "$artifacts/junit/$junit_name" ]]; then
+              junit_report="$junit_name (upload unavailable)"
+              if [[ -n "$JUNIT_ARTIFACT_URL" ]]; then junit_report="[$junit_name]($JUNIT_ARTIFACT_URL)"; fi
+            fi
+            if [[ -f "$artifacts/coverage/$profile_name" ]]; then
+              profile_report="$profile_name (upload unavailable)"
+              if [[ -n "$COVERAGE_ARTIFACT_URL" ]]; then profile_report="[$profile_name]($COVERAGE_ARTIFACT_URL)"; fi
+            fi
+            printf '| `%s` | %s | %s | %s | %s | %s | %s |\n' "$module" "$generation" "$lint" "$test" "$coverage" "$junit_report" "$profile_report" >> "$summary"
+          done < "$artifacts/module-results.tsv"
+        fi
+    - name: Publish combined coverage summary
+      if: ${{ always() }}
+      shell: bash
+      env:
+        COVERAGE_ARTIFACT_URL: ${{ steps.coverage.outputs.artifact-url }}
+      run: |
+        set -euo pipefail
+        cd "$GITHUB_WORKSPACE"
+        artifacts="$PWD/artifacts"
+        summary="$GITHUB_STEP_SUMMARY"
+        if [[ -s "$artifacts/module-results.tsv" ]]; then
+          printf '\n### Combined coverage\n\n' >> "$summary"
+          total='coverage unavailable'
+          if [[ -f "$artifacts/combined-coverage.txt" ]]; then total="$(cat "$artifacts/combined-coverage.txt")"; fi
+          if [[ -n "$COVERAGE_ARTIFACT_URL" ]]; then
+            printf -- '- %s - [combined.out and per-module profiles](%s)\n' "$total" "$COVERAGE_ARTIFACT_URL" >> "$summary"
+          else
+            printf -- '- %s - coverage artifact upload unavailable\n' "$total" >> "$summary"
+          fi
+        fi
+    - name: Publish artifact links
+      if: ${{ always() }}
+      shell: bash
+      env:
+        JUNIT_ARTIFACT_URL: ${{ steps.junit.outputs.artifact-url }}
+        COVERAGE_ARTIFACT_URL: ${{ steps.coverage.outputs.artifact-url }}
+      run: |
+        summary="$GITHUB_STEP_SUMMARY"
+        printf '\n' >> "$summary"
+        if [[ -n "$JUNIT_ARTIFACT_URL" ]]; then printf '[Download per-module JUnit XML reports and the combined JSON report](%s)\n' "$JUNIT_ARTIFACT_URL" >> "$summary"; fi
+        if [[ -n "$COVERAGE_ARTIFACT_URL" ]]; then printf '[Download per-module and combined coverage](%s)\n' "$COVERAGE_ARTIFACT_URL" >> "$summary"; fi
+        printf '\n[Open the complete workflow run](https://github.com/%s/actions/runs/%s)\n' "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" >> "$summary"
+    - name: Report verification status
+      if: ${{ always() }}
+      shell: bash
+      env:
+        PREPARE_OUTCOME: ${{ steps.prepare.outcome }}
+        TEST_OUTCOME: ${{ steps.tests.outcome }}
+        MEASURE_OUTCOME: ${{ steps.measure.outcome }}
+        COVERAGE_OUTCOME: ${{ steps.merge.outcome }}
+      run: |
+        if [[ "$PREPARE_OUTCOME" != success || "$TEST_OUTCOME" != success || "$MEASURE_OUTCOME" != success || "$COVERAGE_OUTCOME" != success ]]; then
+          exit 1
+        fi

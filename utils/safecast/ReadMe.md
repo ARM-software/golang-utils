@@ -18,6 +18,3 @@ It should help tackling gosec [G115 rule](https://github.com/securego/gosec/pull
 
 Contrary to `go-safecast` no error is returned when attempting casting and the MAX or MIN value of the type is returned instead if the value is beyond the allowed window.
 For instance, `toInt8(255)-> 127` and `toInt8(-255)-> -128`
-
-
-

@@ -4,7 +4,7 @@ SPDX-License-Identifier: Apache-2.0
 -->
 # Golang utilities
 
-[![Go Badge](https://img.shields.io/badge/go-v1.25-blue)](https://golang.org/)
+[![Go Badge](https://img.shields.io/badge/go-v1.26-blue)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CI](https://github.com/ARM-software/golang-utils/actions/workflows/ci.yml/badge.svg)](https://github.com/ARM-software/golang-utils/actions/workflows/ci.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/ARM-software/golang-utils/utils.svg)](https://pkg.go.dev/github.com/ARM-software/golang-utils/utils)
@@ -24,14 +24,32 @@ Few helpers may be themselves leveraging 3rd party libraries.
 
 ## Using this library
 
-To use this library, add the following line to your `go.mod`:
+Each top-level consumable package under `utils/` is now its own Go module.
 
-```go
-require (
-    github.com/ARM-software/golang-utils/utils latest
-    ...
-)
+Use the narrowest module that matches the package you import. For example:
+
+```bash
+go get github.com/ARM-software/golang-utils/utils/collection@latest
+go get github.com/ARM-software/golang-utils/utils/http@latest
+go get github.com/ARM-software/golang-utils/utils/serialisation@latest
+go get github.com/ARM-software/golang-utils/utils/validation@latest
 ```
+
+> **Compatibility note:** The `github.com/ARM-software/golang-utils/utils`
+> module remains a lightweight umbrella for compatibility and tooling. New
+> consumers should depend on an individual submodule. The first submodule tags
+> will be published by the next [CDS](https://github.com/ARMmbed/continuous-delivery-scripts)
+> project release; `v1.170.7` and earlier contain only the original umbrella module.
+>
+> If a project still requires a pre-split umbrella version such as
+> `github.com/ARM-software/golang-utils/utils v1.170.7`, upgrade that
+> requirement to the first split-aware umbrella release before adding an
+> individual module such as
+> `github.com/ARM-software/golang-utils/utils/collection`. Mixing a pre-split
+> umbrella version with a split module causes Go to fail with an `ambiguous
+> import` error because both modules appear to provide the same package path.
+
+See the [Go modules guide](guides/go-modules.md) for consumer and developer guidance.
 
 ## Releases
 
@@ -41,10 +59,11 @@ For release notes and a history of changes of all **production** releases, pleas
 
 ## Project Structure
 
-The follow described the major aspects of the project structure:
+The following describes the major aspects of the project structure:
 
 - `docs/` - Code reference documentation.
-- `utils/` - Go project source files.
+- `go.work` - Repository-wide Go workspace definition.
+- `utils/` - Umbrella module plus the repository's Go submodules.
 - `changes/` - Collection of news files for unreleased changes.
 
 ## Getting Help

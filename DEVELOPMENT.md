@@ -6,24 +6,44 @@ SPDX-License-Identifier: Apache-2.0
 ## Local Development
  
 Since this is a Go library, there is no application to run.
+
+The repository root `go.work` defines the workspace. The `utils/` directory contains the umbrella module plus the individual submodules.
+
+Detailed multi-module guidance lives in the [Go modules guide](guides/go-modules.md).
  
 ### Running tests
 
-To run all tests:
+To run all checks across every module from the repository root:
+
 ```bash
-go test ./...
+go work sync
+go work edit -json |
+  sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p' |
+  while IFS= read -r module; do
+    (cd "$module" && go generate -tags integration ./... && golangci-lint run --build-tags integration ./... && go test -tags integration ./...)
+  done
 ```
+
+CI's `go-multimodules` action writes per-module JUnit XML and coverage to
+`artifacts/`, then publishes parsed JUnit results in the workflow summary. To
+run checks for one module, run the Go commands from its directory with
+`GOWORK=off`.
 
 ### Mocks
 
-We use the built-in mock library and use [mockgen](https://github.com/golang/mock#running-mockgen) to generate the mock implementation of Interfaces for testing.
+We use [go.uber.org/mock/mockgen](https://github.com/uber-go/mock) to generate
+mock implementations of interfaces. Each module declares only the generators
+it needs in its `go.mod` `tool` block; `go:generate` runs them via `go tool`.
 
 To generate mocks:
 ```bash
-go generate ./...
+for module in $(go work edit -json | sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p'); do
+  (cd "$module" && go generate -tags integration ./...)
+done
 ```
 
-We make use of `go:generate` comments to instruct which `mockgen` commands should be run.
+We use `go:generate` directives for `mockgen`, `enumer`, `easyjson`, and
+`ffjson` in the modules that need them.
  
 ### Coding style
  
@@ -35,9 +55,9 @@ It is up to the individual developer to ensure their change complies with this.
 Static analysis tools and linters are run as part of CI.
 They come from [golangci-lint](https://golangci-lint.run/). To run this locally:
 ```bash
-# Must be in a directory with a go.mod file
-cd <directory_with_go_module>
-golangci-lint run ./...
+for module in $(go work edit -json | sed -n 's/^[[:space:]]*"DiskPath": "\([^"]*\)".*$/\1/p'); do
+  (cd "$module" && golangci-lint run --build-tags integration ./...)
+done
 ``` 
 
 ### Precommit
@@ -48,6 +68,15 @@ Run `pre-commit install` to install pre-commit into your git hooks. pre-commit w
 If you want to manually run all pre-commit hooks on a repository without creating hooks, run `pre-commit run --all-files`. 
 
 To run individual hooks use `pre-commit run <hook_id>`.
+
+# Migrations
+
+This section covers what to do when a migration is needed. The goal of this
+library is to preserve backward compatibility and avoid breaking changes, so
+existing users should not have to migrate to keep their code working. See the
+[migration guides](guides/migrations/index.md) for specific transitions.
+For module splits or import-path changes, follow the
+[backward-compatible module refactoring guide](guides/migrations/refactoring-go-modules.md).
 
 # Dependency upgrades
 
@@ -78,10 +107,21 @@ The CI supports three release flows:
 1. Navigate to the [GitHub Actions](https://github.com/ARM-software/golang-utils/actions/workflows/release.yml) page.
 2. Select the **Run Workflow** button and type which kind of release you would like to make (i.e. release, beta or development).
 3. `cd-tag-and-release` regenerates `docs/` and writes the release-time TPIP output as part of the release flow.
+4. [CDS](https://github.com/ARMmbed/continuous-delivery-scripts) remains the single release mechanism for the whole repository even though the repository now contains multiple modules.
+5. Internal module `require` directives are versioned for [CDS](https://github.com/ARMmbed/continuous-delivery-scripts) release preparation, while local `replace` directives keep unreleased sibling modules consumable with `GOWORK=off`.
 
 ### Version Numbers
 
 The version number will be automatically calculated, based on the news files.
+
+### Adding a module
+
+When adding a new module, also update:
+
+1. `go.work`
+2. `.github/dependabot.yml`
+3. Any module-level `go:generate` tool declarations
+4. Documentation in [guides/go-modules.md](guides/go-modules.md)
 
 ## Third-party IP checks
 
@@ -89,11 +129,14 @@ Pull requests now run `cd-check-licence-compliance` in CI so TPIP issues are cau
 
 # Detecting secrets
 
-So that no secrets are committed back to the repository, a combination of two tools are run in CI:
-- [GitLeaks]() : Scans the git history for usual secrets (e.g. AWS keys, etc.)
-- [detect-secrets](https://github.com/Yelp/detect-secrets): Scans only the current state of the repository for anything which can look like secrets (strings with high entropy)
+CI calls [CDS](https://github.com/ARMmbed/continuous-delivery-scripts)'s
+`cd-detect-secrets`, which checks tracked files with
+[detect-secrets](https://github.com/Yelp/detect-secrets) against the project's
+recorded baseline. Run `cd-detect-secrets` locally after installing CDS to
+perform the same check.
 
-For the latter, False positive keys are stored in the [baseline](./.secrets.baseline) which `detect-secrets` checks against when it runs
+False positives are recorded in the [baseline](./.secrets.baseline), which
+`detect-secrets` checks when it runs.
 
 ## Baseline & False positives
 

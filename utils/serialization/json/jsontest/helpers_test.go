@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	jsonserialization "github.com/ARM-software/golang-utils/utils/serialization/json" //nolint:misspell
+	jsonserialization "github.com/ARM-software/golang-utils/utils/serialization/json" //nolint:misspell,staticcheck // Verify the legacy API.
 	"github.com/ARM-software/golang-utils/utils/serialization/json/jsontest/easyjson" //nolint:misspell
 	"github.com/ARM-software/golang-utils/utils/serialization/json/jsontest/ffjson"   //nolint:misspell
 	"github.com/ARM-software/golang-utils/utils/serialization/json/jsontest/nofast"   //nolint:misspell

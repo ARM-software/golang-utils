@@ -8,31 +8,26 @@ on:
   pull_request:
     branches: [ master ]
 
-# Set environment variables available in all jobs and steps
 env:
-  go_version: "1.25"
-  go_cache_macOS_path: |
-    ~/Library/Caches/go-build
-  go_cache_windows_path: |
-    %LocalAppData%\go-build
-  go_cache_ubuntu_path: |
-    ~/.cache/go-build  
+  go_version: "1.26.1"
+  python_version: '3.11'
+
 jobs:
- # Check that a news file has been added to this branch when a PR is created
   assert-news:
     name: Assert news files (See CONTRIBUTING.md)
     runs-on: ubuntu-latest
     steps:
-      # Checkout with full history for to allow compare with base branch
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.python_version }}
       - uses: FranzDiebold/github-env-vars-action@v2
       - name: Install CI/CD tools
         run: python -m pip install --upgrade continuous-delivery-scripts && pip list
       - name: Assert news
-        run: cd-assert-news -b ${CI_ACTION_REF_NAME}
+        run: cd-assert-news -b "${CI_ACTION_REF_NAME}"
         env:
           GIT_TOKEN: ${{ secrets.ARM_SOFTWARE_TOKEN }}
       - name: Report failure if needed
@@ -52,12 +47,19 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version: ${{ env.go_version }}
+          cache: true
+          cache-dependency-path: '**/go.sum'
       - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.python_version }}
       - name: Install CI/CD tools
         run: python -m pip install --upgrade continuous-delivery-scripts && pip list
-      - name: Download Go dependencies
-        run: go mod download
-        working-directory: utils
+      - name: Sync workspace
+        uses: $/actions/sync-go-workspace
+      - name: Download Go dependencies for every module
+        uses: $/actions/go-multimodules
+        with:
+          task: download
       - name: Check third-party IP
         run: cd-check-licence-compliance
 
@@ -65,26 +67,54 @@ jobs:
     name: Check for secrets
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/setup-python@v7
-    - name: Install tools
-      run: pip install detect-secrets[gibberish]==1.5.0 && pip list
-    - uses: actions/checkout@v7
-      with:
-        fetch-depth: 0
-    # FIXME; GitLeaks now requires a licence.
-    #- name: Check for secrets using gitleaks
-    #  uses: zricethezav/gitleaks-action@master
-    #  with:
-    #    config-path: .gitleaks.toml
-    - name: Check for secrets using detect-secrets
-      run: git ls-files -z | xargs -0 detect-secrets-hook --baseline .secrets.baseline --exclude-files '.*go\.sum$' --exclude-files '.*\.html$' --exclude-files '.*\.properties$' --exclude-files 'ci.yml'
-      working-directory: .
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.python_version }}
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Install CI/CD tools
+        run: python -m pip install --upgrade 'continuous-delivery-scripts>=4.8.0' && pip list
+      - name: Check for secrets with CDS
+        run: cd-detect-secrets
 
-  build-and-test:
+  verify-go-modules:
+    name: Generate, lint, test, and cover Go modules
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: ${{ env.go_version }}
+          cache: true
+          cache-dependency-path: '**/go.sum'
+      - name: Sync workspace
+        uses: $/actions/sync-go-workspace
+      - name: Set up golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: latest
+          install-only: true
+      - name: Set up gotestsum
+        uses: $/actions/setup-gotestsum
+        with:
+          version: v1.13.0
+      - name: Run generate, lint, tests, and coverage
+        uses: $/actions/go-multimodules
+        with:
+          task: verify
+          build-tags: integration
+
+  build-all-modules:
+    name: Build all modules
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
-        go-module: [utils]
         multi-platform:
           - ${{ github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch' }}
         exclude:
@@ -92,7 +122,6 @@ jobs:
             multi-platform: false
           - os: windows-latest
             multi-platform: false
-    name: Build and test
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -100,39 +129,12 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version: ${{ env.go_version }}
-
-      - if: ${{ startsWith(matrix.os, 'macOS') }}
-        run: echo "CACHE_PATH=${{ env.go_cache_macOS_path }}" >> $GITHUB_ENV
-      - if: ${{ startsWith(matrix.os, 'windows') }}
-        run: echo "CACHE_PATH=${{ env.go_cache_windows_path }}" >> $GITHUB_ENV
-      - if: ${{ startsWith(matrix.os, 'ubuntu') }}
-        run: echo "CACHE_PATH=${{ env.go_cache_ubuntu_path }}" >> $GITHUB_ENV
-      - name: Load Go Dependency Cache
-        uses: actions/cache@v6
+          cache: true
+          cache-dependency-path: '**/go.sum'
+      - name: Sync workspace
+        uses: $/actions/sync-go-workspace
+      - name: Build modules on ${{ matrix.os }}
+        uses: $/actions/go-multimodules
         with:
-          path: |
-            ${{ env.CACHE_PATH }}
-            ~/go/pkg/mod
-          key: ${{ matrix.os }}-${{ matrix.go-module }}-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ matrix.os }}-${{ matrix.go-module }}-
-      - if: ${{ startsWith(matrix.os, 'ubuntu') }}
-        name: Linting
-        uses: golangci/golangci-lint-action@v9
-        with:
-          version: latest
-          working-directory: ${{ matrix.go-module }}
-          args: "--verbose --output.text.print-issued-lines --output.text.print-linter-name --output.tab.colors --max-issues-per-linter 0 --max-same-issues 0"
-      - name: Build ${{ matrix.go-module }} on ${{ matrix.os }}
-        run: go build -v ./...
-        working-directory: ${{ matrix.go-module }}
-
-      - if: ${{ startsWith(matrix.os, 'ubuntu') }}
-        name: Test [${{ matrix.go-module }} on ${{ matrix.os }}]
-        run: go test -race -cover -v -tags integration -timeout 30m -coverprofile ${{ matrix.go-module }}_coverage.out ./...
-        working-directory: ${{ matrix.go-module }}
-
-# FIXME: Run tests on Mac and Windows
-#      - if: ${{ startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'macOS') }}
-#        run: go test -race -cover -v ./...
-#        working-directory: ${{ matrix.go-module }}
+          task: build
+          build-tags: integration

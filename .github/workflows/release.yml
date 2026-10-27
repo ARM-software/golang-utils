@@ -10,6 +10,7 @@ on:
         description:
           "Enter type of release to perform (i.e. development, beta, release):"
         required: true
+
 jobs:
   release:
     name: Carry out a release
@@ -17,18 +18,19 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          # Get the full history as this is required by goreleaser
           fetch-depth: 0
       - name: Set up Go
         uses: actions/setup-go@v7
         with:
           go-version: ${{ env.go_version }}
+          cache: true
+          cache-dependency-path: '**/go.sum'
       - uses: actions/setup-python@v7
         with:
-          python-version: '3.11' 
+          python-version: '3.11'
       - uses: FranzDiebold/github-env-vars-action@v2
       - name: Install CI/CD tools
-        run: python -m pip install --upgrade continuous-delivery-scripts && pip list
+        run: python -m pip install --upgrade 'continuous-delivery-scripts>=4.8.0' && pip list
       - name: Install goreleaser
         uses: goreleaser/goreleaser-action@v7
         with:
@@ -37,11 +39,13 @@ jobs:
           version: latest
       - name: Install Syft
         uses: anchore/sbom-action/download-syft@v0
-      - name: Download Go dependencies
-        run: go mod download
-        working-directory: utils
+      - name: Sync workspace
+        uses: $/actions/sync-go-workspace
+      - name: Download Go dependencies for every module
+        uses: $/actions/go-multimodules
+        with:
+          task: download
       - name: Tag and release
-        run: cd-tag-and-release -b ${CI_ACTION_REF_NAME} -t ${{ github.event.inputs.release_type }} -vv
+        run: cd-tag-and-release -b "${CI_ACTION_REF_NAME}" -t ${{ github.event.inputs.release_type }} -vv
         env:
-          # Using a specific token because GITHUB_TOKEN is not available https://github.com/marketplace/actions/workflow-dispatch#token
           GIT_TOKEN: ${{ secrets.ARM_SOFTWARE_TOKEN }}
