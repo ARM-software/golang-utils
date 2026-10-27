@@ -11,17 +11,17 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/encoding v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/field v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/keyring v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/logs/logrimp v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/maps v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/parallelisation v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/ptr v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/serialisation v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/url v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/validation v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/value v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/encoding v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/field v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/keyring v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/logs/logrimp v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/maps v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/parallelisation v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/serialisation v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/url v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/validation v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/value v1.171.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/bombsimon/logrusr/v4 v4.2.0 // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
@@ -66,13 +66,13 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.171.0
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.0
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.0
-	github.com/ARM-software/golang-utils/utils/config v1.171.0
-	github.com/ARM-software/golang-utils/utils/logs/logstest v1.171.0
-	github.com/ARM-software/golang-utils/utils/reflection v1.171.0
-	github.com/ARM-software/golang-utils/utils/safecast v1.171.0
+	github.com/ARM-software/golang-utils/utils/collection v1.171.1
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.1
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.1
+	github.com/ARM-software/golang-utils/utils/config v1.171.1
+	github.com/ARM-software/golang-utils/utils/logs/logstest v1.171.1
+	github.com/ARM-software/golang-utils/utils/reflection v1.171.1
+	github.com/ARM-software/golang-utils/utils/safecast v1.171.1
 )
 
 replace github.com/ARM-software/golang-utils/utils/collection => ../collection

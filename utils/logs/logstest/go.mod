@@ -23,8 +23,8 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.0
-	github.com/ARM-software/golang-utils/utils/logs/logrimp v1.171.0
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.1
+	github.com/ARM-software/golang-utils/utils/logs/logrimp v1.171.1
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
 )

@@ -3,19 +3,19 @@ module github.com/ARM-software/golang-utils/utils/keyring
 go 1.26.0
 
 require (
-	github.com/ARM-software/golang-utils/utils/serialisation v1.171.0
+	github.com/ARM-software/golang-utils/utils/serialisation v1.171.1
 	github.com/go-faker/faker/v4 v4.12.0
 	github.com/stretchr/testify v1.12.1
 	github.com/zalando/go-keyring v0.2.8
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/field v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/maps v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/ptr v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/safecast v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/value v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/collection v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/field v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/maps v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/safecast v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/value v1.171.1 // indirect
 	github.com/deckarep/golang-set/v2 v2.9.0 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
@@ -29,10 +29,10 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.0
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.0
-	github.com/ARM-software/golang-utils/utils/parallelisation v1.171.0
-	github.com/ARM-software/golang-utils/utils/reflection v1.171.0
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.1
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.1
+	github.com/ARM-software/golang-utils/utils/parallelisation v1.171.1
+	github.com/ARM-software/golang-utils/utils/reflection v1.171.1
 	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	golang.org/x/sys v0.49.0 // indirect

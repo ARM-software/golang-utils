@@ -9,10 +9,10 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/field v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/ptr v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/safecast v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/value v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/field v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/safecast v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/value v1.171.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/deckarep/golang-set/v2 v2.9.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
@@ -23,10 +23,10 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.171.0
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.0
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.0
-	github.com/ARM-software/golang-utils/utils/reflection v1.171.0
+	github.com/ARM-software/golang-utils/utils/collection v1.171.1
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.1
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.1
+	github.com/ARM-software/golang-utils/utils/reflection v1.171.1
 )
 
 replace github.com/ARM-software/golang-utils/utils/collection => ../collection

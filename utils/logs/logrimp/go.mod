@@ -5,7 +5,7 @@ go 1.26.0
 replace github.com/ARM-software/golang-utils/utils => ../../
 
 require (
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.0
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.1
 	github.com/bombsimon/logrusr/v4 v4.2.0
 	github.com/evanphx/hclogr v0.2.0
 	github.com/go-faker/faker/v4 v4.12.0

@@ -3,7 +3,7 @@ module github.com/ARM-software/golang-utils/utils/validation
 go 1.26.0
 
 require (
-	github.com/ARM-software/golang-utils/utils/serialisation v1.171.0
+	github.com/ARM-software/golang-utils/utils/serialisation v1.171.1
 	github.com/deckarep/golang-set/v2 v2.9.0
 	github.com/go-faker/faker/v4 v4.12.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.4.1
@@ -13,15 +13,15 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/charset v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/hashing v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/keyring v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/maps v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/platform v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/proc v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/resource v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/safeio v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/strings v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/charset v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/hashing v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/keyring v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/maps v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/platform v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/proc v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/resource v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/safeio v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/strings v1.171.1 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/avast/retry-go/v4 v4.7.0 // indirect
 	github.com/bmatcuk/doublestar/v3 v3.0.0 // indirect
@@ -77,22 +77,22 @@ require (
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.171.0
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.0
-	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.0
-	github.com/ARM-software/golang-utils/utils/config v1.171.0
-	github.com/ARM-software/golang-utils/utils/encoding v1.171.0
-	github.com/ARM-software/golang-utils/utils/field v1.171.0
-	github.com/ARM-software/golang-utils/utils/filesystem v1.171.0
-	github.com/ARM-software/golang-utils/utils/parallelisation v1.171.0
-	github.com/ARM-software/golang-utils/utils/ptr v1.171.0
-	github.com/ARM-software/golang-utils/utils/reflection v1.171.0
-	github.com/ARM-software/golang-utils/utils/safecast v1.171.0
-	github.com/ARM-software/golang-utils/utils/subprocess/command v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/units/multiplication v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/units/size v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/url v1.171.0
-	github.com/ARM-software/golang-utils/utils/value v1.171.0
+	github.com/ARM-software/golang-utils/utils/collection v1.171.1
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.1
+	github.com/ARM-software/golang-utils/utils/commonerrors/errortest v1.171.1
+	github.com/ARM-software/golang-utils/utils/config v1.171.1
+	github.com/ARM-software/golang-utils/utils/encoding v1.171.1
+	github.com/ARM-software/golang-utils/utils/field v1.171.1
+	github.com/ARM-software/golang-utils/utils/filesystem v1.171.1
+	github.com/ARM-software/golang-utils/utils/parallelisation v1.171.1
+	github.com/ARM-software/golang-utils/utils/ptr v1.171.1
+	github.com/ARM-software/golang-utils/utils/reflection v1.171.1
+	github.com/ARM-software/golang-utils/utils/safecast v1.171.1
+	github.com/ARM-software/golang-utils/utils/subprocess/command v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/units/multiplication v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/units/size v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/url v1.171.1
+	github.com/ARM-software/golang-utils/utils/value v1.171.1
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	golang.org/x/mod v0.41.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect

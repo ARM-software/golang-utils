@@ -3,48 +3,48 @@ module github.com/ARM-software/golang-utils/utils/mocks
 go 1.26.0
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.171.0
-	github.com/ARM-software/golang-utils/utils/environment v1.171.0
-	github.com/ARM-software/golang-utils/utils/filesystem v1.171.0
-	github.com/ARM-software/golang-utils/utils/logs v1.171.0
-	github.com/ARM-software/golang-utils/utils/parallelisation v1.171.0
-	github.com/ARM-software/golang-utils/utils/proc v1.171.0
-	github.com/ARM-software/golang-utils/utils/serialisation v1.171.0
-	github.com/ARM-software/golang-utils/utils/serialization v1.171.0
-	github.com/ARM-software/golang-utils/utils/transaction v1.171.0
+	github.com/ARM-software/golang-utils/utils/collection v1.171.1
+	github.com/ARM-software/golang-utils/utils/environment v1.171.1
+	github.com/ARM-software/golang-utils/utils/filesystem v1.171.1
+	github.com/ARM-software/golang-utils/utils/logs v1.171.1
+	github.com/ARM-software/golang-utils/utils/parallelisation v1.171.1
+	github.com/ARM-software/golang-utils/utils/proc v1.171.1
+	github.com/ARM-software/golang-utils/utils/serialisation v1.171.1
+	github.com/ARM-software/golang-utils/utils/serialization v1.171.1
+	github.com/ARM-software/golang-utils/utils/transaction v1.171.1
 	github.com/bmatcuk/doublestar/v3 v3.0.0
 	github.com/go-logr/logr v1.4.4
 	go.uber.org/mock v0.6.0
 )
 
 require (
-	github.com/ARM-software/golang-utils/utils/charset v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/config v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/diodes v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/encoding v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/field v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/hashing v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/http/headers v1.171.0
-	github.com/ARM-software/golang-utils/utils/http/schemes v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/idgen v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/keyring v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/logs/annotations v1.171.0
-	github.com/ARM-software/golang-utils/utils/logs/logrimp v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/maps v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/platform v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/ptr v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/reflection v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/resource v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/safecast v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/safeio v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/strings v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/subprocess/command v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/units/multiplication v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/units/size v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/url v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/validation v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/value v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/charset v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/config v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/diodes v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/encoding v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/field v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/hashing v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/http/headers v1.171.1
+	github.com/ARM-software/golang-utils/utils/http/schemes v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/idgen v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/keyring v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/logs/annotations v1.171.1
+	github.com/ARM-software/golang-utils/utils/logs/logrimp v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/maps v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/platform v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/reflection v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/resource v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/safecast v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/safeio v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/strings v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/subprocess/command v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/units/multiplication v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/units/size v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/url v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/validation v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/value v1.171.1 // indirect
 	github.com/DeRuina/timberjack v1.4.5 // indirect
 	github.com/OneOfOne/xxhash v1.2.8 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect

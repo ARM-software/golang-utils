@@ -5,13 +5,13 @@ go 1.26.0
 require github.com/stretchr/testify v1.12.1
 
 require (
-	github.com/ARM-software/golang-utils/utils/collection v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/field v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/ptr v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/reflection v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/safecast v1.171.0 // indirect
-	github.com/ARM-software/golang-utils/utils/value v1.171.0 // indirect
+	github.com/ARM-software/golang-utils/utils/collection v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/commonerrors v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/field v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/ptr v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/reflection v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/safecast v1.171.1 // indirect
+	github.com/ARM-software/golang-utils/utils/value v1.171.1 // indirect
 	github.com/deckarep/golang-set/v2 v2.9.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -23,7 +23,7 @@ require (
 	golang.org/x/sync v0.24.0 // indirect
 )
 
-require github.com/ARM-software/golang-utils/utils/parallelisation v1.171.0
+require github.com/ARM-software/golang-utils/utils/parallelisation v1.171.1
 
 replace github.com/ARM-software/golang-utils/utils/parallelisation => ../../parallelisation
 

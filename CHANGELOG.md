@@ -14,6 +14,20 @@ beta releases are not included in this history.
 
 [//]: # (begin_release_notes)
 
+# 1.171.1 (2026-10-27)
+
+## Bugfixes
+
+- Dependency upgrade: mongo-driver-1.17.7 (#20261027140527843259182)
+- Dependency upgrade: v4-4.4.1 (#20261027142148622768483)
+- Dependency upgrade: codeql-action-4.39.1 (#20261027142231746971671)
+- Dependency upgrade: v5-5.19.2 (#20261027143621639979363)
+
+## Improved Documentation
+
+- :book: `[docs]` Configure the published documentation site URL explicitly so CDS generates `robots.txt`, `sitemap.xml`, and `llms*.txt` consistently during releases. (#202610271715)
+
+
 # 1.171.0 (2026-10-27)
 
 ## Features
